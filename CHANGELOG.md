@@ -1,8 +1,20 @@
 # Training Monitor System — Changelog
 
+## v1.0.49 — 2026-06-08
+
+Nuovo export Report digitale (HTML per smartphone) con i video incorporati, accanto al PDF
+
+## v1.0.48 — 2026-06-08
+
+Video tutorial per esercizio (box ▶ in catalogo e scheda, player integrato)
+
+## v1.0.47 — 2026-06-08
+
+Guida rapida: il link Completa apre la Guida completa
+
 ## v1.0.46 — 2026-06-08
 
-Pulizia di alcuni commenti interni del sorgente (riferimenti ad altri progetti)
+Pulizia commenti interni del sorgente
 
 ## v1.0.45 — 2026-06-08
 
@@ -27,15 +39,3 @@ Stampa Report: impaginazione A4 custom in iframe (anti-taglio)
 ## v1.0.40 — 2026-06-08
 
 Stampa Report con impaginazione nativa del browser
-
-## v1.0.39 — 2026-06-08
-
-Rimossi i riferimenti residui al vecchio tema/branding; chiavi storage rinominate con migrazione
-
-## v1.0.38 — 2026-06-08
-
-Changelog con storico delle ultime versioni nel pacchetto
-
-## v1.0.37 — 2026-06-08
-
-Pacchetto condivisione: un unico <versione>.zip con i file ai nomi fissi (da sovrascrivere su GitHub)
