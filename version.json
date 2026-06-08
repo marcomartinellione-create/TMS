@@ -1,5 +1,5 @@
 {
-  "version": "1.0.37",
-  "nota": "Pacchetto condivisione: un unico file <versione>.zip con dentro i file ai nomi fissi da sovrascrivere su GitHub",
+  "version": "1.0.39",
+  "nota": "Rimossi i riferimenti residui al vecchio tema/branding; chiavi di storage rinominate con migrazione automatica dei dati",
   "url": "https://github.com/marcomartinellione-create/TMS/blob/main/Training%20Monitor%20System.html"
 }
