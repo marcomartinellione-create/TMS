@@ -2,7 +2,7 @@
 
 > Diario di allenamento e nutrizione in un **singolo file HTML**, offline e locale. Tema *Elden Ring* (pergamena/ember), stile da manuale tecnico. — *by Wander*
 
-![versione](https://img.shields.io/badge/versione-1.0.30-c2500a) ![offline](https://img.shields.io/badge/100%25-offline-2f7d4f) ![nessun%20cloud](https://img.shields.io/badge/dati-solo%20in%20locale-7a3ea8)
+![versione](https://img.shields.io/badge/versione-1.0.32-c2500a) ![offline](https://img.shields.io/badge/100%25-offline-2f7d4f) ![nessun%20cloud](https://img.shields.io/badge/dati-solo%20in%20locale-7a3ea8)
 
 TMS è uno strumento amatoriale e gratuito per monitorare allenamento, progressi e alimentazione. È un unico file `.html`: nessuna installazione, nessun account, nessun server. I tuoi dati restano **sul tuo computer**, in una cartella che scegli tu.
 
@@ -32,13 +32,14 @@ Per salvare i dati su cartella serve un browser con **File System Access API**:
 
 ## ▸ Installazione e uso
 
-1. Scarica **`Training Monitor System.html`** da questo repository (pulsante *Code → Download*, oppure apri il file e *Download raw*).
-2. Mettilo in una cartella sul tuo PC chiamata **`TMS`**.
-3. Aprilo con doppio clic (Chrome/Edge/Obsidian).
-4. Premi **Connetti la cartella** e scegli proprio la cartella `TMS`: l'app crea al suo interno `TMS_Dati/` con i tuoi file JSON. In alternativa, *Continua in locale* (i dati restano nel browser).
-5. Dalle volte successive si **riconnette da sola**.
+**Prima installazione** — scarica **[`TMS.zip`](TMS.zip)** (pacchetto completo: app + profilo d'esempio + documentazione):
 
-> Per **aggiornare** basta sostituire il file `.html` con la versione nuova: i dati nella cartella restano e vengono migrati in automatico.
+1. Estrai lo ZIP in una cartella sul tuo PC chiamata **`TMS`**.
+2. Apri `Training Monitor System.html` con doppio clic (Chrome/Edge/Obsidian).
+3. Premi **Connetti la cartella** e scegli proprio la cartella `TMS`: l'app vi crea dentro `TMS_Dati/`. In alternativa *Continua in locale* (i dati restano nel browser).
+4. Dalle volte successive si **riconnette da sola**.
+
+**Aggiornare** una versione che hai già — scarica solo **[`Training Monitor System.html`](Training%20Monitor%20System.html)** e sostituisci il file esistente: i dati nella cartella restano e vengono migrati in automatico. L'app ti avvisa con un banner quando esce una versione nuova.
 
 ---
 
@@ -50,8 +51,8 @@ Il file `version.json`:
 
 ```json
 {
-  "version": "1.0.30",
-  "nota": "Aggiornamenti automatici attivi + calendario settimanale + fasi alimentari",
+  "version": "1.0.32",
+  "nota": "TMS.zip per la prima installazione, HTML per gli aggiornamenti",
   "url": "https://github.com/marcomartinellione-create/TMS/blob/main/Training%20Monitor%20System.html"
 }
 ```
@@ -82,8 +83,4 @@ Progetto **amatoriale**, creato per uso personale e condiviso gratuitamente da u
 
 ## 📜 Licenza e crediti
 
-Progetto aperto e gratuito: libero di usarlo, condividerlo e personalizzarlo. Si chiede solo di **mantenere i crediti** e di **non venderlo** a scopo di lucro.
-
-*« Train hard, share knowledge. »* 💪 — **by Wander**
-
-Codice sviluppato con l'assistenza di **Claude** (Anthropic).
+Progetto aperto e gratuito: libero di usarlo, condividerlo e personalizzarlo. Si chiede solo di **mantenere i crediti** e di **non venderlo** a scopo di

@@ -365,7 +365,7 @@ table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
   <section class="panel" id="panel-report"></section>
   <section class="panel" id="panel-guida"></section>
   <section class="panel is-active" id="panel-dev"></section>
-  <div class="footer">Training Monitor System · Erdtree Edition — by Wander · <span class="mono" id="app-ver" title="versione">v1.0.30</span> · dati locali, nessun cloud · <span id="dot-storico" style="color: var(--danger-b);" title="Storico da aggiornare — manca la settimana 202623">●</span> <a href="#" id="lnk-storico" style="color:var(--ink-3);text-decoration:underline">Storico</a> · <span id="dot-misure" style="color: var(--danger-b);" title="Misure da aggiornare — manca la settimana 202623">●</span> <a href="#" id="lnk-misure" style="color:var(--ink-3);text-decoration:underline">Misure</a> · «Rise, Tarnished»</div>
+  <div class="footer">Training Monitor System · Erdtree Edition — by Wander · <span class="mono" id="app-ver" title="versione">v1.0.32</span> · dati locali, nessun cloud · <span id="dot-storico" style="color: var(--danger-b);" title="Storico da aggiornare — manca la settimana 202623">●</span> <a href="#" id="lnk-storico" style="color:var(--ink-3);text-decoration:underline">Storico</a> · <span id="dot-misure" style="color: var(--danger-b);" title="Misure da aggiornare — manca la settimana 202623">●</span> <a href="#" id="lnk-misure" style="color:var(--ink-3);text-decoration:underline">Misure</a> · «Rise, Tarnished»</div>
 </div>
 
 <button class="btn btn--gold no-print" id="fab-guida" title="Apri la guida" style="position:fixed;right:18px;bottom:18px;z-index:35;box-shadow:0 4px 16px rgba(28,14,4,.28);border-radius:22px;padding:9px 16px">📕 Guida</button>
@@ -421,11 +421,11 @@ let DOC = {
 /* ════════════════ COSTANTI / LOOKUP ════════════════ */
 const GIORNI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core'];
-const APP_VERSION='1.0.30', APP_DATE='2026-06-08';
-const RELEASE_NOTE='Calendario settimanale, fasi alimentari (Bulk/Mantenimento/Cut), profilo a lista, banca dati svizzera'; /* nota proposta nel pacchetto -> banner aggiornamenti; aggiornala a ogni release */
+const APP_VERSION='1.0.32', APP_DATE='2026-06-08';
+const RELEASE_NOTE='TMS.zip per la prima installazione, HTML per gli aggiornamenti'; /* nota proposta nel pacchetto -> banner aggiornamenti; aggiornala a ogni release */
 const UPDATE_URL='https://raw.githubusercontent.com/marcomartinellione-create/TMS/refs/heads/main/version.json'; /* version.json su GitHub; vuoto = controllo disattivato */
 const REPO_DL_URL='https://github.com/marcomartinellione-create/TMS/blob/main/Training%20Monitor%20System.html'; /* pagina di download del file su GitHub (campo url del version.json) */
-const SHARE_HTML_NAME='Training Monitor System.html', SHARE_ZIP_NAME='TMS - condivisione.zip';
+const SHARE_HTML_NAME='Training Monitor System.html', SHARE_ZIP_NAME='TMS.zip';
 const SHARE_ENABLED=false; /* solo nel master; il pacchetto condiviso lo mette a false */
 const MAINLIFTS=[{label:'Squat',nome:'Squat bilanciere'},{label:'Stacco',nome:'Stacco da terra'},{label:'Panca',nome:'Panca piana bilanciere'},{label:'Military',nome:'Military press / Overhead press'},{label:'Trazioni',nome:'Trazioni alla sbarra'}];
 let ESBYNAME = {};
@@ -2020,13 +2020,14 @@ Per salvare i dati su cartella serve un browser con **File System Access API**:
 
 ## ▸ Installazione e uso
 
-1. Scarica **\`Training Monitor System.html\`** da questo repository (pulsante *Code → Download*, oppure apri il file e *Download raw*).
-2. Mettilo in una cartella sul tuo PC chiamata **\`TMS\`**.
-3. Aprilo con doppio clic (Chrome/Edge/Obsidian).
-4. Premi **Connetti la cartella** e scegli proprio la cartella \`TMS\`: l'app crea al suo interno \`TMS_Dati/\` con i tuoi file JSON. In alternativa, *Continua in locale* (i dati restano nel browser).
-5. Dalle volte successive si **riconnette da sola**.
+**Prima installazione** — scarica **[\`TMS.zip\`](TMS.zip)** (pacchetto completo: app + profilo d'esempio + documentazione):
 
-> Per **aggiornare** basta sostituire il file \`.html\` con la versione nuova: i dati nella cartella restano e vengono migrati in automatico.
+1. Estrai lo ZIP in una cartella sul tuo PC chiamata **\`TMS\`**.
+2. Apri \`Training Monitor System.html\` con doppio clic (Chrome/Edge/Obsidian).
+3. Premi **Connetti la cartella** e scegli proprio la cartella \`TMS\`: l'app vi crea dentro \`TMS_Dati/\`. In alternativa *Continua in locale* (i dati restano nel browser).
+4. Dalle volte successive si **riconnette da sola**.
+
+**Aggiornare** una versione che hai già — scarica solo **[\`Training Monitor System.html\`](Training%20Monitor%20System.html)** e sostituisci il file esistente: i dati nella cartella restano e vengono migrati in automatico. L'app ti avvisa con un banner quando esce una versione nuova.
 
 ---
 
@@ -2039,7 +2040,7 @@ Il file \`version.json\`:
 \`\`\`json
 {
   "version": "${APP_VERSION}",
-  "nota": "Aggiornamenti automatici attivi + calendario settimanale + fasi alimentari",
+  "nota": "TMS.zip per la prima installazione, HTML per gli aggiornamenti",
   "url": "https://github.com/marcomartinellione-create/TMS/blob/main/Training%20Monitor%20System.html"
 }
 \`\`\`
@@ -2070,12 +2071,7 @@ Progetto **amatoriale**, creato per uso personale e condiviso gratuitamente da u
 
 ## 📜 Licenza e crediti
 
-Progetto aperto e gratuito: libero di usarlo, condividerlo e personalizzarlo. Si chiede solo di **mantenere i crediti** e di **non venderlo** a scopo di lucro.
-
-*« Train hard, share knowledge. »* 💪 — **by Wander**
-
-Codice sviluppato con l'assistenza di **Claude** (Anthropic).
-`; }
+Progetto aperto e gratuito: libero di usarlo, condividerlo e personalizzarlo. Si chiede solo di **mantenere i crediti** e di **non venderlo** a scopo di`; }
 async function makeSharePackage(){
   try{
     const T=shareTemplate();
