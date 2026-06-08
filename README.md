@@ -1,6 +1,6 @@
 # Training Monitor System (TMS)
 
-> Diario di allenamento e nutrizione in un **singolo file HTML**, offline e locale. Tema *Elden Ring* (pergamena/ember), stile da manuale tecnico. — *by Wander*
+> Diario di allenamento e nutrizione in un **singolo file HTML**, offline e locale. 
 
 ![versione](https://img.shields.io/badge/versione-1.0.46-c2500a) ![offline](https://img.shields.io/badge/100%25-offline-2f7d4f) ![nessun%20cloud](https://img.shields.io/badge/dati-solo%20in%20locale-7a3ea8)
 
