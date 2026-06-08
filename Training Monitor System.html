@@ -301,14 +301,15 @@ svg .ln{fill:none; stroke-width:2}
   .panel{ display:none !important } #panel-report{ display:block !important }
   .rep-doc{ border:none !important; box-shadow:none !important; padding:0 !important; border-radius:0 !important; background:#fff !important }
   .rep-sec{ margin-bottom:6px }
+  p,li{ orphans:2; widows:2 }
   h1{ break-after:avoid; page-break-after:avoid }
   .sec{ break-after:avoid; page-break-after:avoid; break-inside:avoid; page-break-inside:avoid }
-  .cards{ break-inside:avoid; page-break-inside:avoid }
-  .card{ box-shadow:none }
+  .cards{ break-inside:auto; page-break-inside:auto }
+  .card{ box-shadow:none; break-inside:avoid; page-break-inside:avoid }
   /* grafici: impilati (no grid) e mai spezzati */
   .chart-grid{ display:block !important }
   .chart-box{ box-shadow:none; break-inside:avoid; page-break-inside:avoid; margin:0 0 8px; width:auto !important }
-  .chart-box svg{ width:100%; height:auto }
+  .chart-box svg{ width:100%; height:auto; max-height:240mm }
   /* tabelle: continuano a pagina nuova con intestazione ripetuta, righe intere */
   .tbl-wrap{ overflow:visible !important; box-shadow:none }
   table{ font-size:9.5px; width:100% }
@@ -367,7 +368,7 @@ table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
   <section class="panel" id="panel-report"></section>
   <section class="panel" id="panel-guida"></section>
   <section class="panel is-active" id="panel-dev"></section>
-  <div class="footer">Training Monitor System — by Wander · <span class="mono" id="app-ver" title="versione">v1.0.39</span> · dati locali, nessun cloud · <span id="dot-storico" style="color: var(--danger-b);" title="Storico da aggiornare — manca la settimana 202623">●</span> <a href="#" id="lnk-storico" style="color:var(--ink-3);text-decoration:underline">Storico</a> · <span id="dot-misure" style="color: var(--danger-b);" title="Misure da aggiornare — manca la settimana 202623">●</span> <a href="#" id="lnk-misure" style="color:var(--ink-3);text-decoration:underline">Misure</a> · «Rise, Tarnished»</div>
+  <div class="footer">Training Monitor System — by Wander · <span class="mono" id="app-ver" title="versione">v1.0.42</span> · dati locali, nessun cloud · <span id="dot-storico" style="color: var(--danger-b);" title="Storico da aggiornare — manca la settimana 202623">●</span> <a href="#" id="lnk-storico" style="color:var(--ink-3);text-decoration:underline">Storico</a> · <span id="dot-misure" style="color: var(--danger-b);" title="Misure da aggiornare — manca la settimana 202623">●</span> <a href="#" id="lnk-misure" style="color:var(--ink-3);text-decoration:underline">Misure</a> · «Rise, Tarnished»</div>
 </div>
 
 <button class="btn btn--gold no-print" id="fab-guida" title="Apri la guida" style="position:fixed;right:18px;bottom:18px;z-index:35;box-shadow:0 4px 16px rgba(28,14,4,.28);border-radius:22px;padding:9px 16px">📕 Guida</button>
@@ -424,22 +425,24 @@ let DOC = {
 /* ════════════════ COSTANTI / LOOKUP ════════════════ */
 const GIORNI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core'];
-const APP_VERSION='1.0.39', APP_DATE='2026-06-08';
-const RELEASE_NOTE='Rimossi i riferimenti residui al vecchio tema/branding; chiavi di storage rinominate con migrazione automatica dei dati'; /* nota proposta nel pacchetto -> banner aggiornamenti; aggiornala a ogni release */
+const APP_VERSION='1.0.42', APP_DATE='2026-06-08';
+const RELEASE_NOTE='Il QR "By Wander" ora mostra due codici: Instagram e il repo GitHub del TMS'; /* nota proposta nel pacchetto -> banner aggiornamenti; aggiornala a ogni release */
 /* Storico release (mantieni ~9 voci: con la corrente fanno ~10). A ogni bump: aggiungi in cima {v,d,n} della versione PRECEDENTE e taglia in fondo. */
 const RELEASE_LOG=[
+  {v:'1.0.41', d:'2026-06-08', n:'Stampa Report: impaginazione A4 custom in iframe (anti-taglio)'},
+  {v:'1.0.40', d:'2026-06-08', n:'Stampa Report con impaginazione nativa del browser'},
+  {v:'1.0.39', d:'2026-06-08', n:'Rimossi i riferimenti residui al vecchio tema/branding; chiavi storage rinominate con migrazione'},
   {v:'1.0.38', d:'2026-06-08', n:'Changelog con storico delle ultime versioni nel pacchetto'},
   {v:'1.0.37', d:'2026-06-08', n:'Pacchetto condivisione: un unico <versione>.zip con i file ai nomi fissi (da sovrascrivere su GitHub)'},
   {v:'1.0.36', d:'2026-06-08', n:'Fix render dei toggle nel modale Profilo (il checkbox veniva allargato al 100% e sfondava il testo)'},
   {v:'1.0.35', d:'2026-06-08', n:'Pacchetto in cartella per versione + CHANGELOG.md (poi sostituito dallo zip unico)'},
   {v:'1.0.34', d:'2026-06-08', n:'Carico interno session-RPE (Foster 2001): RPE+durata per giorno, monotonia e strain nei Progressi (toggle nel Profilo)'},
-  {v:'1.0.33', d:'2026-06-08', n:'Guida: il Fattore TL è un valore indicativo e individuale (fatica percepita)'},
-  {v:'1.0.32', d:'2026-06-08', n:'README distingue prima installazione (TMS.zip) vs aggiornamento (HTML)'},
-  {v:'1.0.31', d:'2026-06-08', n:'ZIP condivisione rinominato in TMS.zip'},
-  {v:'1.0.30', d:'2026-06-08', n:'Fix sezione Dev vuota + nota release precompilata (RELEASE_NOTE)'}
+  {v:'1.0.33', d:'2026-06-08', n:'Guida: il Fattore TL è un valore indicativo e individuale (fatica percepita)'}
 ];
 const UPDATE_URL='https://raw.githubusercontent.com/marcomartinellione-create/TMS/refs/heads/main/version.json'; /* version.json su GitHub; vuoto = controllo disattivato */
 const REPO_DL_URL='https://github.com/marcomartinellione-create/TMS/blob/main/Training%20Monitor%20System.html'; /* pagina di download del file su GitHub (campo url del version.json) */
+const QR_GH_SRC='data:image/png;base64,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'; /* QR del repo GitHub (offline) */
+const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 const SHARE_HTML_NAME='Training Monitor System.html', SHARE_ZIP_NAME='TMS.zip';
 const SHARE_ENABLED=false; /* solo nel master; il pacchetto condiviso lo mette a false */
 const MAINLIFTS=[{label:'Squat',nome:'Squat bilanciere'},{label:'Stacco',nome:'Stacco da terra'},{label:'Panca',nome:'Panca piana bilanciere'},{label:'Military',nome:'Military press / Overhead press'},{label:'Trazioni',nome:'Trazioni alla sbarra'}];
@@ -1535,11 +1538,12 @@ function renderReport(){
 }
 function splitTable(D, tblWrap, headingEl){
   const table=tblWrap.querySelector('table');
-  if(!table){ const d=D.createElement('div'); d.className='u'; if(headingEl)d.appendChild(D.importNode(headingEl,true)); d.appendChild(D.importNode(tblWrap,true)); return [d]; }
+  const mkU=(content)=>{ const d=D.createElement('div'); d.className='u'; if(headingEl)d.appendChild(D.importNode(headingEl,true)); d.appendChild(D.importNode(content,true)); return d; };
+  if(!table) return [mkU(tblWrap)];
   const thead=table.querySelector('thead'), tfoot=table.querySelector('tfoot');
   const rows=[...table.querySelectorAll('tbody tr')];
-  const PER=24, out=[];
-  if(rows.length<=PER){ const d=D.createElement('div'); d.className='u'; if(headingEl)d.appendChild(D.importNode(headingEl,true)); d.appendChild(D.importNode(tblWrap,true)); return [d]; }
+  const PER=22, out=[];
+  if(rows.length<=PER) return [mkU(tblWrap)];
   for(let i=0;i<rows.length;i+=PER){
     const d=D.createElement('div'); d.className='u';
     if(headingEl&&i===0) d.appendChild(D.importNode(headingEl,true));
@@ -1555,41 +1559,68 @@ function splitTable(D, tblWrap, headingEl){
   return out;
 }
 function printReport(){
+  /* Impaginazione custom controllata: iframe nascosto (no pop-up), pagine A4 ad altezza fissa + overflow:hidden
+     (Chrome non ri-taglia), px/mm misurato con probe, altezze lette DOPO fonts.ready (no sottostima). */
   const src=document.querySelector('#panel-report .rep-doc');
-  if(!src){ window.print(); return; }
-  let win; try{ win=window.open('','tms-print'); }catch(e){ win=null; }
-  if(!win){ alert('Consenti le finestre pop-up per la stampa, poi riprova.'); return; }
+  if(!src){ try{ window.print(); }catch(e){} return; }
   const styleCSS=(document.querySelector('style')||{}).textContent||'';
-  const pageCSS='@page{size:A4;margin:0} html,body{margin:0;padding:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
-    +' #flow{background:#888} .pg{width:210mm;box-sizing:border-box;padding:13mm;background:#fff;page-break-after:always;margin:0 auto 6mm} .u svg,.u img{max-height:235mm;height:auto} .u{overflow:visible}'
-    +' .pg:last-child{page-break-after:auto;margin-bottom:0} .u{break-inside:avoid;page-break-inside:avoid}'
-    +' .chart-grid{display:block!important} .chart-box,.card,.tbl-wrap{box-shadow:none!important} thead th{position:static!important}'
-    +' @media print{ #flow{background:#fff} .pg{margin:0} }';
-  win.document.open();
-  win.document.write('<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>Report · Training Monitor System</title><style>'+styleCSS+'</style><style>'+pageCSS+'</style></head><body><div id="flow"></div></body></html>');
-  win.document.close();
-  const D=win.document, flow=D.getElementById('flow');
-  const A4=Math.round(297*3.7795275591*0.95); // altezza pagina A4 px, con margine di sicurezza per non tagliare
-  let pg=null; const newPage=()=>{ pg=D.createElement('div'); pg.className='pg'; flow.appendChild(pg); };
-  newPage();
-  const add=(node)=>{ pg.appendChild(node); if(pg.offsetHeight>A4 && pg.childNodes.length>1){ pg.removeChild(node); newPage(); pg.appendChild(node); } };
-  const isHead=(el)=>el.nodeType===1 && (el.tagName==='H1' || (el.classList&&el.classList.contains('sec')));
-  const wrapHead=(headEl,contentEl)=>{ const d=D.createElement('div'); d.className='u'; if(headEl)d.appendChild(D.importNode(headEl,true)); d.appendChild(D.importNode(contentEl,true)); return d; };
-  const units=[]; 
-  [...src.children].forEach(sec=>{
-    if(!(sec.classList&&sec.classList.contains('rep-sec'))){ const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(sec,true)); units.push(d); return; }
-    let pending=null;
-    [...sec.children].forEach(ch=>{
-      if(isHead(ch)){ pending=ch; return; }
-      if(ch.classList && ch.classList.contains('tbl-wrap')){ splitTable(D,ch,pending).forEach(u=>units.push(u)); pending=null; }
-      else { units.push(wrapHead(pending,ch)); pending=null; }
+  const pageCSS=[
+    '@page{size:A4;margin:0}',
+    '*{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}',
+    'html,body{margin:0;padding:0;background:#fff;font-size:11px}',
+    '.pg{position:relative;width:210mm;height:296mm;box-sizing:border-box;padding:13mm 14mm 14mm;background:#fff;overflow:hidden;page-break-after:always}',
+    '.pg:last-child{page-break-after:auto}',
+    '.u{break-inside:avoid;page-break-inside:avoid}',
+    '.chart-grid{display:block!important}.chart-box,.card,.tbl-wrap{box-shadow:none!important;break-inside:avoid}',
+    '.cards{break-inside:auto}.card{break-inside:avoid}',
+    '.chart-box svg{width:100%;height:auto;max-height:200mm}',
+    'table{width:100%;font-size:9.5px}thead{display:table-header-group}thead th{position:static!important}',
+    'tr,.day-sep{break-inside:avoid}'
+  ].join('');
+  const ifr=document.createElement('iframe');
+  ifr.setAttribute('aria-hidden','true');
+  ifr.style.cssText='position:fixed;right:0;bottom:0;width:230mm;height:320mm;border:0;opacity:0;z-index:-1';
+  document.body.appendChild(ifr);
+  const win=ifr.contentWindow, D=win.document;
+  const cleanup=()=>{ try{ document.body.removeChild(ifr); }catch(e){} };
+  D.open();
+  D.write('<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>Report · Training Monitor System</title><style>'+styleCSS+'</style><style>'+pageCSS+'</style></head><body><div id="flow"></div></body></html>');
+  D.close();
+  const buildUnits=()=>{ const units=[];
+    const wrapHead=(h,c)=>{ const d=D.createElement('div'); d.className='u'; if(h)d.appendChild(D.importNode(h,true)); d.appendChild(D.importNode(c,true)); return d; };
+    const isHead=el=>el.nodeType===1&&(el.tagName==='H1'||(el.classList&&el.classList.contains('sec')));
+    [...src.children].forEach(sec=>{
+      if(!(sec.classList&&sec.classList.contains('rep-sec'))){ const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(sec,true)); units.push(d); return; }
+      let pending=null;
+      [...sec.children].forEach(ch=>{
+        if(isHead(ch)){ pending=ch; return; }
+        if(ch.classList&&ch.classList.contains('tbl-wrap')){ splitTable(D,ch,pending).forEach(u=>units.push(u)); pending=null; }
+        else { units.push(wrapHead(pending,ch)); pending=null; }
+      });
+      if(pending){ const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(pending,true)); units.push(d); }
     });
-    if(pending){ const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(pending,true)); units.push(d); }
-  });
-  units.forEach(add);
-  win.focus();
-  win.onafterprint=()=>{ try{win.close();}catch(e){} };
-  setTimeout(()=>{ try{ win.print(); }catch(e){} }, 400);
+    return units;
+  };
+  const paginate=()=>{
+    const flow=D.getElementById('flow'); if(!flow){ cleanup(); return; }
+    const probe=D.createElement('div'); probe.style.cssText='position:absolute;visibility:hidden;height:100mm;width:10mm'; D.body.appendChild(probe);
+    const pxPerMm=(probe.getBoundingClientRect().height||377.95)/100; D.body.removeChild(probe);
+    const PAD_TOP=13, USABLE=296-PAD_TOP-14-4;            /* area utile (mm), con margine di sicurezza */
+    const contentPx=USABLE*pxPerMm, padTopPx=PAD_TOP*pxPerMm;
+    let pg=null; const newPage=()=>{ pg=D.createElement('div'); pg.className='pg'; flow.appendChild(pg); };
+    newPage();
+    buildUnits().forEach(node=>{
+      pg.appendChild(node);
+      const used=node.getBoundingClientRect().bottom - pg.getBoundingClientRect().top - padTopPx;
+      if(used>contentPx && pg.childElementCount>1){ pg.removeChild(node); newPage(); pg.appendChild(node); }
+    });
+    let done=false; const finish=()=>{ if(done)return; done=true; cleanup(); };
+    win.onafterprint=finish;
+    try{ win.focus(); win.print(); }catch(e){ try{ window.print(); }catch(_){} }
+    setTimeout(finish, 60000);
+  };
+  const go=()=>{ try{ win.requestAnimationFrame(()=>win.requestAnimationFrame(paginate)); }catch(e){ setTimeout(paginate,250); } };
+  try{ if(D.fonts&&D.fonts.ready){ D.fonts.ready.then(go,go); } else go(); }catch(e){ setTimeout(paginate,300); }
 }
 let guidaMode='rapida';
 function renderGuida(){
@@ -2350,7 +2381,7 @@ async function init(){
       const ok=document.getElementById('disc-ok'); if(ok) ok.onclick=()=>{ if(document.getElementById('disc-read').checked){ try{localStorage.setItem('tms-disc-read','1');}catch(e){} } disc.classList.add('hidden'); }; } }
   const fab=document.getElementById('fab-guida'); if(fab) fab.onclick=()=>showTab('guida');
   const qr=document.getElementById('qr-ig');
-  if(qr) qr.onclick=()=>{ modal(`<h3>By Wander</h3><div style="text-align:center"><img src="${qr.src}" alt="QR Instagram" style="width:300px;height:300px;max-width:80vw;border-radius:10px;border:1px solid var(--border)"><a class="btn btn--gold" href="https://instagram.com/marco_the_wander" target="_blank" rel="noopener" style="margin-top:10px">Apri Instagram ↗</a></div><div class="modal__actions"><button class="btn" onclick="closeModal()">Chiudi</button></div>`); };
+  if(qr) qr.onclick=()=>{ modal(`<h3>By Wander</h3><div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center"><div style="text-align:center"><div class="muted mono" style="font-size:11px;margin-bottom:5px">Instagram</div><img src="${qr.src}" alt="QR Instagram" style="width:200px;height:200px;max-width:70vw;border-radius:10px;border:1px solid var(--border)"><div><a class="btn btn--gold" href="https://instagram.com/marco_the_wander" target="_blank" rel="noopener" style="margin-top:8px">Apri Instagram ↗</a></div></div><div style="text-align:center"><div class="muted mono" style="font-size:11px;margin-bottom:5px">GitHub · TMS</div><img src="${QR_GH_SRC}" alt="QR GitHub TMS" style="width:200px;height:200px;max-width:70vw;border-radius:10px;border:1px solid var(--border)"><div><a class="btn btn--gold" href="${GH_REPO_URL}" target="_blank" rel="noopener" style="margin-top:8px">Apri GitHub ↗</a></div></div></div><div class="modal__actions"><button class="btn" onclick="closeModal()">Chiudi</button></div>`); };
   loadDev(); { const td=document.getElementById('tab-dev'); if(td) td.style.display=SHARE_ENABLED?'':'none'; }
   checkUpdate();
   showTab('allenamento');

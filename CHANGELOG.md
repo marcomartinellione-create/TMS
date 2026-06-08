@@ -1,8 +1,20 @@
 # Training Monitor System — Changelog
 
+## v1.0.42 — 2026-06-08
+
+Il QR "By Wander" ora mostra due codici: Instagram e il repo GitHub del TMS
+
+## v1.0.41 — 2026-06-08
+
+Stampa Report: impaginazione A4 custom in iframe (anti-taglio)
+
+## v1.0.40 — 2026-06-08
+
+Stampa Report con impaginazione nativa del browser
+
 ## v1.0.39 — 2026-06-08
 
-Rimossi i riferimenti residui al vecchio tema/branding; chiavi di storage rinominate con migrazione automatica dei dati
+Rimossi i riferimenti residui al vecchio tema/branding; chiavi storage rinominate con migrazione
 
 ## v1.0.38 — 2026-06-08
 
@@ -27,15 +39,3 @@ Carico interno session-RPE (Foster 2001): RPE+durata per giorno, monotonia e str
 ## v1.0.33 — 2026-06-08
 
 Guida: il Fattore TL è un valore indicativo e individuale (fatica percepita)
-
-## v1.0.32 — 2026-06-08
-
-README distingue prima installazione (TMS.zip) vs aggiornamento (HTML)
-
-## v1.0.31 — 2026-06-08
-
-ZIP condivisione rinominato in TMS.zip
-
-## v1.0.30 — 2026-06-08
-
-Fix sezione Dev vuota + nota release precompilata (RELEASE_NOTE)
