@@ -83,4 +83,4 @@ Progetto **amatoriale**, creato per uso personale e condiviso gratuitamente da u
 
 ## 📜 Licenza e crediti
 
-Progetto aperto e gratuito: libero di usarlo, condividerlo e personalizzarlo. Si chiede solo di **mantenere i crediti** e di **non venderlo** a scopo di
+Progetto aperto e gratuito: libero di usarlo, condividerlo e personalizzarlo. Si chiede solo di **mantenere i crediti** e di **non distribuirlo a scopo di lucro**.
