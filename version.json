@@ -1,5 +1,5 @@
 {
-  "version": "1.0.32",
-  "nota": "TMS.zip per la prima installazione, HTML per gli aggiornamenti",
+  "version": "1.0.37",
+  "nota": "Pacchetto condivisione: un unico file <versione>.zip con dentro i file ai nomi fissi da sovrascrivere su GitHub",
   "url": "https://github.com/marcomartinellione-create/TMS/blob/main/Training%20Monitor%20System.html"
 }
