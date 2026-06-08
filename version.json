@@ -1,5 +1,5 @@
 {
-  "version": "1.0.42",
-  "nota": "Il QR \"By Wander\" ora mostra due codici: Instagram e il repo GitHub del TMS",
+  "version": "1.0.46",
+  "nota": "Pulizia di alcuni commenti interni del sorgente (riferimenti ad altri progetti)",
   "url": "https://github.com/marcomartinellione-create/TMS/blob/main/Training%20Monitor%20System.html"
 }

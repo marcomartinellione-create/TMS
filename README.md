@@ -2,7 +2,7 @@
 
 > Diario di allenamento e nutrizione in un **singolo file HTML**, offline e locale. Tema *Elden Ring* (pergamena/ember), stile da manuale tecnico. — *by Wander*
 
-![versione](https://img.shields.io/badge/versione-1.0.42-c2500a) ![offline](https://img.shields.io/badge/100%25-offline-2f7d4f) ![nessun%20cloud](https://img.shields.io/badge/dati-solo%20in%20locale-7a3ea8)
+![versione](https://img.shields.io/badge/versione-1.0.46-c2500a) ![offline](https://img.shields.io/badge/100%25-offline-2f7d4f) ![nessun%20cloud](https://img.shields.io/badge/dati-solo%20in%20locale-7a3ea8)
 
 TMS è uno strumento amatoriale e gratuito per monitorare allenamento, progressi e alimentazione. È un unico file `.html`: nessuna installazione, nessun account, nessun server. I tuoi dati restano **sul tuo computer**, in una cartella che scegli tu.
 
@@ -51,7 +51,7 @@ Il file `version.json`:
 
 ```json
 {
-  "version": "1.0.42",
+  "version": "1.0.46",
   "nota": "TMS.zip per la prima installazione, HTML per gli aggiornamenti",
   "url": "https://github.com/marcomartinellione-create/TMS/blob/main/Training%20Monitor%20System.html"
 }

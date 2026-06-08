@@ -1,8 +1,24 @@
 # Training Monitor System — Changelog
 
+## v1.0.46 — 2026-06-08
+
+Pulizia di alcuni commenti interni del sorgente (riferimenti ad altri progetti)
+
+## v1.0.45 — 2026-06-08
+
+Report PDF: scheda senza intestazione ripetuta, nomi gruppi completi, asse tempo come data
+
+## v1.0.44 — 2026-06-08
+
+Report: genera un PDF A4 scaricabile (html2canvas + writer PDF interno)
+
+## v1.0.43 — 2026-06-08
+
+I due QR (Instagram e GitHub) affiancati in orizzontale
+
 ## v1.0.42 — 2026-06-08
 
-Il QR "By Wander" ora mostra due codici: Instagram e il repo GitHub del TMS
+Doppio QR (Instagram + GitHub) nel modale By Wander
 
 ## v1.0.41 — 2026-06-08
 
@@ -23,19 +39,3 @@ Changelog con storico delle ultime versioni nel pacchetto
 ## v1.0.37 — 2026-06-08
 
 Pacchetto condivisione: un unico <versione>.zip con i file ai nomi fissi (da sovrascrivere su GitHub)
-
-## v1.0.36 — 2026-06-08
-
-Fix render dei toggle nel modale Profilo (il checkbox veniva allargato al 100% e sfondava il testo)
-
-## v1.0.35 — 2026-06-08
-
-Pacchetto in cartella per versione + CHANGELOG.md (poi sostituito dallo zip unico)
-
-## v1.0.34 — 2026-06-08
-
-Carico interno session-RPE (Foster 2001): RPE+durata per giorno, monotonia e strain nei Progressi (toggle nel Profilo)
-
-## v1.0.33 — 2026-06-08
-
-Guida: il Fattore TL è un valore indicativo e individuale (fatica percepita)
