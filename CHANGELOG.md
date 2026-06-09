@@ -2,6 +2,10 @@
 
 ## v1.0.50 — 2026-06-09
 
+Risolto bug riproduzione video
+
+## v1.0.50 — 2026-06-09
+
 Note in Allenamento: textarea multiriga con accapo automatico
 
 ## v1.0.49 — 2026-06-08
@@ -36,6 +40,4 @@ I due QR (Instagram e GitHub) affiancati in orizzontale
 
 Doppio QR (Instagram + GitHub) nel modale By Wander
 
-## v1.0.41 — 2026-06-08
 
-Stampa Report: impaginazione A4 custom in iframe (anti-taglio)
