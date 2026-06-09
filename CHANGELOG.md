@@ -1,5 +1,9 @@
 # Training Monitor System — Changelog
 
+## v1.0.50 — 2026-06-09
+
+Note in Allenamento: textarea multiriga con accapo automatico
+
 ## v1.0.49 — 2026-06-08
 
 Nuovo export Report digitale (HTML per smartphone) con i video incorporati, accanto al PDF
@@ -35,7 +39,3 @@ Doppio QR (Instagram + GitHub) nel modale By Wander
 ## v1.0.41 — 2026-06-08
 
 Stampa Report: impaginazione A4 custom in iframe (anti-taglio)
-
-## v1.0.40 — 2026-06-08
-
-Stampa Report con impaginazione nativa del browser
