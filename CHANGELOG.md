@@ -4,6 +4,25 @@
 
 ---
 
+### 2026-06-10 — TMS v1.0.60: release di collaudo dell'aggiornamento automatico
+
+**Tipo**: Release tecnica (nessuna modifica funzionale)
+**File coinvolti**: src/app/01-costanti.js (bump) · package.json ×2 (1.0.60)
+**Descrizione**: richiesto da Marco: versione successiva alla 1.0.59 per verificare il flusso di auto-update dell'app installata (electron-updater + GitHub Releases). Nessuna modifica al codice: solo `APP_VERSION`/`RELEASE_NOTE`. Procedura di collaudo: installare la 1.0.59 in locale, pubblicare su GitHub SOLO la v1.0.60 (exe + latest.yml), riaprire l'app installata → deve scaricare l'aggiornamento e proporre il riavvio.
+**Test**: `npm run release` (build + sintassi + jsdom 29/29 + installer).
+**Approvato da**: Marco (richiesta esplicita)
+
+### 2026-06-10 — TMS: pipeline ufficiale banca dati alimenti (Excel USAV → JSON dedicato → blob FOOD) — dati e artefatti INVARIATI
+
+**Tipo**: Infrastruttura dati (nessuna modifica funzionale; blob FOOD riprodotto byte per byte)
+**File coinvolti**: tools/genera-alimenti.py (nuovo) · src/dati/alimenti-usav.json (nuovo, JSON dedicato con metadati) · package.json (`npm run alimenti`) · src/README.md
+**Descrizione**: richiesto da Marco: estrarre i dati alimentari da `Doc/Banca_dati_svizzera_dei_valori_nutritivi.xlsx` per i calcoli dell'Alimentazione, con JSON dedicato. L'analisi ha dimostrato che il blob `FOOD` (1190 alimenti) proveniva già da quell'Excel ma senza alcuno strumento nel progetto: ora la pipeline è ufficiale e riproducibile.
+- **`tools/genera-alimenti.py`** (`npm run alimenti`): legge il foglio "Alimenti generici" (header riga 3, triplette valore/deduzione/fonte), mappa 27 nutrienti per chiave (`zuccheri` = glucidi disponibili cioè CARBOIDRATI, `zucch` = di cui zuccheri; vit. A = colonna **RAE**, verificato su 763/764 casi discriminanti), converte i valori speciali con le regole storiche (`tr.`/`nd` → 0, `<X` → X, vuoto → null) e scrive sia il JSON dedicato sia il blob `/*__FOOD_JSON__*/`.
+- **Prova di fedeltà**: il blob rigenerato è **byte-identico** (md5 9db4e9f9…) a quello in produzione → zero modifiche a dati, artefatti e versione. Il foglio "Prodotti di marca" (30 alimenti) resta escluso come da scelta storica.
+- **Scoperta**: "Zwieback" è duplicato nella banca dati svizzera (2 righe: sinonimi "Fette biscottate integrali" vs "Fette biscottate"); nell'app `FOODBYNAME` tiene l'ultimo → proposta P11 nel report di revisione (disambiguare i nomi).
+**Test**: generatore eseguito → blob INVARIATO · `npm run verifica` OK · `npm test` 29/29.
+**Approvato da**: Marco (richiesta esplicita)
+
 ### 2026-06-10 — TMS v1.0.59: rimossi il bottone "Disconnetti" e il tab Dev
 
 **Tipo**: Rimozione feature (richiesta esplicita)
@@ -33,12 +52,12 @@
 ### 2026-06-10 — TMS: sorgente decomposto in src/ + build riproducibile + suite test (HTML invariato) · scrittura atomica nel ponte desktop
 
 **Tipo**: Infrastruttura / qualità (revisione critica completa; nessuna modifica funzionale)
-**File coinvolti**: **src/** (nuova, 27 parti + manifest + README) · **tools/**{build.js, controlla-sintassi.js} (nuovi) · **tests/**test-app.js (nuova) · package.json + .gitignore (nuovi, root) · electron/main.js (scrittura atomica) · CLAUDE.md (workflow nuovo) · Documentazione/REVISIONE_CODICE_2026-06-10.md (nuovo report)
+**File coinvolti**: **src/** (nuova, 27 parti + manifest + README) · **tools/**{build.js, controlla-sintassi.js} (nuovi) · **tests/**test-app.js (nuova) · package.json + .gitignore (nuovi, root) · electron/main.js (scrittura atomica) · CLAUDE.md (workflow nuovo) · Doc/REVISIONE_CODICE_2026-06-10.md (nuovo report; in origine in Documentazione/, cartella poi rimossa dal progetto)
 **Descrizione**: richiesto da Marco ("analizza tutto il codice e ottimizza, le funzionalità non devono cambiare").
 - **Sorgente decomposto**: l'HTML monolitico (~1,2 MB = ~800 KB dati FOOD/SEED + ~199 KB html2canvas + ~177 KB codice in 18 sezioni) ora vive in `src/` (pagina/, lib/, dati/, app/ — un file per sezione, righe normali). `tools/build.js` concatena byte per byte secondo `src/manifest.json` e scrive entrambi gli artefatti; `--verifica` controlla senza scrivere; avviso se le versioni (sorgente vs package.json) sono disallineate. **L'artefatto riassemblato è md5-identico (40888b96…) al v1.0.57 esistente: zero modifiche funzionali per costruzione, APP_VERSION invariata.**
 - **Test formalizzati**: `tests/test-app.js` (jsdom, 26 verifiche su 5 scenari desktop/browser, versione letta dal sorgente) + `tools/controlla-sintassi.js`; `npm run build / verifica / test` dalla root.
 - **Scrittura atomica** in `electron/main.js` (`tmsfs:writeFile`): temp + rename (semantica verificata su Windows) con fallback diretto — un crash a metà scrittura non può più corrompere i JSON dei dati. Unica modifica di codice attivo; solo wrapper, entrerà nel prossimo installer.
-- **Revisione critica completa** in `Documentazione/REVISIONE_CODICE_2026-06-10.md`: punti di forza, 10 proposte prioritizzate in attesa di approvazione (tra cui: `renameProfile` codice morto vs Guida che promette la rinomina; `REF.esercizi` vuoto = fallback catalogo inerte; `checkUpdate` legacy; git init).
+- **Revisione critica completa** in `Doc/REVISIONE_CODICE_2026-06-10.md`: punti di forza, 10 proposte prioritizzate in attesa di approvazione (tra cui: `renameProfile` codice morto vs Guida che promette la rinomina; `REF.esercizi` vuoto = fallback catalogo inerte; `checkUpdate` legacy; git init).
 **Test**: build `--verifica` OK su entrambi gli artefatti (md5 invariato) · `npm test` 26/26 + sintassi OK · `node --check` su main.js OK · semantica temp+rename verificata standalone su Windows (rimpiazzo file esistente, nessun residuo).
 **Approvato da**: Marco (richiesta esplicita)
 
