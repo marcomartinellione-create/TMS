@@ -4,12 +4,38 @@
 
 ---
 
-### 2026-06-10 — TMS v1.0.60: release di collaudo dell'aggiornamento automatico
+### 2026-06-10 — TMS v1.0.62: video personali (override dei video integrati, con toggle)
 
-**Tipo**: Release tecnica (nessuna modifica funzionale)
-**File coinvolti**: src/app/01-costanti.js (bump) · package.json ×2 (1.0.60)
+**Tipo**: Feature (tab Esercizi + player + Report digitale + shim persistenza)
+**File coinvolti**: src/app/{12-esercizi.js, 13-report.js, 03-persistenza.js, 01-costanti.js} · package.json ×2 (1.0.62) · tests/test-app.js (T1c + origine https per localStorage)
+**Descrizione**: richiesto da Marco: i video di base restano integrati, ma l'utente può caricare i propri e scegliere quale set usare.
+- **Video personali in `TMS_Dati/video/`** (stesso nome file del catalogo): su desktop finiscono nei dati locali dell'utente (sopravvivono ad aggiornamenti e reinstallazioni; il seed integrato resta intatto), nel browser nella cartella collegata.
+- **Caricamento dall'app**: ✎ esercizio → sezione "Video personale" → "⭱ Carica video personale…" (file picker; usa il nome del campo Video) con stato presente/assente e "✕ Rimuovi personale". Al primo caricamento proposta di attivare il toggle.
+- **Toggle "Video personali"** nel tab Esercizi (persistito in `localStorage`, `tms-video-pers`): OFF = sempre i predefiniti integrati; ON = il personale dove esiste, **fallback automatico** al predefinito dove no.
+- **Risoluzione centralizzata** (`videoSorgente`): vale per il player ▶ (Allenamento + Esercizi, badge "video personale" nel titolo) e per i video incorporati nel **Report digitale**.
+- **Shim `localDirHandle` ora supporta la scrittura BINARIA** (`createWritable` accetta Blob/ArrayBuffer/TypedArray, concatena e passa `Uint8Array` al ponte; `fs.writeFile` di Node ignora l'encoding per i buffer — verificato standalone). Nessuna modifica a main.js/preload.js.
+**Test**: `npm test` **48/48** — nuovo scenario T1c: toggle OFF→predefinito, upload binario via ponte (7 byte verificati intatti in `TMS_Dati/video/`), toggle ON→personale, fallback se personale assente, rimozione→ritorno al predefinito; suite jsdom ora con origine https (localStorage reale nei test). NB jsdom: riproduzione video reale non testabile → verifica in app.
+**Approvato da**: Marco (richiesta esplicita)
+
+### 2026-06-10 — TMS v1.0.61: profilo dimostrativo "Atleta Template" nel seed (con diario sedute durata+intensità)
+
+**Tipo**: Dati seed (nessuna modifica al codice dell'app; HTML invariato salvo bump versione)
+**File coinvolti**: TMS_Dati/template/{scheda,storico,corpo,alimentazione}.json (nuovi) · TMS_Dati/profili.json (lista: wander + template, attivo wander) · tools/genera-profilo-template.py (nuovo, rigenerabile) · tests/test-app.js (nuovo scenario T1b) · src/app/01-costanti.js (bump) · package.json ×2
+**Descrizione**: richiesto da Marco: profilo template con dati simili ai suoi ma leggermente diversi, completo della parte durata/intensità delle sedute.
+- **"Atleta Template"** (slug `template`): atleta fittizio M, 1998, 178 cm, ~74,5 kg — stessa struttura e stessi esercizi di Wander, carichi ~90% arrotondati al mezzo kg, note personali di setup rimosse, obiettivo dimostrativo compilato. 40 righe scheda · 896 righe storico (25 settimane) · 15 misure corpo (trend con BMI ricalcolato sull'altezza) · **125 voci `storico_rpe`** (durata in minuti + sRPE per OGNI seduta, 5/settimana, con 2 settimane di scarico) → Training Load, monotonia e ACWR popolati da subito · alimentazione su TUTTE e tre le fasi (bulk/mant/cut), solo alimenti verificati nella banca USAV; `useRpe`+`useRir` attivi, fase attiva `mant`.
+- Generato da **`tools/genera-profilo-template.py`** (deterministico, rigenerabile); il profilo attivo del seed resta `wander`.
+- **Test**: nuovo scenario **T1b** nella suite: avvio desktop sul SEED REALE (stub tmsFS precaricato con i file veri di TMS_Dati), profili registrati, `switchProfile("template")`, conteggi esatti (40/896/125), `useRpe`/altezza, 7 tab renderizzati sul profilo template → **`npm test` 40/40**.
+**Approvato da**: Marco (richiesta esplicita)
+
+### 2026-06-10 — TMS v1.0.60: aggiornamenti con consenso, anteprima novità e avviso "aggiornamento maggiore"
+
+**Tipo**: Feature wrapper (flusso auto-update) + release di collaudo
+**File coinvolti**: electron/main.js · src/app/01-costanti.js (bump) · package.json ×2 (1.0.60) · tools/release.js (pulizia dist pre-build)
+**Novità del flusso di aggiornamento** (richiesto da Marco): `autoDownload` disattivato — quando c'è una release nuova l'app **chiede prima di scaricare**, mostrando un'**anteprima delle novità** (corpo della release GitHub, ripulito da markdown/HTML e troncato a ~900 caratteri). Se la versione sale nella cifra di mezzo o nella prima (es. **1.0.4 → 1.1.4**) il dialogo diventa un avviso di **AGGIORNAMENTO MAGGIORE** (icona warning). Confermato il download, a fine scaricamento resta la proposta di riavvio (o installazione alla chiusura). Logica `isMaggiore`/`anteprimaNote` verificata con test standalone (6 casi versione + markdown/HTML/troncamento). NB: il nuovo dialogo appare aggiornando DA 1.0.60 in poi; chi ha la 1.0.59 vede ancora il vecchio flusso per quell'unico passaggio.
 **Descrizione**: richiesto da Marco: versione successiva alla 1.0.59 per verificare il flusso di auto-update dell'app installata (electron-updater + GitHub Releases). Nessuna modifica al codice: solo `APP_VERSION`/`RELEASE_NOTE`. Procedura di collaudo: installare la 1.0.59 in locale, pubblicare su GitHub SOLO la v1.0.60 (exe + latest.yml), riaprire l'app installata → deve scaricare l'aggiornamento e proporre il riavvio.
-**Test**: `npm run release` (build + sintassi + jsdom 29/29 + installer).
+- **Fix pipeline**: il primo build NSIS è fallito ("no files found" su un video) per residui della build precedente in `electron/dist/`; `tools/release.js` ora svuota `dist/` prima di electron-builder. Con staging pulito il build riesce.
+- **Scoperta durante la diagnosi**: dei 883 mp4 in `database/video/`, **882 sono copie byte-identiche dello stesso clip da 121 KB** (es. `3_4_Sit-Up.mp4`); l'unico video distinto è `Barbell_Bench_Press_-_Medium_Grip.mp4` (14 MB). **Chiarito da Marco: sono template intenzionali** — registrerà i video reali nel tempo, sostituendo i file a parità di nome (P12 nel report). Per questo l'exe pesa ~90 MB e non ~200: l'archivio solido comprime i duplicati.
+**Test**: `npm run release` (build + sintassi + jsdom 29/29 + installer da staging pulito).
 **Approvato da**: Marco (richiesta esplicita)
 
 ### 2026-06-10 — TMS: pipeline ufficiale banca dati alimenti (Excel USAV → JSON dedicato → blob FOOD) — dati e artefatti INVARIATI
