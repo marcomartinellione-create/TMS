@@ -19,6 +19,8 @@ mobile. Tema pergamena/ember, modalità notte. *By Wander.*
 
 ## Installazione
 
+🎓 **Video tutorial**: [youtube.com/@TrainingMonitorSystem](https://www.youtube.com/@TrainingMonitorSystem)
+
 1. Scarica `TMS-Setup-<versione>.exe` dall'ultima [Release](https://github.com/marcomartinellione-create/TMS/releases).
 2. Eseguilo (installer assistito, percorso modificabile). SmartScreen può avvisare al
    primo avvio (eseguibile non firmato): **Ulteriori informazioni → Esegui comunque**.
@@ -51,6 +53,30 @@ Struttura: `src/` sorgente (pagina, stili, dati, moduli app) · `tools/` build e
   dati pubblici citati come fonte.
 - Linee guida attività fisica: **OMS**.
 - Rendering immagini report: [html2canvas](https://github.com/niklasvh/html2canvas) 1.4.1 (MIT).
+
+### Basi scientifiche dei calcoli
+
+I modelli di monitoraggio del TMS (Training Load, session-RPE, RIR/RPE, ACWR,
+volume/ipertrofia, VBT, readiness) si basano su letteratura peer-reviewed
+(l'elenco completo, con link, è anche nella Guida dell'app, §12):
+
+| Riferimento | Tema | DOI |
+|---|---|---|
+| Scott et al., 2016 | Training Load (base) | [10.1007/s40279-015-0454-0](https://doi.org/10.1007/s40279-015-0454-0) |
+| Foster et al., 2001 | Carico interno / session-RPE | [10.1519/1533-4287(2001)015<0109:ANATME>2.0.CO;2](https://doi.org/10.1519/1533-4287(2001)015%3C0109:ANATME%3E2.0.CO;2) |
+| Zourdos et al., 2016 | Scala RIR/RPE | [10.1519/JSC.0000000000001049](https://doi.org/10.1519/JSC.0000000000001049) |
+| Helms et al., 2016 | RIR/RPE — applicazione | [10.1519/SSC.0000000000000218](https://doi.org/10.1519/SSC.0000000000000218) |
+| Schoenfeld, 2010 | Meccanismi dell'ipertrofia | [10.1519/JSC.0b013e3181e840f3](https://doi.org/10.1519/JSC.0b013e3181e840f3) |
+| Schoenfeld et al., 2017 | Volume: dose-risposta | [10.1080/02640414.2016.1210197](https://doi.org/10.1080/02640414.2016.1210197) |
+| Hulin et al., 2016 | ACWR — evidenza | [10.1136/bjsports-2015-094817](https://doi.org/10.1136/bjsports-2015-094817) |
+| Gabbett, 2016 | ACWR — paradosso allenamento/infortuni | [10.1136/bjsports-2015-095788](https://doi.org/10.1136/bjsports-2015-095788) |
+| González-Badillo & Sánchez-Medina, 2010 | VBT — relazione carico-velocità | [10.1055/s-0030-1248333](https://doi.org/10.1055/s-0030-1248333) |
+| Sánchez-Medina & González-Badillo, 2011 | VBT — perdita di velocità e fatica | [10.1249/MSS.0b013e318213f880](https://doi.org/10.1249/MSS.0b013e318213f880) |
+| Weakley et al., 2021 | VBT — sintesi pratica | [10.1519/SSC.0000000000000560](https://doi.org/10.1519/SSC.0000000000000560) |
+| Plews et al., 2013 | HRV / readiness | [10.1007/s40279-013-0071-8](https://doi.org/10.1007/s40279-013-0071-8) |
+
+*I paper non vengono ridistribuiti: i DOI portano alle pagine ufficiali degli editori
+(molti sono accessibili in open access o tramite istituzioni).*
 
 ---
 
