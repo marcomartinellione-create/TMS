@@ -4,6 +4,22 @@
 
 ---
 
+### 2026-06-11 — TMS v1.0.68: periodi alimentari datati + nuovo tab 📊 Analisi (dieta × allenamento) + sezione nel Report
+
+**Tipo**: Feature maggiore (richiesta esplicita di Marco, da proposta P13)
+**File coinvolti**: **src/app/11b-analisi.js (NUOVO)** · src/app/{05-grafici.js, 11-alimentazione.js, 13-report.js, 17-init.js, 01-costanti.js} · src/pagina/03-corpo.html (tab+pannello) · src/manifest.json (28 parti) · tools/genera-profilo-template.py (3 periodi demo) · TMS_Dati/template/alimentazione.json · tests/test-app.js · package.json ×2 (1.0.68)
+**1 · Periodi alimentari** (Alimentazione → "▌ Periodi"): "📅 Registra il piano attuale come periodo…" salva una **fotografia** del piano della fase scelta (righe alimento+grammi) con **dal → al** (input calendario); elenco con fase, date, kcal/giorno calcolate e cancellazione. Safe check: date invertite, piano vuoto, **sovrapposizione** con periodi esistenti (conferma; nelle settimane comuni vale l'ultimo). Dati in `DOC.alimentazione.periodi` (alimentazione.json); kcal sempre derivate al volo.
+**2 · Tab 📊 Analisi** (subito dopo Alimentazione): incrocia i periodi con le serie settimanali esistenti (`schedeAggr` per il TL, `storico_io` per peso/metabolismo) su asse comune YYYYWW, con Δ calcolati SOLO tra settimane realmente consecutive (`settConsecutive`, gestisce il cambio anno):
+- **Timeline**: fasce colorate dei periodi (con kcal/giorno) + TL (asse sx) e peso (asse dx);
+- **Δpeso vs bilancio calorico**: scatter (kcal piano − metabolismo vs Δpeso settimana dopo) con retta di regressione, r di Pearson e lettura "ogni 100 kcal/g ≈ X kg/sett";
+- **Correlazione con ritardo**: barre dell'r di Pearson fra TL della settimana N e Δpeso a +1…+5 settimane;
+- **Confronto fasi**: boxplot (min/Q1/mediana/Q3/max) di ΔTL% e Δpeso per bulk/mant/cut.
+Senza periodi registrati il tab guida l'utente verso Alimentazione → Periodi. Nuovi helper riusabili in 05-grafici: `scatterChart`, `boxChart`, `regressione`, `pearson`.
+**3 · Report**: nuovo toggle "Dieta × allenamento" (default attivo) con la timeline nel PDF/report digitale.
+**4 · Profilo template**: rigenerato con 3 periodi demo (bulk 202545–202602, cut 202603–202610, mant 202611–202619) — i grafici sono dimostrabili out-of-the-box.
+**Test**: `npm test` **80/80** — 3 periodi nel template, `settimaneTra` (date→settimane ISO), `settConsecutive` (cambio anno e buchi), `pearson`=1 su serie perfetta, kcal del periodo, tab Analisi con 4 grafici e ≥4 SVG, sezione Periodi presente, report con la nuova sezione, navigazione 11 tab.
+**Approvato da**: Marco (richiesta esplicita)
+
 ### 2026-06-11 — TMS v1.0.67: fix video non riproducibili nella scheda cliente · backup col nome del profilo · Guida senza link locali · via il motto
 
 **Tipo**: Bugfix + pulizie (richieste esplicite di Marco)
