@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-06-11 — TMS v1.0.63: fix "Nuovo profilo" muto su desktop (via prompt()) + sottocategorie nel catalogo Esercizi
+
+**Tipo**: Bugfix (desktop) + Feature catalogo
+**File coinvolti**: src/app/{04-modal.js, 13-report.js, 11-alimentazione.js, 03-persistenza.js, 12-esercizi.js, 01-costanti.js} · package.json ×2 (1.0.63) · tests/test-app.js
+**Bugfix — segnalato da Marco**: il bottone "＋ Nuovo profilo" non rispondeva nell'app desktop. Causa: usava `window.prompt()`, che **Electron non supporta** (a differenza di alert/confirm): il click moriva in un'eccezione. Stessa sorte per "aggiungi pasto" e "rinomina pasto" (Alimentazione) e per `renameProfile`. Nuovo helper **`chiediTesto(titolo, valore, cb)`** in 04-modal.js (input nel modale pergamena, OK/Annulla, Invio conferma) e sostituiti TUTTI e 4 gli usi di `prompt()` — ora zero `prompt()` nel codice app.
+**Feature — richiesta da Marco**: oltre al macro gruppo muscolare, il catalogo Esercizi raggruppa ora per **sottocategoria** (famiglia di movimento: tutti gli affondi insieme, tutta la panca insieme…).
+- **`sottoOf(e)`**: override manuale (campo `sotto`, editabile da ✎ → "Sottocategoria") → 21 regole sul nome (Squat, Affondi, Stacco, Panca/Distensioni, Curl, Tricipiti, Trazioni, Rematore, Alzate, Core…) → fallback dalla `categoria` del database (stretching→Allungamento, pliometria/olimpici→Olimpici/Esplosivi, strongman, cardio) → "Varie". Copertura sul catalogo reale: **742/883 classificati (84%)**, 24 famiglie, 141 in Varie.
+- Tab Esercizi: ordinamento macro → sottocategoria → nome con **intestazioni di sottocategoria** dentro ogni gruppo; la ricerca filtra anche per sottocategoria; nessun dato del catalogo modificato (derivazione a runtime: vale anche per i cataloghi già salvati dagli utenti).
+**Test**: `npm test` **55/55** — regressione e2e "Nuovo profilo" (click → modale → conferma → profilo creato), derivazione sottocategorie su nomi reali, override manuale, fallback categoria, intestazioni renderizzate; verifica copertura standalone su tutti gli 883.
+**Approvato da**: Marco (segnalazione + richiesta esplicita)
+
 ### 2026-06-10 — TMS v1.0.62: video personali (override dei video integrati, con toggle)
 
 **Tipo**: Feature (tab Esercizi + player + Report digitale + shim persistenza)
