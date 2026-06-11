@@ -1,0 +1,44 @@
+{
+  "name": "tms",
+  "productName": "Training Monitor System",
+  "version": "1.0.69",
+  "description": "Training Monitor System - by Wander",
+  "author": "Wander",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "predist": "node ../tools/genera-seed.js",
+    "dist": "electron-builder --win"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "wander.tms",
+    "productName": "Training Monitor System",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "renderer/**", "build/**"],
+    "win": { "target": "nsis", "icon": "build/icon.ico" },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "artifactName": "TMS-Setup-${version}.exe",
+      "deleteAppDataOnUninstall": false
+    },
+    "extraResources": [
+      { "from": "../seed/TMS_Dati", "to": "TMS/TMS_Dati", "filter": ["**/*"] },
+      { "from": "../database", "to": "TMS/database", "filter": ["**/*", "!exercises eng.zip"] }
+    ],
+    "publish": [{
+      "provider": "github",
+      "owner": "marcomartinellione-create",
+      "repo": "TMS"
+    }],
+    "asar": true
+  }
+}

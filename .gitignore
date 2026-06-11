@@ -1,0 +1,25 @@
+# dipendenze e build
+node_modules/
+electron/node_modules/
+electron/dist/
+release/
+seed/
+
+# artefatti GENERATI dal sorgente (npm run build li ricrea)
+Training Monitor System.html
+electron/renderer/index.html
+
+# dati: NON nel repo (viaggiano con l'installer; TMS_Dati contiene dati personali)
+TMS_Dati/
+database/
+zzz_superati/
+Report/
+Doc/
+
+# locale
+.claude/
+Thumbs.db
+Desktop.ini
+
+# documento operativo interno (contesto AI)
+CLAUDE.md

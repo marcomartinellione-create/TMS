@@ -1,0 +1,80 @@
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__mark">TMS</div>
+  <div class="topbar__spacer"></div>
+  <div class="conn" id="conn"><span class="conn__dot"></span><span id="conn-txt">non connesso</span></div>
+  <button class="btn btn--ghost btn--sm" id="btn-connect">⛓ Connetti cartella</button>
+  <button class="btn btn--ghost btn--sm" id="btn-theme" title="Modalità notte">🌙</button>
+</div>
+<div id="update-banner" class="no-print" style="display:none"></div>
+
+<div class="hero" style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+  <h1><span class="sigil">✦</span> Training Monitor System</h1>
+  <img id="qr-ig" src="data:image/png;base64,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" alt="QR Instagram" title="Inquadra o clicca — porta al mio Instagram" style="width:66px;height:66px;border-radius:9px;border:1px solid var(--gold-2);box-shadow:var(--shadow);cursor:pointer;flex-shrink:0;background:#fff">
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab" data-tab="profilo"><span class="ico">👤</span> Profilo</button>
+  <button class="tab is-active" data-tab="allenamento"><span class="ico">⚔</span> Allenamento</button>
+  <button class="tab" data-tab="storico" style="display:none"><span class="ico">📜</span> Storico</button>
+  <button class="tab" data-tab="progressi"><span class="ico">📈</span> Progressi</button>
+  <button class="tab" data-tab="corpo"><span class="ico">🜂</span> Corpo</button>
+  <button class="tab" data-tab="storicocorpo" style="display:none"><span class="ico">📜</span> Misure</button>
+  <button class="tab" data-tab="alimentazione"><span class="ico">🍖</span> Alimentazione</button>
+  <button class="tab" data-tab="analisi"><span class="ico">📊</span> Analisi</button>
+  <button class="tab" data-tab="esercizi"><span class="ico">📖</span> Esercizi</button>
+  <button class="tab" data-tab="report"><span class="ico">🖨</span> Report</button>
+  <button class="tab" data-tab="guida" style="display:none"><span class="ico">📕</span> Guida</button>
+</div>
+
+<div class="wrap">
+  <section class="panel" id="panel-profilo"></section>
+  <section class="panel is-active" id="panel-allenamento"></section>
+  <section class="panel" id="panel-storico"></section>
+  <section class="panel" id="panel-progressi"></section>
+  <section class="panel" id="panel-corpo"></section>
+  <section class="panel" id="panel-storicocorpo"></section>
+  <section class="panel" id="panel-alimentazione"></section>
+  <section class="panel" id="panel-analisi"></section>
+  <section class="panel" id="panel-esercizi"></section>
+  <section class="panel" id="panel-report"></section>
+  <section class="panel" id="panel-guida"></section>
+  <div class="footer">Training Monitor System — by Wander · <span class="mono" id="app-ver" title="versione"></span> · dati locali, nessun cloud · <span id="dot-storico" style="color:var(--ink-4)">●</span> <a href="#" id="lnk-storico" style="color:var(--ink-3);text-decoration:underline">Storico</a> · <span id="dot-misure" style="color:var(--ink-4)">●</span> <a href="#" id="lnk-misure" style="color:var(--ink-3);text-decoration:underline">Misure</a></div>
+</div>
+
+<button class="btn btn--gold no-print" id="fab-guida" title="Apri la guida" style="position:fixed;right:18px;bottom:18px;z-index:35;box-shadow:0 4px 16px rgba(28,14,4,.28);border-radius:22px;padding:9px 16px">📕 Guida</button>
+
+<!-- overlay connessione: gate a tutto schermo -->
+<div class="overlay hidden" id="overlay">
+  <div class="overlay__logo"><span class="mk">✦</span><span class="br">Training Monitor System</span></div>
+  <div class="overlay__card">
+    <div class="icon">📁</div>
+    <h2 id="ov-title"><span class="sigil">✦</span> Connetti la cartella</h2>
+    <p id="overlay-sub">Per salvare e sincronizzare i dati, seleziona la cartella <strong>TMS</strong>.<br>Verrà creata al suo interno la sottocartella <strong>TMS_Dati/</strong>.</p>
+    <button class="btn btn--gold" id="overlay-btn" style="width:100%;height:44px;justify-content:center">▲ Seleziona cartella…</button>
+    <div class="overlay__err" id="ov-err"></div>
+    <div class="overlay__note" id="ov-note">Richiesto una volta — poi si riconnette da solo</div>
+  </div>
+</div>
+
+<!-- disclaimer apertura -->
+<div class="overlay hidden" id="disclaimer" style="z-index:10001">
+  <div class="overlay__card" style="max-width:480px">
+    <div class="icon">⚠️</div>
+    <h2><span class="sigil">✦</span> Prima di iniziare</h2>
+    <p style="text-align:center">Progetto amatoriale. Creato per uso personale e distribuito gratuitamente per spirito di condivisione, da un appassionato di fitness, non da un professionista, con lo scopo di aiutarti con il monitoraggio del tuo allenamento. Lo strumento funziona ed è testato, ma è ancora in fase sperimentale quindi fai sempre un backup dei dati. Codice sviluppato con l'assistenza di Claude (Anthropic).</p>
+    <label style="display:flex;align-items:center;gap:8px;justify-content:center;font-size:13px;margin:4px 0 14px;cursor:pointer"><input type="checkbox" id="disc-read"> Segna come letto (non mostrare più)</label>
+    <button class="btn btn--gold" id="disc-ok">Ho capito</button>
+  </div>
+</div>
+
+<!-- modal generico -->
+<div class="modal-bk hidden" id="modal-bk"><div class="modal" id="modal"></div></div>
+
+<datalist id="dl-esercizi"></datalist>
+<datalist id="dl-alimenti"></datalist>
+
+<script>

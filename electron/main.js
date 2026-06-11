@@ -1,0 +1,228 @@
+// TMS — Training Monitor System · wrapper Electron (HANDOFF.md §4.3)
+// Serve renderer/ da uno scheme privilegiato e SICURO (app://tms) così che:
+//  - window.showDirectoryPicker (File System Access API) sia disponibile (secure context)
+//  - IndexedDB abbia origine stabile -> l'handle cartella persiste tra i riavvii
+const { app, BrowserWindow, protocol, net, session, dialog, ipcMain } = require('electron');
+const path = require('node:path');
+const fs = require('node:fs/promises');
+const { pathToFileURL } = require('node:url');
+const { autoUpdater } = require('electron-updater');
+
+// ── Ponte dati locali (window.tmsFS, via preload.js) ─────────────────────────
+// SCRITTURE: sempre in userData/TMS (sopravvive ad aggiornamenti e reinstallazioni).
+// LETTURE: prima userData/TMS, poi il seed di sola lettura portato dall'installer
+// (resources/TMS = TMS_Dati + database); in sviluppo il seed è la cartella TMS reale (padre).
+const WRITE_ROOT = () => path.join(app.getPath('userData'), 'TMS');
+const SEED_ROOT  = () => app.isPackaged ? path.join(process.resourcesPath, 'TMS')
+                                        : path.join(__dirname, '..');
+function safeJoin(root, rel){
+  const p = path.normalize(path.join(root, String(rel||'')));
+  if (p !== root && !p.startsWith(root + path.sep)) throw new Error('percorso non consentito: ' + rel);
+  return p;
+}
+const fileExists = (p) => fs.access(p).then(() => true, () => false);
+
+protocol.registerSchemesAsPrivileged([{
+  scheme: 'app',
+  privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true }
+}]);
+
+// stato del download aggiornamento (vedi blocco auto-update): finché è in corso,
+// la chiusura della finestra viene trattenuta con un avviso — altrimenti l'utente
+// chiude a download a metà e "non si aggiorna mai" (segnalato da Marco, v1.0.62→63)
+const aggiornamento = { inCorso: false, percento: 0 };
+
+function createWindow () {
+  const win = new BrowserWindow({
+    width: 1280, height: 860,
+    title: 'Training Monitor System',
+    icon: path.join(__dirname, 'build', 'icon.ico'),
+    webPreferences: {
+      contextIsolation: true, nodeIntegration: false, sandbox: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+  win.removeMenu(); // niente menu Electron (app pulita)
+  win.on('close', (e) => {
+    if (!aggiornamento.inCorso) return;
+    e.preventDefault();
+    const r = dialog.showMessageBoxSync(win, {
+      type: 'warning',
+      title: 'Aggiornamento in corso',
+      message: `Sto ancora scaricando l'aggiornamento (${aggiornamento.percento}%).`,
+      detail: 'Se chiudi ora il download si interrompe e l\'app non si aggiorna.\nLascia la finestra aperta ancora qualche istante: a download finito ti propongo io il riavvio.',
+      buttons: ['Continua il download', 'Chiudi comunque'],
+      defaultId: 0, cancelId: 0, noLink: true
+    });
+    if (r === 1) { aggiornamento.inCorso = false; win.destroy(); }
+  });
+  win.loadURL('app://tms/index.html');
+}
+
+app.whenReady().then(() => {
+  // ── Handler IPC del ponte dati locali ──
+  ipcMain.handle('tmsfs:exists', async (e, rel) =>
+    (await fileExists(safeJoin(WRITE_ROOT(), rel))) || (await fileExists(safeJoin(SEED_ROOT(), rel))));
+  ipcMain.handle('tmsfs:readFile', async (e, rel) => {
+    const w = safeJoin(WRITE_ROOT(), rel);
+    if (await fileExists(w)) return fs.readFile(w);
+    return fs.readFile(safeJoin(SEED_ROOT(), rel));
+  });
+  ipcMain.handle('tmsfs:writeFile', async (e, rel, text) => {
+    const p = safeJoin(WRITE_ROOT(), rel);
+    await fs.mkdir(path.dirname(p), { recursive: true });
+    // Scrittura atomica (temp + rename): un crash a metà scrittura non corrompe il
+    // file esistente — gli storici sono insostituibili. Se il rename fallisce
+    // (file momentaneamente bloccato da antivirus/sync) fallback alla scrittura diretta.
+    const tmp = p + '.tmp-' + process.pid + '-' + Date.now();
+    try {
+      await fs.writeFile(tmp, text, 'utf8');
+      await fs.rename(tmp, p);
+    } catch (err) {
+      try { await fs.rm(tmp, { force: true }); } catch (e2) {}
+      await fs.writeFile(p, text, 'utf8');
+    }
+  });
+  ipcMain.handle('tmsfs:mkdir', (e, rel) => fs.mkdir(safeJoin(WRITE_ROOT(), rel), { recursive: true }));
+  ipcMain.handle('tmsfs:remove', async (e, rel) => {  // mai sul seed: solo userData
+    try { await fs.rm(safeJoin(WRITE_ROOT(), rel)); } catch (err) {}
+  });
+  ipcMain.handle('tmsfs:dataRoot', () => WRITE_ROOT());
+
+  // Permessi File System Access: Electron non ha la UI permessi di Chrome, quindi
+  // queryPermission() sull'handle ripristinato da IndexedDB risponderebbe sempre 'prompt'
+  // e l'app si fermerebbe al gate ad ogni avvio. Auto-concediamo il permesso 'fileSystem'
+  // SOLO alla nostra origine app://tms -> riconnessione automatica come nel browser.
+  const isTms = (origin) => typeof origin === 'string' && origin.startsWith('app://tms');
+  session.defaultSession.setPermissionRequestHandler((wc, permission, callback, details) => {
+    if (permission === 'fileSystem') return callback(isTms(details.requestingUrl || wc.getURL()));
+    callback(true);
+  });
+  session.defaultSession.setPermissionCheckHandler((wc, permission, requestingOrigin) => {
+    if (permission === 'fileSystem') return isTms(requestingOrigin);
+    return true;
+  });
+
+  // Neutralizza il vecchio checkUpdate() dell'HTML (banner pensato per la versione browser):
+  // il fetch di version.json viene bloccato -> checkUpdate fallisce in silenzio, nessun banner.
+  // Gli aggiornamenti desktop li gestisce electron-updater (sotto). HTML non modificato.
+  session.defaultSession.webRequest.onBeforeRequest(
+    { urls: ['https://raw.githubusercontent.com/marcomartinellione-create/TMS/*'] },
+    (details, callback) => callback({ cancel: details.url.includes('version.json') })
+  );
+
+  // Auto-update via GitHub Releases (electron-updater + target NSIS).
+  // Solo nell'app installata (non in `npm start`). Flusso (dal v1.0.60, rifinito v1.0.64):
+  //  1. all'avvio controlla le release; se ce n'è una nuova CHIEDE prima di scaricare,
+  //     mostrando un'anteprima delle novità (corpo della release GitHub);
+  //  2. se sale la versione "di mezzo" o la prima (es. 1.0.4 -> 1.1.4) il dialogo
+  //     segnala che si tratta di un AGGIORNAMENTO MAGGIORE;
+  //  3. durante il download: percentuale nel titolo + barra sulla taskbar, chiusura
+  //     trattenuta (vedi createWindow), errori a video; eventi in TMS/update.log;
+  //  4. a download completato propone il riavvio (o installa alla chiusura).
+  if (app.isPackaged) {
+    autoUpdater.autoDownload = false;
+
+    const updLog = (...m) => { fs.appendFile(path.join(WRITE_ROOT(), 'update.log'),
+      new Date().toISOString() + '  ' + m.join(' ') + '\n').catch(() => {}); };
+    const setProgress = (frazione, titolo) => {
+      for (const w of BrowserWindow.getAllWindows()) {
+        try { w.setProgressBar(frazione); w.setTitle(titolo || 'Training Monitor System'); } catch (e) {}
+      }
+    };
+
+    const versioni = v => String(v || '').split('.').map(n => parseInt(n, 10) || 0);
+    const isMaggiore = (attuale, nuova) => {
+      const [aM, am] = versioni(attuale), [nM, nm] = versioni(nuova);
+      return nM > aM || (nM === aM && nm > am);
+    };
+    const anteprimaNote = (rn) => {
+      let s = Array.isArray(rn) ? rn.map(n => (n && n.note) || '').join('\n') : String(rn || '');
+      s = s.replace(/<[^>]+>/g, '')        // eventuale HTML
+           .replace(/^#+\s*/gm, '')        // titoli markdown
+           .replace(/\*\*?|__|`/g, '')     // enfasi markdown
+           .replace(/^>\s?/gm, '')         // citazioni
+           .replace(/\r/g, '')
+           .replace(/\n{3,}/g, '\n\n')
+           .trim();
+      if (s.length > 900) s = s.slice(0, 900).trimEnd() + '\n…';
+      return s || 'Nessuna nota di rilascio disponibile.';
+    };
+
+    autoUpdater.on('update-available', async (info) => {
+      const attuale = app.getVersion();
+      const maggiore = isMaggiore(attuale, info.version);
+      updLog('disponibile', info.version, '(attuale ' + attuale + (maggiore ? ', MAGGIORE' : '') + ')');
+      const r = await dialog.showMessageBox({
+        type: maggiore ? 'warning' : 'info',
+        title: 'Aggiornamento TMS',
+        message: maggiore
+          ? `⚠ AGGIORNAMENTO MAGGIORE — è disponibile la versione ${info.version} (hai la ${attuale}).`
+          : `È disponibile la versione ${info.version} (hai la ${attuale}). Vuoi aggiornare?`,
+        detail: 'Novità di questa versione:\n\n' + anteprimaNote(info.releaseNotes)
+          + '\n\nIl download prosegue in background: vedrai la percentuale nel titolo della finestra.',
+        buttons: ['Scarica e installa', 'Più tardi'],
+        defaultId: 0, cancelId: 1, noLink: true
+      });
+      if (r.response === 0) {
+        aggiornamento.inCorso = true; aggiornamento.percento = 0;
+        setProgress(0, 'Training Monitor System — scarico l\'aggiornamento… 0%');
+        updLog('download avviato', info.version);
+        autoUpdater.downloadUpdate().catch(() => { /* gestito da on(error) */ });
+      } else updLog('rimandato dall\'utente');
+    });
+
+    autoUpdater.on('download-progress', (p) => {
+      aggiornamento.percento = Math.round(p.percent || 0);
+      setProgress((p.percent || 0) / 100,
+        `Training Monitor System — scarico l'aggiornamento… ${aggiornamento.percento}%`);
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+      aggiornamento.inCorso = false;
+      setProgress(-1);
+      updLog('scaricato', info.version);
+      const r = dialog.showMessageBoxSync({
+        type: 'info',
+        title: 'Aggiornamento TMS',
+        message: `La versione ${info.version} è pronta.`,
+        detail: 'Vuoi riavviare ora per installarla? (Altrimenti si installa alla prossima chiusura.)',
+        buttons: ['Riavvia ora', 'Più tardi'],
+        defaultId: 0, cancelId: 1
+      });
+      if (r === 0) autoUpdater.quitAndInstall();
+    });
+
+    autoUpdater.on('error', (err) => {
+      updLog('ERRORE', (err && err.message) || String(err));
+      const eraInCorso = aggiornamento.inCorso;
+      aggiornamento.inCorso = false;
+      setProgress(-1);
+      /* silenzio per i controlli all'avvio (offline ecc.); a video solo se l'utente aveva avviato il download */
+      if (eraInCorso) dialog.showMessageBox({
+        type: 'error',
+        title: 'Aggiornamento TMS',
+        message: 'Il download dell\'aggiornamento non è riuscito.',
+        detail: 'Controlla la connessione: riproverò al prossimo avvio (il download riprende da dove si era fermato).\n\nDettaglio tecnico: ' + ((err && err.message) || err),
+        buttons: ['OK']
+      }).catch(() => {});
+    });
+    autoUpdater.checkForUpdates().catch(() => {});
+  }
+
+  // serve i file della cartella renderer/ sotto app://tms/...
+  protocol.handle('app', (request) => {
+    const url = new URL(request.url);            // es. app://tms/index.html
+    const rel = decodeURIComponent(url.pathname).replace(/^\/+/, '') || 'index.html';
+    const file = path.join(__dirname, 'renderer', path.normalize(rel));
+    // protezione path traversal: resta dentro renderer/
+    if (!file.startsWith(path.join(__dirname, 'renderer'))) {
+      return new Response('Forbidden', { status: 403 });
+    }
+    return net.fetch(pathToFileURL(file).toString());
+  });
+  createWindow();
+  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+});
+
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

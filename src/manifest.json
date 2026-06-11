@@ -1,0 +1,37 @@
+{
+  "_commento": "Sorgente decomposto del TMS. tools/build.js concatena le parti NELL'ORDINE elencato e riscrive gli artefatti. Modificare le parti in src/, MAI gli artefatti a mano.",
+  "artefatti": [
+    "Training Monitor System.html",
+    "electron/renderer/index.html"
+  ],
+  "parti": [
+    "pagina/01-intestazione.html",
+    "pagina/02-stili.css",
+    "pagina/03-corpo.html",
+    "lib/html2canvas.min.js",
+    "pagina/04-script-apertura.html",
+    "dati/01-intro.js",
+    "dati/02-alimenti-usav.js",
+    "dati/03-seed.js",
+    "dati/04-riferimenti.js",
+    "app/01-costanti.js",
+    "app/02-calcoli.js",
+    "app/03-persistenza.js",
+    "app/04-modal.js",
+    "app/05-grafici.js",
+    "app/06-allenamento.js",
+    "app/07-storico.js",
+    "app/08-progressi.js",
+    "app/09-corpo.js",
+    "app/10-storico-corpo.js",
+    "app/11-alimentazione.js",
+    "app/11b-analisi.js",
+    "app/12-esercizi.js",
+    "app/13-report.js",
+    "app/14-backup.js",
+    "app/15-scambio.js",
+    "app/16-gate.js",
+    "app/17-init.js",
+    "pagina/99-coda.html"
+  ]
+}
