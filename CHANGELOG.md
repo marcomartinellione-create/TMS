@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-06-11 — TMS v1.0.64: download aggiornamenti visibile e protetto + download differenziali (blockmap)
+
+**Tipo**: Miglioramento flusso auto-update (solo wrapper; HTML invariato salvo bump)
+**File coinvolti**: electron/main.js · tools/release.js (blockmap negli allegati) · src/app/01-costanti.js (bump) · package.json ×2
+**Descrizione**: segnalato da Marco testando 1.0.62→1.0.63: dopo "Scarica e installa" sembrava non succedere nulla (diagnosi: il download c'era — 39,8/89,7 MB nella cache updater — ma senza alcun feedback; chiudendo l'app a metà, l'aggiornamento non si completa mai).
+- **Percentuale visibile**: durante il download il titolo della finestra mostra "scarico l'aggiornamento… N%" e la taskbar la barra di avanzamento (`setProgressBar`); nota anche nel dialogo di consenso.
+- **Chiusura trattenuta**: se si prova a chiudere col download in corso, avviso con la percentuale e default "Continua il download" ("Chiudi comunque" resta possibile: mai intrappolare l'utente se un download si incaglia). A download finito, proposta di riavvio come prima.
+- **Errori a video**: se il download fallisce, dialogo con il dettaglio tecnico e promemoria che riprende da dove si era fermato (solo per download avviati dall'utente; i controlli all'avvio offline restano silenziosi).
+- **Log diagnostico**: eventi update (disponibile/avviato/scaricato/ERRORE) in `userData/TMS/update.log`.
+- **Download differenziali**: `release.js` ora include `TMS-Setup-<v>.exe.blockmap` tra gli allegati (caricato a posteriori anche sulla v1.0.63 pubblicata): dal secondo auto-update in poi si scarica solo ciò che è cambiato, non ~90 MB.
+**Test**: `node --check` su main.js OK · `npm test` 55/55 (HTML invariato salvo versione) · flusso dialoghi non testabile in jsdom → verifica nel collaudo reale 1.0.63→1.0.64.
+**Approvato da**: Marco (richiesta esplicita)
+
 ### 2026-06-11 — TMS v1.0.63: fix "Nuovo profilo" muto su desktop (via prompt()) + sottocategorie nel catalogo Esercizi
 
 **Tipo**: Bugfix (desktop) + Feature catalogo
