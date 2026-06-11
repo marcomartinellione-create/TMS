@@ -4,6 +4,36 @@
 
 ---
 
+### 2026-06-11 — TMS v1.0.66: scambio scheda trainer ↔ cliente · sottocategorie a tendina · tab Profilo col nome attivo
+
+**Tipo**: Feature ×3 (richieste esplicite di Marco)
+**File coinvolti**: **src/app/15-scambio.js (NUOVO)** · src/app/{03-persistenza.js, 12-esercizi.js, 13-report.js, 17-init.js, 01-costanti.js} · src/manifest.json (27 parti) · src/README.md · tests/test-app.js · package.json ×2 (1.0.66)
+**1 · Scambio scheda trainer ↔ cliente** (Profilo → sezione "Scheda ↔ cliente"):
+- **📤 Esporta scheda per il cliente**: genera `Scheda_<profilo>_<data>.html` — pagina autonoma stile pergamena con la scheda settimanale per giorno (previsto in chiaro), **input compilabili** (serie/rip/peso/RIR/note per esercizio, fatica sRPE+durata per seduta; gli esercizi NON sono modificabili) e **video incorporati** col player a overlay (riuso `collectSchedaVideos`/`embedVideoFiles` del Report digitale, su conferma).
+- Il cliente compila e preme **"📩 Crea il file per il trainer"** → scarica `Rientro_<slug>_<data>.json` (formato `tms-rientro` v1: profilo, date, righe, sedute).
+- **📥 Importa allenamento dal cliente**: legge il rientro con **safe check**: file non valido → errore; **profilo non corrispondente** → conferma; **esercizi fuori catalogo** → conferma con elenco; modale con **data di registrazione** (→ settimana ISO via `isoWeek`/`schedaCode`); **settimana già popolata** → conferma "verranno AGGIUNTE" (stesso pattern di Registra seduta). Il merge (`applicaRientro`, pura e testabile) numera le sedute continuando da quelle esistenti, compila `macro` dal catalogo e registra le sedute sRPE in `storico_rpe`.
+**2 · Sottocategorie a tendina** (tab Esercizi): le famiglie (Affondi, Allungamento, Panca…) sono ora **chiuse di default** con conteggio `(n)`; click su ▸/▾ apre/chiude; la **ricerca apre tutto** automaticamente.
+**3 · Tab Profilo = nome del profilo attivo**: "👤 Wander" invece di "Profilo" (`aggiornaTabProfilo()`, aggiornato a connessione, cambio profilo, rinomina, avvio).
+**Test**: `npm test` **66/66** — export HTML (input+meta), conversione data→settimana (11/06/2026=202624), `applicaRientro` (sedute numerate, macro, sRPE), **import e2e** (file → modale data → righe nella settimana scelta), file non valido senza crash, tendine chiuse/aperte, tab col nome del profilo.
+**Approvato da**: Marco (richiesta esplicita, con invito a safe check)
+
+### 2026-06-11 — TMS: DOI dei 12 paper di riferimento nel README (sezione "Crediti e fonti")
+
+**Tipo**: Documentazione (solo README; nessuna modifica all'app)
+**File coinvolti**: README.md
+**Descrizione**: richiesto da Marco: tabella "Basi scientifiche dei calcoli" nel README con i 12 riferimenti peer-reviewed e relativi DOI (Scott 2016, Foster 2001, Zourdos 2016, Helms 2016, Schoenfeld 2010/2017, Hulin 2016, Gabbett 2016, González-Badillo 2010, Sánchez-Medina 2011, Weakley 2021, Plews 2013) — estratti dalla Guida §12 dell'app (DOI già verificati). Nota sul non ridistribuire i paper (link agli editori).
+**Approvato da**: Marco (richiesta esplicita)
+
+### 2026-06-11 — TMS v1.0.65: QR "Tutorial · YouTube" nel pannello contatti
+
+**Tipo**: Feature (collegamento al canale YouTube dei tutorial)
+**File coinvolti**: src/app/{01-costanti.js, 17-init.js} · tools/genera-qr.py (nuovo) · README.md · tests/test-app.js · package.json ×2 (1.0.65)
+**Descrizione**: Marco ha creato il canale YouTube dei video tutorial (https://www.youtube.com/@TrainingMonitorSystem). Nel pannello che si apre cliccando il QR in alto a destra c'è ora un terzo riquadro **"Tutorial · YouTube"** (QR + bottone "Apri i Tutorial ↗"), accanto a Instagram e GitHub.
+- Costanti `YT_URL` + `QR_YT_SRC`: con URL vuoto il riquadro resta nascosto (feature dormiente); il QR (370×370, base64) si genera/aggiorna con **`tools/genera-qr.py <url>`** (string-replace asserito sulle costanti). Layout del pannello ora a 3 colonne con `flex-wrap` (840px, degrada su schermi stretti).
+- Link al canale anche nel README del repo.
+**Test**: `npm test` **56/56** (nuova verifica: click sul QR → pannello con riquadro Tutorial, link corretto e bottone) · `npm run verifica` OK.
+**Approvato da**: Marco (richiesta esplicita; URL fornito da lui)
+
 ### 2026-06-11 — TMS v1.0.64: download aggiornamenti visibile e protetto + download differenziali (blockmap)
 
 **Tipo**: Miglioramento flusso auto-update (solo wrapper; HTML invariato salvo bump)
