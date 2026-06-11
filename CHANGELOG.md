@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-06-11 — TMS v1.0.67: fix video non riproducibili nella scheda cliente · backup col nome del profilo · Guida senza link locali · via il motto
+
+**Tipo**: Bugfix + pulizie (richieste esplicite di Marco)
+**File coinvolti**: src/app/{03-persistenza.js, 13-report.js, 14-backup.js, 01-costanti.js} · src/pagina/03-corpo.html · tests/test-app.js · package.json ×2 (1.0.67)
+**1 · Fix video nella scheda esportata per il cliente** (segnalato da Marco): i `<video>` con data-URI non partivano. Causa: lo shim del ponte desktop creava i `File` **senza tipo MIME** → `readAsDataURL` produceva `data:application/octet-stream` e il tag video lo rifiuta. Doppio fix: `mimeDi(nome)` nello shim (`video/mp4`, `webm`, `json`, `png`, `jpg`) + normalizzazione difensiva del prefisso in `embedVideoFiles` (copre anche handle FSA con tipi anomali). Beneficiati anche il **Report digitale su desktop** (stesso percorso) e il player in-app.
+**2 · Backup col nome del profilo attivo**: `TMS-backup-<profilo>-<data>.json` (es. `TMS-backup-wander-2026-06-11.json`); il contenuto resta l'intero archivio (tutti i profili), invariato il ripristino.
+**3 · Guida §12 senza link ai PDF locali**: rimosse la colonna "Locale" (12 celle), la riga ANALISI_E_PIANO e i riferimenti alle cartelle locali; l'intro ora spiega solo DOI + Scholar (le cartelle non esistono più nel progetto dal 2026-06-10).
+**4 · Rimossa ogni istanza di «Rise, Tarnished»** (footer dell'app e piè di pagina del Report).
+**Test**: `npm test` **71/71** — `File` dal ponte con `type='video/mp4'`, data-URI normalizzato, Guida completa senza `Documentazione/` ma con DOI, footer senza motto, nome backup verificato via intercettazione del click.
+**Approvato da**: Marco (segnalazione + richieste esplicite)
+
 ### 2026-06-11 — TMS v1.0.66: scambio scheda trainer ↔ cliente · sottocategorie a tendina · tab Profilo col nome attivo
 
 **Tipo**: Feature ×3 (richieste esplicite di Marco)
