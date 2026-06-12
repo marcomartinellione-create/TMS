@@ -143,7 +143,7 @@ function applicaRientro(dati, code){
 
 async function importaRientroFile(file){
   let dati=null;
-  try{ dati=JSON.parse(await file.text()); }catch(e){}
+  try{ dati=JSON.parse(await file.text()); }catch(e){ logErrore('importRientro', e); }
   if(!dati || dati.tipo!=='tms-rientro' || !Array.isArray(dati.righe) || !dati.righe.length){
     alert('File non valido: non è un "rientro scheda" del TMS (o non contiene esercizi).'); return; }
   /* safe check 1: il profilo del file corrisponde a quello attivo? */

@@ -147,6 +147,20 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   const qrHtml = d.getElementById('modal').innerHTML;
   ok(qrHtml.includes('Tutorial · YouTube') && qrHtml.includes('https://www.youtube.com/@TrainingMonitorSystem') && qrHtml.includes('Apri i Tutorial'), 'pannello QR con riquadro Tutorial · YouTube e link al canale');
   w.eval('closeModal()');
+  /* v1.0.72: backup automatico settimanale + mini-log errori (P4) */
+  ok([...fsmem._files.keys()].some(k => /^TMS_Dati\/backup_automatici\/TMS-auto-\d{4}-\d{2}-\d{2}\.json$/.test(k)) && fsmem._files.has('TMS_Dati/backup_automatici/indice.json'), 'backup automatico creato all\'avvio (snapshot + indice)');
+  ok(await w.eval('backupAutomaticoSeServe()') === false, 'stesso giorno: nessun backup doppione');
+  ok((await w.eval('listaBackupAutomatici()')).length === 1, 'lista backup automatici: 1 voce');
+  const snapAuto = JSON.parse([...fsmem._files.entries()].find(([k]) => k.includes('TMS-auto-'))[1]);
+  ok(snapAuto._tms === 'backup' && snapAuto.profiles && Object.keys(snapAuto.profiles).length >= 1, 'snapshot automatico valido (tutti i profili)');
+  w.eval('showTab("profilo")');
+  await settle(300);
+  ok(d.getElementById('prof-autobk') !== null && d.getElementById('prof-autobk').innerHTML.includes('Backup automatici'), 'riga backup automatici nel pannello Profilo');
+  w.eval('logErrore("test", new Error("boom di prova"))');
+  ok(w.eval('LOG_ERRORI.length') >= 1 && w.eval('LOG_ERRORI[LOG_ERRORI.length-1].msg') === 'boom di prova', 'logErrore registra nel ring buffer');
+  w.eval('mostraLogErrori()');
+  ok(d.getElementById('modal').innerHTML.includes('boom di prova'), 'modale log errori (5 click sulla versione) con la voce');
+  w.eval('closeModal()');
   dom.window.close();
 }
 
@@ -197,6 +211,10 @@ console.log('--- T1b: desktop con il SEED REALE (TMS_Dati) e profilo template --
   ok(d.getElementById('panel-alimentazione').innerHTML.includes('Periodi') && d.getElementById('per-add') !== null, 'sezione Periodi nel tab Alimentazione');
   w.eval('showTab("report")');
   ok(d.getElementById('panel-report').innerHTML.includes('Dieta × allenamento'), 'report con la sezione Dieta × allenamento');
+  /* v1.0.72: lo snapshot include storico_rpe anche dei profili NON attivi (fix backup) + getProfileData (fix lint) */
+  const snapFix = await w.eval('costruisciSnapshot()');
+  ok(Array.isArray(snapFix.profiles['wander'].storico_rpe) && snapFix.profiles['wander'].storico_rpe.length === 1, 'snapshot: storico_rpe del profilo non attivo incluso (fix)');
+  ok((await w.eval('getProfileData("wander")')).dati_utente.nome === 'Wander', 'getProfileData legge i parametri di un profilo non attivo (fix lint)');
   /* v1.0.70: bottone Rinomina profilo (P1) e Zwieback disambiguato (P11) */
   w.eval('showTab("profilo")');
   w.eval('profOpen = activeProfile; renderProfilo()');

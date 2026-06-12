@@ -43,7 +43,10 @@ async function init(){
   document.getElementById('overlay-btn').onclick=pickDirectory;
   document.getElementById('lnk-storico').onclick=e=>{e.preventDefault(); showTab('storico');};
   document.getElementById('lnk-misure').onclick=e=>{e.preventDefault(); showTab('storicocorpo');};
-  { const av=document.getElementById('app-ver'); if(av) av.textContent='v'+APP_VERSION; }
+  { const av=document.getElementById('app-ver');
+    if(av){ av.textContent='v'+APP_VERSION;
+      let nClick=0, tClick=0;  /* 5 click ravvicinati sulla versione = log errori interni */
+      av.onclick=()=>{ const ora=Date.now(); if(ora-tClick>3000) nClick=0; tClick=ora; if(++nClick>=5){ nClick=0; mostraLogErrori(); } }; } }
   { const bt=document.getElementById('btn-theme');
     const applyTheme=(t)=>{ document.documentElement.setAttribute('data-theme',t); if(bt){ bt.textContent=t==='notte'?'☀':'🌙'; bt.title=t==='notte'?'Modalità giorno':'Modalità notte'; } };
     let th='giorno'; try{ let _t=localStorage.getItem('tms-theme'); if(_t==='erdtree')_t='giorno'; th=_t||'giorno'; }catch(e){} applyTheme(th);

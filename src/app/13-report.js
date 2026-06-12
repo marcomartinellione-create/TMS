@@ -533,12 +533,21 @@ function renderProfilo(){
    <div class="callout callout--info no-print"><div>📤 Esporta la <b>scheda settimanale</b> come pagina HTML da mandare al cliente (video inclusi, se vuoi): la compila con ciò che ha fatto davvero e ti rimanda il <b>file di rientro</b>, che importi qui — l'allenamento finisce nello Storico del profilo. 📥</div></div>
    <div class="bar no-print"><button class="btn" id="prof-exscheda" title="Crea la pagina HTML da inviare al cliente">📤 Esporta scheda per il cliente</button>
      <label class="btn" style="cursor:pointer" title="Importa il file di rientro compilato dal cliente">📥 Importa allenamento dal cliente<input type="file" id="prof-rientro" accept="application/json,.json" style="display:none"></label></div>
-   <div class="bar no-print" style="margin-top:12px"><button class="btn" id="prof-backup" title="Esporta tutti i dati in un file">⭳ Backup dati</button> <label class="btn" style="cursor:pointer" title="Importa un backup">⭱ Ripristina<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>`;
+   <div class="bar no-print" style="margin-top:12px"><button class="btn" id="prof-backup" title="Esporta tutti i dati in un file">⭳ Backup dati</button> <label class="btn" style="cursor:pointer" title="Importa un backup">⭱ Ripristina<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>
+   <div class="muted no-print" id="prof-autobk" style="font-size:12px;margin-top:6px">🛟 …</div>`;
   { const pn=document.getElementById('prof-new'); if(pn) pn.onclick=()=>chiediTesto('Nuovo profilo (atleta/cliente)','',v=>{ const n=(v||'').trim(); if(!n)return; createProfile(n); }); }
   { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=backupData; }
   { const rs=document.getElementById('prof-restore'); if(rs) rs.onchange=e=>{ if(e.target.files&&e.target.files[0]){ restoreData(e.target.files[0]); e.target.value=''; } }; }
   { const ex=document.getElementById('prof-exscheda'); if(ex) ex.onclick=esportaSchedaCliente; }
   { const ri=document.getElementById('prof-rientro'); if(ri) ri.onchange=e=>{ if(e.target.files&&e.target.files[0]){ importaRientroFile(e.target.files[0]); e.target.value=''; } }; }
+  { const ab=document.getElementById('prof-autobk');
+    if(ab) listaBackupAutomatici().then(l=>{
+      if(!ab.isConnected) return;
+      if(!l.length){ ab.innerHTML='🛟 <b>Backup automatici</b>: l\'app ne crea uno a settimana da sola (ultime '+AUTOBK_MAX+' copie in <span class="mono">TMS_Dati/'+AUTOBK_DIR+'/</span>).'; return; }
+      ab.innerHTML='🛟 <b>Backup automatici</b> (uno a settimana, ultime '+AUTOBK_MAX+' copie): '+
+        l.map(x=>`<span class="pill">${esc(x.data||'?')} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">ripristina</a></span>`).join(' ');
+      ab.querySelectorAll('[data-autobk]').forEach(a=>a.onclick=ev=>{ ev.preventDefault(); ripristinaBackupAutomatico(a.dataset.autobk); });
+    }).catch(()=>{}); }
   document.querySelectorAll('#panel-profilo [data-popen]').forEach(h=>h.onclick=()=>{
     const slug=h.dataset.popen; profOpen = profOpen===slug ? null : slug; renderProfilo();
     if(profOpen && !profParamCache[profOpen]){ const want=profOpen;

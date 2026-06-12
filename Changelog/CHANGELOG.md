@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-06-12 — TMS v1.0.72: backup automatici settimanali · mini-log errori (P4) · ESLint sul concatenato (P10) · 2 bug veri sistemati
+
+**Tipo**: Blocco "Strutturali" del report di revisione (P2 esclusa su decisione di Marco; agenti non disponibili per limite sessione → tutto eseguito in prima persona)
+**File coinvolti**: tools/lint.js (NUOVO) · src/app/{14-backup.js (rifatto), 01-costanti.js, 03-persistenza.js, 13-report.js, 17-init.js, 15-scambio.js, 12-esercizi.js} · tests/test-app.js · package.json (lint nella catena test, deps eslint+globals) ×2 (1.0.72)
+**1 · Backup automatico settimanale**: a ogni avvio connesso, se l'ultimo snapshot ha più di 7 giorni l'app salva l'intero archivio in `TMS_Dati/backup_automatici/TMS-auto-<data>.json` (rotazione: ultime 5 copie, elenco in `indice.json` — niente listing nel ponte). Nel Profilo, sotto Backup/Ripristina, la riga "🛟 Backup automatici" con le date e il **ripristino a un click** (conferma inclusa). `costruisciSnapshot()` estratta e condivisa col backup manuale.
+**2 · Mini-log errori interni (P4)**: `logErrore(dove,e)` — ring buffer da 200 voci + scrittura best-effort in `TMS_Dati/log_errori.json`; strumentati i catch significativi (salvataggi, connectFlow, ripristino, import rientro, video personali, backup auto). Consultazione: **5 click sulla versione nel footer** → modale con log e bottone Copia.
+**3 · ESLint sul sorgente concatenato (P10)**: `tools/lint.js` linta le parti JS concatenate nell'ordine del manifest (scope unico → niente falsi no-undef; righe rimappate alla parte d'origine; regole: no-undef, no-dupe-keys, no-dupe-args, no-unreachable). In testa a `npm test`.
+**4 · Bug sistemati** (trovati durante il lavoro): **(a)** `getProfileData` era chiamata ma NON esisteva → espandere i parametri di un profilo non attivo restava su "Caricamento parametri…" per sempre (trovato dal lint al primo giro!); implementata (legge corpo.json del profilo, fallback cache). **(b)** Lo snapshot di backup perdeva `storico_rpe` dei profili non attivi e il ripristino non lo riscriveva mai → **perdita silenziosa delle sedute RPE** nel ciclo backup/ripristino; corretti snapshot e restore.
+**P2 (catalogo embedded di riserva): RINVIATA** su decisione di Marco — caso limite solo browser+cartella vuota, prodotto ormai desktop-first.
+**Test**: `npm test` **95/95** (lint + sintassi + jsdom) — nuove verifiche: backup creato all'avvio, niente doppioni nello stesso giorno, lista/indice, riga nel Profilo, ring buffer + modale log, storico_rpe del profilo non attivo nello snapshot, getProfileData su profilo non attivo.
+**Approvato da**: Marco (richiesta esplicita "tutti i punti tranne P2")
+
 ### 2026-06-12 — TMS v1.0.71: lo scambio scheda coach ↔ cliente entra nella Guida (rapida + completa)
 
 **Tipo**: Documentazione in-app (lavoro delegato a 2 agenti — Sonnet per la Guida, Haiku per i test — testi d'autore e revisione del chiamante)

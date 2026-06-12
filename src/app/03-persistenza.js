@@ -151,7 +151,8 @@ async function connectFlow(){
     document.getElementById('btn-connect').style.display='none';
     aggiornaTabProfilo();
     renderAll();
-  }catch(e){ setConn('err','errore: '+e.message); }
+    backupAutomaticoSeServe();  /* fire-and-forget: uno snapshot a settimana, non blocca l'avvio */
+  }catch(e){ setConn('err','errore: '+e.message); logErrore('connectFlow', e); }
 }
 
 async function persistAll(){
@@ -186,7 +187,7 @@ function persist(which){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{ await flushSaves(); setConn('on', ''); }
-    catch(e){ setConn('err','errore scrittura'); }
+    catch(e){ setConn('err','errore scrittura'); logErrore('salvataggio', e); }
   },350);
 }
 
@@ -226,6 +227,18 @@ async function deleteProfile(slug){
   if(dataDir){ try{ await dataDir.removeEntry(slug,{recursive:true}); }catch(e){} try{ await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile}); }catch(e){} }
   try{ const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); if(all.data){ delete all.data[slug]; localStorage.setItem(CACHE_KEY,JSON.stringify(all)); } }catch(e){}
   if(activeProfile===slug){ await switchProfile(profili[0].slug); } else { saveCache(); renderProfilo(); }
+}
+/* dati_utente di un profilo qualsiasi (per il pannello Profilo): mancava — bug trovato
+   dal lint v1.0.72, espandere un profilo non attivo restava su "Caricamento parametri…" */
+async function getProfileData(slug){
+  if(slug===activeProfile) return {dati_utente:DOC.dati_utente||{}};
+  if(dataDir){
+    const pd=await dataDir.getDirectoryHandle(slug,{create:false});
+    const co=await readJson(pd,FILES.corpo);
+    return {dati_utente:(co&&co.dati_utente)||{}};
+  }
+  let all={}; try{ all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch(e){}
+  return {dati_utente:(((all.data||{})[slug])||{}).dati_utente||{}};
 }
 function renameProfile(slug){
   const p=profili.find(x=>x.slug===slug); if(!p) return;

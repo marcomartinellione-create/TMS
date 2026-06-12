@@ -101,7 +101,7 @@ function exEdit(name){
         const fh=await videoCustomHandle(f,true);
         const wr=await fh.createWritable(); await wr.write(file); await wr.close();
         if(!videoPersonaliOn() && confirm('Video personale salvato. Vuoi attivare ora i "Video personali"? (Si cambia anche dal tab Esercizi.)')) setVideoPersonali(true);
-      }catch(e){ alert('Errore nel salvataggio del video: '+e.message); }
+      }catch(e){ alert('Errore nel salvataggio del video: '+e.message); logErrore('videoPersonale', e); }
       fIn.value=''; aggiorna(); };
     if(bDel) bDel.onclick=async()=>{
       const f=nomeFile(); if(!f) return;
