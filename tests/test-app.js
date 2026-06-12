@@ -233,6 +233,10 @@ console.log('--- T1b: desktop con il SEED REALE (TMS_Dati) e profilo template --
   w.eval('showTab("profilo")');
   w.eval('profOpen = activeProfile; renderProfilo()');
   ok(d.querySelector('#panel-profilo [data-pren]') !== null, 'bottone "Rinomina" nel pannello profilo (P1)');
+  /* v1.0.74: scambio scheda ↔ cliente dentro il riquadro di ogni profilo */
+  ok(d.querySelector('#panel-profilo [data-pexs]') !== null && d.querySelector('#panel-profilo [data-prin]') !== null, 'scambio scheda (export+import) dentro il riquadro del profilo');
+  ok(d.getElementById('prof-exscheda') === null && d.getElementById('prof-rientro') === null, 'bottoni scambio globali rimossi dal fondo pagina');
+  ok(d.getElementById('prof-backup') !== null && d.getElementById('panel-profilo').innerHTML.includes('tutti i profili'), 'backup di tutti i profili resta in fondo pagina');
   ok(w.eval('!!FOODBYNAME["Zwieback"] && !!FOODBYNAME["Zwieback (Fette biscottate integrali)"]'), 'Zwieback disambiguato nella banca alimenti (P11)');
   /* v1.0.70: vecchio checkUpdate web rimosso (P3) */
   ok(w.eval('typeof checkUpdate') === 'undefined' && w.eval('typeof UPDATE_URL') === 'undefined' && d.getElementById('update-banner') === null, 'checkUpdate/UPDATE_URL/banner web rimossi (P3)');
@@ -289,6 +293,16 @@ console.log('--- T1b: desktop con il SEED REALE (TMS_Dati) e profilo template --
   ok(!d.body.innerHTML.includes('Tarnished'), 'nessuna istanza di «Rise, Tarnished»');
   const nomeBk = await w.eval('(async()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ await backupData(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
   ok(typeof nomeBk === 'string' && nomeBk.startsWith('TMS-backup-atleta-template-'), 'backup col nome del profilo attivo (' + nomeBk + ')');
+  /* v1.0.74: il bottone 📤 nel riquadro di un profilo NON attivo lo attiva e ne esporta la scheda */
+  w.eval('showTab("profilo")');
+  const hdrW = d.querySelector('#panel-profilo [data-popen="wander"]');
+  ok(hdrW !== null, 'riquadro del profilo non attivo presente in lista');
+  hdrW.onclick();
+  await settle(300); /* il click apre il riquadro e carica i parametri in cache */
+  ok(d.querySelector('#panel-profilo [data-pexs="wander"]') !== null, 'riquadro aperto con i bottoni di scambio del profilo');
+  const nomeEx = await w.eval('(async()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ await document.querySelector(\'#panel-profilo [data-pexs="wander"]\').onclick(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
+  ok(w.eval('activeProfile') === 'wander', 'export dal riquadro: profilo attivato da solo');
+  ok(typeof nomeEx === 'string' && nomeEx.startsWith('Scheda_wander_'), 'export dal riquadro: scheda del profilo giusto (' + nomeEx + ')');
   dom.window.close();
 }
 

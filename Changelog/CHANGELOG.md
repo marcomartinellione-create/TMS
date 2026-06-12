@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-06-12 — TMS v1.0.74: lo scambio scheda ↔ cliente entra nel riquadro di ogni profilo
+
+**Tipo**: UX tab Profilo
+**File coinvolti**: src/app/13-report.js (renderProfilo + Guida rapida/completa) · src/app/01-costanti.js (bump) · tests/test-app.js · package.json ×2 (1.0.74)
+**Descrizione**: richiesto da Marco: con più clienti in lista non era chiaro su quale profilo lavorassero i bottoni di export/import (operavano sul profilo *attivo*, ma stavano in fondo alla pagina, fuori da ogni profilo). Ora:
+- **Dentro il riquadro di ogni profilo** (quello che si apre cliccando il nome) c'è la sezione "⇄ Scheda ↔ cliente — <nome>" con **📤 Esporta scheda per il cliente** e **📥 Importa allenamento dal cliente**: lavorano su QUEL profilo. Se non è quello attivo, l'app lo **attiva da sola** prima di esportare/importare (stesso meccanismo di "✎ Modifica parametri").
+- La sezione globale "▌ Scheda ↔ cliente" in fondo alla pagina è stata rimossa; il callout in alto spiega cosa si trova nei riquadri.
+- **Backup/Ripristina resta in fondo** con il titolo esplicito "▌ Backup (tutti i profili insieme)": è una fotografia di tutto l'archivio, non di un singolo profilo — dentro un riquadro sarebbe stato fuorviante.
+- Guida aggiornata (rapida: passi Esporta/Importa e tabella sezioni; completa §10: percorsi coi riquadri).
+**Test**: `npm test` **106/106** — nuove verifiche: bottoni di scambio dentro il riquadro, bottoni globali rimossi, backup ancora in fondo; e2e: click 📤 nel riquadro di un profilo NON attivo → il profilo si attiva e si scarica `Scheda_<suo-slug>_<data>.html`.
+**Approvato da**: Marco (richiesta esplicita)
+
 ### 2026-06-12 — TMS v1.0.73: l'annuncio degli aggiornamenti diventa una finestra in stile TMS
 
 **Tipo**: UX aggiornamenti (wrapper + renderer via IPC)
