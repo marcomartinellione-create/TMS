@@ -97,6 +97,9 @@ function load(opts){
       if(opts.tmsFS) window.tmsFS = opts.tmsFS;
       if(opts.fsa) window.showDirectoryPicker = async ()=>{ const e = new Error('abort'); e.name='AbortError'; throw e; };
       if(!window.URL.createObjectURL){ window.URL.createObjectURL = ()=>'blob:test'; window.URL.revokeObjectURL = ()=>{}; }
+      /* stub del canale aggiornamenti del wrapper (v1.0.73) */
+      window.__upd = { cb: null, risposte: [] };
+      window.tmsUpdate = { onEvento: cb => { window.__upd.cb = cb; }, rispondi: a => { window.__upd.risposte.push(a); } };
       window.addEventListener('error', ev => errors.push(String(ev.message)));
     }
   }).then(dom => ({ dom, errors }));
@@ -160,6 +163,17 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(w.eval('LOG_ERRORI.length') >= 1 && w.eval('LOG_ERRORI[LOG_ERRORI.length-1].msg') === 'boom di prova', 'logErrore registra nel ring buffer');
   w.eval('mostraLogErrori()');
   ok(d.getElementById('modal').innerHTML.includes('boom di prova'), 'modale log errori (5 click sulla versione) con la voce');
+  w.eval('closeModal()');
+  /* v1.0.73: dialoghi di aggiornamento in stile app (via canale tmsUpdate) */
+  w.eval('window.__upd.cb({tipo:"disponibile", versione:"9.9.9", attuale:APP_VERSION, maggiore:true, note:"Novita di prova"})');
+  const updHtml = d.getElementById('modal').innerHTML;
+  ok(!d.getElementById('modal-bk').classList.contains('hidden') && updHtml.includes('MAGGIORE') && updHtml.includes('v9.9.9') && updHtml.includes('Novita di prova'), 'annuncio aggiornamento in stile app (maggiore + note)');
+  d.getElementById('upd-vai').click();
+  ok(w.eval('window.__upd.risposte.join(",")') === 'scarica' && d.getElementById('modal-bk').classList.contains('hidden'), 'Scarica e installa -> risposta al wrapper, modale chiuso');
+  w.eval('window.__upd.cb({tipo:"pronto", versione:"9.9.9"})');
+  ok(d.getElementById('modal').innerHTML.includes('Aggiornamento pronto'), 'modale "pronto, riavviare?" in stile app');
+  d.getElementById('upd-riavvia').click();
+  ok(w.eval('window.__upd.risposte.join(",")') === 'scarica,riavvia', 'Riavvia ora -> risposta al wrapper');
   w.eval('closeModal()');
   dom.window.close();
 }

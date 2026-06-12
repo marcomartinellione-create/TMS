@@ -68,6 +68,27 @@ async function ripristinaBackupAutomatico(nomeFile){
   }catch(e){ alert('Backup automatico non leggibile: '+e.message); logErrore('ripristinoAuto', e); }
 }
 
+/* ── aggiornamenti con l'interfaccia dell'app (v1.0.73): il wrapper manda gli eventi
+      dell'updater via window.tmsUpdate, qui si mostrano i modali in stile pergamena ── */
+function modalAggiornamento(d){
+  const nota=String((d&&d.note)||'').trim();
+  modal(`<h3>${d&&d.maggiore?'⚠ Aggiornamento MAGGIORE':'✦ Aggiornamento disponibile'}</h3>
+   <div class="callout ${d&&d.maggiore?'callout--ember':'callout--info'}"><div>È pronta la versione <b>v${esc(d.versione)}</b> <span class="muted">(hai la v${esc(d.attuale)})</span>. Confermando, il download prosegue in background: vedrai la <b>percentuale nel titolo</b> della finestra e sulla taskbar.</div></div>
+   ${nota?`<div class="sec">▌ Novità di questa versione</div>
+   <div style="max-height:240px;overflow:auto;white-space:pre-wrap;font-size:12.5px;line-height:1.55;color:var(--ink-2);border:1px solid var(--border);border-radius:7px;padding:10px 12px;background:var(--paper-2)">${esc(nota)}</div>`:''}
+   <div class="modal__actions"><button class="btn" id="upd-dopo">Più tardi</button><button class="btn btn--ember" id="upd-vai">⭳ Scarica e installa</button></div>`);
+  { const b=document.getElementById('upd-vai'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('scarica'); }catch(e){} }; }
+  { const b=document.getElementById('upd-dopo'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('dopo'); }catch(e){} }; }
+  { const m=document.getElementById('modal'); if(m) m.style.maxWidth='620px'; }
+}
+function modalRiavvio(d){
+  modal(`<h3>✦ Aggiornamento pronto</h3>
+   <div class="callout callout--info"><div>La versione <b>v${esc(d.versione)}</b> è scaricata e pronta. Vuoi <b>riavviare ora</b> per installarla? Altrimenti si installa da sola alla prossima chiusura.</div></div>
+   <div class="modal__actions"><button class="btn" id="upd-rdopo">Più tardi</button><button class="btn btn--ember" id="upd-riavvia">↻ Riavvia ora</button></div>`);
+  { const b=document.getElementById('upd-riavvia'); if(b) b.onclick=()=>{ try{ window.tmsUpdate.rispondi('riavvia'); }catch(e){} }; }
+  { const b=document.getElementById('upd-rdopo'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('dopo'); }catch(e){} }; }
+}
+
 /* log errori interni: modale di consultazione (5 click sulla versione nel footer) */
 function mostraLogErrori(){
   const righe=LOG_ERRORI.slice().reverse().map(v=>v.t+'  ['+v.dove+']  '+v.msg).join('\n');

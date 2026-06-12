@@ -12,3 +12,10 @@ contextBridge.exposeInMainWorld('tmsFS', {
   remove:    (rel)       => ipcRenderer.invoke('tmsfs:remove', rel),
   dataRoot:  ()          => ipcRenderer.invoke('tmsfs:dataRoot')
 });
+
+// Aggiornamenti con l'interfaccia DELL'APP (dal v1.0.73): il main manda gli eventi
+// dell'updater al renderer, che mostra il modale in stile pergamena e risponde.
+contextBridge.exposeInMainWorld('tmsUpdate', {
+  onEvento: (cb) => ipcRenderer.on('tms-update', (_e, dati) => { try { cb(dati); } catch (err) {} }),
+  rispondi: (azione) => ipcRenderer.send('tms-update-azione', String(azione || ''))
+});

@@ -144,27 +144,36 @@ app.whenReady().then(() => {
       return s || 'Nessuna nota di rilascio disponibile.';
     };
 
-    autoUpdater.on('update-available', async (info) => {
+    /* i dialoghi dell'updater sono renderizzati DALL'APP (stile pergamena, dal v1.0.73):
+       il main manda l'evento al renderer e riceve la decisione via 'tms-update-azione' */
+    const inviaUpdate = (dati) => {
+      const manda = () => { const w = BrowserWindow.getAllWindows()[0]; if (w) try { w.webContents.send('tms-update', dati); } catch (e) {} };
+      const w = BrowserWindow.getAllWindows()[0];
+      if (!w) { setTimeout(manda, 1500); return; }
+      if (w.webContents.isLoading()) w.webContents.once('did-finish-load', manda); else manda();
+    };
+    let infoDisponibile = null, scaricatoPronto = false;
+
+    autoUpdater.on('update-available', (info) => {
       const attuale = app.getVersion();
       const maggiore = isMaggiore(attuale, info.version);
+      infoDisponibile = info;
       updLog('disponibile', info.version, '(attuale ' + attuale + (maggiore ? ', MAGGIORE' : '') + ')');
-      const r = await dialog.showMessageBox({
-        type: maggiore ? 'warning' : 'info',
-        title: 'Aggiornamento TMS',
-        message: maggiore
-          ? `⚠ AGGIORNAMENTO MAGGIORE — è disponibile la versione ${info.version} (hai la ${attuale}).`
-          : `È disponibile la versione ${info.version} (hai la ${attuale}). Vuoi aggiornare?`,
-        detail: 'Novità di questa versione:\n\n' + anteprimaNote(info.releaseNotes)
-          + '\n\nIl download prosegue in background: vedrai la percentuale nel titolo della finestra.',
-        buttons: ['Scarica e installa', 'Più tardi'],
-        defaultId: 0, cancelId: 1, noLink: true
-      });
-      if (r.response === 0) {
+      inviaUpdate({ tipo: 'disponibile', versione: info.version, attuale: attuale,
+        maggiore: maggiore, note: anteprimaNote(info.releaseNotes) });
+    });
+
+    ipcMain.on('tms-update-azione', (e, azione) => {
+      if (azione === 'scarica' && infoDisponibile) {
         aggiornamento.inCorso = true; aggiornamento.percento = 0;
         setProgress(0, 'Training Monitor System — scarico l\'aggiornamento… 0%');
-        updLog('download avviato', info.version);
+        updLog('download avviato', infoDisponibile.version);
         autoUpdater.downloadUpdate().catch(() => { /* gestito da on(error) */ });
-      } else updLog('rimandato dall\'utente');
+      } else if (azione === 'dopo') {
+        updLog('rimandato dall\'utente');
+      } else if (azione === 'riavvia' && scaricatoPronto) {
+        autoUpdater.quitAndInstall();
+      }
     });
 
     autoUpdater.on('download-progress', (p) => {
@@ -175,17 +184,10 @@ app.whenReady().then(() => {
 
     autoUpdater.on('update-downloaded', (info) => {
       aggiornamento.inCorso = false;
+      scaricatoPronto = true;
       setProgress(-1);
       updLog('scaricato', info.version);
-      const r = dialog.showMessageBoxSync({
-        type: 'info',
-        title: 'Aggiornamento TMS',
-        message: `La versione ${info.version} è pronta.`,
-        detail: 'Vuoi riavviare ora per installarla? (Altrimenti si installa alla prossima chiusura.)',
-        buttons: ['Riavvia ora', 'Più tardi'],
-        defaultId: 0, cancelId: 1
-      });
-      if (r === 0) autoUpdater.quitAndInstall();
+      inviaUpdate({ tipo: 'pronto', versione: info.version });
     });
 
     autoUpdater.on('error', (err) => {

@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-06-12 — TMS v1.0.73: l'annuncio degli aggiornamenti diventa una finestra in stile TMS
+
+**Tipo**: UX aggiornamenti (wrapper + renderer via IPC)
+**File coinvolti**: electron/{main.js, preload.js} · src/app/{14-backup.js, 17-init.js, 01-costanti.js} · tests/test-app.js · package.json ×2 (1.0.73)
+**Descrizione**: richiesto da Marco: i dialoghi nativi di Windows per gli aggiornamenti stonavano con l'app. Ora il wrapper manda gli eventi dell'updater al renderer (canale `tms-update` via preload, API `window.tmsUpdate`) e l'app mostra **modali in stile pergamena**:
+- **Annuncio**: "✦ Aggiornamento disponibile" (o "⚠ Aggiornamento MAGGIORE" con callout ember) con versione attuale/nuova, **anteprima delle novità** in riquadro scrollabile e bottoni "⭳ Scarica e installa" / "Più tardi"; la decisione torna al main via `tms-update-azione`.
+- **Download pronto**: modale "riavvia ora / più tardi" (riavvio = `quitAndInstall`).
+- Restano invariati: percentuale nel titolo/taskbar, chiusura trattenuta durante il download, errori, update.log. L'invio al renderer attende il caricamento della finestra (`did-finish-load`).
+- NB: chi ha installato ≤1.0.72 vedrà il vecchio dialogo nativo per QUESTO passaggio (il dialogo vive nel wrapper installato); dal 1.0.73 in poi, sempre lo stile TMS.
+**Test**: `npm test` **99/99** — stub del canale nel loader; scenario completo: annuncio maggiore con note → click Scarica → risposta 'scarica' e modale chiuso → evento 'pronto' → click Riavvia → risposta 'riavvia'. `node --check` su main.js e preload.js.
+**Approvato da**: Marco (richiesta esplicita)
+
 ### 2026-06-12 — TMS v1.0.72: backup automatici settimanali · mini-log errori (P4) · ESLint sul concatenato (P10) · 2 bug veri sistemati
 
 **Tipo**: Blocco "Strutturali" del report di revisione (P2 esclusa su decisione di Marco; agenti non disponibili per limite sessione → tutto eseguito in prima persona)
