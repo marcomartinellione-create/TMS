@@ -1,11 +1,11 @@
 {
   "name": "tms-sorgente",
-  "version": "1.0.75",
+  "version": "1.0.76",
   "private": true,
   "description": "Training Monitor System — sorgente decomposto (src/), build (tools/) e test (tests/). L'app resta un file HTML singolo: gli artefatti sono generati da `npm run build`.",
   "scripts": {
-    "build": "node tools/build.js",
-    "verifica": "node tools/build.js --verifica",
+    "build": "node tools/build.js && node tools/genera-guida-ai.js",
+    "verifica": "node tools/build.js --verifica && node tools/genera-guida-ai.js --verifica",
     "sintassi": "node tools/controlla-sintassi.js",
     "lint": "node tools/lint.js",
     "test": "node tools/lint.js && node tools/controlla-sintassi.js && node tests/test-app.js",

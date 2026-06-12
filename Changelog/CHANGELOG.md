@@ -19,6 +19,30 @@ build crashava).
 temporaneo senza TMS_Dati: build entrambi gli artefatti, T1b saltato, 53/53.
 **Approvato da**: Marco («ok andiamo»)
 
+### 2026-06-13 — TMS v1.0.76: guida per AI (download dal tab Guida + docs/guida-ai.md)
+
+**Tipo**: nuova funzione (proposta «Guida per AI» approvata da Marco)
+**File coinvolti**: src/app/13b-guida-ai.js (NUOVA parte: testo + download) · src/manifest.json ·
+src/app/13-report.js (bottone nel tab Guida) · tools/genera-guida-ai.js (NUOVO: estrazione) ·
+package.json (build/verifica concatenano l'estrazione; 1.0.76 ×2) · README.md · docs/index.html ·
+tests/test-app.js · src/app/01-costanti.js
+**Descrizione**: documentazione testuale completa dell'app **pensata per gli assistenti AI**
+(ChatGPT, Claude, Gemini…): l'utente la carica in chat e si fa aiutare a usare il TMS.
+Contiene istruzioni per l'AI, panoramica, tutti i tab e le loro funzioni (layout v1.0.75),
+formule spiegate (1RM, TL, ACWR, monotonia/strain, sRPE, indice OMS), flusso coach↔cliente,
+**bug noti e limitazioni** (video segnaposto, SmartScreen, impostazioni di stampa, import che
+aggiunge, no multi-PC simultaneo…) e FAQ «domanda → dove si fa». Fonte di verità UNICA:
+`GUIDA_AI_CORPO` in src/app/13b-guida-ai.js (template literal: niente backtick né dollaro-graffa).
+Nell'app: tab **📕 Guida → «🤖 Scarica documentazione per AI»** (accanto a Rapida/Completa)
+scarica `TMS-guida-AI-v<versione>.md` con intestazione di versione. Nel repo:
+`tools/genera-guida-ai.js` estrae la copia pubblica **docs/guida-ai.md** — agganciato a
+`npm run build` (rigenera) e `npm run verifica` (controlla l'allineamento, fallisce se diverge).
+README: punto chiave nelle Caratteristiche; sito: link «🤖 Guida per AI» nel footer.
+**Da ricordare**: il testo va AGGIORNATO ad ogni release che cambia funzioni visibili.
+**Test**: `npm test` **110/110** (+4: testo completo con versione, sezioni chiave, bottone nel
+tab Guida, nome file versionato del download — tutti nel blocco T1, quindi girano anche in CI)
+**Approvato da**: Marco
+
 ### 2026-06-12 — Vetrina: screenshot nel README + sito GitHub Pages (nessun bump, l'app non cambia)
 
 **Tipo**: vetrina/documentazione (proposta «Screenshot nel README + pagina GitHub Pages»)

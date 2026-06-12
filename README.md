@@ -23,6 +23,10 @@ mobile. Tema pergamena/ember, modalità notte. *By Wander.*
   dati grezzi — niente numeri incoerenti.
 - **Auto-update**: l'app controlla le release GitHub all'avvio e si aggiorna da sola.
 - **Backup**: esporta/importa tutti i dati in un singolo file JSON.
+- **🤖 Documentazione per AI**: [docs/guida-ai.md](docs/guida-ai.md) descrive ogni funzione,
+  formula e limite noto dell'app in un file pensato per gli assistenti AI — caricalo su
+  ChatGPT/Claude/Gemini e fagli domande sul TMS. Scaricabile anche dall'app
+  (tab **Guida → 🤖 Scarica documentazione per AI**); si aggiorna ad ogni release.
 
 ## Screenshot
 

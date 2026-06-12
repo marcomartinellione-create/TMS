@@ -261,10 +261,12 @@ function renderGuida(){
      <div style="display:flex;gap:6px;margin-left:14px">
        <button class="btn btn--sm ${guidaMode==='rapida'?'btn--ember':''}" data-gmode="rapida">⚡ Rapida</button>
        <button class="btn btn--sm ${guidaMode==='completa'?'btn--ember':''}" data-gmode="completa">📖 Completa</button>
+       <button class="btn btn--sm" id="g-ai" title="Scarica un file di testo con tutte le funzioni e i limiti noti dell'app: caricalo su ChatGPT/Claude/Gemini e fagli le tue domande sul TMS">🤖 Scarica documentazione per AI</button>
      </div>
      <div class="spacer"></div>
      <button class="btn" onclick="showTab('allenamento')">← Torna all'app</button></div>`;
   document.getElementById('panel-guida').innerHTML=tog+(guidaMode==='rapida'?guidaRapida():guidaCompleta());
+  { const g=document.getElementById('g-ai'); if(g) g.onclick=scaricaGuidaAI; }
   document.querySelectorAll('#panel-guida [data-gmode]').forEach(b=>b.onclick=()=>{ guidaMode=b.dataset.gmode; renderGuida(); try{window.scrollTo(0,0);}catch(e){} });
   document.querySelectorAll('#panel-guida [data-gjump]').forEach(b=>b.onclick=()=>{ const el=document.getElementById(b.dataset.gjump); if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'}); });
 }
