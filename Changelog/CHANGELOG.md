@@ -4,6 +4,16 @@
 
 ---
 
+### 2026-06-12 — TMS v1.0.71: lo scambio scheda coach ↔ cliente entra nella Guida (rapida + completa)
+
+**Tipo**: Documentazione in-app (lavoro delegato a 2 agenti — Sonnet per la Guida, Haiku per i test — testi d'autore e revisione del chiamante)
+**File coinvolti**: src/app/13-report.js (guidaRapida + guidaCompleta) · tests/test-app.js · src/app/01-costanti.js (bump) · package.json ×2 (1.0.71) · CLAUDE.md
+**Descrizione**: richiesto da Marco: il flusso di comunicazione coach ↔ cliente via file scheda (feature v1.0.66) ora è spiegato nella Guida.
+- **Guida rapida**: nuova sezione "▌ Coach ↔ cliente: la scheda che viaggia" (3 passi: esporta → il cliente compila → importa) dopo i 4 passi base.
+- **Guida completa**: nuova sezione **"▌ 10 · Scheda ↔ cliente (per i coach)"** (id gc-scambio, voce nel nav) con i nomi dei file generati, cosa può/non può modificare il cliente, dove finiscono i dati all'import (Storico + sRPE → TL/ACWR/report) e l'elenco dei controlli di sicurezza. Le sezioni successive scalano: FAQ=11, Basi scientifiche=12, Documentazione=13, Licenza & crediti=14.
+**Test**: `npm test` **86/86** — nuove verifiche: sezione gc-scambio nella completa, rinumerazione (Licenza=14), passo coach↔cliente nella rapida.
+**Approvato da**: Marco (richiesta esplicita)
+
 ### 2026-06-12 — TMS v1.0.70: consolidamento — Rinomina profilo · via checkUpdate web · Zwieback disambiguato · hardening wrapper · crediti free-exercise-db
 
 **Tipo**: Bugfix/pulizie dal report di revisione (P1, P3, P8, P9, P11) + crediti — parte del lavoro delegata ad agenti con supervisione e test

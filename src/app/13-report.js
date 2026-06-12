@@ -279,6 +279,12 @@ function guidaRapida(){
      <li><b>Guarda i risultati.</b> <b>📈 Progressi</b> per grafici e record, <b>📊 Analisi</b> per incrociare dieta e allenamento, <b>🖨 Report</b> per il PDF da consegnare.</li>
    </ol>
    <div class="callout"><div>🔔 Un pallino/banner verde o rosso (in Allenamento, Corpo e nel footer) ti avvisa se non hai ancora registrato la settimana.</div></div>
+   <div class="sec">▌ Coach ↔ cliente: la scheda che viaggia</div>
+   <ol style="margin:0 0 6px 18px;line-height:1.9">
+     <li><b>Esporta.</b> <b>👤 Profilo → 📤 Esporta scheda per il cliente</b>: crea una pagina HTML con la scheda (e i video, se vuoi). Inviala via chat o email.</li>
+     <li><b>Il cliente compila.</b> Apre il file con un doppio click (niente da installare), inserisce ciò che ha fatto davvero — serie, ripetizioni, peso, RIR, note e fatica della seduta — e preme <b>📩 Crea il file per il trainer</b>: si scarica un piccolo file di rientro da rimandarti.</li>
+     <li><b>Importa.</b> <b>👤 Profilo → 📥 Importa allenamento dal cliente</b>: scegli il file e la data — l'allenamento finisce nello Storico del profilo (con la fatica nelle sedute RPE), pronto per grafici e report. L'app ti avvisa se il profilo non corrisponde o se la settimana ha già registrazioni.</li>
+   </ol>
    <div class="sec">▌ Le sezioni in breve</div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta/cliente attivo e anagrafica (il tab mostra il nome del profilo attivo). Più profili = più clienti. Qui anche <b>Backup/Ripristino</b> e lo <b>scambio scheda col cliente</b> (esporta la scheda compilabile, importa il file di rientro).</td></tr>
@@ -302,7 +308,7 @@ function guidaRapida(){
 }
 function guidaCompleta(){
   const bd=p=>{const fset=fascia(p);return '<span class="fascia '+fset[1]+'">'+fset[0]+'</span>';};
-  const nav=[['gc-avvio','Avvio'],['gc-profili','Profili'],['gc-flusso','Flusso'],['gc-sezioni','Le sezioni'],['gc-ind','Indicatori & formule'],['gc-calc','Logica dei calcoli'],['gc-graf','Lettura grafici'],['gc-nutri','Alimentazione & OMS'],['gc-dati','Dati & backup'],['gc-faq','FAQ & problemi'],['gc-sci','Basi scientifiche'],['gc-doc','Documentazione'],['gc-lic','Licenza']];
+  const nav=[['gc-avvio','Avvio'],['gc-profili','Profili'],['gc-flusso','Flusso'],['gc-sezioni','Le sezioni'],['gc-ind','Indicatori & formule'],['gc-calc','Logica dei calcoli'],['gc-graf','Lettura grafici'],['gc-nutri','Alimentazione & OMS'],['gc-dati','Dati & backup'],['gc-scambio','Scheda ↔ cliente'],['gc-faq','FAQ & problemi'],['gc-sci','Basi scientifiche'],['gc-doc','Documentazione'],['gc-lic','Licenza']];
   return `
    <div class="callout callout--ember"><div>📖 <b>Guida completa.</b> Manuale tecnico del Training Monitor System, erede dell'omonimo Excel/VBA «by Wander». <span class="pill">v${APP_VERSION} · ${APP_DATE}</span></div></div>
    <div class="bar" style="flex-wrap:wrap">${nav.map(n=>`<button class="btn btn--sm" data-gjump="${n[0]}">${n[1]}</button>`).join(' ')}</div>
@@ -429,7 +435,16 @@ function guidaCompleta(){
    <div class="sec" id="gc-dati">▌ 9 · Dati, profili e backup</div>
    <p>Tutto in locale, <b>nessun cloud</b>. Per profilo: <span class="mono">TMS_Dati/&lt;profilo&gt;/</span> con <span class="mono">scheda.json</span>, <span class="mono">storico.json</span>, <span class="mono">corpo.json</span>, <span class="mono">alimentazione.json</span>; condivisi alla root <span class="mono">profili.json</span> ed <span class="mono">esercizi.json</span>. Copia di sicurezza anche nel browser. Migrazioni automatiche con backup <span class="mono">storico.backup.json</span>. <b>Backup/Ripristino</b> (tab Profilo): <b>⭳ Backup</b> esporta tutti i dati in un file JSON, <b>⭱ Ripristina</b> li reimporta. In alternativa, backup manuale: copia la cartella <span class="mono">TMS_Dati</span>. <b>Cross-PC</b>: se la cartella è sincronizzata (es. cloud), i dati si spostano; connetti la cartella una volta per PC e non modificare in contemporanea su due dispositivi.</p>
 
-   <div class="sec" id="gc-faq">▌ 10 · FAQ & risoluzione problemi</div>
+   <div class="sec" id="gc-scambio">▌ 10 · Scheda ↔ cliente (per i coach)</div>
+   <p>Per seguire un cliente a distanza non serve che lui abbia il TMS: la scheda <b>viaggia come file</b>.</p>
+   <ol style="margin:0 0 6px 18px;line-height:1.8">
+     <li><b>Esporta</b> — col profilo del cliente attivo: <b>👤 Profilo → 📤 Esporta scheda per il cliente</b>. Nasce <span class="mono">Scheda_&lt;profilo&gt;_&lt;data&gt;.html</span>: una pagina autonoma con la scheda giorno per giorno, il previsto in chiaro e i campi compilabili; alla domanda sui video, includili se vuoi che il cliente veda le esecuzioni offline (file più pesante).</li>
+     <li><b>Il cliente compila</b> — apre il file in qualunque browser, inserisce i valori effettivi (serie, ripetizioni, peso, RIR e note per esercizio; fatica RPE 0–10 e durata in minuti per seduta — gli esercizi non sono modificabili) e preme <b>📩 Crea il file per il trainer</b>: si scarica <span class="mono">Rientro_&lt;profilo&gt;_&lt;data&gt;.json</span> da rimandarti.</li>
+     <li><b>Importa</b> — <b>👤 Profilo → 📥 Importa allenamento dal cliente</b>: scegli il file e la <b>data di registrazione</b> (l'app la converte nella settimana dello Storico). Le righe entrano nello Storico con le sedute numerate e la fatica in storico RPE: alimentano TL, ACWR, grafici e Report come una seduta registrata a mano.</li>
+   </ol>
+   <p><b>Controlli di sicurezza</b> all'import: file non valido → errore chiaro; <b>profilo diverso</b> da quello attivo → conferma esplicita; esercizi fuori catalogo → avviso con elenco; <b>settimana già popolata</b> → "le righe verranno AGGIUNTE, procedo?".</p>
+
+   <div class="sec" id="gc-faq">▌ 11 · FAQ & risoluzione problemi</div>
    <p><b>Campi obbligatori?</b> Solo Esercizio, Serie, Ripetizioni, Peso. Note e recupero facoltativi.</p>
    <p><b>Nuovo esercizio?</b> Tab <b>Esercizi</b> → ＋ Nuovo (nome, gruppo, target, tipo, fattore). Compare subito nei menù.</p>
    <p><b>Dato sbagliato?</b> Nella scheda corrente correggi diretto; nello storico usa «↶ Annulla ultimo» e risalva.</p>
@@ -438,7 +453,7 @@ function guidaCompleta(){
    <p><b>Grafici vuoti.</b> Servono almeno 2–3 schede salvate.</p>
    <p><b>La stampa taglia?</b> Usa il pulsante 🖨 (apre la finestra impaginata), poi nel dialogo: A4, Margini «Nessuno», Scala 100%, Grafica di sfondo attiva.</p>
 
-   <div class="sec" id="gc-sci">▌ 11 · Basi scientifiche</div>
+   <div class="sec" id="gc-sci">▌ 12 · Basi scientifiche</div>
    <ol style="margin:0 0 4px 18px;line-height:1.7;font-size:13px">
      <li>Scott B.R. et al., <i>Training Monitoring for Resistance Exercise…</i>, Sports Medicine, 2016 — base del Training Load.</li>
      <li>Gabbett T.J., <i>The training-injury prevention paradox</i>, BJSM, 2016 — fondamento dell'ACWR.</li>
@@ -447,7 +462,7 @@ function guidaCompleta(){
      <li>OMS/FAO — <i>Human energy requirements</i> e <i>Vitamin and mineral requirements</i>.</li>
    </ol>
 
-   <div class="sec" id="gc-doc">▌ 12 · Documentazione di riferimento</div>
+   <div class="sec" id="gc-doc">▌ 13 · Documentazione di riferimento</div>
    <p>I modelli del TMS si basano sui paper elencati qui sotto. I paper <b>non vengono distribuiti</b> con l'app (sono soggetti a copyright): <b>DOI</b> porta alla pagina ufficiale dell'editore e <b>Scholar</b> alla ricerca — spesso si trovano copie open-access legali, preprint o la versione caricata dagli autori; molte università danno accesso istituzionale.</p>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Paper</th><th>DOI</th><th>Scholar</th></tr></thead><tbody>
      <tr><td class="l">Scott 2016 — Training Load (base)</td><td><a href="https://doi.org/10.1007/s40279-015-0454-0" target="_blank">DOI</a></td><td><a href="https://scholar.google.com/scholar?q=Training+Monitoring+for+Resistance+Exercise+Theory+and+Applications" target="_blank">Scholar</a></td></tr>
@@ -464,7 +479,7 @@ function guidaCompleta(){
      <tr><td class="l">Plews 2013 — HRV / readiness</td><td><a href="https://doi.org/10.1007/s40279-013-0071-8" target="_blank">DOI</a></td><td><a href="https://scholar.google.com/scholar?q=Training+adaptation+and+heart+rate+variability+in+elite+endurance+athletes" target="_blank">Scholar</a></td></tr>
         </tbody></table></div>
 
-   <div class="sec" id="gc-lic">▌ 13 · Licenza & crediti</div>
+   <div class="sec" id="gc-lic">▌ 14 · Licenza & crediti</div>
    <div class="callout callout--ember"><div>📢 <b>Progetto aperto e gratuito.</b> Liberi di usarlo, condividerlo e personalizzarlo. Si chiede solo di <b>mantenere i crediti</b> e di <b>non venderlo</b> a scopo di lucro. «Train hard, share knowledge.» 💪 — by Wander</div></div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>Catalogo esercizi</b></td><td class="l">derivato da <a href="https://github.com/yuhonas/free-exercise-db" target="_blank" rel="noopener">free-exercise-db</a> di yuhonas (licenza Unlicense, pubblico dominio) — 800+ esercizi, tradotti e adattati per il TMS.</td></tr>

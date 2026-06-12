@@ -248,6 +248,12 @@ console.log('--- T1b: desktop con il SEED REALE (TMS_Dati) e profilo template --
   w.eval('guidaMode = "completa"; renderGuida()');
   const guida = d.getElementById('panel-guida').innerHTML;
   ok(!guida.includes('Documentazione/') && guida.includes('doi.org'), 'Guida §12 (completa): niente link locali, restano DOI/Scholar');
+  /* v1.0.71: passo coach ↔ cliente nella Guida (rapida e completa) */
+  ok(guida.includes('Scheda ↔ cliente') && guida.includes('gc-scambio') && guida.includes('Crea il file per il trainer'), 'Guida completa: sezione 10 Scheda ↔ cliente');
+  ok(guida.includes('▌ 14 · Licenza'), 'Guida completa: sezioni rinumerate (Licenza = 14)');
+  w.eval('guidaMode = "rapida"; renderGuida()');
+  const rapida = d.getElementById('panel-guida').innerHTML;
+  ok(rapida.includes('Coach ↔ cliente') && rapida.includes('Esporta scheda per il cliente'), 'Guida rapida: passo coach ↔ cliente');
   ok(!d.body.innerHTML.includes('Tarnished'), 'nessuna istanza di «Rise, Tarnished»');
   const nomeBk = await w.eval('(async()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ await backupData(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
   ok(typeof nomeBk === 'string' && nomeBk.startsWith('TMS-backup-atleta-template-'), 'backup col nome del profilo attivo (' + nomeBk + ')');
