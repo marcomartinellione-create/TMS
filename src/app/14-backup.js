@@ -49,19 +49,3 @@ async function restoreData(file){
   saveCache(); alert('✔ Backup ripristinato ('+np+' profili).'); renderAll(); showTab('profilo');
 }
 
-
-function cmpVer(a,b){ const pa=String(a).split('.').map(n=>parseInt(n,10)||0), pb=String(b).split('.').map(n=>parseInt(n,10)||0); const L=Math.max(pa.length,pb.length); for(let i=0;i<L;i++){ const d=(pa[i]||0)-(pb[i]||0); if(d) return d>0?1:-1; } return 0; }
-async function checkUpdate(){
-  if(!UPDATE_URL) return;
-  try{
-    const r=await fetch(UPDATE_URL,{cache:'no-store'}); if(!r.ok) return;
-    const j=await r.json(); if(!j||!j.version) return;
-    if(cmpVer(j.version, APP_VERSION)<=0) return;
-    try{ if(localStorage.getItem('tms-upd-dismiss')===j.version) return; }catch(e){}
-    const el=document.getElementById('update-banner'); if(!el) return;
-    const link=j.url? `<a href="${esc(j.url)}" target="_blank" rel="noopener" class="btn btn--sm btn--ember" style="margin-left:auto">⭳ Scarica v${esc(j.version)}</a>` : '';
-    el.innerHTML=`<span>✦ <b>Aggiornamento disponibile:</b> v${esc(j.version)}${j.nota?` — ${esc(j.nota)}`:''}</span> ${link} <button class="btn btn--sm" id="upd-x" title="ignora questa versione">✕</button>`;
-    el.style.display='flex';
-    const x=document.getElementById('upd-x'); if(x) x.onclick=()=>{ try{ localStorage.setItem('tms-upd-dismiss',j.version); }catch(e){} el.style.display='none'; };
-  }catch(e){ /* offline o non raggiungibile: ignora */ }
-}

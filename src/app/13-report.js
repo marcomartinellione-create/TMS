@@ -495,6 +495,7 @@ function renderProfilo(){
         <div class="bar no-print" style="margin-top:8px">
           ${isAct?'<span class="muted" style="align-self:center">profilo attivo</span>':`<button class="btn btn--ember" data-pact="${esc(p.slug)}">Attiva</button>`}
           <button class="btn" data-pedit="${esc(p.slug)}">✎ Modifica parametri</button>
+          <button class="btn" data-pren="${esc(p.slug)}">✏ Rinomina</button>
           ${profili.length>1?`<button class="btn btn--danger" data-pdel="${esc(p.slug)}">✕ Elimina</button>`:''}
         </div>`;
       } else { body='<div class="muted" style="padding:8px">Caricamento parametri…</div>'; }
@@ -530,6 +531,7 @@ function renderProfilo(){
   });
   document.querySelectorAll('#panel-profilo [data-pact]').forEach(b=>b.onclick=()=>switchProfile(b.dataset.pact));
   document.querySelectorAll('#panel-profilo [data-pedit]').forEach(b=>b.onclick=async()=>{ const slug=b.dataset.pedit; if(slug!==activeProfile){ await switchProfile(slug); } anagraficaModal(); });
+  document.querySelectorAll('#panel-profilo [data-pren]').forEach(b=>b.onclick=()=>renameProfile(b.dataset.pren));
   document.querySelectorAll('#panel-profilo [data-pdel]').forEach(b=>b.onclick=()=>deleteProfile(b.dataset.pdel));
 }
 

@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-06-12 — TMS v1.0.70: consolidamento — Rinomina profilo · via checkUpdate web · Zwieback disambiguato · hardening wrapper · crediti free-exercise-db
+
+**Tipo**: Bugfix/pulizie dal report di revisione (P1, P3, P8, P9, P11) + crediti — parte del lavoro delegata ad agenti con supervisione e test
+**File coinvolti**: src/app/{13-report.js, 14-backup.js, 17-init.js, 01-costanti.js} · src/pagina/{02-stili.css, 03-corpo.html} · electron/main.js · tools/genera-alimenti.py · src/dati/{02-alimenti-usav.js, alimenti-usav.json} (rigenerati) · tests/test-app.js · README.md · package.json ×2 (1.0.70)
+- **P1 — "✏ Rinomina" profilo**: bottone nel pannello del profilo (accanto a "Modifica parametri") collegato alla `renameProfile` già esistente (modale): la funzione promessa dalla Guida ora esiste davvero.
+- **P3 — rimosso il vecchio controllo aggiornamenti web**: via `checkUpdate`+`cmpVer`, costanti `UPDATE_URL`/`REPO_DL_URL`, div e CSS `#update-banner`, e il blocco `webRequest` in main.js che lo neutralizzava. Gli aggiornamenti sono SOLO via electron-updater.
+- **P11 — banca alimenti senza omonimi**: `genera-alimenti.py` ora legge la colonna Sinonimi e disambigua i nomi duplicati (l'ultima occorrenza resta invariata → i piani salvati non cambiano valore; le precedenti diventano "nome (Sinonimi)"). Risultato: "Zwieback" + "Zwieback (Fette biscottate integrali)", 1190 nomi tutti univoci, blob rigenerato.
+- **P8 — whitelist permessi Electron**: il default `callback(true)` diventa una whitelist esplicita (`fullscreen` per il player video, `clipboard-sanitized-write`); `fileSystem` resta vincolato all'origine app://tms; tutto il resto negato.
+- **P9 — path-traversal check robusto** nel protocol handler: da `startsWith` a `path.relative` (copre i casi limite tipo cartelle "renderer-x").
+- **Crediti**: catalogo esercizi attribuito a free-exercise-db di yuhonas (Unlicense) in Guida §13 (tabella fonti) e README (già committato il 2026-06-12).
+**Test**: `npm test` **83/83** — nuove verifiche: bottone Rinomina presente nel pannello, Zwieback disambiguato in FOODBYNAME, `checkUpdate`/`UPDATE_URL`/banner assenti · `node --check` main.js OK · diff completo revisionato riga per riga.
+**Approvato da**: Marco (richiesta esplicita del blocco "piccole ma giuste")
+
 ### 2026-06-11 — TMS v1.0.69: seed installer solo "Atleta Template" (privacy) · dieta template realistica · Guida rapida riscritta · repo GitHub vetrina
 
 **Tipo**: Privacy + dati demo + documentazione + infrastruttura repo

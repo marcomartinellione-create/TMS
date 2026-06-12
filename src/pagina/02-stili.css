@@ -319,5 +319,3 @@ svg .ln{fill:none; stroke-width:2}
 #pdf-stage .chart-box svg{ width:100%; height:auto; max-height:200mm }
 #pdf-stage table{ width:100%; font-size:9.5px } #pdf-stage thead th{ position:static }
 table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
-#update-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 18px;background:var(--gold-t);border-bottom:1px solid var(--gold-2);color:var(--ember-2);font-size:13px}
-[data-theme="notte"] #update-banner{color:#f0d676}

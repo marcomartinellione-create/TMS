@@ -197,6 +197,13 @@ console.log('--- T1b: desktop con il SEED REALE (TMS_Dati) e profilo template --
   ok(d.getElementById('panel-alimentazione').innerHTML.includes('Periodi') && d.getElementById('per-add') !== null, 'sezione Periodi nel tab Alimentazione');
   w.eval('showTab("report")');
   ok(d.getElementById('panel-report').innerHTML.includes('Dieta × allenamento'), 'report con la sezione Dieta × allenamento');
+  /* v1.0.70: bottone Rinomina profilo (P1) e Zwieback disambiguato (P11) */
+  w.eval('showTab("profilo")');
+  w.eval('profOpen = activeProfile; renderProfilo()');
+  ok(d.querySelector('#panel-profilo [data-pren]') !== null, 'bottone "Rinomina" nel pannello profilo (P1)');
+  ok(w.eval('!!FOODBYNAME["Zwieback"] && !!FOODBYNAME["Zwieback (Fette biscottate integrali)"]'), 'Zwieback disambiguato nella banca alimenti (P11)');
+  /* v1.0.70: vecchio checkUpdate web rimosso (P3) */
+  ok(w.eval('typeof checkUpdate') === 'undefined' && w.eval('typeof UPDATE_URL') === 'undefined' && d.getElementById('update-banner') === null, 'checkUpdate/UPDATE_URL/banner web rimossi (P3)');
   /* sottocategorie (v1.0.63) sul catalogo reale */
   ok(w.eval('sottoOf(esLookup("Panca piana con bilanciere - presa media"))') === 'Panca / Distensioni', 'sottocategoria derivata: Panca / Distensioni');
   ok(w.eval('sottoOf(esLookup("Affondi / Split squat"))') === 'Affondi', 'sottocategoria derivata: Affondi');

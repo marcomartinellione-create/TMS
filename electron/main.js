@@ -94,22 +94,17 @@ app.whenReady().then(() => {
   // e l'app si fermerebbe al gate ad ogni avvio. Auto-concediamo il permesso 'fileSystem'
   // SOLO alla nostra origine app://tms -> riconnessione automatica come nel browser.
   const isTms = (origin) => typeof origin === 'string' && origin.startsWith('app://tms');
+  // whitelist esplicita: oltre a fileSystem (solo origine app://tms) servono soltanto
+  // fullscreen (player video) e clipboard-sanitized-write (copia testo); il resto è negato
+  const PERMESSI_OK = ['fullscreen', 'clipboard-sanitized-write'];
   session.defaultSession.setPermissionRequestHandler((wc, permission, callback, details) => {
     if (permission === 'fileSystem') return callback(isTms(details.requestingUrl || wc.getURL()));
-    callback(true);
+    callback(PERMESSI_OK.includes(permission));
   });
   session.defaultSession.setPermissionCheckHandler((wc, permission, requestingOrigin) => {
     if (permission === 'fileSystem') return isTms(requestingOrigin);
-    return true;
+    return PERMESSI_OK.includes(permission);
   });
-
-  // Neutralizza il vecchio checkUpdate() dell'HTML (banner pensato per la versione browser):
-  // il fetch di version.json viene bloccato -> checkUpdate fallisce in silenzio, nessun banner.
-  // Gli aggiornamenti desktop li gestisce electron-updater (sotto). HTML non modificato.
-  session.defaultSession.webRequest.onBeforeRequest(
-    { urls: ['https://raw.githubusercontent.com/marcomartinellione-create/TMS/*'] },
-    (details, callback) => callback({ cancel: details.url.includes('version.json') })
-  );
 
   // Auto-update via GitHub Releases (electron-updater + target NSIS).
   // Solo nell'app installata (non in `npm start`). Flusso (dal v1.0.60, rifinito v1.0.64):
@@ -214,9 +209,12 @@ app.whenReady().then(() => {
   protocol.handle('app', (request) => {
     const url = new URL(request.url);            // es. app://tms/index.html
     const rel = decodeURIComponent(url.pathname).replace(/^\/+/, '') || 'index.html';
-    const file = path.join(__dirname, 'renderer', path.normalize(rel));
-    // protezione path traversal: resta dentro renderer/
-    if (!file.startsWith(path.join(__dirname, 'renderer'))) {
+    const rendererDir = path.join(__dirname, 'renderer');
+    const file = path.join(rendererDir, path.normalize(rel));
+    // protezione path traversal: il percorso risolto deve restare DENTRO renderer/
+    // (path.relative copre anche i casi limite che startsWith non vede, es. "renderer-x")
+    const fuori = path.relative(rendererDir, file);
+    if (fuori.startsWith('..') || path.isAbsolute(fuori)) {
       return new Response('Forbidden', { status: 403 });
     }
     return net.fetch(pathToFileURL(file).toString());

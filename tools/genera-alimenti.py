@@ -19,6 +19,11 @@ riproducendo byte per byte il blob v1.0.59):
   'zuccheri'    = colonna "Glucidi, disponibili (g)"  (nell'app la chiave significa CARBOIDRATI)
   'zucch'       = colonna "Zuccheri (g)"              (di cui zuccheri)
 
+Disambiguazione nomi duplicati: l'ULTIMA occorrenza di ogni nome duplicato mantiene il
+nome originale (è quella che "vince" nell'app e corrisponde ai piani salvati dagli utenti);
+ogni occorrenza precedente viene rinominata in "nome (Sinonimi)" dove Sinonimi è il
+contenuto della colonna "Sinonimi" del foglio, oppure in "nome (variante N)" se mancante.
+
 Richiede: pip install openpyxl
 """
 import openpyxl, json, re, os, sys, hashlib, datetime
@@ -75,22 +80,59 @@ def main():
     for h in MAPPA.values():
         assert h in col, 'colonna mancante nel foglio: ' + h
 
+    # Verifica che la colonna Sinonimi esista nel foglio
+    assert 'Sinonimi' in col, 'colonna Sinonimi mancante nel foglio'
+
     alimenti, nomi = [], {}
     for r in rows[1:]:
         if r[col['Nome']] is None: continue
         nome = str(r[col['Nome']]).strip()
+        sinonimi_raw = r[col['Sinonimi']]
+        sinonimi = str(sinonimi_raw).strip() if sinonimi_raw is not None else ''
         nomi[nome] = nomi.get(nome, 0) + 1
         alimenti.append({
             'nome': nome,
+            '_sinonimi': sinonimi,  # campo temporaneo, rimosso dopo disambiguazione
             'categoria': str(r[col['Categoria']]).strip() if r[col['Categoria']] is not None else None,
             'densita': num(r[col['Densità']]),
             'per100': {k: num(r[col[h]]) for k, h in MAPPA.items()},
         })
 
     assert len(alimenti) >= 1000, 'estrazione sospetta: solo %d alimenti' % len(alimenti)
-    dup = [n for n, c in nomi.items() if c > 1]
-    if dup:
-        print('ATTENZIONE nomi duplicati (nell\'app vince l\'ultimo):', dup)
+
+    # Disambiguazione nomi duplicati:
+    # l'ultima occorrenza di ogni gruppo mantiene il nome originale;
+    # le occorrenze precedenti vengono rinominate "nome (Sinonimi)" o "nome (variante N)".
+    dup_nomi = {n for n, c in nomi.items() if c > 1}
+    if dup_nomi:
+        # Indici delle occorrenze per ogni nome duplicato (in ordine di apparizione)
+        dup_indices = {n: [] for n in dup_nomi}
+        for i, a in enumerate(alimenti):
+            if a['nome'] in dup_nomi:
+                dup_indices[a['nome']].append(i)
+        # Rinomina tutte le occorrenze tranne l'ultima
+        for nome_dup, indices in dup_indices.items():
+            variante_counter = 0
+            for pos, idx in enumerate(indices[:-1]):  # tutte tranne l'ultima
+                sin = alimenti[idx]['_sinonimi']
+                if sin:
+                    nuovo_nome = nome_dup + ' (' + sin + ')'
+                else:
+                    variante_counter += 1
+                    nuovo_nome = nome_dup + ' (variante %d)' % variante_counter
+                alimenti[idx]['nome'] = nuovo_nome
+
+    # Rimuovi campo temporaneo _sinonimi
+    for a in alimenti:
+        del a['_sinonimi']
+
+    # Avvisa solo se restano ancora nomi duplicati dopo la disambiguazione
+    nomi_finali = {}
+    for a in alimenti:
+        nomi_finali[a['nome']] = nomi_finali.get(a['nome'], 0) + 1
+    dup_residui = [n for n, c in nomi_finali.items() if c > 1]
+    if dup_residui:
+        print('ATTENZIONE nomi ancora duplicati dopo disambiguazione:', dup_residui)
 
     # tutti i numeri come float, così il blob serializza es. 182.0 (formato storico)
     def tofloat(o):
@@ -105,7 +147,7 @@ def main():
     dedicato = {
         '_fonte': 'Banca dati svizzera dei valori nutritivi (USAV) — Doc/Banca_dati_svizzera_dei_valori_nutritivi.xlsx, foglio "Alimenti generici"',
         '_generato': datetime.date.today().isoformat() + ' da tools/genera-alimenti.py',
-        '_note': "valori per 100 g; 'zuccheri' = carboidrati disponibili, 'zucch' = di cui zuccheri; tr./nd -> 0, '<X' -> X; vit. A = RAE",
+        '_note': "valori per 100 g; 'zuccheri' = carboidrati disponibili, 'zucch' = di cui zuccheri; tr./nd -> 0, '<X' -> X; vit. A = RAE; nomi duplicati disambiguati aggiungendo il sinonimo tra parentesi (es. 'Zwieback (Fette biscottate integrali)'); l'ultima occorrenza mantiene il nome originale per compatibilità con i piani salvati",
         'alimenti': alimenti,
     }
     with open(JSON_OUT, 'w', encoding='utf-8', newline='\n') as f:

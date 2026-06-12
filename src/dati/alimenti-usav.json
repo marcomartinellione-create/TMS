@@ -1,7 +1,7 @@
 {
  "_fonte": "Banca dati svizzera dei valori nutritivi (USAV) — Doc/Banca_dati_svizzera_dei_valori_nutritivi.xlsx, foglio \"Alimenti generici\"",
- "_generato": "2026-06-10 da tools/genera-alimenti.py",
- "_note": "valori per 100 g; 'zuccheri' = carboidrati disponibili, 'zucch' = di cui zuccheri; tr./nd -> 0, '<X' -> X; vit. A = RAE",
+ "_generato": "2026-06-12 da tools/genera-alimenti.py",
+ "_note": "valori per 100 g; 'zuccheri' = carboidrati disponibili, 'zucch' = di cui zuccheri; tr./nd -> 0, '<X' -> X; vit. A = RAE; nomi duplicati disambiguati aggiungendo il sinonimo tra parentesi (es. 'Zwieback (Fette biscottate integrali)'); l'ultima occorrenza mantiene il nome originale per compatibilità con i piani salvati",
  "alimenti": [
   {
    "nome": "Acciuga sott'olio, sgocciolata",
@@ -40396,7 +40396,7 @@
    }
   },
   {
-   "nome": "Zwieback",
+   "nome": "Zwieback (Fette biscottate integrali)",
    "categoria": "Pane, fiocchi e cereali per la prima colazione/Pane croccante, fette biscottate, cracker e gallette",
    "densita": null,
    "per100": {
