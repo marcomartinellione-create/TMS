@@ -133,6 +133,10 @@ Il cliente NON deve avere il TMS: la scheda viaggia come file.
    fatto davvero (serie, ripetizioni, peso, RIR, note per esercizio; fatica RPE 0-10
    e durata per seduta; gli esercizi non sono modificabili) e preme «📩 Crea il file
    per il trainer»: si scarica «Rientro_profilo_data.json» da rimandare al coach.
+   IMPORTANTE per il cliente: meglio **salvare il file nella memoria del telefono**
+   (es. cartella Download) e aprire sempre quella copia, non l'anteprima della chat:
+   la pagina **salva da sola la bozza** sul dispositivo (si può chiudere e riprendere);
+   se il salvataggio automatico non è possibile, la pagina lo segnala con un avviso.
 3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e la data
    di registrazione (convertita nella settimana dello Storico). Le righe entrano
    nello Storico come una seduta registrata a mano e alimentano TL, ACWR, grafici e

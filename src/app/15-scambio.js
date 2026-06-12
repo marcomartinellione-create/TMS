@@ -57,15 +57,19 @@ function costruisciSchedaCliente(videoMap){
  .vbtn{margin-left:6px;border:1px solid #cdb889;background:#fff;border-radius:5px;cursor:pointer;font-size:11px;padding:1px 7px}
  .invia{display:block;margin:20px auto 6px;padding:12px 26px;font:inherit;font-size:16px;background:#9a5b1f;color:#fff;border:0;border-radius:9px;cursor:pointer}
  .invia:hover{background:#7e4a18}.fine{color:#7a6648;font-size:12px;text-align:center;margin-bottom:24px}
+ .avviso{background:#fdf0d4;border:1px solid #d9b66a;border-radius:9px;padding:10px 13px;font-size:13px;margin:0 0 14px;color:#5b4a30}
+ #bozza-stato{color:#7a6648;font-size:12px;text-align:center;margin:6px 0;min-height:15px}
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:10px;background:#000}
  #vclose{position:absolute;top:14px;right:18px;font-size:26px;color:#fff;background:none;border:0;cursor:pointer}
 </style></head><body>
 <h1>✦ Scheda di allenamento — ${esc(profNome()||'')}</h1>
 <div class="sub">Esportata il ${esc(oggi)} da Training Monitor System. Compila ciò che hai fatto davvero (serie, ripetizioni, peso, RIR, note e fatica della seduta), poi premi il bottone in fondo e manda il file al tuo trainer.</div>
+<div class="avviso">📱 <b>Salva questo file nella memoria del telefono</b> (es. cartella Download) e apri sempre quella copia — non l'anteprima della chat: così quello che scrivi <b>si salva da solo</b> anche se chiudi la pagina.<span id="bozza-nota"></span></div>
 ${corpo}
+<div id="bozza-stato"></div>
 <button type="button" class="invia" id="invia">📩 Crea il file per il trainer</button>
-<div class="fine">Si scarica un piccolo file <b>Rientro_*.json</b>: rimandalo al trainer (chat o email). I tuoi inserimenti restano in questa pagina finché non la chiudi.</div>
+<div class="fine">Si scarica un piccolo file <b>Rientro_*.json</b>: rimandalo al trainer (chat o email). La bozza resta salvata su questo dispositivo anche dopo l'invio.</div>
 <div id="vov"><button id="vclose" type="button">✕</button><video controls playsinline></video></div>
 <script>
 var META=${js(meta)};
@@ -77,6 +81,18 @@ document.querySelectorAll('.vbtn').forEach(function(b){ b.onclick=function(){
   var ov=$('vov'), v=ov.querySelector('video'); v.src=VIDEO[b.getAttribute('data-v')]||''; ov.style.display='flex'; v.play(); }; });
 $('vclose').onclick=function(){ var ov=$('vov'), v=ov.querySelector('video'); v.pause(); v.removeAttribute('src'); ov.style.display='none'; };
 function num(id){ var v=$(id)?$(id).value:''; return v===''?null:+v; }
+/* bozza autosalvata sul dispositivo: niente dati persi se la pagina si chiude */
+var BK='tms-bozza-'+(META.profilo.slug||'cliente')+'-'+META.esportata;
+var stOk=false; try{ localStorage.setItem(BK+'-t','1'); localStorage.removeItem(BK+'-t'); stOk=true; }catch(e){}
+function idsCampi(){ var ids=[]; RIGHE.forEach(function(r){ ['s-','r-','p-','rir-','n-'].forEach(function(p){ ids.push(p+r.i); }); }); GIORNI.forEach(function(g,gi){ ids.push('rpe-'+gi); ids.push('min-'+gi); }); return ids; }
+function salvaBozza(){ if(!stOk) return; var o={}; idsCampi().forEach(function(id){ var el=$(id); if(el&&el.value!=='') o[id]=el.value; });
+  try{ localStorage.setItem(BK, JSON.stringify(o)); var n=$('bozza-stato'); if(n) n.textContent='💾 bozza salvata '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){} }
+(function(){ var nota=$('bozza-nota');
+  if(!stOk){ if(nota) nota.innerHTML=' <b>⚠ Qui il salvataggio automatico NON funziona</b> (probabilmente stai guardando una anteprima): salva il file sul telefono e riaprilo da li, oppure compila e invia senza chiudere questa pagina.'; return; }
+  var rawB=null; try{ rawB=localStorage.getItem(BK); }catch(e){}
+  if(rawB){ try{ var o=JSON.parse(rawB); Object.keys(o).forEach(function(id){ var el=$(id); if(el) el.value=o[id]; }); if(nota) nota.innerHTML=' <b>✔ Bozza ritrovata</b>: ho ricaricato quello che avevi scritto.'; }catch(e){} }
+  document.addEventListener('input', salvaBozza);
+})();
 $('invia').onclick=function(){
   var righe=RIGHE.map(function(r){ return {giorno:r.giorno, esercizio:r.esercizio,
     serie:num('s-'+r.i)||0, rip:num('r-'+r.i)||0, peso:num('p-'+r.i)||0,
@@ -109,7 +125,7 @@ async function esportaSchedaCliente(){
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },800);
   const kb=blob.size/1024;
-  alert('✔ Scheda esportata ('+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+').\nInviala al cliente: la apre con doppio click, compila e ti rimanda il file di rientro (da importare qui nel Profilo).');
+  alert('✔ Scheda esportata ('+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+').\nInviala al cliente: la apre con doppio click, compila e ti rimanda il file di rientro (da importare qui nel Profilo).\n\nConsiglio da girare al cliente: salvi il file nella memoria del telefono e apra sempre quella copia — la bozza si salva da sola mentre compila.');
 }
 
 /* applica il rientro allo Storico della settimana `code` — pura, senza dialoghi (testabile) */

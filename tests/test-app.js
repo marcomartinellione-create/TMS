@@ -159,6 +159,9 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(gbtn !== null && gbtn.textContent.includes('Scarica documentazione per AI'), 'bottone "Scarica documentazione per AI" accanto a Rapida/Completa');
   const nomeAI = w.eval('(()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ scaricaGuidaAI(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
   ok(nomeAI === 'TMS-guida-AI-v' + VERSIONE + '.md', 'download guida AI col nome versionato (' + nomeAI + ')');
+  /* scheda cliente offline con bozza autosalvata (qui solo presenza nel markup: gira anche in CI) */
+  const pagCli = w.eval('costruisciSchedaCliente({})');
+  ok(pagCli.includes('tms-bozza-') && pagCli.includes('memoria del telefono') && pagCli.includes('bozza-stato'), 'scheda cliente: istruzioni telefono + autosalvataggio bozza nel markup');
   /* v1.0.72: backup automatico settimanale + mini-log errori (P4) */
   ok([...fsmem._files.keys()].some(k => /^TMS_Dati\/backup_automatici\/TMS-auto-\d{4}-\d{2}-\d{2}\.json$/.test(k)) && fsmem._files.has('TMS_Dati/backup_automatici/indice.json'), 'backup automatico creato all\'avvio (snapshot + indice)');
   ok(await w.eval('backupAutomaticoSeServe()') === false, 'stesso giorno: nessun backup doppione');
@@ -271,6 +274,26 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* v1.0.66: scambio scheda trainer ↔ cliente */
   const schedaHtml = w.eval('costruisciSchedaCliente({})');
   ok(schedaHtml.length > 5000 && schedaHtml.includes('Crea il file per il trainer') && schedaHtml.includes('tms-rientro') && schedaHtml.includes('id="s-0"') && schedaHtml.includes('Atleta Template'), 'export scheda cliente: HTML autonomo con input e meta profilo');
+  /* bozza autosalvata nella pagina del cliente (soluzione offline, richiesta Marco 2026-06-13):
+     la pagina generata viene caricata in un jsdom dedicato come farebbe il cliente */
+  const bozzaKey = 'tms-bozza-template-' + new Date().toISOString().slice(0, 10);
+  {
+    const sub = new JSDOM(schedaHtml, { runScripts: 'dangerously', url: 'https://cliente.test/scheda.html' });
+    const sd = sub.window.document;
+    sd.getElementById('n-0').value = 'bozza di prova';
+    sd.getElementById('n-0').dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+    const salvata = JSON.parse(sub.window.localStorage.getItem(bozzaKey) || '{}');
+    ok(salvata['n-0'] === 'bozza di prova', 'scheda cliente: bozza autosalvata in localStorage al primo input');
+    sub.window.close();
+  }
+  {
+    const sub = new JSDOM(schedaHtml, { runScripts: 'dangerously', url: 'https://cliente.test/scheda.html',
+      beforeParse(win){ win.localStorage.setItem(bozzaKey, JSON.stringify({ 'n-0': 'ripresa', 's-0': '5' })); } });
+    const sd = sub.window.document;
+    ok(sd.getElementById('n-0').value === 'ripresa' && sd.getElementById('s-0').value === '5', 'scheda cliente: bozza ricaricata alla riapertura del file');
+    ok(sd.getElementById('bozza-nota').textContent.includes('Bozza ritrovata'), 'scheda cliente: avviso "bozza ritrovata" alla riapertura');
+    sub.window.close();
+  }
   ok(w.eval('schedaCode(isoWeek(new Date("2026-06-11T12:00:00")).anno, isoWeek(new Date("2026-06-11T12:00:00")).sett)') === 202624, 'conversione data -> settimana ISO (11/06/2026 = 202624)');
   const rientro = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
     righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:70,rir:2,note:'ok'},
