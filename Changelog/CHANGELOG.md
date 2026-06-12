@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-06-12 — TMS v1.0.75: i bottoni di scambio scheda nella riga di ogni profilo
+
+**Tipo**: UX tab Profilo (raffina la v1.0.74, mai pubblicata come release: chi aggiorna arriva dalla 1.0.73)
+**File coinvolti**: src/app/13-report.js (renderProfilo + Guida rapida/completa) · src/app/01-costanti.js (bump) · tests/test-app.js · package.json ×2 (1.0.75) · CLAUDE.md
+**Descrizione**: richiesto da Marco: i bottoni di export/import del cliente devono essere **visibili nella riga del profilo** (a destra, accanto alla data), senza dover aprire la tendina. Ora ogni riga della lista profili ha:
+- **📤 Esporta scheda** — crea `Scheda_<profilo>_<data>.html` (la pagina compilabile da mandare al cliente) **del profilo di quella riga**;
+- **📥 Importa rientro** — registra nello Storico **di quel profilo** il file di rientro compilato dal cliente.
+Se il profilo della riga non è quello attivo, l'app lo **attiva da sola** prima di esportare/importare. Il click sui bottoni **non apre/chiude la tendina** (stopPropagation, anche sulla label del file picker). Il riquadro espanso resta per parametri/Attiva/Modifica/Rinomina/Elimina; la vecchia sezione globale in fondo alla pagina non esiste più, mentre **Backup/Ripristina resta in fondo** col titolo esplicito "▌ Backup (tutti i profili insieme)" perché fotografa TUTTO l'archivio, non un singolo profilo. Guida aggiornata (rapida: passi Esporta/Importa + tabella; completa §10) coi nuovi nomi dei bottoni.
+**Test**: `npm test` **106/106** — verifiche: bottoni nella riga di ogni profilo a tendina chiusa, bottoni globali rimossi, backup in fondo; e2e: click 📤 sulla riga di un profilo NON attivo → si attiva e scarica `Scheda_<suo-slug>_<data>.html`; click sulla label 📥 → la tendina non si muove.
+**Approvato da**: Marco (richiesta esplicita, pubblicazione inclusa)
+
 ### 2026-06-12 — TMS v1.0.74: lo scambio scheda ↔ cliente entra nel riquadro di ogni profilo
 
 **Tipo**: UX tab Profilo

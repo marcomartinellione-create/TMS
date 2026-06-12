@@ -281,13 +281,13 @@ function guidaRapida(){
    <div class="callout"><div>🔔 Un pallino/banner verde o rosso (in Allenamento, Corpo e nel footer) ti avvisa se non hai ancora registrato la settimana.</div></div>
    <div class="sec">▌ Coach ↔ cliente: la scheda che viaggia</div>
    <ol style="margin:0 0 6px 18px;line-height:1.9">
-     <li><b>Esporta.</b> In <b>👤 Profilo</b> apri il riquadro del cliente e premi <b>📤 Esporta scheda per il cliente</b>: crea una pagina HTML con la sua scheda (e i video, se vuoi). Inviala via chat o email.</li>
+     <li><b>Esporta.</b> In <b>👤 Profilo</b>, nella riga del cliente, premi <b>📤 Esporta scheda</b>: crea una pagina HTML con la sua scheda (e i video, se vuoi). Inviala via chat o email.</li>
      <li><b>Il cliente compila.</b> Apre il file con un doppio click (niente da installare), inserisce ciò che ha fatto davvero — serie, ripetizioni, peso, RIR, note e fatica della seduta — e preme <b>📩 Crea il file per il trainer</b>: si scarica un piccolo file di rientro da rimandarti.</li>
-     <li><b>Importa.</b> Sempre nel riquadro del cliente, <b>📥 Importa allenamento dal cliente</b>: scegli il file e la data — l'allenamento finisce nello Storico del profilo (con la fatica nelle sedute RPE), pronto per grafici e report. L'app ti avvisa se il profilo non corrisponde o se la settimana ha già registrazioni.</li>
+     <li><b>Importa.</b> Sempre nella riga del cliente, <b>📥 Importa rientro</b>: scegli il file e la data — l'allenamento finisce nello Storico del profilo (con la fatica nelle sedute RPE), pronto per grafici e report. L'app ti avvisa se il profilo non corrisponde o se la settimana ha già registrazioni.</li>
    </ol>
    <div class="sec">▌ Le sezioni in breve</div>
    <div class="tbl-wrap"><table><tbody>
-     <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta/cliente attivo e anagrafica (il tab mostra il nome del profilo attivo). Più profili = più clienti: nel riquadro di ognuno trovi parametri e <b>scambio scheda col cliente</b> (esporta la scheda compilabile, importa il file di rientro). In fondo alla pagina il <b>Backup/Ripristino</b> di tutti i dati.</td></tr>
+     <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta/cliente attivo e anagrafica (il tab mostra il nome del profilo attivo). Più profili = più clienti: nella riga di ognuno i bottoni dello <b>scambio scheda col cliente</b> (📤 esporta la scheda compilabile, 📥 importa il file di rientro). In fondo alla pagina il <b>Backup/Ripristino</b> di tutti i dati.</td></tr>
      <tr><td class="l"><b>⚔ Allenamento</b></td><td class="l">Crei la scheda e la salvi nello storico; ▶ per i video degli esercizi.</td></tr>
      <tr><td class="l"><b>📈 Progressi</b></td><td class="l">Record, grafici e andamento del carico (TL, ACWR, monotonia).</td></tr>
      <tr><td class="l"><b>🜂 Corpo</b></td><td class="l">Peso e misure (BMI, masse) nel tempo.</td></tr>
@@ -438,9 +438,9 @@ function guidaCompleta(){
    <div class="sec" id="gc-scambio">▌ 10 · Scheda ↔ cliente (per i coach)</div>
    <p>Per seguire un cliente a distanza non serve che lui abbia il TMS: la scheda <b>viaggia come file</b>.</p>
    <ol style="margin:0 0 6px 18px;line-height:1.8">
-     <li><b>Esporta</b> — in <b>👤 Profilo</b> apri il riquadro del cliente e premi <b>📤 Esporta scheda per il cliente</b> (se non è il profilo attivo, l'app lo attiva da sola). Nasce <span class="mono">Scheda_&lt;profilo&gt;_&lt;data&gt;.html</span>: una pagina autonoma con la scheda giorno per giorno, il previsto in chiaro e i campi compilabili; alla domanda sui video, includili se vuoi che il cliente veda le esecuzioni offline (file più pesante).</li>
+     <li><b>Esporta</b> — in <b>👤 Profilo</b>, nella riga del cliente, premi <b>📤 Esporta scheda</b> (se non è il profilo attivo, l'app lo attiva da sola). Nasce <span class="mono">Scheda_&lt;profilo&gt;_&lt;data&gt;.html</span>: una pagina autonoma con la scheda giorno per giorno, il previsto in chiaro e i campi compilabili; alla domanda sui video, includili se vuoi che il cliente veda le esecuzioni offline (file più pesante).</li>
      <li><b>Il cliente compila</b> — apre il file in qualunque browser, inserisce i valori effettivi (serie, ripetizioni, peso, RIR e note per esercizio; fatica RPE 0–10 e durata in minuti per seduta — gli esercizi non sono modificabili) e preme <b>📩 Crea il file per il trainer</b>: si scarica <span class="mono">Rientro_&lt;profilo&gt;_&lt;data&gt;.json</span> da rimandarti.</li>
-     <li><b>Importa</b> — nel riquadro del cliente, <b>📥 Importa allenamento dal cliente</b>: scegli il file e la <b>data di registrazione</b> (l'app la converte nella settimana dello Storico). Le righe entrano nello Storico con le sedute numerate e la fatica in storico RPE: alimentano TL, ACWR, grafici e Report come una seduta registrata a mano.</li>
+     <li><b>Importa</b> — nella riga del cliente, <b>📥 Importa rientro</b>: scegli il file e la <b>data di registrazione</b> (l'app la converte nella settimana dello Storico). Le righe entrano nello Storico con le sedute numerate e la fatica in storico RPE: alimentano TL, ACWR, grafici e Report come una seduta registrata a mano.</li>
    </ol>
    <p><b>Controlli di sicurezza</b> all'import: file non valido → errore chiaro; <b>profilo diverso</b> da quello attivo → conferma esplicita; esercizi fuori catalogo → avviso con elenco; <b>settimana già popolata</b> → "le righe verranno AGGIUNTE, procedo?".</p>
 
@@ -512,13 +512,6 @@ function renderProfilo(){
           <button class="btn" data-pedit="${esc(p.slug)}">✎ Modifica parametri</button>
           <button class="btn" data-pren="${esc(p.slug)}">✏ Rinomina</button>
           ${profili.length>1?`<button class="btn btn--danger" data-pdel="${esc(p.slug)}">✕ Elimina</button>`:''}
-        </div>
-        <div class="no-print" style="margin-top:10px;border:1px dashed var(--border);border-radius:7px;padding:9px 11px;background:var(--paper-3)">
-          <div style="font-family:var(--font-disp);font-size:13px;color:var(--ember-2);margin-bottom:7px">⇄ Scheda ↔ cliente — <b>${esc(p.nome)}</b></div>
-          <div class="bar" style="margin:0">
-            <button class="btn" data-pexs="${esc(p.slug)}" title="Crea la pagina HTML con la scheda di questo profilo da inviare al cliente">📤 Esporta scheda per il cliente</button>
-            <label class="btn" style="cursor:pointer" title="Importa in questo profilo il file di rientro compilato dal cliente">📥 Importa allenamento dal cliente<input type="file" data-prin="${esc(p.slug)}" accept="application/json,.json" style="display:none"></label>
-          </div>
         </div>`;
       } else { body='<div class="muted" style="padding:8px">Caricamento parametri…</div>'; }
     }
@@ -527,14 +520,17 @@ function renderProfilo(){
         <span style="font-family:var(--font-mono)">${open?'▾':'▸'}</span>
         <span style="font-family:var(--font-disp);font-size:17px">👤 ${esc(p.nome)}</span>
         ${isAct?'<span class="pill">attivo</span>':''}
-        <span style="flex:1"></span><span class="muted mono" style="font-size:11px">${esc(p.creato||'')}</span>
+        <span style="flex:1"></span>
+        <button class="btn no-print" data-pexs="${esc(p.slug)}" style="font-size:12px;padding:4px 10px" title="Crea la pagina HTML con la scheda di ${esc(p.nome)} da inviare al cliente">📤 Esporta scheda</button>
+        <label class="btn no-print" style="cursor:pointer;font-size:12px;padding:4px 10px" title="Importa nel profilo di ${esc(p.nome)} il file di rientro compilato dal cliente">📥 Importa rientro<input type="file" data-prin="${esc(p.slug)}" accept="application/json,.json" style="display:none"></label>
+        <span class="muted mono" style="font-size:11px">${esc(p.creato||'')}</span>
       </div>${open?`<div style="padding:0 13px 12px">${body}</div>`:''}</div>`;
   }).join('');
   document.getElementById('panel-profilo').innerHTML=`
    <div class="bar"><div class="field" style="flex:1"><label>Profili</label>
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">👤 ${profili.length} profil${profili.length===1?'o':'i'}</div></div>
      <button class="btn btn--ember no-print" id="prof-new">＋ Nuovo profilo</button></div>
-   <div class="callout callout--info"><div>Clicca un profilo per aprirne il riquadro: dentro trovi i <b>parametri</b> (✎ per cambiarli) e lo <b>scambio scheda ↔ cliente</b> di quel profilo — 📤 esporta la scheda compilabile da mandargli, 📥 importa il file di rientro che ti rimanda. ${dataDir?`Dati in <span class="mono">${esc(SUBDIR)}/&lt;profilo&gt;/</span>.`:'Connetti una cartella (in alto) per salvarli su disco.'}</div></div>
+   <div class="callout callout--info"><div>Clicca un profilo per vederne i <b>parametri</b> (✎ per cambiarli). I bottoni nella riga sono lo <b>scambio scheda ↔ cliente</b> di quel profilo — <b>📤 Esporta scheda</b> crea la pagina compilabile da mandargli, <b>📥 Importa rientro</b> registra il file che ti rimanda. ${dataDir?`Dati in <span class="mono">${esc(SUBDIR)}/&lt;profilo&gt;/</span>.`:'Connetti una cartella (in alto) per salvarli su disco.'}</div></div>
    ${items||'<div class="empty">Nessun profilo.</div>'}
    <div class="sec no-print" style="margin-top:14px">▌ Backup (tutti i profili insieme)</div>
    <div class="bar no-print"><button class="btn" id="prof-backup" title="Esporta i dati di TUTTI i profili in un file">⭳ Backup dati</button> <label class="btn" style="cursor:pointer" title="Importa un backup">⭱ Ripristina<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>
@@ -542,9 +538,11 @@ function renderProfilo(){
   { const pn=document.getElementById('prof-new'); if(pn) pn.onclick=()=>chiediTesto('Nuovo profilo (atleta/cliente)','',v=>{ const n=(v||'').trim(); if(!n)return; createProfile(n); }); }
   { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=backupData; }
   { const rs=document.getElementById('prof-restore'); if(rs) rs.onchange=e=>{ if(e.target.files&&e.target.files[0]){ restoreData(e.target.files[0]); e.target.value=''; } }; }
-  /* scambio scheda nel riquadro del profilo: se non è quello attivo, l'app lo attiva prima */
-  document.querySelectorAll('#panel-profilo [data-pexs]').forEach(b=>b.onclick=async()=>{ const slug=b.dataset.pexs; if(slug!==activeProfile){ await switchProfile(slug); } await esportaSchedaCliente(); });
-  document.querySelectorAll('#panel-profilo [data-prin]').forEach(inp=>inp.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; e.target.value=''; const slug=inp.dataset.prin; if(slug!==activeProfile){ await switchProfile(slug); } importaRientroFile(f); });
+  /* scambio scheda nella riga del profilo: il click non apre/chiude la tendina e,
+     se il profilo non è quello attivo, l'app lo attiva prima */
+  document.querySelectorAll('#panel-profilo [data-pexs]').forEach(b=>b.onclick=async ev=>{ if(ev) ev.stopPropagation(); const slug=b.dataset.pexs; if(slug!==activeProfile){ await switchProfile(slug); } await esportaSchedaCliente(); });
+  document.querySelectorAll('#panel-profilo [data-prin]').forEach(inp=>{ const lab=inp.closest('label'); if(lab) lab.onclick=ev=>ev.stopPropagation();
+    inp.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; e.target.value=''; const slug=inp.dataset.prin; if(slug!==activeProfile){ await switchProfile(slug); } importaRientroFile(f); }; });
   { const ab=document.getElementById('prof-autobk');
     if(ab) listaBackupAutomatici().then(l=>{
       if(!ab.isConnected) return;
