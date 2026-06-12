@@ -19,6 +19,26 @@ build crashava).
 temporaneo senza TMS_Dati: build entrambi gli artefatti, T1b saltato, 53/53.
 **Approvato da**: Marco («ok andiamo»)
 
+### 2026-06-13 — TMS v1.0.76: scheda cliente offline — bozza autosalvata e istruzioni per il telefono
+
+**Tipo**: robustezza scambio scheda (richiesta Marco: niente dati persi sul telefono, soluzione 100% offline)
+**File coinvolti**: src/app/15-scambio.js (pagina esportata) · src/app/13-report.js (Guida §10) ·
+src/app/13b-guida-ai.js (guida AI §8) · tests/test-app.js
+**Descrizione**: la pagina «Scheda_*.html» che il coach manda al cliente ora è robusta sui
+telefoni: **avviso in testa** («salva questo file nella memoria del telefono e apri sempre
+quella copia, non l'anteprima della chat»), **bozza autosalvata** in localStorage ad ogni
+inserimento (chiave per profilo+data export) con **ripristino automatico** alla riapertura
+(«✔ Bozza ritrovata»), indicatore «💾 bozza salvata HH:MM» e **avviso esplicito** quando il
+salvataggio automatico non è disponibile (es. anteprima sandbox della chat). La bozza resta
+anche dopo l'invio del rientro. Consiglio per il cliente aggiunto all'alert di export e alle
+guide. Scelta fatta dopo analisi delle alternative (PDF compilabile, pagina ospitata sul sito):
+Marco ha voluto la soluzione interamente offline sul file HTML attuale; la pagina ospitata
+resta annotata in Doc/MIGLIORIE_PROPOSTE.md come idea futura.
+**Test**: `npm test` **114/114** — la pagina generata viene caricata in un jsdom dedicato come
+farebbe il cliente: input → bozza in localStorage; riapertura → campi ricompilati e avviso;
+markup (istruzioni+script) verificato anche in CI.
+**Approvato da**: Marco (decisione esplicita dopo proposta di alternative)
+
 ### 2026-06-13 — TMS v1.0.76: guida per AI (download dal tab Guida + docs/guida-ai.md)
 
 **Tipo**: nuova funzione (proposta «Guida per AI» approvata da Marco)
