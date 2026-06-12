@@ -4,6 +4,22 @@
 
 ---
 
+### 2026-06-12 — Vetrina: screenshot nel README + sito GitHub Pages (nessun bump, l'app non cambia)
+
+**Tipo**: vetrina/documentazione (proposta «Screenshot nel README + pagina GitHub Pages»)
+**File coinvolti**: docs/index.html (landing) · docs/img/ (4 screenshot + logo) · tools/genera-screenshot.js (nuovo) · README.md · .claude/launch.json
+**Descrizione**: `tools/genera-screenshot.js` avvia l'app Electron con **userData temporanea**
+(i dati reali non vengono toccati), attiva il profilo "Atleta Template", chiude il disclaimer,
+sposta la finestra lontano dal mouse (niente effetti hover), rimuove i promemoria "da aggiornare"
+e fotografa 4 tab (Allenamento, Progressi, Alimentazione, Analisi) in `docs/img/`. README con
+sezione **Screenshot** (tabella 2×2) e link al sito. `docs/index.html` = landing GitHub Pages
+in stile pergamena: hero con download (release/latest), 4 schermate, griglia funzioni, sezione
+Tutorial (bottone YouTube — il canale non ha ancora video pubblici, l'embed arriverà coi primi
+video), footer con crediti e disclaimer. Pages servito da `main /docs`.
+**Test**: nessun file dell'app toccato (`npm run verifica` OK); landing controllata in anteprima
+(hero, schermate, griglia, footer); screenshot verificati a occhio uno per uno.
+**Approvato da**: Marco (proposta confermata in chat)
+
 ### 2026-06-12 — TMS v1.0.75: i bottoni di scambio scheda nella riga di ogni profilo
 
 **Tipo**: UX tab Profilo (raffina la v1.0.74, mai pubblicata come release: chi aggiorna arriva dalla 1.0.73)

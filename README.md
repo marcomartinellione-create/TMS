@@ -8,6 +8,9 @@ ACWR, monotonia), misure corporee, piani alimentari su banca dati USAV (~900 ali
 catalogo di 883 esercizi con video dimostrativi, report PDF A4 e report digitale per
 mobile. Tema pergamena/ember, modalità notte. *By Wander.*
 
+🌐 **Sito**: [marcomartinellione-create.github.io/TMS](https://marcomartinellione-create.github.io/TMS/) ·
+⭳ [Scarica l'ultima versione](https://github.com/marcomartinellione-create/TMS/releases/latest)
+
 ## Caratteristiche
 
 - **Tutto in locale, zero cloud**: i dati restano sul tuo PC
@@ -18,6 +21,15 @@ mobile. Tema pergamena/ember, modalità notte. *By Wander.*
   dati grezzi — niente numeri incoerenti.
 - **Auto-update**: l'app controlla le release GitHub all'avvio e si aggiorna da sola.
 - **Backup**: esporta/importa tutti i dati in un singolo file JSON.
+
+## Screenshot
+
+Il profilo dimostrativo **Atleta Template** (incluso nell'installer) in azione:
+
+| | |
+|---|---|
+| [![Allenamento](docs/img/allenamento.png)](docs/img/allenamento.png) ⚔ **Allenamento** — scheda settimanale, 1RM/%1RM/TL al volo | [![Progressi](docs/img/progressi.png)](docs/img/progressi.png) 📈 **Progressi** — record, segnali, TL e ACWR |
+| [![Alimentazione](docs/img/alimentazione.png)](docs/img/alimentazione.png) 🍖 **Alimentazione** — piani per fase su banca USAV, indice OMS | [![Analisi](docs/img/analisi.png)](docs/img/analisi.png) 📊 **Analisi** — dieta × allenamento nel tempo |
 
 ## Installazione
 

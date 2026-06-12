@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Training Monitor System — allenamento e nutrizione, tutto in locale</title>
+<meta name="description" content="App desktop Windows gratuita per coach e atleti: scheda settimanale, storico, 1RM/Training Load/ACWR, misure, dieta su banca dati USAV, 883 esercizi con video, report PDF e mobile. Zero cloud: i dati restano sul tuo PC.">
+<meta property="og:title" content="Training Monitor System">
+<meta property="og:description" content="Allenamento e nutrizione in un'unica app desktop gratuita, senza cloud. Scheda, storico, progressi, dieta, report.">
+<meta property="og:image" content="https://marcomartinellione-create.github.io/TMS/img/allenamento.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="img/logo.png">
+<style>
+ :root{
+   --paper:#f4ead8; --paper-2:#fbf4e6; --ink:#2b1d10; --ink-2:#5b4a30; --muted:#7a6648;
+   --border:#cdb889; --ember:#9a5b1f; --ember-2:#7e4a18; --gold:#c89b3c;
+ }
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;line-height:1.6}
+ a{color:var(--ember)}
+ .wrap{max-width:1060px;margin-inline:auto;padding:0 20px}
+
+ /* ── hero ── */
+ header{background:linear-gradient(180deg,#2b1d10,#3a2917);color:#f4ead8;padding:54px 0 46px;text-align:center}
+ header img.logo{width:84px;height:84px;image-rendering:pixelated}
+ h1{font-size:clamp(28px,5vw,44px);margin:14px 0 6px;letter-spacing:.02em}
+ .tagline{font-size:clamp(15px,2.4vw,19px);color:#e7d9bd;max-width:680px;margin:0 auto 8px}
+ .badges{margin:14px 0 26px}
+ .badge{display:inline-block;margin:4px;padding:4px 13px;border:1px solid #6b563a;border-radius:14px;font-size:13px;color:#e7d9bd}
+ .cta{display:inline-block;background:var(--ember);color:#fff;text-decoration:none;font-size:19px;padding:14px 34px;border-radius:10px;border:1px solid #b97a39}
+ .cta:hover{background:var(--ember-2)}
+ .cta-sub{margin-top:10px;font-size:13px;color:#bda77f}
+ .cta-sub a{color:#e7d9bd}
+
+ /* ── sezioni ── */
+ section{padding:44px 0 10px}
+ h2{font-size:26px;color:var(--ember-2);margin:0 0 4px;border-left:5px solid var(--gold);padding-left:12px}
+ .sub{color:var(--muted);margin:0 0 22px;padding-left:17px}
+
+ /* screenshot */
+ .shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+ .shot{background:var(--paper-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+ .shot img{display:block;width:100%;height:auto}
+ .shot figcaption{padding:9px 13px;font-size:14px;color:var(--ink-2);border-top:1px solid var(--border)}
+ .shot figcaption b{color:var(--ember-2)}
+ figure{margin:0}
+
+ /* feature */
+ .feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+ .card{background:var(--paper-2);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+ .card h3{margin:0 0 6px;font-size:16.5px;color:var(--ember-2)}
+ .card p{margin:0;font-size:14px;color:var(--ink-2)}
+
+ /* tutorial */
+ .yt{background:var(--paper-2);border:1px solid var(--border);border-radius:10px;padding:26px;text-align:center}
+ .yt .cta{font-size:16px;padding:11px 26px}
+
+ footer{margin-top:48px;background:#2b1d10;color:#bda77f;font-size:13px;padding:26px 0;text-align:center}
+ footer a{color:#e7d9bd}
+ .disc{max-width:760px;margin:8px auto 0;font-style:italic}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="wrap">
+  <img class="logo" src="img/logo.png" alt="Logo TMS">
+  <h1>✦ Training Monitor System</h1>
+  <p class="tagline">Allenamento e nutrizione in un'unica app desktop: scheda, storico, progressi,
+   dieta e report — per atleti e coach. <b>Tutto in locale, zero cloud.</b></p>
+  <div class="badges">
+   <span class="badge">🆓 Gratuita</span>
+   <span class="badge">🔒 Dati solo sul tuo PC</span>
+   <span class="badge">🪟 Windows</span>
+   <span class="badge">⭳ Auto-aggiornante</span>
+   <span class="badge">📖 Sorgente su GitHub</span>
+  </div>
+  <a class="cta" href="https://github.com/marcomartinellione-create/TMS/releases/latest">⭳ Scarica l'ultima versione</a>
+  <div class="cta-sub">Installer Windows (~90 MB, catalogo esercizi e video inclusi) ·
+   <a href="https://github.com/marcomartinellione-create/TMS">codice sorgente</a><br>
+   SmartScreen può avvisare al primo avvio (eseguibile non firmato): «Ulteriori informazioni → Esegui comunque».</div>
+ </div>
+</header>
+
+<section class="wrap">
+ <h2>L'app in quattro schermate</h2>
+ <p class="sub">Il profilo dimostrativo «Atleta Template» è incluso nell'installer: l'app nasce già piena, per esplorare ogni funzione.</p>
+ <div class="shots">
+  <figure class="shot"><a href="img/allenamento.png" target="_blank"><img src="img/allenamento.png" alt="Tab Allenamento: scheda settimanale con serie, ripetizioni, pesi, RIR, 1RM e Training Load" loading="lazy"></a>
+   <figcaption><b>⚔ Allenamento</b> — scheda settimanale con serie, pesi e RIR; 1RM, %1RM e Training Load calcolati al volo.</figcaption></figure>
+  <figure class="shot"><a href="img/progressi.png" target="_blank"><img src="img/progressi.png" alt="Tab Progressi: record personali, segnali automatici, grafici Training Load e ACWR" loading="lazy"></a>
+   <figcaption><b>📈 Progressi</b> — record personali, segnali automatici (stalli, deload) e grafici di carico: TL, ACWR, monotonia.</figcaption></figure>
+  <figure class="shot"><a href="img/alimentazione.png" target="_blank"><img src="img/alimentazione.png" alt="Tab Alimentazione: piano pasti con kcal e macro dalla banca dati svizzera USAV" loading="lazy"></a>
+   <figcaption><b>🍖 Alimentazione</b> — piani Bulk/Mantenimento/Cut su banca dati USAV (1190 alimenti) con indice settimanale OMS.</figcaption></figure>
+  <figure class="shot"><a href="img/analisi.png" target="_blank"><img src="img/analisi.png" alt="Tab Analisi: timeline dei periodi alimentari incrociata con carico allenante e peso corporeo" loading="lazy"></a>
+   <figcaption><b>📊 Analisi</b> — dieta × allenamento nel tempo: periodi alimentari, carico, peso, bilancio calorico e confronto fasi.</figcaption></figure>
+ </div>
+</section>
+
+<section class="wrap">
+ <h2>Cosa sa fare</h2>
+ <p class="sub">Strumenti da preparatore, interfaccia da manuale tecnico.</p>
+ <div class="feat">
+  <div class="card"><h3>👤 Multi-profilo, pensata per i coach</h3><p>Più atleti/clienti, ognuno con scheda, storico, misure e dieta propri. La scheda viaggia come file: il cliente la compila nel browser e ti rimanda il rientro, che entra nello Storico con un click.</p></div>
+  <div class="card"><h3>📖 883 esercizi con video</h3><p>Catalogo per gruppo muscolare e sottocategoria, video dimostrativi inclusi e sostituibili coi tuoi. Derivato da free-exercise-db, tradotto e adattato.</p></div>
+  <div class="card"><h3>🧮 Numeri da letteratura, mai salvati</h3><p>1RM stimato (Epley, Brzycki, Lombardi), Training Load, ACWR, monotonia e strain: ricalcolati al volo dai dati grezzi, sulle formule della letteratura peer-reviewed.</p></div>
+  <div class="card"><h3>🍖 Nutrizione con le fonti giuste</h3><p>Banca dati svizzera dei valori nutritivi (USAV) e riferimenti OMS/FAO: piani per fase con kcal, macro, micro e indice settimanale.</p></div>
+  <div class="card"><h3>🖨 Report professionali</h3><p>PDF A4 stampabile da consegnare e Report digitale per smartphone con video incorporati: il lavoro del coach, presentato bene.</p></div>
+  <div class="card"><h3>🔒 I tuoi dati sono tuoi</h3><p>Niente account, niente cloud, niente telemetria: tutto in file JSON leggibili sul tuo PC, con backup automatici settimanali e backup manuale in un click.</p></div>
+ </div>
+</section>
+
+<section class="wrap">
+ <h2>Tutorial</h2>
+ <p class="sub">Guide video passo-passo sul canale YouTube del progetto.</p>
+ <div class="yt">
+  <p style="margin:0 0 14px">🎓 Iscriviti per i tutorial su installazione, prima scheda, scambio col cliente e report.</p>
+  <a class="cta" href="https://www.youtube.com/@TrainingMonitorSystem">▶ YouTube · @TrainingMonitorSystem</a>
+ </div>
+</section>
+
+<footer>
+ <div class="wrap">
+  <div>«Train hard, share knowledge.» 💪 — by <b>Wander</b></div>
+  <div style="margin-top:6px">
+   <a href="https://github.com/marcomartinellione-create/TMS">GitHub</a> ·
+   <a href="https://github.com/marcomartinellione-create/TMS/releases">Release</a> ·
+   <a href="https://www.youtube.com/@TrainingMonitorSystem">YouTube</a> ·
+   <a href="https://instagram.com/marco_the_wander">Instagram</a>
+  </div>
+  <div style="margin-top:10px">Crediti: catalogo esercizi da <a href="https://github.com/yuhonas/free-exercise-db">free-exercise-db</a> (Unlicense) ·
+   valori nutritivi <a href="https://naehrwertdaten.ch/it/">USAV</a> · riferimenti OMS/FAO ·
+   <a href="https://github.com/niklasvh/html2canvas">html2canvas</a> (MIT).
+   Progetto aperto e gratuito: mantieni i crediti, non venderlo.</div>
+  <div class="disc">I report e i calcoli del TMS non sostituiscono il parere di un medico o di un professionista dell'allenamento.</div>
+ </div>
+</footer>
+
+</body>
+</html>
