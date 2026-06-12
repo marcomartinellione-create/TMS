@@ -465,7 +465,13 @@ function guidaCompleta(){
         </tbody></table></div>
 
    <div class="sec" id="gc-lic">▌ 13 · Licenza & crediti</div>
-   <div class="callout callout--ember"><div>📢 <b>Progetto aperto e gratuito.</b> Liberi di usarlo, condividerlo e personalizzarlo. Si chiede solo di <b>mantenere i crediti</b> e di <b>non venderlo</b> a scopo di lucro. «Train hard, share knowledge.» 💪 — by Wander</div></div>`;
+   <div class="callout callout--ember"><div>📢 <b>Progetto aperto e gratuito.</b> Liberi di usarlo, condividerlo e personalizzarlo. Si chiede solo di <b>mantenere i crediti</b> e di <b>non venderlo</b> a scopo di lucro. «Train hard, share knowledge.» 💪 — by Wander</div></div>
+   <div class="tbl-wrap"><table><tbody>
+     <tr><td class="l"><b>Catalogo esercizi</b></td><td class="l">derivato da <a href="https://github.com/yuhonas/free-exercise-db" target="_blank" rel="noopener">free-exercise-db</a> di yuhonas (licenza Unlicense, pubblico dominio) — 800+ esercizi, tradotti e adattati per il TMS.</td></tr>
+     <tr><td class="l"><b>Banca dati alimenti</b></td><td class="l">Banca dati svizzera dei valori nutritivi (<b>USAV</b>), dati pubblici citati come fonte.</td></tr>
+     <tr><td class="l"><b>Riferimenti nutrizionali</b></td><td class="l">linee guida <b>OMS/FAO</b>.</td></tr>
+     <tr><td class="l"><b>Rendering report</b></td><td class="l"><a href="https://github.com/niklasvh/html2canvas" target="_blank" rel="noopener">html2canvas</a> 1.4.1 (MIT).</td></tr>
+   </tbody></table></div>`;
 }
 
 let profOpen=null, profParamCache={};

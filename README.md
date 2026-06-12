@@ -55,6 +55,8 @@ stanno nel repo — viaggiano con l'installer. Gli artefatti HTML sono generati 
 
 ## Crediti e fonti
 
+- Catalogo esercizi: derivato da [free-exercise-db](https://github.com/yuhonas/free-exercise-db)
+  di **yuhonas** (Unlicense, pubblico dominio) — 800+ esercizi, tradotti e adattati per il TMS.
 - Banca dati alimenti: **USAV** (Ufficio federale svizzero della sicurezza alimentare),
   dati pubblici citati come fonte.
 - Linee guida attività fisica: **OMS**.
