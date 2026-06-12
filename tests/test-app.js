@@ -179,7 +179,12 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
 }
 
 console.log('--- T1b: desktop con il SEED REALE (TMS_Dati) e profilo template ---');
-{
+/* T1b legge la TMS_Dati/ locale (dati vivi, volutamente NON nel repo): dove non esiste
+   — ad es. in CI su GitHub — lo scenario si salta e restano gli altri (T1, T1c, T2–T5).
+   La suite completa gira sempre in locale, dove partono le release. */
+if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
+  console.log('  SKIP scenario T1b: TMS_Dati/ assente (normale in CI; in locale è un problema!)');
+} else {
   const idb = makeIDB(null);
   const fsmem = makeTmsFS();
   // precarica lo stub con i file veri del seed distribuito

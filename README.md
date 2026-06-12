@@ -8,6 +8,8 @@ ACWR, monotonia), misure corporee, piani alimentari su banca dati USAV (~900 ali
 catalogo di 883 esercizi con video dimostrativi, report PDF A4 e report digitale per
 mobile. Tema pergamena/ember, modalità notte. *By Wander.*
 
+[![CI](https://github.com/marcomartinellione-create/TMS/actions/workflows/ci.yml/badge.svg)](https://github.com/marcomartinellione-create/TMS/actions/workflows/ci.yml)
+
 🌐 **Sito**: [marcomartinellione-create.github.io/TMS](https://marcomartinellione-create.github.io/TMS/) ·
 ⭳ [Scarica l'ultima versione](https://github.com/marcomartinellione-create/TMS/releases/latest)
 

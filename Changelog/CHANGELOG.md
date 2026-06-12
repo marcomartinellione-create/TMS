@@ -4,6 +4,21 @@
 
 ---
 
+### 2026-06-12 — CI su GitHub Actions: build + test a ogni push (nessun bump, l'app non cambia)
+
+**Tipo**: infrastruttura (proposta n. 3 della revisione — approvata da Marco)
+**File coinvolti**: .github/workflows/ci.yml (nuovo) · tests/test-app.js (guard T1b) · tools/build.js (mkdir) · README.md (badge)
+**Descrizione**: workflow GitHub Actions su ubuntu (`npm ci` → `npm run build` → `npm test`)
+a ogni push su main e PR; badge di stato nel README. Lo scenario **T1b** della suite legge la
+`TMS_Dati/` locale (dati vivi, mai nel repo): dove non esiste si **auto-salta** con avviso e
+restano gli altri scenari (53 verifiche in CI; in locale sempre tutte e 106). Fix collaterale
+scoperto simulando la CI in un clone pulito: `tools/build.js` ora crea la cartella di
+destinazione prima di scrivere (in un checkout fresco `electron/renderer/` non esiste e il
+build crashava).
+**Test**: in locale `npm test` 106/106 e `npm run verifica` OK; simulazione CI in clone
+temporaneo senza TMS_Dati: build entrambi gli artefatti, T1b saltato, 53/53.
+**Approvato da**: Marco («ok andiamo»)
+
 ### 2026-06-12 — Vetrina: screenshot nel README + sito GitHub Pages (nessun bump, l'app non cambia)
 
 **Tipo**: vetrina/documentazione (proposta «Screenshot nel README + pagina GitHub Pages»)

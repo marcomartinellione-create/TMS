@@ -51,6 +51,7 @@ for (const dest of manifest.artefatti) {
     console.log((uguale ? '  OK   ' : '  DIFF ') + dest + (esiste ? '' : ' (assente)'));
     if (!uguale) errori++;
   } else {
+    fs.mkdirSync(path.dirname(full), { recursive: true }); // in un checkout fresco (CI) electron/renderer/ non esiste
     fs.writeFileSync(full, artefatto);
     console.log('  scritto ' + dest);
   }

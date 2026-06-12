@@ -1,0 +1,22 @@
+# CI del TMS: a ogni push (e PR) ricostruisce gli artefatti dal sorgente e lancia
+# lint + sintassi + suite jsdom. Lo scenario T1b (dati locali TMS_Dati, non nel repo)
+# si auto-salta qui: la suite completa gira in locale, dove partono le release.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
