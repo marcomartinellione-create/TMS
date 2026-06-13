@@ -150,6 +150,10 @@ function exMatch(e,q){
   const hay=(e.nome+' '+(e.target||'')+' '+(e.macro||e.gruppo||'')+' '+sottoOf(e)).toLowerCase();
   return q.split(/\s+/).every(tok=>hay.includes(tok));
 }
+/* un esercizio è "cardio" se sta nel gruppo Cardio o ha categoria cardio (database):
+   serve a tenerlo FUORI dal selettore dei Pesi (le attività cardio vivono nel tab Cardio). */
+function isCardio(e){ if(!e) return false;
+  return String(e.macro||e.gruppo||'').toLowerCase()==='cardio' || String(e.categoria||'').toLowerCase()==='cardio'; }
 let exSottoAperte={};  /* "macro::sotto" -> true se il menù a tendina è aperto */
 function renderEsercizi(){
   const list=EX_BASE.filter(e=>exMatch(e,exFilt));
@@ -183,13 +187,13 @@ function renderEsercizi(){
       tendina): barra di ricerca + lista per categoria, come nel tab Esercizi. La ricerca
       aggiorna SOLO la lista (l'input resta vivo: niente cursore che salta). onPick riceve
       il nome scelto, oppure '' se si svuota. ── */
-function pickExercise(current, onPick){
+function pickExercise(current, onPick, filtro){
   current=String(current||'').trim();
   const gi=g=>{const i=GRUPPI.indexOf(g);return i<0?99:i;};
   const so=s=>s==='Varie'?'zzz':s.toLowerCase();
   function righe(q){
     q=(q||'').trim().toLowerCase();
-    const list=(DOC.esercizi||[]).filter(e=>exMatch(e,q));
+    const list=(DOC.esercizi||[]).filter(e=>(!filtro||filtro(e))&&exMatch(e,q));
     list.sort((a,b)=>{const ga=a.macro||a.gruppo||'',gb=b.macro||b.gruppo||'';return gi(ga)-gi(gb)||ga.localeCompare(gb)||so(sottoOf(a)).localeCompare(so(sottoOf(b)))||String(a.nome).localeCompare(String(b.nome));});
     if(!list.length) return '<div class="muted" style="padding:16px;text-align:center">Nessun esercizio per «'+esc(q)+'».</div>';
     let html='',lastG=null,lastS=null;

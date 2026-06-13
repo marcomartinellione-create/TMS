@@ -1,6 +1,6 @@
 /* ════════════════ TABS / INIT ════════════════ */
 let curTab='allenamento';
-const RENDERERS={profilo:renderProfilo,allenamento:renderAllenamento,storico:renderStorico,progressi:renderProgressi,corpo:renderCorpo,storicocorpo:renderStoricoCorpo,alimentazione:renderAlimentazione,analisi:renderAnalisi,esercizi:renderEsercizi,report:renderReport,guida:renderGuida};
+const RENDERERS={profilo:renderProfilo,allenamento:renderAllenamento,cardio:renderCardio,storico:renderStorico,progressi:renderProgressi,corpo:renderCorpo,storicocorpo:renderStoricoCorpo,alimentazione:renderAlimentazione,analisi:renderAnalisi,esercizi:renderEsercizi,report:renderReport,guida:renderGuida};
 function showTab(t){
   curTab=t;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('is-active',b.dataset.tab===t));

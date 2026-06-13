@@ -108,7 +108,7 @@ function renderAllenamento(){
   document.querySelectorAll('#panel-allenamento [data-vid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.vid));
   document.querySelectorAll('#panel-allenamento .ex-pick').forEach(b=>b.onclick=()=>{
     const tr=b.closest('tr'); const i=+tr.dataset.i;
-    pickExercise(schedaRows()[i].esercizio, nome=>{ schedaRows()[i].esercizio=nome; persist('scheda'); renderAllenamento(); }); });
+    pickExercise(schedaRows()[i].esercizio, nome=>{ schedaRows()[i].esercizio=nome; persist('scheda'); renderAllenamento(); }, e=>!isCardio(e)); });
   document.querySelectorAll('#panel-allenamento [data-set]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.set, r=schedaRows()[i];
     schedaRows().splice(i+1,0,{giorno:r.giorno,esercizio:r.esercizio,note:'',serie:r.serie,rip:r.rip,peso:r.peso,rest:r.rest}); persist('scheda'); renderAllenamento(); });
   document.querySelectorAll('#panel-allenamento [data-test]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.test; schedaRows()[i].test=!schedaRows()[i].test; persist('scheda'); renderAllenamento(); });

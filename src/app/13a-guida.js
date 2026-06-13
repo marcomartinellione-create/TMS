@@ -20,11 +20,11 @@ function guidaRapida(){
    <div class="sec">▌ In 4 passi</div>
    <ol style="margin:0 0 6px 18px;line-height:1.9">
      <li><b>Apri l'app: è già pronta.</b> Su desktop non serve collegare niente — i dati vivono in locale sul tuo PC (niente cloud, niente account) e sopravvivono agli aggiornamenti. Trovi il profilo dimostrativo <b>Atleta Template</b> già compilato per esplorare; il tuo lo crei dal tab <b>👤 Profilo → ＋ Nuovo profilo</b>.</li>
-     <li><b>Compila la scheda.</b> In <b>⚔ Allenamento</b> aggiungi un Giorno e scegli gli esercizi: tocca <b>＋ scegli esercizio</b> e usa la <b>barra di ricerca</b> o scorri la <b>lista per categoria</b>. Inserisci serie, ripetizioni, peso (e <b>RIR</b> se vuoi): 1RM/%1RM/TL si calcolano da soli. Usa <b>＋set</b> per i set extra e <b>↧ Dalla scorsa</b> per ripartire dai valori dell'ultima volta. Il ▶ accanto all'esercizio mostra il video.</li>
+     <li><b>Compila la scheda.</b> In <b>🏋 Pesi</b> aggiungi un Giorno e scegli gli esercizi: tocca <b>＋ scegli esercizio</b> e usa la <b>barra di ricerca</b> o scorri la <b>lista per categoria</b>. Inserisci serie, ripetizioni, peso (e <b>RIR</b> se vuoi): 1RM/%1RM/TL si calcolano da soli. Usa <b>＋set</b> per i set extra e <b>↧ Dalla scorsa</b> per ripartire dai valori dell'ultima volta. Il ▶ accanto all'esercizio mostra il video. Le attività <b>cardio</b> (corsa, bici, nuoto…) vanno nel tab <b>🏃 Cardio</b>, separato.</li>
      <li><b>Salva.</b> <b>💾 Salva nello Storico</b> (anno + settimana, di default quelli correnti) — con fatica (RPE) e durata della seduta, se le usi.</li>
      <li><b>Guarda i risultati.</b> <b>📈 Progressi</b> per grafici e record, <b>📊 Analisi</b> per incrociare dieta e allenamento, <b>🖨 Report</b> per il PDF da consegnare.</li>
    </ol>
-   <div class="callout"><div>🔔 Un pallino/banner verde o rosso (in Allenamento, Corpo e nel footer) ti avvisa se non hai ancora registrato la settimana.</div></div>
+   <div class="callout"><div>🔔 Un pallino/banner verde o rosso (in Pesi, Corpo e nel footer) ti avvisa se non hai ancora registrato la settimana.</div></div>
    <div class="sec">▌ Coach ↔ cliente: la scheda che viaggia</div>
    <ol style="margin:0 0 6px 18px;line-height:1.9">
      <li><b>Esporta.</b> In <b>👤 Profilo</b>, nella riga del cliente, premi <b>📤 Esporta scheda</b>: crea una pagina HTML con la sua scheda (e i video, se vuoi). Inviala via chat o email.</li>
@@ -34,7 +34,8 @@ function guidaRapida(){
    <div class="sec">▌ Le sezioni in breve</div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta/cliente attivo e anagrafica (il tab mostra il nome del profilo attivo). Più profili = più clienti: nella riga di ognuno i bottoni dello <b>scambio scheda col cliente</b> (📤 esporta la scheda compilabile, 📥 importa il file di rientro). In fondo alla pagina il <b>Backup/Ripristino</b> di tutti i dati.</td></tr>
-     <tr><td class="l"><b>⚔ Allenamento</b></td><td class="l">Crei la scheda e la salvi nello storico; ▶ per i video degli esercizi.</td></tr>
+     <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Crei la scheda dei pesi e la salvi nello storico; ▶ per i video degli esercizi.</td></tr>
+     <tr><td class="l"><b>🏃 Cardio</b></td><td class="l">Attività cardio (corsa, bici, nuoto…): durata + fatica → carico interno sRPE (e TRIMP con la frequenza cardiaca).</td></tr>
      <tr><td class="l"><b>📈 Progressi</b></td><td class="l">Record, grafici e andamento del carico (TL, ACWR, monotonia).</td></tr>
      <tr><td class="l"><b>🜂 Corpo</b></td><td class="l">Peso e misure (BMI, masse) nel tempo.</td></tr>
      <tr><td class="l"><b>🍖 Alimentazione</b></td><td class="l">Pasti Bulk/Mantenimento/Cut, banca dati di 1190 alimenti, indice OMS. Qui registri i <b>Periodi</b> (piano + date) per le analisi.</td></tr>
@@ -73,7 +74,7 @@ function guidaCompleta(){
    <p>Nel tab <b>👤 Profilo</b> gestisci più atleti/clienti (crea, attiva, rinomina, elimina). Ogni profilo ha <b>scheda, storico, misure e alimentazione propri</b>; il <b>catalogo Esercizi è condiviso</b>. I dati per profilo stanno in <span class="mono">TMS_Dati/&lt;profilo&gt;/</span>. L'anagrafica invariante (sesso, data di nascita, altezza) si imposta qui col pulsante ✎: l'<b>età è calcolata</b> dalla data di nascita.</p>
 
    <div class="sec" id="gc-flusso">▌ 3 · Flusso d'uso</div>
-   <p><b>1 · Compila la scheda.</b> In <b>Allenamento</b> scegli la modalità (Settimanale/Mensile), aggiungi un Giorno e gli Esercizi (menù dal catalogo). Per i set incrementali dello stesso esercizio usa <b>＋set</b> (ripetere l'esercizio è il modo corretto: niente più «+1/+2»). Se un esercizio compare in un secondo giorno della settimana viene marcato in automatico come <b>S2</b> (2ª seduta). Sotto ogni esercizio compare <b>«ult: …»</b> (l'ultima registrazione) e con <b>↧ Dalla scorsa</b> riporti peso/rip/RIR dall'ultima volta. Il campo <b>RIR</b> (ripetizioni in riserva) è opzionale.</p>
+   <p><b>1 · Compila la scheda.</b> In <b>🏋 Pesi</b> scegli la modalità (Settimanale/Mensile), aggiungi un Giorno e gli Esercizi (dal selettore con barra di ricerca e lista per categoria; le attività cardio sono nel tab <b>🏃 Cardio</b> a parte). Per i set incrementali dello stesso esercizio usa <b>＋set</b> (ripetere l'esercizio è il modo corretto: niente più «+1/+2»). Se un esercizio compare in un secondo giorno della settimana viene marcato in automatico come <b>S2</b> (2ª seduta). Sotto ogni esercizio compare <b>«ult: …»</b> (l'ultima registrazione) e con <b>↧ Dalla scorsa</b> riporti peso/rip/RIR dall'ultima volta. Il campo <b>RIR</b> (ripetizioni in riserva) è opzionale.</p>
    <p><b>2 · Leggi i calcoli dal vivo.</b> Mentre digiti, 1RM/%1RM/TL/fascia e il Δ TL del blocco si aggiornano in tempo reale. Il pulsante <b>★</b> marca una riga come test del massimale (escluso dalla progressione del TL).</p>
    <p><b>3 · Salva nello Storico.</b> <b>💾 Salva nello Storico</b> → anno e settimana (default correnti). Il codice scheda è <span class="mono">AAAASS</span> (anno×100 + settimana). <b>↶ Annulla ultimo</b> rimuove l'ultima scheda (irreversibile).</p>
    <p><b>4 · Misure corpo (facoltativo).</b> In <b>Corpo</b> aggiorni peso e composizione e premi <b>💾 Salva misure</b>: utile per i grafici di ricomposizione.</p>
@@ -81,7 +82,8 @@ function guidaCompleta(){
    <div class="sec" id="gc-sezioni">▌ 4 · Le sezioni in dettaglio</div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Sezione</th><th class="l">A cosa serve</th></tr></thead><tbody>
      <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta attivo, gestione profili, anagrafica invariante, Backup/Ripristino dati.</td></tr>
-     <tr><td class="l"><b>⚔ Allenamento</b></td><td class="l">Scheda settimanale/mensile per giorno; calcoli automatici; salva/annulla nello storico.</td></tr>
+     <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Scheda settimanale/mensile per giorno; calcoli automatici; salva/annulla nello storico.</td></tr>
+     <tr><td class="l"><b>🏃 Cardio</b></td><td class="l">Sedute cardio datate con durata e RPE → sRPE (Foster); TRIMP (Banister) quando inserisci la FC media.</td></tr>
      <tr><td class="l"><b>📜 Storico</b> <span class="muted">(nascosto)</span></td><td class="l">Archivio di tutte le schede salvate (link nel footer). Sola lettura.</td></tr>
      <tr><td class="l"><b>📈 Progressi</b></td><td class="l">Record reali, carico (TL), ACWR, volume per gruppo, intensità, progressione per esercizio.</td></tr>
      <tr><td class="l"><b>🜂 Corpo</b></td><td class="l">Misure variabili con BMI/fabbisogno e grafici; salva le rilevazioni.</td></tr>

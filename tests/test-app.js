@@ -133,10 +133,13 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(d.getElementById('btn-disconnect') === null && w.eval('typeof disconnectDirectory') === 'undefined', 'bottone e funzione Disconnetti rimossi (v1.0.59)');
   ok(d.getElementById('tab-dev') === null && d.getElementById('panel-dev') === null, 'tab e pannello Dev rimossi (v1.0.59)');
   ok(w.eval('typeof renderDev') === 'undefined' && w.eval('typeof loadDev') === 'undefined' && w.eval('typeof SHARE_ENABLED') === 'undefined', 'funzioni e costante del tab Dev rimosse');
-  const tabs = ['profilo','allenamento','storico','progressi','corpo','storicocorpo','alimentazione','analisi','esercizi','report','guida'];
+  const tabs = ['profilo','allenamento','cardio','storico','progressi','corpo','storicocorpo','alimentazione','analisi','esercizi','report','guida'];
   let tabErr = null;
   for(const t of tabs){ try { w.eval('showTab(' + JSON.stringify(t) + ')'); } catch(e){ tabErr = t + ': ' + e.message; break; } }
-  ok(!tabErr, 'navigazione 11 tab senza eccezioni (incl. Analisi vuota)' + (tabErr ? ' -> ' + tabErr : ''));
+  ok(!tabErr, 'navigazione 12 tab senza eccezioni (incl. Cardio e Analisi vuote)' + (tabErr ? ' -> ' + tabErr : ''));
+  /* v1.0.x: tab Allenamento rinominato "Pesi" + nuovo tab "Cardio" */
+  ok(d.querySelector('.tab[data-tab="allenamento"]').textContent.includes('Pesi'), 'tab Allenamento rinominato "Pesi"');
+  ok(d.querySelector('.tab[data-tab="cardio"]') !== null && d.getElementById('panel-cardio') !== null, 'nuovo tab e pannello "Cardio" presenti');
   /* regressione v1.0.63: "Nuovo profilo" usava prompt(), che Electron non supporta */
   w.eval('showTab("profilo")');
   d.getElementById('prof-new').click();
@@ -224,7 +227,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(w.eval('DOC.storico.length') === 896, 'storico template caricato (896 righe)');
   ok(w.eval('DOC.storico_rpe.length') === 125, 'storico_rpe popolato (125 sedute durata+intensità)');
   ok(w.eval('DOC.dati_utente.useRpe') === true && w.eval('DOC.dati_utente.altezza') === 178, 'dati utente template (useRpe, 178 cm)');
-  const tabs = ['profilo','allenamento','progressi','corpo','storicocorpo','alimentazione','analisi','report'];
+  const tabs = ['profilo','allenamento','cardio','progressi','corpo','storicocorpo','alimentazione','analisi','report'];
   let tabErr = null;
   for(const t of tabs){ try { w.eval('showTab(' + JSON.stringify(t) + ')'); } catch(e){ tabErr = t + ': ' + e.message; break; } }
   ok(!tabErr, 'tab sul profilo template senza eccezioni' + (tabErr ? ' -> ' + tabErr : ''));
@@ -303,6 +306,25 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok([...d.querySelectorAll('#exp-list .exp-it')].some(b=>/Panca piana con bilanciere/i.test(b.dataset.nome)), 'picker esercizi: ricerca a parole trova «Panca piana con bilanciere» da «panca piana bilanciere»');
   d.querySelector('#exp-list .exp-it').click();
   ok(typeof w.eval('window.__pick')==='string' && w.eval('window.__pick').length>0 && d.getElementById('modal-bk').classList.contains('hidden'), 'picker esercizi: clic seleziona, richiama onPick e chiude il modale');
+  /* il picker dei Pesi esclude le attività cardio (filtro e=>!isCardio(e)) */
+  ok(w.eval('isCardio({macro:"Cardio"})')===true && w.eval('isCardio({categoria:"cardio"})')===true && w.eval('isCardio({macro:"Pettorali"})')===false, 'isCardio: riconosce gruppo/categoria cardio');
+  w.eval('pickExercise("", function(){}, function(e){ return !isCardio(e); });');
+  ok([...d.querySelectorAll('#exp-list .exp-it')].every(b=>!w.eval('isCardio(esLookup('+JSON.stringify(b.dataset.nome)+'))')), 'picker Pesi: nessuna attività cardio in lista');
+  w.eval('closeModal()');
+  /* ── Cardio: sRPE (Foster) + TRIMP (Banister), dati in DOC.cardio ── */
+  ok(w.eval('srpeCardio({rpe:6,durata:40})')===240, 'Cardio: sRPE = RPE×min (240 AU)');
+  ok(w.eval('trimpCardio({rpe:6,durata:40})')===null, 'Cardio: TRIMP nullo senza FC media');
+  ok(typeof w.eval('trimpCardio({durata:40,fcMedia:140})')==='number' && w.eval('trimpCardio({durata:40,fcMedia:140})')>0, 'Cardio: TRIMP calcolato con FC media (FC max da età)');
+  w.eval('showTab("cardio")');
+  ok(d.getElementById('panel-cardio').innerHTML.includes('sRPE') && d.getElementById('panel-cardio').innerHTML.includes('TRIMP') && d.getElementById('cardio-add')!==null, 'tab Cardio: colonne sRPE/TRIMP + bottone aggiungi');
+  const nCard = w.eval('Array.isArray(DOC.cardio)?DOC.cardio.length:0');
+  w.eval('cardioModal(-1)');
+  w.eval('document.getElementById("c-data").value="2026-06-13"; document.getElementById("c-tipo").value="Corsa"; document.getElementById("c-min").value="40"; document.getElementById("c-rpe").value="6"; document.getElementById("c-fc").value="140";');
+  d.getElementById('c-ok').click();
+  ok(w.eval('DOC.cardio.length')===nCard+1, 'Cardio: nuova attività aggiunta a DOC.cardio');
+  { const last=w.eval('DOC.cardio[DOC.cardio.length-1]'); ok(last.tipo==='Corsa' && last.durata===40 && last.rpe===6 && last.fcMedia===140, 'Cardio: dati attività salvati (tipo/min/rpe/FC)'); }
+  ok(d.getElementById('panel-cardio').innerHTML.includes('Corsa') && d.getElementById('panel-cardio').innerHTML.includes('240'), 'Cardio: la tabella mostra l\'attività con sRPE');
+  ok(Array.isArray((await w.eval('costruisciSnapshot()')).profiles['template'].cardio) && (await w.eval('costruisciSnapshot()')).profiles['template'].cardio.length>=1, 'Cardio: incluso nello snapshot di backup');
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');

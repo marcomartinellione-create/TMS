@@ -70,7 +70,10 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   alimentazione.json. I valori derivati (1RM, TL, ACWR…) NON vengono mai salvati:
   si ricalcolano al volo dai dati grezzi.
 
-## 4 · Allenamento (tab ⚔ Allenamento)
+## 4 · Pesi (tab 🏋 Pesi)
+
+NB: questo tab si chiamava «Allenamento» fino alla v1.0.77; ora è «Pesi» e affianca il
+nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano nel tab Cardio).
 
 - Scheda **settimanale** (e vista mensile). Si aggiungono Giorni; in ogni giorno righe
   esercizio. Per scegliere l'esercizio si tocca la cella «＋ scegli esercizio»: si apre
@@ -78,6 +81,18 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   digita il nome o si scorre per gruppo muscolare; Invio sceglie il primo risultato).
   Campi per riga: Serie, Ripetizioni, Peso, RIR (opzionale), Note, recupero. Obbligatori
   solo esercizio/serie/ripetizioni/peso.
+
+## 4-bis · Cardio (tab 🏃 Cardio)
+
+Le attività cardio (corsa, bici, nuoto, ellittica, vogatore, salto della corda…) non hanno
+serie/ripetizioni/peso: si misurano col **carico interno**. Ogni seduta si registra con
+«＋ Aggiungi attività»: data, tipo, durata (min), fatica RPE (0–10) e, facoltativi, distanza
+e FC media. L'app calcola:
+- **sRPE (Foster)** = RPE × durata in minuti → unità arbitrarie (AU). Sempre disponibile.
+- **TRIMP (Banister)** dalla **frequenza cardiaca** media: compare solo se inserisci la FC
+  media; usa la FC max stimata dall'età (Tanaka: 208 − 0,7×età) e una FC a riposo di 60 bpm
+  di default. L'inserimento completo dei dati da fascia cardiaca arriverà nelle prossime
+  versioni. La tabella mostra anche il totale sRPE della settimana corrente.
 - «＋set» aggiunge set extra alla riga; «↧ Dalla scorsa» ricompila coi valori
   dell'ultima registrazione; il «▶» accanto all'esercizio apre il video dimostrativo.
 - Per ogni riga l'app mostra al volo: 1RM stimato, %1RM, TL (carico della riga) e la
@@ -227,7 +242,9 @@ settimana già popolata → avviso che le righe verranno AGGIUNTE (non sostituit
 - «Mandare la scheda a un cliente» → Profilo → riga del cliente → 📤 Esporta scheda.
 - «Registrare ciò che il cliente ha fatto» → Profilo → riga del cliente → 📥 Importa
   rientro (file Rientro_*.json che il cliente rimanda).
-- «Salvare l'allenamento della settimana» → Allenamento → 💾 Salva nello Storico.
+- «Salvare l'allenamento della settimana» → Pesi → 💾 Salva nello Storico.
+- «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,
+  durata, RPE; FC media facoltativa per il TRIMP).
 - «Correggere un dato sbagliato» → nella scheda corrente si corregge direttamente;
   nello storico: ↶ Annulla ultimo e risalvare.
 - «Vedere i progressi / il rischio di sovraccarico» → Progressi (record, TL, ACWR).

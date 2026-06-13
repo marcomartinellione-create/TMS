@@ -20,6 +20,7 @@
     "app/04-modal.js",
     "app/05-grafici.js",
     "app/06-allenamento.js",
+    "app/06b-cardio.js",
     "app/07-storico.js",
     "app/08-progressi.js",
     "app/09-corpo.js",

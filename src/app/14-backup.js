@@ -9,7 +9,7 @@ async function costruisciSnapshot(){
       if(p.slug===activeProfile){ snap.profiles[p.slug]=docProfileData(); continue; }
       try{ const pd=await dataDir.getDirectoryHandle(p.slug,{create:false});
         const sc=await readJson(pd,FILES.scheda), st=await readJson(pd,FILES.storico), co=await readJson(pd,FILES.corpo), al=await readJson(pd,FILES.alimentazione);
-        snap.profiles[p.slug]={scheda:sc||{settimanale:[],mensile:[]},storico:st||[],storico_io:(co&&co.storico_io)||[],storico_rpe:(co&&co.storico_rpe)||[],dati_utente:(co&&co.dati_utente)||{},alimentazione:al||{bulk:[],mant:[],cut:[]}};
+        snap.profiles[p.slug]={scheda:sc||{settimanale:[],mensile:[]},storico:st||[],storico_io:(co&&co.storico_io)||[],storico_rpe:(co&&co.storico_rpe)||[],cardio:(co&&co.cardio)||[],dati_utente:(co&&co.dati_utente)||{},alimentazione:al||{bulk:[],mant:[],cut:[]}};
       }catch(e){ snap.profiles[p.slug]=blankDOC(); logErrore('snapshot:'+p.slug, e); }
     }
   } else {
@@ -113,7 +113,7 @@ async function restoreData(file){
       const pd=await dataDir.getDirectoryHandle(slug,{create:true}); const d=snap.profiles[slug]||blankDOC();
       await writeJson(pd,FILES.scheda,d.scheda||{settimanale:[],mensile:[]});
       await writeJson(pd,FILES.storico,d.storico||[]);
-      await writeJson(pd,FILES.corpo,{dati_utente:d.dati_utente||{},storico_io:d.storico_io||[],storico_rpe:d.storico_rpe||[]});
+      await writeJson(pd,FILES.corpo,{dati_utente:d.dati_utente||{},storico_io:d.storico_io||[],storico_rpe:d.storico_rpe||[],cardio:d.cardio||[]});
       await writeJson(pd,FILES.alimentazione,d.alimentazione||{bulk:[],mant:[],cut:[]});
     }
     await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
