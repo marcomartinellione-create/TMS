@@ -286,6 +286,9 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const s=d.getElementById('ex-s'); s.value='squat'; try{ s.setSelectionRange(5,5); }catch(e){} s.dispatchEvent(new w.Event('input',{bubbles:true})); }
   ok(w.eval('exFilt')==='squat', 'ricerca Esercizi: filtro aggiornato dall\'input');
   { const s=d.getElementById('ex-s'); ok(d.activeElement===s && s.selectionStart===5, 'ricerca Esercizi: cursore ripristinato in coda (no testo invertito)'); }
+  /* ricerca «a parole»: tutte le parole presenti, anche non contigue */
+  w.eval('exFilt="panca piana bilanciere"; renderEsercizi();');
+  ok(d.getElementById('panel-esercizi').innerHTML.includes('Panca piana con bilanciere'), 'ricerca Esercizi: match a parole (panca piana bilanciere → Panca piana con bilanciere)');
   w.eval('exFilt=""; renderEsercizi();');
   /* enhancement: selettore esercizio in Allenamento = barra di ricerca + lista (niente più <select>) */
   w.eval('showTab("allenamento")');
@@ -296,6 +299,8 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const q=d.getElementById('exp-q'); q.value='squat'; q.dispatchEvent(new w.Event('input',{bubbles:true})); }
   const nFilt = d.querySelectorAll('#exp-list .exp-it').length;
   ok(nFilt > 0 && nFilt < nTot, 'picker esercizi: la ricerca filtra la lista (' + nFilt + '/' + nTot + ')');
+  { const q=d.getElementById('exp-q'); q.value='panca piana bilanciere'; q.dispatchEvent(new w.Event('input',{bubbles:true})); }
+  ok([...d.querySelectorAll('#exp-list .exp-it')].some(b=>/Panca piana con bilanciere/i.test(b.dataset.nome)), 'picker esercizi: ricerca a parole trova «Panca piana con bilanciere» da «panca piana bilanciere»');
   d.querySelector('#exp-list .exp-it').click();
   ok(typeof w.eval('window.__pick')==='string' && w.eval('window.__pick').length>0 && d.getElementById('modal-bk').classList.contains('hidden'), 'picker esercizi: clic seleziona, richiama onPick e chiude il modale');
   w.eval('showTab("esercizi")');

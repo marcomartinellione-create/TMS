@@ -142,9 +142,17 @@ async function playVideo(nome){
     `<div class="modal__actions"><button class="btn" onclick="closeModal()">Chiudi</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='760px';
 }
+/* ricerca «a parole»: trova se TUTTE le parole digitate compaiono (in qualunque ordine)
+   in nome+target+gruppo+sottocategoria. Es. «panca piana bilanciere» trova «Panca piana
+   con bilanciere - presa media». Usata sia qui sia nel picker di Allenamento. */
+function exMatch(e,q){
+  q=String(q||'').trim().toLowerCase(); if(!q) return true;
+  const hay=(e.nome+' '+(e.target||'')+' '+(e.macro||e.gruppo||'')+' '+sottoOf(e)).toLowerCase();
+  return q.split(/\s+/).every(tok=>hay.includes(tok));
+}
 let exSottoAperte={};  /* "macro::sotto" -> true se il menù a tendina è aperto */
 function renderEsercizi(){
-  const list=EX_BASE.filter(e=>!exFilt|| (e.nome+' '+(e.target||'')+' '+(e.macro||'')+' '+sottoOf(e)).toLowerCase().includes(exFilt.toLowerCase()));
+  const list=EX_BASE.filter(e=>exMatch(e,exFilt));
   const gi=g=>{const i=GRUPPI.indexOf(g); return i<0?99:i;};
   const so=s=>s==='Varie'?'zzz':s.toLowerCase();  /* "Varie" in coda al suo gruppo */
   const sorted=[...list].sort((a,b)=>{ const ga=a.macro||a.gruppo||'',gb=b.macro||b.gruppo||''; return gi(ga)-gi(gb)||ga.localeCompare(gb)||so(sottoOf(a)).localeCompare(so(sottoOf(b)))||String(a.nome).localeCompare(String(b.nome)); });
@@ -181,7 +189,7 @@ function pickExercise(current, onPick){
   const so=s=>s==='Varie'?'zzz':s.toLowerCase();
   function righe(q){
     q=(q||'').trim().toLowerCase();
-    const list=(DOC.esercizi||[]).filter(e=>!q||(e.nome+' '+(e.target||'')+' '+(e.macro||e.gruppo||'')+' '+sottoOf(e)).toLowerCase().includes(q));
+    const list=(DOC.esercizi||[]).filter(e=>exMatch(e,q));
     list.sort((a,b)=>{const ga=a.macro||a.gruppo||'',gb=b.macro||b.gruppo||'';return gi(ga)-gi(gb)||ga.localeCompare(gb)||so(sottoOf(a)).localeCompare(so(sottoOf(b)))||String(a.nome).localeCompare(String(b.nome));});
     if(!list.length) return '<div class="muted" style="padding:16px;text-align:center">Nessun esercizio per «'+esc(q)+'».</div>';
     let html='',lastG=null,lastS=null;
