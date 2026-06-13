@@ -20,7 +20,7 @@ function guidaRapida(){
    <div class="sec">▌ In 4 passi</div>
    <ol style="margin:0 0 6px 18px;line-height:1.9">
      <li><b>Apri l'app: è già pronta.</b> Su desktop non serve collegare niente — i dati vivono in locale sul tuo PC (niente cloud, niente account) e sopravvivono agli aggiornamenti. Trovi il profilo dimostrativo <b>Atleta Template</b> già compilato per esplorare; il tuo lo crei dal tab <b>👤 Profilo → ＋ Nuovo profilo</b>.</li>
-     <li><b>Compila la scheda.</b> In <b>⚔ Allenamento</b> aggiungi un Giorno e scegli gli esercizi dal menù. Inserisci serie, ripetizioni, peso (e <b>RIR</b> se vuoi): 1RM/%1RM/TL si calcolano da soli. Usa <b>＋set</b> per i set extra e <b>↧ Dalla scorsa</b> per ripartire dai valori dell'ultima volta. Il ▶ accanto all'esercizio mostra il video.</li>
+     <li><b>Compila la scheda.</b> In <b>⚔ Allenamento</b> aggiungi un Giorno e scegli gli esercizi: tocca <b>＋ scegli esercizio</b> e usa la <b>barra di ricerca</b> o scorri la <b>lista per categoria</b>. Inserisci serie, ripetizioni, peso (e <b>RIR</b> se vuoi): 1RM/%1RM/TL si calcolano da soli. Usa <b>＋set</b> per i set extra e <b>↧ Dalla scorsa</b> per ripartire dai valori dell'ultima volta. Il ▶ accanto all'esercizio mostra il video.</li>
      <li><b>Salva.</b> <b>💾 Salva nello Storico</b> (anno + settimana, di default quelli correnti) — con fatica (RPE) e durata della seduta, se le usi.</li>
      <li><b>Guarda i risultati.</b> <b>📈 Progressi</b> per grafici e record, <b>📊 Analisi</b> per incrociare dieta e allenamento, <b>🖨 Report</b> per il PDF da consegnare.</li>
    </ol>

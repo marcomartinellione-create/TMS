@@ -39,7 +39,7 @@ function renderAllenamento(){
     const [fl,fc]=fascia(p);
     const sdBadge=(r.esercizio && sd>1 && firstOfBlock)? ` <span class="pill" style="padding:0 6px" title="Seduta ${sd} della settimana (auto)">S${sd}</span>`:'';
     body+=`<tr data-i="${i}"${r.test?' style="background:rgba(122,62,168,.07)"':''}>
-      <td class="l"><select class="cell-in txt ex-sel" data-f="esercizio" style="min-width:170px">${exOptions(r.esercizio)}</select>${sdBadge}${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="Guarda il video">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<div class="muted" style="font-size:10px;line-height:1.2" title="ultima registrazione (scheda ${lp.scheda})">ult: ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</div>`:'';})()}</td>
+      <td class="l"><button type="button" class="cell-in txt ex-pick" style="min-width:170px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(r.esercizio):'<span class="muted">＋ scegli esercizio</span>'} <span style="opacity:.5">▾</span></button>${sdBadge}${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="Guarda il video">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<div class="muted" style="font-size:10px;line-height:1.2" title="ultima registrazione (scheda ${lp.scheda})">ult: ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</div>`:'';})()}</td>
       <td class="l"><textarea class="cell-in txt note-area" data-f="note" placeholder="note" style="min-width:90px">${esc(r.note||'')}</textarea></td>
       <td><input class="cell-in" type="number" min="0" value="${r.serie??''}" data-f="serie" style="width:48px"></td>
       <td><input class="cell-in" type="number" min="0" value="${r.rip??''}" data-f="rip" style="width:52px"></td>
@@ -106,8 +106,9 @@ function renderAllenamento(){
     const badge=document.querySelector('#panel-allenamento [data-rpe-load="'+g+'"]'); if(badge){ const ld=dayLoad(g); badge.textContent=ld?nfk(ld)+' AU':'—'; }
   }));
   document.querySelectorAll('#panel-allenamento [data-vid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.vid));
-  document.querySelectorAll('#panel-allenamento select.ex-sel').forEach(sel=>sel.addEventListener('change',e=>{
-    const tr=e.target.closest('tr'); const i=+tr.dataset.i; schedaRows()[i].esercizio=e.target.value; persist('scheda'); renderAllenamento(); }));
+  document.querySelectorAll('#panel-allenamento .ex-pick').forEach(b=>b.onclick=()=>{
+    const tr=b.closest('tr'); const i=+tr.dataset.i;
+    pickExercise(schedaRows()[i].esercizio, nome=>{ schedaRows()[i].esercizio=nome; persist('scheda'); renderAllenamento(); }); });
   document.querySelectorAll('#panel-allenamento [data-set]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.set, r=schedaRows()[i];
     schedaRows().splice(i+1,0,{giorno:r.giorno,esercizio:r.esercizio,note:'',serie:r.serie,rip:r.rip,peso:r.peso,rest:r.rest}); persist('scheda'); renderAllenamento(); });
   document.querySelectorAll('#panel-allenamento [data-test]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.test; schedaRows()[i].test=!schedaRows()[i].test; persist('scheda'); renderAllenamento(); });

@@ -69,8 +69,11 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
 ## 4 · Allenamento (tab ⚔ Allenamento)
 
 - Scheda **settimanale** (e vista mensile). Si aggiungono Giorni; in ogni giorno righe
-  esercizio scelte dal menù del catalogo. Campi per riga: Serie, Ripetizioni, Peso,
-  RIR (opzionale), Note, recupero. Obbligatori solo esercizio/serie/ripetizioni/peso.
+  esercizio. Per scegliere l'esercizio si tocca la cella «＋ scegli esercizio»: si apre
+  un **selettore in sovraimpressione con barra di ricerca e lista per categoria** (si
+  digita il nome o si scorre per gruppo muscolare; Invio sceglie il primo risultato).
+  Campi per riga: Serie, Ripetizioni, Peso, RIR (opzionale), Note, recupero. Obbligatori
+  solo esercizio/serie/ripetizioni/peso.
 - «＋set» aggiunge set extra alla riga; «↧ Dalla scorsa» ricompila coi valori
   dell'ultima registrazione; il «▶» accanto all'esercizio apre il video dimostrativo.
 - Per ogni riga l'app mostra al volo: 1RM stimato, %1RM, TL (carico della riga) e la

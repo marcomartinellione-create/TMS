@@ -134,6 +134,15 @@ button{font-family:inherit; cursor:pointer}
 .sec:first-child{margin-top:6px}
 .sec .tag{margin-left:auto}
 
+/* ── PICKER ESERCIZI (overlay di selezione in Allenamento) ── */
+.exp-grp{font-family:var(--font-disp); color:var(--ember-2); font-size:13px; padding:8px 12px 3px; border-top:1px solid var(--border)}
+.exp-grp:first-child{border-top:0}
+.exp-sub{font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-3); padding:5px 12px 1px}
+.exp-it{display:block; width:100%; text-align:left; background:none; border:0; border-top:1px solid var(--border); padding:7px 12px; cursor:pointer; font:inherit; font-size:13px; color:var(--ink)}
+.exp-it:hover,.exp-it:focus{background:var(--gold-t); outline:none}
+.exp-it.sel{background:var(--gold-t); font-weight:600}
+.exp-it .muted{font-size:11px}
+
 /* ── CARDS ── */
 .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:6px 0 4px}
 .card{

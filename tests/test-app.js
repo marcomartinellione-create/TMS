@@ -281,6 +281,24 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(d.getElementById('panel-esercizi').innerHTML.indexOf('Panca piana con bilanciere - presa media') < 0, 'tendine chiuse di default (esercizi nascosti)');
   w.eval('(function(){ const e=esLookup("Panca piana con bilanciere - presa media"); exSottoAperte[(e.macro||e.gruppo)+"::"+sottoOf(e)]=true; renderEsercizi(); })()');
   ok(d.getElementById('panel-esercizi').innerHTML.indexOf('Panca piana con bilanciere - presa media') >= 0, 'click sulla tendina mostra gli esercizi della famiglia');
+  /* fix ricerca Esercizi: la ricostruzione ad ogni tasto ripristina il cursore (niente testo «al contrario») */
+  w.eval('exFilt=""; renderEsercizi();');
+  { const s=d.getElementById('ex-s'); s.value='squat'; try{ s.setSelectionRange(5,5); }catch(e){} s.dispatchEvent(new w.Event('input',{bubbles:true})); }
+  ok(w.eval('exFilt')==='squat', 'ricerca Esercizi: filtro aggiornato dall\'input');
+  { const s=d.getElementById('ex-s'); ok(d.activeElement===s && s.selectionStart===5, 'ricerca Esercizi: cursore ripristinato in coda (no testo invertito)'); }
+  w.eval('exFilt=""; renderEsercizi();');
+  /* enhancement: selettore esercizio in Allenamento = barra di ricerca + lista (niente più <select>) */
+  w.eval('showTab("allenamento")');
+  ok(d.querySelector('#panel-allenamento .ex-pick') !== null && d.querySelector('#panel-allenamento select.ex-sel') === null, 'Allenamento: cella esercizio è un pulsante picker (via il menù a tendina)');
+  w.eval('window.__pick=null; pickExercise("", function(n){ window.__pick=n; });');
+  ok(d.getElementById('exp-q') !== null && d.querySelectorAll('#exp-list .exp-it').length > 50, 'picker esercizi: barra di ricerca + lista per categoria popolata');
+  const nTot = d.querySelectorAll('#exp-list .exp-it').length;
+  { const q=d.getElementById('exp-q'); q.value='squat'; q.dispatchEvent(new w.Event('input',{bubbles:true})); }
+  const nFilt = d.querySelectorAll('#exp-list .exp-it').length;
+  ok(nFilt > 0 && nFilt < nTot, 'picker esercizi: la ricerca filtra la lista (' + nFilt + '/' + nTot + ')');
+  d.querySelector('#exp-list .exp-it').click();
+  ok(typeof w.eval('window.__pick')==='string' && w.eval('window.__pick').length>0 && d.getElementById('modal-bk').classList.contains('hidden'), 'picker esercizi: clic seleziona, richiama onPick e chiude il modale');
+  w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');
   /* v1.0.66: scambio scheda trainer ↔ cliente */

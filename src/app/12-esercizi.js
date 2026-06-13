@@ -162,11 +162,48 @@ function renderEsercizi(){
      <div class="spacer"></div><label class="pill no-print" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px" title="Se attivo, dove hai caricato un tuo video (TMS_Dati/video/) si usa quello al posto del predefinito; dove non c'è, resta il predefinito"><input type="checkbox" id="ex-vid-pers" style="width:auto;flex:0 0 auto"${videoPersonaliOn()?' checked':''}> Video personali</label><button class="btn btn--ember no-print" id="ex-add">＋ Nuovo esercizio</button><span class="pill">${list.length} / ${EX_BASE.length}</span></div>
    <div class="callout callout--info"><div>📖 Catalogo esercizi <b>modificabile</b>, raggruppato per macro gruppo e <b>sottocategoria</b> (famiglia di movimento: Panca, Affondi, Squat… — automatica dal nome, personalizzabile da ✎ → Sottocategoria). Il <b>Fattore</b> pesa il contributo al Training Load. I video integrati si possono <b>sostituire coi tuoi</b>: carica il file da ✎ → "Video personale" e attiva il toggle <b>Video personali</b>.</div></div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Esercizio</th><th class="l">Target muscolare</th><th>Gruppo</th><th class="l">Tipo</th><th>Fattore</th><th class="no-print"></th></tr></thead><tbody>${body||'<tr><td colspan="6" class="empty">Catalogo vuoto. Collega la cartella TMS: gli esercizi vengono caricati dal database (esercizi.json).</td></tr>'}</tbody></table></div>`;
-  document.getElementById('ex-s').oninput=e=>{exFilt=e.target.value; renderEsercizi(); document.getElementById('ex-s').focus();};
+  document.getElementById('ex-s').oninput=e=>{ const pos=e.target.selectionStart; exFilt=e.target.value; renderEsercizi();
+    const n=document.getElementById('ex-s'); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} } };
   { const tv=document.getElementById('ex-vid-pers'); if(tv) tv.onchange=e=>setVideoPersonali(e.target.checked); }
   document.querySelectorAll('#panel-esercizi [data-sub]').forEach(h=>h.onclick=()=>{ if(exFilt)return; const k=h.dataset.sub; exSottoAperte[k]=!exSottoAperte[k]; renderEsercizi(); });
   document.getElementById('ex-add').onclick=()=>exEdit('');
   document.querySelectorAll('#panel-esercizi [data-vid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.vid));
   document.querySelectorAll('#panel-esercizi [data-edit]').forEach(b=>b.onclick=()=>exEdit(b.dataset.edit));
+}
+
+/* ── Selettore esercizio in sovraimpressione (usato in Allenamento al posto del menù a
+      tendina): barra di ricerca + lista per categoria, come nel tab Esercizi. La ricerca
+      aggiorna SOLO la lista (l'input resta vivo: niente cursore che salta). onPick riceve
+      il nome scelto, oppure '' se si svuota. ── */
+function pickExercise(current, onPick){
+  current=String(current||'').trim();
+  const gi=g=>{const i=GRUPPI.indexOf(g);return i<0?99:i;};
+  const so=s=>s==='Varie'?'zzz':s.toLowerCase();
+  function righe(q){
+    q=(q||'').trim().toLowerCase();
+    const list=(DOC.esercizi||[]).filter(e=>!q||(e.nome+' '+(e.target||'')+' '+(e.macro||e.gruppo||'')+' '+sottoOf(e)).toLowerCase().includes(q));
+    list.sort((a,b)=>{const ga=a.macro||a.gruppo||'',gb=b.macro||b.gruppo||'';return gi(ga)-gi(gb)||ga.localeCompare(gb)||so(sottoOf(a)).localeCompare(so(sottoOf(b)))||String(a.nome).localeCompare(String(b.nome));});
+    if(!list.length) return '<div class="muted" style="padding:16px;text-align:center">Nessun esercizio per «'+esc(q)+'».</div>';
+    let html='',lastG=null,lastS=null;
+    list.forEach(e=>{ const g=e.macro||e.gruppo||'Altro';
+      if(g!==lastG){lastG=g;lastS=null; html+='<div class="exp-grp">▌ '+esc(g)+'</div>';}
+      const s=sottoOf(e); if(s!==lastS){lastS=s; html+='<div class="exp-sub">'+esc(s)+'</div>';}
+      const sel=String(e.nome).trim()===current;
+      html+='<button type="button" class="exp-it'+(sel?' sel':'')+'" data-nome="'+esc(e.nome)+'">'+(sel?'✓ ':'')+esc(e.nome)+(e.target?' <span class="muted">· '+esc(e.target)+'</span>':'')+'</button>';
+    });
+    return html;
+  }
+  modal('<h3>Scegli esercizio</h3>'+
+    '<div class="field" style="margin:6px 0"><input id="exp-q" placeholder="cerca per nome, muscolo, gruppo…" autocomplete="off" style="width:100%"></div>'+
+    '<div id="exp-list" style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:7px;background:var(--paper-2)">'+righe('')+'</div>'+
+    '<div class="modal__actions">'+(current?'<button class="btn btn--danger" id="exp-clear" style="margin-right:auto">Svuota</button>':'')+'<button class="btn" onclick="closeModal()">Annulla</button></div>');
+  const m=document.getElementById('modal'); if(m) m.style.maxWidth='640px';
+  const q=document.getElementById('exp-q'), listEl=document.getElementById('exp-list');
+  const bind=()=>listEl.querySelectorAll('.exp-it').forEach(b=>b.onclick=()=>{ closeModal(); onPick(b.dataset.nome); });
+  bind();
+  q.oninput=()=>{ listEl.innerHTML=righe(q.value); bind(); };  /* solo la lista: l'input non si ricrea */
+  q.onkeydown=e=>{ if(e.key==='Enter'){ const f=listEl.querySelector('.exp-it'); if(f){ e.preventDefault(); closeModal(); onPick(f.dataset.nome); } } };
+  { const c=document.getElementById('exp-clear'); if(c) c.onclick=()=>{ closeModal(); onPick(''); }; }
+  setTimeout(()=>{ try{ q.focus(); }catch(e){} },0);
 }
 

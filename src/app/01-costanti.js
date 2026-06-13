@@ -38,15 +38,6 @@ function parseVariante(name){
 function isVariante(name){ return VAR_RE.test(String(name||'')); }
 let EX_BASE=[];
 function rebuildEs(){ ESBYNAME={}; (DOC.esercizi||[]).forEach(e=>{ if(e&&e.nome) ESBYNAME[String(e.nome).trim()]=e; }); EX_BASE=DOC.esercizi||[]; }
-function exOptions(sel){
-  let o='<option value=""></option>';
-  const byG={}; (DOC.esercizi||[]).forEach(e=>{ const g=e.macro||e.gruppo||'Altro'; (byG[g]=byG[g]||[]).push(e); });
-  const order=GRUPPI.concat(Object.keys(byG).filter(g=>!GRUPPI.includes(g)));
-  const cur=String(sel||'').trim();
-  order.forEach(g=>{ if(!byG[g])return; o+=`<optgroup label="${esc(g)}">`+byG[g].map(e=>`<option${String(e.nome).trim()===cur?' selected':''}>${esc(e.nome)}</option>`).join('')+'</optgroup>'; });
-  if(cur && !(DOC.esercizi||[]).some(e=>String(e.nome).trim()===cur)) o+=`<option selected>${esc(sel)}</option>`;
-  return o;
-}
 function sedutaMap(rows){
   const byEx={};
   rows.forEach(r=>{ if(!r.esercizio)return; const g=r.giorno||'·'; (byEx[r.esercizio]=byEx[r.esercizio]||new Set()).add(g); });
