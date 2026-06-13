@@ -53,7 +53,7 @@ function renderReport(){
   if(R.andamento && ag.length){ B.andamento=`<div class="rep-sec"><div class="sec">▌ Andamento del carico</div>
      <div class="chart-grid">
        <div class="chart-box"><h4>Carico (TL) nel tempo</h4>${lineChart([{name:'TL',color:'var(--orange-b)',data:ag.map(a=>({x:schedaLabel(a.scheda),y:a.tl||null}))}],{labels,h:160,fmt:nfk})}</div>
-       <div class="chart-box"><h4>Equilibrio volume (serie)</h4>${radarChart(GRUPPI.map(g=>({label:g,value:last.sets[g]||0})),{h:230})}</div>
+       <div class="chart-box"><h4>Equilibrio volume (serie)</h4>${radarChart(GRUPPI.map(g=>({label:g,value:(last.sets[g]||0)+(g==='Cardio'?cardioEquivSets(last.scheda):0)})),{h:230})}</div>
      </div>
      <p class="muted" style="font-size:12px">A sinistra la crescita del carico settimana dopo settimana; a destra quanto è bilanciato il lavoro tra i gruppi muscolari.</p></div>`; }
   if(R.progressione && mainLifts.length){ const cols=['#c2500a','#d4a017','#2f7d4f','#7a3ea8','#991b1b'];

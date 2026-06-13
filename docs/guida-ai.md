@@ -89,6 +89,10 @@ e FC media. L'app calcola:
   media; usa la FC max stimata dall'età (Tanaka: 208 − 0,7×età) e una FC a riposo di 60 bpm
   di default. L'inserimento completo dei dati da fascia cardiaca arriverà nelle prossime
   versioni. La tabella mostra anche il totale sRPE della settimana corrente.
+- Il cardio compare anche nel grafico **«Equilibrio volume»** (Progressi e Report) come asse
+  dedicato: i minuti diventano «serie-equivalenti» (min÷10), così ~2 h/settimana ≈ 12, in
+  piena zona di volume equilibrato, per vedere a colpo d'occhio se il cardio è bilanciato
+  rispetto al lavoro coi pesi.
 - «＋set» aggiunge set extra alla riga; «↧ Dalla scorsa» ricompila coi valori
   dell'ultima registrazione; il «▶» accanto all'esercizio apre il video dimostrativo.
 - Per ogni riga l'app mostra al volo: 1RM stimato, %1RM, TL (carico della riga) e la

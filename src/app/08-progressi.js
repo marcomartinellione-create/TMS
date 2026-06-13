@@ -66,7 +66,7 @@ function renderProgressi(){
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
   const tonnSeries=[{name:'Tonnellaggio',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:a.tonn||null}))}];
-  const radarItems=GRUPPI.map(g=>({label:g,value:last.sets[g]||0}));
+  const radarItems=GRUPPI.map(g=>({label:g,value:(last.sets[g]||0)+(g==='Cardio'?cardioEquivSets(last.scheda):0)}));
   const setsData=GRUPPI.map(g=>({x:g,y:last.sets[g]||0,color:grpColors[g]}));
   const grpSeries=GRUPPI.map(g=>({name:g,color:grpColors[g],data:ag.map((a,i)=>({x:labels[i],y:a.grp[g]||null}))}));
   const BANDS=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
@@ -118,7 +118,7 @@ function renderProgressi(){
    </div>`:''}
    <div class="sec">▌ Volume & equilibrio per gruppo muscolare</div>
    <div class="chart-grid">
-     <div class="chart-box"><h4>🕸 Equilibrio volume · serie per gruppo</h4>${radarChart(radarItems)}</div>
+     <div class="chart-box"><h4>🕸 Equilibrio volume · serie per gruppo <span class="muted" style="font-size:11px">(Cardio: min÷10 dal tab Cardio · 2 h/sett ≈ 12)</span></h4>${radarChart(radarItems)}</div>
      <div class="chart-box"><h4>🔢 Serie per gruppo · ultima settimana <span class="muted" style="font-size:11px">(zona ipertrofia 10–20)</span></h4>${barChart(setsData,{refs:[{y:10,label:'10',color:'var(--ok)'},{y:20,label:'20',color:'var(--danger-b)'}]})}</div>
    </div>
    <div class="chart-grid">

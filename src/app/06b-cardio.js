@@ -23,6 +23,12 @@ function cardioWeekAU(){  /* sRPE totale della settimana corrente (ISO) */
   cardioList().forEach(s=>{ if(!s.data)return; const ww=isoWeek(new Date(s.data+'T12:00:00')); if(schedaCode(ww.anno,ww.sett)===code) au+=srpeCardio(s); });
   return au;
 }
+/* minuti cardio per settimana ISO (codice AAAASS), per i grafici di equilibrio del volume */
+function cardioMinByWeek(){ const m={}; cardioList().forEach(s=>{ if(!s.data)return; const w=isoWeek(new Date(s.data+'T12:00:00')); const code=schedaCode(w.anno,w.sett); m[code]=(m[code]||0)+(+s.durata||0); }); return m; }
+/* Cardio sul radar "Equilibrio volume": i minuti diventano "serie-equivalenti" così che
+   ~2 h/settimana (120 min) ≈ 12, in piena zona di volume equilibrato (10–20). Min÷10. */
+const CARDIO_RADAR_PER_MIN=1/10;
+function cardioEquivSets(code){ return Math.round(((cardioMinByWeek()[code]||0)*CARDIO_RADAR_PER_MIN)*10)/10; }
 function renderCardio(){
   const list=cardioList().slice().sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')));
   const rows=list.map(s=>{ const idx=cardioList().indexOf(s); const au=srpeCardio(s), tr=trimpCardio(s);

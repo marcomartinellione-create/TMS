@@ -325,6 +325,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const last=w.eval('DOC.cardio[DOC.cardio.length-1]'); ok(last.tipo==='Corsa' && last.durata===40 && last.rpe===6 && last.fcMedia===140, 'Cardio: dati attività salvati (tipo/min/rpe/FC)'); }
   ok(d.getElementById('panel-cardio').innerHTML.includes('Corsa') && d.getElementById('panel-cardio').innerHTML.includes('240'), 'Cardio: la tabella mostra l\'attività con sRPE');
   ok(Array.isArray((await w.eval('costruisciSnapshot()')).profiles['template'].cardio) && (await w.eval('costruisciSnapshot()')).profiles['template'].cardio.length>=1, 'Cardio: incluso nello snapshot di backup');
+  /* cardio nel radar "Equilibrio volume": 2 h/sett (120 min) ≈ 12 serie-equivalenti (min÷10) */
+  w.eval('DOC.cardio.push({data:"2025-01-15",tipo:"Bici",durata:120,rpe:5})');
+  { const code=w.eval('(function(){var w=isoWeek(new Date("2025-01-15T12:00:00"));return schedaCode(w.anno,w.sett);})()');
+    ok(w.eval('cardioMinByWeek()['+code+']')===120 && w.eval('cardioEquivSets('+code+')')===12, 'cardio nel radar: 120 min (2h) → 12 serie-equivalenti'); }
+  ok(w.eval('cardioEquivSets(999999)')===0, 'cardio nel radar: settimana senza cardio → 0');
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');
