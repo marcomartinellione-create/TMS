@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const SRC = path.join(ROOT, 'src', 'app', '13b-guida-ai.js');
+const SRC = path.join(ROOT, 'src', 'app', '13c-guida-ai.js');
 const OUT = path.join(ROOT, 'docs', 'guida-ai.md');
 
 const costanti = fs.readFileSync(path.join(ROOT, 'src', 'app', '01-costanti.js'), 'utf8');

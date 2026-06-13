@@ -36,8 +36,12 @@ qualunque parte successiva (e per hoisting anche precedente).
 | `app/03-persistenza.js` | FSA + IndexedDB, shim `localDirHandle()`/`window.tmsFS`, `connectFlow`, `persistAll`, migrazioni |
 | `app/04-modal.js` | helper modale |
 | `app/05-grafici.js` | grafici SVG, senza librerie |
-| `app/06-allenamento.js` … `app/13-report.js` | un file per tab (render + handler) |
+| `app/06-allenamento.js` … `app/12-esercizi.js` | un file per tab (render + handler) |
 | `app/11b-analisi.js` | tab 📊 Analisi: periodi alimentari × carico/peso (timeline, scatter, lag, boxplot) |
+| `app/13-report.js` | tab 🖨 Report: `renderReport` + esportazione PDF A4 (`printReport`/`imagesToPdf`) e report digitale mobile (`exportDigitalReport`) |
+| `app/13a-guida.js` | tab 📕 Guida: `renderGuida` + `guidaRapida`/`guidaCompleta` |
+| `app/13b-profilo.js` | tab 👤 Profilo: `renderProfilo` + `anagraficaModal` |
+| `app/13c-guida-ai.js` | guida testuale per assistenti AI (`GUIDA_AI_CORPO` + download); fonte di `docs/guida-ai.md` |
 | `app/14-backup.js` | esporta/importa backup JSON |
 | `app/15-scambio.js` | scambio scheda trainer ↔ cliente (export HTML compilabile, import rientro) |
 | `app/16-gate.js` | overlay di connessione cartella (solo browser) |
