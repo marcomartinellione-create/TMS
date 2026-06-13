@@ -86,8 +86,10 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
 
 Le attività cardio (corsa, bici, nuoto, ellittica, vogatore, salto della corda…) non hanno
 serie/ripetizioni/peso: si misurano col **carico interno**. Ogni seduta si registra con
-«＋ Aggiungi attività»: data, tipo, durata (min), fatica RPE (0–10) e, facoltativi, distanza
-e FC media. L'app calcola:
+«＋ Aggiungi attività»: data, **sport** (scelto da un elenco; con «➕ Altro…» se ne aggiungono),
+durata (min), fatica RPE (0–10) e, secondo lo sport, distanza, dislivello D+ e FC media.
+**Lo sport scelto decide quali dati hanno senso**: per la corsa appaiono distanza, passo e
+dislivello; per la bici distanza e velocità; per HIIT/salto corda niente distanza. L'app calcola:
 - **sRPE (Foster)** = RPE × durata in minuti → unità arbitrarie (AU). Sempre disponibile.
 - **TRIMP (Banister)** dalla **frequenza cardiaca** media: compare solo se inserisci la FC
   media; usa la FC max stimata dall'età (Tanaka: 208 − 0,7×età) e una FC a riposo di 60 bpm
@@ -99,8 +101,13 @@ Due modi per registrare una seduta:
 - **Avanzato** (da dispositivo): «📥 Importa attività» — carichi un file **.TCX o .GPX**
   esportato da orologio/fascia (Garmin Connect, Polar Flow, Coros, Strava, app per Apple Watch…):
   l'app legge durata, FC media, FC max e distanza e apre il modulo già compilato (resta solo da
-  aggiungere la fatica RPE). Tutto in locale, offline, nessun account. Il formato .FIT (binario)
-  non è ancora supportato: esporta in TCX o GPX.
+  aggiungere la fatica RPE). Estrae anche **distanza** e **dislivello D+** (da GPS/altimetro).
+  Tutto in locale, offline, nessun account. Il formato .FIT (binario) non è ancora supportato:
+  esporta in TCX o GPX.
+- **Progressione per sport** (tab 📈 Progressi): in fondo c'è «Cardio · progressione per sport»
+  con un selettore; per lo sport scelto mostra l'andamento nel tempo di sRPE, FC media e — dove
+  ha senso — distanza, passo (min/km, più basso = meglio) o velocità, dislivello. Così vedi se
+  in una specifica attività (es. la corsa) stai migliorando passo/distanza o calando di FC.
 - Il cardio compare anche nel grafico **«Equilibrio volume»** (Progressi e Report) come asse
   dedicato: i minuti diventano «serie-equivalenti» (min÷10), così ~2 h/settimana ≈ 12, in
   piena zona di volume equilibrato, per vedere a colpo d'occhio se il cardio è bilanciato

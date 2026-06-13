@@ -331,9 +331,9 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(w.eval('cardioMinByWeek()['+code+']')===120 && w.eval('cardioEquivSets('+code+')')===12, 'cardio nel radar: 120 min (2h) → 12 serie-equivalenti'); }
   ok(w.eval('cardioEquivSets(999999)')===0, 'cardio nel radar: settimana senza cardio → 0');
   /* import «avanzato»: file attività .TCX (namespaced) e .GPX → modale precompilato */
-  const tcx='<?xml version="1.0"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"><Activities><Activity Sport="Running"><Id>2026-06-13T08:00:00Z</Id><Lap><TotalTimeSeconds>1800</TotalTimeSeconds><DistanceMeters>5000</DistanceMeters><Track><Trackpoint><Time>2026-06-13T08:00:00Z</Time><HeartRateBpm><Value>150</Value></HeartRateBpm></Trackpoint><Trackpoint><Time>2026-06-13T08:30:00Z</Time><HeartRateBpm><Value>170</Value></HeartRateBpm></Trackpoint></Track></Lap></Activity></Activities></TrainingCenterDatabase>';
+  const tcx='<?xml version="1.0"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"><Activities><Activity Sport="Running"><Id>2026-06-13T08:00:00Z</Id><Lap><TotalTimeSeconds>1800</TotalTimeSeconds><DistanceMeters>5000</DistanceMeters><Track><Trackpoint><Time>2026-06-13T08:00:00Z</Time><AltitudeMeters>100</AltitudeMeters><HeartRateBpm><Value>150</Value></HeartRateBpm></Trackpoint><Trackpoint><Time>2026-06-13T08:30:00Z</Time><AltitudeMeters>160</AltitudeMeters><HeartRateBpm><Value>170</Value></HeartRateBpm></Trackpoint></Track></Lap></Activity></Activities></TrainingCenterDatabase>';
   w.eval('window.__tcx='+JSON.stringify(tcx));
-  { const p=w.eval('parseAttivitaCardio(window.__tcx)'); ok(p&&p.tipo==='Corsa'&&p.durata===30&&p.fcMedia===160&&p.fcMax===170&&p.distanza===5, 'import TCX: tipo/durata/FC media/FC max/distanza estratti'); }
+  { const p=w.eval('parseAttivitaCardio(window.__tcx)'); ok(p&&p.tipo==='Corsa'&&p.durata===30&&p.fcMedia===160&&p.fcMax===170&&p.distanza===5&&p.quota===60, 'import TCX: tipo/durata/FC media/FC max/distanza/D+ estratti'); }
   const gpx='<?xml version="1.0"?><gpx><trk><type>cycling</type><trkseg><trkpt lat="45.00" lon="9.00"><time>2026-06-13T08:00:00Z</time><extensions><gpxtpx:hr xmlns:gpxtpx="u">120</gpxtpx:hr></extensions></trkpt><trkpt lat="45.00" lon="9.00"><time>2026-06-13T08:20:00Z</time><extensions><gpxtpx:hr xmlns:gpxtpx="u">140</gpxtpx:hr></extensions></trkpt></trkseg></trk></gpx>';
   w.eval('window.__gpx='+JSON.stringify(gpx));
   { const g=w.eval('parseAttivitaCardio(window.__gpx)'); ok(g&&g.tipo==='Bici'&&g.durata===20&&g.fcMedia===130&&g.fcMax===140, 'import GPX: tipo/durata/FC dalla traccia hr'); }
@@ -343,6 +343,25 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('cardioModal(-1, parseAttivitaCardio(window.__tcx))');
   ok(d.getElementById('c-tipo').value==='Corsa' && +d.getElementById('c-min').value===30 && +d.getElementById('c-fc').value===160 && +d.getElementById('c-fcmax').value===170, 'import: modale precompilato coi dati del file (RPE da aggiungere)');
   w.eval('closeModal()');
+  /* sport con metadati: guidano campi del modale e ritmo (passo/velocità) */
+  ok(w.eval('sportInfo("Corsa").dist')===true && w.eval('sportInfo("Corsa").ritmo')==='passo' && w.eval('sportInfo("Corsa").quota')===true, 'sport Corsa: distanza + passo + dislivello');
+  ok(w.eval('sportInfo("HIIT").dist')===false, 'sport HIIT: niente distanza');
+  ok(w.eval('passoMinKm({durata:30,distanza:5})')===6 && w.eval('fmtPasso(6)')==='6:00', 'cardio: passo 30 min / 5 km = 6:00 /km');
+  ok(w.eval('velocitaKmh({durata:60,distanza:30})')===30, 'cardio: velocità 60 min / 30 km = 30 km/h');
+  ok(/\/km$/.test(w.eval('cardioRitmo({tipo:"Corsa",durata:30,distanza:5})')) && /km\/h$/.test(w.eval('cardioRitmo({tipo:"Bici",durata:60,distanza:30})')), 'cardio: la colonna Ritmo è passo per la corsa, velocità per la bici');
+  /* modale: i campi compaiono in base allo sport */
+  w.eval('showTab("cardio"); cardioModal(-1);');
+  w.eval('var s=document.getElementById("c-tipo"); s.value="HIIT"; s.onchange();');
+  ok(d.getElementById('c-dist-wrap').style.display==='none', 'modale cardio: HIIT nasconde la distanza');
+  w.eval('var s=document.getElementById("c-tipo"); s.value="Corsa"; s.onchange();');
+  ok(d.getElementById('c-dist-wrap').style.display!=='none' && d.getElementById('c-quota-wrap').style.display!=='none', 'modale cardio: Corsa mostra distanza e dislivello');
+  w.eval('closeModal()');
+  /* Progressi: grafici cardio per sport (Corsa con più sedute → passo/distanza/FC) */
+  w.eval('DOC.cardio.push({data:"2025-01-08",tipo:"Corsa",durata:30,rpe:6,distanza:5,fcMedia:150}); DOC.cardio.push({data:"2025-01-15",tipo:"Corsa",durata:32,rpe:6,distanza:5.5,fcMedia:148});');
+  w.eval('progCardioSport="Corsa"; showTab("progressi");');
+  { const pr=d.getElementById('panel-progressi').innerHTML;
+    ok(pr.includes('Cardio · progressione per sport') && d.getElementById('prog-cardio-sport')!==null, 'Progressi: sezione cardio per sport con selettore');
+    ok(pr.includes('Passo') && pr.includes('Distanza') && pr.includes('FC media'), 'Progressi cardio: grafici passo/distanza/FC per la Corsa'); }
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');

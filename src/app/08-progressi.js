@@ -130,6 +130,8 @@ function renderProgressi(){
      <div class="bar" style="margin:0 0 8px"><div class="field"><label>Esercizio</label><select id="prog-ex" style="min-width:220px">${exs.map(e=>`<option${e===progEx?' selected':''}>${esc(e)}</option>`).join('')}</select></div></div>
      ${prog.length?lineChart(exSeries,{labels:plab,h:230}):'<div class="empty">Nessun dato per questo esercizio.</div>'}
    </div>
+   ${cardioProgressBlock()}
 `;
   const sel=document.getElementById('prog-ex'); if(sel) sel.onchange=e=>{ progEx=e.target.value; renderProgressi(); };
+  bindCardioProgress();
 }
