@@ -226,6 +226,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(w.eval('DOC.scheda.settimanale.length') === 40, 'scheda template caricata (40 righe)');
   ok(w.eval('DOC.storico.length') === 896, 'storico template caricato (896 righe)');
   ok(w.eval('DOC.storico_rpe.length') === 125, 'storico_rpe popolato (125 sedute durata+intensità)');
+  ok(w.eval('Array.isArray(DOC.cardio) && DOC.cardio.length') === 17, 'template: 17 sedute cardio demo caricate (Corsa/Bici/HIIT)');
   ok(w.eval('DOC.dati_utente.useRpe') === true && w.eval('DOC.dati_utente.altezza') === 178, 'dati utente template (useRpe, 178 cm)');
   const tabs = ['profilo','allenamento','cardio','progressi','corpo','storicocorpo','alimentazione','analisi','report'];
   let tabErr = null;

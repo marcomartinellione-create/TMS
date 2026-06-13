@@ -80,6 +80,39 @@ for i, sett in enumerate(settimane):
             'min': max(40, minuti + wig - (15 if scarico else 0)),
         })
 
+# cardio: sedute dimostrative per mostrare i grafici per-sport (v1.0.78).
+#  - Corsa: progressione chiara (passo che cala 6:10->5:10 /km, distanza che cresce, FC media giu)
+#  - Bici: velocita in aumento · HIIT: sedute brevi ad alta intensita (senza distanza)
+# passo/velocita derivati da durata/distanza; D+ = dislivello positivo.
+def _corsa(data, km, minuti, fc, dpos, rpe):
+    return {'data': data, 'tipo': 'Corsa', 'durata': minuti, 'rpe': rpe, 'distanza': km,
+            'quota': dpos, 'fcMedia': fc, 'note': ''}
+def _bici(data, km, minuti, fc, dpos, rpe):
+    return {'data': data, 'tipo': 'Bici', 'durata': minuti, 'rpe': rpe, 'distanza': km,
+            'quota': dpos, 'fcMedia': fc, 'note': ''}
+def _hiit(data, minuti, fc, rpe):
+    return {'data': data, 'tipo': 'HIIT', 'durata': minuti, 'rpe': rpe, 'distanza': '',
+            'quota': '', 'fcMedia': fc, 'note': 'intervalli'}
+t_cardio = [
+    _corsa('2026-04-06',  6.0, 37, 156,  70, 6),
+    _corsa('2026-04-13',  7.0, 42, 155,  90, 6),
+    _corsa('2026-04-20',  8.0, 47, 153, 110, 7),
+    _corsa('2026-04-27',  8.5, 49, 152,  95, 6),
+    _corsa('2026-05-04',  9.0, 51, 151, 130, 7),
+    _corsa('2026-05-11', 10.0, 55, 150, 120, 7),
+    _corsa('2026-05-18', 10.5, 56, 149, 150, 7),
+    _corsa('2026-05-25', 11.0, 58, 148, 140, 7),
+    _corsa('2026-06-03',  8.0, 41, 149,  80, 6),
+    _corsa('2026-06-11', 12.0, 62, 147, 170, 7),
+    _bici('2026-04-09', 32.0, 75, 138, 210, 5),
+    _bici('2026-04-23', 40.0, 88, 140, 320, 6),
+    _bici('2026-05-07', 45.0, 95, 139, 280, 6),
+    _bici('2026-05-21', 52.0, 102, 141, 360, 6),
+    _hiit('2026-04-16', 25, 168, 9),
+    _hiit('2026-04-30', 28, 171, 9),
+    _hiit('2026-05-14', 26, 169, 9),
+]
+
 t_corpo = {
     'dati_utente': {
         'nome': 'Atleta', 'cognome': 'Template', 'sesso': 'M', 'eta': 28,
@@ -93,6 +126,7 @@ t_corpo = {
     },
     'storico_io': t_io,
     'storico_rpe': t_rpe,
+    'cardio': t_cardio,
 }
 
 # alimentazione: tre giornate REALISTICHE per un atleta ~74.5 kg / TDEE ~2600 kcal
@@ -187,5 +221,5 @@ save(os.path.join(TD, 'profili.json'), prof)
 
 print('OK profilo template:', len(t_scheda['settimanale']), 'righe scheda |',
       len(t_storico), 'righe storico |', len(t_io), 'misure corpo |', len(t_rpe), 'sedute RPE (durata+intensita) |',
-      len(t_alim['periodi']), 'periodi alimentari')
+      len(t_cardio), 'sedute cardio |', len(t_alim['periodi']), 'periodi alimentari')
 print('settimane:', settimane[0], '->', settimane[-1], '| profili:', [p['slug'] for p in prof['list']], '| attivo:', prof['active'])
