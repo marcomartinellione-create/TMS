@@ -4,6 +4,20 @@
 
 ---
 
+### 2026-06-13 — TMS v1.0.77: selettore esercizi con ricerca, ricerca «a parole», fix ricerca, report riordinabile
+
+**Tipo**: UX + bugfix (accumulo di più conversazioni dal 2026-06-13; P6 = igiene sorgente)
+**File coinvolti**: src/app/06-allenamento.js · src/app/12-esercizi.js · src/app/01-costanti.js (bump + rimosso `exOptions`) · src/app/13-report.js · src/pagina/02-stili.css · src/app/13a-guida.js (NUOVA parte da P6) · src/app/13b-profilo.js (NUOVA da P6) · src/app/13c-guida-ai.js (rinominata da 13b in P6) · src/manifest.json · tools/genera-guida-ai.js · src/README.md · package.json ×2 · tests/test-app.js
+**Descrizione** (novità visibili):
+- **Selettore esercizio in Allenamento**: al posto del menù a tendina con ~900 voci, la cella «＋ scegli esercizio» apre un **picker in sovraimpressione** (`pickExercise`) con **barra di ricerca + lista per categoria** (gruppo → sottocategoria), come il tab Esercizi. Invio sceglie il primo risultato, «Svuota» azzera. La ricerca aggiorna solo la lista (input vivo, nessun cursore che salta). Rimosso `exOptions` (ora morto).
+- **Ricerca «a parole»** (helper condiviso `exMatch`) nel tab Esercizi e nel picker: trova se TUTTE le parole digitate compaiono, anche non contigue, in nome+target+gruppo+sottocategoria. «panca piana bilanciere» → «Panca piana con bilanciere - presa media».
+- **Fix ricerca tab Esercizi**: il testo digitato finiva «al contrario» perché la ricostruzione ad ogni tasto rimetteva il cursore a inizio campo; ora si salva/ripristina `selectionStart`.
+- **Report a sezioni riordinabili**: oltre alle caselle on/off, ogni sezione ha le frecce ▲▼ per decidere l'ordine; l'ordine si salva per profilo (`u.report.ordine`) e vale sia per il PDF A4 sia per il report digitale.
+
+**Igiene sorgente (P6, nessun impatto utente)**: `src/app/13-report.js` (~72 KB) spezzato per concern a confini di byte esatti (artefatto invariato in quel passaggio): `13-report.js` (Report), `13a-guida.js` (Guida), `13b-profilo.js` (Profilo); `13b-guida-ai.js` rinominato `13c-guida-ai.js`.
+**Test**: `npm test` **127/127** (lint + sintassi + jsdom) — nuove verifiche: riordino sezioni report (default/custom/handler), fix cursore ricerca, picker (ricerca/filtri/selezione/chiusura), ricerca a parole in entrambe.
+**Approvato da**: Marco (richieste esplicite + comando di pubblicazione)
+
 ### 2026-06-12 — CI su GitHub Actions: build + test a ogni push (nessun bump, l'app non cambia)
 
 **Tipo**: infrastruttura (proposta n. 3 della revisione — approvata da Marco)
