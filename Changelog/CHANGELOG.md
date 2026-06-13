@@ -4,6 +4,21 @@
 
 ---
 
+### 2026-06-13 — TMS v1.0.78: monitoraggio del CARDIO (tab dedicato, sRPE/TRIMP, import .TCX/.GPX, grafici per-sport)
+
+**Tipo**: nuova funzione maggiore (accumulo di più conversazioni; richieste esplicite di Marco)
+**File coinvolti**: src/app/06b-cardio.js (NUOVA parte, ~modulo cardio completo) · pagina/03-corpo.html (tab+panel) · src/app/17-init.js (RENDERERS) · 06-allenamento.js (rinomina label + esclusione cardio dal picker) · 12-esercizi.js (`isCardio`, filtro `pickExercise`) · 01-costanti.js (bump) · 03-persistenza.js + 14-backup.js (DOC.cardio in load/save/snapshot/restore) · 08-progressi.js (radar + grafici per-sport) · 13-report.js (sezione Cardio) · 13a-guida.js + 13c-guida-ai.js (guide) · src/manifest.json · tools/genera-profilo-template.py (17 sedute demo) · package.json ×2 · tests/test-app.js
+**Descrizione**:
+- **Tab Pesi/Cardio**: «Allenamento» rinominato **🏋 Pesi**, nuovo tab **🏃 Cardio** affiancato. Nei Pesi le attività cardio non sono selezionabili (`isCardio` + filtro su `pickExercise`).
+- **Carico interno**: ogni seduta cardio (datata, per sport) → **sRPE** (Foster, RPE×min) e **TRIMP** (Banister, dalla FC media; FC max stimata Tanaka dall'età, FC riposo 60 default). Dati in `DOC.cardio` (corpo.json; snapshot/restore inclusi).
+- **Sport con metadati**: catalogo `CARDIO_SPORT` (dist/ritmo/quota) + «➕ Altro…»; lo sport mostra/nasconde i campi giusti e decide la colonna «Ritmo» (passo min/km o velocità km/h).
+- **Import .TCX/.GPX** (`parseAttivitaCardio`, DOMParser, nessuna dipendenza): da orologio/fascia estrae durata, FC media/max, distanza, dislivello D+ e apre il modale precompilato.
+- **Progressi**: «Cardio · progressione per sport» (selettore + grafici sRPE/FC/distanza/passo|velocità/dislivello nel tempo); il cardio entra nel radar **«Equilibrio volume»** (min÷10, 2 h/sett ≈ 12 serie-equivalenti).
+- **Report**: nuova sezione **«Cardio · attività e carico interno»** (riassunto, andamento sRPE, ultime attività), attivabile/riordinabile; vale per PDF e report digitale.
+- **Template demo**: «Atleta Template» con 17 sedute cardio (Corsa con progressione passo/distanza/FC, Bici, HIIT) per mostrare i grafici.
+**Test**: `npm test` **158/158** (lint + sintassi + jsdom) — verifiche su navigazione tab, sRPE/TRIMP, sport/ritmo, import TCX/GPX con D+, modale dinamico, radar, grafici per-sport, sezione Report, seed template.
+**Approvato da**: Marco (richieste esplicite + comando di pubblicazione)
+
 ### 2026-06-13 — TMS v1.0.77: selettore esercizi con ricerca, ricerca «a parole», fix ricerca, report riordinabile
 
 **Tipo**: UX + bugfix (accumulo di più conversazioni dal 2026-06-13; P6 = igiene sorgente)

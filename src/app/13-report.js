@@ -1,7 +1,7 @@
 /* ════════════════ RENDER: REPORT ════════════════ */
 function renderReport(){
   const u=DOC.dati_utente; const c=bodyCalc(u);
-  const def={profilo:true,riepilogo:true,scheda:true,andamento:true,progressione:true,record:true,alimentazione:true,analisi:true,note:true,obiettivo:(u.obiettivo||''),nota:''};
+  const def={profilo:true,riepilogo:true,scheda:true,andamento:true,progressione:true,record:true,cardio:true,alimentazione:true,analisi:true,note:true,obiettivo:(u.obiettivo||''),nota:''};
   u.report=Object.assign({},def,u.report||{}); const R=u.report;
   const ag=schedeAggr(); const last=ag.length?ag[ag.length-1]:null, prev=ag.length>1?ag[ag.length-2]:null;
   const labels=ag.map(a=>schedaLabel(a.scheda));
@@ -14,7 +14,7 @@ function renderReport(){
   const A=DOC.alimentazione; const faseR=faseAlimActive(), tR=faseTot(A[faseR]||[]);
   const io=DOC.storico_io; const prs=prList().slice(0,8);
   const mainLifts=['Panca piana bilanciere','Squat bilanciere','Stacco da terra','Military press / Overhead press','Trazioni alla sbarra'].filter(n=>DOC.storico.some(r=>r.esercizio===n));
-  const toggles=[['profilo','Profilo & corpo'],['riepilogo','Riepilogo allenamento'],['scheda','Scheda di allenamento'],['andamento','Grafici di andamento'],['progressione','Progressione esercizi'],['record','Record personali'],['alimentazione','Alimentazione'],['analisi','Dieta × allenamento'],['note','Note del coach']];
+  const toggles=[['profilo','Profilo & corpo'],['riepilogo','Riepilogo allenamento'],['scheda','Scheda di allenamento'],['andamento','Grafici di andamento'],['progressione','Progressione esercizi'],['record','Record personali'],['cardio','Cardio (attività)'],['alimentazione','Alimentazione'],['analisi','Dieta × allenamento'],['note','Note del coach']];
   /* ordine personalizzabile delle sezioni (per profilo): parte dal default, completa con eventuali sezioni nuove */
   const KEYS=toggles.map(t=>t[0]);
   let ordine=(Array.isArray(R.ordine)?R.ordine:[]).filter(k=>KEYS.indexOf(k)>=0);
@@ -63,6 +63,7 @@ function renderReport(){
      <p class="muted" style="font-size:12px">Massimale stimato sui principali esercizi: una linea che sale significa aumento di forza.</p></div>`; }
   if(R.record){ B.record=`<div class="rep-sec big"><div class="sec">▌ Record personali (carico massimo)</div>
      <div class="tbl-wrap"><table><thead><tr><th class="l">Esercizio</th><th>Carico max</th><th>Rip.</th><th>Scheda</th></tr></thead><tbody>${prs.map(p=>`<tr><td class="l">${esc(p.nome)}</td><td class="num cell-out">${nf(p.peso,1)} kg</td><td class="num">${nf(p.rip,0)}</td><td class="num">${p.scheda}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">—</td></tr>'}</tbody></table></div></div>`; }
+  if(R.cardio){ B.cardio=cardioReportBlock(); }
   if(R.alimentazione){ B.alimentazione=`<div class="rep-sec"><div class="sec">▌ Quadro alimentare · fase ${FASE_LAB[faseR]||faseR} (piano giornaliero)</div>
      <div class="tbl-wrap"><table><thead><tr><th class="l">Fase</th><th>Kcal</th><th>Proteine</th><th>Grassi</th><th>Carboidrati</th><th>Fibre</th></tr></thead><tbody>
        <tr><td class="l">${FASE_LAB[faseR]||faseR}</td><td class="num cell-out">${nf(tR.kcal,0)}</td><td class="num">${nf(tR.proteine,1)}</td><td class="num">${nf(tR.grassi,1)}</td><td class="num">${nf(tR.zuccheri,1)}</td><td class="num">${nf(tR.fibre,1)}</td></tr>

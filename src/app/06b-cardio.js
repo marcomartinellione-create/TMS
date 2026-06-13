@@ -197,3 +197,28 @@ function cardioProgressBlock(){
     ${grid}`;
 }
 function bindCardioProgress(){ const s=document.getElementById('prog-cardio-sport'); if(s) s.onchange=()=>{ progCardioSport=s.value; renderProgressi(); }; }
+
+/* ── Sezione Cardio per il Report (PDF + report digitale): riassunto + andamento sRPE +
+      ultime attività. Statico (niente controlli interattivi), si impagina come le altre. ── */
+function cardioReportBlock(){
+  const list=cardioList().filter(s=>s&&s.data);
+  if(!list.length) return '';
+  const sorted=list.slice().sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+  const nSed=list.length, auTot=list.reduce((t,s)=>t+srpeCardio(s),0), minTot=list.reduce((t,s)=>t+(+s.durata||0),0);
+  const cnt={}; list.forEach(s=>{ const t=String(s.tipo||'').trim(); if(t) cnt[t]=(cnt[t]||0)+1; });
+  const sportPrinc=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||'—';
+  const lab=sorted.map(s=>s.data);
+  const auChart=lineChart([{name:'sRPE',color:'var(--gold-2)',data:sorted.map(s=>({x:s.data,y:srpeCardio(s)||null}))}],{labels:lab,h:160,fmt:nfk});
+  const recent=list.slice().sort((a,b)=>String(b.data).localeCompare(String(a.data))).slice(0,10);
+  const rows=recent.map(s=>{ const tr=trimpCardio(s); return `<tr><td class="l">${esc(s.data)}</td><td class="l">${esc(s.tipo||'')}</td><td class="num">${nf(s.durata,0)}</td><td class="num">${s.distanza?nf(s.distanza,1):'—'}</td><td class="num">${cardioRitmo(s)}</td><td class="num">${s.fcMedia?nf(s.fcMedia,0):'—'}</td><td class="num cell-out">${srpeCardio(s)||'—'}</td><td class="num">${tr==null?'—':tr}</td></tr>`; }).join('');
+  return `<div class="rep-sec"><div class="sec">▌ Cardio · attività e carico interno</div>
+     <div class="cards">
+       <div class="card k--ember"><div class="card__k">Sedute</div><div class="card__v">${nSed}</div></div>
+       <div class="card"><div class="card__k">Carico interno sRPE</div><div class="card__v">${nfk(auTot)}<small> AU</small></div></div>
+       <div class="card"><div class="card__k">Tempo totale</div><div class="card__v">${nf(minTot/60,1)}<small> h</small></div></div>
+       <div class="card k--violet"><div class="card__k">Sport principale</div><div class="card__v" style="font-size:16px">${esc(sportPrinc)}</div></div>
+     </div>
+     <div class="chart-box" style="margin-top:8px"><h4>Carico cardio (sRPE) nel tempo</h4>${auChart}</div>
+     <div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th class="l">Data</th><th class="l">Sport</th><th>Min</th><th>km</th><th>Ritmo</th><th>FC media</th><th>sRPE</th><th>TRIMP</th></tr></thead><tbody>${rows}</tbody></table></div>
+     <p class="muted" style="font-size:12px">Carico interno delle attività cardio: <b>sRPE</b> = RPE×min (Foster), <b>TRIMP</b> dalla frequenza cardiaca (Banister). Passo/velocità e distanza dove rilevati.</p></div>`;
+}

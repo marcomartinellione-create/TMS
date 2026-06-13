@@ -205,6 +205,9 @@ settimana già popolata → avviso che le righe verranno AGGIUNTE (non sostituit
   (download diretto, senza passare dalla stampa del browser).
 - **Report digitale**: pagina HTML per smartphone con i video incorporati, da inviare
   all'atleta. Include anche la sezione «Dieta × allenamento» se ci sono periodi.
+- Tra le sezioni del report c'è anche **«Cardio · attività e carico interno»** (sedute,
+  carico sRPE totale, ore, sport principale, andamento del carico e ultime attività), attivabile
+  e riordinabile come le altre.
 
 ## 11 · Formule e concetti (per spiegarli all'utente)
 
