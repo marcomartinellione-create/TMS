@@ -88,7 +88,7 @@ function guidaCompleta(){
      <tr><td class="l"><b>📜 Misure</b> <span class="muted">(nascosto)</span></td><td class="l">Storico rilevazioni corporee (link nel footer).</td></tr>
      <tr><td class="l"><b>🍖 Alimentazione</b></td><td class="l">Piano della fase attiva (Bulk/Mantenimento/Cut, scelta nel Profilo), banca dati 1190 alimenti con micro/macro e indice OMS.</td></tr>
      <tr><td class="l"><b>📖 Esercizi</b></td><td class="l">Catalogo modificabile (nome, gruppo, target, tipo, fattore TL).</td></tr>
-     <tr><td class="l"><b>🖨 Report</b></td><td class="l">Documento per il cliente, a sezioni selezionabili, stampa A4 multipagina.</td></tr>
+     <tr><td class="l"><b>🖨 Report</b></td><td class="l">Documento per il cliente: scegli con le caselle <b>quali sezioni</b> includere e con le frecce <b>▲▼ il loro ordine</b> (vale per PDF A4 multipagina e report digitale). La scelta si salva per profilo.</td></tr>
    </tbody></table></div>
 
    <div class="sec" id="gc-ind">▌ 5 · Indicatori & formule</div>

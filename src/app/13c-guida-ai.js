@@ -159,9 +159,13 @@ settimana già popolata → avviso che le righe verranno AGGIUNTE (non sostituit
 
 ## 10 · Report (tab 🖨 Report)
 
-- **PDF A4**: documento stampabile da consegnare (bottone 🖨 apre la finestra
-  impaginata; nel dialogo di stampa: formato A4, margini «Nessuno», scala 100%,
-  grafica di sfondo attiva — altrimenti la stampa può risultare tagliata).
+- **Sezioni personalizzabili**: la riga «Sezioni» con le caselle decide QUALI blocchi
+  entrano nel report (Profilo & corpo, Riepilogo, Scheda, Andamento, Progressione,
+  Record, Alimentazione, Dieta × allenamento, Note del coach); le frecce ▲▼ accanto a
+  ogni casella ne decidono l'ORDINE. La scelta si salva per profilo e vale sia per il
+  PDF sia per il report digitale.
+- **PDF A4**: bottone «⬇ Scarica PDF (A4)» — l'app impagina e genera il PDF da sola
+  (download diretto, senza passare dalla stampa del browser).
 - **Report digitale**: pagina HTML per smartphone con i video incorporati, da inviare
   all'atleta. Include anche la sezione «Dieta × allenamento» se ci sono periodi.
 

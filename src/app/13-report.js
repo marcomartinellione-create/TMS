@@ -15,19 +15,20 @@ function renderReport(){
   const io=DOC.storico_io; const prs=prList().slice(0,8);
   const mainLifts=['Panca piana bilanciere','Squat bilanciere','Stacco da terra','Military press / Overhead press','Trazioni alla sbarra'].filter(n=>DOC.storico.some(r=>r.esercizio===n));
   const toggles=[['profilo','Profilo & corpo'],['riepilogo','Riepilogo allenamento'],['scheda','Scheda di allenamento'],['andamento','Grafici di andamento'],['progressione','Progressione esercizi'],['record','Record personali'],['alimentazione','Alimentazione'],['analisi','Dieta × allenamento'],['note','Note del coach']];
+  /* ordine personalizzabile delle sezioni (per profilo): parte dal default, completa con eventuali sezioni nuove */
+  const KEYS=toggles.map(t=>t[0]);
+  let ordine=(Array.isArray(R.ordine)?R.ordine:[]).filter(k=>KEYS.indexOf(k)>=0);
+  KEYS.forEach(k=>{ if(ordine.indexOf(k)<0) ordine.push(k); });
+  R.ordine=ordine;
+  const mvStyle='border:1px solid var(--border);background:var(--paper-2);border-radius:4px;cursor:pointer;font-size:10px;line-height:1;padding:2px 4px;color:var(--ink-2)';
   const ctrl=`<div class="bar no-print" style="flex-wrap:wrap">
      <div class="field" style="flex:1;min-width:240px"><label>Obiettivo del cliente (in copertina)</label><input id="rep-goal" value="${esc(R.obiettivo||'')}" placeholder="es. ricomposizione corporea, +forza panca…" style="width:100%"></div>
      <button class="btn btn--gold" id="rep-pdf-btn" onclick="printReport()">⬇ Scarica PDF (A4)</button>
      <button class="btn" id="rep-html-btn" onclick="exportDigitalReport()" title="HTML per smartphone, con i video incorporati">📱 Report digitale</button>
      <label class="pill" style="cursor:pointer;align-self:center;display:inline-flex;align-items:center;gap:5px" title="Incorpora i video nel file (più pesante)"><input type="checkbox" id="rep-incl-vid" checked style="width:auto;flex:0 0 auto"> video</label></div>
-   <div class="bar no-print" style="flex-wrap:wrap;gap:8px;align-items:center"><span class="muted mono" style="font-size:11px">Sezioni:</span>${toggles.map(([k,lab])=>`<label class="pill" style="cursor:pointer"><input type="checkbox" data-rep="${k}" ${R[k]?'checked':''} style="vertical-align:-1px;margin-right:4px">${lab}</label>`).join('')}</div>`;
-  const S=[];
-  S.push(`<div class="rep-sec" style="border-bottom:2px solid var(--gold-2);padding-bottom:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start">
-     <div><h1 style="font-size:26px;color:var(--ember-2);margin:0">Report di Allenamento</h1>
-       <div class="muted mono" style="font-size:12px">${esc(u.nome||profNome()||'Atleta')}${u.cognome?' '+esc(u.cognome):''} · ${new Date().toLocaleDateString('it-IT')}${last?' · scheda '+last.scheda:''}</div>
-       ${R.obiettivo?`<div style="margin-top:6px"><b>Obiettivo:</b> ${esc(R.obiettivo)}</div>`:''}</div>
-     <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`);
-  if(R.profilo){ S.push(`<div class="rep-sec"><div class="sec">▌ Profilo & composizione corporea</div>
+   <div class="bar no-print" style="flex-wrap:wrap;gap:8px;align-items:center"><span class="muted mono" style="font-size:11px">Sezioni (spunta per includere · ▲▼ per l'ordine):</span>${ordine.map((k,i)=>{const lab=(toggles.find(t=>t[0]===k)||[])[1]||k;return `<span class="pill" style="display:inline-flex;align-items:center;gap:3px"><label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" data-rep="${k}" ${R[k]?'checked':''} style="vertical-align:-1px">${lab}</label><button data-repmove="${k}" data-dir="-1" title="Sposta su" style="${mvStyle}"${i===0?' disabled':''}>▲</button><button data-repmove="${k}" data-dir="1" title="Sposta giù" style="${mvStyle}"${i===ordine.length-1?' disabled':''}>▼</button></span>`;}).join('')}</div>`;
+  const B={};
+  if(R.profilo){ B.profilo=`<div class="rep-sec"><div class="sec">▌ Profilo & composizione corporea</div>
      <div class="cards">
        <div class="card"><div class="card__k">Età</div><div class="card__v">${nf(etaOf(u),0)}<small> anni</small></div></div>
        <div class="card"><div class="card__k">Altezza</div><div class="card__v">${nf(u.altezza,0)}<small> cm</small></div></div>
@@ -38,48 +39,57 @@ function renderReport(){
        <div class="card k--violet"><div class="card__k">Fabbisogno</div><div class="card__v">${nf(c.metab,0)}<small> kcal</small></div></div>
      </div>
      ${io.length>1?`<div class="chart-box" style="margin-top:10px"><h4>Andamento peso</h4>${lineChart([{name:'Peso',color:'var(--orange-b)',data:io.map(r=>({x:schedaLabel(r.scheda),y:+r.peso}))}],{h:140})}</div>`:''}
-     <p class="muted" style="font-size:12px">Il <b>BMI</b> mette in rapporto peso e altezza; <b>massa magra/grassa</b> e <b>fabbisogno calorico</b> orientano l'alimentazione.</p></div>`); }
-  if(R.riepilogo && last){ S.push(`<div class="rep-sec"><div class="sec">▌ Riepilogo allenamento</div>
+     <p class="muted" style="font-size:12px">Il <b>BMI</b> mette in rapporto peso e altezza; <b>massa magra/grassa</b> e <b>fabbisogno calorico</b> orientano l'alimentazione.</p></div>`; }
+  if(R.riepilogo && last){ B.riepilogo=`<div class="rep-sec"><div class="sec">▌ Riepilogo allenamento</div>
      <div class="cards">
        <div class="card k--ember"><div class="card__k">Carico (TL) ultima scheda</div><div class="card__v">${nfk(last.tl)}</div></div>
        <div class="card ${dTL>=0?'k--ok':'k--danger'}"><div class="card__k">Variazione vs prec.</div><div class="card__v">${dTL>=0?'▲':'▼'} ${nf(Math.abs(dTL),1)}%</div></div>
        <div class="card"><div class="card__k">Intensità media</div><div class="card__v">${nf(lastPct,1)}%</div><div class="card__sub">${fascia(lastPct)[0]}</div></div>
        <div class="card ${acwr==null?'':(acwr>=0.8&&acwr<=1.3?'k--ok':'k--danger')}"><div class="card__k">Sicurezza carico</div><div class="card__v">${acwr==null?'—':nf(acwr,2)}</div><div class="card__sub">ACWR · ${acwr==null?'':(acwr<0.8?'scarico':acwr<=1.3?'ottimale':'alto')}</div></div>
      </div>
-     <p class="muted" style="font-size:12px">Il <b>carico (TL)</b> riassume il lavoro svolto: più cresce nel tempo, più c'è progressione. La <b>sicurezza carico (ACWR)</b> indica se l'aumento è sostenibile (ideale 0.8–1.3).</p></div>`); }
-  if(R.scheda && prog.some(r=>r.esercizio)){ S.push(`<div class="rep-sec big"><div class="sec">▌ Scheda di allenamento <span class="pill" style="margin-left:auto">carico piano ${nfk(progTL)}</span></div>
-     <div class="tbl-wrap"><table style="table-layout:fixed;width:100%"><colgroup><col style="width:24%"><col style="width:32%"><col style="width:12%"><col style="width:10%"><col style="width:9%"><col style="width:13%"></colgroup><thead><tr><th class="l">Esercizio</th><th class="l">Target muscolare</th><th>Serie×Rip</th><th>Peso</th><th>Rec.</th><th>Zona</th></tr></thead><tbody>${progBody}</tbody></table></div></div>`); }
-  if(R.andamento && ag.length){ S.push(`<div class="rep-sec"><div class="sec">▌ Andamento del carico</div>
+     <p class="muted" style="font-size:12px">Il <b>carico (TL)</b> riassume il lavoro svolto: più cresce nel tempo, più c'è progressione. La <b>sicurezza carico (ACWR)</b> indica se l'aumento è sostenibile (ideale 0.8–1.3).</p></div>`; }
+  if(R.scheda && prog.some(r=>r.esercizio)){ B.scheda=`<div class="rep-sec big"><div class="sec">▌ Scheda di allenamento <span class="pill" style="margin-left:auto">carico piano ${nfk(progTL)}</span></div>
+     <div class="tbl-wrap"><table style="table-layout:fixed;width:100%"><colgroup><col style="width:24%"><col style="width:32%"><col style="width:12%"><col style="width:10%"><col style="width:9%"><col style="width:13%"></colgroup><thead><tr><th class="l">Esercizio</th><th class="l">Target muscolare</th><th>Serie×Rip</th><th>Peso</th><th>Rec.</th><th>Zona</th></tr></thead><tbody>${progBody}</tbody></table></div></div>`; }
+  if(R.andamento && ag.length){ B.andamento=`<div class="rep-sec"><div class="sec">▌ Andamento del carico</div>
      <div class="chart-grid">
        <div class="chart-box"><h4>Carico (TL) nel tempo</h4>${lineChart([{name:'TL',color:'var(--orange-b)',data:ag.map(a=>({x:schedaLabel(a.scheda),y:a.tl||null}))}],{labels,h:160,fmt:nfk})}</div>
        <div class="chart-box"><h4>Equilibrio volume (serie)</h4>${radarChart(GRUPPI.map(g=>({label:g,value:last.sets[g]||0})),{h:230})}</div>
      </div>
-     <p class="muted" style="font-size:12px">A sinistra la crescita del carico settimana dopo settimana; a destra quanto è bilanciato il lavoro tra i gruppi muscolari.</p></div>`); }
+     <p class="muted" style="font-size:12px">A sinistra la crescita del carico settimana dopo settimana; a destra quanto è bilanciato il lavoro tra i gruppi muscolari.</p></div>`; }
   if(R.progressione && mainLifts.length){ const cols=['#c2500a','#d4a017','#2f7d4f','#7a3ea8','#991b1b'];
      const series=mainLifts.map((n,idx)=>({name:n.replace(' / Overhead press',''),color:cols[idx%cols.length],data:exProgression(n).map(p=>({x:schedaLabel(p.scheda),y:p.rm||null}))}));
-     S.push(`<div class="rep-sec"><div class="sec">▌ Progressione di forza (1RM stimato)</div>
+     B.progressione=`<div class="rep-sec"><div class="sec">▌ Progressione di forza (1RM stimato)</div>
      <div class="chart-box">${lineChart(series,{h:210})}</div>
-     <p class="muted" style="font-size:12px">Massimale stimato sui principali esercizi: una linea che sale significa aumento di forza.</p></div>`); }
-  if(R.record){ S.push(`<div class="rep-sec big"><div class="sec">▌ Record personali (carico massimo)</div>
-     <div class="tbl-wrap"><table><thead><tr><th class="l">Esercizio</th><th>Carico max</th><th>Rip.</th><th>Scheda</th></tr></thead><tbody>${prs.map(p=>`<tr><td class="l">${esc(p.nome)}</td><td class="num cell-out">${nf(p.peso,1)} kg</td><td class="num">${nf(p.rip,0)}</td><td class="num">${p.scheda}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">—</td></tr>'}</tbody></table></div></div>`); }
-  if(R.alimentazione){ S.push(`<div class="rep-sec"><div class="sec">▌ Quadro alimentare · fase ${FASE_LAB[faseR]||faseR} (piano giornaliero)</div>
+     <p class="muted" style="font-size:12px">Massimale stimato sui principali esercizi: una linea che sale significa aumento di forza.</p></div>`; }
+  if(R.record){ B.record=`<div class="rep-sec big"><div class="sec">▌ Record personali (carico massimo)</div>
+     <div class="tbl-wrap"><table><thead><tr><th class="l">Esercizio</th><th>Carico max</th><th>Rip.</th><th>Scheda</th></tr></thead><tbody>${prs.map(p=>`<tr><td class="l">${esc(p.nome)}</td><td class="num cell-out">${nf(p.peso,1)} kg</td><td class="num">${nf(p.rip,0)}</td><td class="num">${p.scheda}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">—</td></tr>'}</tbody></table></div></div>`; }
+  if(R.alimentazione){ B.alimentazione=`<div class="rep-sec"><div class="sec">▌ Quadro alimentare · fase ${FASE_LAB[faseR]||faseR} (piano giornaliero)</div>
      <div class="tbl-wrap"><table><thead><tr><th class="l">Fase</th><th>Kcal</th><th>Proteine</th><th>Grassi</th><th>Carboidrati</th><th>Fibre</th></tr></thead><tbody>
        <tr><td class="l">${FASE_LAB[faseR]||faseR}</td><td class="num cell-out">${nf(tR.kcal,0)}</td><td class="num">${nf(tR.proteine,1)}</td><td class="num">${nf(tR.grassi,1)}</td><td class="num">${nf(tR.zuccheri,1)}</td><td class="num">${nf(tR.fibre,1)}</td></tr>
-     </tbody></table></div></div>`); }
+     </tbody></table></div></div>`; }
   if(R.analisi){
     const periodiR=((DOC.alimentazione||{}).periodi)||[];
     if(periodiR.length){ const settR=serieSettimanali();
-      S.push(`<div class="rep-sec"><div class="sec">▌ Dieta × allenamento — periodi, carico e peso</div>
+      B.analisi=`<div class="rep-sec"><div class="sec">▌ Dieta × allenamento — periodi, carico e peso</div>
        ${timelineChart(settR)}
-       <div class="muted" style="font-size:11px;margin-top:4px">Fasce colorate = periodi alimentari registrati (con le kcal/giorno del piano); linee = Training Load settimanale (asse sx) e peso corporeo (asse dx).</div></div>`); }
+       <div class="muted" style="font-size:11px;margin-top:4px">Fasce colorate = periodi alimentari registrati (con le kcal/giorno del piano); linee = Training Load settimanale (asse sx) e peso corporeo (asse dx).</div></div>`; }
   }
-  if(R.note){ S.push(`<div class="rep-sec"><div class="sec">▌ Note del coach</div>
+  if(R.note){ B.note=`<div class="rep-sec"><div class="sec">▌ Note del coach</div>
      <textarea id="rep-nota" class="no-print" placeholder="Commento, indicazioni, prossimi step…" style="width:100%;min-height:90px">${esc(R.nota||'')}</textarea>
-     <div class="rep-nota-print" style="white-space:pre-wrap;font-size:13px">${esc(R.nota||'')||'<span class="muted">—</span>'}</div></div>`); }
+     <div class="rep-nota-print" style="white-space:pre-wrap;font-size:13px">${esc(R.nota||'')||'<span class="muted">—</span>'}</div></div>`; }
+  const S=[`<div class="rep-sec" style="border-bottom:2px solid var(--gold-2);padding-bottom:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start">
+     <div><h1 style="font-size:26px;color:var(--ember-2);margin:0">Report di Allenamento</h1>
+       <div class="muted mono" style="font-size:12px">${esc(u.nome||profNome()||'Atleta')}${u.cognome?' '+esc(u.cognome):''} · ${new Date().toLocaleDateString('it-IT')}${last?' · scheda '+last.scheda:''}</div>
+       ${R.obiettivo?`<div style="margin-top:6px"><b>Obiettivo:</b> ${esc(R.obiettivo)}</div>`:''}</div>
+     <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`];
+  ordine.forEach(k=>{ if(B[k]) S.push(B[k]); });
   S.push(`<p class="muted" style="font-size:11px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px">Report generato dal Training Monitor System. Indici a scopo informativo, non sostituiscono un parere medico/professionale.</p>`);
   document.getElementById('panel-report').innerHTML=ctrl+`<div class="rep-doc" style="background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:28px;box-shadow:var(--shadow)">${S.join('')}</div>`;
   const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo'); };
   document.querySelectorAll('#panel-report [data-rep]').forEach(cb=>cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); });
+  document.querySelectorAll('#panel-report [data-repmove]').forEach(b=>b.onclick=()=>{
+    const ord=R.ordine.slice(), i=ord.indexOf(b.dataset.repmove), j=i+(+b.dataset.dir);
+    if(i<0||j<0||j>=ord.length) return; const t=ord[i]; ord[i]=ord[j]; ord[j]=t; R.ordine=ord; persist('corpo'); renderReport(); });
   const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; const pv=document.querySelector('.rep-nota-print'); if(pv)pv.textContent=e.target.value; persist('corpo'); };
 }
 function splitTable(D, tblWrap, headingEl){

@@ -242,6 +242,18 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(d.getElementById('panel-alimentazione').innerHTML.includes('Periodi') && d.getElementById('per-add') !== null, 'sezione Periodi nel tab Alimentazione');
   w.eval('showTab("report")');
   ok(d.getElementById('panel-report').innerHTML.includes('Dieta × allenamento'), 'report con la sezione Dieta × allenamento');
+  /* riordino sezioni del report (richiesta Marco): ordine di default + frecce + applicazione + handler */
+  let repDoc = d.querySelector('#panel-report .rep-doc').innerHTML;
+  ok(repDoc.indexOf('composizione corporea') > 0 && repDoc.indexOf('Note del coach') > repDoc.indexOf('composizione corporea'), 'report: ordine di default (Profilo prima di Note)');
+  ok(d.querySelector('#panel-report [data-repmove]') !== null, 'report: frecce di riordino ▲▼ presenti');
+  w.eval('DOC.dati_utente.report.ordine=["note","profilo","riepilogo","scheda","andamento","progressione","record","alimentazione","analisi"]; renderReport();');
+  repDoc = d.querySelector('#panel-report .rep-doc').innerHTML;
+  ok(repDoc.indexOf('Note del coach') < repDoc.indexOf('composizione corporea'), 'report: ordine personalizzato applicato (Note prima di Profilo)');
+  d.querySelector('#panel-report [data-repmove="profilo"][data-dir="-1"]').click();
+  ok(w.eval('DOC.dati_utente.report.ordine[0]') === 'profilo', 'report: freccia ▲ riporta Profilo in cima (handler + persistenza)');
+  repDoc = d.querySelector('#panel-report .rep-doc').innerHTML;
+  ok(repDoc.indexOf('composizione corporea') < repDoc.indexOf('Note del coach'), 'report: render coerente dopo lo spostamento');
+  w.eval('delete DOC.dati_utente.report.ordine; renderReport();'); /* ripristina il default per i test seguenti */
   /* v1.0.72: lo snapshot include storico_rpe anche dei profili NON attivi (fix backup) + getProfileData (fix lint) */
   const snapFix = await w.eval('costruisciSnapshot()');
   ok(Array.isArray(snapFix.profiles['wander'].storico_rpe) && snapFix.profiles['wander'].storico_rpe.length === 1, 'snapshot: storico_rpe del profilo non attivo incluso (fix)');
