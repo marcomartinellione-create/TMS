@@ -91,8 +91,16 @@ e FC media. L'app calcola:
 - **sRPE (Foster)** = RPE × durata in minuti → unità arbitrarie (AU). Sempre disponibile.
 - **TRIMP (Banister)** dalla **frequenza cardiaca** media: compare solo se inserisci la FC
   media; usa la FC max stimata dall'età (Tanaka: 208 − 0,7×età) e una FC a riposo di 60 bpm
-  di default. L'inserimento completo dei dati da fascia cardiaca arriverà nelle prossime
-  versioni. La tabella mostra anche il totale sRPE della settimana corrente.
+  di default. La tabella mostra anche il totale sRPE della settimana corrente.
+
+Due modi per registrare una seduta:
+- **Semplice** (manuale): «＋ Aggiungi attività» — scrivi durata e RPE (FC media/max e distanza
+  facoltative). Sempre possibile, senza attrezzatura.
+- **Avanzato** (da dispositivo): «📥 Importa attività» — carichi un file **.TCX o .GPX**
+  esportato da orologio/fascia (Garmin Connect, Polar Flow, Coros, Strava, app per Apple Watch…):
+  l'app legge durata, FC media, FC max e distanza e apre il modulo già compilato (resta solo da
+  aggiungere la fatica RPE). Tutto in locale, offline, nessun account. Il formato .FIT (binario)
+  non è ancora supportato: esporta in TCX o GPX.
 - Il cardio compare anche nel grafico **«Equilibrio volume»** (Progressi e Report) come asse
   dedicato: i minuti diventano «serie-equivalenti» (min÷10), così ~2 h/settimana ≈ 12, in
   piena zona di volume equilibrato, per vedere a colpo d'occhio se il cardio è bilanciato

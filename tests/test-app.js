@@ -330,6 +330,19 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const code=w.eval('(function(){var w=isoWeek(new Date("2025-01-15T12:00:00"));return schedaCode(w.anno,w.sett);})()');
     ok(w.eval('cardioMinByWeek()['+code+']')===120 && w.eval('cardioEquivSets('+code+')')===12, 'cardio nel radar: 120 min (2h) → 12 serie-equivalenti'); }
   ok(w.eval('cardioEquivSets(999999)')===0, 'cardio nel radar: settimana senza cardio → 0');
+  /* import «avanzato»: file attività .TCX (namespaced) e .GPX → modale precompilato */
+  const tcx='<?xml version="1.0"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"><Activities><Activity Sport="Running"><Id>2026-06-13T08:00:00Z</Id><Lap><TotalTimeSeconds>1800</TotalTimeSeconds><DistanceMeters>5000</DistanceMeters><Track><Trackpoint><Time>2026-06-13T08:00:00Z</Time><HeartRateBpm><Value>150</Value></HeartRateBpm></Trackpoint><Trackpoint><Time>2026-06-13T08:30:00Z</Time><HeartRateBpm><Value>170</Value></HeartRateBpm></Trackpoint></Track></Lap></Activity></Activities></TrainingCenterDatabase>';
+  w.eval('window.__tcx='+JSON.stringify(tcx));
+  { const p=w.eval('parseAttivitaCardio(window.__tcx)'); ok(p&&p.tipo==='Corsa'&&p.durata===30&&p.fcMedia===160&&p.fcMax===170&&p.distanza===5, 'import TCX: tipo/durata/FC media/FC max/distanza estratti'); }
+  const gpx='<?xml version="1.0"?><gpx><trk><type>cycling</type><trkseg><trkpt lat="45.00" lon="9.00"><time>2026-06-13T08:00:00Z</time><extensions><gpxtpx:hr xmlns:gpxtpx="u">120</gpxtpx:hr></extensions></trkpt><trkpt lat="45.00" lon="9.00"><time>2026-06-13T08:20:00Z</time><extensions><gpxtpx:hr xmlns:gpxtpx="u">140</gpxtpx:hr></extensions></trkpt></trkseg></trk></gpx>';
+  w.eval('window.__gpx='+JSON.stringify(gpx));
+  { const g=w.eval('parseAttivitaCardio(window.__gpx)'); ok(g&&g.tipo==='Bici'&&g.durata===20&&g.fcMedia===130&&g.fcMax===140, 'import GPX: tipo/durata/FC dalla traccia hr'); }
+  ok(w.eval('parseAttivitaCardio("<x>non valido</x>")')===null, 'import: file non-attività → null (errore chiaro all\'utente)');
+  w.eval('showTab("cardio")');
+  ok(d.getElementById('cardio-imp')!==null, 'tab Cardio: input per importare .tcx/.gpx');
+  w.eval('cardioModal(-1, parseAttivitaCardio(window.__tcx))');
+  ok(d.getElementById('c-tipo').value==='Corsa' && +d.getElementById('c-min').value===30 && +d.getElementById('c-fc').value===160 && +d.getElementById('c-fcmax').value===170, 'import: modale precompilato coi dati del file (RPE da aggiungere)');
+  w.eval('closeModal()');
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');
