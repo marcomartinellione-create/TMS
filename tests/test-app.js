@@ -392,6 +392,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sd.getElementById('bozza-nota').textContent.includes('Bozza ritrovata'), 'scheda cliente: avviso "bozza ritrovata" alla riapertura');
     sub.window.close();
   }
+  /* Δ TL per SET (richiesta Marco): ogni set incrementale ha il suo Δ vs il set di pari posizione */
+  ok(Array.isArray(w.eval('lastBlockSets("__inesistente__",1)')) && w.eval('lastBlockSets("__inesistente__",1)').length === 0, 'lastBlockSets: array vuoto se l\'esercizio non è nello storico');
+  w.eval('DOC.storico.push({scheda:202699,esercizio:"Squat con bilanciere",seduta:1,serie:1,rip:5,peso:100,test:false,macro:"Gambe"},{scheda:202699,esercizio:"Squat con bilanciere",seduta:1,serie:1,rip:5,peso:110,test:false,macro:"Gambe"});');
+  { const s = w.eval('lastBlockSets("Squat con bilanciere",1)'); ok(Array.isArray(s) && s.length === 2 && s[1] > s[0], 'lastBlockSets: TL dei due set in ordine (110 kg > 100 kg)'); }
+  w.eval('schedaMode="settimanale"; DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:1,rip:5,peso:105,rir:""},{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:1,rip:5,peso:115,rir:""}]; showTab("allenamento");');
+  { const trs = [...d.querySelectorAll('#panel-allenamento tbody tr[data-i]')];
+    ok(trs.length === 2 && /%/.test(trs[0].children[10].textContent) && /%/.test(trs[1].children[10].textContent), 'Δ TL per set: ENTRAMBI i set incrementali mostrano il proprio Δ (non solo il primo)');
+    ok(trs[0].children[10].textContent.includes('▲') && trs[1].children[10].textContent.includes('▲'), 'Δ TL per set: set 1 (105 vs 100) e set 2 (115 vs 110) entrambi in crescita'); }
+  w.eval('DOC.storico.pop(); DOC.storico.pop();');
   ok(w.eval('schedaCode(isoWeek(new Date("2026-06-11T12:00:00")).anno, isoWeek(new Date("2026-06-11T12:00:00")).sett)') === 202624, 'conversione data -> settimana ISO (11/06/2026 = 202624)');
   const rientro = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
     righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:70,rir:2,note:'ok'},

@@ -98,10 +98,11 @@ function migrateExNames(){
   if(DOC.scheda){ ['settimanale','mensile'].forEach(md=>{ ch=_renameRows(DOC.scheda[md])||ch; }); }
   return ch;
 }
-function lastBlockTL(nome,seduta){
-  if(!DOC.storico.length) return 0;
+/* TL dei singoli set (in ordine) di un esercizio+seduta nell'ultima scheda salvata,
+   per il confronto Δ TL set-per-set (set 1 vs set 1, set 2 vs set 2…). Esclude i test (★). */
+function lastBlockSets(nome,seduta){
+  if(!DOC.storico.length) return [];
   const maxS=Math.max(...DOC.storico.map(r=>+r.scheda||0));
-  return DOC.storico.filter(r=>r.esercizio===nome && (+r.scheda)===maxS && (+(r.seduta||1))===seduta && !r.test)
-    .reduce((a,r)=>a+sTL(r),0);
+  return DOC.storico.filter(r=>r.esercizio===nome && (+r.scheda)===maxS && (+(r.seduta||1))===seduta && !r.test).map(r=>sTL(r));
 }
 
