@@ -51,6 +51,7 @@ function renderAllenamento(){
       <td class="cell-out num">${t?nfk(t):'—'}</td>
       <td class="num ${dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'}" title="Δ TL del set vs il set di pari posizione della scorsa scheda">${dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'}</td>
       <td style="white-space:nowrap"><span class="fascia ${fc}">${fl}</span>
+        <button class="btn btn--sm no-print" data-mvup="${i}" title="sposta su (nel giorno)"${(i>0&&rows[i-1]&&rows[i-1].giorno===r.giorno)?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="sposta giù (nel giorno)"${(i<rows.length-1&&rows[i+1]&&rows[i+1].giorno===r.giorno)?'':' disabled'}>▼</button>
         <button class="btn btn--sm no-print" data-set="${i}" title="aggiungi un set a questo esercizio">＋set</button>
         <button class="btn btn--sm no-print" data-test="${i}" title="segna/togli test 1RM (escluso dalla progressione)" style="${r.test?'color:var(--violet);border-color:var(--violet)':''}">★</button>
         <button class="btn btn--sm btn--danger no-print" data-del="${i}" title="elimina">✕</button></td>
@@ -87,7 +88,7 @@ function renderAllenamento(){
   });
   // init height on existing note textareas
   document.querySelectorAll('.note-area').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
-  document.getElementById('btn-addrow').onclick=()=>{ schedaRows().push({giorno:lastDay||'Lunedì',esercizio:'',note:'',serie:3,rip:10,peso:0,rest:'1:30'}); persist('scheda'); renderAllenamento(); };
+  document.getElementById('btn-addrow').onclick=aggiungiEsercizioModal;
   document.getElementById('btn-addday').onclick=addDay;
   { const pf=document.getElementById('btn-prefill'); if(pf) pf.onclick=()=>{ if(confirm('Precompilo peso/rip/RIR dalla scorsa registrazione di ogni esercizio? Sovrascrive i valori attuali della scheda.')) prefillFromLast(); }; }
   document.getElementById('btn-save-sched').onclick=saveSchedaModal;
@@ -113,6 +114,9 @@ function renderAllenamento(){
     schedaRows().splice(i+1,0,{giorno:r.giorno,esercizio:r.esercizio,note:'',serie:r.serie,rip:r.rip,peso:r.peso,rest:r.rest}); persist('scheda'); renderAllenamento(); });
   document.querySelectorAll('#panel-allenamento [data-test]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.test; schedaRows()[i].test=!schedaRows()[i].test; persist('scheda'); renderAllenamento(); });
   document.querySelectorAll('#panel-allenamento [data-del]').forEach(b=>b.onclick=()=>{ schedaRows().splice(+b.dataset.del,1); persist('scheda'); renderAllenamento(); });
+  /* riordino esercizi dentro il giorno (scambia con la riga adiacente dello stesso giorno) */
+  document.querySelectorAll('#panel-allenamento [data-mvup]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.mvup, r=schedaRows(); if(i>0&&r[i-1].giorno===r[i].giorno){ const t=r[i-1]; r[i-1]=r[i]; r[i]=t; persist('scheda'); renderAllenamento(); } });
+  document.querySelectorAll('#panel-allenamento [data-mvdn]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.mvdn, r=schedaRows(); if(i<r.length-1&&r[i+1].giorno===r[i].giorno){ const t=r[i+1]; r[i+1]=r[i]; r[i]=t; persist('scheda'); renderAllenamento(); } });
   updateStatusDots();
   document.querySelectorAll('.note-area').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
 }
@@ -152,6 +156,19 @@ function refreshSchedaCalc(){
   const deltaW=prevTotal>0?(totTL/prevTotal-1):null;
   const ht=document.getElementById('hdr-tottl'); if(ht)ht.textContent='TL totale '+nfk(totTL);
   const hd=document.getElementById('hdr-delta'); if(hd)hd.innerHTML=deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${schedaMode==='mensile'?'mese':'settimana'} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px">ultima ${nfk(prevTotal)}</span>`;
+}
+/* ＋ Esercizio: chiede in quale giorno aggiungerlo e lo inserisce in fondo a quel giorno
+   (se il giorno non esiste ancora, crea la sezione). */
+function aggiungiEsercizioModal(){
+  const rows=schedaRows(); const def=(rows.length?rows[rows.length-1].giorno:'')||'Lunedì';
+  modal(`<h3>Aggiungi esercizio</h3>
+    <div class="field"><label>In quale giorno?</label><select id="m-day">${GIORNI.map(g=>`<option${g===def?' selected':''}>${g}</option>`).join('')}</select></div>
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">Annulla</button><button class="btn btn--ember" id="m-ok">Aggiungi</button></div>`);
+  document.getElementById('m-ok').onclick=()=>{ const g=document.getElementById('m-day').value; closeModal();
+    const r=schedaRows(), nuova={giorno:g,esercizio:'',note:'',serie:3,rip:10,peso:0,rest:'1:30'};
+    let last=-1; r.forEach((x,i)=>{ if(x.giorno===g) last=i; });
+    if(last>=0) r.splice(last+1,0,nuova); else r.push(nuova);
+    persist('scheda'); renderAllenamento(); };
 }
 function addDay(){
   modal(`<h3>Aggiungi giorno</h3>

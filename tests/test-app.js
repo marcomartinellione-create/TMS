@@ -401,6 +401,14 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(trs.length === 2 && /%/.test(trs[0].children[10].textContent) && /%/.test(trs[1].children[10].textContent), 'Δ TL per set: ENTRAMBI i set incrementali mostrano il proprio Δ (non solo il primo)');
     ok(trs[0].children[10].textContent.includes('▲') && trs[1].children[10].textContent.includes('▲'), 'Δ TL per set: set 1 (105 vs 100) e set 2 (115 vs 110) entrambi in crescita'); }
   w.eval('DOC.storico.pop(); DOC.storico.pop();');
+  /* riordino esercizi nel giorno (▲▼) — la scheda ha 2 Squat (105, 115) su Lunedì */
+  d.querySelector('#panel-allenamento tbody tr[data-i="0"] [data-mvdn]').click();
+  ok(w.eval('DOC.scheda.settimanale[0].peso') === 115 && w.eval('DOC.scheda.settimanale[1].peso') === 105, 'Pesi: ▼ sposta l\'esercizio giù nel giorno (riordino)');
+  /* ＋ Esercizio con scelta del giorno */
+  { const nPrima = w.eval('DOC.scheda.settimanale.length'); w.eval('aggiungiEsercizioModal()');
+    ok(d.getElementById('m-day') !== null, 'Pesi: ＋ Esercizio apre la scelta del giorno');
+    w.eval('document.getElementById("m-day").value="Mercoledì";'); d.getElementById('m-ok').click();
+    ok(w.eval('DOC.scheda.settimanale.length') === nPrima + 1 && w.eval('DOC.scheda.settimanale.some(r=>r.giorno==="Mercoledì"&&!r.esercizio)'), 'Pesi: l\'esercizio viene aggiunto nel giorno scelto (Mercoledì)'); }
   ok(w.eval('schedaCode(isoWeek(new Date("2026-06-11T12:00:00")).anno, isoWeek(new Date("2026-06-11T12:00:00")).sett)') === 202624, 'conversione data -> settimana ISO (11/06/2026 = 202624)');
   const rientro = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
     righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:70,rir:2,note:'ok'},

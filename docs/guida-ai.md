@@ -108,10 +108,13 @@ Due modi per registrare una seduta:
   dedicato: i minuti diventano «serie-equivalenti» (min÷10), così ~2 h/settimana ≈ 12, in
   piena zona di volume equilibrato, per vedere a colpo d'occhio se il cardio è bilanciato
   rispetto al lavoro coi pesi.
+- «＋ Esercizio» chiede in quale giorno aggiungerlo (lo inserisce in quel giorno);
+  «＋ Giorno» crea un nuovo giorno. Le frecce «▲▼» nella riga riordinano l'esercizio
+  dentro il suo giorno.
 - «＋set» aggiunge set extra alla riga; «↧ Dalla scorsa» ricompila coi valori
   dell'ultima registrazione; il «▶» accanto all'esercizio apre il video dimostrativo.
-- Per ogni riga l'app mostra al volo: 1RM stimato, %1RM, TL (carico della riga) e la
-  variazione rispetto alla settimana precedente.
+- Per ogni riga l'app mostra al volo: 1RM stimato, %1RM, TL (carico della riga) e il
+  «Δ TL set» (questo set vs il set di pari posizione della scorsa scheda).
 - «💾 Salva nello Storico» registra la settimana (anno + numero settimana ISO,
   proposti in automatico); se il Session-RPE è abilitato si registrano anche fatica
   (RPE 0-10) e durata in minuti per seduta. «↶ Annulla ultimo» rimuove l'ultimo
