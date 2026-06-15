@@ -174,13 +174,14 @@ Il cliente NON deve avere il TMS: la scheda viaggia come file.
    (es. cartella Download) e aprire sempre quella copia, non l'anteprima della chat:
    la pagina **salva da sola la bozza** sul dispositivo (si può chiudere e riprendere);
    se il salvataggio automatico non è possibile, la pagina lo segnala con un avviso.
-3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e la data
-   di registrazione (convertita nella settimana dello Storico). Le righe entrano
-   nello Storico come una seduta registrata a mano e alimentano TL, ACWR, grafici e
-   report.
+3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e l'allenamento
+   del cliente viene **caricato nella scheda 🏋 Pesi** (NON scritto subito nello Storico).
+   Il coach lo rivede, eventualmente corregge, poi preme «💾 Salva nello Storico» scegliendo
+   la settimana: solo allora entra nello Storico (con sedute e RPE) e alimenta TL/ACWR/grafici.
+   Questo dà al coach un controllo manuale prima del salvataggio.
 Controlli all'import: file non valido → errore chiaro; profilo diverso da quello
 della riga → richiesta conferma; esercizi fuori catalogo → avviso con elenco;
-settimana già popolata → avviso che le righe verranno AGGIUNTE (non sostituite).
+scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 
 ## 9 · Esercizi e video (tab 📖 Esercizi)
 

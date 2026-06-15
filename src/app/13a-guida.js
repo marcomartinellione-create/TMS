@@ -29,7 +29,7 @@ function guidaRapida(){
    <ol style="margin:0 0 6px 18px;line-height:1.9">
      <li><b>Esporta.</b> In <b>👤 Profilo</b>, nella riga del cliente, premi <b>📤 Esporta scheda</b>: crea una pagina HTML con la sua scheda (e i video, se vuoi). Inviala via chat o email.</li>
      <li><b>Il cliente compila.</b> Apre il file con un doppio click (niente da installare), inserisce ciò che ha fatto davvero — serie, ripetizioni, peso, RIR, note e fatica della seduta — e preme <b>📩 Crea il file per il trainer</b>: si scarica un piccolo file di rientro da rimandarti.</li>
-     <li><b>Importa.</b> Sempre nella riga del cliente, <b>📥 Importa rientro</b>: scegli il file e la data — l'allenamento finisce nello Storico del profilo (con la fatica nelle sedute RPE), pronto per grafici e report. L'app ti avvisa se il profilo non corrisponde o se la settimana ha già registrazioni.</li>
+     <li><b>Importa.</b> Sempre nella riga del cliente, <b>📥 Importa rientro</b>: scegli il file — l'allenamento del cliente viene <b>caricato nella scheda 🏋 Pesi</b>, dove lo controlli (e correggi se serve). Quando sei pronto, <b>💾 Salva nello Storico</b> scegliendo la settimana: da lì alimenta TL, ACWR, grafici e Report.</li>
    </ol>
    <div class="sec">▌ Le sezioni in breve</div>
    <div class="tbl-wrap"><table><tbody>
@@ -188,9 +188,9 @@ function guidaCompleta(){
    <ol style="margin:0 0 6px 18px;line-height:1.8">
      <li><b>Esporta</b> — in <b>👤 Profilo</b>, nella riga del cliente, premi <b>📤 Esporta scheda</b> (se non è il profilo attivo, l'app lo attiva da sola). Nasce <span class="mono">Scheda_&lt;profilo&gt;_&lt;data&gt;.html</span>: una pagina autonoma con la scheda giorno per giorno, il previsto in chiaro e i campi compilabili; alla domanda sui video, includili se vuoi che il cliente veda le esecuzioni offline (file più pesante).</li>
      <li><b>Il cliente compila</b> — apre il file in qualunque browser, inserisce i valori effettivi (serie, ripetizioni, peso, RIR e note per esercizio; fatica RPE 0–10 e durata in minuti per seduta — gli esercizi non sono modificabili) e preme <b>📩 Crea il file per il trainer</b>: si scarica <span class="mono">Rientro_&lt;profilo&gt;_&lt;data&gt;.json</span> da rimandarti. Consiglio da girargli: <b>salvi il file nella memoria del telefono</b> e apra sempre quella copia (non l'anteprima della chat) — la <b>bozza si salva da sola</b> mentre compila, può chiudere e riprendere.</li>
-     <li><b>Importa</b> — nella riga del cliente, <b>📥 Importa rientro</b>: scegli il file e la <b>data di registrazione</b> (l'app la converte nella settimana dello Storico). Le righe entrano nello Storico con le sedute numerate e la fatica in storico RPE: alimentano TL, ACWR, grafici e Report come una seduta registrata a mano.</li>
+     <li><b>Importa</b> — nella riga del cliente, <b>📥 Importa rientro</b>: scegli il file e l'allenamento del cliente viene <b>caricato nella scheda 🏋 Pesi</b> (esercizi, valori effettivi e fatica/durata delle sedute). Lì fai un <b>controllo generale</b>, correggi se necessario, poi <b>💾 Salva nello Storico</b> scegliendo tu la settimana: solo allora entra nello Storico (con sedute e RPE) e alimenta TL, ACWR, grafici e Report. Niente viene scritto automaticamente.</li>
    </ol>
-   <p><b>Controlli di sicurezza</b> all'import: file non valido → errore chiaro; <b>profilo diverso</b> da quello attivo → conferma esplicita; esercizi fuori catalogo → avviso con elenco; <b>settimana già popolata</b> → "le righe verranno AGGIUNTE, procedo?".</p>
+   <p><b>Controlli di sicurezza</b> all'import: file non valido → errore chiaro; <b>profilo diverso</b> da quello attivo → conferma esplicita; esercizi fuori catalogo → avviso con elenco; <b>scheda Pesi non vuota</b> → conferma prima di sostituirla con i dati del cliente (così non perdi una scheda in corso per sbaglio).</p>
 
    <div class="sec" id="gc-faq">▌ 11 · FAQ & risoluzione problemi</div>
    <p><b>Campi obbligatori?</b> Solo Esercizio, Serie, Ripetizioni, Peso. Note e recupero facoltativi.</p>

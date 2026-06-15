@@ -397,24 +397,28 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:70,rir:2,note:'ok'},
             {giorno:'Martedì',esercizio:'Squat con bilanciere',serie:4,rip:6,peso:100,rir:null} ],
     sedute:[ {giorno:'Lunedì',rpe:8,min:75} ] };
-  const ris = await w.eval('applicaRientro(' + JSON.stringify(rientro) + ', 202630)');
-  ok(ris.aggiunte === 2 && ris.sedute === 1, 'applicaRientro: 2 esercizi + 1 seduta RPE');
-  ok(w.eval('DOC.storico.filter(r=>r.scheda===202630).length') === 2
-     && w.eval('DOC.storico.filter(r=>r.scheda===202630&&r.seduta===1).length') === 1
-     && w.eval('DOC.storico.filter(r=>r.scheda===202630&&r.seduta===2).length') === 1
-     && w.eval('DOC.storico.find(r=>r.scheda===202630&&r.esercizio.startsWith("Panca")).macro') === 'Pettorali',
-     'righe nello Storico con sedute numerate e macro dal catalogo');
-  ok(w.eval('DOC.storico_rpe.some(x=>x.scheda===202630&&x.giorno==="Lunedì"&&x.rpe===8&&x.min===75)'), 'seduta RPE (fatica+durata) registrata');
-  /* import e2e: file -> modale data -> conferma */
+  /* nuovo flusso (richiesta Marco): il rientro entra nella SCHEDA PESI per la revisione,
+     non più diretto allo Storico; il coach controlla e salva a mano */
+  const stoPrima = w.eval('DOC.storico.length');
+  const ris = await w.eval('caricaRientroInScheda(' + JSON.stringify(rientro) + ')');
+  ok(ris.righe === 2 && ris.sedute === 1, 'caricaRientroInScheda: 2 esercizi + 1 seduta nella scheda');
+  ok(w.eval('DOC.scheda.settimanale.length') === 2
+     && w.eval('DOC.scheda.settimanale[0].esercizio.startsWith("Panca")') === true
+     && w.eval('DOC.scheda.settimanale[0].serie') === 3 && w.eval('DOC.scheda.settimanale[0].peso') === 70,
+     'rientro caricato nella scheda Pesi (righe con serie/peso del cliente)');
+  ok(w.eval('DOC.scheda.rpe.settimanale["Lunedì"].rpe') === 8 && w.eval('DOC.scheda.rpe.settimanale["Lunedì"].min') === 75, 'rientro: seduta RPE (fatica+durata) nella bozza della scheda');
+  ok(w.eval('DOC.storico.length') === stoPrima, 'rientro: lo Storico NON cambia finché il coach non salva a mano');
+  /* import e2e: file non valido + file valido -> carica in Pesi, niente scrittura automatica */
   await w.eval('importaRientroFile(' + JSON.stringify({}) + ')'); /* oggetto non-file: alert "non valido", nessun crash */
   const fakeFile = { text: async () => JSON.stringify(rientro) };
   dom.window.__file = fakeFile;
+  w.eval('window.__oc=window.confirm; window.confirm=function(){return true;};');
+  w.eval('showTab("profilo")');
   await w.eval('importaRientroFile(window.__file)');
-  ok(d.getElementById('imp-data') !== null, 'import: modale con scelta della data');
-  w.eval('document.getElementById("imp-data").value = "2026-07-01"');
-  d.getElementById('imp-ok').click();
-  await settle(300);
-  ok(w.eval('DOC.storico.filter(r=>r.scheda===202627).length') === 2, 'import e2e: righe registrate nella settimana della data scelta (202627)');
+  await settle(200);
+  ok(w.eval('curTab') === 'allenamento', 'import e2e: porta al tab Pesi per la revisione');
+  ok(w.eval('DOC.scheda.settimanale.length') === 2 && w.eval('DOC.storico.length') === stoPrima, 'import e2e: caricato in scheda, Storico invariato (si salva a mano)');
+  w.eval('window.confirm=window.__oc;');
   /* v1.0.67: guida senza link ai PDF locali, footer senza motto, backup col nome del profilo */
   w.eval('showTab("guida")');
   w.eval('guidaMode = "completa"; renderGuida()');

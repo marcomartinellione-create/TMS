@@ -128,33 +128,21 @@ async function esportaSchedaCliente(){
   alert('✔ Scheda esportata ('+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+').\nInviala al cliente: la apre con doppio click, compila e ti rimanda il file di rientro (da importare qui nel Profilo).\n\nConsiglio da girare al cliente: salvi il file nella memoria del telefono e apra sempre quella copia — la bozza si salva da sola mentre compila.');
 }
 
-/* applica il rientro allo Storico della settimana `code` — pura, senza dialoghi (testabile) */
-function applicaRientro(dati, code){
+/* carica il rientro del cliente nella SCHEDA PESI (settimanale) per la revisione del coach,
+   prima del salvataggio manuale nello Storico (💾 Salva nello Storico). Pura, senza dialoghi. */
+function caricaRientroInScheda(dati){
+  schedaMode='settimanale';
+  if(!DOC.scheda || typeof DOC.scheda!=='object') DOC.scheda={settimanale:[],mensile:[]};
   const righe=(dati&&Array.isArray(dati.righe))?dati.righe:[];
-  if(!Array.isArray(DOC.storico)) DOC.storico=[];
-  /* ogni giorno importato = una seduta; la numerazione continua da quelle già nella settimana */
-  let base=0; DOC.storico.forEach(r=>{ if((+r.scheda)===code) base=Math.max(base,+r.seduta||1); });
-  const giorni=[]; righe.forEach(r=>{ if(r&&r.giorno&&!giorni.includes(r.giorno)) giorni.push(r.giorno); });
-  const sedutaDi={}; giorni.forEach((g,i)=>{ sedutaDi[g]=base+i+1; });
-  let aggiunte=0;
-  righe.forEach(r=>{
-    const nome=String((r&&r.esercizio)||'').trim(); if(!nome) return;
-    DOC.storico.push({scheda:code, esercizio:nome, seduta:sedutaDi[r.giorno]||(base+1), test:false,
-      macro:gruppoOf(nome), serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0, rest:String((r&&r.rest)||''),
-      rir:(r.rir===''||r.rir==null)?null:+r.rir});
-    aggiunte++;
-  });
-  let sedute=0;
-  if(dati && Array.isArray(dati.sedute)){
-    if(!Array.isArray(DOC.storico_rpe)) DOC.storico_rpe=[];
-    dati.sedute.forEach(s=>{
-      const rp=+((s&&s.rpe)||0), mn=+((s&&s.min)||0), g=String((s&&s.giorno)||'');
-      if(!(rp>0&&mn>0)||!g) return;
-      DOC.storico_rpe=DOC.storico_rpe.filter(x=>!((+x.scheda)===code && x.giorno===g));
-      DOC.storico_rpe.push({scheda:code, giorno:g, rpe:rp, min:mn}); sedute++;
-    });
-  }
-  return {aggiunte:aggiunte, sedute:sedute};
+  DOC.scheda.settimanale=righe.filter(r=>r&&r.esercizio&&String(r.esercizio).trim()).map(r=>({
+    giorno:String((r&&r.giorno)||'Lunedì'), esercizio:String(r.esercizio).trim(), note:String((r&&r.note)||''),
+    serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0, rest:'',
+    rir:(r.rir===''||r.rir==null)?'':+r.rir }));
+  if(!DOC.scheda.rpe||typeof DOC.scheda.rpe!=='object') DOC.scheda.rpe={};
+  DOC.scheda.rpe.settimanale={};
+  if(dati && Array.isArray(dati.sedute)) dati.sedute.forEach(s=>{ const g=String((s&&s.giorno)||''),
+    rp=+((s&&s.rpe)||0), mn=+((s&&s.min)||0); if(g&&(rp>0||mn>0)) DOC.scheda.rpe.settimanale[g]={rpe:rp||'',min:mn||''}; });
+  return {righe:DOC.scheda.settimanale.length, sedute:Object.keys(DOC.scheda.rpe.settimanale).length};
 }
 
 async function importaRientroFile(file){
@@ -167,26 +155,14 @@ async function importaRientroFile(file){
   if(ps!==activeProfile && !confirm(`⚠ Il file è della scheda di «${pn}» ma il profilo attivo è «${profNome()}».\nImportare comunque in questo profilo?`)) return;
   /* safe check 2: esercizi fuori catalogo */
   const sconosciuti=[]; dati.righe.forEach(r=>{ const n=String((r&&r.esercizio)||'').trim(); if(n && !esLookup(n) && !sconosciuti.includes(n)) sconosciuti.push(n); });
-  if(sconosciuti.length && !confirm('⚠ Esercizi non presenti nel catalogo:\n• '+sconosciuti.join('\n• ')+'\n\nVerranno registrati lo stesso (senza fattore TL dedicato). Continuo?')) return;
-  /* data di registrazione → settimana */
-  const oggi=new Date().toISOString().slice(0,10);
-  modal(`<h3>Importa allenamento dal cliente</h3>
-    <div class="callout callout--info"><div>📥 <b>${dati.righe.length}</b> esercizi${(dati.sedute&&dati.sedute.length)?(' · <b>'+dati.sedute.length+'</b> sedute con RPE'):''} — scheda di <b>${esc(pn)}</b>${dati.compilata?(', compilata il '+esc(String(dati.compilata))):''}.</div></div>
-    <div class="field"><label>In quale data registrare l'allenamento?</label><input type="date" id="imp-data" value="${oggi}"></div>
-    <div class="muted" style="font-size:12px">La registrazione va nello Storico della settimana corrispondente alla data.</div>
-    <div class="modal__actions"><button class="btn" onclick="closeModal()">Annulla</button><button class="btn btn--ember" id="imp-ok">Importa</button></div>`);
-  document.getElementById('imp-ok').onclick=()=>{
-    const v=document.getElementById('imp-data').value;
-    if(!v){ alert('Scegli una data.'); return; }
-    const w=isoWeek(new Date(v+'T12:00:00')), code=schedaCode(w.anno,w.sett);
-    /* safe check 3: la settimana ha già registrazioni? */
-    const exist=DOC.storico.filter(r=>(+r.scheda)===code).length;
-    if(exist && !confirm(`⚠ Nella settimana ${code} (${schedaLabel(code)}) ci sono già ${exist} registrazioni.\nLe righe importate verranno AGGIUNTE. Procedo?`)) return;
-    closeModal();
-    const ris=applicaRientro(dati, code);
-    persist('storico'); if(ris.sedute) persist('corpo'); saveCache();
-    alert(`✔ Import completato — settimana ${code} (${schedaLabel(code)}):\n${ris.aggiunte} esercizi aggiunti allo Storico${ris.sedute?(' e '+ris.sedute+' sedute RPE'):''}.`);
-    if(curTab==='storico') renderStorico(); else if(curTab==='profilo') renderProfilo();
-    updateStatusDots();
-  };
+  if(sconosciuti.length && !confirm('⚠ Esercizi non presenti nel catalogo:\n• '+sconosciuti.join('\n• ')+'\n\nVerranno caricati lo stesso (senza fattore TL dedicato). Continuo?')) return;
+  /* safe check 3: la scheda Pesi corrente ha contenuto e verrà sostituita per la revisione */
+  const piena=((DOC.scheda&&DOC.scheda.settimanale)||[]).some(r=>r&&r.esercizio&&String(r.esercizio).trim());
+  if(piena && !confirm('La scheda Pesi corrente verrà sostituita con l\'allenamento del cliente, per controllarlo prima di salvarlo nello Storico. Procedo?')) return;
+  /* nuovo flusso (richiesta Marco): NON si scrive subito nello Storico — l'allenamento del
+     cliente entra nella scheda Pesi, il coach lo rivede e poi salva a mano (💾 Salva nello Storico). */
+  const ris=caricaRientroInScheda(dati);
+  persist('scheda');
+  showTab('allenamento');
+  alert(`📥 Allenamento di «${pn}» caricato nella scheda Pesi: ${ris.righe} esercizi${ris.sedute?(' · '+ris.sedute+' sedute con RPE'):''}.\n\nControlla i valori, poi premi «💾 Salva nello Storico» (scegli tu la settimana).`);
 }
