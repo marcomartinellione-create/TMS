@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-06-16 — TMS v1.0.79: Pesi (Δ TL per set, ＋Esercizio col giorno, riordino) + import rientro in revisione
+
+**Tipo**: UX/raffinamenti tab Pesi + flusso scambio cliente (accumulo dal 2026-06-13; richieste esplicite di Marco)
+**File coinvolti**: src/app/01-costanti.js (`lastBlockTL`→`lastBlockSets`, bump) · src/app/06-allenamento.js (Δ per set, ＋Esercizio col giorno, frecce ▲▼ nella cella esercizio) · src/app/15-scambio.js (`caricaRientroInScheda`, via `applicaRientro`) · src/app/13a-guida.js + 13c-guida-ai.js (guide) · package.json ×2 · tests/test-app.js
+**Descrizione**:
+- **Δ TL per SET**: la colonna «Δ TL blocco» diventa «Δ TL set». Con i set incrementali (＋set) ogni set mostra il proprio Δ vs il set di pari posizione (1°vs1°, 2°vs2°…) della stessa seduta nella scorsa scheda, invece di un unico Δ di blocco sul primo set. `lastBlockSets` restituisce i TL dei singoli set in ordine.
+- **＋ Esercizio chiede il giorno**: `aggiungiEsercizioModal` apre un selettore del giorno (default = ultimo usato) e inserisce la riga in quel giorno.
+- **Riordino esercizi**: ogni riga ha le frecce **▲▼** (nella cella esercizio, accanto al ▶ video, allineate a destra) per spostare l'esercizio su/giù dentro il suo giorno; disabilitate ai bordi del giorno.
+- **Import rientro cliente → scheda Pesi**: «📥 Importa rientro» non scrive più diretto nello Storico; carica l'allenamento del cliente (esercizi, valori effettivi, sedute RPE+durata) nella scheda Pesi per un controllo generale del coach, che poi salva a mano con «💾 Salva nello Storico» (sceglie la settimana). Conferma prima di sostituire una scheda non vuota. Rimossa `applicaRientro`.
+**Test**: `npm test` **166/166** (lint + sintassi + jsdom) — verifiche: Δ per set su entrambi i set incrementali, `lastBlockSets`, ＋Esercizio nel giorno scelto, riordino ▲▼, caricaRientroInScheda (Storico invariato fino al salvataggio manuale, import porta al tab Pesi).
+**Approvato da**: Marco (richieste esplicite + comando di pubblicazione)
+
 ### 2026-06-13 — TMS v1.0.78: monitoraggio del CARDIO (tab dedicato, sRPE/TRIMP, import .TCX/.GPX, grafici per-sport)
 
 **Tipo**: nuova funzione maggiore (accumulo di più conversazioni; richieste esplicite di Marco)
