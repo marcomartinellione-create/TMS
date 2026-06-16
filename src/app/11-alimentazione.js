@@ -22,26 +22,47 @@ function foodDetail(nome,grammi){
   return html+`</div>`;
 }
 let fpFilter='';
+/* preferiti alimenti (nomi) per profilo, in DOC.alimentazione.fav */
+function foodFavList(){ const A=DOC.alimentazione||{}; if(!Array.isArray(A.fav)) A.fav=[]; return A.fav; }
+function foodIsFav(nome){ return foodFavList().indexOf(String(nome||'').trim())>=0; }
+function foodToggleFav(nome){ nome=String(nome||'').trim(); if(!nome)return; const f=foodFavList(); const i=f.indexOf(nome); if(i>=0) f.splice(i,1); else f.push(nome); persist('alimentazione'); }
+/* alimenti usati di recente: nomi distinti presenti nei pasti delle tre fasi */
+function foodRecenti(){ const seen=new Set(), out=[]; ['bulk','mant','cut'].forEach(fa=>((DOC.alimentazione||{})[fa]||[]).forEach(r=>{ const n=String((r&&r.alimento)||'').trim(); if(n&&!seen.has(n)){ seen.add(n); out.push(n); } })); return out; }
+/* ricerca «a parole»: tutte le parole digitate presenti in nome+categoria (in qualunque ordine) */
+function foodMatch(fo,q){ q=String(q||'').trim().toLowerCase(); if(!q) return true; const hay=(fo.nome+' '+(fo.categoria||'')).toLowerCase(); return q.split(/\s+/).every(t=>hay.includes(t)); }
 function openFoodPicker(fase,i){ fpFilter=''; renderFoodPicker(fase,i); }
 function renderFoodPicker(fase,i){
-  const q=fpFilter.toLowerCase();
-  let list=q? FOOD.filter(fo=>(fo.nome+' '+(fo.categoria||'')).toLowerCase().includes(q)) : FOOD;
-  const cap=400, shown=list.slice(0,cap);
-  const rws=shown.map(fo=>`<tr class="fp-row" data-nome="${esc(fo.nome)}" style="cursor:pointer">
-     <td class="l">${esc(fo.nome)}</td><td class="l muted" style="font-size:11px">${esc((fo.categoria||'').split('/')[0])}</td>
-     <td class="num">${nf(fo.per100.kcal,0)}</td><td class="num">${nf(fo.per100.proteine,1)}</td>
-     <td class="num">${nf(fo.per100.grassi,1)}</td><td class="num">${nf(fo.per100.zuccheri,1)}</td><td class="num">${nf(fo.per100.fibre,1)}</td></tr>`).join('');
+  const q=fpFilter, cap=400;
+  const rowHtml=fo=>{ const fav=foodIsFav(fo.nome);
+    return `<tr class="fp-row" data-nome="${esc(fo.nome)}" style="cursor:pointer">
+      <td class="no-print" style="text-align:center;padding:2px;width:24px"><button class="exp-star${fav?' on':''}" data-fav="${esc(fo.nome)}" title="${fav?'togli dai preferiti':'aggiungi ai preferiti'}">${fav?'★':'☆'}</button></td>
+      <td class="l">${esc(fo.nome)}</td><td class="l muted" style="font-size:11px">${esc((fo.categoria||'').split('/')[0])}</td>
+      <td class="num">${nf(fo.per100.kcal,0)}</td><td class="num">${nf(fo.per100.proteine,1)}</td>
+      <td class="num">${nf(fo.per100.grassi,1)}</td><td class="num">${nf(fo.per100.zuccheri,1)}</td><td class="num">${nf(fo.per100.fibre,1)}</td></tr>`; };
+  const grp=t=>`<tr class="fp-grp"><td colspan="8" style="background:var(--paper-3);color:var(--ember-2);font-family:var(--font-disp);font-size:12px;padding:5px 10px">${t}</td></tr>`;
+  let body='', count;
+  if(q){ const list=FOOD.filter(fo=>foodMatch(fo,q)); count=list.length; body=list.slice(0,cap).map(rowHtml).join(''); }
+  else {
+    const favSet=new Set(foodFavList());
+    const favFoods=foodFavList().map(n=>FOODBYNAME[n]).filter(Boolean);
+    const rec=[]; foodRecenti().forEach(n=>{ if(rec.length>=12)return; if(!favSet.has(n)){ const fo=FOODBYNAME[n]; if(fo) rec.push(fo); } });
+    if(favFoods.length){ body+=grp('★ Preferiti')+favFoods.map(rowHtml).join(''); }
+    if(rec.length){ body+=grp('🕐 Recenti')+rec.map(rowHtml).join(''); }
+    if(favFoods.length||rec.length) body+=grp('Tutti gli alimenti');
+    body+=FOOD.slice(0,cap).map(rowHtml).join(''); count=FOOD.length;
+  }
   const m=document.getElementById('modal'); m.style.maxWidth='820px';
-  m.innerHTML=`<h3>Scegli un alimento <span class="pill" style="font-weight:400">${list.length} risultati${list.length>cap?' · primi '+cap:''}</span></h3>
-    <input id="fp-q" class="search" style="width:100%;margin-bottom:8px" placeholder="cerca per nome o categoria…" value="${esc(fpFilter)}">
+  m.innerHTML=`<h3>Scegli un alimento <span class="pill" style="font-weight:400">${count} risultati${count>cap?' · primi '+cap:''}</span></h3>
+    <input id="fp-q" class="search" style="width:100%;margin-bottom:8px" placeholder="cerca a parole: nome o categoria…" value="${esc(fpFilter)}">
     <div style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:6px">
-    <table><thead><tr><th class="l">Alimento</th><th class="l">Categoria</th><th>Kcal</th><th>Prot</th><th>Grassi</th><th>Carbo</th><th>Fibre</th></tr></thead>
-    <tbody>${rws||'<tr><td colspan="7" class="empty">Nessun alimento.</td></tr>'}</tbody></table></div>
-    <div class="muted" style="font-size:11px;margin-top:6px">Valori per 100 g · clicca una riga per selezionare</div>
+    <table><thead><tr><th class="no-print"></th><th class="l">Alimento</th><th class="l">Categoria</th><th>Kcal</th><th>Prot</th><th>Grassi</th><th>Carbo</th><th>Fibre</th></tr></thead>
+    <tbody>${body||'<tr><td colspan="8" class="empty">Nessun alimento.</td></tr>'}</tbody></table></div>
+    <div class="muted" style="font-size:11px;margin-top:6px">Valori per 100 g · clicca una riga per selezionare · ☆/★ per i preferiti</div>
     <div class="modal__actions"><button class="btn" onclick="closeModal()">Chiudi</button></div>`;
   document.getElementById('modal-bk').classList.remove('hidden');
   const qi=document.getElementById('fp-q');
   qi.oninput=e=>{ fpFilter=e.target.value; const pos=qi.selectionStart; renderFoodPicker(fase,i); const ni=document.getElementById('fp-q'); ni.focus(); try{ni.setSelectionRange(pos,pos);}catch(_){} };
+  m.querySelectorAll('.exp-star').forEach(s=>s.onclick=ev=>{ ev.stopPropagation(); const sc=m.querySelector('div[style*="overflow:auto"]'); const y=sc?sc.scrollTop:0; foodToggleFav(s.dataset.fav); renderFoodPicker(fase,i); const sc2=document.getElementById('modal').querySelector('div[style*="overflow:auto"]'); if(sc2)sc2.scrollTop=y; });
   m.querySelectorAll('.fp-row').forEach(tr=>tr.onclick=()=>{
     DOC.alimentazione[fase][i].alimento=tr.dataset.nome; persist('alimentazione');
     m.style.maxWidth=''; closeModal(); renderAlimentazione(); });
@@ -104,11 +125,13 @@ function renderAlimentazione(){
   function faseTable(fase,rows){
     const meals=[]; rows.forEach(r=>{ const p=((r.pasto||'').trim())||'Senza pasto'; if(!meals.includes(p))meals.push(p); });
     let body='';
-    meals.forEach(meal=>{
+    meals.forEach((meal,mi)=>{
       const idxs=rows.map((r,i)=>i).filter(i=>((((rows[i].pasto||'').trim())||'Senza pasto')===meal));
       let mk=0; idxs.forEach(i=>mk+=foodVal(rows[i].alimento,rows[i].grammi,'kcal'));
       body+=`<tr class="day-sep"><td colspan="7">▌ ${esc(meal)} <span style="opacity:.85;font-family:var(--font-mono);font-size:11px">· ${nf(mk,0)} kcal</span>
-        <button class="btn btn--sm no-print" data-mealedit data-fase="${fase}" data-meal="${esc(meal)}" title="rinomina pasto" style="margin-left:8px">✎</button>
+        <button class="btn btn--sm no-print" data-mealup data-fase="${fase}" data-meal="${esc(meal)}" title="sposta pasto su"${mi===0?' disabled':''} style="margin-left:8px">▲</button>
+        <button class="btn btn--sm no-print" data-mealdn data-fase="${fase}" data-meal="${esc(meal)}" title="sposta pasto giù"${mi===meals.length-1?' disabled':''}>▼</button>
+        <button class="btn btn--sm no-print" data-mealedit data-fase="${fase}" data-meal="${esc(meal)}" title="rinomina pasto">✎</button>
         <button class="btn btn--sm no-print" data-mealadd data-fase="${fase}" data-meal="${esc(meal)}" title="aggiungi alimento a questo pasto">＋</button>
         <button class="btn btn--sm btn--danger no-print" data-mealdel data-fase="${fase}" data-meal="${esc(meal)}" title="elimina pasto">🗑</button></td></tr>`;
       idxs.forEach(i=>{ const r=rows[i]; const known=!!FOODBYNAME[String(r.alimento||'').trim()];
@@ -147,15 +170,21 @@ function renderAlimentazione(){
      <tbody>${perRows||'<tr><td colspan="6" class="empty">Nessun periodo registrato.</td></tr>'}</tbody></table></div>
    <div class="bar no-print"><button class="btn btn--ember" id="per-add">📅 Registra il piano attuale come periodo…</button> <button class="btn" onclick="showTab('analisi')">📊 Vai all'Analisi</button></div>`;
   document.getElementById('panel-alimentazione').innerHTML=`
-   <div class="callout"><div>🍖 Banca dati <b>${FOOD.length}</b> alimenti. Clicca <b>＋ scegli alimento…</b> per selezionare dalla tabella completa (con macro). Usa <b>▸</b> per i micro/macro. <b>Fase attiva: ${FASE_LAB[fase]}</b> — si imposta nel tab <b>Profilo</b>; le fasi non attive restano salvate ma non mostrate.</div></div>
+   <div class="callout"><div>🍖 Banca dati <b>${FOOD.length}</b> alimenti. Clicca <b>＋ scegli alimento…</b> per selezionare dalla tabella completa (con macro). Usa <b>▸</b> per i micro/macro. Scegli qui sotto la <b>fase</b> del piano: le fasi non attive restano salvate ma non mostrate.</div></div>
+   <div class="bar no-print" style="margin-bottom:6px"><span class="muted mono" style="font-size:11px;align-self:center">Fase del piano:</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${FASE_LAB[f]}</button>`).join('')}</div>
    <div class="sec">▌ Fase ${FASE_LAB[fase]} <span class="pill">${nf(tF.kcal,0)} kcal · P ${nf(tF.proteine,0)} · G ${nf(tF.grassi,0)} · C ${nf(tF.zuccheri,0)}</span></div>
    ${faseTable(fase,A[fase])}${perSection}${omsSection}`;
   document.querySelectorAll('#panel-alimentazione input').forEach(inp=>inp.addEventListener('input',e=>{
     const tr=e.target.closest('tr'); const fase=tr.dataset.fase, i=+tr.dataset.i, f=e.target.dataset.f;
     let v=e.target.value; if(f==='grammi')v=v===''?'':+v;
     DOC.alimentazione[fase][i][f]=v; persist('alimentazione');
-    clearTimeout(rerenderT); rerenderT=setTimeout(renderAlimentazione,500);
+    /* non re-renderizzare mentre un modale è aperto (es. nome nuovo pasto): eviterebbe di
+       ricostruire il pannello sotto la digitazione */
+    clearTimeout(rerenderT); rerenderT=setTimeout(()=>{ if(document.getElementById('modal-bk').classList.contains('hidden')) renderAlimentazione(); },500);
   }));
+  document.querySelectorAll('#panel-alimentazione [data-fasesel]').forEach(b=>b.onclick=()=>{ if(!DOC.dati_utente)DOC.dati_utente={}; DOC.dati_utente.faseAlim=b.dataset.fasesel; persist('corpo'); renderAlimentazione(); });
+  document.querySelectorAll('#panel-alimentazione [data-mealup]').forEach(b=>b.onclick=()=>spostaPasto(b.dataset.fase,b.dataset.meal,-1));
+  document.querySelectorAll('#panel-alimentazione [data-mealdn]').forEach(b=>b.onclick=()=>spostaPasto(b.dataset.fase,b.dataset.meal,1));
   document.querySelectorAll('#panel-alimentazione .food-pick').forEach(b=>b.onclick=()=>openFoodPicker(b.dataset.fase,+b.dataset.i));
   document.querySelectorAll('#panel-alimentazione .food-det').forEach(b=>b.onclick=()=>{ const k=b.dataset.fase+':'+b.dataset.i; alimDet=(alimDet===k?null:k); renderAlimentazione(); });
   document.querySelectorAll('#panel-alimentazione [data-add]').forEach(b=>b.onclick=()=>chiediTesto('Nome del pasto (es. Colazione, Pranzo, Spuntino)','',v=>{
@@ -184,6 +213,17 @@ function renderAlimentazione(){
 }
 
 
+/* riordina un pasto su/giù nella fase: sposta in blocco tutte le sue righe (mantenendo
+   l'ordine interno), scambiando la sua posizione con quella del pasto adiacente. */
+function spostaPasto(fase, meal, dir){
+  const rows=DOC.alimentazione[fase]||[]; const mealOf=r=>((((r.pasto||'').trim())||'Senza pasto'));
+  const order=[]; rows.forEach(r=>{ const m=mealOf(r); if(!order.includes(m)) order.push(m); });
+  const idx=order.indexOf(meal), j=idx+dir; if(idx<0||j<0||j>=order.length) return;
+  const newOrder=order.slice(); const t=newOrder[idx]; newOrder[idx]=newOrder[j]; newOrder[j]=t;
+  const byMeal={}; order.forEach(m=>byMeal[m]=[]); rows.forEach(r=>byMeal[mealOf(r)].push(r));
+  const out=[]; newOrder.forEach(m=>byMeal[m].forEach(r=>out.push(r)));
+  DOC.alimentazione[fase]=out; persist('alimentazione'); renderAlimentazione();
+}
 /* registra il piano della fase scelta come PERIODO datato (fotografia per il tab Analisi) */
 function registraPeriodo(){
   const faseAtt=(DOC.dati_utente&&DOC.dati_utente.faseAlim)||'bulk';

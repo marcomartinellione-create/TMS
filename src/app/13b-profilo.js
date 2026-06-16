@@ -14,7 +14,6 @@ function renderProfilo(){
           <div class="card ${u.useRir?'k--ember':''}"><div class="card__k">RIR nei calcoli</div><div class="card__v" style="font-size:18px">${u.useRir?'Sì':'No'}</div></div>
           <div class="card ${u.useRpe?'k--ember':''}"><div class="card__k">Session-RPE</div><div class="card__v" style="font-size:18px">${u.useRpe?'Sì':'No'}</div></div>
           <div class="card"><div class="card__k">Formula 1RM</div><div class="card__v" style="font-size:17px">${FL[u.e1rm||'epley']}</div></div>
-          <div class="card"><div class="card__k">Fase alimentare</div><div class="card__v" style="font-size:17px">${FASE_LAB[u.faseAlim]||'Bulk'}</div></div>
         </div>
         <div class="bar no-print" style="margin-top:8px">
           ${isAct?'<span class="muted" style="align-self:center">profilo attivo</span>':`<button class="btn btn--ember" data-pact="${esc(p.slug)}">Attiva</button>`}
@@ -82,7 +81,6 @@ function anagraficaModal(){
     <label class="optchk" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" id="m-userir" style="width:auto;flex:0 0 auto;margin-top:2px" ${u.useRir?'checked':''}> <span>Considera il <b>RIR</b> nei calcoli (1RM / %1RM / TL effort-aware)</span></label>
     <label class="optchk" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-top:7px"><input type="checkbox" id="m-userpe" style="width:auto;flex:0 0 auto;margin-top:2px" ${u.useRpe?'checked':''}> <span>Abilita il <b>Session-RPE</b> / carico interno (RPE × durata per giorno · Foster)</span></label></div>
     <div class="field"><label>Formula 1RM stimato</label><select id="m-e1rm"><option value="epley"${(u.e1rm||'epley')==='epley'?' selected':''}>Epley (default)</option><option value="brzycki"${u.e1rm==='brzycki'?' selected':''}>Brzycki</option><option value="lombardi"${u.e1rm==='lombardi'?' selected':''}>Lombardi</option><option value="media"${u.e1rm==='media'?' selected':''}>Media delle 3</option></select></div>
-    <div class="field"><label>Fase alimentare</label><select id="m-fase"><option value="bulk"${(u.faseAlim||'bulk')==='bulk'?' selected':''}>Bulk</option><option value="mant"${u.faseAlim==='mant'?' selected':''}>Mantenimento</option><option value="cut"${u.faseAlim==='cut'?' selected':''}>Cut</option></select></div>
     <div class="field"><label>Cardio · frequenza cardiaca <span class="muted" style="text-transform:none;font-family:var(--font-body)">— migliorano il TRIMP delle attività cardio</span></label>
       <div class="row" style="margin-top:4px"><div class="field"><label>FC a riposo (bpm)</label><input id="m-fcrip" type="number" min="0" value="${u.fcRiposo??''}" placeholder="60"></div>
         <div class="field"><label>FC max (bpm) <span class="muted" style="text-transform:none">vuota = stimata</span></label><input id="m-fcmax" type="number" min="0" value="${u.fcMax??''}" placeholder="${(()=>{const e=etaOf(u);return e?Math.round(208-0.7*e):'';})()}"></div></div></div>
@@ -94,7 +92,6 @@ function anagraficaModal(){
     u.useRir=document.getElementById('m-userir').checked;
     u.useRpe=document.getElementById('m-userpe').checked;
     u.e1rm=document.getElementById('m-e1rm').value;
-    u.faseAlim=document.getElementById('m-fase').value;
     u.fcRiposo=document.getElementById('m-fcrip').value===''?'':+document.getElementById('m-fcrip').value;
     u.fcMax=document.getElementById('m-fcmax').value===''?'':+document.getElementById('m-fcmax').value;
     const p=profili.find(x=>x.slug===activeProfile); if(p&&nome)p.nome=nome;

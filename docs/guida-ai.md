@@ -50,7 +50,8 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   propri; il catalogo esercizi è condiviso. Il tab mostra il nome del profilo attivo.
 - «＋ Nuovo profilo» crea un profilo. Cliccando una riga della lista si apre la
   tendina con i parametri: sesso, data di nascita, altezza, «RIR nei calcoli» (sì/no),
-  «Session-RPE» (sì/no), formula 1RM preferita, fase alimentare attiva. Bottoni:
+  «Session-RPE» (sì/no), formula 1RM preferita. (La fase del piano alimentare NON è
+  più qui: si sceglie direttamente nel tab Alimentazione.) Bottoni:
   «Attiva», «✎ Modifica parametri», «✏ Rinomina», «✕ Elimina» (quest'ultimo solo se
   esiste più di un profilo).
 - **Nella riga di ogni profilo**, a destra, due bottoni sempre visibili (senza aprire
@@ -139,11 +140,18 @@ Due modi per registrare una seduta:
 
 ## 6 · Alimentazione (tab 🍖 Alimentazione)
 
-- Tre **fasi**: Bulk, Mantenimento, Cut. Si vede SOLO la fase attiva, scelta nei
-  parametri del profilo (tab Profilo): le altre restano salvate ma nascoste.
-- Pasti personalizzabili; in ogni pasto «＋ scegli alimento…» apre la banca dati
-  svizzera USAV (1190 alimenti generici, valori per 100 g scalati sui grammi
-  inseriti). Col «▸» si vedono tutti i micro e macro nutrienti.
+- Tre **fasi**: Bulk, Mantenimento, Cut. La fase attiva si sceglie con i **bottoni in
+  cima al tab** (Bulk / Mantenimento / Cut): si vede SOLO quella, le altre restano
+  salvate ma nascoste. (Prima la fase stava nel Profilo: ora è qui.)
+- Pasti personalizzabili e **riordinabili**: le frecce «▲▼» accanto al nome del pasto
+  lo spostano su/giù nella fase (insieme a tutti i suoi alimenti); «✎» rinomina, «🗑»
+  elimina. In ogni pasto «＋ scegli alimento…» apre la banca dati svizzera USAV
+  (1190 alimenti generici, valori per 100 g scalati sui grammi inseriti). Col «▸» si
+  vedono tutti i micro e macro nutrienti.
+- Nel selettore alimenti: la **ricerca è «a parole»** (digitando più parole le trova
+  anche non contigue, in qualsiasi ordine). A ricerca vuota, in cima ci sono i
+  **★ Preferiti** e i **🕐 Recenti** (alimenti già usati nel piano); la stellina ☆/★
+  accanto a ogni alimento lo aggiunge/toglie dai preferiti.
 - **Indice settimanale OMS/FAO**: confronta l'intake (piano × 7) coi riferimenti per
   adulto — grassi ≤30% dell'energia, saturi ≤10%, zuccheri ≤10% (ideale <5%), sale
   <5 g/giorno, carboidrati ~55%, proteine 0,83 g/kg, micronutrienti sui valori
@@ -261,8 +269,9 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 ## 13 · Domande tipiche → dove si fa
 
 - «Nuovo cliente/atleta» → Profilo → ＋ Nuovo profilo.
-- «Cambiare formula 1RM, fase alimentare, RIR, session-RPE» → Profilo → tendina del
-  profilo → ✎ Modifica parametri.
+- «Cambiare formula 1RM, RIR, session-RPE» → Profilo → tendina del profilo → ✎
+  Modifica parametri.
+- «Cambiare la fase alimentare (Bulk/Mant/Cut)» → Alimentazione → bottoni in cima al tab.
 - «Mandare la scheda a un cliente» → Profilo → riga del cliente → 📤 Esporta scheda.
 - «Registrare ciò che il cliente ha fatto» → Profilo → riga del cliente → 📥 Importa
   rientro (file Rientro_*.json che il cliente rimanda).
@@ -272,8 +281,8 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - «Correggere un dato sbagliato» → nella scheda corrente si corregge direttamente;
   nello storico: ↶ Annulla ultimo e risalvare.
 - «Vedere i progressi / il rischio di sovraccarico» → Progressi (record, TL, ACWR).
-- «Impostare la dieta» → Alimentazione (fase attiva scelta nel Profilo); per le
-  analisi nel tempo registrare i Periodi.
+- «Impostare la dieta» → Alimentazione (fase attiva scelta coi bottoni in cima al tab);
+  per le analisi nel tempo registrare i Periodi.
 - «Backup prima di formattare il PC» → Profilo → ⭳ Backup dati (un file JSON con
   tutti i profili); al ripristino ⭱ Ripristina.
 - «Aggiungere un esercizio che manca» → Esercizi → ＋ Nuovo.

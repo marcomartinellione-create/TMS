@@ -253,6 +253,28 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok((pan.match(/<svg/g) || []).length >= 4, 'tab Analisi: SVG renderizzati (' + (pan.match(/<svg/g) || []).length + ')');
   w.eval('showTab("alimentazione")');
   ok(d.getElementById('panel-alimentazione').innerHTML.includes('Periodi') && d.getElementById('per-add') !== null, 'sezione Periodi nel tab Alimentazione');
+  /* alimentazione (richieste Marco): selettore fase nel tab, riordino pasti, preferiti/recenti + ricerca a parole sugli alimenti */
+  ok(d.querySelector('#panel-alimentazione [data-fasesel]') !== null, 'alimentazione: selettore fase nel tab (non più nel Profilo)');
+  w.eval('DOC.dati_utente.faseAlim="bulk"; renderAlimentazione();');
+  d.querySelector('#panel-alimentazione [data-fasesel="cut"]').click();
+  ok(w.eval('DOC.dati_utente.faseAlim')==='cut', 'alimentazione: il selettore imposta la fase attiva (cut)');
+  w.eval('DOC.dati_utente.faseAlim="bulk"; renderAlimentazione();');
+  ok(w.eval('foodMatch({nome:"Riso integrale, secco",categoria:"Cereali"},"riso secco")')===true && w.eval('foodMatch({nome:"Riso integrale, secco",categoria:"Cereali"},"riso pollo")')===false, 'alimenti: ricerca «a parole» (tutte le parole presenti)');
+  { const ord=w.eval('(function(){var s=[];(DOC.alimentazione.bulk||[]).forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s;})()');
+    ok(ord.length>=2, 'alimentazione: la fase bulk ha più pasti');
+    w.eval('spostaPasto("bulk", '+JSON.stringify(ord[0])+', 1);');
+    const ord2=w.eval('(function(){var s=[];(DOC.alimentazione.bulk||[]).forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s;})()');
+    ok(ord2[0]===ord[1] && ord2[1]===ord[0], 'alimentazione: riordino pasti (sposta giù il primo)');
+    w.eval('spostaPasto("bulk", '+JSON.stringify(ord[0])+', -1);'); }
+  { const nome=w.eval('(DOC.alimentazione.bulk.find(function(r){return r.alimento;})||{}).alimento');
+    ok(typeof nome==='string' && nome.length>0, 'alimentazione: un alimento del piano per testare i preferiti');
+    w.eval('foodToggleFav('+JSON.stringify(nome)+');');
+    ok(w.eval('foodIsFav('+JSON.stringify(nome)+')')===true && w.eval('DOC.alimentazione.fav.indexOf('+JSON.stringify(nome)+')>=0'), 'alimenti preferiti: la stellina aggiunge (DOC.alimentazione.fav)');
+    w.eval('openFoodPicker("bulk", 0);');
+    ok(d.getElementById('modal').innerHTML.includes('★ Preferiti') && d.getElementById('modal').innerHTML.includes('🕐 Recenti'), 'food picker: gruppi Preferiti e Recenti in cima');
+    { const fq=d.getElementById('fp-q'); fq.value='riso secco'; fq.dispatchEvent(new w.Event('input',{bubbles:true})); }
+    ok([...d.querySelectorAll('#modal .fp-row')].length>0, 'food picker: ricerca a parole trova risultati');
+    w.eval('closeModal(); foodToggleFav('+JSON.stringify(nome)+');'); }
   w.eval('showTab("report")');
   ok(d.getElementById('panel-report').innerHTML.includes('Dieta × allenamento'), 'report con la sezione Dieta × allenamento');
   /* il Report include la sezione Cardio (il template ha 17 sedute) + la casella sezione */
@@ -345,6 +367,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const _nomeProf = w.eval('(profili.find(p=>p.slug===activeProfile)||{}).nome');
   w.eval('showTab("profilo"); anagraficaModal();');
   ok(d.getElementById('m-fcrip')!==null && d.getElementById('m-fcmax')!==null, 'anagrafica: campi FC riposo e FC max presenti');
+  ok(d.getElementById('m-fase')===null, 'anagrafica: fase alimentare rimossa dal Profilo (si sceglie in Alimentazione)');
   w.eval('document.getElementById("m-fcrip").value="55"; document.getElementById("m-fcmax").value="192";');
   d.getElementById('m-ok').click();
   ok(w.eval('DOC.dati_utente.fcRiposo')===55 && w.eval('DOC.dati_utente.fcMax')===192, 'anagrafica: FC riposo/max salvate nel profilo');
