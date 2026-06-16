@@ -4,6 +4,23 @@
 
 ---
 
+### 2026-06-16 — TMS v1.0.80: Cardio più preciso (FC profilo, import .FIT), preferiti esercizi, Alimentazione (fase nel tab, pasti riordinabili, preferiti/recenti, ricerca a parole)
+
+**Tipo**: raffinamenti UX su Cardio, selettore esercizi e Alimentazione (accumulo di più conversazioni dal 2026-06-16; richieste esplicite di Marco)
+**File coinvolti**: src/app/01-costanti.js (bump) · src/app/06b-cardio.js (FC profilo nel TRIMP, parser `parseFIT`) · src/app/13b-profilo.js (campi FC riposo/max in anagrafica; rimossa la fase alimentare dal Profilo) · src/app/12-esercizi.js + src/pagina/02-stili.css (preferiti/recenti nel picker esercizi) · src/app/11-alimentazione.js (fase nel tab, riordino pasti `spostaPasto`, preferiti/recenti/ricerca «a parole» alimenti, guard anti-rerender) · src/app/13a-guida.js + 13c-guida-ai.js (guide) · docs/guida-ai.md (rigenerata) · package.json ×2 · tests/test-app.js
+**Descrizione**:
+- **🏃 Cardio — FC nel Profilo**: l'anagrafica accetta **FC a riposo** e **FC massima**; `fcMaxStimata()` usa la FC max impostata (altrimenti Tanaka dall'età) e la FC riposo dal profilo → **TRIMP** (Banister) più accurato.
+- **Import .FIT**: parser binario `parseFIT` fatto a mano (nessuna dipendenza) per i file **.FIT** di Garmin/orologi GPS, oltre a .TCX/.GPX. Legge il messaggio «session» (durata, distanza, FC media/max, dislivello, sport, data) con fallback sui «record». L'import lo consiglia con un breve testo. NB: validato su FIT sintetico, da collaudare su .fit reale.
+- **Selettore esercizi: preferiti + recenti**: a ricerca vuota mostra in cima **★ Preferiti** e **🕐 Recenti** (da storico+scheda); stellina ☆/★ per ogni esercizio (flag `fav` sul catalogo, persistito).
+- **🍖 Alimentazione**:
+  - **Fase del piano nel tab**: Bulk/Mantenimento/Cut si scelgono coi **bottoni in cima al tab** (rimossa dal Profilo: select anagrafica + card + save line).
+  - **Pasti riordinabili**: frecce **▲▼** accanto al nome del pasto (`spostaPasto` sposta in blocco le righe del pasto mantenendo l'ordine interno).
+  - **Preferiti/recenti alimenti**: stellina ☆/★ (`DOC.alimentazione.fav`, persistito) + **🕐 Recenti** (alimenti già nel piano) in cima al picker a ricerca vuota.
+  - **Ricerca «a parole»** sugli alimenti (`foodMatch`: tutte le parole, anche non contigue, in nome+categoria).
+  - **Fix** «non mi fa digitare il nome del nuovo pasto» (best-effort): guard che evita il re-render del pannello mentre un modale è aperto (non riproducibile in jsdom, come il caso analogo dei Pesi risolto al riavvio).
+**Test**: `npm test` **187/187** (lint + sintassi + jsdom) — verifiche: FC riposo/max in anagrafica + TRIMP, `parseFIT` su buffer sintetico, picker preferiti/recenti esercizi, selettore fase nel tab + cambio fase, riordino pasti, preferiti/recenti/ricerca a parole alimenti, fase rimossa dall'anagrafica. `npm run verifica` OK (artefatti = sorgente).
+**Approvato da**: Marco (richieste esplicite + comando di pubblicazione «pubblichiamo»)
+
 ### 2026-06-16 — TMS v1.0.79: Pesi (Δ TL per set, ＋Esercizio col giorno, riordino) + import rientro in revisione
 
 **Tipo**: UX/raffinamenti tab Pesi + flusso scambio cliente (accumulo dal 2026-06-13; richieste esplicite di Marco)
