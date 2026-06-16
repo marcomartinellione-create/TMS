@@ -337,6 +337,19 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(w.eval('srpeCardio({rpe:6,durata:40})')===240, 'Cardio: sRPE = RPE×min (240 AU)');
   ok(w.eval('trimpCardio({rpe:6,durata:40})')===null, 'Cardio: TRIMP nullo senza FC media');
   ok(typeof w.eval('trimpCardio({durata:40,fcMedia:140})')==='number' && w.eval('trimpCardio({durata:40,fcMedia:140})')>0, 'Cardio: TRIMP calcolato con FC media (FC max da età)');
+  /* cardio più preciso: FC max/riposo dal Profilo (la max impostata ha la precedenza sulla stima) */
+  ok(w.eval('(function(){ DOC.dati_utente.fcMax=190; var v=fcMaxStimata(); DOC.dati_utente.fcMax=""; return v; })()')===190, 'FC max: il valore del Profilo ha la precedenza sulla stima');
+  ok(w.eval('fcMaxStimata()')===w.eval('Math.round(208-0.7*etaOf(DOC.dati_utente))'), 'FC max stimata = Tanaka(età) quando non impostata');
+  { const a=w.eval('trimpCardio({durata:40,fcMedia:140})'); w.eval('DOC.dati_utente.fcRiposo=50;'); const b=w.eval('trimpCardio({durata:40,fcMedia:140})'); w.eval('DOC.dati_utente.fcRiposo="";');
+    ok(typeof a==='number' && typeof b==='number' && a!==b, 'TRIMP cambia con la FC a riposo impostata nel Profilo'); }
+  const _nomeProf = w.eval('(profili.find(p=>p.slug===activeProfile)||{}).nome');
+  w.eval('showTab("profilo"); anagraficaModal();');
+  ok(d.getElementById('m-fcrip')!==null && d.getElementById('m-fcmax')!==null, 'anagrafica: campi FC riposo e FC max presenti');
+  w.eval('document.getElementById("m-fcrip").value="55"; document.getElementById("m-fcmax").value="192";');
+  d.getElementById('m-ok').click();
+  ok(w.eval('DOC.dati_utente.fcRiposo')===55 && w.eval('DOC.dati_utente.fcMax')===192, 'anagrafica: FC riposo/max salvate nel profilo');
+  /* ripristina lo stato toccato dal salvataggio anagrafica (FC + nome profilo) per i test seguenti */
+  w.eval('DOC.dati_utente.fcRiposo=""; DOC.dati_utente.fcMax=""; var p=profili.find(x=>x.slug===activeProfile); if(p)p.nome='+JSON.stringify(_nomeProf)+';');
   w.eval('showTab("cardio")');
   ok(d.getElementById('panel-cardio').innerHTML.includes('sRPE') && d.getElementById('panel-cardio').innerHTML.includes('TRIMP') && d.getElementById('cardio-add')!==null, 'tab Cardio: colonne sRPE/TRIMP + bottone aggiungi');
   const nCard = w.eval('Array.isArray(DOC.cardio)?DOC.cardio.length:0');

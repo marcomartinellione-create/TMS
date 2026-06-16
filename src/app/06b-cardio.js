@@ -34,7 +34,9 @@ function cardioRitmo(s){ const inf=sportInfo(s.tipo);
   return '—'; }
 function cardioList(){ if(!Array.isArray(DOC.cardio)) DOC.cardio=[]; return DOC.cardio; }
 function srpeCardio(s){ return Math.round((+s.rpe||0)*(+s.durata||0)); }
-function fcMaxStimata(){ const e=etaOf(DOC.dati_utente||{}); return e? Math.round(208-0.7*e) : null; }  /* Tanaka 2001 */
+/* FC max da usare nel TRIMP: quella impostata nel Profilo se c'è, altrimenti stimata dall'età (Tanaka 2001) */
+function fcMaxStimata(){ const u=DOC.dati_utente||{}; if(+u.fcMax>0) return +u.fcMax; const e=etaOf(u); return e? Math.round(208-0.7*e) : null; }
+function fcMaxImpostata(){ return +((DOC.dati_utente||{}).fcMax)>0; }
 function fcRiposoUtente(){ return +((DOC.dati_utente||{}).fcRiposo)||60; }
 function trimpCardio(s){
   const fcm=+s.fcMedia||0; if(!fcm) return null;
@@ -78,7 +80,7 @@ function renderCardio(){
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">🏃 ${list.length} attività · settimana ${nfk(cardioWeekAU())} AU</div></div>
      <label class="btn no-print" style="cursor:pointer" title="Importa un file .tcx o .gpx esportato da orologio/fascia (Garmin Connect, Polar Flow, Strava…)">📥 Importa attività<input type="file" id="cardio-imp" accept=".tcx,.gpx,.xml,application/xml,application/gpx+xml" style="display:none"></label>
      <button class="btn btn--ember" id="cardio-add">＋ Aggiungi attività</button></div>
-   <div class="callout callout--info"><div>🫀 Le attività cardio si misurano col <b>carico interno</b>, non con serie/peso. <b>sRPE</b> (Foster) = RPE × minuti. <b>TRIMP</b> (Banister) usa la <b>frequenza cardiaca</b> media e compare quando la inserisci ${fcMaxStimata()?`(FC max stimata ≈ <b>${fcMaxStimata()}</b> bpm dall'età, FC riposo ${fcRiposoUtente()} bpm)`:`(imposta l'età nel Profilo per la FC max stimata)`}. Con <b>📥 Importa attività</b> carichi un file <b>.tcx/.gpx</b> dall'orologio o dalla fascia: durata e FC si compilano da sole.</div></div>
+   <div class="callout callout--info"><div>🫀 Le attività cardio si misurano col <b>carico interno</b>, non con serie/peso. <b>sRPE</b> (Foster) = RPE × minuti. <b>TRIMP</b> (Banister) usa la <b>frequenza cardiaca</b> media e compare quando la inserisci ${fcMaxStimata()?`(FC max ${fcMaxImpostata()?`<b>${fcMaxStimata()}</b> bpm`:`stimata ≈ <b>${fcMaxStimata()}</b> bpm dall'età`}, FC riposo ${fcRiposoUtente()} bpm — impostabili nel Profilo)`:`(imposta età o FC max nel Profilo per il calcolo)`}. Con <b>📥 Importa attività</b> carichi un file <b>.tcx/.gpx</b> dall'orologio o dalla fascia: durata e FC si compilano da sole.</div></div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Data</th><th class="l">Attività</th><th>Min</th><th>RPE</th><th>sRPE (AU)</th><th>km</th><th>Ritmo</th><th>FC media</th><th>TRIMP</th><th title="Dislivello positivo">D+ (m)</th><th class="l">Note</th><th class="no-print"></th></tr></thead>
      <tbody>${rows||'<tr><td colspan="12" class="empty">Nessuna attività cardio registrata. Aggiungine una col bottone ＋.</td></tr>'}</tbody></table></div>`;
   document.getElementById('cardio-add').onclick=()=>cardioModal(-1);

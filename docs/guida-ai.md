@@ -90,8 +90,9 @@ durata (min), fatica RPE (0–10) e, secondo lo sport, distanza, dislivello D+ e
 dislivello; per la bici distanza e velocità; per HIIT/salto corda niente distanza. L'app calcola:
 - **sRPE (Foster)** = RPE × durata in minuti → unità arbitrarie (AU). Sempre disponibile.
 - **TRIMP (Banister)** dalla **frequenza cardiaca** media: compare solo se inserisci la FC
-  media; usa la FC max stimata dall'età (Tanaka: 208 − 0,7×età) e una FC a riposo di 60 bpm
-  di default. La tabella mostra anche il totale sRPE della settimana corrente.
+  media. Per renderlo più preciso, in **👤 Profilo → ✎ Modifica parametri** puoi impostare la
+  **FC a riposo** e la **FC max** (se non le imposti, FC riposo = 60 bpm e FC max stimata
+  dall'età con Tanaka 208 − 0,7×età). La tabella mostra anche il totale sRPE della settimana.
 
 Due modi per registrare una seduta:
 - **Semplice** (manuale): «＋ Aggiungi attività» — scrivi durata e RPE (FC media/max e distanza

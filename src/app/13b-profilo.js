@@ -83,6 +83,9 @@ function anagraficaModal(){
     <label class="optchk" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-top:7px"><input type="checkbox" id="m-userpe" style="width:auto;flex:0 0 auto;margin-top:2px" ${u.useRpe?'checked':''}> <span>Abilita il <b>Session-RPE</b> / carico interno (RPE × durata per giorno · Foster)</span></label></div>
     <div class="field"><label>Formula 1RM stimato</label><select id="m-e1rm"><option value="epley"${(u.e1rm||'epley')==='epley'?' selected':''}>Epley (default)</option><option value="brzycki"${u.e1rm==='brzycki'?' selected':''}>Brzycki</option><option value="lombardi"${u.e1rm==='lombardi'?' selected':''}>Lombardi</option><option value="media"${u.e1rm==='media'?' selected':''}>Media delle 3</option></select></div>
     <div class="field"><label>Fase alimentare</label><select id="m-fase"><option value="bulk"${(u.faseAlim||'bulk')==='bulk'?' selected':''}>Bulk</option><option value="mant"${u.faseAlim==='mant'?' selected':''}>Mantenimento</option><option value="cut"${u.faseAlim==='cut'?' selected':''}>Cut</option></select></div>
+    <div class="field"><label>Cardio · frequenza cardiaca <span class="muted" style="text-transform:none;font-family:var(--font-body)">— migliorano il TRIMP delle attività cardio</span></label>
+      <div class="row" style="margin-top:4px"><div class="field"><label>FC a riposo (bpm)</label><input id="m-fcrip" type="number" min="0" value="${u.fcRiposo??''}" placeholder="60"></div>
+        <div class="field"><label>FC max (bpm) <span class="muted" style="text-transform:none">vuota = stimata</span></label><input id="m-fcmax" type="number" min="0" value="${u.fcMax??''}" placeholder="${(()=>{const e=etaOf(u);return e?Math.round(208-0.7*e):'';})()}"></div></div></div>
     <div class="modal__actions"><button class="btn" onclick="closeModal()">Annulla</button><button class="btn btn--ember" id="m-ok">Salva</button></div>`);
   document.getElementById('m-ok').onclick=()=>{ const nome=document.getElementById('m-nome').value.trim();
     u.nome=nome; u.sesso=document.getElementById('m-sesso').value;
@@ -92,6 +95,8 @@ function anagraficaModal(){
     u.useRpe=document.getElementById('m-userpe').checked;
     u.e1rm=document.getElementById('m-e1rm').value;
     u.faseAlim=document.getElementById('m-fase').value;
+    u.fcRiposo=document.getElementById('m-fcrip').value===''?'':+document.getElementById('m-fcrip').value;
+    u.fcMax=document.getElementById('m-fcmax').value===''?'':+document.getElementById('m-fcmax').value;
     const p=profili.find(x=>x.slug===activeProfile); if(p&&nome)p.nome=nome;
     persist('corpo'); persist('profili'); closeModal(); renderProfilo(); };
 }
