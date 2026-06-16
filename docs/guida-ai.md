@@ -97,12 +97,11 @@ dislivello; per la bici distanza e velocità; per HIIT/salto corda niente distan
 Due modi per registrare una seduta:
 - **Semplice** (manuale): «＋ Aggiungi attività» — scrivi durata e RPE (FC media/max e distanza
   facoltative). Sempre possibile, senza attrezzatura.
-- **Avanzato** (da dispositivo): «📥 Importa attività» — carichi un file **.TCX o .GPX**
+- **Avanzato** (da dispositivo): «📥 Importa attività» — carichi un file **.FIT, .TCX o .GPX**
   esportato da orologio/fascia (Garmin Connect, Polar Flow, Coros, Strava, app per Apple Watch…):
-  l'app legge durata, FC media, FC max e distanza e apre il modulo già compilato (resta solo da
-  aggiungere la fatica RPE). Estrae anche **distanza** e **dislivello D+** (da GPS/altimetro).
-  Tutto in locale, offline, nessun account. Il formato .FIT (binario) non è ancora supportato:
-  esporta in TCX o GPX.
+  l'app legge durata, FC media, FC max, distanza e **dislivello D+** e apre il modulo già
+  compilato (resta solo da aggiungere la fatica RPE). Il **.FIT** è il formato binario nativo
+  Garmin (dal messaggio «session»); .TCX/.GPX sono XML. Tutto in locale, offline, nessun account.
 - **Progressione per sport** (tab 📈 Progressi): in fondo c'è «Cardio · progressione per sport»
   con un selettore; per lo sport scelto mostra l'andamento nel tempo di sRPE, FC media e — dove
   ha senso — distanza, passo (min/km, più basso = meglio) o velocità, dislivello. Così vedi se

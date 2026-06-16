@@ -78,16 +78,19 @@ function renderCardio(){
   document.getElementById('panel-cardio').innerHTML=`
    <div class="bar no-print"><div class="field" style="flex:1"><label>Cardio</label>
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">🏃 ${list.length} attività · settimana ${nfk(cardioWeekAU())} AU</div></div>
-     <label class="btn no-print" style="cursor:pointer" title="Importa un file .tcx o .gpx esportato da orologio/fascia (Garmin Connect, Polar Flow, Strava…)">📥 Importa attività<input type="file" id="cardio-imp" accept=".tcx,.gpx,.xml,application/xml,application/gpx+xml" style="display:none"></label>
+     <label class="btn no-print" style="cursor:pointer" title="Importa un file .fit, .tcx o .gpx esportato da orologio/fascia (Garmin Connect, Polar Flow, Strava…)">📥 Importa attività<input type="file" id="cardio-imp" accept=".fit,.tcx,.gpx,.xml,application/xml,application/gpx+xml,application/fit" style="display:none"></label>
      <button class="btn btn--ember" id="cardio-add">＋ Aggiungi attività</button></div>
-   <div class="callout callout--info"><div>🫀 Le attività cardio si misurano col <b>carico interno</b>, non con serie/peso. <b>sRPE</b> (Foster) = RPE × minuti. <b>TRIMP</b> (Banister) usa la <b>frequenza cardiaca</b> media e compare quando la inserisci ${fcMaxStimata()?`(FC max ${fcMaxImpostata()?`<b>${fcMaxStimata()}</b> bpm`:`stimata ≈ <b>${fcMaxStimata()}</b> bpm dall'età`}, FC riposo ${fcRiposoUtente()} bpm — impostabili nel Profilo)`:`(imposta età o FC max nel Profilo per il calcolo)`}. Con <b>📥 Importa attività</b> carichi un file <b>.tcx/.gpx</b> dall'orologio o dalla fascia: durata e FC si compilano da sole.</div></div>
+   <div class="callout callout--info"><div>🫀 Le attività cardio si misurano col <b>carico interno</b>, non con serie/peso. <b>sRPE</b> (Foster) = RPE × minuti. <b>TRIMP</b> (Banister) usa la <b>frequenza cardiaca</b> media e compare quando la inserisci ${fcMaxStimata()?`(FC max ${fcMaxImpostata()?`<b>${fcMaxStimata()}</b> bpm`:`stimata ≈ <b>${fcMaxStimata()}</b> bpm dall'età`}, FC riposo ${fcRiposoUtente()} bpm — impostabili nel Profilo)`:`(imposta età o FC max nel Profilo per il calcolo)`}. Con <b>📥 Importa attività</b> carichi un file <b>.fit/.tcx/.gpx</b> dall'orologio o dalla fascia: durata, FC, distanza e dislivello si compilano da soli.</div></div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Data</th><th class="l">Attività</th><th>Min</th><th>RPE</th><th>sRPE (AU)</th><th>km</th><th>Ritmo</th><th>FC media</th><th>TRIMP</th><th title="Dislivello positivo">D+ (m)</th><th class="l">Note</th><th class="no-print"></th></tr></thead>
      <tbody>${rows||'<tr><td colspan="12" class="empty">Nessuna attività cardio registrata. Aggiungine una col bottone ＋.</td></tr>'}</tbody></table></div>`;
   document.getElementById('cardio-add').onclick=()=>cardioModal(-1);
   { const imp=document.getElementById('cardio-imp'); if(imp) imp.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; e.target.value='';
-      let txt=''; try{ txt=await f.text(); }catch(err){ alert('File non leggibile.'); return; }
-      const p=parseAttivitaCardio(txt);
-      if(!p){ alert('Non riconosco questo file. Esporta l\'attività come .TCX o .GPX dal tuo dispositivo o app (Garmin Connect, Polar Flow, Strava…) e riprova.'); return; }
+      let p=null;
+      try{
+        if(/\.fit$/i.test(f.name)){ const ab=await f.arrayBuffer(); p=parseFIT(new Uint8Array(ab)); }
+        else { p=parseAttivitaCardio(await f.text()); }
+      }catch(err){ logErrore('importCardio', err); }
+      if(!p){ alert('Non riconosco questo file. Esporta l\'attività come .FIT, .TCX o .GPX dal tuo dispositivo o app (Garmin Connect, Polar Flow, Strava…) e riprova.'); return; }
       cardioModal(-1, p); }; }
   document.querySelectorAll('#panel-cardio [data-ced]').forEach(b=>b.onclick=()=>cardioModal(+b.dataset.ced));
   document.querySelectorAll('#panel-cardio [data-cdel]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.cdel, s=cardioList()[i];
@@ -171,6 +174,63 @@ function parseAttivitaCardio(text){
   const fcMedia= hrs.length? Math.round(hrs.reduce((a,b)=>a+b,0)/hrs.length):'';
   const fcMax= hrs.length? hrs.reduce((a,b)=>Math.max(a,b),0):'';
   return {data:data, tipo:tipo||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:fcMax, note:'importata da file'};
+}
+/* ── Parser minimale del formato binario .FIT (Garmin), senza dipendenze. Estrae il messaggio
+   «session» (durata, distanza, FC media/max, dislivello, sport, data); fallback sui «record».
+   buf = Uint8Array. Riferimento: FIT SDK (header 12/14 byte, definition/data messages). ── */
+const _FIT_SPORT={1:'Corsa',2:'Bici',5:'Nuoto',11:'Camminata veloce',12:'Sci di fondo',15:'Vogatore',17:'Camminata veloce'};
+function parseFIT(buf){
+  try{
+    if(!buf || buf.length<14) return null;
+    if(!(buf[8]===0x2E && buf[9]===0x46 && buf[10]===0x49 && buf[11]===0x54)) return null;  /* firma ".FIT" */
+    const hs=buf[0], dataSize=buf[4]+buf[5]*256+buf[6]*65536+buf[7]*16777216;
+    const end=(dataSize>0 && hs+dataSize<=buf.length)? hs+dataSize : buf.length-2;
+    const rd=(p,sz,le)=>{ let v=0; if(le){ for(let i=0;i<sz;i++) v+=buf[p+i]*Math.pow(256,i); } else { for(let i=0;i<sz;i++) v=v*256+buf[p+i]; }
+      const inv= sz===1?0xFF: sz===2?0xFFFF: sz===4?0xFFFFFFFF: -1; return v===inv? null : v; };
+    const defs={}, S={}, R={hrSum:0,hrN:0,hrMax:0,distMax:null,eles:[]};
+    let pos=hs;
+    while(pos<end){
+      const rh=buf[pos++]; if(rh==null) break;
+      let lt, isData=true;
+      if(rh & 0x80){ lt=(rh>>5)&0x3; }                 /* header con timestamp compresso = dato */
+      else if(rh & 0x40){                              /* definition message */
+        const le=buf[pos+1]===0, g= le? buf[pos+2]+buf[pos+3]*256 : buf[pos+2]*256+buf[pos+3], nf=buf[pos+4];
+        let p=pos+5; const fields=[];
+        for(let i=0;i<nf;i++){ fields.push({num:buf[p],size:buf[p+1]}); p+=3; }
+        let devSize=0; if(rh & 0x20){ const nd=buf[p++]; for(let i=0;i<nd;i++){ devSize+=buf[p+1]; p+=3; } }
+        defs[rh & 0x0F]={le,g,fields,devSize}; pos=p; isData=false;
+      } else { lt=rh & 0x0F; }
+      if(isData){
+        const def=defs[lt]; if(!def) break;
+        for(const f of def.fields){ const val=f.size<=4? rd(pos,f.size,def.le):null; pos+=f.size;
+          if(def.g===18){       /* session */
+            if(f.num===8&&val!=null)S.timer=val; else if(f.num===7&&val!=null)S.elapsed=val;
+            else if(f.num===9&&val!=null)S.dist=val; else if(f.num===16&&val!=null)S.avgHr=val;
+            else if(f.num===17&&val!=null)S.maxHr=val; else if(f.num===22&&val!=null)S.ascent=val;
+            else if(f.num===5&&val!=null)S.sport=val; else if(f.num===2&&val!=null)S.start=val;
+          } else if(def.g===20){ /* record (fallback) */
+            if(f.num===3&&val!=null&&val<255){ R.hrSum+=val; R.hrN++; if(val>R.hrMax)R.hrMax=val; }
+            else if(f.num===5&&val!=null){ if(R.distMax==null||val>R.distMax) R.distMax=val; }
+            else if((f.num===2||f.num===78)&&val!=null) R.eles.push(val);
+          }
+        }
+        pos+=def.devSize;
+      }
+    }
+    const secs= S.timer!=null? S.timer/1000 : (S.elapsed!=null? S.elapsed/1000 : null);
+    const durata= secs? Math.round(secs/60) : '';
+    const metersRaw= S.dist!=null? S.dist : R.distMax;
+    const meters= metersRaw!=null? metersRaw/100 : null;
+    const distanza= meters? Math.round(meters/100)/10 : '';
+    const fcMedia= S.avgHr!=null? S.avgHr : (R.hrN? Math.round(R.hrSum/R.hrN):'');
+    const fcMax= S.maxHr!=null? S.maxHr : (R.hrMax||'');
+    let quota= S.ascent!=null? S.ascent : '';
+    if(quota===''&&R.eles.length>1){ let up=0; for(let i=1;i<R.eles.length;i++){ const d=(R.eles[i]-R.eles[i-1])/5; if(d>0.5) up+=d; } if(up>0) quota=Math.round(up); }
+    if(!fcMedia && !durata) return null;
+    let data=new Date().toISOString().slice(0,10);
+    if(S.start!=null){ const t=(S.start+631065600)*1000; if(isFinite(t)) data=new Date(t).toISOString().slice(0,10); }
+    return {data:data, tipo:_FIT_SPORT[S.sport]||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:fcMax, note:'importata da file FIT'};
+  }catch(e){ logErrore('parseFIT', e); return null; }
 }
 
 /* ── Progressi cardio per sport (in renderProgressi): scegli lo sport e vedi l'andamento

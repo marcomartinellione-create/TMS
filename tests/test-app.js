@@ -373,6 +373,19 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('window.__gpx='+JSON.stringify(gpx));
   { const g=w.eval('parseAttivitaCardio(window.__gpx)'); ok(g&&g.tipo==='Bici'&&g.durata===20&&g.fcMedia===130&&g.fcMax===140, 'import GPX: tipo/durata/FC dalla traccia hr'); }
   ok(w.eval('parseAttivitaCardio("<x>non valido</x>")')===null, 'import: file non-attività → null (errore chiaro all\'utente)');
+  /* import .FIT (binario Garmin): costruisco un mini file FIT con un messaggio «session» */
+  {
+    const u32=v=>[v&0xFF,(v>>>8)&0xFF,(v>>>16)&0xFF,(v>>>24)&0xFF], u16=v=>[v&0xFF,(v>>>8)&0xFF];
+    const fitTs=Math.floor(Date.parse('2026-06-12T08:00:00Z')/1000)-631065600;
+    const def=[0x40,0x00,0x00,0x12,0x00,0x07, 8,4,0x86, 9,4,0x86, 16,1,0x02, 17,1,0x02, 22,2,0x84, 5,1,0x00, 2,4,0x86];
+    const data=[0x00].concat(u32(2400*1000)).concat(u32(8000*100)).concat([150,170]).concat(u16(60)).concat([1]).concat(u32(fitTs));
+    const body=def.concat(data);
+    const header=[12,0x10,0,0].concat(u32(body.length)).concat([0x2E,0x46,0x49,0x54]);
+    dom.window.__fit=new Uint8Array(header.concat(body).concat([0,0]));
+    const p=w.eval('parseFIT(window.__fit)');
+    ok(p && p.tipo==='Corsa' && p.durata===40 && p.distanza===8 && p.fcMedia===150 && p.fcMax===170 && p.quota===60 && p.data==='2026-06-12', 'import FIT: messaggio session estratto (durata/distanza/FC/D+/sport/data)');
+  }
+  ok(w.eval('parseFIT(new Uint8Array([1,2,3]))')===null, 'import FIT: file non valido → null');
   w.eval('showTab("cardio")');
   ok(d.getElementById('cardio-imp')!==null, 'tab Cardio: input per importare .tcx/.gpx');
   w.eval('cardioModal(-1, parseAttivitaCardio(window.__tcx))');
