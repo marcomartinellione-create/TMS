@@ -78,7 +78,9 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
 - Scheda **settimanale** (e vista mensile). Si aggiungono Giorni; in ogni giorno righe
   esercizio. Per scegliere l'esercizio si tocca la cella «＋ scegli esercizio»: si apre
   un **selettore in sovraimpressione con barra di ricerca e lista per categoria** (si
-  digita il nome o si scorre per gruppo muscolare; Invio sceglie il primo risultato).
+  digita il nome o si scorre per gruppo muscolare; Invio sceglie il primo risultato). A
+  ricerca vuota, in cima ci sono i **★ Preferiti** e i **🕐 Recenti** (gli esercizi usati di
+  recente); la stellina ☆/★ accanto a ogni esercizio lo aggiunge/toglie dai preferiti.
   Campi per riga: Serie, Ripetizioni, Peso, RIR (opzionale), Note, recupero. Obbligatori
   solo esercizio/serie/ripetizioni/peso.
 

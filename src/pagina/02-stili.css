@@ -138,10 +138,13 @@ button{font-family:inherit; cursor:pointer}
 .exp-grp{font-family:var(--font-disp); color:var(--ember-2); font-size:13px; padding:8px 12px 3px; border-top:1px solid var(--border)}
 .exp-grp:first-child{border-top:0}
 .exp-sub{font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-3); padding:5px 12px 1px}
-.exp-it{display:block; width:100%; text-align:left; background:none; border:0; border-top:1px solid var(--border); padding:7px 12px; cursor:pointer; font:inherit; font-size:13px; color:var(--ink)}
+.exp-it{display:flex; align-items:center; gap:6px; width:100%; text-align:left; background:none; border:0; border-top:1px solid var(--border); padding:7px 12px; cursor:pointer; font:inherit; font-size:13px; color:var(--ink)}
 .exp-it:hover,.exp-it:focus{background:var(--gold-t); outline:none}
 .exp-it.sel{background:var(--gold-t); font-weight:600}
 .exp-it .muted{font-size:11px}
+.exp-star{border:0; background:none; cursor:pointer; font-size:14px; line-height:1; padding:0 2px; color:var(--border); flex:0 0 auto}
+.exp-star.on{color:var(--gold)}
+.exp-star:hover{color:var(--gold-2)}
 
 /* ── CARDS ── */
 .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:6px 0 4px}

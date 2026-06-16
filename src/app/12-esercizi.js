@@ -187,23 +187,41 @@ function renderEsercizi(){
       tendina): barra di ricerca + lista per categoria, come nel tab Esercizi. La ricerca
       aggiorna SOLO la lista (l'input resta vivo: niente cursore che salta). onPick riceve
       il nome scelto, oppure '' se si svuota. ── */
+/* esercizi usati di recente: prima quelli della scheda corrente, poi lo storico dalle
+   settimane più recenti (nomi distinti) — per i «Recenti» in cima al picker. */
+function exRecentiNomi(){
+  const seen=new Set(), out=[];
+  ((DOC.scheda&&DOC.scheda.settimanale)||[]).forEach(r=>{ const n=String((r&&r.esercizio)||'').trim(); if(n&&!seen.has(n)){ seen.add(n); out.push(n); } });
+  (DOC.storico||[]).slice().sort((a,b)=>(+b.scheda||0)-(+a.scheda||0)).forEach(r=>{ const n=String((r&&r.esercizio)||'').trim(); if(n&&!seen.has(n)){ seen.add(n); out.push(n); } });
+  return out;
+}
 function pickExercise(current, onPick, filtro){
   current=String(current||'').trim();
   const gi=g=>{const i=GRUPPI.indexOf(g);return i<0?99:i;};
   const so=s=>s==='Varie'?'zzz':s.toLowerCase();
-  function righe(q){
-    q=(q||'').trim().toLowerCase();
-    const list=(DOC.esercizi||[]).filter(e=>(!filtro||filtro(e))&&exMatch(e,q));
-    list.sort((a,b)=>{const ga=a.macro||a.gruppo||'',gb=b.macro||b.gruppo||'';return gi(ga)-gi(gb)||ga.localeCompare(gb)||so(sottoOf(a)).localeCompare(so(sottoOf(b)))||String(a.nome).localeCompare(String(b.nome));});
-    if(!list.length) return '<div class="muted" style="padding:16px;text-align:center">Nessun esercizio per «'+esc(q)+'».</div>';
+  const itemHtml=e=>{ const sel=String(e.nome).trim()===current, fav=!!e.fav;
+    return '<div class="exp-it'+(sel?' sel':'')+'" data-nome="'+esc(e.nome)+'">'+
+      '<button type="button" class="exp-star'+(fav?' on':'')+'" data-fav="'+esc(e.nome)+'" title="'+(fav?'togli dai preferiti':'aggiungi ai preferiti')+'">'+(fav?'★':'☆')+'</button>'+
+      '<span style="flex:1">'+(sel?'✓ ':'')+esc(e.nome)+(e.target?' <span class="muted">· '+esc(e.target)+'</span>':'')+'</span></div>'; };
+  const catalogo=list=>{ const arr=list.slice().sort((a,b)=>{const ga=a.macro||a.gruppo||'',gb=b.macro||b.gruppo||'';return gi(ga)-gi(gb)||ga.localeCompare(gb)||so(sottoOf(a)).localeCompare(so(sottoOf(b)))||String(a.nome).localeCompare(String(b.nome));});
     let html='',lastG=null,lastS=null;
-    list.forEach(e=>{ const g=e.macro||e.gruppo||'Altro';
+    arr.forEach(e=>{ const g=e.macro||e.gruppo||'Altro';
       if(g!==lastG){lastG=g;lastS=null; html+='<div class="exp-grp">▌ '+esc(g)+'</div>';}
       const s=sottoOf(e); if(s!==lastS){lastS=s; html+='<div class="exp-sub">'+esc(s)+'</div>';}
-      const sel=String(e.nome).trim()===current;
-      html+='<button type="button" class="exp-it'+(sel?' sel':'')+'" data-nome="'+esc(e.nome)+'">'+(sel?'✓ ':'')+esc(e.nome)+(e.target?' <span class="muted">· '+esc(e.target)+'</span>':'')+'</button>';
-    });
-    return html;
+      html+=itemHtml(e); });
+    return html; };
+  function righe(q){
+    q=(q||'').trim().toLowerCase();
+    const all=(DOC.esercizi||[]).filter(e=>(!filtro||filtro(e)));
+    if(q){ const list=all.filter(e=>exMatch(e,q));
+      return list.length? catalogo(list) : '<div class="muted" style="padding:16px;text-align:center">Nessun esercizio per «'+esc(q)+'».</div>'; }
+    /* query vuota: preferiti + recenti in cima, poi tutto il catalogo */
+    let html=''; const favSet=new Set();
+    const fav=all.filter(e=>e.fav).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
+    if(fav.length){ html+='<div class="exp-grp">★ Preferiti</div>'; fav.forEach(e=>{ favSet.add(e.nome); html+=itemHtml(e); }); }
+    const rec=[]; exRecentiNomi().forEach(n=>{ if(rec.length>=10)return; const e=esLookup(n); if(e&&(!filtro||filtro(e))&&!favSet.has(n)) rec.push(e); });
+    if(rec.length){ html+='<div class="exp-grp">🕐 Recenti</div>'; rec.forEach(e=>html+=itemHtml(e)); }
+    return html+catalogo(all);
   }
   modal('<h3>Scegli esercizio</h3>'+
     '<div class="field" style="margin:6px 0"><input id="exp-q" placeholder="cerca per nome, muscolo, gruppo…" autocomplete="off" style="width:100%"></div>'+
@@ -211,7 +229,10 @@ function pickExercise(current, onPick, filtro){
     '<div class="modal__actions">'+(current?'<button class="btn btn--danger" id="exp-clear" style="margin-right:auto">Svuota</button>':'')+'<button class="btn" onclick="closeModal()">Annulla</button></div>');
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='640px';
   const q=document.getElementById('exp-q'), listEl=document.getElementById('exp-list');
-  const bind=()=>listEl.querySelectorAll('.exp-it').forEach(b=>b.onclick=()=>{ closeModal(); onPick(b.dataset.nome); });
+  const bind=()=>{
+    listEl.querySelectorAll('.exp-it').forEach(b=>b.onclick=()=>{ closeModal(); onPick(b.dataset.nome); });
+    listEl.querySelectorAll('.exp-star').forEach(s=>s.onclick=ev=>{ ev.stopPropagation(); const e=esLookup(s.dataset.fav); if(e){ e.fav=!e.fav; persist('esercizi'); const y=listEl.scrollTop; listEl.innerHTML=righe(q.value); bind(); listEl.scrollTop=y; } });
+  };
   bind();
   q.oninput=()=>{ listEl.innerHTML=righe(q.value); bind(); };  /* solo la lista: l'input non si ricrea */
   q.onkeydown=e=>{ if(e.key==='Enter'){ const f=listEl.querySelector('.exp-it'); if(f){ e.preventDefault(); closeModal(); onPick(f.dataset.nome); } } };

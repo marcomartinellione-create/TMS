@@ -319,6 +319,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok([...d.querySelectorAll('#exp-list .exp-it')].some(b=>/Panca piana con bilanciere/i.test(b.dataset.nome)), 'picker esercizi: ricerca a parole trova «Panca piana con bilanciere» da «panca piana bilanciere»');
   d.querySelector('#exp-list .exp-it').click();
   ok(typeof w.eval('window.__pick')==='string' && w.eval('window.__pick').length>0 && d.getElementById('modal-bk').classList.contains('hidden'), 'picker esercizi: clic seleziona, richiama onPick e chiude il modale');
+  /* picker: preferiti + recenti (a query vuota) e stellina che aggiunge/toglie dai preferiti */
+  w.eval('pickExercise("", function(){});');
+  ok(d.getElementById('exp-list').innerHTML.includes('🕐 Recenti'), 'picker: gruppo «Recenti» a query vuota (dallo storico)');
+  { const star=d.querySelector('#exp-list .exp-star'), nome=star.dataset.fav; star.click();
+    ok(w.eval('!!(esLookup('+JSON.stringify(nome)+')||{}).fav'), 'picker: la stellina aggiunge l\'esercizio ai preferiti (su catalogo)');
+    ok(d.getElementById('exp-list').innerHTML.includes('★ Preferiti'), 'picker: l\'esercizio compare nel gruppo «Preferiti»');
+    const on=d.querySelector('#exp-list .exp-star.on'); if(on) on.click();
+    ok(!w.eval('!!(esLookup('+JSON.stringify(nome)+')||{}).fav'), 'picker: ri-cliccando la stellina si toglie dai preferiti'); }
+  w.eval('closeModal()');
   /* il picker dei Pesi esclude le attività cardio (filtro e=>!isCardio(e)) */
   ok(w.eval('isCardio({macro:"Cardio"})')===true && w.eval('isCardio({categoria:"cardio"})')===true && w.eval('isCardio({macro:"Pettorali"})')===false, 'isCardio: riconosce gruppo/categoria cardio');
   w.eval('pickExercise("", function(){}, function(e){ return !isCardio(e); });');
