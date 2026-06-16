@@ -7,10 +7,8 @@ function rm1(peso,rip){ peso=+peso||0; rip=+rip||0; if(peso<=0||rip<=0) return 0
   const f=e1rmFormula();
   if(f==='brzycki') return br; if(f==='lombardi') return lo; if(f==='media') return (ep+br+lo)/3; return ep; }
 function pct1rm(peso,rip){ const m=rm1(peso,rip); return m>0? (peso/m)*100:0; }
-function tl(serie,rip,peso,nome){
-  serie=+serie||0; rip=+rip||0; peso=+peso||0;
-  const p=pct1rm(peso,rip); return serie*rip*peso*(p/100)*fattore(nome);
-}
+/* nota: il Training Load (TL) si calcola con sTL(r) (RIR-aware via effRip); la vecchia
+   tl(serie,rip,peso,nome) non-effort-aware è stata rimossa perché inutilizzata. */
 function fascia(p){
   if(p>=90)return['Forza','f-forza']; if(p>=80)return['Forza+Iper','f-ipf'];
   if(p>=70)return['Ipertrofia','f-iper']; if(p>=60)return['Resistenza','f-res'];

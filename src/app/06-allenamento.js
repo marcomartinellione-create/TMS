@@ -121,7 +121,7 @@ function renderAllenamento(){
   updateStatusDots();
   document.querySelectorAll('.note-area').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
 }
-let rerenderT=null; function scheduleRerender(){ clearTimeout(rerenderT); rerenderT=setTimeout(renderAllenamento,500); }
+let rerenderT=null; /* timer condiviso del re-render ritardato (usato da Pesi e Alimentazione) */
 function weekPrev(code){ let a=Math.floor(code/100), s=code%100; return s>1? a*100+(s-1) : (a-1)*100+52; }
 function aggStatus(arr){ const codes=(arr||[]).map(r=>+r.scheda||0).filter(x=>x>0);
   const last=codes.length?Math.max(...codes):0; const w=isoWeek(new Date()); const cur=schedaCode(w.anno,w.sett); const prev=weekPrev(cur);

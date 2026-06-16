@@ -54,9 +54,7 @@ function renderProgressi(){
   const ag=schedeAggr();
   if(!ag.length){ document.getElementById('panel-progressi').innerHTML='<div class="empty">Nessuna scheda salvata: salvane almeno una per vedere i progressi.</div>'; return; }
   const labels=ag.map(a=>schedaLabel(a.scheda));
-  const last=ag[ag.length-1], prev=ag.length>1?ag[ag.length-2]:null;
-  const dTL=prev&&prev.tl?(last.tl/prev.tl-1)*100:0;
-  const lastPct=last.pctN?last.pctSum/last.pctN:0;
+  const last=ag[ag.length-1];
   const grpColors={Gambe:'#c2500a',Pettorali:'#d4a017',Schiena:'#2f7d4f',Spalle:'#7a3ea8',Braccia:'#b8860b',Core:'#991b1b',Altro:'#7a6a50'};
   const mavg=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); return w.reduce((s,x)=>s+x.tl,0)/w.length; });
   const acwr=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; return c? a.tl/c:null; });
@@ -75,7 +73,6 @@ function renderProgressi(){
   const exs=exerciseList(); if(progEx==null||!exs.includes(progEx)) progEx=exs[0]||'';
   const prog=exProgression(progEx); const plab=prog.map(p=>schedaLabel(p.scheda));
   const exSeries=[{name:'1RM stimato',color:'var(--orange-b)',data:prog.map((p,i)=>({x:plab[i],y:p.rm||null}))},{name:'Peso max',color:'var(--violet)',data:prog.map((p,i)=>({x:plab[i],y:p.peso||null}))}];
-  const prs=prList().slice(0,15);
   const plats=plateauList();
   /* Foster — carico interno settimanale, allineato ai codici-settimana dello storico esterno */
   const rpw=rpeByWeek();
