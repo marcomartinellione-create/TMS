@@ -105,6 +105,15 @@ function load(opts){
   }).then(dom => ({ dom, errors }));
 }
 const settle = ms => new Promise(r => setTimeout(r, ms||600));
+/* attende che l'avvio desktop completi davvero (connessione shim + prima scrittura),
+   invece di un'attesa fissa: il runner CI è lento e l'app è grande, 600ms non bastano. */
+async function settleConnect(dom, fsmem){
+  const w = dom.window;
+  const pronto = () => { try { return fsmem._files.has('TMS_Dati/profili.json') &&
+    !!w.eval('typeof dirHandle!=="undefined" && dirHandle && dirHandle._local'); } catch(e){ return false; } };
+  for (let k=0; k<100 && !pronto(); k++) await settle(100);  /* fino a ~10s */
+  await settle(200);
+}
 
 (async () => {
 
@@ -116,7 +125,7 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   const idb = makeIDB(stale.handle);
   const fsmem = makeTmsFS();
   const { dom, errors } = await load({ idb, tmsFS: fsmem, fsa: true });
-  await settle();
+  await settleConnect(dom, fsmem);
   const w = dom.window, d = w.document;
   ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   ok(w.eval('APP_VERSION') === VERSIONE, 'APP_VERSION coerente con il sorgente');
@@ -470,7 +479,7 @@ console.log('--- T1c: video predefiniti/personali (toggle, override, scrittura b
   fsmem._files.set('database/video/demo.mp4', 'PREDEFINITO');
   fsmem._files.set('database/video/altro.mp4', 'PREDEFINITO2');
   const { dom, errors } = await load({ idb, tmsFS: fsmem, fsa: true });
-  await settle();
+  await settleConnect(dom, fsmem);
   const w = dom.window;
   ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   w.eval('localStorage.setItem("tms-video-pers","0")');
@@ -498,7 +507,7 @@ console.log('--- T2: desktop, nessun handle salvato ---');
   const idb = makeIDB(null);
   const fsmem = makeTmsFS();
   const { dom, errors } = await load({ idb, tmsFS: fsmem, fsa: true });
-  await settle();
+  await settleConnect(dom, fsmem);
   const w = dom.window, d = w.document;
   ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   ok(d.getElementById('overlay').classList.contains('hidden'), 'auto-connessione senza gate');
