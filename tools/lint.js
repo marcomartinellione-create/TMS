@@ -19,7 +19,14 @@ const ROOT = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'manifest.json'), 'utf8'));
 
 const parti = manifest.parti.filter(p => p.endsWith('.js') && p !== 'lib/html2canvas.min.js');
-let codice = '';
+// `no-unused-vars` non "vede" i simboli usati SOLO da stringhe (handler onclick="..."
+// nel markup) o dagli strumenti di release: li dichiariamo esportati così la regola può
+// restare un ERRORE che blocca il codice morto VERO senza falsi positivi.
+//  - RELEASE_NOTE        → usata dal rituale di release / README (non dal runtime JS)
+//  - printReport         → richiamata da onclick="printReport()" nel markup del Report
+//  - exportDigitalReport → richiamata da onclick="exportDigitalReport()" nel markup del Report
+// (la riga della direttiva conta come riga 1 del concatenato: la mappa righe ne tiene conto)
+let codice = '/* exported RELEASE_NOTE, printReport, exportDigitalReport */\n';
 const mappa = [];   // { parte, daRiga (1-based nel concatenato), righe }
 for (const p of parti) {
   const testo = fs.readFileSync(path.join(ROOT, 'src', p), 'utf8');
@@ -52,6 +59,11 @@ function rimappa(riga) {
         'no-dupe-keys': 'error',
         'no-dupe-args': 'error',
         'no-unreachable': 'error',
+        // blocca il codice morto futuro: variabili/funzioni dichiarate e mai usate.
+        //  args:'none'         → molti parametri di callback sono volutamente inusati
+        //  caughtErrors:'none' → i catch(e){} che ignorano l'errore di proposito
+        //  varsIgnorePattern   → scarti volutamente inusati con nome che inizia per _
+        'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', varsIgnorePattern: '^_' }],
       },
     },
   });
