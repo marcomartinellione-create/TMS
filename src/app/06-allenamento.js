@@ -38,8 +38,10 @@ function renderAllenamento(){
       const ix=setIdx[bk]||0; setIdx[bk]=ix+1; const pv=prevSets[ix]||0; if(pv>0) dperc=t/pv-1; }
     const [fl,fc]=fascia(p);
     const sdBadge=(r.esercizio && sd>1 && firstOfBlock)? ` <span class="pill" style="padding:0 6px" title="Seduta ${sd} della settimana (auto)">S${sd}</span>`:'';
+    const canUp=i>0 && rows[i-1] && rows[i-1].giorno===r.giorno, canDown=i<rows.length-1 && rows[i+1] && rows[i+1].giorno===r.giorno;
     body+=`<tr data-i="${i}"${r.test?' style="background:rgba(122,62,168,.07)"':''}>
-      <td class="l"><button type="button" class="cell-in txt ex-pick" style="min-width:170px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(r.esercizio):'<span class="muted">＋ scegli esercizio</span>'} <span style="opacity:.5">▾</span></button>${sdBadge}${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="Guarda il video">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<div class="muted" style="font-size:10px;line-height:1.2" title="ultima registrazione (scheda ${lp.scheda})">ult: ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</div>`:'';})()}</td>
+      <td class="l"><button type="button" class="cell-in txt ex-pick" style="min-width:170px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(r.esercizio):'<span class="muted">＋ scegli esercizio</span>'} <span style="opacity:.5">▾</span></button>${sdBadge}
+        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="Guarda il video">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="ultima registrazione (scheda ${lp.scheda})">ult: ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}<span style="flex:1"></span><button class="btn btn--sm no-print" data-mvup="${i}" title="sposta su (nel giorno)"${canUp?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="sposta giù (nel giorno)"${canDown?'':' disabled'}>▼</button></div></td>
       <td class="l"><textarea class="cell-in txt note-area" data-f="note" placeholder="note" style="min-width:90px">${esc(r.note||'')}</textarea></td>
       <td><input class="cell-in" type="number" min="0" value="${r.serie??''}" data-f="serie" style="width:48px"></td>
       <td><input class="cell-in" type="number" min="0" value="${r.rip??''}" data-f="rip" style="width:52px"></td>
@@ -51,7 +53,6 @@ function renderAllenamento(){
       <td class="cell-out num">${t?nfk(t):'—'}</td>
       <td class="num ${dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'}" title="Δ TL del set vs il set di pari posizione della scorsa scheda">${dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'}</td>
       <td style="white-space:nowrap"><span class="fascia ${fc}">${fl}</span>
-        <button class="btn btn--sm no-print" data-mvup="${i}" title="sposta su (nel giorno)"${(i>0&&rows[i-1]&&rows[i-1].giorno===r.giorno)?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="sposta giù (nel giorno)"${(i<rows.length-1&&rows[i+1]&&rows[i+1].giorno===r.giorno)?'':' disabled'}>▼</button>
         <button class="btn btn--sm no-print" data-set="${i}" title="aggiungi un set a questo esercizio">＋set</button>
         <button class="btn btn--sm no-print" data-test="${i}" title="segna/togli test 1RM (escluso dalla progressione)" style="${r.test?'color:var(--violet);border-color:var(--violet)':''}">★</button>
         <button class="btn btn--sm btn--danger no-print" data-del="${i}" title="elimina">✕</button></td>
