@@ -449,9 +449,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const schedaHtml = w.eval('costruisciSchedaCliente({})');
   ok(schedaHtml.length > 5000 && schedaHtml.includes('Crea il file per il trainer') && schedaHtml.includes('tms-rientro') && schedaHtml.includes('id="s-0"') && schedaHtml.includes('Atleta Template'), 'export scheda cliente: HTML autonomo con input e meta profilo');
   /* ottimizzazione vista smartphone: media query + etichette dei campi (tabella→scheda per esercizio) */
-  ok(schedaHtml.includes('@media (max-width:640px)') && schedaHtml.includes('data-label="Serie"') && schedaHtml.includes('data-label="Peso (kg)"') && schedaHtml.includes('inputmode='), 'export scheda cliente: ottimizzato per smartphone (responsive + etichette + tastiera numerica)');
-  /* layout COMPATTO su telefono: campi numerici in griglia 2 colonne (meno scroll con tanti esercizi) + Note a tutta larghezza */
-  ok(schedaHtml.includes('grid-template-columns:1fr 1fr') && schedaHtml.includes('note-cell'), 'export scheda cliente: layout mobile compatto (campi su 2 colonne, Note full-width)');
+  /* navigazione a due schermate: prima «Seleziona il giorno» (una card per giorno), poi la pagina del giorno */
+  ok(schedaHtml.includes('Seleziona il giorno') && schedaHtml.includes('class="day-card"') && schedaHtml.includes('data-go=') && schedaHtml.includes('class="day-page"') && schedaHtml.includes('data-back'), 'export scheda cliente: navigazione a due schermate (lista giorni → giorno)');
+  /* mobile-first, campi su una sola colonna (mai larghi) + tastiera numerica + font 16px (anti-zoom iOS) */
+  ok(schedaHtml.includes('inputmode=') && schedaHtml.includes('font-size:16px') && schedaHtml.includes('function mostra('), 'export scheda cliente: campi su una colonna + tastiera numerica + font 16px');
   /* bozza autosalvata nella pagina del cliente (soluzione offline, richiesta Marco 2026-06-13):
      la pagina generata viene caricata in un jsdom dedicato come farebbe il cliente */
   const bozzaKey = 'tms-bozza-template-' + new Date().toISOString().slice(0, 10);

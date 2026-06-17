@@ -23,82 +23,95 @@ function costruisciSchedaCliente(videoMap){
     profilo:{slug:activeProfile, nome:profNome()}, esportata:oggi};
   const js=o=>JSON.stringify(o).replace(/</g,'\\u003c');
 
-  let corpo='';
+  /* HOME = schermata «Seleziona il giorno» con una card per ogni giorno della scheda */
+  let home=`<div id="home"><div class="pick-title">📋 Seleziona il giorno da compilare</div><div class="days">`;
+  giorni.forEach((g,gi)=>{ const cnt=rows.filter(r=>r.giorno===g).length;
+    home+=`<button type="button" class="day-card" data-go="${gi}">`+
+      `<span class="day-l"><span class="day-name">${esc(g)}</span><span class="day-meta">${cnt} eserciz${cnt===1?'io':'i'}</span></span>`+
+      `<span class="day-r"><span class="day-done" id="stato-${gi}"></span><span class="chev">›</span></span></button>`;
+  });
+  home+=`</div><div id="bozza-stato"></div>`+
+    `<button type="button" class="invia" id="invia">📩 Crea il file per il trainer</button>`+
+    `<div class="fine">Quando hai compilato i giorni torna qui e premi il bottone: si scarica un file <b>Rientro_*.json</b> da rimandare al trainer. La bozza resta salvata su questo dispositivo anche dopo l'invio.</div></div>`;
+
+  /* una PAGINA-GIORNO per ciascun giorno: visibile una alla volta, campi su una sola colonna */
+  let pagine='';
   giorni.forEach((g,gi)=>{
     const dayRows=rows.filter(r=>r.giorno===g);
-    corpo+=`<div class="giorno"><h2>▌ ${esc(g)}</h2><table><thead><tr><th class="l">Esercizio</th><th class="l">Previsto</th><th>Serie</th><th>Rip</th><th>Peso kg</th><th>RIR</th><th class="l">Note</th></tr></thead><tbody>`;
+    let exs='';
     dayRows.forEach(r=>{
       const prev=`${r.serie}×${r.rip} @${r.peso} kg${r.rir!=null?(' · RIR '+r.rir):''}${r.rest?(' · rest '+esc(r.rest)):''}`;
-      const vb=(r.video&&videoMap[r.video])?`<button type="button" class="vbtn" data-v="${esc(r.video)}" title="Guarda il video">▶</button>`:'';
-      corpo+=`<tr><td class="l ex">${esc(r.esercizio)}${vb}${r.note?`<div class="hint">${esc(r.note)}</div>`:''}</td><td class="l prev" data-label="Previsto">${prev}</td>`+
-        `<td class="fld" data-label="Serie"><input id="s-${r.i}" type="number" inputmode="numeric" min="0" step="1" value="${r.serie||''}"></td>`+
-        `<td class="fld" data-label="Ripetizioni"><input id="r-${r.i}" type="number" inputmode="numeric" min="0" step="1" value="${r.rip||''}"></td>`+
-        `<td class="fld" data-label="Peso (kg)"><input id="p-${r.i}" type="number" inputmode="decimal" min="0" step="0.5" value="${r.peso||''}"></td>`+
-        `<td class="fld" data-label="RIR"><input id="rir-${r.i}" type="number" inputmode="numeric" min="0" max="9" step="1" value="${r.rir==null?'':r.rir}" placeholder="–"></td>`+
-        `<td class="l fld note-cell" data-label="Note"><input id="n-${r.i}" type="text" class="nota" placeholder="com'è andata?"></td></tr>`;
+      const vb=(r.video&&videoMap[r.video])?`<button type="button" class="vbtn" data-v="${esc(r.video)}" title="Guarda il video">▶ video</button>`:'';
+      exs+=`<div class="ex"><div class="ex-top"><span class="ex-name">${esc(r.esercizio)}</span>${vb}</div>`+
+        (r.note?`<div class="ex-coach">${esc(r.note)}</div>`:'')+
+        `<div class="ex-prev"><b>Previsto:</b> ${prev}</div>`+
+        `<div class="f"><label>Serie</label><input id="s-${r.i}" type="number" inputmode="numeric" min="0" step="1" value="${r.serie||''}"></div>`+
+        `<div class="f"><label>Ripetizioni</label><input id="r-${r.i}" type="number" inputmode="numeric" min="0" step="1" value="${r.rip||''}"></div>`+
+        `<div class="f"><label>Peso (kg)</label><input id="p-${r.i}" type="number" inputmode="decimal" min="0" step="0.5" value="${r.peso||''}"></div>`+
+        `<div class="f"><label>RIR</label><input id="rir-${r.i}" type="number" inputmode="numeric" min="0" max="9" step="1" value="${r.rir==null?'':r.rir}" placeholder="–"></div>`+
+        `<div class="f note"><label>Note</label><input id="n-${r.i}" type="text" class="nota" placeholder="com'è andata?"></div></div>`;
     });
-    corpo+=`</tbody></table><div class="seduta">Fatica della seduta (RPE 0–10) <input id="rpe-${gi}" type="number" min="0" max="10" step="0.5" placeholder="–"> · Durata <input id="min-${gi}" type="number" min="0" step="1" placeholder="min"> min</div></div>`;
+    pagine+=`<div class="day-page" id="day-${gi}" hidden>`+
+      `<button type="button" class="back" data-back>‹ Tutti i giorni</button>`+
+      `<h2>▌ ${esc(g)}</h2>${exs}`+
+      `<div class="seduta"><div class="seduta-t">Fine giornata</div>`+
+      `<div class="f"><label>Fatica seduta (RPE 0–10)</label><input id="rpe-${gi}" type="number" inputmode="decimal" min="0" max="10" step="0.5" placeholder="–"></div>`+
+      `<div class="f"><label>Durata (min)</label><input id="min-${gi}" type="number" inputmode="numeric" min="0" step="1" placeholder="–"></div></div>`+
+      `<button type="button" class="back back-bottom" data-back>‹ Tutti i giorni</button></div>`;
   });
+  const corpo=home+pagine;
 
   return `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scheda — ${esc(profNome()||'allenamento')}</title>
 <style>
- body{font-family:Georgia,'Times New Roman',serif;background:#f4ead8;color:#2b1d10;margin:0;padding:18px;max-width:980px;margin-inline:auto}
- h1{font-size:22px;margin:0 0 2px}.sub{color:#7a6648;font-size:13px;margin-bottom:14px}
- .giorno{background:#fbf4e6;border:1px solid #cdb889;border-radius:10px;padding:12px 14px;margin-bottom:14px}
- h2{font-size:15px;color:#9a5b1f;margin:2px 0 8px}
- table{width:100%;border-collapse:collapse;font-size:13px}
- th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:#7a6648;border-bottom:1px solid #cdb889;padding:4px 6px;text-align:center}
- td{border-bottom:1px solid #e6d9bd;padding:5px 6px;text-align:center;vertical-align:top}
- .l{text-align:left}.prev{color:#7a6648;font-size:12px;white-space:nowrap}.hint{color:#9a8a6a;font-size:11px}
- input[type=number]{width:58px;padding:4px;border:1px solid #cdb889;border-radius:5px;background:#fff;font:inherit;font-size:13px;text-align:center}
- input.nota{width:100%;min-width:110px;padding:4px 6px;border:1px solid #cdb889;border-radius:5px;background:#fff;font:inherit;font-size:12px}
- .seduta{margin-top:8px;font-size:13px;color:#5b4a30}
- .vbtn{margin-left:6px;border:1px solid #cdb889;background:#fff;border-radius:5px;cursor:pointer;font-size:11px;padding:1px 7px}
- .invia{display:block;margin:20px auto 6px;padding:12px 26px;font:inherit;font-size:16px;background:#9a5b1f;color:#fff;border:0;border-radius:9px;cursor:pointer}
- .invia:hover{background:#7e4a18}.fine{color:#7a6648;font-size:12px;text-align:center;margin-bottom:24px}
- .avviso{background:#fdf0d4;border:1px solid #d9b66a;border-radius:9px;padding:10px 13px;font-size:13px;margin:0 0 14px;color:#5b4a30}
- #bozza-stato{color:#7a6648;font-size:12px;text-align:center;margin:6px 0;min-height:15px}
+ /* ── Pagina del cliente, mobile-first: due schermate (lista giorni → giorno scelto), campi
+       su UNA colonna (mai larghi); input a 16px così iOS non zooma al focus. ── */
+ *{box-sizing:border-box}
+ [hidden]{display:none!important}
+ body{font-family:Georgia,'Times New Roman',serif;background:#f4ead8;color:#2b1d10;margin:0;padding:14px 12px;max-width:620px;margin-inline:auto;-webkit-text-size-adjust:100%}
+ h1{font-size:20px;margin:0 0 2px}
+ .sub{color:#7a6648;font-size:13px;margin-bottom:12px;line-height:1.4}
+ .avviso{background:#fdf0d4;border:1px solid #d9b66a;border-radius:9px;padding:9px 12px;font-size:12.5px;margin:0 0 16px;color:#5b4a30;line-height:1.4}
+ .pick-title{font-size:15px;color:#9a5b1f;font-weight:bold;margin:4px 0 9px}
+ .days{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
+ .day-card{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:15px 16px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+ .day-card:active{background:#f1e6cd}
+ .day-l{display:flex;flex-direction:column;gap:2px}
+ .day-name{font-size:17px;font-weight:bold;color:#2b1d10}
+ .day-meta{color:#7a6648;font-size:12.5px}
+ .day-r{display:flex;align-items:center;gap:8px}
+ .day-done{color:#2f7d4f;font-size:18px;font-weight:bold;min-width:14px;text-align:right}
+ .chev{font-size:22px;color:#9a5b1f;line-height:1}
+ .day-page h2{font-size:17px;color:#9a5b1f;margin:8px 0 12px}
+ .back{background:none;border:0;color:#9a5b1f;font:inherit;font-size:15px;font-weight:bold;cursor:pointer;padding:6px 2px}
+ .back-bottom{margin-top:8px;font-size:16px}
+ .ex{background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin-bottom:11px}
+ .ex-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+ .ex-name{font-size:15.5px;font-weight:bold;color:#2b1d10}
+ .ex-coach{color:#9a8a6a;font-size:12px;margin-top:3px;font-style:italic}
+ .ex-prev{color:#7a6648;font-size:13px;border-bottom:1px dashed #e6d9bd;padding-bottom:8px;margin:6px 0 2px}
+ .f{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #f0e6cf}
+ .f:last-child{border-bottom:0}
+ .f label{color:#5b4a30;font-size:14px;font-weight:bold}
+ .f input{height:42px;font:inherit;font-size:16px;border:1px solid #cdb889;border-radius:7px;background:#fff;text-align:center;padding:2px 8px;width:110px}
+ .f.note{flex-direction:column;align-items:stretch;gap:5px}
+ .f.note label{font-size:13px}
+ .f.note input.nota{width:100%;text-align:left}
+ .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin:14px 0 6px}
+ .seduta-t{font-size:12px;color:#9a5b1f;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+ .vbtn{border:1px solid #cdb889;background:#fff;border-radius:6px;cursor:pointer;font-size:12.5px;padding:3px 11px;color:#9a5b1f}
+ .invia{display:block;width:100%;margin:8px 0;padding:15px;font:inherit;font-size:17px;font-weight:bold;background:#9a5b1f;color:#fff;border:0;border-radius:10px;cursor:pointer}
+ .invia:active{background:#7e4a18}
+ .fine{color:#7a6648;font-size:12px;text-align:center;margin-bottom:20px;line-height:1.4}
+ #bozza-stato{color:#7a6648;font-size:12px;text-align:center;margin:8px 0;min-height:15px}
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:10px;background:#000}
- #vclose{position:absolute;top:14px;right:18px;font-size:26px;color:#fff;background:none;border:0;cursor:pointer}
- /* ── Vista smartphone: la tabella a colonne diventa una scheda per esercizio, con campi
-       grandi e comodi da toccare; font 16px sui campi per evitare lo zoom automatico di iOS ── */
- @media (max-width:640px){
-  body{padding:10px 8px}
-  h1{font-size:18px;line-height:1.25}.sub{font-size:12px;margin-bottom:10px}
-  .avviso{font-size:12px;padding:8px 10px;margin-bottom:11px}
-  .giorno{padding:9px;border-radius:11px;margin-bottom:13px}
-  h2{font-size:15px;margin-bottom:5px}
-  table,tbody,tr,td{display:block;width:auto}
-  thead{display:none}
-  /* ogni esercizio = una scheda COMPATTA: i 4 campi numerici su 2 colonne (non più impilati),
-     così con decine di esercizi resta leggibile e si scorre poco. Input a 16px = niente zoom iOS. */
-  tr{background:#fff;border:1px solid #cdb889;border-radius:9px;padding:8px 10px;margin-bottom:8px;
-     display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;align-items:center}
-  td{border:0;padding:0;text-align:left}
-  td.ex{grid-column:1/-1;font-size:14px;font-weight:bold;color:#2b1d10;line-height:1.3}
-  td.ex .vbtn{vertical-align:middle;margin-left:6px;padding:3px 11px;font-size:13px}
-  td.ex .hint{font-weight:normal;margin-top:2px;font-size:11.5px}
-  td.prev{grid-column:1/-1;color:#7a6648;font-size:12px;white-space:normal;border-bottom:1px dashed #e6d9bd;padding-bottom:5px}
-  td.prev::before{content:attr(data-label) ": ";font-weight:bold;text-transform:uppercase;font-size:9.5px;letter-spacing:.3px;color:#9a5b1f}
-  td.fld{display:flex;align-items:center;justify-content:space-between;gap:6px}
-  td.fld::before{content:attr(data-label);color:#5b4a30;font-size:12px;font-weight:bold;white-space:nowrap}
-  td.fld input[type=number]{flex:0 0 58px;width:58px;height:36px;font-size:16px;padding:2px 6px}
-  td.fld.note-cell{grid-column:1/-1}
-  td.fld.note-cell input.nota{flex:1;width:100%;height:34px;font-size:16px;min-width:0}
-  .seduta{margin-top:9px;font-size:13px;line-height:2.2}
-  .seduta input{height:36px;font-size:16px;width:72px;vertical-align:middle}
-  .invia{width:100%;font-size:16px;padding:13px;margin-top:14px}
- }
+ #vclose{position:absolute;top:14px;right:18px;font-size:30px;color:#fff;background:none;border:0;cursor:pointer}
 </style></head><body>
 <h1>✦ Scheda di allenamento — ${esc(profNome()||'')}</h1>
-<div class="sub">Esportata il ${esc(oggi)} da Training Monitor System. Compila ciò che hai fatto davvero (serie, ripetizioni, peso, RIR, note e fatica della seduta), poi premi il bottone in fondo e manda il file al tuo trainer.</div>
+<div class="sub">Esportata il ${esc(oggi)} da Training Monitor System. Scegli un giorno, compila ciò che hai fatto davvero (serie, ripetizioni, peso, RIR, note e fatica della seduta), poi torna e premi «Crea il file per il trainer».</div>
 <div class="avviso">📱 <b>Salva questo file nella memoria del telefono</b> (es. cartella Download) e apri sempre quella copia — non l'anteprima della chat: così quello che scrivi <b>si salva da solo</b> anche se chiudi la pagina.<span id="bozza-nota"></span></div>
 ${corpo}
-<div id="bozza-stato"></div>
-<button type="button" class="invia" id="invia">📩 Crea il file per il trainer</button>
-<div class="fine">Si scarica un piccolo file <b>Rientro_*.json</b>: rimandalo al trainer (chat o email). La bozza resta salvata su questo dispositivo anche dopo l'invio.</div>
 <div id="vov"><button id="vclose" type="button">✕</button><video controls playsinline></video></div>
 <script>
 var META=${js(meta)};
@@ -109,6 +122,15 @@ function $(id){return document.getElementById(id);}
 document.querySelectorAll('.vbtn').forEach(function(b){ b.onclick=function(){
   var ov=$('vov'), v=ov.querySelector('video'); v.src=VIDEO[b.getAttribute('data-v')]||''; ov.style.display='flex'; v.play(); }; });
 $('vclose').onclick=function(){ var ov=$('vov'), v=ov.querySelector('video'); v.pause(); v.removeAttribute('src'); ov.style.display='none'; };
+/* navigazione a due schermate: lista giorni <-> giorno selezionato (mostra uno alla volta) */
+function mostra(id){ $('home').hidden=(id!=='home');
+  document.querySelectorAll('.day-page').forEach(function(p){ p.hidden=(p.id!==id); });
+  try{ window.scrollTo(0,0); }catch(e){} }
+document.querySelectorAll('[data-go]').forEach(function(b){ b.onclick=function(){ mostra('day-'+b.getAttribute('data-go')); }; });
+document.querySelectorAll('[data-back]').forEach(function(b){ b.onclick=function(){ aggiornaStato(); mostra('home'); }; });
+/* spunta verde sui giorni in cui hai già scritto qualcosa */
+function dayIds(gi){ var ids=[]; RIGHE.forEach(function(r){ if(r.giorno===GIORNI[gi]){ ['s-','r-','p-','rir-','n-'].forEach(function(p){ ids.push(p+r.i); }); } }); ids.push('rpe-'+gi); ids.push('min-'+gi); return ids; }
+function aggiornaStato(){ GIORNI.forEach(function(g,gi){ var fatto=dayIds(gi).some(function(id){ var el=$(id); return el && el.value!==''; }); var s=$('stato-'+gi); if(s) s.textContent=fatto?'✔':''; }); }
 function num(id){ var v=$(id)?$(id).value:''; return v===''?null:+v; }
 /* bozza autosalvata sul dispositivo: niente dati persi se la pagina si chiude */
 var BK='tms-bozza-'+(META.profilo.slug||'cliente')+'-'+META.esportata;
@@ -122,6 +144,9 @@ function salvaBozza(){ if(!stOk) return; var o={}; idsCampi().forEach(function(i
   if(rawB){ try{ var o=JSON.parse(rawB); Object.keys(o).forEach(function(id){ var el=$(id); if(el) el.value=o[id]; }); if(nota) nota.innerHTML=' <b>✔ Bozza ritrovata</b>: ho ricaricato quello che avevi scritto.'; }catch(e){} }
   document.addEventListener('input', salvaBozza);
 })();
+/* la spunta dei giorni si aggiorna mentre compili e all'apertura (anche se l'autosalvataggio è off) */
+document.addEventListener('input', aggiornaStato);
+aggiornaStato();
 $('invia').onclick=function(){
   var righe=RIGHE.map(function(r){ return {giorno:r.giorno, esercizio:r.esercizio,
     serie:num('s-'+r.i)||0, rip:num('r-'+r.i)||0, peso:num('p-'+r.i)||0,
