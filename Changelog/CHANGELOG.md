@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-06-17 — TMS v1.0.81: scheda cliente ottimizzata per smartphone + pulizia codice (no-unused-vars come errore)
+
+**Tipo**: UX (export scheda cliente responsive) + igiene sorgente (accumulo dal 2026-06-16; richiesta esplicita di Marco)
+**File coinvolti**: src/app/15-scambio.js (markup righe + media query mobile) · src/app/02-calcoli.js + 06-allenamento.js + 08-progressi.js (rimozione codice morto) · tools/lint.js (regola no-unused-vars) · src/app/13a-guida.js + 13c-guida-ai.js (guide) · docs/guida-ai.md (rigenerata) · package.json ×2 · tests/test-app.js
+**Descrizione**:
+- **Scheda cliente ottimizzata per smartphone**: l'HTML che il coach esporta con «📤 Esporta scheda» (`costruisciSchedaCliente`) ora è responsive. Sotto i 640px la tabella a 7 colonne diventa una **scheda impilata per esercizio** con etichette dei campi (Serie/Ripetizioni/Peso/RIR/Note), input alti 42-44px e **font 16px** (evita lo zoom automatico di iOS al focus), `inputmode` numeric/decimal per la tastiera giusta; niente più scroll orizzontale. Su desktop il markup e la tabella restano **identici** (le classi nuove non hanno stile desktop).
+- **Pulizia codice (comportamento invariato)**: rimosse funzioni/assegnazioni mai usate confermate da ESLint — `tl()` (superata da `sTL()` RIR-aware), `scheduleRerender()` (resta il timer `rerenderT`), e `dTL`/`lastPct`/`prs`/`prev` in renderProgressi. Aggiunta al lint la regola **`no-unused-vars` come errore** (args/caughtErrors:'none', `^_` ignorati; `RELEASE_NOTE`/`printReport`/`exportDigitalReport` dichiarati esportati via direttiva iniettata da lint.js): da ora `npm test` blocca il codice morto futuro.
+- **Audit sicurezza** (nessuna modifica necessaria): IPC Electron blindato (contextIsolation/sandbox/nodeIntegration off, safeJoin + path.relative, whitelist permessi, scrittura atomica), `esc()` coerente sui dati utente, export con escape anti `</script>`, import coercito a stringhe/numeri, nessun eval/Function/document.write/insertAdjacentHTML.
+**Test**: `npm test` **188/188** (lint + sintassi + jsdom) — nuove verifiche: export cliente responsive (media query + `data-label` + `inputmode`); le rimozioni di codice morto non cambiano i risultati della suite. Build md5 identici, `npm run verifica` OK.
+**Approvato da**: Marco (richieste esplicite + comando di pubblicazione «pubblica»)
+
 ### 2026-06-16 — TMS v1.0.80: Cardio più preciso (FC profilo, import .FIT), preferiti esercizi, Alimentazione (fase nel tab, pasti riordinabili, preferiti/recenti, ricerca a parole)
 
 **Tipo**: raffinamenti UX su Cardio, selettore esercizi e Alimentazione (accumulo di più conversazioni dal 2026-06-16; richieste esplicite di Marco)
