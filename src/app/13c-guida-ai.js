@@ -184,8 +184,9 @@ Il cliente NON deve avere il TMS: la scheda viaggia come file.
    giorno e campi compilabili. Alla domanda sui video: includendoli il cliente vede le
    esecuzioni offline ma il file pesa di più.
 2. **Il cliente compila** — apre il file in qualunque browser (la pagina è **ottimizzata
-   per smartphone**: su telefono ogni esercizio diventa una scheda con campi grandi e
-   tastiera numerica, niente scroll laterale), inserisce ciò che ha
+   per smartphone**: su telefono ogni esercizio diventa una scheda compatta coi campi su
+   due colonne e tastiera numerica, niente scroll laterale — resta leggibile anche con
+   decine di esercizi), inserisce ciò che ha
    fatto davvero (serie, ripetizioni, peso, RIR, note per esercizio; fatica RPE 0-10
    e durata per seduta; gli esercizi non sono modificabili) e preme «📩 Crea il file
    per il trainer»: si scarica «Rientro_profilo_data.json» da rimandare al coach.

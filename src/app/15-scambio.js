@@ -35,7 +35,7 @@ function costruisciSchedaCliente(videoMap){
         `<td class="fld" data-label="Ripetizioni"><input id="r-${r.i}" type="number" inputmode="numeric" min="0" step="1" value="${r.rip||''}"></td>`+
         `<td class="fld" data-label="Peso (kg)"><input id="p-${r.i}" type="number" inputmode="decimal" min="0" step="0.5" value="${r.peso||''}"></td>`+
         `<td class="fld" data-label="RIR"><input id="rir-${r.i}" type="number" inputmode="numeric" min="0" max="9" step="1" value="${r.rir==null?'':r.rir}" placeholder="–"></td>`+
-        `<td class="l fld" data-label="Note"><input id="n-${r.i}" type="text" class="nota" placeholder="com'è andata?"></td></tr>`;
+        `<td class="l fld note-cell" data-label="Note"><input id="n-${r.i}" type="text" class="nota" placeholder="com'è andata?"></td></tr>`;
     });
     corpo+=`</tbody></table><div class="seduta">Fatica della seduta (RPE 0–10) <input id="rpe-${gi}" type="number" min="0" max="10" step="0.5" placeholder="–"> · Durata <input id="min-${gi}" type="number" min="0" step="1" placeholder="min"> min</div></div>`;
   });
@@ -65,27 +65,31 @@ function costruisciSchedaCliente(videoMap){
  /* ── Vista smartphone: la tabella a colonne diventa una scheda per esercizio, con campi
        grandi e comodi da toccare; font 16px sui campi per evitare lo zoom automatico di iOS ── */
  @media (max-width:640px){
-  body{padding:12px 10px}
-  h1{font-size:19px;line-height:1.25}.sub{font-size:12.5px}
-  .avviso{font-size:12.5px;padding:9px 11px}
-  .giorno{padding:10px 11px;border-radius:12px;margin-bottom:16px}
-  h2{font-size:16px;margin-bottom:6px}
+  body{padding:10px 8px}
+  h1{font-size:18px;line-height:1.25}.sub{font-size:12px;margin-bottom:10px}
+  .avviso{font-size:12px;padding:8px 10px;margin-bottom:11px}
+  .giorno{padding:9px;border-radius:11px;margin-bottom:13px}
+  h2{font-size:15px;margin-bottom:5px}
   table,tbody,tr,td{display:block;width:auto}
   thead{display:none}
-  tr{background:#fff;border:1px solid #cdb889;border-radius:10px;padding:11px 13px;margin-bottom:11px}
-  td{border:0;padding:3px 0;text-align:left}
-  td.ex{font-size:15.5px;font-weight:bold;color:#2b1d10;line-height:1.35;margin-bottom:3px}
-  td.ex .vbtn{vertical-align:middle;margin-left:8px;padding:5px 14px;font-size:14px}
-  td.ex .hint{font-weight:normal;margin-top:3px;font-size:12px}
-  td.prev{color:#7a6648;font-size:13px;white-space:normal;border-bottom:1px dashed #e6d9bd;padding-bottom:9px;margin-bottom:7px}
-  td.prev::before{content:attr(data-label) ": ";font-weight:bold;text-transform:uppercase;font-size:10px;letter-spacing:.4px;color:#9a5b1f}
-  td.fld{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
-  td.fld::before{content:attr(data-label);color:#5b4a30;font-size:14px;font-weight:bold}
-  td.fld input[type=number]{width:44%;max-width:140px;height:44px;font-size:16px}
-  td.fld input.nota{width:62%;height:40px;font-size:16px;min-width:0}
-  .seduta{margin-top:12px;font-size:14px;line-height:2.5}
-  .seduta input{height:42px;font-size:16px;width:84px;vertical-align:middle}
-  .invia{width:100%;font-size:17px;padding:15px;margin-top:18px}
+  /* ogni esercizio = una scheda COMPATTA: i 4 campi numerici su 2 colonne (non più impilati),
+     così con decine di esercizi resta leggibile e si scorre poco. Input a 16px = niente zoom iOS. */
+  tr{background:#fff;border:1px solid #cdb889;border-radius:9px;padding:8px 10px;margin-bottom:8px;
+     display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;align-items:center}
+  td{border:0;padding:0;text-align:left}
+  td.ex{grid-column:1/-1;font-size:14px;font-weight:bold;color:#2b1d10;line-height:1.3}
+  td.ex .vbtn{vertical-align:middle;margin-left:6px;padding:3px 11px;font-size:13px}
+  td.ex .hint{font-weight:normal;margin-top:2px;font-size:11.5px}
+  td.prev{grid-column:1/-1;color:#7a6648;font-size:12px;white-space:normal;border-bottom:1px dashed #e6d9bd;padding-bottom:5px}
+  td.prev::before{content:attr(data-label) ": ";font-weight:bold;text-transform:uppercase;font-size:9.5px;letter-spacing:.3px;color:#9a5b1f}
+  td.fld{display:flex;align-items:center;justify-content:space-between;gap:6px}
+  td.fld::before{content:attr(data-label);color:#5b4a30;font-size:12px;font-weight:bold;white-space:nowrap}
+  td.fld input[type=number]{flex:0 0 58px;width:58px;height:36px;font-size:16px;padding:2px 6px}
+  td.fld.note-cell{grid-column:1/-1}
+  td.fld.note-cell input.nota{flex:1;width:100%;height:34px;font-size:16px;min-width:0}
+  .seduta{margin-top:9px;font-size:13px;line-height:2.2}
+  .seduta input{height:36px;font-size:16px;width:72px;vertical-align:middle}
+  .invia{width:100%;font-size:16px;padding:13px;margin-top:14px}
  }
 </style></head><body>
 <h1>✦ Scheda di allenamento — ${esc(profNome()||'')}</h1>

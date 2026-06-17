@@ -450,6 +450,8 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(schedaHtml.length > 5000 && schedaHtml.includes('Crea il file per il trainer') && schedaHtml.includes('tms-rientro') && schedaHtml.includes('id="s-0"') && schedaHtml.includes('Atleta Template'), 'export scheda cliente: HTML autonomo con input e meta profilo');
   /* ottimizzazione vista smartphone: media query + etichette dei campi (tabella→scheda per esercizio) */
   ok(schedaHtml.includes('@media (max-width:640px)') && schedaHtml.includes('data-label="Serie"') && schedaHtml.includes('data-label="Peso (kg)"') && schedaHtml.includes('inputmode='), 'export scheda cliente: ottimizzato per smartphone (responsive + etichette + tastiera numerica)');
+  /* layout COMPATTO su telefono: campi numerici in griglia 2 colonne (meno scroll con tanti esercizi) + Note a tutta larghezza */
+  ok(schedaHtml.includes('grid-template-columns:1fr 1fr') && schedaHtml.includes('note-cell'), 'export scheda cliente: layout mobile compatto (campi su 2 colonne, Note full-width)');
   /* bozza autosalvata nella pagina del cliente (soluzione offline, richiesta Marco 2026-06-13):
      la pagina generata viene caricata in un jsdom dedicato come farebbe il cliente */
   const bozzaKey = 'tms-bozza-template-' + new Date().toISOString().slice(0, 10);
