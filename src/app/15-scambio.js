@@ -90,10 +90,10 @@ function costruisciSchedaCliente(videoMap){
  .ex-name{font-size:15.5px;font-weight:bold;color:#2b1d10}
  .ex-coach{color:#9a8a6a;font-size:12px;margin-top:3px;font-style:italic}
  .ex-prev{color:#7a6648;font-size:13px;border-bottom:1px dashed #e6d9bd;padding-bottom:8px;margin:6px 0 2px}
- .f{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #f0e6cf}
+ .f{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #f0e6cf}
  .f:last-child{border-bottom:0}
  .f label{color:#5b4a30;font-size:14px;font-weight:bold}
- .f input{height:42px;font:inherit;font-size:16px;border:1px solid #cdb889;border-radius:7px;background:#fff;text-align:center;padding:2px 8px;width:110px}
+ .f input{height:31px;font:inherit;font-size:16px;border:1px solid #cdb889;border-radius:5px;background:#fff;text-align:center;padding:0 6px;width:82px}
  .f.note{flex-direction:column;align-items:stretch;gap:5px}
  .f.note label{font-size:13px}
  .f.note input.nota{width:100%;text-align:left}
