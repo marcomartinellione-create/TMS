@@ -141,8 +141,9 @@ function buildReportUnits(D, src){
   return units;
 }
 function dataUrlToBytes(u){ const s=atob(u.slice(u.indexOf(',')+1)); const a=new Uint8Array(s.length); for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i)&255; return a; }
-function imagesToPdf(images){
-  const PT_W=595.2756, PT_H=841.8898;
+function imagesToPdf(images, landscape){
+  /* A4 in punti: 595.2756 × 841.8898. landscape=true scambia larghezza/altezza (297×210mm). */
+  const PT_W=landscape?841.8898:595.2756, PT_H=landscape?595.2756:841.8898;
   const enc=s=>{ const a=new Uint8Array(s.length); for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i)&255; return a; };
   const parts=[]; let off=0; const offsets=[];
   const push=u=>{ parts.push(u); off+=u.length; }; const pushS=s=>push(enc(s));

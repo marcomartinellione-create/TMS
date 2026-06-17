@@ -25,8 +25,9 @@ const parti = manifest.parti.filter(p => p.endsWith('.js') && p !== 'lib/html2ca
 //  - RELEASE_NOTE        → usata dal rituale di release / README (non dal runtime JS)
 //  - printReport         → richiamata da onclick="printReport()" nel markup del Report
 //  - exportDigitalReport → richiamata da onclick="exportDigitalReport()" nel markup del Report
+//  - printDieta          → richiamata da onclick="printDieta()" nel tab Alimentazione
 // (la riga della direttiva conta come riga 1 del concatenato: la mappa righe ne tiene conto)
-let codice = '/* exported RELEASE_NOTE, printReport, exportDigitalReport */\n';
+let codice = '/* exported RELEASE_NOTE, printReport, exportDigitalReport, printDieta */\n';
 const mappa = [];   // { parte, daRiga (1-based nel concatenato), righe }
 for (const p of parti) {
   const testo = fs.readFileSync(path.join(ROOT, 'src', p), 'utf8');

@@ -330,4 +330,5 @@ svg .ln{fill:none; stroke-width:2}
 #pdf-stage .cards{ break-inside:auto } #pdf-stage .card{ break-inside:avoid }
 #pdf-stage .chart-box svg{ width:100%; height:auto; max-height:200mm }
 #pdf-stage table{ width:100%; font-size:9.5px } #pdf-stage thead th{ position:static }
+#pdf-stage.land{ width:297mm } #pdf-stage.land .pg{ width:297mm; height:210mm } /* A4 orizzontale (stampa dieta) */
 table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}

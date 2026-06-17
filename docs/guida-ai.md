@@ -158,6 +158,10 @@ Due modi per registrare una seduta:
   OMS/FAO. I nutrienti marcati «(max)» sono limiti da non superare. Limiti noti:
   usa gli zuccheri TOTALI come proxy degli zuccheri liberi; i grassi trans non sono
   nel dataset (soglia indicata ma non calcolata).
+- **Stampa dieta (PDF A4)**: bottone «⬇ Stampa dieta (PDF A4)» in cima al tab — genera un
+  PDF **A4 orizzontale** del piano della fase attiva (pasti, grammi, kcal e macro per
+  alimento, totali per pasto e totale giornaliero) da dare al cliente. Lo fa l'app, senza
+  la stampa del browser (stesso motore del Report).
 - **Periodi**: registrazione di intervalli datati (piano alimentare + data inizio e
   fine) che alimentano il tab Analisi.
 

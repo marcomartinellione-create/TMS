@@ -171,7 +171,7 @@ function renderAlimentazione(){
    <div class="bar no-print"><button class="btn btn--ember" id="per-add">📅 Registra il piano attuale come periodo…</button> <button class="btn" onclick="showTab('analisi')">📊 Vai all'Analisi</button></div>`;
   document.getElementById('panel-alimentazione').innerHTML=`
    <div class="callout"><div>🍖 Banca dati <b>${FOOD.length}</b> alimenti. Clicca <b>＋ scegli alimento…</b> per selezionare dalla tabella completa (con macro). Usa <b>▸</b> per i micro/macro. Scegli qui sotto la <b>fase</b> del piano: le fasi non attive restano salvate ma non mostrate.</div></div>
-   <div class="bar no-print" style="margin-bottom:6px"><span class="muted mono" style="font-size:11px;align-self:center">Fase del piano:</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${FASE_LAB[f]}</button>`).join('')}</div>
+   <div class="bar no-print" style="margin-bottom:6px"><span class="muted mono" style="font-size:11px;align-self:center">Fase del piano:</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${FASE_LAB[f]}</button>`).join('')}<button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="printDieta()" style="margin-left:auto" title="Stampa il piano della fase attiva in PDF A4 orizzontale (da dare al cliente)">⬇ Stampa dieta (PDF A4)</button></div>
    <div class="sec">▌ Fase ${FASE_LAB[fase]} <span class="pill">${nf(tF.kcal,0)} kcal · P ${nf(tF.proteine,0)} · G ${nf(tF.grassi,0)} · C ${nf(tF.zuccheri,0)}</span></div>
    ${faseTable(fase,A[fase])}${perSection}${omsSection}`;
   document.querySelectorAll('#panel-alimentazione input').forEach(inp=>inp.addEventListener('input',e=>{
@@ -223,6 +223,72 @@ function spostaPasto(fase, meal, dir){
   const byMeal={}; order.forEach(m=>byMeal[m]=[]); rows.forEach(r=>byMeal[mealOf(r)].push(r));
   const out=[]; newOrder.forEach(m=>byMeal[m].forEach(r=>out.push(r)));
   DOC.alimentazione[fase]=out; persist('alimentazione'); renderAlimentazione();
+}
+/* ── Stampa della dieta in PDF A4 ORIZZONTALE (landscape) ──────────────────────────────
+   Riusa il generatore PDF del Report (buildReportUnits + splitTable + html2canvas +
+   imagesToPdf in modalità landscape): impagina il piano della FASE ATTIVA, pasto per pasto,
+   con i totali per pasto e il totale giornaliero. Una pagina da appendere/dare al cliente. */
+function dietaPrintHTML(){
+  const fase=faseAlimActive(); const rows=(DOC.alimentazione&&DOC.alimentazione[fase])||[];
+  const meals=[]; rows.forEach(r=>{ const p=((r.pasto||'').trim())||'Senza pasto'; if(!meals.includes(p))meals.push(p); });
+  let body='';
+  meals.forEach(meal=>{
+    const idxs=rows.map((r,i)=>i).filter(i=>((((rows[i].pasto||'').trim())||'Senza pasto')===meal));
+    let mk=0; idxs.forEach(i=>mk+=foodVal(rows[i].alimento,rows[i].grammi,'kcal'));
+    body+=`<tr class="day-sep"><td colspan="7">▌ ${esc(meal)} · ${nf(mk,0)} kcal</td></tr>`;
+    idxs.forEach(i=>{ const r=rows[i];
+      body+=`<tr><td class="l">${r.alimento?esc(r.alimento):'—'}</td>`+
+        `<td class="num">${nf(r.grammi,0)}</td>`+
+        `<td class="num">${nf(foodVal(r.alimento,r.grammi,'kcal'),0)}</td>`+
+        `<td class="num">${nf(foodVal(r.alimento,r.grammi,'proteine'),1)}</td>`+
+        `<td class="num">${nf(foodVal(r.alimento,r.grammi,'grassi'),1)}</td>`+
+        `<td class="num">${nf(foodVal(r.alimento,r.grammi,'zuccheri'),1)}</td>`+
+        `<td class="num">${nf(foodVal(r.alimento,r.grammi,'fibre'),1)}</td></tr>`;
+    });
+  });
+  const t=faseTot(rows); const lab=esc(FASE_LAB[fase]||fase);
+  const head=`<thead><tr><th class="l">Alimento</th><th>g</th><th>Kcal</th><th>Prot</th><th>Grassi</th><th>Carbo</th><th>Fibre</th></tr></thead>`;
+  const foot=`<tfoot><tr style="font-weight:600;background:#efe6d2"><td class="l">Totale giornaliero</td><td></td><td class="num">${nf(t.kcal,0)}</td><td class="num">${nf(t.proteine,1)}</td><td class="num">${nf(t.grassi,1)}</td><td class="num">${nf(t.zuccheri,1)}</td><td class="num">${nf(t.fibre,1)}</td></tr></tfoot>`;
+  return `<h1>Piano alimentare — ${esc(profNome()||'')}</h1>`+
+    `<div class="muted" style="margin:-4px 0 10px">Fase ${lab} · ${esc(new Date().toLocaleDateString('it-IT'))}</div>`+
+    `<div class="rep-sec"><div class="sec">▌ Piano della fase ${lab}</div>`+
+    `<div class="tbl-wrap"><table>${head}<tbody>${body||'<tr><td colspan="7" class="empty">Nessun alimento nel piano.</td></tr>'}</tbody>${foot}</table></div></div>`;
+}
+async function printDieta(){
+  const fase=faseAlimActive(); const rows=(DOC.alimentazione&&DOC.alimentazione[fase])||[];
+  if(!rows.some(r=>r&&r.alimento&&String(r.alimento).trim())){ alert('Il piano della fase attiva è vuoto: niente da stampare.'); return; }
+  if(typeof html2canvas!=='function'){ alert('Generatore PDF non disponibile in questa copia.'); return; }
+  const btn=document.getElementById('dieta-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML='⏳ Genero PDF…'; btn.disabled=true; }
+  const stage=document.createElement('div'); stage.id='pdf-stage'; stage.className='land';
+  try{
+    document.body.appendChild(stage);
+    const src=document.createElement('div'); src.className='rep-doc'; src.innerHTML=dietaPrintHTML();
+    const units=buildReportUnits(document, src);
+    const probe=document.createElement('div'); probe.style.cssText='position:absolute;visibility:hidden;height:100mm'; stage.appendChild(probe);
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const pxPerMm=(probe.getBoundingClientRect().height||377.95)/100; stage.removeChild(probe);
+    const PAD=13, USABLE=210-PAD-PAD-4, contentPx=USABLE*pxPerMm, padTopPx=PAD*pxPerMm; /* altezza utile A4 orizzontale */
+    const pages=[]; let pg=null; const newPage=()=>{ pg=document.createElement('div'); pg.className='pg'; stage.appendChild(pg); pages.push(pg); };
+    newPage();
+    units.forEach(node=>{ pg.appendChild(node);
+      const used=node.getBoundingClientRect().bottom - pg.getBoundingClientRect().top - padTopPx;
+      if(used>contentPx && pg.childElementCount>1){ pg.removeChild(node); newPage(); pg.appendChild(node); }
+    });
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const images=[];
+    for(const p of pages){
+      const canvas=await html2canvas(p,{scale:2,backgroundColor:'#ffffff',logging:false,useCORS:true,
+        onclone:(doc)=>{ try{ doc.documentElement.setAttribute('data-theme','giorno'); }catch(e){} }});
+      const url=canvas.toDataURL('image/jpeg',0.92);
+      images.push({bytes:dataUrlToBytes(url), w:canvas.width, h:canvas.height});
+    }
+    const pdf=imagesToPdf(images, true);  /* true = A4 orizzontale */
+    const nome=String(profNome()||'TMS').replace(/[^\w\-]+/g,'_')||'TMS';
+    const blob=new Blob([pdf],{type:'application/pdf'}); const u=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=u; a.download='Dieta_'+nome+'.pdf'; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ try{ URL.revokeObjectURL(u); }catch(e){} a.remove(); }, 1500);
+  }catch(e){ alert('Errore nella generazione del PDF: '+e.message); }
+  finally{ try{ if(stage.parentNode) document.body.removeChild(stage); }catch(e){} if(btn){ btn.innerHTML=blab; btn.disabled=false; } }
 }
 /* registra il piano della fase scelta come PERIODO datato (fotografia per il tab Analisi) */
 function registraPeriodo(){

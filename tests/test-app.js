@@ -275,6 +275,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     { const fq=d.getElementById('fp-q'); fq.value='riso secco'; fq.dispatchEvent(new w.Event('input',{bubbles:true})); }
     ok([...d.querySelectorAll('#modal .fp-row')].length>0, 'food picker: ricerca a parole trova risultati');
     w.eval('closeModal(); foodToggleFav('+JSON.stringify(nome)+');'); }
+  /* stampa dieta in PDF A4 orizzontale (rendering reale non testabile in jsdom: verifico markup + PDF) */
+  w.eval('DOC.dati_utente.faseAlim="bulk"; renderAlimentazione();');
+  ok(d.querySelector('#panel-alimentazione #dieta-pdf-btn') && d.getElementById('dieta-pdf-btn').getAttribute('onclick')==='printDieta()', 'alimentazione: bottone «Stampa dieta (PDF A4)» presente');
+  { const dh=w.eval('dietaPrintHTML()');
+    ok(dh.includes('Piano alimentare') && dh.includes('Totale giornaliero') && dh.includes('day-sep') && dh.includes('rep-sec'), 'dietaPrintHTML: titolo, pasti (day-sep) e totale giornaliero'); }
+  { const land=w.eval('(function(){var p=imagesToPdf([{bytes:new Uint8Array([0,1,2]),w:8,h:8}], true); return Array.from(p).map(function(c){return String.fromCharCode(c);}).join("");})()');
+    const port=w.eval('(function(){var p=imagesToPdf([{bytes:new Uint8Array([0,1,2]),w:8,h:8}]); return Array.from(p).map(function(c){return String.fromCharCode(c);}).join("");})()');
+    ok(land.includes('841.8898 595.2756'), 'imagesToPdf(landscape): MediaBox A4 orizzontale (841.8898 × 595.2756)');
+    ok(port.includes('595.2756 841.8898'), 'imagesToPdf(default): MediaBox A4 verticale invariato (Report)'); }
   w.eval('showTab("report")');
   ok(d.getElementById('panel-report').innerHTML.includes('Dieta × allenamento'), 'report con la sezione Dieta × allenamento');
   /* il Report include la sezione Cardio (il template ha 17 sedute) + la casella sezione */
