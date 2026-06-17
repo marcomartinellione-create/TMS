@@ -238,7 +238,7 @@ function dietaPrintHTML(){
     body+=`<tr class="day-sep"><td colspan="7">▌ ${esc(meal)} · ${nf(mk,0)} kcal</td></tr>`;
     idxs.forEach(i=>{ const r=rows[i];
       body+=`<tr><td class="l">${r.alimento?esc(r.alimento):'—'}</td>`+
-        `<td class="num">${nf(r.grammi,0)}</td>`+
+        `<td class="num" style="font-weight:700;font-size:11px;color:#5b3a14">${nf(r.grammi,0)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'kcal'),0)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'proteine'),1)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'grassi'),1)}</td>`+

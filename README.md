@@ -13,6 +13,13 @@ mobile. Tema pergamena/ember, modalità notte. *By Wander.*
 🌐 **Sito**: [marcomartinellione-create.github.io/TMS](https://marcomartinellione-create.github.io/TMS/) ·
 ⭳ [Scarica l'ultima versione](https://github.com/marcomartinellione-create/TMS/releases/latest)
 
+> ℹ️ **Progetto amatoriale.** Il TMS è un progetto personale: **non sono un informatico né
+> uno sviluppatore**. Sono un appassionato di allenamento e ho ideato l'app pensando a
+> cosa mi serviva; il codice è stato scritto **interamente con l'aiuto di Claude**
+> (l'assistente AI di Anthropic, tramite Claude Code), sotto la mia guida e secondo le mie
+> richieste. È software **gratuito e aperto**, offerto «così com'è» e senza garanzie: lo
+> condivido nello spirito di chi mette a disposizione uno strumento che usa in prima persona.
+
 ## Caratteristiche
 
 - **Tutto in locale, zero cloud**: i dati restano sul tuo PC

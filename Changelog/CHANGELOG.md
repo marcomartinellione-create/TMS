@@ -4,6 +4,16 @@
 
 ---
 
+### 2026-06-17 — TMS v1.0.82: stampa della dieta in PDF A4 orizzontale (grammi in evidenza) + README «progetto amatoriale»
+
+**Tipo**: nuova funzione (PDF dieta) + nota README (richieste esplicite di Marco)
+**File coinvolti**: src/app/11-alimentazione.js (`dietaPrintHTML`, `printDieta`, bottone, grammi in grassetto) · src/app/13-report.js (`imagesToPdf(images, landscape)` parametrico) · src/pagina/02-stili.css (`#pdf-stage.land`) · tools/lint.js (`printDieta` esportata) · src/app/13a-guida.js + 13c-guida-ai.js (guide) · docs/guida-ai.md · README.md (nota progetto amatoriale) · package.json ×2 · tests/test-app.js
+**Descrizione**:
+- **Stampa dieta (PDF A4 orizzontale)**: nuovo bottone «⬇ Stampa dieta (PDF A4)» in cima al tab Alimentazione → PDF **A4 landscape** del piano della fase attiva: pasti separati (day-sep), per ogni alimento **grammi** (in grassetto/evidenza), kcal e macro, totale per pasto e **totale giornaliero**. Riusa il generatore PDF del Report senza toccarne il comportamento: `imagesToPdf(images, landscape)` è ora parametrico (landscape scambia le dimensioni pagina; default verticale → Report **identico**, verificato da test); `printDieta` impagina con `buildReportUnits`+`splitTable`+html2canvas in uno stage `#pdf-stage.land` (297×210mm). Tutto nel renderer, offline, un click.
+- **README «progetto amatoriale»**: nota in cima al README di GitHub — il TMS è un progetto personale di un appassionato (non sviluppatore), realizzato interamente con l'aiuto di Claude (Anthropic), software gratuito e aperto «così com'è».
+**Test**: `npm test` **192/192** (lint + sintassi + jsdom) — nuove verifiche: bottone «Stampa dieta», `dietaPrintHTML` (titolo/pasti/totale), MediaBox **A4 orizzontale** per la dieta vs **verticale** invariato per il Report. Build md5 identici, `npm run verifica` OK. NB: rendering reale (html2canvas) non testabile in jsdom → collaudo del PDF in app.
+**Approvato da**: Marco (richieste esplicite + comando di pubblicazione «pubblica»)
+
 ### 2026-06-17 — TMS v1.0.81: scheda cliente ottimizzata per smartphone + pulizia codice (no-unused-vars come errore)
 
 **Tipo**: UX (export scheda cliente responsive) + igiene sorgente (accumulo dal 2026-06-16; richiesta esplicita di Marco)
