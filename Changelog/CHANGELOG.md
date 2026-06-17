@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-06-17 — TMS v1.0.83: scheda cliente a due schermate (seleziona giorno → giorno), campi su una colonna più snelli
+
+**Tipo**: UX — riscrittura della pagina del cliente per il telefono (accumulo dal 2026-06-17; richieste/feedback espliciti di Marco)
+**File coinvolti**: src/app/15-scambio.js (riscrittura `costruisciSchedaCliente`: layout, CSS mobile-first, navigazione JS) · src/app/13a-guida.js + 13c-guida-ai.js (guide) · docs/guida-ai.md · package.json ×2 · tests/test-app.js
+**Descrizione**: la pagina `Scheda_*.html` che il coach esporta con «📤 Esporta scheda» è stata rifatta mobile-first dopo il feedback di Marco (la versione responsive di v1.0.81 risultava «troppo zoomata/larga» con decine di esercizi):
+- **Due schermate**: schermata 1 «Seleziona il giorno» con una card per ogni giorno della scheda (conteggio esercizi + spunta **✔** sui giorni già compilati); toccando un giorno si apre **solo quel giorno** (esercizi uno sotto l'altro), con «‹ Tutti i giorni» per tornare.
+- **Campi su una colonna** (niente più tabella responsive né griglia 2 colonne → zero overflow orizzontale), **caselle snelle** (altezza 31px, larghezza 82px); mantenuto font 16px sugli input per non far zoomare iOS al focus.
+- Navigazione via `mostra()` (show/hide, un file offline); gli input restano nel DOM → **bozza autosalvata** e **invio del rientro invariati** (stessi id `s-/r-/p-/rir-/n-/rpe-/min-`).
+**Test**: `npm test` **193/193** (lint + sintassi + jsdom) — nuove verifiche: navigazione a due schermate (`day-card`/`data-go`/`day-page`/`data-back`), campi una colonna + tastiera numerica + font 16px; i test di bozza autosalvata/ripristino continuano a passare col nuovo markup. Build md5 identici, `npm run verifica` OK. NB: resa reale su telefono confermata da Marco.
+**Approvato da**: Marco (feedback iterativi + comando di pubblicazione «pubblichiamo»)
+
 ### 2026-06-17 — TMS v1.0.82: stampa della dieta in PDF A4 orizzontale (grammi in evidenza) + README «progetto amatoriale»
 
 **Tipo**: nuova funzione (PDF dieta) + nota README (richieste esplicite di Marco)
