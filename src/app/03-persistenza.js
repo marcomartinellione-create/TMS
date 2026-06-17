@@ -194,6 +194,7 @@ function persist(which){
 /* ── PROFILI (ops) ── */
 async function switchProfile(slug){
   if(!profili.some(p=>p.slug===slug)) return;
+  cruscottoInvalida();  /* il set di dati per-profilo è cambiato: il cruscotto va ricalcolato */
   if(slug!==activeProfile){
     if(dataDir&&profileDir){ try{ await persistAll(); }catch(e){} }
     saveCache();

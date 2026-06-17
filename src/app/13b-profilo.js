@@ -35,6 +35,7 @@ function renderProfilo(){
       </div>${open?`<div style="padding:0 13px 12px">${body}</div>`:''}</div>`;
   }).join('');
   document.getElementById('panel-profilo').innerHTML=`
+   <div id="cruscotto-box" class="no-print"></div>
    <div class="bar"><div class="field" style="flex:1"><label>Profili</label>
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">👤 ${profili.length} profil${profili.length===1?'o':'i'}</div></div>
      <button class="btn btn--ember no-print" id="prof-new">＋ Nuovo profilo</button></div>
@@ -68,6 +69,7 @@ function renderProfilo(){
   document.querySelectorAll('#panel-profilo [data-pedit]').forEach(b=>b.onclick=async()=>{ const slug=b.dataset.pedit; if(slug!==activeProfile){ await switchProfile(slug); } anagraficaModal(); });
   document.querySelectorAll('#panel-profilo [data-pren]').forEach(b=>b.onclick=()=>renameProfile(b.dataset.pren));
   document.querySelectorAll('#panel-profilo [data-pdel]').forEach(b=>b.onclick=()=>deleteProfile(b.dataset.pdel));
+  renderCruscotto();  /* cruscotto multi-cliente in cima al pannello (async, sola lettura) */
 }
 
 function anagraficaModal(){

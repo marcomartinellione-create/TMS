@@ -540,6 +540,38 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const apertoPrima = w.eval('profOpen');
   d.querySelector('#panel-profilo [data-prin="wander"]').closest('label').dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
   ok(w.eval('profOpen') === apertoPrima, 'click sui bottoni della riga: la tendina non si apre/chiude');
+  /* ── Cruscotto clienti: triage multi-profilo, SOLA LETTURA, in cima al tab Profilo ── */
+  w.eval('showTab("profilo")');
+  ok(d.getElementById('cruscotto-box') !== null, 'cruscotto: contenitore in cima al pannello Profilo');
+  /* soglie del semaforo (funzione pura, deterministica) */
+  ok(w.eval('cruscottoLivello({hasData:true, acwr:1.7, stale:1})') === 'danger', 'semaforo: ACWR > 1.5 → 🔴');
+  ok(w.eval('cruscottoLivello({hasData:true, acwr:1.0, stale:3})') === 'danger', 'semaforo: scheda ferma ≥3 settimane → 🔴');
+  ok(w.eval('cruscottoLivello({hasData:true, acwr:1.4, stale:0, monoHigh:true})') === 'danger', 'semaforo: monotonia alta + ACWR>1.3 → 🔴');
+  ok(w.eval('cruscottoLivello({hasData:true, acwr:1.4, stale:0})') === 'warn', 'semaforo: ACWR 1.3–1.5 → 🟡');
+  ok(w.eval('cruscottoLivello({hasData:true, acwr:1.0, stale:2})') === 'warn', 'semaforo: ferma 2 settimane → 🟡');
+  ok(w.eval('cruscottoLivello({hasData:true, acwr:1.0, stale:0, monoHigh:true})') === 'warn', 'semaforo: monotonia alta → 🟡');
+  ok(w.eval('cruscottoLivello({hasData:true, acwr:1.0, stale:1})') === 'ok', 'semaforo: tutto in zona → 🟢');
+  ok(w.eval('cruscottoLivello({hasData:false})') === 'none', 'semaforo: nessun dato → ⚪');
+  /* settimaneFa e PR (su DOC sintetico, ripristinando lo stato) */
+  const codeCur = w.eval('(function(){var w=isoWeek(new Date());return schedaCode(w.anno,w.sett);})()');
+  ok(w.eval('settimaneFa(' + codeCur + ')') === 0 && w.eval('settimaneFa(0)') === null, 'settimaneFa: settimana corrente → 0, nessuna registrazione → null');
+  ok(w.eval('(function(){var s=DOC.storico; DOC.storico=[{esercizio:"X",peso:100,scheda:202601},{esercizio:"X",peso:110,scheda:202602}]; var r=prUltimaSettimana(); DOC.storico=s; return r.length===1 && r[0].nome==="X" && r[0].peso===110;})()') === true, 'PR: peso che batte le settimane precedenti rilevato');
+  ok(w.eval('(function(){var s=DOC.storico; DOC.storico=[{esercizio:"X",peso:100,scheda:202601}]; var r=prUltimaSettimana(); DOC.storico=s; return r.length===0;})()') === true, 'PR: primo carico in assoluto non conta come PR recente');
+  /* dati del cruscotto: un triage per profilo, calcoli reali, NESSUNA scrittura, DOC intatto */
+  const apActive = w.eval('activeProfile'), stLen = w.eval('DOC.storico.length'), fcPrima = fsmem._files.size;
+  const crum = await w.eval('cruscottoDati()');
+  ok(Array.isArray(crum) && crum.length === 2, 'cruscotto: un triage per ogni profilo (2)');
+  ok(crum.every(t => ['danger', 'warn', 'ok', 'none'].includes(t.level)), 'cruscotto: ogni cliente ha un livello semaforo valido');
+  const tT = crum.find(t => t.slug === 'template');
+  ok(tT && typeof tT.acwr === 'number' && tT.acwr > 0, 'cruscotto: ACWR calcolato per il template (' + (tT ? tT.acwr.toFixed(2) : '—') + ')');
+  ok(tT && tT.hasRpe === true && typeof tT.mono === 'number', 'cruscotto: monotonia calcolata (il template ha gli RPE attivi)');
+  ok(w.eval('activeProfile') === apActive && w.eval('DOC.storico.length') === stLen, 'cruscotto: profilo attivo e DOC intatti dopo il calcolo (sola lettura)');
+  ok(fsmem._files.size === fcPrima, 'cruscotto: nessun file scritto (read-only)');
+  /* render: una card per cliente con bottone Apri + intestazione */
+  await w.eval('renderCruscotto(true)');
+  await settle(60);
+  ok(d.querySelectorAll('#cruscotto-box [data-cropen]').length === 2, 'cruscotto: una card «Apri» per cliente');
+  ok(d.getElementById('cruscotto-box').innerHTML.includes('🚦 Cruscotto clienti'), 'cruscotto: intestazione e legenda nel pannello');
   dom.window.close();
 }
 

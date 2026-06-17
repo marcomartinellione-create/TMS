@@ -32,6 +32,7 @@
     "app/13a-guida.js",
     "app/13b-profilo.js",
     "app/13c-guida-ai.js",
+    "app/13d-cruscotto.js",
     "app/14-backup.js",
     "app/15-scambio.js",
     "app/16-gate.js",
