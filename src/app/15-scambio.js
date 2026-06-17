@@ -30,12 +30,12 @@ function costruisciSchedaCliente(videoMap){
     dayRows.forEach(r=>{
       const prev=`${r.serie}×${r.rip} @${r.peso} kg${r.rir!=null?(' · RIR '+r.rir):''}${r.rest?(' · rest '+esc(r.rest)):''}`;
       const vb=(r.video&&videoMap[r.video])?`<button type="button" class="vbtn" data-v="${esc(r.video)}" title="Guarda il video">▶</button>`:'';
-      corpo+=`<tr><td class="l">${esc(r.esercizio)}${vb}${r.note?`<div class="hint">${esc(r.note)}</div>`:''}</td><td class="l prev">${prev}</td>`+
-        `<td><input id="s-${r.i}" type="number" min="0" step="1" value="${r.serie||''}"></td>`+
-        `<td><input id="r-${r.i}" type="number" min="0" step="1" value="${r.rip||''}"></td>`+
-        `<td><input id="p-${r.i}" type="number" min="0" step="0.5" value="${r.peso||''}"></td>`+
-        `<td><input id="rir-${r.i}" type="number" min="0" max="9" step="1" value="${r.rir==null?'':r.rir}" placeholder="–"></td>`+
-        `<td class="l"><input id="n-${r.i}" type="text" class="nota" placeholder="com'è andata?"></td></tr>`;
+      corpo+=`<tr><td class="l ex">${esc(r.esercizio)}${vb}${r.note?`<div class="hint">${esc(r.note)}</div>`:''}</td><td class="l prev" data-label="Previsto">${prev}</td>`+
+        `<td class="fld" data-label="Serie"><input id="s-${r.i}" type="number" inputmode="numeric" min="0" step="1" value="${r.serie||''}"></td>`+
+        `<td class="fld" data-label="Ripetizioni"><input id="r-${r.i}" type="number" inputmode="numeric" min="0" step="1" value="${r.rip||''}"></td>`+
+        `<td class="fld" data-label="Peso (kg)"><input id="p-${r.i}" type="number" inputmode="decimal" min="0" step="0.5" value="${r.peso||''}"></td>`+
+        `<td class="fld" data-label="RIR"><input id="rir-${r.i}" type="number" inputmode="numeric" min="0" max="9" step="1" value="${r.rir==null?'':r.rir}" placeholder="–"></td>`+
+        `<td class="l fld" data-label="Note"><input id="n-${r.i}" type="text" class="nota" placeholder="com'è andata?"></td></tr>`;
     });
     corpo+=`</tbody></table><div class="seduta">Fatica della seduta (RPE 0–10) <input id="rpe-${gi}" type="number" min="0" max="10" step="0.5" placeholder="–"> · Durata <input id="min-${gi}" type="number" min="0" step="1" placeholder="min"> min</div></div>`;
   });
@@ -62,6 +62,31 @@ function costruisciSchedaCliente(videoMap){
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:10px;background:#000}
  #vclose{position:absolute;top:14px;right:18px;font-size:26px;color:#fff;background:none;border:0;cursor:pointer}
+ /* ── Vista smartphone: la tabella a colonne diventa una scheda per esercizio, con campi
+       grandi e comodi da toccare; font 16px sui campi per evitare lo zoom automatico di iOS ── */
+ @media (max-width:640px){
+  body{padding:12px 10px}
+  h1{font-size:19px;line-height:1.25}.sub{font-size:12.5px}
+  .avviso{font-size:12.5px;padding:9px 11px}
+  .giorno{padding:10px 11px;border-radius:12px;margin-bottom:16px}
+  h2{font-size:16px;margin-bottom:6px}
+  table,tbody,tr,td{display:block;width:auto}
+  thead{display:none}
+  tr{background:#fff;border:1px solid #cdb889;border-radius:10px;padding:11px 13px;margin-bottom:11px}
+  td{border:0;padding:3px 0;text-align:left}
+  td.ex{font-size:15.5px;font-weight:bold;color:#2b1d10;line-height:1.35;margin-bottom:3px}
+  td.ex .vbtn{vertical-align:middle;margin-left:8px;padding:5px 14px;font-size:14px}
+  td.ex .hint{font-weight:normal;margin-top:3px;font-size:12px}
+  td.prev{color:#7a6648;font-size:13px;white-space:normal;border-bottom:1px dashed #e6d9bd;padding-bottom:9px;margin-bottom:7px}
+  td.prev::before{content:attr(data-label) ": ";font-weight:bold;text-transform:uppercase;font-size:10px;letter-spacing:.4px;color:#9a5b1f}
+  td.fld{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
+  td.fld::before{content:attr(data-label);color:#5b4a30;font-size:14px;font-weight:bold}
+  td.fld input[type=number]{width:44%;max-width:140px;height:44px;font-size:16px}
+  td.fld input.nota{width:62%;height:40px;font-size:16px;min-width:0}
+  .seduta{margin-top:12px;font-size:14px;line-height:2.5}
+  .seduta input{height:42px;font-size:16px;width:84px;vertical-align:middle}
+  .invia{width:100%;font-size:17px;padding:15px;margin-top:18px}
+ }
 </style></head><body>
 <h1>✦ Scheda di allenamento — ${esc(profNome()||'')}</h1>
 <div class="sub">Esportata il ${esc(oggi)} da Training Monitor System. Compila ciò che hai fatto davvero (serie, ripetizioni, peso, RIR, note e fatica della seduta), poi premi il bottone in fondo e manda il file al tuo trainer.</div>
