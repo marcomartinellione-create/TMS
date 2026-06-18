@@ -89,49 +89,53 @@ async function cruscottoDati(){
 
 const CR_COL={danger:'var(--danger)', warn:'#c9961f', ok:'var(--ok)', none:'var(--ink-3)'};
 const CR_LED={danger:'🔴', warn:'🟡', ok:'🟢', none:'⚪'};
-function cruscottoCardHTML(t){
-  const acwrTxt=t.acwr==null?'—':nf(t.acwr,2);
+/* riga di sintesi (grigia) sotto il nome del profilo: ACWR · aggiornamento · monotonia · PR */
+function semaforoSummaryHTML(t){
+  if(!t.hasData) return '<span style="color:var(--ink-3)">nessun dato registrato</span>';
   const acwrCol=t.acwr==null?'var(--ink-3)':(t.acwr>1.5?'var(--danger)':((t.acwr<0.8||t.acwr>1.3)?'#c9961f':'var(--ok)'));
-  const stTxt=t.stale==null?'<b style="color:var(--ink-3)">mai</b>':(t.stale<=0?'<b style="color:var(--ok)">questa sett.</b>':(t.stale>=3?`<b style="color:var(--danger)">${t.stale} sett. fa</b>`:(t.stale===2?`<b style="color:#c9961f">2 sett. fa</b>`:'1 sett. fa')));
-  const monoTxt=t.hasRpe?` · 📊 monotonia <b style="color:${t.monoHigh?'var(--danger)':'var(--ink)'}">${t.mono==null?'—':nf(t.mono,2)}</b>`:'';
-  const prTxt=t.prs&&t.prs.length?`<span class="pill" title="${esc(t.prs.slice(0,5).map(p=>p.nome+' '+nf(p.peso,0)+' kg').join(' · '))}" style="border-color:var(--ok);color:var(--ok)">🎉 ${t.prs.length} PR</span>`:'';
-  return `<div class="cr-card" style="border:1px solid var(--border);border-left:5px solid ${CR_COL[t.level]};border-radius:7px;padding:9px 12px;background:var(--paper-2)">
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:14px">${CR_LED[t.level]}</span>
-      <span style="font-family:var(--font-disp);font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">👤 ${esc(t.nome)}</span>
-      ${prTxt}
-    </div>
-    <div class="muted" style="font-size:12.5px;margin-top:6px;line-height:1.55">
-      ⚖ ACWR <b style="color:${acwrCol}">${acwrTxt}</b> · 🏋 ${stTxt}${monoTxt}
-    </div>
-    <div class="bar no-print" style="margin-top:7px">
-      <button class="btn" data-cropen="${esc(t.slug)}" style="font-size:12px;padding:4px 11px" title="Attiva ${esc(t.nome)} e apri i Progressi">Apri →</button>
-    </div></div>`;
+  const acwrTxt=t.acwr==null?'—':nf(t.acwr,2);
+  const stTxt=t.stale==null?'<span style="color:var(--danger)">mai aggiornata</span>':(t.stale<=0?'<span style="color:var(--ok)">questa sett.</span>':(t.stale>=3?`<span style="color:var(--danger)">${t.stale} sett. fa</span>`:(t.stale===2?`<span style="color:#c9961f">2 sett. fa</span>`:'1 sett. fa')));
+  const monoTxt=t.hasRpe?` · 📊 mono <b style="color:${t.monoHigh?'var(--danger)':'inherit'}">${t.mono==null?'—':nf(t.mono,2)}</b>`:'';
+  const prTxt=t.prs&&t.prs.length?` · <span style="color:var(--ok)" title="${esc(t.prs.slice(0,5).map(p=>p.nome+' '+nf(p.peso,0)+' kg').join(' · '))}">🎉 ${t.prs.length} PR</span>`:'';
+  return `⚖ ACWR <b style="color:${acwrCol}">${acwrTxt}</b> · 🏋 ${stTxt}${monoTxt}${prTxt}`;
 }
-function cruscottoHTML(dati){
-  if(!dati.length) return '';
-  const head=`<div class="sec no-print" style="margin-top:0">▌ 🚦 Cruscotto clienti</div>
-    <div class="callout callout--info no-print"><div>Stato di ogni cliente a colpo d'occhio, <b>sola lettura</b>: <b style="color:var(--ok)">🟢 ok</b> · <b style="color:#c9961f">🟡 attenzione</b> · <b style="color:var(--danger)">🔴 a rischio</b> (carico alto, monotonia o scheda ferma) · ⚪ senza dati. «Apri» attiva il cliente e mostra i Progressi. <a href="#" id="cr-refresh" style="color:var(--ember-2)">🔄 aggiorna</a></div></div>
-    <div class="cards no-print" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:8px">${dati.map(cruscottoCardHTML).join('')}</div>`;
-  const nota=dati.length===1?`<div class="muted no-print" style="font-size:12px;margin:-2px 0 10px">Il cruscotto dà il meglio con più clienti: crea altri profili per vederli tutti qui.</div>`:'';
-  return head+nota;
+/* testo del tooltip sul pallino: perché è di quel colore */
+function semaforoTitolo(t){
+  if(!t.hasData) return '⚪ Nessun dato registrato per questo profilo';
+  const m=[];
+  if(t.level==='danger'){
+    if(t.acwr!=null&&t.acwr>1.5) m.push('carico alto (ACWR '+nf(t.acwr,2)+')');
+    if(t.stale!=null&&t.stale>=3) m.push('scheda ferma da '+t.stale+' settimane');
+    if(t.monoHigh&&t.acwr!=null&&t.acwr>1.3) m.push('monotonia alta col carico elevato');
+    return '🔴 A rischio: '+(m.join(' · ')||'segnali critici');
+  }
+  if(t.level==='warn'){
+    if(t.acwr!=null&&(t.acwr>1.3||t.acwr<0.8)) m.push('ACWR fuori zona ('+nf(t.acwr,2)+')');
+    if(t.stale!=null&&t.stale>=2) m.push('scheda ferma da '+t.stale+' settimane');
+    if(t.monoHigh) m.push('monotonia alta');
+    return '🟡 Attenzione: '+(m.join(' · ')||'da tenere d\'occhio');
+  }
+  return '🟢 Tutto in zona e aggiornato';
 }
-function wireCruscotto(box){
-  box.querySelectorAll('[data-cropen]').forEach(b=>b.onclick=async()=>{ const slug=b.dataset.cropen;
-    if(slug!==activeProfile){ await switchProfile(slug); } showTab('progressi'); });
-  const r=box.querySelector('#cr-refresh'); if(r) r.onclick=ev=>{ ev.preventDefault(); renderCruscotto(true); };
+/* riempie i segnaposto (pallino + sintesi) già presenti in ogni riga profilo */
+function applicaSemafori(dati){
+  (dati||[]).forEach(t=>{
+    const led=document.getElementById('cr-led-'+t.slug);
+    if(led){ led.textContent=CR_LED[t.level]; led.style.color=CR_COL[t.level]; led.title=semaforoTitolo(t); }
+    const sum=document.getElementById('cr-sum-'+t.slug);
+    if(sum) sum.innerHTML=semaforoSummaryHTML(t);
+  });
 }
 let cruscottoCache=null, cruscottoTime=0, cruscottoGen=0;
 function cruscottoInvalida(){ cruscottoCache=null; }   /* forza il ricalcolo al prossimo render (dati cambiati) */
-async function renderCruscotto(force){
-  const box=document.getElementById('cruscotto-box'); if(!box) return;
-  if(cruscottoCache!=null){ box.innerHTML=cruscottoCache; wireCruscotto(box);
-    if(!force && (Date.now()-cruscottoTime)<1500) return; }   /* paint istantaneo + niente riletture a raffica sui toggle */
-  else box.innerHTML='<div class="muted no-print" style="padding:6px 2px">🚦 Cruscotto clienti — calcolo…</div>';
+/* calcola i triage e li dipinge sulle righe profilo (sola lettura). Cache breve per non
+   rileggere il disco a ogni apertura/chiusura di una tendina; «force» salta la cache. */
+async function aggiornaSemafori(force){
+  if(cruscottoCache) applicaSemafori(cruscottoCache);             /* paint istantaneo dall'ultimo calcolo */
+  if(!force && cruscottoCache && (Date.now()-cruscottoTime)<1500) return;
   const gen=++cruscottoGen;
   let dati; try{ dati=await cruscottoDati(); }catch(e){ logErrore('cruscotto', e); return; }
-  if(gen!==cruscottoGen) return;                               /* un render più recente ha già preso il posto */
-  const b2=document.getElementById('cruscotto-box'); if(!b2) return;
-  cruscottoCache=cruscottoHTML(dati); cruscottoTime=Date.now();
-  b2.innerHTML=cruscottoCache; wireCruscotto(b2);
+  if(gen!==cruscottoGen) return;                                 /* un render più recente ha già preso il posto */
+  cruscottoCache=dati; cruscottoTime=Date.now();
+  applicaSemafori(dati);
 }

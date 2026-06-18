@@ -52,13 +52,14 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
 
 - **Multi-profilo**: ogni atleta/cliente ha scheda, storico, misure e alimentazione
   propri; il catalogo esercizi è condiviso. Il tab mostra il nome del profilo attivo.
-- **Cruscotto clienti** (in cima al tab, sola lettura): tutti i profili a colpo d'occhio
-  con un semaforo di rischio — verde = ok, giallo = attenzione, rosso = a rischio, grigio
-  = senza dati. Per ogni cliente: ACWR dell'ultima settimana, da quante settimane non
-  aggiorna la scheda, monotonia (se ha gli RPE attivi) e i PR recenti. Soglie del semaforo:
-  rosso se ACWR > 1.5 oppure scheda ferma da 3+ settimane oppure monotonia > 2 con carico
-  acuto alto; giallo se ACWR 1.3–1.5 (o < 0.8), scheda ferma da 2 settimane, o monotonia > 2.
-  Il bottone «Apri» attiva quel cliente e mostra i suoi Progressi. NON modifica alcun dato.
+- **Semaforo clienti** (integrato in ogni riga della lista profili, sola lettura): accanto
+  al nome di ogni profilo c'è un pallino — verde = ok, giallo = attenzione, rosso = a rischio,
+  grigio = senza dati — e sotto al nome una riga di sintesi: ACWR dell'ultima settimana, da
+  quante settimane non aggiorna la scheda, monotonia (se ha gli RPE attivi) e i PR recenti.
+  Soglie: rosso se ACWR > 1.5 oppure scheda ferma da 3+ settimane oppure monotonia > 2 con
+  carico acuto alto; giallo se ACWR 1.3–1.5 (o < 0.8), scheda ferma da 2 settimane, o
+  monotonia > 2. Serve al coach per vedere a colpo d'occhio chi richiede attenzione senza
+  aprire i profili uno per uno. NON modifica alcun dato.
 - «＋ Nuovo profilo» crea un profilo. Cliccando una riga della lista si apre la
   tendina con i parametri: sesso, data di nascita, altezza, «RIR nei calcoli» (sì/no),
   «Session-RPE» (sì/no), formula 1RM preferita. (La fase del piano alimentare NON è
@@ -288,9 +289,9 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 ## 13 · Domande tipiche → dove si fa
 
 - «Nuovo cliente/atleta» → Profilo → ＋ Nuovo profilo.
-- «Vedere a colpo d'occhio quali clienti sono a rischio / non aggiornano» → Profilo →
-  Cruscotto clienti (in cima): semaforo verde/giallo/rosso, ACWR, settimane dall'ultimo
-  aggiornamento, PR recenti.
+- «Vedere a colpo d'occhio quali clienti sono a rischio / non aggiornano» → Profilo: il
+  semaforo accanto al nome di ogni profilo (verde/giallo/rosso) con ACWR, settimane
+  dall'ultimo aggiornamento e PR recenti sotto al nome.
 - «Cambiare formula 1RM, RIR, session-RPE» → Profilo → tendina del profilo → ✎
   Modifica parametri.
 - «Cambiare la fase alimentare (Bulk/Mant/Cut)» → Alimentazione → bottoni in cima al tab.

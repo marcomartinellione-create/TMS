@@ -540,9 +540,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const apertoPrima = w.eval('profOpen');
   d.querySelector('#panel-profilo [data-prin="wander"]').closest('label').dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
   ok(w.eval('profOpen') === apertoPrima, 'click sui bottoni della riga: la tendina non si apre/chiude');
-  /* ── Cruscotto clienti: triage multi-profilo, SOLA LETTURA, in cima al tab Profilo ── */
-  w.eval('showTab("profilo")');
-  ok(d.getElementById('cruscotto-box') !== null, 'cruscotto: contenitore in cima al pannello Profilo');
+  /* ── Semaforo clienti: triage integrato in ogni riga profilo, SOLA LETTURA ── */
+  w.eval('profOpen = null; showTab("profilo")');
+  ok(d.getElementById('cr-led-template') !== null && d.getElementById('cr-led-wander') !== null, 'semaforo: pallino in ogni riga profilo (niente box separato che duplica)');
+  ok(d.getElementById('cruscotto-box') === null, 'semaforo: nessuna sezione cruscotto separata (unificata nella lista profili)');
+  ok(d.querySelectorAll('#panel-profilo [data-pexs]').length === 2 && d.querySelector('#cr-sum-template') !== null, 'semaforo: la riga conserva 📤 Esporta + la sintesi sotto il nome');
   /* soglie del semaforo (funzione pura, deterministica) */
   ok(w.eval('cruscottoLivello({hasData:true, acwr:1.7, stale:1})') === 'danger', 'semaforo: ACWR > 1.5 → 🔴');
   ok(w.eval('cruscottoLivello({hasData:true, acwr:1.0, stale:3})') === 'danger', 'semaforo: scheda ferma ≥3 settimane → 🔴');
@@ -567,11 +569,12 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(tT && tT.hasRpe === true && typeof tT.mono === 'number', 'cruscotto: monotonia calcolata (il template ha gli RPE attivi)');
   ok(w.eval('activeProfile') === apActive && w.eval('DOC.storico.length') === stLen, 'cruscotto: profilo attivo e DOC intatti dopo il calcolo (sola lettura)');
   ok(fsmem._files.size === fcPrima, 'cruscotto: nessun file scritto (read-only)');
-  /* render: una card per cliente con bottone Apri + intestazione */
-  await w.eval('renderCruscotto(true)');
+  /* render: il pallino e la sintesi vengono dipinti nella riga di ogni profilo */
+  await w.eval('aggiornaSemafori(true)');
   await settle(60);
-  ok(d.querySelectorAll('#cruscotto-box [data-cropen]').length === 2, 'cruscotto: una card «Apri» per cliente');
-  ok(d.getElementById('cruscotto-box').innerHTML.includes('🚦 Cruscotto clienti'), 'cruscotto: intestazione e legenda nel pannello');
+  ok(['🟢','🟡','🔴','⚪'].includes(d.getElementById('cr-led-template').textContent), 'semaforo: pallino dipinto sulla riga del template');
+  ok(d.getElementById('cr-sum-template').innerHTML.includes('ACWR'), 'semaforo: sintesi (ACWR · aggiornamento · monotonia) sotto il nome');
+  ok(d.getElementById('panel-profilo').innerHTML.includes('🟢 ok') && d.getElementById('panel-profilo').innerHTML.includes('🔴 a rischio'), 'semaforo: legenda dei colori nel pannello');
   dom.window.close();
 }
 

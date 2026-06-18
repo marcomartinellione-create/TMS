@@ -26,20 +26,21 @@ function renderProfilo(){
     return `<div class="prof-item" style="border:1px solid var(--border);border-radius:7px;margin-bottom:8px;background:${isAct?'var(--gold-t)':'var(--paper-2)'}">
       <div data-popen="${esc(p.slug)}" style="display:flex;align-items:center;gap:10px;padding:11px 13px;cursor:pointer">
         <span style="font-family:var(--font-mono)">${open?'▾':'▸'}</span>
-        <span style="font-family:var(--font-disp);font-size:17px">👤 ${esc(p.nome)}</span>
-        ${isAct?'<span class="pill">attivo</span>':''}
-        <span style="flex:1"></span>
+        <span class="cr-led" id="cr-led-${esc(p.slug)}" style="font-size:13px;color:var(--ink-3);flex:0 0 auto" title="Stato in calcolo…">⚪</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--font-disp);font-size:17px">👤 ${esc(p.nome)}${isAct?' <span class="pill">attivo</span>':''}</div>
+          <div class="muted" id="cr-sum-${esc(p.slug)}" style="font-size:11.5px;margin-top:2px">…</div>
+        </div>
         <button class="btn no-print" data-pexs="${esc(p.slug)}" style="font-size:12px;padding:4px 10px" title="Crea la pagina HTML con la scheda di ${esc(p.nome)} da inviare al cliente">📤 Esporta scheda</button>
         <label class="btn no-print" style="cursor:pointer;font-size:12px;padding:4px 10px" title="Importa nel profilo di ${esc(p.nome)} il file di rientro compilato dal cliente">📥 Importa rientro<input type="file" data-prin="${esc(p.slug)}" accept="application/json,.json" style="display:none"></label>
         <span class="muted mono" style="font-size:11px">${esc(p.creato||'')}</span>
       </div>${open?`<div style="padding:0 13px 12px">${body}</div>`:''}</div>`;
   }).join('');
   document.getElementById('panel-profilo').innerHTML=`
-   <div id="cruscotto-box" class="no-print"></div>
    <div class="bar"><div class="field" style="flex:1"><label>Profili</label>
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">👤 ${profili.length} profil${profili.length===1?'o':'i'}</div></div>
      <button class="btn btn--ember no-print" id="prof-new">＋ Nuovo profilo</button></div>
-   <div class="callout callout--info"><div>Clicca un profilo per vederne i <b>parametri</b> (✎ per cambiarli). I bottoni nella riga sono lo <b>scambio scheda ↔ cliente</b> di quel profilo — <b>📤 Esporta scheda</b> crea la pagina compilabile da mandargli, <b>📥 Importa rientro</b> registra il file che ti rimanda. ${dataDir?`Dati in <span class="mono">${esc(SUBDIR)}/&lt;profilo&gt;/</span>.`:'Connetti una cartella (in alto) per salvarli su disco.'}</div></div>
+   <div class="callout callout--info"><div>Il <b>pallino</b> accanto al nome è un <b>semaforo</b> dello stato del cliente (sola lettura): <b style="color:var(--ok)">🟢 ok</b> · <b style="color:#c9961f">🟡 attenzione</b> · <b style="color:var(--danger)">🔴 a rischio</b> (carico alto, monotonia o scheda ferma) · ⚪ senza dati — sotto al nome trovi ACWR, da quanto non aggiorna e i PR. Clicca un profilo per i <b>parametri</b> (✎ per cambiarli). I bottoni nella riga sono lo <b>scambio scheda ↔ cliente</b>: <b>📤 Esporta scheda</b> crea la pagina compilabile da mandargli, <b>📥 Importa rientro</b> registra il file che ti rimanda. ${dataDir?`Dati in <span class="mono">${esc(SUBDIR)}/&lt;profilo&gt;/</span>.`:'Connetti una cartella (in alto) per salvarli su disco.'}</div></div>
    ${items||'<div class="empty">Nessun profilo.</div>'}
    <div class="sec no-print" style="margin-top:14px">▌ Backup (tutti i profili insieme)</div>
    <div class="bar no-print"><button class="btn" id="prof-backup" title="Esporta i dati di TUTTI i profili in un file">⭳ Backup dati</button> <label class="btn" style="cursor:pointer" title="Importa un backup">⭱ Ripristina<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>
@@ -69,7 +70,7 @@ function renderProfilo(){
   document.querySelectorAll('#panel-profilo [data-pedit]').forEach(b=>b.onclick=async()=>{ const slug=b.dataset.pedit; if(slug!==activeProfile){ await switchProfile(slug); } anagraficaModal(); });
   document.querySelectorAll('#panel-profilo [data-pren]').forEach(b=>b.onclick=()=>renameProfile(b.dataset.pren));
   document.querySelectorAll('#panel-profilo [data-pdel]').forEach(b=>b.onclick=()=>deleteProfile(b.dataset.pdel));
-  renderCruscotto();  /* cruscotto multi-cliente in cima al pannello (async, sola lettura) */
+  aggiornaSemafori();  /* dipinge il semaforo di rischio su ogni riga profilo (async, sola lettura) */
 }
 
 function anagraficaModal(){
