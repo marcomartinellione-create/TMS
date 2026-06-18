@@ -1,7 +1,7 @@
 /* ════════════════ RENDER: REPORT ════════════════ */
 function renderReport(){
   const u=DOC.dati_utente; const c=bodyCalc(u);
-  const def={profilo:true,riepilogo:true,scheda:true,andamento:true,progressione:true,record:true,cardio:true,alimentazione:true,analisi:true,note:true,obiettivo:(u.obiettivo||''),nota:''};
+  const def={profilo:true,foto:false,riepilogo:true,scheda:true,andamento:true,progressione:true,record:true,cardio:true,alimentazione:true,analisi:true,note:true,obiettivo:(u.obiettivo||''),nota:'',fotoPrima:'',fotoDopo:''};
   u.report=Object.assign({},def,u.report||{}); const R=u.report;
   const ag=schedeAggr(); const last=ag.length?ag[ag.length-1]:null, prev=ag.length>1?ag[ag.length-2]:null;
   const labels=ag.map(a=>schedaLabel(a.scheda));
@@ -14,12 +14,15 @@ function renderReport(){
   const A=DOC.alimentazione; const faseR=faseAlimActive(), tR=faseTot(A[faseR]||[]);
   const io=DOC.storico_io; const prs=prList().slice(0,8);
   const mainLifts=['Panca piana bilanciere','Squat bilanciere','Stacco da terra','Military press / Overhead press','Trazioni alla sbarra'].filter(n=>DOC.storico.some(r=>r.esercizio===n));
-  const toggles=[['profilo','Profilo & corpo'],['riepilogo','Riepilogo allenamento'],['scheda','Scheda di allenamento'],['andamento','Grafici di andamento'],['progressione','Progressione esercizi'],['record','Record personali'],['cardio','Cardio (attività)'],['alimentazione','Alimentazione'],['analisi','Dieta × allenamento'],['note','Note del coach']];
+  const toggles=[['profilo','Profilo & corpo'],['foto','Foto progressi (prima/dopo)'],['riepilogo','Riepilogo allenamento'],['scheda','Scheda di allenamento'],['andamento','Grafici di andamento'],['progressione','Progressione esercizi'],['record','Record personali'],['cardio','Cardio (attività)'],['alimentazione','Alimentazione'],['analisi','Dieta × allenamento'],['note','Note del coach']];
   /* ordine personalizzabile delle sezioni (per profilo): parte dal default, completa con eventuali sezioni nuove */
   const KEYS=toggles.map(t=>t[0]);
   let ordine=(Array.isArray(R.ordine)?R.ordine:[]).filter(k=>KEYS.indexOf(k)>=0);
   KEYS.forEach(k=>{ if(ordine.indexOf(k)<0) ordine.push(k); });
   R.ordine=ordine;
+  /* foto report: default prima=più vecchia, dopo=più recente (se ci sono foto) */
+  const _fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
+  if(_fl.length){ if(!_fl.some(f=>f.file===R.fotoPrima)) R.fotoPrima=_fl[0].file; if(!_fl.some(f=>f.file===R.fotoDopo)) R.fotoDopo=_fl[_fl.length-1].file; }
   const mvStyle='border:1px solid var(--border);background:var(--paper-2);border-radius:4px;cursor:pointer;font-size:10px;line-height:1;padding:2px 4px;color:var(--ink-2)';
   const ctrl=`<div class="bar no-print" style="flex-wrap:wrap">
      <div class="field" style="flex:1;min-width:240px"><label>Obiettivo del cliente (in copertina)</label><input id="rep-goal" value="${esc(R.obiettivo||'')}" placeholder="es. ricomposizione corporea, +forza panca…" style="width:100%"></div>
@@ -40,6 +43,12 @@ function renderReport(){
      </div>
      ${io.length>1?`<div class="chart-box" style="margin-top:10px"><h4>Andamento peso</h4>${lineChart([{name:'Peso',color:'var(--orange-b)',data:io.map(r=>({x:schedaLabel(r.scheda),y:+r.peso}))}],{h:140})}</div>`:''}
      <p class="muted" style="font-size:12px">Il <b>BMI</b> mette in rapporto peso e altezza; <b>massa magra/grassa</b> e <b>fabbisogno calorico</b> orientano l'alimentazione.</p></div>`; }
+  if(R.foto){ const fp=(DOC.foto||[]).find(x=>x.file===R.fotoPrima), fd=(DOC.foto||[]).find(x=>x.file===R.fotoDopo);
+    if(fp||fd){ const cell=(f,lab)=>{ if(!f) return `<div style="flex:1;text-align:center"><div style="font-weight:700;color:var(--ember-2)">${lab}</div><div class="muted" style="padding:16px">—</div></div>`;
+        const du=fotoReportUri[f.file], pz=fotoPeso(f.data);
+        return `<div style="flex:1;text-align:center;min-width:0"><div style="font-weight:700;color:var(--ember-2)">${lab}</div>${du?`<img src="${du}" alt="${lab}" style="max-width:100%;max-height:340px;border-radius:8px;border:1px solid var(--border)">`:'<div class="muted" style="padding:16px">(caricamento foto…)</div>'}<div class="muted" style="font-size:12px;margin-top:3px">${esc(fotoDataLabel(f))}${pz?' · '+nf(pz,1)+' kg':''}</div></div>`; };
+      B.foto=`<div class="rep-sec"><div class="sec">▌ Foto progressi — prima / dopo</div>
+       <div style="display:flex;gap:14px;align-items:flex-start">${cell(fp,'Prima')}${cell(fd,'Dopo')}</div></div>`; } }
   if(R.riepilogo && last){ B.riepilogo=`<div class="rep-sec"><div class="sec">▌ Riepilogo allenamento</div>
      <div class="cards">
        <div class="card k--ember"><div class="card__k">Carico (TL) ultima scheda</div><div class="card__v">${nfk(last.tl)}</div></div>
@@ -85,13 +94,38 @@ function renderReport(){
      <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`];
   ordine.forEach(k=>{ if(B[k]) S.push(B[k]); });
   S.push(`<p class="muted" style="font-size:11px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px">Report generato dal Training Monitor System. Indici a scopo informativo, non sostituiscono un parere medico/professionale.</p>`);
-  document.getElementById('panel-report').innerHTML=ctrl+`<div class="rep-doc" style="background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:28px;box-shadow:var(--shadow)">${S.join('')}</div>`;
+  document.getElementById('panel-report').innerHTML=ctrl+fotoReportCtrl(R)+`<div class="rep-doc" style="background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:28px;box-shadow:var(--shadow)">${S.join('')}</div>`;
   const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo'); };
   document.querySelectorAll('#panel-report [data-rep]').forEach(cb=>cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); });
   document.querySelectorAll('#panel-report [data-repmove]').forEach(b=>b.onclick=()=>{
     const ord=R.ordine.slice(), i=ord.indexOf(b.dataset.repmove), j=i+(+b.dataset.dir);
     if(i<0||j<0||j>=ord.length) return; const t=ord[i]; ord[i]=ord[j]; ord[j]=t; R.ordine=ord; persist('corpo'); renderReport(); });
   const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; const pv=document.querySelector('.rep-nota-print'); if(pv)pv.textContent=e.target.value; persist('corpo'); };
+  const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+  const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+  if(R.foto && [R.fotoPrima,R.fotoDopo].some(f=>f && !fotoReportUri[f])) ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); });
+}
+/* pickers prima/dopo per la sezione foto del report (vuoto se non ci sono foto) */
+function fotoReportCtrl(R){
+  const fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||''))); if(!fl.length) return '';
+  const opts=sel=>fl.map(f=>`<option value="${esc(f.file)}"${f.file===sel?' selected':''}>${esc(fotoDataLabel(f))}</option>`).join('');
+  return `<div class="bar no-print" style="gap:10px;flex-wrap:wrap;align-items:flex-end"><span class="muted mono" style="font-size:11px;align-self:center">📸 Foto report:</span>
+     <div class="field"><label>Prima</label><select id="rep-foto-a">${opts(R.fotoPrima)}</select></div>
+     <div class="field"><label>Dopo</label><select id="rep-foto-b">${opts(R.fotoDopo)}</select></div>
+     <span class="muted" style="font-size:11px;align-self:center">spunta «Foto progressi» tra le sezioni per inserirle</span></div>`;
+}
+/* embedding base64 delle due foto del report (così entrano sia nel PDF sia nel report digitale) */
+let fotoReportUri={};
+async function fotoReportDataUri(file){
+  if(fotoReportUri[file]) return fotoReportUri[file];
+  const fh=await fotoHandle(file,false); const f=await fh.getFile();
+  let du=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(f); });
+  if(!/^data:image\//.test(du)){ const e=String(file).toLowerCase(); const t=e.endsWith('.png')?'image/png':e.endsWith('.webp')?'image/webp':e.endsWith('.gif')?'image/gif':'image/jpeg'; du=du.replace(/^data:[^;,]*/,'data:'+t); }
+  fotoReportUri[file]=du; return du;
+}
+async function ensureReportFoto(){
+  const R=(DOC.dati_utente&&DOC.dati_utente.report)||{};
+  for(const file of [R.fotoPrima,R.fotoDopo]){ if(file && !fotoReportUri[file]){ try{ await fotoReportDataUri(file); }catch(e){} } }
 }
 function splitTable(D, tblWrap, headingEl){
   const table=tblWrap.querySelector('table');
@@ -196,6 +230,7 @@ async function embedVideoFiles(files){
   return map;
 }
 async function exportDigitalReport(){
+  if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ alert('Apri prima il Report.'); return; }
   const btn=document.getElementById('rep-html-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML='⏳ Genero…'; btn.disabled=true; }
@@ -232,6 +267,7 @@ async function exportDigitalReport(){
 async function printReport(){
   /* Esporta un PDF A4 generato da noi: impagina le unità del report, rasterizza ogni pagina con html2canvas
      (tema chiaro forzato via onclone, niente flash) e assembla il PDF (imagesToPdf). Niente stampa del browser. */
+  if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ try{ window.print(); }catch(e){} return; }
   if(typeof html2canvas!=='function'){ alert('Generatore PDF non disponibile in questa copia: uso la stampa del browser.'); try{ window.print(); }catch(e){} return; }

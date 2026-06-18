@@ -45,7 +45,8 @@ function renderCorpo(){
        <div class="chart-box"><h4>Massa magra / muscolare</h4>${lineChart(massSeries,{labels:lbl,h:150})}</div>
      </div>
    </div>
-   <div class="callout callout--info no-print"><div>📜 Lo storico completo delle misure (${io.length} rilevazioni) è nella sezione «Misure», raggiungibile dal link nel footer.</div></div>`;
+   <div class="callout callout--info no-print"><div>📜 Lo storico completo delle misure (${io.length} rilevazioni) è nella sezione «Misure», raggiungibile dal link nel footer.</div></div>
+   <div id="foto-box"></div>`;
   document.querySelectorAll('#panel-corpo [data-u]').forEach(inp=>inp.addEventListener('input',e=>{
     DOC.dati_utente[e.target.dataset.u]=e.target.value===''?'':+e.target.value; persist('corpo');
     clearTimeout(rerenderT); rerenderT=setTimeout(renderCorpo,600);
@@ -53,6 +54,7 @@ function renderCorpo(){
   document.getElementById('btn-save-io').onclick=saveIoModal;
   document.getElementById('btn-undo-io').onclick=()=>{ if(!io.length){alert('Vuoto.');return;}
     if(!confirm('Elimino l\'ultima misura salvata?'))return; DOC.storico_io.pop(); persist('corpo'); renderCorpo(); };
+  renderFotoSezione();  /* sezione 📸 Foto progressi (async per le immagini; sola lettura del disco) */
   updateStatusDots();
 }
 function saveIoModal(){

@@ -149,6 +149,13 @@ Due modi per registrare una seduta:
   settimana ISO formato AAAASS (es. 202624 = settimana 24 del 2026).
 - **Corpo**: peso e misure corporee con BMI e stime masse; lo storico misure è in un
   archivio dedicato (link nel footer).
+- **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
+  salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
+  tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
+  video, play/pausa, una foto per volta in ordine di data) e «⚖ Confronto» (due date a
+  scelta, vecchia sopra/recente sotto, con data e peso). Filtro per tag. I backup JSON
+  includono solo i metadati, non le immagini (per quelle si copia la cartella TMS_Dati,
+  come per i video). Si può inserire un confronto prima/dopo anche nel Report.
 
 ## 6 · Alimentazione (tab 🍖 Alimentazione)
 
@@ -227,10 +234,13 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 ## 10 · Report (tab 🖨 Report)
 
 - **Sezioni personalizzabili**: la riga «Sezioni» con le caselle decide QUALI blocchi
-  entrano nel report (Profilo & corpo, Riepilogo, Scheda, Andamento, Progressione,
-  Record, Alimentazione, Dieta × allenamento, Note del coach); le frecce ▲▼ accanto a
-  ogni casella ne decidono l'ORDINE. La scelta si salva per profilo e vale sia per il
-  PDF sia per il report digitale.
+  entrano nel report (Profilo & corpo, Foto progressi, Riepilogo, Scheda, Andamento,
+  Progressione, Record, Alimentazione, Dieta × allenamento, Note del coach); le frecce ▲▼
+  accanto a ogni casella ne decidono l'ORDINE. La scelta si salva per profilo e vale sia per
+  il PDF sia per il report digitale.
+- **Foto prima/dopo nel report**: se ci sono foto (tab Corpo), due selettori «📸 Foto report»
+  scelgono la foto «Prima» e «Dopo»; con la sezione «Foto progressi» attiva entrano nel report
+  (incorporate, quindi funzionano anche offline nel PDF e nel digitale).
 - **PDF A4**: bottone «⬇ Scarica PDF (A4)» — l'app impagina e genera il PDF da sola
   (download diretto, senza passare dalla stampa del browser).
 - **Report digitale**: pagina HTML per smartphone con i video incorporati, da inviare

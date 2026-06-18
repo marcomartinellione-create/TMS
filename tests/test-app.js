@@ -575,6 +575,38 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(['🟢','🟡','🔴','⚪'].includes(d.getElementById('cr-led-template').textContent), 'semaforo: pallino dipinto sulla riga del template');
   ok(d.getElementById('cr-sum-template').innerHTML.includes('ACWR'), 'semaforo: sintesi (ACWR · aggiornamento · monotonia) sotto il nome');
   ok(d.getElementById('panel-profilo').innerHTML.includes('🟢 ok') && d.getElementById('panel-profilo').innerHTML.includes('🔴 a rischio'), 'semaforo: legenda dei colori nel pannello');
+  /* ── Foto progressi (tab Corpo): scrittura binaria locale + metadati in corpo.json ── */
+  w.eval('switchProfile("wander")'); await settle(300);
+  w.eval('showTab("corpo")');
+  ok(d.getElementById('foto-box') !== null, 'foto: sezione 📸 Foto progressi nel tab Corpo');
+  const nFotoPrima = w.eval('(DOC.foto||[]).length');
+  await w.eval('(async()=>{ const file=new File([new Uint8Array([255,216,255,224])],"test.jpg",{type:"image/jpeg"}); await salvaFoto(file,"2026-03-01","fronte"); })()');
+  await settle(500);  /* attende la scrittura binaria + il persist debounced di corpo.json */
+  ok(w.eval('(DOC.foto||[]).length') === nFotoPrima + 1, 'foto: metadato aggiunto a DOC.foto');
+  const fmeta = w.eval('DOC.foto[DOC.foto.length-1]');
+  ok(fmeta && fmeta.data === '2026-03-01' && fmeta.tag === 'fronte' && /^f\d+/.test(fmeta.file), 'foto: data/tag/nome file registrati');
+  const fbytes = fsmem._files.get('TMS_Dati/wander/foto/' + fmeta.file);
+  ok(fbytes && fbytes.constructor && fbytes.constructor.name === 'Uint8Array' && fbytes.length === 4 && fbytes[0] === 255 && fbytes[1] === 216, 'foto: file BINARIO in TMS_Dati/wander/foto/ (4 byte JPEG verificati)');
+  let corpoJson = null; try { corpoJson = JSON.parse(fsmem._files.get('TMS_Dati/wander/corpo.json')); } catch(e){}
+  ok(corpoJson && Array.isArray(corpoJson.foto) && corpoJson.foto.some(x => x.file === fmeta.file), 'foto: metadati persistiti in corpo.json');
+  const snapFoto = await w.eval('costruisciSnapshot()');
+  ok(Array.isArray(snapFoto.profiles['wander'].foto) && snapFoto.profiles['wander'].foto.length >= 1, 'foto: metadati nel backup (le immagini restano file, come i video)');
+  /* modalità Confronto: due viste con immagini caricate dal disco */
+  w.eval('fotoMode="confronto"; renderFotoSezione();'); await settle(80);
+  ok(d.getElementById('foto-cmp-a') !== null && d.getElementById('foto-cmp-b') !== null, 'foto: modalità Confronto con selettori prima/dopo');
+  w.eval('fotoMode="riproduzione"; renderFotoSezione();'); await settle(40);
+  ok(d.getElementById('foto-pl-range') !== null && d.getElementById('foto-pl-play') !== null, 'foto: modalità Riproduzione con cursore e play');
+  /* ── Report: sezione foto prima/dopo con embedding base64 (PDF + digitale) ── */
+  w.eval('showTab("report")');
+  ok(d.querySelector('#panel-report [data-rep="foto"]') !== null, 'report: casella sezione «Foto progressi» nei toggle');
+  ok(d.getElementById('rep-foto-a') !== null && d.getElementById('rep-foto-b') !== null, 'report: selettori foto prima/dopo presenti');
+  w.eval('DOC.dati_utente.report.foto=true; DOC.dati_utente.report.fotoPrima=DOC.foto[0].file; DOC.dati_utente.report.fotoDopo=DOC.foto[DOC.foto.length-1].file;');
+  await w.eval('ensureReportFoto()');
+  w.eval('renderReport()');
+  const repFotoHtml = d.querySelector('#panel-report .rep-doc').innerHTML;
+  ok(repFotoHtml.includes('Foto progressi — prima / dopo'), 'report: sezione foto presente quando attiva');
+  ok(repFotoHtml.includes('data:image/'), 'report: foto incorporata come data URI (entra in PDF e report digitale)');
+  w.eval('DOC.dati_utente.report.foto=false; renderReport();');
   dom.window.close();
 }
 
