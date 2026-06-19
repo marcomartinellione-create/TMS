@@ -41,14 +41,15 @@ function caricoLED(pesoNuovo, pvPeso, lastRir, sig){
   else if(level==='ok' && sig && sig.monoHigh && d>0.05){ level='warn'; msg='Settimana poco variata (monotonia alta): aumento ok, ma varia i carichi'; }
   return {level, msg};
 }
+/* pallino reso accanto alle frecce ▲▼ nella cella esercizio (flex con gap): niente margine */
 function caricoLedHTML(led){
   if(!led) return '<span class="carico-led no-print" style="display:none"></span>';
-  return '<span class="carico-led no-print" title="'+esc(led.msg)+'" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:5px;vertical-align:middle;background:'+CARICO_COL[led.level]+'"></span>';
+  return '<span class="carico-led no-print" title="'+esc(led.msg)+'" style="display:inline-block;width:10px;height:10px;flex:0 0 auto;border-radius:50%;background:'+CARICO_COL[led.level]+'"></span>';
 }
 function caricoLedApply(span, led){
   if(!span) return;
   if(!led){ span.style.display='none'; span.title=''; return; }
-  span.style.cssText='display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:5px;vertical-align:middle;background:'+CARICO_COL[led.level];
+  span.style.cssText='display:inline-block;width:10px;height:10px;flex:0 0 auto;border-radius:50%;background:'+CARICO_COL[led.level];
   span.title=led.msg;
 }
 function rpeDayControls(g){ const d=dayRpe(g), ld=dayLoad(g);
@@ -83,11 +84,11 @@ function renderAllenamento(){
     const canUp=i>0 && rows[i-1] && rows[i-1].giorno===r.giorno, canDown=i<rows.length-1 && rows[i+1] && rows[i+1].giorno===r.giorno;
     body+=`<tr data-i="${i}"${r.test?' style="background:rgba(122,62,168,.07)"':''}>
       <td class="l"><button type="button" class="cell-in txt ex-pick" style="min-width:170px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(r.esercizio):'<span class="muted">＋ scegli esercizio</span>'} <span style="opacity:.5">▾</span></button>${sdBadge}
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="Guarda il video">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="ultima registrazione (scheda ${lp.scheda})">ult: ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}<span style="flex:1"></span><button class="btn btn--sm no-print" data-mvup="${i}" title="sposta su (nel giorno)"${canUp?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="sposta giù (nel giorno)"${canDown?'':' disabled'}>▼</button></div></td>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="Guarda il video">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="ultima registrazione (scheda ${lp.scheda})">ult: ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}<span style="flex:1"></span>${caricoLedHTML(ledCarico)}<button class="btn btn--sm no-print" data-mvup="${i}" title="sposta su (nel giorno)"${canUp?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="sposta giù (nel giorno)"${canDown?'':' disabled'}>▼</button></div></td>
       <td class="l"><textarea class="cell-in txt note-area" data-f="note" placeholder="note" style="min-width:90px">${esc(r.note||'')}</textarea></td>
       <td><input class="cell-in" type="number" min="0" value="${r.serie??''}" data-f="serie" style="width:48px"></td>
       <td><input class="cell-in" type="number" min="0" value="${r.rip??''}" data-f="rip" style="width:52px"></td>
-      <td><input class="cell-in" type="number" min="0" step="0.5" value="${r.peso??''}" data-f="peso" style="width:60px">${caricoLedHTML(ledCarico)}</td>
+      <td><input class="cell-in" type="number" min="0" step="0.5" value="${r.peso??''}" data-f="peso" style="width:60px"></td>
       <td class="rir-col"><input class="cell-in" type="number" min="0" max="10" value="${r.rir??''}" data-f="rir" style="width:42px" placeholder="–" title="Reps In Reserve · RPE=10−RIR"></td>
       <td><input class="cell-in" value="${esc(r.rest||'')}" data-f="rest" style="width:54px" placeholder="m:ss"></td>
       <td class="cell-calc num">${m?nf(m,1):'—'}</td>
@@ -120,7 +121,7 @@ function renderAllenamento(){
      <thead><tr><th class="l">Esercizio</th><th class="l">Note</th><th>Serie</th><th>Rip.</th><th>Peso</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th>Rest</th><th>1RM</th><th>%1RM</th><th>TL</th><th title="Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda">Δ TL set</th><th>Fascia / azioni</th></tr></thead>
      <tbody>${body||'<tr><td colspan="12" class="empty">Nessun esercizio. Aggiungine uno o un giorno.</td></tr>'}</tbody>
    </table></div>
-   <div class="callout callout--info"><div>🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto al Peso è un suggerimento del co-pilota (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:#c9961f">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.</div></div>`;
+   <div class="callout callout--info"><div>🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto alle frecce ▲▼ dell'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:#c9961f">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.</div></div>`;
   document.getElementById('sched-mode').onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
   // auto-resize note textareas
   document.getElementById('panel-allenamento').addEventListener('input', e=>{
@@ -199,7 +200,7 @@ function refreshSchedaCalc(){
       const lastRir=(lp&&lp.rir!==''&&lp.rir!=null)? +lp.rir : null;
       ledCarico=caricoLED(r.peso, prevPesi[ix]||0, lastRir, sigCarico); }
     if(c[10]){ c[10].className='num '+(dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'); c[10].textContent=dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'; }
-    caricoLedApply(c[4]&&c[4].querySelector('.carico-led'), ledCarico);
+    caricoLedApply(tr.querySelector('.carico-led'), ledCarico);
   });
   let prevTotal=0; if(DOC.storico.length){ const mx=Math.max(...DOC.storico.map(r=>+r.scheda||0)); prevTotal=DOC.storico.filter(r=>(+r.scheda)===mx&&!r.test).reduce((a,r)=>a+sTL(r),0); }
   const deltaW=prevTotal>0?(totTL/prevTotal-1):null;

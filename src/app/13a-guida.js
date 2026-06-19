@@ -34,7 +34,7 @@ function guidaRapida(){
    <div class="sec">▌ Le sezioni in breve</div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta/cliente attivo e anagrafica (il tab mostra il nome del profilo attivo). Ogni profilo nella lista ha un <b>semaforo</b> accanto al nome (🟢 ok · 🟡 attenzione · 🔴 a rischio) con sotto ACWR, da quanto non aggiorna e i PR recenti — un colpo d'occhio sullo stato, sola lettura. Più profili = più clienti: nella riga di ognuno i bottoni dello <b>scambio scheda col cliente</b> (📤 esporta la scheda compilabile, 📥 importa il file di rientro). In fondo alla pagina il <b>Backup/Ripristino</b> di tutti i dati.</td></tr>
-     <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Crei la scheda dei pesi e la salvi nello storico; ▶ per i video degli esercizi. Accanto al Peso un <b>pallino</b> 🟢/🟡/🔴 (co-pilota) ti dice se il carico che digiti è sensato: solo un suggerimento, non scrive nulla.</td></tr>
+     <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Crei la scheda dei pesi e la salvi nello storico; ▶ per i video degli esercizi. Accanto alle frecce ▲▼ dell'esercizio un <b>pallino</b> 🟢/🟡/🔴 (co-pilota) ti dice se il Peso che digiti è sensato: solo un suggerimento, non scrive nulla.</td></tr>
      <tr><td class="l"><b>🏃 Cardio</b></td><td class="l">Attività cardio (corsa, bici, nuoto…): durata + fatica → carico interno sRPE (e TRIMP con la frequenza cardiaca).</td></tr>
      <tr><td class="l"><b>📈 Progressi</b></td><td class="l">Record, grafici e andamento del carico (TL, ACWR, monotonia).</td></tr>
      <tr><td class="l"><b>🜂 Corpo</b></td><td class="l">Peso e misure (BMI, masse) nel tempo + <b>📸 Foto progressi</b> (fronte/lato datate, ▶ riproduzione e ⚖ confronto prima/dopo). Tutto sul tuo PC.</td></tr>
@@ -83,7 +83,7 @@ function guidaCompleta(){
    <div class="sec" id="gc-sezioni">▌ 4 · Le sezioni in dettaglio</div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Sezione</th><th class="l">A cosa serve</th></tr></thead><tbody>
      <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta attivo, gestione profili, anagrafica invariante, Backup/Ripristino dati.</td></tr>
-     <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Scheda settimanale/mensile per giorno; calcoli automatici; salva/annulla nello storico. <b>Pallino co-pilota</b> accanto al Peso: 🟢 progressione sensata · 🟡 attenzione (aumento deciso, calo, RIR basso o monotonia alta) · 🔴 salto troppo grande o ACWR alto (meglio scaricare). Solo suggerimento, decidi tu.</td></tr>
+     <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Scheda settimanale/mensile per giorno; calcoli automatici; salva/annulla nello storico. <b>Pallino co-pilota</b> accanto alle frecce ▲▼ dell'esercizio (sul Peso): 🟢 progressione sensata · 🟡 attenzione (aumento deciso, calo, RIR basso o monotonia alta) · 🔴 salto troppo grande o ACWR alto (meglio scaricare). Solo suggerimento, decidi tu.</td></tr>
      <tr><td class="l"><b>🏃 Cardio</b></td><td class="l">Sedute cardio datate con durata e RPE → sRPE (Foster); TRIMP (Banister) quando inserisci la FC media.</td></tr>
      <tr><td class="l"><b>📜 Storico</b> <span class="muted">(nascosto)</span></td><td class="l">Archivio di tutte le schede salvate (link nel footer). Sola lettura.</td></tr>
      <tr><td class="l"><b>📈 Progressi</b></td><td class="l">Record reali, carico (TL), ACWR, volume per gruppo, intensità, progressione per esercizio.</td></tr>
