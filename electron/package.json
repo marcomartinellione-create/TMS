@@ -1,7 +1,7 @@
 {
   "name": "tms",
   "productName": "Training Monitor System",
-  "version": "1.0.83",
+  "version": "1.0.84",
   "description": "Training Monitor System - by Wander",
   "author": "Wander",
   "main": "main.js",
