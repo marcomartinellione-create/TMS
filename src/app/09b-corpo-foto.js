@@ -6,7 +6,7 @@
    ⚖ Confronto (due date a scelta: vecchia sopra, recente sotto, con data e peso).
    Le foto NON entrano nei backup JSON né nell'installer: solo i metadati. Per salvarle si
    copia la cartella TMS_Dati (come i video). */
-let fotoMode='riproduzione', fotoTag='', fotoIdx=0, fotoPlay=null, fotoPrimaSel='', fotoDopoSel='';
+let fotoMode='riproduzione', fotoTag='', fotoIdx=0, fotoPlay=null, fotoPrimaData='', fotoDopoData='';
 const fotoUrlCache={};   /* file → object URL (creato una volta, liberato all'eliminazione) */
 
 async function fotoDir(create){ if(!profileDir) throw new Error('dati non connessi'); return await profileDir.getDirectoryHandle('foto',{create:!!create}); }
@@ -16,9 +16,24 @@ async function fotoObjUrl(file){
   const fh=await fotoHandle(file,false); const url=URL.createObjectURL(await fh.getFile());
   fotoUrlCache[file]=url; return url;
 }
-function fotoList(){ return (DOC.foto||[]).filter(f=>!fotoTag||(f.tag||'')===fotoTag)
-  .slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||''))); }
 function fotoTagsPresenti(){ return [...new Set((DOC.foto||[]).map(f=>(f.tag||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+const FOTO_VISTE=['anteriore','laterale','posteriore'];
+function fotoViewOrder(t){ const i=FOTO_VISTE.indexOf(String(t||'').toLowerCase()); return i<0?99:i; }
+function fotoDates(){ return [...new Set((DOC.foto||[]).map(f=>f.data).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b))); }
+function fotoOfDate(data){ return (DOC.foto||[]).filter(f=>f.data===data && (!fotoTag||(f.tag||'')===fotoTag))
+  .sort((a,b)=>fotoViewOrder(a.tag)-fotoViewOrder(b.tag)); }
+/* passi del player: con un tag specifico = una foto per passo; con «Tutti» = una DATA per
+   passo, con tutte le viste di quel giorno affiancate */
+function fotoSteps(){
+  const all=DOC.foto||[];
+  if(fotoTag) return all.filter(f=>(f.tag||'')===fotoTag).slice().sort((a,b)=>String(a.data).localeCompare(b.data)).map(f=>({data:f.data,foto:[f]}));
+  return fotoDates().map(d=>({data:d, foto:(all.filter(f=>f.data===d).sort((a,b)=>fotoViewOrder(a.tag)-fotoViewOrder(b.tag)))}));
+}
+/* aggancia una data scelta nel calendario alla sessione-foto più vicina */
+function fotoSnapDate(picked){ const ds=fotoDates(); if(!ds.length) return picked; if(ds.indexOf(picked)>=0) return picked;
+  const pt=new Date(picked).getTime(); if(isNaN(pt)) return ds[0];
+  let best=ds[0],bd=Infinity; ds.forEach(d=>{ const diff=Math.abs(new Date(d).getTime()-pt); if(diff<bd){bd=diff;best=d;} }); return best; }
+function fotoDataIt(d){ const x=new Date(d); return isNaN(x)?(d||'—'):x.toLocaleDateString('it-IT'); }
 /* peso registrato nella stessa settimana ISO della foto (se c'è nello storico misure) */
 function fotoPeso(dataStr){ if(!dataStr) return null; const d=new Date(dataStr); if(isNaN(d)) return null;
   const w=isoWeek(d); const code=schedaCode(w.anno,w.sett);
@@ -46,7 +61,7 @@ async function salvaFoto(file, dataStr, tag){
   try{ const fh=await fotoHandle(fname,true); const wr=await fh.createWritable(); await wr.write(file); await wr.close(); }
   catch(e){ alert('Errore nel salvataggio della foto: '+e.message); logErrore('foto', e); return; }
   (DOC.foto=DOC.foto||[]).push({file:fname, data:dataStr||new Date().toISOString().slice(0,10), tag:tag||''});
-  fotoIdx=fotoList().length-1;  /* mostra l'ultima aggiunta */
+  fotoIdx=Math.max(0,fotoSteps().length-1);  /* salta all'ultimo passo (foto più recente) */
   persist('corpo'); renderCorpo();
 }
 function modificaFotoModal(file){ const f=(DOC.foto||[]).find(x=>x.file===file); if(!f) return;
@@ -74,49 +89,54 @@ async function vediFoto(file){ const f=(DOC.foto||[]).find(x=>x.file===file);
 }
 
 /* ── viste ── */
+/* riempie un contenitore flex con una o più foto affiancate (e ne carica le immagini) */
+function fotoMostraGruppo(boxId, fotos, maxH){
+  const c=document.getElementById(boxId); if(!c) return;
+  c.innerHTML=fotos.length? fotos.map((f,i)=>`<figure style="margin:0;flex:1 1 0;min-width:0;text-align:center"><img id="${boxId}-${i}" alt="${esc(f.tag||'foto')}" style="width:100%;max-height:${maxH};object-fit:contain;border-radius:8px;background:var(--paper-3)"><figcaption class="muted" style="font-size:11px;margin-top:2px">${esc(f.tag||'')}</figcaption></figure>`).join('')
+    : '<div class="muted" style="padding:16px">nessuna foto per questa data/vista</div>';
+  fotos.forEach((f,i)=>{ const img=document.getElementById(boxId+'-'+i); if(img) fotoObjUrl(f.file).then(u=>{ if(img.isConnected) img.src=u; }).catch(()=>{ if(img.isConnected) img.alt='foto non trovata'; }); });
+}
 function mostraFotoPlayer(){
-  const list=fotoList(); if(!list.length) return;
-  if(fotoIdx<0) fotoIdx=0; if(fotoIdx>list.length-1) fotoIdx=list.length-1;
-  const f=list[fotoIdx];
-  const cap=document.getElementById('foto-pl-cap'); const peso=fotoPeso(f.data);
-  if(cap) cap.innerHTML=`<b>${esc(fotoDataLabel(f))}</b>${peso?` · ⚖ ${nf(peso,1)} kg`:''} <span class="muted">(${fotoIdx+1}/${list.length})</span>`;
+  const steps=fotoSteps(); if(!steps.length) return;
+  if(fotoIdx<0) fotoIdx=0; if(fotoIdx>steps.length-1) fotoIdx=steps.length-1;
+  const st=steps[fotoIdx]; const peso=fotoPeso(st.data);
+  const cap=document.getElementById('foto-pl-cap');
+  if(cap) cap.innerHTML=`<b>${esc(fotoDataIt(st.data))}</b>${fotoTag?' · '+esc(fotoTag):''}${peso?` · ⚖ ${nf(peso,1)} kg`:''} <span class="muted">(${fotoIdx+1}/${steps.length})</span>`;
   const rng=document.getElementById('foto-pl-range'); if(rng && +rng.value!==fotoIdx) rng.value=fotoIdx;
-  const img=document.getElementById('foto-pl-img');
-  if(img) fotoObjUrl(f.file).then(u=>{ if(img.isConnected) img.src=u; }).catch(()=>{ if(img.isConnected){ img.removeAttribute('src'); img.alt='foto non trovata'; } });
+  fotoMostraGruppo('foto-pl-imgs', st.foto, '46vh');
 }
 function fotoPlayPause(){
-  const btn=document.getElementById('foto-pl-play'); const list=fotoList();
+  const btn=document.getElementById('foto-pl-play');
   if(fotoPlay){ clearInterval(fotoPlay); fotoPlay=null; if(btn) btn.textContent='▶'; return; }
-  if(list.length<2) return;
+  if(fotoSteps().length<2) return;
   if(btn) btn.textContent='⏸';
-  fotoPlay=setInterval(()=>{ const n=fotoList().length; if(n<2){ fotoPlayPause(); return; }
-    fotoIdx=(fotoIdx+1)%n; mostraFotoPlayer(); }, 950);
+  fotoPlay=setInterval(()=>{ const n=fotoSteps().length; if(n<2){ fotoStopPlay(); const b=document.getElementById('foto-pl-play'); if(b)b.textContent='▶'; return; }
+    fotoIdx=(fotoIdx+1)%n; mostraFotoPlayer(); }, 1100);
 }
 function fotoStopPlay(){ if(fotoPlay){ clearInterval(fotoPlay); fotoPlay=null; } }
 function mostraFotoConfronto(){
-  const list=fotoList(); if(!list.length) return;
-  if(!list.some(f=>f.file===fotoPrimaSel)) fotoPrimaSel=list[0].file;
-  if(!list.some(f=>f.file===fotoDopoSel)) fotoDopoSel=list[list.length-1].file;
-  [['a',fotoPrimaSel],['b',fotoDopoSel]].forEach(([k,file])=>{
-    const f=(DOC.foto||[]).find(x=>x.file===file); const peso=f?fotoPeso(f.data):null;
-    const cap=document.getElementById('foto-cmp-cap-'+k); if(cap) cap.innerHTML=`<b>${esc(fotoDataLabel(f))}</b>${peso?` · ⚖ ${nf(peso,1)} kg`:''}`;
-    const sel=document.getElementById('foto-cmp-'+k); if(sel && sel.value!==file) sel.value=file;
-    const img=document.getElementById('foto-cmp-img-'+k);
-    if(img && file) fotoObjUrl(file).then(u=>{ if(img.isConnected) img.src=u; }).catch(()=>{});
+  const ds=fotoDates(); if(!ds.length) return;
+  if(ds.indexOf(fotoPrimaData)<0) fotoPrimaData=ds[0];
+  if(ds.indexOf(fotoDopoData)<0) fotoDopoData=ds[ds.length-1];
+  [['a',fotoPrimaData],['b',fotoDopoData]].forEach(([k,data])=>{
+    const peso=fotoPeso(data);
+    const cap=document.getElementById('foto-cmp-cap-'+k); if(cap) cap.innerHTML=`<b>${esc(fotoDataIt(data))}</b>${peso?` · ⚖ ${nf(peso,1)} kg`:''}`;
+    const inp=document.getElementById('foto-cmp-'+k); if(inp && inp.value!==data) inp.value=data;
+    fotoMostraGruppo('foto-cmp-imgs-'+k, fotoOfDate(data), '40vh');
   });
 }
 
 function renderFotoSezione(){
   const box=document.getElementById('foto-box'); if(!box) return;
   fotoStopPlay();
-  const all=DOC.foto||[]; const tags=fotoTagsPresenti(); const list=fotoList();
+  const all=DOC.foto||[]; const tags=fotoTagsPresenti();
   const addBtn=`<label class="btn btn--ember no-print" style="cursor:pointer" title="${profileDir?'Aggiungi una foto progressi (resta sul tuo PC)':'Connetti i dati per aggiungere foto'}"${profileDir?'':' aria-disabled="true"'}>⭱ Aggiungi foto<input type="file" id="foto-file" accept="image/jpeg,image/png,image/webp,image/*" style="display:none"${profileDir?'':' disabled'}></label>`;
-  const tagChips=tags.length?`<span class="muted mono" style="font-size:11px;align-self:center">tag:</span>`+
+  const tagChips=tags.length?`<span class="muted mono" style="font-size:11px;align-self:center">vista:</span>`+
     [['','tutti']].concat(tags.map(t=>[t,t])).map(([v,lab])=>`<button class="pill no-print" data-ftag="${esc(v)}" style="cursor:pointer;${fotoTag===v?'background:var(--gold-t);border-color:var(--gold-2)':''}">${esc(lab)}</button>`).join(''):'';
   const head=`<div class="sec" style="margin-top:16px">▌ 📸 Foto progressi</div>
     <div class="bar no-print" style="flex-wrap:wrap;gap:6px;align-items:center">${addBtn}<div class="spacer"></div>${tagChips}</div>`;
   if(!all.length){
-    box.innerHTML=head+`<div class="callout callout--info"><div>Nessuna foto. ${profileDir?'Aggiungi le prime foto (es. <b>fronte</b> e <b>lato</b>) per vedere i progressi nel tempo.':'Connetti i dati (in alto) per salvare le foto.'} Restano <b>sul tuo PC</b>, nessun upload.</div></div>`;
+    box.innerHTML=head+`<div class="callout callout--info"><div>Nessuna foto. ${profileDir?'Aggiungi le prime foto (es. <b>anteriore</b>, <b>laterale</b>, <b>posteriore</b>) per vedere i progressi nel tempo.':'Connetti i dati (in alto) per salvare le foto.'} Restano <b>sul tuo PC</b>, nessun upload.</div></div>`;
     wireFoto(box); return;
   }
   const tabs=`<div class="bar no-print" style="gap:6px;margin-top:4px">
@@ -124,33 +144,40 @@ function renderFotoSezione(){
     <button class="btn${fotoMode==='confronto'?' btn--ember':''}" data-fmode="confronto">⚖ Confronto</button></div>`;
   let view='';
   if(fotoMode==='riproduzione'){
+    const nSteps=fotoSteps().length; const maxI=Math.max(0,nSteps-1);
     view=`<div style="text-align:center;margin-top:8px">
-      <img id="foto-pl-img" alt="foto" style="max-width:100%;max-height:46vh;border-radius:8px;background:var(--paper-3);display:block;margin:0 auto">
+      <div id="foto-pl-imgs" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:flex-start;min-height:120px"></div>
       <div class="bar no-print" style="justify-content:center;gap:10px;margin-top:8px">
         <button class="btn" id="foto-pl-play" title="Riproduci / pausa" style="min-width:42px">▶</button>
-        <input type="range" id="foto-pl-range" min="0" max="${list.length-1}" value="${Math.min(fotoIdx,list.length-1)}" style="flex:1;max-width:520px"${list.length<2?' disabled':''}>
+        <input type="range" id="foto-pl-range" min="0" max="${maxI}" value="${Math.min(fotoIdx,maxI)}" style="flex:1;max-width:520px"${nSteps<2?' disabled':''}>
       </div>
-      <div class="muted" id="foto-pl-cap" style="font-size:13px;margin-top:2px">…</div></div>`;
+      <div class="muted" id="foto-pl-cap" style="font-size:13px;margin-top:2px">…</div>
+      ${!fotoTag?'<div class="muted no-print" style="font-size:11px;margin-top:2px">Vista «tutti»: ogni passo mostra le viste della stessa data affiancate. Scegli una vista per scorrere una foto per volta.</div>':''}</div>`;
   } else {
-    const opts=sel=>list.map(f=>`<option value="${esc(f.file)}"${f.file===sel?' selected':''}>${esc(fotoDataLabel(f))}</option>`).join('');
-    if(!list.some(f=>f.file===fotoPrimaSel)) fotoPrimaSel=list[0].file;
-    if(!list.some(f=>f.file===fotoDopoSel)) fotoDopoSel=list[list.length-1].file;
+    const ds=fotoDates(); const dmin=ds[0], dmax=ds[ds.length-1];
+    if(ds.indexOf(fotoPrimaData)<0) fotoPrimaData=ds[0];
+    if(ds.indexOf(fotoDopoData)<0) fotoDopoData=ds[ds.length-1];
     view=`<div style="margin-top:8px">
       <div class="row no-print" style="gap:10px">
-        <div class="field"><label>Prima (vecchia)</label><select id="foto-cmp-a">${opts(fotoPrimaSel)}</select></div>
-        <div class="field"><label>Dopo (recente)</label><select id="foto-cmp-b">${opts(fotoDopoSel)}</select></div></div>
+        <div class="field"><label>📅 Prima (vecchia)</label><input type="date" id="foto-cmp-a" min="${dmin}" max="${dmax}" value="${fotoPrimaData}"></div>
+        <div class="field"><label>📅 Dopo (recente)</label><input type="date" id="foto-cmp-b" min="${dmin}" max="${dmax}" value="${fotoDopoData}"></div></div>
+      <div class="muted no-print" style="font-size:11px;margin:-2px 0 6px">Scegli due date dal calendario (si aggancia alla sessione più vicina). Con la vista «tutti» vedi le viste affiancate.</div>
       <div style="text-align:center"><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:6px 0 2px">Prima</div>
-        <img id="foto-cmp-img-a" alt="prima" style="max-width:100%;max-height:38vh;border-radius:8px;background:var(--paper-3);display:block;margin:0 auto">
+        <div id="foto-cmp-imgs-a" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:flex-start"></div>
         <div class="muted" id="foto-cmp-cap-a" style="font-size:12.5px;margin-top:3px">…</div>
         <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 2px">Dopo</div>
-        <img id="foto-cmp-img-b" alt="dopo" style="max-width:100%;max-height:38vh;border-radius:8px;background:var(--paper-3);display:block;margin:0 auto">
+        <div id="foto-cmp-imgs-b" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:flex-start"></div>
         <div class="muted" id="foto-cmp-cap-b" style="font-size:12.5px;margin-top:3px">…</div></div></div>`;
   }
-  /* gestione: elenco compatto (niente miniature di massa: si apre 👁 su richiesta) */
+  /* gestione: raggruppata per data (stile calendario), azioni per foto */
+  const datesDesc=fotoDates().slice().reverse();
+  const gestRows=datesDesc.map(d=>{
+    const fotos=(DOC.foto||[]).filter(f=>f.data===d).sort((a,b)=>fotoViewOrder(a.tag)-fotoViewOrder(b.tag));
+    return `<tr class="day-sep"><td colspan="2">📅 ${esc(fotoDataIt(d))} <span class="muted" style="font-weight:400">· ${fotos.length} foto</span></td></tr>`+
+      fotos.map(f=>`<tr><td class="l">${esc(f.tag||'—')}</td><td class="no-print" style="white-space:nowrap;text-align:right"><button class="btn btn--sm" data-fsee="${esc(f.file)}" title="Vedi">👁</button> <button class="btn btn--sm" data-fedit="${esc(f.file)}" title="Modifica data/vista">✎</button> <button class="btn btn--sm btn--danger" data-fdel="${esc(f.file)}" title="Elimina">✕</button></td></tr>`).join('');
+  }).join('');
   const gest=`<div class="sec no-print" style="margin-top:14px;font-size:12px">▌ Gestione foto (${all.length})</div>
-    <div class="tbl-wrap no-print"><table><thead><tr><th class="l">Data</th><th class="l">Tag</th><th></th></tr></thead><tbody>${
-      all.slice().sort((a,b)=>String(b.data||'').localeCompare(String(a.data||''))).map(f=>`<tr><td class="l">${esc((new Date(f.data)).toLocaleDateString&&!isNaN(new Date(f.data))?new Date(f.data).toLocaleDateString('it-IT'):(f.data||'—'))}</td><td class="l">${esc(f.tag||'—')}</td><td class="no-print" style="white-space:nowrap"><button class="btn btn--sm" data-fsee="${esc(f.file)}" title="Vedi">👁</button> <button class="btn btn--sm" data-fedit="${esc(f.file)}" title="Modifica data/tag">✎</button> <button class="btn btn--sm btn--danger" data-fdel="${esc(f.file)}" title="Elimina">✕</button></td></tr>`).join('')
-    }</tbody></table></div>`;
+    <div class="tbl-wrap no-print"><table><tbody>${gestRows}</tbody></table></div>`;
   box.innerHTML=head+tabs+view+gest;
   wireFoto(box);
   if(fotoMode==='riproduzione') mostraFotoPlayer(); else mostraFotoConfronto();
@@ -161,8 +188,8 @@ function wireFoto(box){
   box.querySelectorAll('[data-fmode]').forEach(b=>b.onclick=()=>{ fotoMode=b.dataset.fmode; renderFotoSezione(); });
   const rng=box.querySelector('#foto-pl-range'); if(rng) rng.oninput=e=>{ fotoStopPlay(); const btn=document.getElementById('foto-pl-play'); if(btn) btn.textContent='▶'; fotoIdx=+e.target.value; mostraFotoPlayer(); };
   const pl=box.querySelector('#foto-pl-play'); if(pl) pl.onclick=fotoPlayPause;
-  const ca=box.querySelector('#foto-cmp-a'); if(ca) ca.onchange=e=>{ fotoPrimaSel=e.target.value; mostraFotoConfronto(); };
-  const cb=box.querySelector('#foto-cmp-b'); if(cb) cb.onchange=e=>{ fotoDopoSel=e.target.value; mostraFotoConfronto(); };
+  const ca=box.querySelector('#foto-cmp-a'); if(ca) ca.onchange=e=>{ fotoPrimaData=fotoSnapDate(e.target.value); mostraFotoConfronto(); };
+  const cb=box.querySelector('#foto-cmp-b'); if(cb) cb.onchange=e=>{ fotoDopoData=fotoSnapDate(e.target.value); mostraFotoConfronto(); };
   box.querySelectorAll('[data-fsee]').forEach(b=>b.onclick=()=>vediFoto(b.dataset.fsee));
   box.querySelectorAll('[data-fedit]').forEach(b=>b.onclick=()=>modificaFotoModal(b.dataset.fedit));
   box.querySelectorAll('[data-fdel]').forEach(b=>b.onclick=()=>eliminaFoto(b.dataset.fdel));

@@ -152,8 +152,10 @@ Due modi per registrare una seduta:
 - **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
-  video, play/pausa, una foto per volta in ordine di data) e «⚖ Confronto» (due date a
-  scelta, vecchia sopra/recente sotto, con data e peso). Filtro per tag. I backup JSON
+  video, play/pausa; con la vista «tutti» ogni passo è una data con le viste affiancate, con
+  una vista specifica una foto per volta) e «⚖ Confronto» (due date scelte da un calendario,
+  vecchia sopra/recente sotto, con data e peso; «tutti» = viste affiancate). Filtro per vista
+  (tag), gestione raggruppata per data. I backup JSON
   includono solo i metadati, non le immagini (per quelle si copia la cartella TMS_Dati,
   come per i video). Si può inserire un confronto prima/dopo anche nel Report.
 

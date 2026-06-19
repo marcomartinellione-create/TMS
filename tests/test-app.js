@@ -575,6 +575,18 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(['🟢','🟡','🔴','⚪'].includes(d.getElementById('cr-led-template').textContent), 'semaforo: pallino dipinto sulla riga del template');
   ok(d.getElementById('cr-sum-template').innerHTML.includes('ACWR'), 'semaforo: sintesi (ACWR · aggiornamento · monotonia) sotto il nome');
   ok(d.getElementById('panel-profilo').innerHTML.includes('🟢 ok') && d.getElementById('panel-profilo').innerHTML.includes('🔴 a rischio'), 'semaforo: legenda dei colori nel pannello');
+  /* ── Foto progressi: template demo → player «tutti» a gruppi + confronto a calendario ── */
+  w.eval('switchProfile("template")'); await settle(300);
+  w.eval('showTab("corpo")');
+  ok(w.eval('(DOC.foto||[]).length') >= 18, 'foto: template con le foto demo caricate (≥18)');
+  ok(w.eval('fotoDates().length') === 6, 'foto: 6 date distinte (fotoDates)');
+  ok(w.eval('fotoTag="", fotoSteps().length') === 6 && w.eval('fotoSteps()[0].foto.length') === 3, 'foto: vista «tutti» = un passo per data con 3 viste affiancate');
+  ok(w.eval('fotoTag="anteriore", fotoSteps().length') === 6 && w.eval('fotoSteps()[0].foto.length') === 1, 'foto: vista specifica = una foto per passo');
+  ok(w.eval('fotoSnapDate("2026-03-15")') === '2026-03-02', 'foto: il calendario aggancia alla sessione foto più vicina');
+  w.eval('fotoTag=""; fotoMode="confronto"; renderFotoSezione();'); await settle(40);
+  ok(d.getElementById('foto-cmp-a') && d.getElementById('foto-cmp-a').type === 'date', 'foto: confronto con selettore a calendario (input date)');
+  ok(d.getElementById('foto-cmp-imgs-a') !== null && d.getElementById('foto-cmp-imgs-b') !== null, 'foto: confronto con contenitori viste affiancate (prima/dopo)');
+  w.eval('fotoTag=""; fotoMode="riproduzione"; renderFotoSezione();');
   /* ── Foto progressi (tab Corpo): scrittura binaria locale + metadati in corpo.json ── */
   w.eval('switchProfile("wander")'); await settle(300);
   w.eval('showTab("corpo")');
