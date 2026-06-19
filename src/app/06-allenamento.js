@@ -14,6 +14,43 @@ function prefillFromLast(){ const rows=schedaRows(); let n=0;
   rows.forEach(r=>{ if(!r.esercizio)return; const lp=lastPerf(r.esercizio); if(lp){ r.peso=lp.peso; r.rip=lp.rip; if(lp.rir!==''&&lp.rir!=null) r.rir=lp.rir; n++; } });
   if(!n){ alert('Nessuno storico da cui precompilare.'); return; }
   persist('scheda'); renderAllenamento(); }
+/* ── Co-pilota LED passivo: pallino 🟢/🟡/🔴 accanto al Peso digitato. Confronta il peso
+   col set di pari posizione della scorsa scheda (come ΔTL set) e pesa i segnali di
+   affaticamento (ACWR, monotonia, RIR). SOLO visivo: nessuna scrittura automatica.
+   Soglie (concordate con Marco): 🟢 −5%…+10% · 🟡 +10%…+20% / calo oltre −5% / aumento con
+   RIR≤1 / monotonia alta · 🔴 oltre +20% o aumento con ACWR>1.5 (meglio scaricare). */
+const CARICO_COL={ok:'var(--ok)',warn:'#c9961f',danger:'var(--danger)'};
+function caricoSignals(){
+  const ag=schedeAggr(); let acwr=null;
+  if(ag.length){ const w=ag.slice(-4); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; acwr=c?ag[ag.length-1].tl/c:null; }
+  let monoHigh=false;
+  if(useRpeActive() && ag.length){ const rpw=rpeByWeek(); const lc=ag[ag.length-1].scheda; const f=fosterWeek(rpw[lc]&&rpw[lc].day); monoHigh=(f.monotony!=null && f.monotony>2 && f.load>0); }
+  return {acwr, monoHigh, sovraccarico:(acwr!=null&&acwr>1.5)};
+}
+function caricoLED(pesoNuovo, pvPeso, lastRir, sig){
+  const p=+pesoNuovo||0; if(p<=0 || !(pvPeso>0)) return null;
+  const d=(p-pvPeso)/pvPeso, pc=Math.round(d*100);
+  let level, msg;
+  if(d>0.20){ level='danger'; msg='Salto molto grande (+'+pc+'% vs scorsa): di solito si sale di poco, ricontrolla'; }
+  else if(d>0.10){ level='warn'; msg='Aumento deciso (+'+pc+'%): ok se la tecnica regge'; }
+  else if(d>=-0.05){ level='ok'; msg=(d>0.001?('Progressione sensata (+'+pc+'%)'):(d<-0.001?('Lieve scarico ('+pc+'%)'):'Stesso carico della scorsa')); }
+  else if(d>=-0.15){ level='warn'; msg='Calo del '+(-pc)+'%: scarico voluto?'; }
+  else { level='warn'; msg='Calo marcato ('+(-pc)+'%): deload/scarico?'; }
+  if(level==='ok' && d>0.05 && lastRir!=null && lastRir<=1){ level='warn'; msg='Aumenti, ma la scorsa eri al limite (RIR '+lastRir+'): occhio'; }
+  if(sig && sig.sovraccarico && d>0.02){ level='danger'; msg='Carico settimanale già alto (ACWR '+nf(sig.acwr,2)+'): meglio non aumentare, valuta uno scarico'; }
+  else if(level==='ok' && sig && sig.monoHigh && d>0.05){ level='warn'; msg='Settimana poco variata (monotonia alta): aumento ok, ma varia i carichi'; }
+  return {level, msg};
+}
+function caricoLedHTML(led){
+  if(!led) return '<span class="carico-led no-print" style="display:none"></span>';
+  return '<span class="carico-led no-print" title="'+esc(led.msg)+'" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:5px;vertical-align:middle;background:'+CARICO_COL[led.level]+'"></span>';
+}
+function caricoLedApply(span, led){
+  if(!span) return;
+  if(!led){ span.style.display='none'; span.title=''; return; }
+  span.style.cssText='display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:5px;vertical-align:middle;background:'+CARICO_COL[led.level];
+  span.title=led.msg;
+}
 function rpeDayControls(g){ const d=dayRpe(g), ld=dayLoad(g);
   return `<span class="rpe-ctl no-print" style="float:right;display:inline-flex;gap:6px;align-items:center;font-weight:400">`+
     `<label style="font-size:11px;color:var(--ink-3)">RPE</label><input class="cell-in rpe-in" type="number" min="0" max="10" step="0.5" data-rpe-day="${esc(g)}" data-rpe-f="rpe" value="${d.rpe??''}" style="width:46px" placeholder="0–10" title="RPE della seduta intera (Foster) · 0–10">`+
@@ -25,7 +62,8 @@ function renderAllenamento(){
   let totTL=0; rows.forEach(r=>{ totTL+=sTL(r); });
   let prevTotal=0; if(DOC.storico.length){ const mx=Math.max(...DOC.storico.map(r=>+r.scheda||0)); prevTotal=DOC.storico.filter(r=>(+r.scheda)===mx&&!r.test).reduce((a,r)=>a+sTL(r),0); }
   const deltaW=prevTotal>0? (totTL/prevTotal-1):null;
-  let body='', lastDay=null; const blockSeen={}, setIdx={}, lastSetsCache={};
+  let body='', lastDay=null; const blockSeen={}, setIdx={}, lastSetsCache={}, lastPesiCache={}, lpCache={};
+  const sigCarico=caricoSignals();
   rows.forEach((r,i)=>{
     if(r.giorno && r.giorno!==lastDay){ lastDay=r.giorno;
       body+=`<tr class="day-sep"><td colspan="12">▌ ${esc(r.giorno)}${useRpeActive()?rpeDayControls(r.giorno):''}</td></tr>`; }
@@ -33,9 +71,13 @@ function renderAllenamento(){
     const firstOfBlock=r.esercizio && !blockSeen[bk]; if(r.esercizio) blockSeen[bk]=true;
     const m=sRM(r), p=sPct(r), t=sTL(r);
     /* Δ TL per SET: questo set vs il set di pari posizione (stessa seduta) della scorsa scheda */
-    let dperc=null;
-    if(r.esercizio && !r.test){ const prevSets=lastSetsCache[bk]||(lastSetsCache[bk]=lastBlockSets(r.esercizio,sd));
-      const ix=setIdx[bk]||0; setIdx[bk]=ix+1; const pv=prevSets[ix]||0; if(pv>0) dperc=t/pv-1; }
+    let dperc=null, ledCarico=null;
+    if(r.esercizio && !r.test){ const ix=setIdx[bk]||0; setIdx[bk]=ix+1;
+      const prevSets=lastSetsCache[bk]||(lastSetsCache[bk]=lastBlockSets(r.esercizio,sd)); const pv=prevSets[ix]||0; if(pv>0) dperc=t/pv-1;
+      const prevPesi=lastPesiCache[bk]||(lastPesiCache[bk]=lastBlockPesi(r.esercizio,sd));
+      const lp=lpCache[r.esercizio]||(lpCache[r.esercizio]=lastPerf(r.esercizio));
+      const lastRir=(lp&&lp.rir!==''&&lp.rir!=null)? +lp.rir : null;
+      ledCarico=caricoLED(r.peso, prevPesi[ix]||0, lastRir, sigCarico); }
     const [fl,fc]=fascia(p);
     const sdBadge=(r.esercizio && sd>1 && firstOfBlock)? ` <span class="pill" style="padding:0 6px" title="Seduta ${sd} della settimana (auto)">S${sd}</span>`:'';
     const canUp=i>0 && rows[i-1] && rows[i-1].giorno===r.giorno, canDown=i<rows.length-1 && rows[i+1] && rows[i+1].giorno===r.giorno;
@@ -45,7 +87,7 @@ function renderAllenamento(){
       <td class="l"><textarea class="cell-in txt note-area" data-f="note" placeholder="note" style="min-width:90px">${esc(r.note||'')}</textarea></td>
       <td><input class="cell-in" type="number" min="0" value="${r.serie??''}" data-f="serie" style="width:48px"></td>
       <td><input class="cell-in" type="number" min="0" value="${r.rip??''}" data-f="rip" style="width:52px"></td>
-      <td><input class="cell-in" type="number" min="0" step="0.5" value="${r.peso??''}" data-f="peso" style="width:60px"></td>
+      <td><input class="cell-in" type="number" min="0" step="0.5" value="${r.peso??''}" data-f="peso" style="width:60px">${caricoLedHTML(ledCarico)}</td>
       <td class="rir-col"><input class="cell-in" type="number" min="0" max="10" value="${r.rir??''}" data-f="rir" style="width:42px" placeholder="–" title="Reps In Reserve · RPE=10−RIR"></td>
       <td><input class="cell-in" value="${esc(r.rest||'')}" data-f="rest" style="width:54px" placeholder="m:ss"></td>
       <td class="cell-calc num">${m?nf(m,1):'—'}</td>
@@ -78,7 +120,7 @@ function renderAllenamento(){
      <thead><tr><th class="l">Esercizio</th><th class="l">Note</th><th>Serie</th><th>Rip.</th><th>Peso</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th>Rest</th><th>1RM</th><th>%1RM</th><th>TL</th><th title="Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda">Δ TL set</th><th>Fascia / azioni</th></tr></thead>
      <tbody>${body||'<tr><td colspan="12" class="empty">Nessun esercizio. Aggiungine uno o un giorno.</td></tr>'}</tbody>
    </table></div>
-   <div class="callout callout--info"><div>🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione).</div></div>`;
+   <div class="callout callout--info"><div>🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto al Peso è un suggerimento del co-pilota (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:#c9961f">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.</div></div>`;
   document.getElementById('sched-mode').onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
   // auto-resize note textareas
   document.getElementById('panel-allenamento').addEventListener('input', e=>{
@@ -138,7 +180,8 @@ function updateStatusDots(){ const so=aggStatus(DOC.storico), bo=aggStatus(DOC.s
 }
 function refreshSchedaCalc(){
   const rows=schedaRows(), smap=sedutaMap(rows);
-  let totTL=0; const setIdx={}, lastSetsCache={};
+  let totTL=0; const setIdx={}, lastSetsCache={}, lastPesiCache={}, lpCache={};
+  const sigCarico=caricoSignals();
   document.querySelectorAll('#panel-allenamento tbody tr[data-i]').forEach(tr=>{
     const i=+tr.dataset.i, r=rows[i]; if(!r)return; const c=tr.children;
     const m=sRM(r), p=sPct(r), t=sTL(r), fa=fascia(p);
@@ -148,10 +191,15 @@ function refreshSchedaCalc(){
     if(c[9])c[9].textContent=t?nfk(t):'—';
     const fsp=c[11]&&c[11].querySelector('.fascia'); if(fsp){fsp.className='fascia '+fa[1]; fsp.textContent=fa[0];}
     const sd=rowSeduta(smap,r), bk=r.esercizio+'|'+sd;
-    let dperc=null;
-    if(r.esercizio && !r.test){ const prevSets=lastSetsCache[bk]||(lastSetsCache[bk]=lastBlockSets(r.esercizio,sd));
-      const ix=setIdx[bk]||0; setIdx[bk]=ix+1; const pv=prevSets[ix]||0; if(pv>0) dperc=t/pv-1; }
+    let dperc=null, ledCarico=null;
+    if(r.esercizio && !r.test){ const ix=setIdx[bk]||0; setIdx[bk]=ix+1;
+      const prevSets=lastSetsCache[bk]||(lastSetsCache[bk]=lastBlockSets(r.esercizio,sd)); const pv=prevSets[ix]||0; if(pv>0) dperc=t/pv-1;
+      const prevPesi=lastPesiCache[bk]||(lastPesiCache[bk]=lastBlockPesi(r.esercizio,sd));
+      const lp=lpCache[r.esercizio]||(lpCache[r.esercizio]=lastPerf(r.esercizio));
+      const lastRir=(lp&&lp.rir!==''&&lp.rir!=null)? +lp.rir : null;
+      ledCarico=caricoLED(r.peso, prevPesi[ix]||0, lastRir, sigCarico); }
     if(c[10]){ c[10].className='num '+(dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'); c[10].textContent=dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'; }
+    caricoLedApply(c[4]&&c[4].querySelector('.carico-led'), ledCarico);
   });
   let prevTotal=0; if(DOC.storico.length){ const mx=Math.max(...DOC.storico.map(r=>+r.scheda||0)); prevTotal=DOC.storico.filter(r=>(+r.scheda)===mx&&!r.test).reduce((a,r)=>a+sTL(r),0); }
   const deltaW=prevTotal>0?(totTL/prevTotal-1):null;

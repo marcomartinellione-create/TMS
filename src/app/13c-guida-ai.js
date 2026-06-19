@@ -130,6 +130,13 @@ Due modi per registrare una seduta:
   dell'ultima registrazione; il «▶» accanto all'esercizio apre il video dimostrativo.
 - Per ogni riga l'app mostra al volo: 1RM stimato, %1RM, TL (carico della riga) e il
   «Δ TL set» (questo set vs il set di pari posizione della scorsa scheda).
+- **Co-pilota LED passivo**: accanto al campo Peso un pallino verde/giallo/rosso valuta
+  se il peso digitato è una progressione sensata, confrontandolo col set di pari posizione
+  della scorsa scheda e coi segnali di affaticamento (ACWR, monotonia, RIR ultima volta).
+  Soglie: 🟢 da −5% a +10%; 🟡 +10%…+20%, oppure calo oltre −5%, oppure aumento con RIR≤1
+  alla scorsa, oppure monotonia alta; 🔴 oltre +20% (probabile errore/troppo) oppure aumento
+  con ACWR>1.5 (meglio scaricare). Niente pallino se manca lo storico del set o per i test ★.
+  È SOLO un suggerimento visivo (tooltip col motivo): non modifica né scrive nulla.
 - «💾 Salva nello Storico» registra la settimana (anno + numero settimana ISO,
   proposti in automatico); se il Session-RPE è abilitato si registrano anche fatica
   (RPE 0-10) e durata in minuti per seduta. «↶ Annulla ultimo» rimuove l'ultimo

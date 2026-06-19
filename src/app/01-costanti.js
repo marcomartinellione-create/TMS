@@ -105,4 +105,11 @@ function lastBlockSets(nome,seduta){
   const maxS=Math.max(...DOC.storico.map(r=>+r.scheda||0));
   return DOC.storico.filter(r=>r.esercizio===nome && (+r.scheda)===maxS && (+(r.seduta||1))===seduta && !r.test).map(r=>sTL(r));
 }
+/* pesi dei singoli set (in ordine) dell'ultima scheda salvata: per il LED del co-pilota
+   (confronto del peso digitato col set di pari posizione). Esclude i test (★). */
+function lastBlockPesi(nome,seduta){
+  if(!DOC.storico.length) return [];
+  const maxS=Math.max(...DOC.storico.map(r=>+r.scheda||0));
+  return DOC.storico.filter(r=>r.esercizio===nome && (+r.scheda)===maxS && (+(r.seduta||1))===seduta && !r.test).map(r=>+r.peso||0);
+}
 

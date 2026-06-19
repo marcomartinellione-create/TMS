@@ -481,6 +481,17 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const trs = [...d.querySelectorAll('#panel-allenamento tbody tr[data-i]')];
     ok(trs.length === 2 && /%/.test(trs[0].children[10].textContent) && /%/.test(trs[1].children[10].textContent), 'Δ TL per set: ENTRAMBI i set incrementali mostrano il proprio Δ (non solo il primo)');
     ok(trs[0].children[10].textContent.includes('▲') && trs[1].children[10].textContent.includes('▲'), 'Δ TL per set: set 1 (105 vs 100) e set 2 (115 vs 110) entrambi in crescita'); }
+  /* Co-pilota LED passivo (richiesta Marco): pallino accanto al Peso, solo visivo, zero scrittura */
+  ok(Array.isArray(w.eval('lastBlockPesi("Squat con bilanciere",1)')) && w.eval('lastBlockPesi("Squat con bilanciere",1)').join(',') === '100,110', 'LED: lastBlockPesi = pesi dei set della scorsa scheda');
+  { const led0 = d.querySelector('#panel-allenamento tbody tr[data-i="0"]').children[4].querySelector('.carico-led');
+    ok(led0 !== null && led0.style.display !== 'none', 'LED: pallino visibile accanto alla casella Peso (con storico del set)'); }
+  ok(w.eval('caricoLED(130,100,null,null).level') === 'danger', 'LED soglie: +30% → 🔴 (salto troppo grande)');
+  ok(w.eval('caricoLED(115,100,null,null).level') === 'warn', 'LED soglie: +15% → 🟡 (aumento deciso)');
+  ok(w.eval('caricoLED(105,100,null,null).level') === 'ok', 'LED soglie: +5% → 🟢 (progressione sensata)');
+  ok(w.eval('caricoLED(80,100,null,null).level') === 'warn', 'LED soglie: calo marcato −20% → 🟡 (scarico?)');
+  ok(w.eval('caricoLED(106,100,1,null).level') === 'warn', 'LED soglie: aumento ma scorsa al limite (RIR≤1) → 🟡');
+  ok(w.eval('caricoLED(105,100,null,{sovraccarico:true,acwr:1.7}).level') === 'danger', 'LED soglie: aumento con ACWR>1.5 → 🔴 (meglio scaricare)');
+  ok(w.eval('caricoLED(0,100,null,null)') === null && w.eval('caricoLED(105,0,null,null)') === null, 'LED: niente pallino senza peso o senza storico del set');
   w.eval('DOC.storico.pop(); DOC.storico.pop();');
   /* riordino esercizi nel giorno (▲▼) — la scheda ha 2 Squat (105, 115) su Lunedì */
   d.querySelector('#panel-allenamento tbody tr[data-i="0"] [data-mvdn]').click();
