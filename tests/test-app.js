@@ -171,9 +171,11 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(gbtn !== null && gbtn.textContent.includes('Scarica documentazione per AI'), 'bottone "Scarica documentazione per AI" accanto a Rapida/Completa');
   const nomeAI = w.eval('(()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ scaricaGuidaAI(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
   ok(nomeAI === 'TMS-guida-AI-v' + VERSIONE + '.md', 'download guida AI col nome versionato (' + nomeAI + ')');
-  /* scheda cliente offline con bozza autosalvata (qui solo presenza nel markup: gira anche in CI) */
-  const pagCli = w.eval('costruisciSchedaCliente({})');
-  ok(pagCli.includes('tms-bozza-') && pagCli.includes('memoria del telefono') && pagCli.includes('bozza-stato'), 'scheda cliente: istruzioni telefono + autosalvataggio bozza nel markup');
+  /* v1.0.85: l'export scheda è un JSON per l'app cliente (PWA), non più una pagina HTML */
+  const schedaJs = w.eval('costruisciSchedaJSON({})');
+  ok(schedaJs && schedaJs.tipo === 'tms-scheda' && schedaJs.versione === 1 && Array.isArray(schedaJs.righe) && typeof schedaJs.video === 'object', 'export scheda: JSON tms-scheda (righe + mappa video)');
+  ok(typeof w.eval('APP_CLIENTE_URL') === 'string' && schedaJs.appCliente === w.eval('APP_CLIENTE_URL') && /github\.io\/TMS\/app/.test(schedaJs.appCliente), 'export scheda: URL dell\'app cliente incluso nel file');
+  ok(w.eval('typeof costruisciSchedaCliente') === 'undefined', 'export HTML rimosso (sostituito dall\'app cliente)');
   /* v1.0.72: backup automatico settimanale + mini-log errori (P4) */
   ok([...fsmem._files.keys()].some(k => /^TMS_Dati\/backup_automatici\/TMS-auto-\d{4}-\d{2}-\d{2}\.json$/.test(k)) && fsmem._files.has('TMS_Dati/backup_automatici/indice.json'), 'backup automatico creato all\'avvio (snapshot + indice)');
   ok(await w.eval('backupAutomaticoSeServe()') === false, 'stesso giorno: nessun backup doppione');
@@ -445,33 +447,65 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');
-  /* v1.0.66: scambio scheda trainer ↔ cliente */
-  const schedaHtml = w.eval('costruisciSchedaCliente({})');
-  ok(schedaHtml.length > 5000 && schedaHtml.includes('Crea il file per il trainer') && schedaHtml.includes('tms-rientro') && schedaHtml.includes('id="s-0"') && schedaHtml.includes('Atleta Template'), 'export scheda cliente: HTML autonomo con input e meta profilo');
-  /* ottimizzazione vista smartphone: media query + etichette dei campi (tabella→scheda per esercizio) */
-  /* navigazione a due schermate: prima «Seleziona il giorno» (una card per giorno), poi la pagina del giorno */
-  ok(schedaHtml.includes('Seleziona il giorno') && schedaHtml.includes('class="day-card"') && schedaHtml.includes('data-go=') && schedaHtml.includes('class="day-page"') && schedaHtml.includes('data-back'), 'export scheda cliente: navigazione a due schermate (lista giorni → giorno)');
-  /* mobile-first, campi su una sola colonna (mai larghi) + tastiera numerica + font 16px (anti-zoom iOS) */
-  ok(schedaHtml.includes('inputmode=') && schedaHtml.includes('font-size:16px') && schedaHtml.includes('function mostra('), 'export scheda cliente: campi su una colonna + tastiera numerica + font 16px');
-  /* bozza autosalvata nella pagina del cliente (soluzione offline, richiesta Marco 2026-06-13):
-     la pagina generata viene caricata in un jsdom dedicato come farebbe il cliente */
-  const bozzaKey = 'tms-bozza-template-' + new Date().toISOString().slice(0, 10);
+  /* v1.0.85: scambio scheda trainer ↔ cliente via APP CLIENTE (PWA in docs/app/) + file JSON */
+  const vfileCli = w.eval('(costruisciSchedaJSON({}).righe.find(r => r.video) || {}).video || ""');
+  ok(vfileCli !== '', 'export scheda JSON: almeno un esercizio del template ha il video associato');
+  const mapCli = {}; if (vfileCli) mapCli[vfileCli] = 'data:video/mp4;base64,AAAA';
+  const schedaCli = w.eval('costruisciSchedaJSON(' + JSON.stringify(mapCli) + ')');
+  ok(schedaCli.tipo === 'tms-scheda' && schedaCli.profilo.slug === 'template' && schedaCli.profilo.nome === 'Atleta Template' && schedaCli.righe.length > 0, 'export scheda JSON: meta profilo + righe della scheda del template');
+  ok(schedaCli.righe.every(r => r.giorno && r.esercizio && typeof r.serie === 'number') && schedaCli.video[vfileCli].startsWith('data:video/'), 'export scheda JSON: righe complete + video come data-URI');
+  /* l'app cliente (PWA) viene caricata in un jsdom dedicato come farebbe il telefono del cliente */
+  const PWA = path.join(ROOT, 'docs', 'app', 'index.html');
+  ok(fs.existsSync(PWA) && fs.existsSync(path.join(ROOT, 'docs', 'app', 'manifest.webmanifest')) && fs.existsSync(path.join(ROOT, 'docs', 'app', 'sw.js')), 'app cliente: index.html + manifest + service worker presenti in docs/app/');
+  const giorniCli = [...new Set(schedaCli.righe.map(r => r.giorno))];
+  const bozzaKey = 'tms-bozza-template-' + schedaCli.esportata;
+  let rientroApp = null;
   {
-    const sub = new JSDOM(schedaHtml, { runScripts: 'dangerously', url: 'https://cliente.test/scheda.html' });
+    const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli)); } });
+    await settle(400);
     const sd = sub.window.document;
-    sd.getElementById('n-0').value = 'bozza di prova';
-    sd.getElementById('n-0').dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+    ok(sd.getElementById('benvenuto').hidden === true && sd.getElementById('home').hidden === false, 'app cliente: scheda memorizzata → parte dalla home (niente benvenuto)');
+    ok(sd.querySelectorAll('.day-card').length === giorniCli.length && sd.querySelectorAll('.day-page').length === giorniCli.length, 'app cliente: una card e una pagina per ogni giorno della scheda');
+    ok(sd.getElementById('s-0') !== null && +sd.getElementById('s-0').value === schedaCli.righe[0].serie, 'app cliente: campi precompilati col previsto del coach');
+    ok(sd.querySelector('.vbtn') !== null, 'app cliente: bottone ▶ video presente (video nel file)');
+    /* compila un campo → bozza autosalvata */
+    sd.getElementById('n-0').value = 'fatto tutto';
+    sd.getElementById('s-0').value = '5';
+    sd.getElementById('s-0').dispatchEvent(new sub.window.Event('input', { bubbles: true }));
     const salvata = JSON.parse(sub.window.localStorage.getItem(bozzaKey) || '{}');
-    ok(salvata['n-0'] === 'bozza di prova', 'scheda cliente: bozza autosalvata in localStorage al primo input');
+    ok(salvata['s-0'] === '5' && salvata['n-0'] === 'fatto tutto', 'app cliente: bozza autosalvata in localStorage al primo input');
+    /* rientro nel formato di sempre */
+    rientroApp = sub.window.eval('costruisciRientro()');
+    ok(rientroApp && rientroApp.tipo === 'tms-rientro' && rientroApp.versione === 1 && rientroApp.profilo.slug === 'template', 'app cliente: rientro nel formato tms-rientro (import TMS invariato)');
+    ok(rientroApp.righe.length === schedaCli.righe.length && rientroApp.righe[0].serie === 5 && rientroApp.righe[0].note === 'fatto tutto', 'app cliente: il rientro riflette ciò che il cliente ha compilato');
     sub.window.close();
   }
   {
-    const sub = new JSDOM(schedaHtml, { runScripts: 'dangerously', url: 'https://cliente.test/scheda.html',
-      beforeParse(win){ win.localStorage.setItem(bozzaKey, JSON.stringify({ 'n-0': 'ripresa', 's-0': '5' })); } });
+    /* riapertura dell'app: scheda ritrovata + bozza ricaricata (persistenza sul telefono) */
+    const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli));
+        win.localStorage.setItem(bozzaKey, JSON.stringify({ 'n-0': 'ripresa', 's-0': '7' })); } });
+    await settle(400);
     const sd = sub.window.document;
-    ok(sd.getElementById('n-0').value === 'ripresa' && sd.getElementById('s-0').value === '5', 'scheda cliente: bozza ricaricata alla riapertura del file');
-    ok(sd.getElementById('bozza-nota').textContent.includes('Bozza ritrovata'), 'scheda cliente: avviso "bozza ritrovata" alla riapertura');
+    ok(sd.getElementById('n-0').value === 'ripresa' && sd.getElementById('s-0').value === '7', 'app cliente: bozza ricaricata alla riapertura dell\'app');
+    ok(sd.getElementById('stato-0').textContent === '✔', 'app cliente: spunta ✔ sul giorno già compilato');
     sub.window.close();
+  }
+  {
+    /* app appena installata, senza scheda: schermata di benvenuto con carica file */
+    const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html' });
+    await settle(300);
+    const sd = sub.window.document;
+    ok(sd.getElementById('benvenuto').hidden === false && sd.getElementById('file-scheda') !== null, 'app cliente: senza scheda mostra il benvenuto con «Carica la scheda»');
+    ok(sub.window.eval('validaScheda({tipo:"x"})') === false && sub.window.eval('validaScheda(' + JSON.stringify(schedaCli) + ')') === true, 'app cliente: validazione del file scheda (tipo tms-scheda)');
+    sub.window.close();
+  }
+  /* GIRO COMPLETO: il rientro generato dall'app entra nella scheda Pesi del TMS */
+  {
+    w.eval('window.__rientro = ' + JSON.stringify(rientroApp));
+    const ris = w.eval('caricaRientroInScheda(window.__rientro)');
+    ok(ris.righe === rientroApp.righe.filter(r => r.esercizio).length && w.eval('DOC.scheda.settimanale[0].serie') === 5 && w.eval('DOC.scheda.settimanale[0].note') === 'fatto tutto', 'giro completo: export TMS → app cliente → rientro → scheda Pesi del coach');
   }
   /* Δ TL per SET (richiesta Marco): ogni set incrementale ha il suo Δ vs il set di pari posizione */
   ok(Array.isArray(w.eval('lastBlockSets("__inesistente__",1)')) && w.eval('lastBlockSets("__inesistente__",1)').length === 0, 'lastBlockSets: array vuoto se l\'esercizio non è nello storico');
@@ -535,7 +569,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const guida = d.getElementById('panel-guida').innerHTML;
   ok(!guida.includes('Documentazione/') && guida.includes('doi.org'), 'Guida §12 (completa): niente link locali, restano DOI/Scholar');
   /* v1.0.71: passo coach ↔ cliente nella Guida (rapida e completa) */
-  ok(guida.includes('Scheda ↔ cliente') && guida.includes('gc-scambio') && guida.includes('Crea il file per il trainer'), 'Guida completa: sezione 10 Scheda ↔ cliente');
+  ok(guida.includes('Scheda ↔ cliente') && guida.includes('gc-scambio') && guida.includes('Crea il file per il coach') && guida.includes('TMS Scheda'), 'Guida completa: sezione 10 Scheda ↔ cliente (app TMS Scheda)');
   ok(guida.includes('▌ 14 · Licenza'), 'Guida completa: sezioni rinumerate (Licenza = 14)');
   w.eval('guidaMode = "rapida"; renderGuida()');
   const rapida = d.getElementById('panel-guida').innerHTML;
@@ -548,7 +582,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(d.querySelector('#panel-profilo [data-pexs="wander"]') !== null, 'bottone 📤 nella riga del profilo non attivo, senza aprire la tendina');
   const nomeEx = await w.eval('(async()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ await document.querySelector(\'#panel-profilo [data-pexs="wander"]\').onclick(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
   ok(w.eval('activeProfile') === 'wander', 'export dalla riga: profilo attivato da solo');
-  ok(typeof nomeEx === 'string' && nomeEx.startsWith('Scheda_wander_'), 'export dalla riga: scheda del profilo giusto (' + nomeEx + ')');
+  ok(typeof nomeEx === 'string' && nomeEx.startsWith('Scheda_wander_') && nomeEx.endsWith('.json'), 'export dalla riga: file JSON del profilo giusto (' + nomeEx + ')');
   const apertoPrima = w.eval('profOpen');
   d.querySelector('#panel-profilo [data-prin="wander"]').closest('label').dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
   ok(w.eval('profOpen') === apertoPrima, 'click sui bottoni della riga: la tendina non si apre/chiude');

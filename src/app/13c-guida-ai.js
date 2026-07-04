@@ -202,23 +202,24 @@ tra fasi (boxplot). Tutto ricalcolato al volo dai dati, niente da configurare.
 
 ## 8 · Scambio scheda coach ↔ cliente
 
-Il cliente NON deve avere il TMS: la scheda viaggia come file.
+Il cliente NON deve avere il TMS: usa l'app gratuita **«TMS Scheda»** sul telefono
+(PWA su https://marcomartinellione-create.github.io/TMS/app/ — si installa dal browser
+con «Aggiungi alla schermata Home», funziona offline, si aggiorna da sola) e la scheda
+viaggia come file via chat/email. Nessun server: i dati restano nei dispositivi.
 1. **Esporta** — tab «👤 Profilo», riga del cliente, bottone «📤 Esporta scheda»:
-   nasce un file «Scheda_profilo_data.html», pagina autonoma con la scheda giorno per
-   giorno e campi compilabili. Alla domanda sui video: includendoli il cliente vede le
-   esecuzioni offline ma il file pesa di più.
-2. **Il cliente compila** — apre il file in qualunque browser (la pagina è **ottimizzata
-   per smartphone**: prima si sceglie il **giorno** da un elenco («Seleziona il giorno»),
-   poi si compila solo quel giorno — un esercizio sotto l'altro, campi su una colonna e
-   tastiera numerica, niente scroll laterale; una spunta ✔ segna i giorni già compilati),
-   inserisce ciò che ha
-   fatto davvero (serie, ripetizioni, peso, RIR, note per esercizio; fatica RPE 0-10
-   e durata per seduta; gli esercizi non sono modificabili) e preme «📩 Crea il file
-   per il trainer»: si scarica «Rientro_profilo_data.json» da rimandare al coach.
-   IMPORTANTE per il cliente: meglio **salvare il file nella memoria del telefono**
-   (es. cartella Download) e aprire sempre quella copia, non l'anteprima della chat:
-   la pagina **salva da sola la bozza** sul dispositivo (si può chiudere e riprendere);
-   se il salvataggio automatico non è possibile, la pagina lo segnala con un avviso.
+   nasce «Scheda_profilo_data.json» (tipo interno 'tms-scheda') con la scheda giorno
+   per giorno e il previsto. Alla domanda sui video: includendoli il cliente vede le
+   esecuzioni offline nell'app ma il file pesa di più.
+2. **Il cliente compila nell'app** — salva il file sul telefono e lo carica in TMS
+   Scheda con «📂 Carica la scheda»: la scheda resta memorizzata nell'app (la ritrova
+   a ogni apertura, con la **bozza salvata da sola** mentre compila). Prima sceglie il
+   **giorno** da un elenco, poi compila solo quel giorno — un esercizio sotto l'altro,
+   campi su una colonna e tastiera numerica; una spunta ✔ segna i giorni già compilati.
+   Inserisce ciò che ha fatto davvero (serie, ripetizioni, peso, RIR, note per esercizio;
+   fatica RPE 0-10 e durata per seduta; gli esercizi non sono modificabili), guarda i
+   ▶ video, e preme «📩 Crea il file per il coach»: nasce «Rientro_profilo_data.json»
+   (formato 'tms-rientro', identico alle versioni precedenti) da rimandare al coach,
+   dove possibile con la condivisione diretta (WhatsApp ecc.).
 3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e l'allenamento
    del cliente viene **caricato nella scheda 🏋 Pesi** (NON scritto subito nello Storico).
    Il coach lo rivede, eventualmente corregge, poi preme «💾 Salva nello Storico» scegliendo

@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TMS Scheda — la tua scheda di allenamento</title>
+<meta name="description" content="App per gli atleti del Training Monitor System: apri la scheda che ti manda il coach, guarda i video, compila ciò che hai fatto e rimandagli il file. Tutto offline: i tuoi dati restano sul telefono.">
+<meta name="theme-color" content="#2b1d10">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TMS Scheda">
+<style>
+ /* ── TMS Scheda (app del cliente, PWA) — stesso stile pergamena della scheda coach↔cliente.
+       Mobile-first: due schermate (lista giorni → giorno), campi su UNA colonna, input 16px
+       (iOS non zooma al focus). TUTTO in locale: la scheda vive nel telefono. ── */
+ *{box-sizing:border-box}
+ [hidden]{display:none!important}
+ body{font-family:Georgia,'Times New Roman',serif;background:#f4ead8;color:#2b1d10;margin:0;padding:14px 12px calc(20px + env(safe-area-inset-bottom));max-width:620px;margin-inline:auto;-webkit-text-size-adjust:100%}
+ h1{font-size:20px;margin:0 0 2px}
+ .sub{color:#7a6648;font-size:13px;margin-bottom:12px;line-height:1.4}
+ .avviso{background:#fdf0d4;border:1px solid #d9b66a;border-radius:9px;padding:9px 12px;font-size:12.5px;margin:0 0 14px;color:#5b4a30;line-height:1.45}
+ .box{background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+ .pick-title{font-size:15px;color:#9a5b1f;font-weight:bold;margin:4px 0 9px}
+ .days{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
+ .day-card{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:15px 16px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+ .day-card:active{background:#f1e6cd}
+ .day-l{display:flex;flex-direction:column;gap:2px}
+ .day-name{font-size:17px;font-weight:bold;color:#2b1d10}
+ .day-meta{color:#7a6648;font-size:12.5px}
+ .day-r{display:flex;align-items:center;gap:8px}
+ .day-done{color:#2f7d4f;font-size:18px;font-weight:bold;min-width:14px;text-align:right}
+ .chev{font-size:22px;color:#9a5b1f;line-height:1}
+ .day-page h2{font-size:17px;color:#9a5b1f;margin:8px 0 12px}
+ .back{background:none;border:0;color:#9a5b1f;font:inherit;font-size:15px;font-weight:bold;cursor:pointer;padding:6px 2px}
+ .back-bottom{margin-top:8px;font-size:16px}
+ .ex{background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin-bottom:11px}
+ .ex-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+ .ex-name{font-size:15.5px;font-weight:bold;color:#2b1d10}
+ .ex-coach{color:#9a8a6a;font-size:12px;margin-top:3px;font-style:italic}
+ .ex-prev{color:#7a6648;font-size:13px;border-bottom:1px dashed #e6d9bd;padding-bottom:8px;margin:6px 0 2px}
+ .f{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #f0e6cf}
+ .f:last-child{border-bottom:0}
+ .f label{color:#5b4a30;font-size:14px;font-weight:bold}
+ .f input{height:31px;font:inherit;font-size:16px;border:1px solid #cdb889;border-radius:5px;background:#fff;text-align:center;padding:0 6px;width:82px}
+ .f.note{flex-direction:column;align-items:stretch;gap:5px}
+ .f.note label{font-size:13px}
+ .f.note input.nota{width:100%;text-align:left}
+ .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin:14px 0 6px}
+ .seduta-t{font-size:12px;color:#9a5b1f;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+ .vbtn{border:1px solid #cdb889;background:#fff;border-radius:6px;cursor:pointer;font-size:12.5px;padding:3px 11px;color:#9a5b1f}
+ .btn-big{display:block;width:100%;margin:8px 0;padding:15px;font:inherit;font-size:17px;font-weight:bold;background:#9a5b1f;color:#fff;border:0;border-radius:10px;cursor:pointer;text-align:center}
+ .btn-big:active{background:#7e4a18}
+ .btn-lite{display:block;width:100%;margin:8px 0;padding:11px;font:inherit;font-size:14px;background:#fbf4e6;color:#5b4a30;border:1px solid #cdb889;border-radius:10px;cursor:pointer;text-align:center}
+ .fine{color:#7a6648;font-size:12px;text-align:center;margin-bottom:16px;line-height:1.4}
+ #bozza-stato{color:#7a6648;font-size:12px;text-align:center;margin:8px 0;min-height:15px}
+ #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+ #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:10px;background:#000}
+ #vclose{position:absolute;top:14px;right:18px;font-size:30px;color:#fff;background:none;border:0;cursor:pointer}
+ .install{background:#efe3c8;border:1px dashed #b99a5e;border-radius:9px;padding:9px 12px;font-size:12.5px;color:#5b4a30;line-height:1.5;margin:10px 0}
+ footer{color:#9a8a6a;font-size:11px;text-align:center;margin-top:22px}
+ .privacy{color:#7a6648;font-size:11.5px;line-height:1.45;text-align:center;margin-top:6px}
+</style>
+</head>
+<body>
+<h1>✦ TMS Scheda</h1>
+<div class="sub" id="sub">La tua scheda di allenamento, dal tuo coach.</div>
+
+<!-- ── schermata BENVENUTO: nessuna scheda caricata ── -->
+<div id="benvenuto" hidden>
+  <div class="box">
+    <div class="pick-title">👋 Benvenuto</div>
+    <p style="font-size:14px;line-height:1.5;margin:6px 0">Il tuo coach ti manda un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai gli allenamenti con i video, compili ciò che fai davvero e gli rimandi il risultato con un tocco.</p>
+    <label class="btn-big" style="cursor:pointer">📂 Carica la scheda<input id="file-scheda" type="file" accept="application/json,.json" style="display:none"></label>
+  </div>
+  <div class="privacy">🔒 Tutto resta <b>sul tuo telefono</b>: questa app non invia niente a nessun server. Funziona anche offline.</div>
+  <div class="install" id="install-hint" hidden></div>
+</div>
+
+<!-- ── schermata HOME: scheda caricata, lista giorni ── -->
+<div id="home" hidden>
+  <div class="avviso" id="scheda-info"></div>
+  <div class="pick-title">📋 Seleziona il giorno da compilare</div>
+  <div class="days" id="days"></div>
+  <div id="bozza-stato"></div>
+  <button type="button" class="btn-big" id="invia">📩 Crea il file per il coach</button>
+  <div class="fine">Quando hai compilato i giorni premi il bottone: nasce un file <b>Rientro_….json</b> da rimandare al coach. Quello che scrivi <b>si salva da solo</b> su questo telefono.</div>
+  <label class="btn-lite" style="cursor:pointer">📂 Carica una nuova scheda<input id="file-scheda-2" type="file" accept="application/json,.json" style="display:none"></label>
+  <div class="install" id="install-hint-2" hidden></div>
+</div>
+
+<!-- ── pagine-giorno generate dal JS ── -->
+<div id="pagine"></div>
+
+<div id="vov"><button id="vclose" type="button">✕</button><video controls playsinline></video></div>
+<footer>TMS Scheda · app del <a href="../index.html" style="color:#9a5b1f">Training Monitor System</a> · <span id="cver"></span></footer>
+
+<script>
+'use strict';
+/* ════ TMS Scheda — app del cliente (PWA) ════
+   Legge il file Scheda_*.json esportato dal TMS del coach (tipo 'tms-scheda'),
+   mostra giorni/esercizi/video, il cliente compila e riesporta il Rientro_*.json
+   (tipo 'tms-rientro', identico al formato storico: l'import nel TMS non cambia).
+   Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
+   localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
+const CVER='1.0';
+document.getElementById('cver').textContent='v'+CVER;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ── storage della scheda: IndexedDB → fallback localStorage → memoria ── */
+const SKEY='tms-scheda-corrente';
+let memScheda=null;
+function idbReq(mode,fn){ return new Promise((res,rej)=>{
+  const r=indexedDB.open('tms-scheda-app',1);
+  r.onupgradeneeded=()=>r.result.createObjectStore('kv');
+  r.onerror=()=>rej(r.error);
+  r.onsuccess=()=>{ const db=r.result, tx=db.transaction('kv',mode), rq=fn(tx.objectStore('kv'));
+    tx.oncomplete=()=>{ db.close(); res(rq&&rq.result); };
+    tx.onerror=()=>{ db.close(); rej(tx.error); } };
+});}
+async function salvaScheda(dati){ memScheda=dati; const s=JSON.stringify(dati);
+  try{ if(typeof indexedDB!=='undefined'){ await idbReq('readwrite',st=>st.put(s,SKEY)); return; } }catch(e){}
+  try{ localStorage.setItem(SKEY,s); }catch(e){} }
+async function leggiScheda(){ if(memScheda) return memScheda;
+  try{ if(typeof indexedDB!=='undefined'){ const s=await idbReq('readonly',st=>st.get(SKEY)); if(s) return memScheda=JSON.parse(s); } }catch(e){}
+  try{ const s=localStorage.getItem(SKEY); if(s) return memScheda=JSON.parse(s); }catch(e){}
+  return null; }
+
+/* ── stato ── */
+let SCHEDA=null, GIORNI=[], BK='';
+const stOk=(()=>{ try{ localStorage.setItem('t','1'); localStorage.removeItem('t'); return true; }catch(e){ return false; } })();
+
+function validaScheda(d){ return d && d.tipo==='tms-scheda' && Array.isArray(d.righe) && d.righe.length>0; }
+function giorniDi(righe){ const seen=[]; righe.forEach(r=>{ const g=String(r.giorno||''); if(g&&seen.indexOf(g)<0) seen.push(g); }); return seen; }
+
+/* ── caricamento file scheda ── */
+async function caricaFile(file){
+  let dati=null; try{ dati=JSON.parse(await file.text()); }catch(e){}
+  if(!validaScheda(dati)){ alert('Questo file non è una scheda del TMS (serve il file Scheda_….json che ti manda il coach).'); return; }
+  if(SCHEDA && !confirm('Hai già una scheda caricata («'+((SCHEDA.profilo||{}).nome||'')+'», del '+(SCHEDA.esportata||'?')+').\nLa sostituisco con quella nuova? (La bozza della vecchia resta salvata sul telefono.)')) return;
+  await salvaScheda(dati);
+  SCHEDA=dati; avvia();
+}
+
+/* ── render ── */
+function avvia(){
+  const ben=$('benvenuto'), home=$('home');
+  document.querySelectorAll('.day-page').forEach(p=>p.remove());
+  if(!SCHEDA){ ben.hidden=false; home.hidden=true; mostraInstallHint(); return; }
+  ben.hidden=true; home.hidden=false;
+  GIORNI=giorniDi(SCHEDA.righe);
+  BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
+  $('sub').textContent='Ciao '+(((SCHEDA.profilo||{}).nome)||'')+'! Scegli un giorno, compila ciò che hai fatto davvero, poi crea il file per il coach.';
+  $('scheda-info').innerHTML='📋 Scheda del <b>'+esc((SCHEDA.profilo||{}).nome||'')+'</b> · esportata il <b>'+esc(SCHEDA.esportata||'?')+'</b>'+(SCHEDA.app?' · TMS v'+esc(SCHEDA.app):'');
+  /* lista giorni */
+  let days='';
+  GIORNI.forEach((g,gi)=>{ const cnt=SCHEDA.righe.filter(r=>r.giorno===g).length;
+    days+='<button type="button" class="day-card" data-go="'+gi+'">'+
+      '<span class="day-l"><span class="day-name">'+esc(g)+'</span><span class="day-meta">'+cnt+' eserciz'+(cnt===1?'io':'i')+'</span></span>'+
+      '<span class="day-r"><span class="day-done" id="stato-'+gi+'"></span><span class="chev">›</span></span></button>'; });
+  $('days').innerHTML=days;
+  /* pagine giorno */
+  let pagine='';
+  GIORNI.forEach((g,gi)=>{
+    let exs='';
+    SCHEDA.righe.forEach((r,i)=>{ if(r.giorno!==g) return;
+      const rir=(r.rir===''||r.rir==null)?null:+r.rir;
+      const prev=(+r.serie||0)+'×'+(+r.rip||0)+' @'+(+r.peso||0)+' kg'+(rir!=null?(' · RIR '+rir):'')+(r.rest?(' · rest '+esc(r.rest)):'');
+      const vb=(r.video&&SCHEDA.video&&SCHEDA.video[r.video])?'<button type="button" class="vbtn" data-v="'+esc(r.video)+'" title="Guarda il video">▶ video</button>':'';
+      exs+='<div class="ex"><div class="ex-top"><span class="ex-name">'+esc(r.esercizio)+'</span>'+vb+'</div>'+
+        (r.note?'<div class="ex-coach">'+esc(r.note)+'</div>':'')+
+        '<div class="ex-prev"><b>Previsto:</b> '+prev+'</div>'+
+        '<div class="f"><label>Serie</label><input id="s-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
+        '<div class="f"><label>Ripetizioni</label><input id="r-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.rip||'')+'"></div>'+
+        '<div class="f"><label>Peso (kg)</label><input id="p-'+i+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+(+r.peso||'')+'"></div>'+
+        '<div class="f"><label>RIR</label><input id="rir-'+i+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="'+(rir==null?'':rir)+'" placeholder="–"></div>'+
+        '<div class="f note"><label>Note</label><input id="n-'+i+'" type="text" class="nota" placeholder="com’è andata?"></div></div>'; });
+    pagine+='<div class="day-page" id="day-'+gi+'" hidden>'+
+      '<button type="button" class="back" data-back>‹ Tutti i giorni</button>'+
+      '<h2>▌ '+esc(g)+'</h2>'+exs+
+      '<div class="seduta"><div class="seduta-t">Fine giornata</div>'+
+      '<div class="f"><label>Fatica seduta (RPE 0–10)</label><input id="rpe-'+gi+'" type="number" inputmode="decimal" min="0" max="10" step="0.5" placeholder="–"></div>'+
+      '<div class="f"><label>Durata (min)</label><input id="min-'+gi+'" type="number" inputmode="numeric" min="0" step="1" placeholder="–"></div></div>'+
+      '<button type="button" class="back back-bottom" data-back>‹ Tutti i giorni</button></div>'; });
+  $('pagine').innerHTML=pagine;
+  wire(); caricaBozza(); aggiornaStato(); mostra('home'); mostraInstallHint();
+}
+function mostra(id){ $('home').hidden=(id!=='home');
+  document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
+  try{ window.scrollTo(0,0); }catch(e){} }
+
+/* ── bozza autosalvata (localStorage, per scheda). I campi partono precompilati col
+      PREVISTO del coach: la spunta ✔ dei giorni si basa sui campi TOCCATI dal cliente
+      (set _t nella bozza), non sul semplice «campo non vuoto». ── */
+let TOCCATI=new Set();
+function idsCampi(){ const ids=[]; SCHEDA.righe.forEach((r,i)=>{ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+i)); });
+  GIORNI.forEach((g,gi)=>{ ids.push('rpe-'+gi); ids.push('min-'+gi); }); return ids; }
+function salvaBozza(){ if(!stOk||!SCHEDA) return; const o={_t:[...TOCCATI]};
+  idsCampi().forEach(id=>{ const el=$(id); if(el&&el.value!=='') o[id]=el.value; });
+  try{ localStorage.setItem(BK,JSON.stringify(o));
+    const n=$('bozza-stato'); if(n) n.textContent='💾 salvato '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){} }
+function caricaBozza(){ TOCCATI=new Set(); if(!stOk) return; let raw=null; try{ raw=localStorage.getItem(BK); }catch(e){}
+  if(!raw) return; try{ const o=JSON.parse(raw);
+    Object.keys(o).forEach(id=>{ if(id==='_t') return; const el=$(id); if(el) el.value=o[id]; });
+    TOCCATI=new Set(Array.isArray(o._t)? o._t : Object.keys(o).filter(k=>k!=='_t'));
+    const n=$('bozza-stato'); if(n) n.textContent='✔ Ho ricaricato quello che avevi scritto.'; }catch(e){} }
+function dayIds(gi){ const ids=[]; SCHEDA.righe.forEach((r,i)=>{ if(r.giorno===GIORNI[gi]){ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+i)); } });
+  ids.push('rpe-'+gi); ids.push('min-'+gi); return ids; }
+function aggiornaStato(){ if(!SCHEDA) return; GIORNI.forEach((g,gi)=>{
+  const fatto=dayIds(gi).some(id=>TOCCATI.has(id));
+  const s=$('stato-'+gi); if(s) s.textContent=fatto?'✔':''; }); }
+
+/* ── rientro per il coach (STESSO formato di sempre: l'import nel TMS non cambia) ── */
+function num(id){ const el=$(id); const v=el?el.value:''; return v===''?null:+v; }
+function costruisciRientro(){
+  const righe=SCHEDA.righe.map((r,i)=>({giorno:r.giorno, esercizio:r.esercizio,
+    serie:num('s-'+i)||0, rip:num('r-'+i)||0, peso:num('p-'+i)||0,
+    rir:num('rir-'+i), note:(($('n-'+i)&&$('n-'+i).value)||'').trim()}));
+  const sedute=[]; GIORNI.forEach((g,gi)=>{ const rp=num('rpe-'+gi), mn=num('min-'+gi);
+    if(rp&&mn) sedute.push({giorno:g, rpe:rp, min:mn}); });
+  return {tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
+    esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:righe, sedute:sedute};
+}
+async function inviaRientro(){
+  const out=costruisciRientro();
+  const nome='Rientro_'+(((SCHEDA.profilo||{}).slug)||'cliente')+'_'+out.compilata+'.json';
+  const testo=JSON.stringify(out,null,1);
+  /* prova la condivisione nativa (WhatsApp ecc.), altrimenti scarica il file */
+  try{
+    if(navigator.share && navigator.canShare){
+      const f=new File([testo],nome,{type:'application/json'});
+      if(navigator.canShare({files:[f]})){ await navigator.share({files:[f],title:nome}); return; }
+    }
+  }catch(e){ if(e && e.name==='AbortError') return; }
+  const blob=new Blob([testo],{type:'application/json'});
+  const u=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=u; a.download=nome; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },800);
+  alert('File creato: '+nome+'\nLo trovi nei Download — rimandalo al tuo coach.');
+}
+
+/* ── video (data URI incorporati nel file scheda) ── */
+function wire(){
+  document.querySelectorAll('.vbtn').forEach(b=>{ b.onclick=()=>{
+    const ov=$('vov'), v=ov.querySelector('video');
+    v.src=(SCHEDA.video&&SCHEDA.video[b.getAttribute('data-v')])||''; ov.style.display='flex';
+    try{ v.play(); }catch(e){} }; });
+  document.querySelectorAll('[data-go]').forEach(b=>{ b.onclick=()=>mostra('day-'+b.getAttribute('data-go')); });
+  document.querySelectorAll('[data-back]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('home'); }; });
+}
+$('vclose').onclick=()=>{ const ov=$('vov'), v=ov.querySelector('video'); v.pause(); v.removeAttribute('src'); ov.style.display='none'; };
+$('invia').onclick=inviaRientro;
+[['file-scheda'],['file-scheda-2']].forEach(([id])=>{ const inp=$(id);
+  inp.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) caricaFile(f); }; });
+document.addEventListener('input',e=>{ if(e.target&&e.target.id) TOCCATI.add(e.target.id); salvaBozza(); aggiornaStato(); });
+
+/* ── suggerimento d'installazione (solo se non già installata) ── */
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredInstall=e; mostraInstallHint(); });
+function isStandalone(){ try{ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }catch(e){ return false; } }
+function mostraInstallHint(){
+  const boxes=[$('install-hint'),$('install-hint-2')];
+  if(isStandalone()){ boxes.forEach(b=>{ if(b) b.hidden=true; }); return; }
+  const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+  let html;
+  if(deferredInstall) html='📲 <b>Installa l’app sul telefono</b> per averla sempre a portata di mano: <button type="button" id="btn-install" class="vbtn" style="font-weight:bold">Installa</button>';
+  else if(ios) html='📲 <b>Aggiungi l’app alla schermata Home</b>: tocca <b>Condividi</b> (il quadrato con la freccia) e poi <b>«Aggiungi alla schermata Home»</b>. Da lì funziona anche offline.';
+  else html='📲 <b>Aggiungi l’app alla schermata Home</b>: menu del browser (⋮) → <b>«Installa app»</b> o <b>«Aggiungi a schermata Home»</b>. Da lì funziona anche offline.';
+  boxes.forEach(b=>{ if(b){ b.innerHTML=html; b.hidden=false; } });
+  const bi=document.getElementById('btn-install');
+  if(bi) bi.onclick=async()=>{ try{ await deferredInstall.prompt(); }catch(e){} deferredInstall=null; mostraInstallHint(); };
+}
+
+/* ── avvio + service worker (offline & auto-aggiornamento) ── */
+leggiScheda().then(d=>{ SCHEDA=(validaScheda(d)?d:null); avvia(); }).catch(()=>{ SCHEDA=null; avvia(); });
+if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
+</script>
+</body>
+</html>

@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-07-04 — TMS v1.0.85: «TMS Scheda», l'app del cliente (PWA) — l'export scheda diventa un file JSON
+
+**Tipo**: nuova app companion (richiesta esplicita di Marco) + cambio del formato di export scheda
+**File coinvolti**: docs/app/ (nuova PWA: index.html, manifest.webmanifest, sw.js, icon-192/512) · src/app/15-scambio.js (export JSON `costruisciSchedaJSON`, rimozione `costruisciSchedaCliente`) · src/app/01-costanti.js (`APP_CLIENTE_URL`) · src/app/13b-profilo.js (testi) · src/app/13a-guida.js + 13c-guida-ai.js + docs/guida-ai.md (guide, §10 riscritta) · docs/index.html (riquadro atleta) · tools/genera-icone-app.js (nuovo) · package.json ×2 · tests/test-app.js
+**Descrizione**:
+- **TMS Scheda** (PWA su GitHub Pages, `/TMS/app/`): app che il cliente installa una volta dal browser («Aggiungi alla schermata Home», Android e iPhone) e che poi funziona **offline** e si aggiorna da sola. Una sola schermata «Allenamento»: carica il file `Scheda_*.json` del coach (resta memorizzato nell'app con IndexedDB→localStorage), naviga per giorni (design a due schermate della v1.0.83), mostra i ▶ **video** incorporati, compila serie/rip/peso/RIR/note + fatica/durata seduta con **bozza autosalvata** (spunta ✔ solo sui campi realmente toccati — fix del difetto latente dei campi precompilati), e genera `Rientro_*.json` con **condivisione diretta** (Web Share API) o download. **Privacy**: il sito serve solo il "guscio"; schede e rientri non passano da alcun server.
+- **Export dal TMS**: «📤 Esporta scheda» ora genera `Scheda_<profilo>_<data>.json` (tipo interno 'tms-scheda': righe + previsto + mappa video in base64 + URL dell'app) al posto della pagina HTML, che è stata **rimossa** (scelta di Marco). Il formato del **rientro è invariato** ('tms-rientro'): l'import nel TMS non cambia e i vecchi rientri restano compatibili.
+- Guide (rapida + completa §10 + AI) riscritte sul nuovo flusso con istruzioni d'installazione per il cliente; landing del sito con il riquadro «Sei un atleta?».
+**Test**: `npm test` **256/256** — nuovi: struttura del JSON scheda (meta/righe/video/URL app), presenza PWA (index+manifest+sw), app cliente in jsdom (benvenuto senza scheda, home con card giorni, campi precompilati, bozza autosalvata e ricaricata, spunta ✔ sui campi toccati, validazione file) e **giro completo** export TMS → app cliente → rientro → scheda Pesi del coach. Verifica visiva della PWA in anteprima locale (benvenuto, home, pagina giorno, spunte, rientro). Build md5 identici, `npm run verifica` OK.
+**Approvato da**: Marco (piano approvato con scelte esplicite: PWA su Pages, video nel file, solo compilazione, sostituzione dell'HTML; comando «procediamo e poi pubblichiamo»)
+
 ### 2026-06-19 — TMS v1.0.84: cruscotto multi-cliente (semaforo nei profili), foto progressi (Corpo + Report), co-pilota LED nella scheda Pesi
 
 **Tipo**: tre nuove funzioni (le migliorie scelte da Marco il 2026-06-17) — proposte e approvate una alla volta
