@@ -11,8 +11,27 @@
 
 function righeSchedaCliente(){ return ((DOC.scheda&&DOC.scheda.settimanale)||[]).filter(r=>r&&r.esercizio&&String(r.esercizio).trim()); }
 
+/* piano alimentare della fase ATTIVA per l'app del cliente, coi valori precalcolati
+   (il cliente non ha la banca alimenti USAV): pasto, alimento, grammi, kcal e macro per
+   riga + totale giornaliero. null se il piano è vuoto (l'app mostra «non inclusa»). */
+function costruisciDietaJSON(){
+  const fase=faseAlimActive(); const rows=((DOC.alimentazione&&DOC.alimentazione[fase])||[]).filter(r=>r&&r.alimento&&String(r.alimento).trim());
+  if(!rows.length) return null;
+  const righe=rows.map(r=>({pasto:String(r.pasto||'').trim(), alimento:String(r.alimento).trim(), grammi:+r.grammi||0,
+    kcal:Math.round(foodVal(r.alimento,r.grammi,'kcal')),
+    proteine:+foodVal(r.alimento,r.grammi,'proteine').toFixed(1),
+    grassi:+foodVal(r.alimento,r.grammi,'grassi').toFixed(1),
+    carboidrati:+foodVal(r.alimento,r.grammi,'zuccheri').toFixed(1),
+    fibre:+foodVal(r.alimento,r.grammi,'fibre').toFixed(1)}));
+  const t=faseTot(rows);
+  return {fase:fase, label:FASE_LAB[fase]||fase,
+    tot:{kcal:Math.round(t.kcal||0), proteine:+(t.proteine||0).toFixed(1), grassi:+(t.grassi||0).toFixed(1),
+      carboidrati:+(t.zuccheri||0).toFixed(1), fibre:+(t.fibre||0).toFixed(1)}, righe:righe};
+}
+
 /* file scheda per l'app del cliente: solo dati (niente markup). I video degli esercizi
-   viaggiano come data-URI nella mappa `video` (nome file → URI), come nel Report digitale. */
+   viaggiano come data-URI nella mappa `video` (nome file → URI), come nel Report digitale;
+   `dieta` è il piano alimentare della fase attiva (null se vuoto). */
 function costruisciSchedaJSON(videoMap){
   videoMap=videoMap||{};
   const righe=righeSchedaCliente();
@@ -21,7 +40,7 @@ function costruisciSchedaJSON(videoMap){
     rir:(r.rir===''||r.rir==null)?null:+r.rir, note:r.note||'', video:videoOf(r.esercizio)||''}));
   return {tipo:'tms-scheda', versione:1, app:APP_VERSION,
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
-    appCliente:APP_CLIENTE_URL, righe:rows, video:videoMap};
+    appCliente:APP_CLIENTE_URL, righe:rows, video:videoMap, dieta:costruisciDietaJSON()};
 }
 
 async function esportaSchedaCliente(){
@@ -39,7 +58,7 @@ async function esportaSchedaCliente(){
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },800);
   const kb=blob.size/1024;
-  alert('✔ Scheda esportata ('+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+').\n'+
+  alert('✔ Scheda esportata ('+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+')'+(dati.dieta?' — incluso il piano alimentare della fase '+(dati.dieta.label||'')+'.':'.')+'\n'+
     'Inviala al cliente: la apre nell\'app «TMS Scheda», compila e ti rimanda il file di rientro (da importare qui nel Profilo).\n\n'+
     'Prima volta? Il cliente apre questo link sul telefono e aggiunge l\'app alla schermata Home (poi funziona anche offline):\n'+APP_CLIENTE_URL);
 }

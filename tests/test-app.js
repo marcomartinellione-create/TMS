@@ -454,6 +454,9 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const schedaCli = w.eval('costruisciSchedaJSON(' + JSON.stringify(mapCli) + ')');
   ok(schedaCli.tipo === 'tms-scheda' && schedaCli.profilo.slug === 'template' && schedaCli.profilo.nome === 'Atleta Template' && schedaCli.righe.length > 0, 'export scheda JSON: meta profilo + righe della scheda del template');
   ok(schedaCli.righe.every(r => r.giorno && r.esercizio && typeof r.serie === 'number') && schedaCli.video[vfileCli].startsWith('data:video/'), 'export scheda JSON: righe complete + video come data-URI');
+  /* dieta della fase attiva inclusa nell'export (valori precalcolati: il cliente non ha la banca USAV) */
+  ok(schedaCli.dieta && schedaCli.dieta.fase === 'bulk' && Array.isArray(schedaCli.dieta.righe) && schedaCli.dieta.righe.length > 0, 'export scheda JSON: piano alimentare della fase attiva incluso (' + (schedaCli.dieta ? schedaCli.dieta.righe.length : 0) + ' righe)');
+  ok(schedaCli.dieta.tot.kcal > 1000 && schedaCli.dieta.righe.every(r => r.alimento && typeof r.kcal === 'number' && typeof r.grammi === 'number'), 'export scheda JSON: kcal/macro precalcolate per riga + totale giornaliero (' + schedaCli.dieta.tot.kcal + ' kcal)');
   /* l'app cliente (PWA) viene caricata in un jsdom dedicato come farebbe il telefono del cliente */
   const PWA = path.join(ROOT, 'docs', 'app', 'index.html');
   ok(fs.existsSync(PWA) && fs.existsSync(path.join(ROOT, 'docs', 'app', 'manifest.webmanifest')) && fs.existsSync(path.join(ROOT, 'docs', 'app', 'sw.js')), 'app cliente: index.html + manifest + service worker presenti in docs/app/');
@@ -465,9 +468,20 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       beforeParse(win){ win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli)); } });
     await settle(400);
     const sd = sub.window.document;
-    ok(sd.getElementById('benvenuto').hidden === true && sd.getElementById('home').hidden === false, 'app cliente: scheda memorizzata → parte dalla home (niente benvenuto)');
-    ok(sd.querySelectorAll('.day-card').length === giorniCli.length && sd.querySelectorAll('.day-page').length === giorniCli.length, 'app cliente: una card e una pagina per ogni giorno della scheda');
+    ok(sd.getElementById('benvenuto').hidden === true && sd.getElementById('menu').hidden === false && sd.getElementById('home').hidden === true, 'app cliente: scheda memorizzata → parte dal MENU (Scheda + Alimentazione)');
+    ok(sd.getElementById('vai-scheda') !== null && sd.getElementById('vai-alim') !== null, 'app cliente: due macro-sezioni nel menu');
+    /* alimentazione: card attiva, pagina con pasti e totale */
+    ok(sd.getElementById('vai-alim').disabled === false && sd.getElementById('meta-alim').textContent.includes('kcal/giorno'), 'app cliente: card Alimentazione attiva col riassunto kcal');
+    sd.getElementById('vai-alim').click();
+    ok(sd.getElementById('alim').hidden === false && sd.querySelectorAll('#alim-body .al-row').length === schedaCli.dieta.righe.length, 'app cliente: pagina Alimentazione con tutte le righe del piano');
+    ok(sd.querySelector('#alim [data-menu]') !== null, 'app cliente: bottone «Torna al menu» nella pagina Alimentazione');
+    sd.querySelector('#alim [data-menu]').click();
+    /* scheda: menu → giorni → giorno, con bottoni di ritorno evidenti */
+    sd.getElementById('vai-scheda').click();
+    ok(sd.getElementById('home').hidden === false && sd.querySelectorAll('.day-card').length === giorniCli.length && sd.querySelectorAll('.day-page').length === giorniCli.length, 'app cliente: menu → Scheda: una card e una pagina per ogni giorno');
     ok(sd.getElementById('s-0') !== null && +sd.getElementById('s-0').value === schedaCli.righe[0].serie, 'app cliente: campi precompilati col previsto del coach');
+    ok(sd.getElementById('rir-0') !== null && sd.getElementById('rir-0').value === '', 'app cliente: RIR NON precompilato (si inserisce dopo l\'allenamento)');
+    ok(sd.querySelector('.day-page .back-btn') !== null && sd.querySelector('.day-page .back-btn').textContent.includes('Torna ai giorni'), 'app cliente: bottone «Torna ai giorni» evidente nella pagina giorno');
     ok(sd.querySelector('.vbtn') !== null, 'app cliente: bottone ▶ video presente (video nel file)');
     /* compila un campo → bozza autosalvata */
     sd.getElementById('n-0').value = 'fatto tutto';
@@ -479,6 +493,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     rientroApp = sub.window.eval('costruisciRientro()');
     ok(rientroApp && rientroApp.tipo === 'tms-rientro' && rientroApp.versione === 1 && rientroApp.profilo.slug === 'template', 'app cliente: rientro nel formato tms-rientro (import TMS invariato)');
     ok(rientroApp.righe.length === schedaCli.righe.length && rientroApp.righe[0].serie === 5 && rientroApp.righe[0].note === 'fatto tutto', 'app cliente: il rientro riflette ciò che il cliente ha compilato');
+    ok(rientroApp.righe[0].rir === null, 'app cliente: RIR non toccato → null nel rientro (niente valore ereditato dal coach)');
     sub.window.close();
   }
   {

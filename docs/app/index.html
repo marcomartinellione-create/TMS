@@ -33,9 +33,25 @@
  .day-r{display:flex;align-items:center;gap:8px}
  .day-done{color:#2f7d4f;font-size:18px;font-weight:bold;min-width:14px;text-align:right}
  .chev{font-size:22px;color:#9a5b1f;line-height:1}
- .day-page h2{font-size:17px;color:#9a5b1f;margin:8px 0 12px}
- .back{background:none;border:0;color:#9a5b1f;font:inherit;font-size:15px;font-weight:bold;cursor:pointer;padding:6px 2px}
- .back-bottom{margin-top:8px;font-size:16px}
+ .day-page h2,.sez-t{font-size:17px;color:#9a5b1f;margin:8px 0 12px}
+ /* macro-card del menu principale (Scheda / Alimentazione) */
+ .macro-card{display:flex;align-items:center;gap:14px;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:14px;padding:19px 18px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+ .macro-card:active{background:#f1e6cd}
+ .macro-card[disabled]{opacity:.55;cursor:default}
+ .macro-ico{font-size:30px;line-height:1}
+ .macro-l{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+ .macro-name{font-size:18px;font-weight:bold;color:#2b1d10}
+ .macro-meta{color:#7a6648;font-size:12.5px}
+ /* bottone «torna indietro» ben visibile (richiesta Marco) */
+ .back-btn{display:block;width:100%;margin:2px 0 12px;padding:12px;font:inherit;font-size:16px;font-weight:bold;background:#fff;color:#9a5b1f;border:2px solid #b97a39;border-radius:10px;cursor:pointer;text-align:center}
+ .back-btn:active{background:#f1e6cd}
+ .back-btn.bottom{margin:14px 0 4px}
+ /* righe del piano alimentare (sola lettura) */
+ .al-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid #f0e6cf}
+ .al-row:last-child{border-bottom:0}
+ .al-nome{flex:1;min-width:0;font-size:14.5px}
+ .al-g{font-weight:bold;white-space:nowrap;font-size:15px}
+ .al-kcal{color:#7a6648;font-size:12px;white-space:nowrap}
  .ex{background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin-bottom:11px}
  .ex-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
  .ex-name{font-size:15.5px;font-weight:bold;color:#2b1d10}
@@ -79,16 +95,39 @@
   <div class="install" id="install-hint" hidden></div>
 </div>
 
-<!-- ── schermata HOME: scheda caricata, lista giorni ── -->
-<div id="home" hidden>
+<!-- ── schermata MENU: due macro-sezioni (Scheda / Alimentazione) ── -->
+<div id="menu" hidden>
   <div class="avviso" id="scheda-info"></div>
+  <div class="days">
+    <button type="button" class="macro-card" id="vai-scheda">
+      <span class="macro-ico">🏋</span>
+      <span class="macro-l"><span class="macro-name">Scheda allenamento</span><span class="macro-meta" id="meta-scheda"></span></span>
+      <span class="chev">›</span></button>
+    <button type="button" class="macro-card" id="vai-alim">
+      <span class="macro-ico">🍖</span>
+      <span class="macro-l"><span class="macro-name">Alimentazione</span><span class="macro-meta" id="meta-alim"></span></span>
+      <span class="chev">›</span></button>
+  </div>
+  <label class="btn-lite" style="cursor:pointer">📂 Carica una nuova scheda<input id="file-scheda-2" type="file" accept="application/json,.json" style="display:none"></label>
+  <div class="install" id="install-hint-2" hidden></div>
+</div>
+
+<!-- ── schermata SCHEDA: lista giorni ── -->
+<div id="home" hidden>
+  <button type="button" class="back-btn" data-menu>‹ Torna al menu</button>
   <div class="pick-title">📋 Seleziona il giorno da compilare</div>
   <div class="days" id="days"></div>
   <div id="bozza-stato"></div>
   <button type="button" class="btn-big" id="invia">📩 Crea il file per il coach</button>
   <div class="fine">Quando hai compilato i giorni premi il bottone: nasce un file <b>Rientro_….json</b> da rimandare al coach. Quello che scrivi <b>si salva da solo</b> su questo telefono.</div>
-  <label class="btn-lite" style="cursor:pointer">📂 Carica una nuova scheda<input id="file-scheda-2" type="file" accept="application/json,.json" style="display:none"></label>
-  <div class="install" id="install-hint-2" hidden></div>
+</div>
+
+<!-- ── schermata ALIMENTAZIONE: piano del coach, sola lettura ── -->
+<div id="alim" hidden>
+  <button type="button" class="back-btn" data-menu>‹ Torna al menu</button>
+  <div class="sez-t">▌ Alimentazione</div>
+  <div id="alim-body"></div>
+  <button type="button" class="back-btn bottom" data-menu>‹ Torna al menu</button>
 </div>
 
 <!-- ── pagine-giorno generate dal JS ── -->
@@ -105,7 +144,7 @@
    (tipo 'tms-rientro', identico al formato storico: l'import nel TMS non cambia).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='1.0';
+const CVER='1.1';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -147,14 +186,20 @@ async function caricaFile(file){
 
 /* ── render ── */
 function avvia(){
-  const ben=$('benvenuto'), home=$('home');
+  const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
-  if(!SCHEDA){ ben.hidden=false; home.hidden=true; mostraInstallHint(); return; }
-  ben.hidden=true; home.hidden=false;
+  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); return; }
+  ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
-  $('sub').textContent='Ciao '+(((SCHEDA.profilo||{}).nome)||'')+'! Scegli un giorno, compila ciò che hai fatto davvero, poi crea il file per il coach.';
+  $('sub').textContent='Ciao '+(((SCHEDA.profilo||{}).nome)||'')+'! Qui trovi la tua scheda e la tua alimentazione, dal tuo coach.';
   $('scheda-info').innerHTML='📋 Scheda del <b>'+esc((SCHEDA.profilo||{}).nome||'')+'</b> · esportata il <b>'+esc(SCHEDA.esportata||'?')+'</b>'+(SCHEDA.app?' · TMS v'+esc(SCHEDA.app):'');
+  /* menu: sottotitoli delle due macro-sezioni */
+  $('meta-scheda').textContent=GIORNI.length+' giorn'+(GIORNI.length===1?'o':'i')+' · '+SCHEDA.righe.length+' eserciz'+(SCHEDA.righe.length===1?'io':'i');
+  const dieta=SCHEDA.dieta, haDieta=!!(dieta&&Array.isArray(dieta.righe)&&dieta.righe.length);
+  $('meta-alim').textContent=haDieta? ((dieta.label||dieta.fase||'piano')+(dieta.tot?(' · '+(dieta.tot.kcal||0)+' kcal/giorno'):'')) : 'non inclusa in questo file';
+  $('vai-alim').disabled=!haDieta;
+  renderAlim();
   /* lista giorni */
   let days='';
   GIORNI.forEach((g,gi)=>{ const cnt=SCHEDA.righe.filter(r=>r.giorno===g).length;
@@ -176,21 +221,33 @@ function avvia(){
         '<div class="f"><label>Serie</label><input id="s-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
         '<div class="f"><label>Ripetizioni</label><input id="r-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.rip||'')+'"></div>'+
         '<div class="f"><label>Peso (kg)</label><input id="p-'+i+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+(+r.peso||'')+'"></div>'+
-        '<div class="f"><label>RIR</label><input id="rir-'+i+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="'+(rir==null?'':rir)+'" placeholder="–"></div>'+
+        '<div class="f"><label>RIR</label><input id="rir-'+i+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="" placeholder="–" title="Quante ripetizioni avevi ancora in canna: si compila DOPO l’allenamento"></div>'+
         '<div class="f note"><label>Note</label><input id="n-'+i+'" type="text" class="nota" placeholder="com’è andata?"></div></div>'; });
     pagine+='<div class="day-page" id="day-'+gi+'" hidden>'+
-      '<button type="button" class="back" data-back>‹ Tutti i giorni</button>'+
+      '<button type="button" class="back-btn" data-back>‹ Torna ai giorni</button>'+
       '<h2>▌ '+esc(g)+'</h2>'+exs+
       '<div class="seduta"><div class="seduta-t">Fine giornata</div>'+
       '<div class="f"><label>Fatica seduta (RPE 0–10)</label><input id="rpe-'+gi+'" type="number" inputmode="decimal" min="0" max="10" step="0.5" placeholder="–"></div>'+
       '<div class="f"><label>Durata (min)</label><input id="min-'+gi+'" type="number" inputmode="numeric" min="0" step="1" placeholder="–"></div></div>'+
-      '<button type="button" class="back back-bottom" data-back>‹ Tutti i giorni</button></div>'; });
+      '<button type="button" class="back-btn bottom" data-back>‹ Torna ai giorni</button></div>'; });
   $('pagine').innerHTML=pagine;
-  wire(); caricaBozza(); aggiornaStato(); mostra('home'); mostraInstallHint();
+  wire(); caricaBozza(); aggiornaStato(); mostra('menu'); mostraInstallHint();
 }
-function mostra(id){ $('home').hidden=(id!=='home');
+function mostra(id){ ['menu','home','alim'].forEach(s=>{ $(s).hidden=(id!==s); });
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
+/* piano alimentare del coach (sola lettura): pasti nell'ordine del piano, grammi in evidenza */
+function renderAlim(){
+  const box=$('alim-body'); if(!box) return; const D=SCHEDA&&SCHEDA.dieta;
+  if(!D||!Array.isArray(D.righe)||!D.righe.length){ box.innerHTML='<div class="avviso">Il coach non ha incluso l’alimentazione in questo file.</div>'; return; }
+  const pasti=[], byP={};
+  D.righe.forEach(r=>{ const m=(r.pasto||'').trim()||'Piano'; if(!byP[m]){ byP[m]=[]; pasti.push(m); } byP[m].push(r); });
+  let h='<div class="avviso">🍖 Piano <b>'+esc(D.label||D.fase||'')+'</b>'+(D.tot?(' · <b>'+(D.tot.kcal||0)+' kcal/giorno</b> · P '+(D.tot.proteine||0)+' · G '+(D.tot.grassi||0)+' · C '+(D.tot.carboidrati||0)):'')+'<br>Segui i grammi indicati: è il piano della tua fase attuale (lo cambia il coach).</div>';
+  pasti.forEach(m=>{ const rs=byP[m]; const kc=Math.round(rs.reduce((a,r)=>a+(+r.kcal||0),0));
+    h+='<div class="ex"><div class="ex-top"><span class="ex-name">'+esc(m)+'</span><span class="al-kcal">'+kc+' kcal</span></div>'+
+      rs.map(r=>'<div class="al-row"><span class="al-nome">'+esc(r.alimento)+'</span><span class="al-g">'+(+r.grammi||0)+' g</span><span class="al-kcal">'+Math.round(+r.kcal||0)+' kcal</span></div>').join('')+'</div>'; });
+  box.innerHTML=h;
+}
 
 /* ── bozza autosalvata (localStorage, per scheda). I campi partono precompilati col
       PREVISTO del coach: la spunta ✔ dei giorni si basa sui campi TOCCATI dal cliente
@@ -250,6 +307,9 @@ function wire(){
     try{ v.play(); }catch(e){} }; });
   document.querySelectorAll('[data-go]').forEach(b=>{ b.onclick=()=>mostra('day-'+b.getAttribute('data-go')); });
   document.querySelectorAll('[data-back]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('home'); }; });
+  document.querySelectorAll('[data-menu]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('menu'); }; });
+  const vs=$('vai-scheda'); if(vs) vs.onclick=()=>mostra('home');
+  const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled) mostra('alim'); };
 }
 $('vclose').onclick=()=>{ const ov=$('vov'), v=ov.querySelector('video'); v.pause(); v.removeAttribute('src'); ov.style.display='none'; };
 $('invia').onclick=inviaRientro;

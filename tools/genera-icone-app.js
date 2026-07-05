@@ -1,8 +1,9 @@
-/* genera-icone-app.js — icone PWA (docs/app/icon-192.png, icon-512.png) dal logo del sito.
+/* genera-icone-app.js — icone PWA (docs/app/icon-192.png, icon-512.png).
  *
- * Il logo (docs/img/logo.png, 256×256 pixel-art) viene riscalato SENZA smoothing
- * (nearest-neighbor, coerente con l'image-rendering:pixelated della landing) su uno
- * sfondo pergamena pieno (le icone maskable non possono avere trasparenze ai bordi).
+ * Su richiesta di Marco (2026-07-05): icona TUTTA NERA con il simbolo ✦ del TMS,
+ * senza cornice/margine pergamena. La stella a 4 punte (verticale più lunga, come
+ * il logo) viene disegnata direttamente su fondo scuro pieno edge-to-edge; il
+ * pallino centrale chiaro riprende il logo. Compatibile maskable (safe zone 80%).
  *
  * Uso (dalla root del progetto):
  *   electron\node_modules\.bin\electron.cmd tools\genera-icone-app.js
@@ -13,29 +14,28 @@ const path = require('node:path');
 
 app.disableHardwareAcceleration();
 
-const LOGO = path.join(__dirname, '..', 'docs', 'img', 'logo.png');
 const OUT = path.join(__dirname, '..', 'docs', 'app');
 
 app.whenReady().then(async () => {
   const win = new BrowserWindow({ show: false, width: 600, height: 600, webPreferences: { offscreen: true } });
-  const logoUri = 'data:image/png;base64,' + fs.readFileSync(LOGO).toString('base64');
   await win.loadURL('data:text/html,<body style="margin:0"><canvas id="c"></canvas></body>');
 
   async function icona(size) {
     return await win.webContents.executeJavaScript(`(function(){
-      return new Promise(function(res){
-        var img=new Image();
-        img.onload=function(){
-          var c=document.getElementById('c'); c.width=${size}; c.height=${size};
-          var x=c.getContext('2d');
-          x.fillStyle='#f4ead8'; x.fillRect(0,0,${size},${size});           /* sfondo pergamena pieno */
-          x.imageSmoothingEnabled=false;                                     /* pixel-art nitida */
-          var m=Math.round(${size}*0.10);                                    /* margine per le icone maskable */
-          x.drawImage(img, m, m, ${size}-2*m, ${size}-2*m);
-          res(c.toDataURL('image/png'));
-        };
-        img.src=${JSON.stringify(logoUri)};
-      });
+      var S=${size}, c=document.getElementById('c'); c.width=S; c.height=S;
+      var x=c.getContext('2d'), cx=S/2, cy=S/2;
+      x.fillStyle='#0d0b08'; x.fillRect(0,0,S,S);            /* fondo nero caldo, pieno */
+      var a=S*0.40,  /* punta verticale  */
+          b=S*0.285, /* punta orizzontale */
+          w=S*0.052; /* vita della stella */
+      x.fillStyle='#e39230';
+      x.beginPath();
+      x.moveTo(cx, cy-a); x.lineTo(cx+w, cy-w); x.lineTo(cx+b, cy); x.lineTo(cx+w, cy+w);
+      x.lineTo(cx, cy+a); x.lineTo(cx-w, cy+w); x.lineTo(cx-b, cy); x.lineTo(cx-w, cy-w);
+      x.closePath(); x.fill();
+      x.fillStyle='#f4ead8';                                  /* pallino centrale chiaro */
+      x.beginPath(); x.arc(cx, cy, S*0.045, 0, Math.PI*2); x.fill();
+      return c.toDataURL('image/png');
     })()`);
   }
 

@@ -204,18 +204,26 @@ con «Aggiungi alla schermata Home», funziona offline, si aggiorna da sola) e l
 viaggia come file via chat/email. Nessun server: i dati restano nei dispositivi.
 1. **Esporta** — tab «👤 Profilo», riga del cliente, bottone «📤 Esporta scheda»:
    nasce «Scheda_profilo_data.json» (tipo interno 'tms-scheda') con la scheda giorno
-   per giorno e il previsto. Alla domanda sui video: includendoli il cliente vede le
-   esecuzioni offline nell'app ma il file pesa di più.
+   per giorno, il previsto e — se il piano della fase attiva non è vuoto — anche la
+   **dieta** (campo 'dieta': pasti, alimenti, grammi, kcal/macro precalcolati, perché
+   il cliente non ha la banca alimenti). Alla domanda sui video: includendoli il
+   cliente vede le esecuzioni offline nell'app ma il file pesa di più.
 2. **Il cliente compila nell'app** — salva il file sul telefono e lo carica in TMS
    Scheda con «📂 Carica la scheda»: la scheda resta memorizzata nell'app (la ritrova
-   a ogni apertura, con la **bozza salvata da sola** mentre compila). Prima sceglie il
-   **giorno** da un elenco, poi compila solo quel giorno — un esercizio sotto l'altro,
-   campi su una colonna e tastiera numerica; una spunta ✔ segna i giorni già compilati.
-   Inserisce ciò che ha fatto davvero (serie, ripetizioni, peso, RIR, note per esercizio;
-   fatica RPE 0-10 e durata per seduta; gli esercizi non sono modificabili), guarda i
-   ▶ video, e preme «📩 Crea il file per il coach»: nasce «Rientro_profilo_data.json»
-   (formato 'tms-rientro', identico alle versioni precedenti) da rimandare al coach,
-   dove possibile con la condivisione diretta (WhatsApp ecc.).
+   a ogni apertura, con la **bozza salvata da sola** mentre compila). L'app si apre su
+   un **menu con due sezioni**: «🏋 Scheda allenamento» e «🍖 Alimentazione» (piano in
+   sola lettura: pasti coi grammi in evidenza e kcal; se il file non contiene la dieta
+   la sezione appare disattivata). Nella scheda sceglie il **giorno** da un elenco, poi
+   compila solo quel giorno — un esercizio sotto l'altro, campi su una colonna e
+   tastiera numerica; una spunta ✔ segna i giorni con campi realmente toccati; bottoni
+   «‹ Torna ai giorni / al menu» ben visibili. Inserisce ciò che ha fatto davvero
+   (serie, ripetizioni, peso, RIR, note per esercizio; fatica RPE 0-10 e durata per
+   seduta; gli esercizi non sono modificabili). NOTA: il campo **RIR parte sempre
+   vuoto** (non eredita il valore del coach: si inserisce dopo l'allenamento; il
+   previsto resta indicato sopra i campi). Guarda i ▶ video, e preme «📩 Crea il file
+   per il coach»: nasce «Rientro_profilo_data.json» (formato 'tms-rientro', identico
+   alle versioni precedenti) da rimandare al coach, dove possibile con la condivisione
+   diretta (WhatsApp ecc.).
 3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e l'allenamento
    del cliente viene **caricato nella scheda 🏋 Pesi** (NON scritto subito nello Storico).
    Il coach lo rivede, eventualmente corregge, poi preme «💾 Salva nello Storico» scegliendo
