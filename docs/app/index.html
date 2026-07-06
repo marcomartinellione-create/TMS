@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>TMS Scheda — la tua scheda di allenamento</title>
-<meta name="description" content="App per gli atleti del Training Monitor System: apri la scheda che ti manda il coach, guarda i video, compila ciò che hai fatto e rimandagli il file. Tutto offline: i tuoi dati restano sul telefono.">
+<title>TMS Scheda — il taccuino digitale da palestra</title>
+<meta name="description" content="Il taccuino digitale del Training Monitor System: la scheda e la dieta si creano nel TMS sul PC (dal coach o da te), qui le annoti in palestra — video, grammi, serie, pesi e fatica. Tutto offline: i dati restano sul telefono.">
 <meta name="theme-color" content="#2b1d10">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -99,7 +99,7 @@
   <h1>✦ TMS Scheda</h1>
   <button type="button" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><img src="qr-ig.png" alt="QR"></button>
 </div>
-<div class="sub" id="sub">La tua scheda di allenamento, dal tuo coach.</div>
+<div class="sub" id="sub">Il taccuino digitale del Training Monitor System: qui annoti l'allenamento in palestra.</div>
 
 <div id="qrov"><div class="qr-panel">
   <button type="button" id="qrclose">✕</button>
@@ -115,7 +115,8 @@
 <div id="benvenuto" hidden>
   <div class="box">
     <div class="pick-title">👋 Benvenuto</div>
-    <p style="font-size:14px;line-height:1.5;margin:6px 0">Il tuo coach ti manda un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai gli allenamenti con i video, compili ciò che fai davvero e gli rimandi il risultato con un tocco.</p>
+    <p style="font-size:14px;line-height:1.5;margin:6px 0">Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> — dal tuo coach, o da te se ti alleni in autonomia — e qui le <b>annoti in palestra</b>.</p>
+    <p style="font-size:14px;line-height:1.5;margin:6px 0">Dal TMS arriva un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai gli allenamenti con i video e la dieta, annoti ciò che fai davvero e rimandi il risultato al TMS con un tocco.</p>
     <label class="btn-big" style="cursor:pointer">📂 Carica la scheda<input id="file-scheda" type="file" accept="application/json,.json" style="display:none"></label>
   </div>
   <div class="privacy">🔒 Tutto resta <b>sul tuo telefono</b>: questa app non invia niente a nessun server. Funziona anche offline.</div>
@@ -171,7 +172,7 @@
    (tipo 'tms-rientro', identico al formato storico: l'import nel TMS non cambia).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='1.2';
+const CVER='1.3';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -219,7 +220,7 @@ function avvia(){
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
-  $('sub').textContent='Ciao '+(((SCHEDA.profilo||{}).nome)||'')+'! Qui trovi la tua scheda e la tua alimentazione, dal tuo coach.';
+  $('sub').textContent='Ciao '+(((SCHEDA.profilo||{}).nome)||'')+'! Il tuo taccuino: scheda e alimentazione dal TMS, da annotare in palestra.';
   $('scheda-info').innerHTML='📋 Scheda del <b>'+esc((SCHEDA.profilo||{}).nome||'')+'</b> · esportata il <b>'+esc(SCHEDA.esportata||'?')+'</b>'+(SCHEDA.app?' · TMS v'+esc(SCHEDA.app):'');
   /* menu: sottotitoli delle due macro-sezioni */
   $('meta-scheda').textContent=GIORNI.length+' giorn'+(GIORNI.length===1?'o':'i')+' · '+SCHEDA.righe.length+' eserciz'+(SCHEDA.righe.length===1?'io':'i');

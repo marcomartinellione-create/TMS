@@ -2,11 +2,13 @@
 
 # Training Monitor System (TMS)
 
-App desktop Windows per la gestione completa di **allenamento e nutrizione**: scheda
+Sistema completo per la gestione di **allenamento e nutrizione**, in **due app che
+lavorano insieme**: il **TMS desktop** (Windows), dove si crea e si analizza — scheda
 settimanale/mensile, storico con carichi e RPE, progressi (1RM stimato, Training Load,
 ACWR, monotonia), misure corporee, piani alimentari su banca dati USAV (~900 alimenti),
-catalogo di 883 esercizi con video dimostrativi, report PDF A4 e report digitale per
-mobile. Tema pergamena/ember, modalità notte. *By Wander.*
+catalogo di 883 esercizi con video dimostrativi, report PDF A4 — e **TMS Scheda**
+(web-app per smartphone), il taccuino digitale con cui si annota l'allenamento in
+palestra. Tema pergamena/ember, modalità notte. *By Wander.*
 
 [![CI](https://github.com/marcomartinellione-create/TMS/actions/workflows/ci.yml/badge.svg)](https://github.com/marcomartinellione-create/TMS/actions/workflows/ci.yml)
 
@@ -19,6 +21,32 @@ mobile. Tema pergamena/ember, modalità notte. *By Wander.*
 > (l'assistente AI di Anthropic, tramite Claude Code), sotto la mia guida e secondo le mie
 > richieste. È software **gratuito e aperto**, offerto «così com'è» e senza garanzie: lo
 > condivido nello spirito di chi mette a disposizione uno strumento che usa in prima persona.
+
+## Le due app: principale e taccuino
+
+Il TMS è pensato come **un'app principale e una derivata**, con un flusso a cerchio:
+sul PC si **progetta** (scheda e dieta), in palestra si **annota** (col telefono),
+e i dati **tornano al PC** che li trasforma in storico, grafici e decisioni.
+
+| | 🖥 **TMS** (desktop, Windows) | 📱 **TMS Scheda** ([web-app](https://marcomartinellione-create.github.io/TMS/app/), smartphone) |
+|---|---|---|
+| Ruolo | **App principale** — il centro di comando | **App derivata** — il taccuino digitale da palestra |
+| Cosa fa | Crea la scheda e il piano alimentare; analizza storico, grafici (1RM/TL/ACWR), misure, foto, report | Mostra scheda (con video) e dieta; **annota sul momento** ciò che fai davvero: serie, peso, RIR, note, fatica |
+| Quando si usa | A casa: programmazione e analisi | **Durante l'allenamento** |
+| Installazione | Installer Windows | Dal browser: «Aggiungi alla schermata Home» — gratis, offline, si aggiorna da sola |
+
+Questa divisione permette **due modi d'uso**:
+
+- **Coach + atleta** — il coach ha il TMS desktop completo (un profilo per ogni cliente)
+  e programma/analizza; l'atleta ha **solo TMS Scheda** sul telefono: riceve il file
+  della scheda in chat, annota in palestra, rimanda il rientro. Non deve installare
+  il TMS né avere un PC.
+- **Atleta autonomo** — la stessa persona usa **entrambi gli strumenti**: programma
+  e analizza sul PC, annota in palestra col telefono, reimporta su di sé. Il telefono
+  sostituisce il taccuino cartaceo.
+
+I file (scheda e rientro) viaggiano via chat/email: **nessun server, nessun cloud** —
+i dati vivono solo nei dispositivi di chi li usa.
 
 ## Caratteristiche
 

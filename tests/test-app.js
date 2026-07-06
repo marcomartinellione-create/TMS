@@ -165,7 +165,7 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   /* v1.0.76: guida per AI — testo incorporato, bottone nel tab Guida, download .md versionato */
   const gai = w.eval('guidaAITesto()');
   ok(gai.startsWith('# Training Monitor System (TMS) — documentazione per assistenti AI') && gai.includes('Versione app: ' + VERSIONE) && gai.length > 8000, 'guida AI: testo completo con la versione corrente (' + gai.length + ' caratteri)');
-  ok(gai.includes('Istruzioni per te, assistente AI') && gai.includes('Bug noti e limitazioni') && gai.includes('Scambio scheda coach') && gai.includes('Formule e concetti'), 'guida AI: sezioni chiave presenti');
+  ok(gai.includes('Istruzioni per te, assistente AI') && gai.includes('Bug noti e limitazioni') && gai.includes('Le due app: TMS (principale) e TMS Scheda (taccuino)') && gai.includes('taccuino digitale da palestra') && gai.includes('Formule e concetti'), 'guida AI: sezioni chiave presenti (incl. concetto principale/taccuino)');
   w.eval('showTab("guida")');
   const gbtn = d.getElementById('g-ai');
   ok(gbtn !== null && gbtn.textContent.includes('Scarica documentazione per AI'), 'bottone "Scarica documentazione per AI" accanto a Rapida/Completa');

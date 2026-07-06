@@ -4,6 +4,14 @@
 
 ---
 
+### 2026-07-06 — TMS v1.0.87: la logica «app principale + taccuino» spiegata in guida, README, sito e app del telefono
+
+**Tipo**: documentazione/comunicazione (richiesta esplicita di Marco: rendere chiaro il rapporto tra le due app)
+**File coinvolti**: README.md (nuova sezione «Le due app» + intro) · docs/index.html (sezione «Due app, un unico flusso» + riquadro hero) · src/app/13a-guida.js (rapida: sezione «Le due app»; completa: §10 riscritta col concetto e i due modi d'uso) · src/app/13c-guida-ai.js + docs/guida-ai.md (§8 col concetto chiave) · docs/app/index.html (benvenuto/sottotitoli «taccuino digitale», CVER 1.3) + sw.js (cache v4) · package.json ×2
+**Descrizione**: il TMS desktop è l'**app principale** (centro di comando: si CREA scheda e dieta, si ANALIZZA storico/grafici/report); «TMS Scheda» per smartphone è la **derivata**: un **taccuino digitale da palestra** che riceve scheda e dieta, le mostra durante l'allenamento e raccoglie le annotazioni sul momento, per poi riconsegnarle al TMS (il PC progetta → il telefono annota → i dati tornano al PC). Due modi d'uso, ora esplicitati ovunque: ① **coach + atleta** (coach col TMS completo, atleta solo col taccuino); ② **atleta autonomo** (usa entrambi gli strumenti su di sé — scenario prima mai menzionato nelle guide). Nessuna modifica funzionale al codice dell'app.
+**Test**: `npm test` **268/268** (le verifiche esistenti su guida rapida/completa e app cliente continuano a passare col nuovo testo). Verifica visiva di sito e PWA in anteprima. Build md5 identici, `npm run verifica` OK.
+**Approvato da**: Marco (concetto confermato + comando «esegui tutte le modifiche e pubblica»)
+
 ### 2026-07-06 — TMS v1.0.86: alimentazione nell'export scheda + rinnovo dell'app cliente (menu 2 sezioni, icona nera, RIR vuoto, pannello QR)
 
 **Tipo**: export dieta (desktop) + estensione dell'app cliente PWA (richieste esplicite di Marco del 2026-07-05/06)

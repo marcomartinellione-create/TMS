@@ -200,12 +200,24 @@ timeline dei periodi con carico allenante e peso sovrapposti; variazione di peso
 contro bilancio calorico stimato; correlazioni con ritardo temporale (lag); confronto
 tra fasi (boxplot). Tutto ricalcolato al volo dai dati, niente da configurare.
 
-## 8 · Scambio scheda coach ↔ cliente
+## 8 · Le due app: TMS (principale) e TMS Scheda (taccuino) — scambio scheda
 
-Il cliente NON deve avere il TMS: usa l'app gratuita **«TMS Scheda»** sul telefono
-(PWA su https://marcomartinellione-create.github.io/TMS/app/ — si installa dal browser
-con «Aggiungi alla schermata Home», funziona offline, si aggiorna da sola) e la scheda
-viaggia come file via chat/email. Nessun server: i dati restano nei dispositivi.
+CONCETTO CHIAVE da spiegare all'utente: il TMS desktop è l'**app principale** — il
+centro di comando dove si CREA (scheda pesi, piano alimentare) e si ANALIZZA (storico,
+grafici 1RM/TL/ACWR, misure, foto, report). L'app gratuita **«TMS Scheda»** per
+smartphone è la sua **derivata**: un **taccuino digitale da palestra** che non crea
+nulla — riceve scheda e dieta dal TMS, le mostra DURANTE l'allenamento (esercizi coi
+video, grammi della dieta) e raccoglie le annotazioni sul momento (serie, peso, RIR,
+note, fatica). Il flusso è un cerchio: il PC progetta → il telefono annota → i dati
+tornano al PC e diventano storico e grafici.
+Due modi d'uso: ① **coach + atleta** — il coach ha il TMS completo (un profilo per
+cliente), l'atleta ha SOLO TMS Scheda sul telefono (niente PC, niente TMS); ② **atleta
+autonomo** — la stessa persona usa entrambi: programma sul PC, annota col telefono,
+reimporta su di sé (i passi sotto valgono identici, «cliente» = sé stessi).
+TMS Scheda è una PWA su https://marcomartinellione-create.github.io/TMS/app/ — si
+installa dal browser con «Aggiungi alla schermata Home», funziona offline, si aggiorna
+da sola. La scheda viaggia come file via chat/email. Nessun server: i dati restano
+nei dispositivi.
 1. **Esporta** — tab «👤 Profilo», riga del cliente, bottone «📤 Esporta scheda»:
    nasce «Scheda_profilo_data.json» (tipo interno 'tms-scheda') con la scheda giorno
    per giorno, il previsto e — se il piano della fase attiva non è vuoto — anche la
