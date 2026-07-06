@@ -470,6 +470,12 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     const sd = sub.window.document;
     ok(sd.getElementById('benvenuto').hidden === true && sd.getElementById('menu').hidden === false && sd.getElementById('home').hidden === true, 'app cliente: scheda memorizzata → parte dal MENU (Scheda + Alimentazione)');
     ok(sd.getElementById('vai-scheda') !== null && sd.getElementById('vai-alim') !== null, 'app cliente: due macro-sezioni nel menu');
+    /* pulsante QR in alto a destra + pannello «By Wander» (Instagram/YouTube/GitHub), come nel desktop */
+    ok(sd.getElementById('qr-btn') !== null && sd.getElementById('qrov') !== null, 'app cliente: pulsante QR in alto a destra + pannello');
+    sd.getElementById('qr-btn').click();
+    ok(sd.getElementById('qrov').style.display === 'flex' && sd.querySelectorAll('#qrov .qr-item').length === 3 && /instagram\.com/.test(sd.getElementById('qrov').innerHTML) && /youtube\.com/.test(sd.getElementById('qrov').innerHTML) && /github\.com/.test(sd.getElementById('qrov').innerHTML), 'app cliente: pannello QR coi tre riquadri (Instagram, YouTube, GitHub)');
+    sd.getElementById('qrclose').click();
+    ok(sd.getElementById('qrov').style.display === 'none', 'app cliente: il pannello QR si chiude');
     /* alimentazione: card attiva, pagina con pasti e totale */
     ok(sd.getElementById('vai-alim').disabled === false && sd.getElementById('meta-alim').textContent.includes('kcal/giorno'), 'app cliente: card Alimentazione attiva col riassunto kcal');
     sd.getElementById('vai-alim').click();

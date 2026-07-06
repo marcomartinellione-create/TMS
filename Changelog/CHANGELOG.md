@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-07-06 — TMS v1.0.86: alimentazione nell'export scheda + rinnovo dell'app cliente (menu 2 sezioni, icona nera, RIR vuoto, pannello QR)
+
+**Tipo**: export dieta (desktop) + estensione dell'app cliente PWA (richieste esplicite di Marco del 2026-07-05/06)
+**File coinvolti (desktop/installer)**: src/app/15-scambio.js (`costruisciDietaJSON`, campo `dieta` nell'export) · src/app/01-costanti.js (bump) · docs/guida-ai.md + guide · package.json ×2 · tests/test-app.js. **Solo PWA (docs/app/, GitHub Pages, non nell'installer)**: index.html (menu 2 sezioni, pagina Alimentazione, RIR vuoto, back-btn evidenti, pulsante+pannello QR), sw.js (cache v3), icon-192/512 (nere), qr-ig/yt/gh.png · tools/genera-icone-app.js (icona nera)
+**Descrizione**:
+- **Alimentazione nell'export (desktop)**: «📤 Esporta scheda» include ora il campo `dieta` — il piano della **fase attiva** con kcal/macro **precalcolati** per riga (il cliente non ha la banca USAV) e totale giornaliero. Unica modifica del TMS desktop in questa release.
+- **App cliente «TMS Scheda» (PWA, live su Pages)**: si apre su un **menu con due macro-sezioni** — «🏋 Scheda allenamento» e «🍖 Alimentazione» (piano in sola lettura: pasti coi grammi in evidenza, kcal per riga/pasto; card disattivata se il file non contiene la dieta). Inoltre: **icona tutta nera** col simbolo ✦ (niente cornice pergamena); campo **RIR sempre vuoto** (non eredita il valore del coach: si inserisce dopo l'allenamento, il previsto resta indicato; rir null nel rientro se non toccato); bottoni **«‹ Torna ai giorni / al menu» ben visibili**; **pulsante QR in alto a destra** che apre il pannello «By Wander» coi tre QR (Instagram, YouTube, GitHub), come nel TMS desktop.
+- L'app desktop NON è stata modificata per i QR (richiesta di Marco): il pannello QR sta solo nell'app del cliente.
+**Test**: `npm test` **266/266** — dieta nell'export (fase attiva, 15 righe/2830 kcal dal template), menu a due sezioni, pagina Alimentazione, RIR non precompilato e null nel rientro, bottoni di ritorno. Verifica visiva della PWA in anteprima locale (menu, alimentazione, pagina giorno, pannello QR) + icona controllata a vista. Build md5 identici, `npm run verifica` OK.
+**Approvato da**: Marco (richieste esplicite + comando «poi pubblica»)
+
 ### 2026-07-04 — TMS v1.0.85: «TMS Scheda», l'app del cliente (PWA) — l'export scheda diventa un file JSON
 
 **Tipo**: nuova app companion (richiesta esplicita di Marco) + cambio del formato di export scheda

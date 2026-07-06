@@ -78,11 +78,38 @@
  .install{background:#efe3c8;border:1px dashed #b99a5e;border-radius:9px;padding:9px 12px;font-size:12.5px;color:#5b4a30;line-height:1.5;margin:10px 0}
  footer{color:#9a8a6a;font-size:11px;text-align:center;margin-top:22px}
  .privacy{color:#7a6648;font-size:11.5px;line-height:1.45;text-align:center;margin-top:6px}
+ /* pulsante QR in alto a destra + pannello «By Wander» (come nel TMS desktop) */
+ .apphead{display:flex;align-items:flex-start;gap:10px}
+ .apphead h1{flex:1;margin:0}
+ #qr-btn{flex:0 0 auto;width:42px;height:42px;padding:3px;border:1px solid #cdb889;border-radius:9px;background:#fff;cursor:pointer}
+ #qr-btn img{width:100%;height:100%;display:block;image-rendering:pixelated}
+ #qrov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
+ .qr-panel{background:#f4ead8;border:1px solid #cdb889;border-radius:12px;padding:16px 16px 12px;max-width:520px;width:100%;max-height:88vh;overflow:auto;position:relative}
+ .qr-panel h3{margin:2px 0 12px;color:#9a5b1f;text-align:center}
+ .qr-grid{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+ .qr-item{text-align:center;flex:0 1 auto}
+ .qr-item .qr-lab{font-size:11px;color:#7a6648;margin-bottom:5px}
+ .qr-item img{width:150px;height:150px;max-width:38vw;border-radius:10px;border:1px solid #cdb889;background:#fff}
+ .qr-item a{display:inline-block;margin-top:7px;background:#c89b3c;color:#2b1d10;text-decoration:none;font-weight:bold;font-size:13px;padding:6px 14px;border-radius:8px}
+ #qrclose{position:absolute;top:8px;right:12px;font-size:26px;color:#7a6648;background:none;border:0;cursor:pointer;line-height:1}
 </style>
 </head>
 <body>
-<h1>✦ TMS Scheda</h1>
+<div class="apphead">
+  <h1>✦ TMS Scheda</h1>
+  <button type="button" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><img src="qr-ig.png" alt="QR"></button>
+</div>
 <div class="sub" id="sub">La tua scheda di allenamento, dal tuo coach.</div>
+
+<div id="qrov"><div class="qr-panel">
+  <button type="button" id="qrclose">✕</button>
+  <h3>By Wander</h3>
+  <div class="qr-grid">
+    <div class="qr-item"><div class="qr-lab">Instagram</div><img src="qr-ig.png" alt="QR Instagram"><br><a href="https://instagram.com/marco_the_wander" target="_blank" rel="noopener">Apri ↗</a></div>
+    <div class="qr-item"><div class="qr-lab">Tutorial · YouTube</div><img src="qr-yt.png" alt="QR YouTube"><br><a href="https://www.youtube.com/@TrainingMonitorSystem" target="_blank" rel="noopener">Apri ↗</a></div>
+    <div class="qr-item"><div class="qr-lab">TMS · GitHub</div><img src="qr-gh.png" alt="QR GitHub"><br><a href="https://github.com/marcomartinellione-create/TMS" target="_blank" rel="noopener">Apri ↗</a></div>
+  </div>
+</div></div>
 
 <!-- ── schermata BENVENUTO: nessuna scheda caricata ── -->
 <div id="benvenuto" hidden>
@@ -144,7 +171,7 @@
    (tipo 'tms-rientro', identico al formato storico: l'import nel TMS non cambia).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='1.1';
+const CVER='1.2';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -312,6 +339,10 @@ function wire(){
   const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled) mostra('alim'); };
 }
 $('vclose').onclick=()=>{ const ov=$('vov'), v=ov.querySelector('video'); v.pause(); v.removeAttribute('src'); ov.style.display='none'; };
+/* pannello QR «By Wander» (Instagram / YouTube / GitHub), come nel TMS desktop */
+$('qr-btn').onclick=()=>{ $('qrov').style.display='flex'; };
+$('qrclose').onclick=()=>{ $('qrov').style.display='none'; };
+$('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; };
 $('invia').onclick=inviaRientro;
 [['file-scheda'],['file-scheda-2']].forEach(([id])=>{ const inp=$(id);
   inp.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) caricaFile(f); }; });

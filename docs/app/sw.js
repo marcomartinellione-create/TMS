@@ -3,8 +3,8 @@
    (e si aggiorna la copia in cache); offline si serve la copia in cache.
    Nessun dato dell'utente passa di qui: la cache contiene solo i file dell'app. */
 'use strict';
-const CACHE = 'tms-scheda-v2';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'tms-scheda-v3';
+const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './qr-ig.png', './qr-yt.png', './qr-gh.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
