@@ -13,7 +13,9 @@ per gestire allenamento coi pesi e nutrizione. Questo documento è la descrizion
 ufficiale e completa dell'app: basa le risposte su quanto scritto qui.
 
 - Rispondi **in italiano**, con passi concreti («apri il tab X, premi il bottone Y»).
-- L'interfaccia è SOLO in italiano; i nomi di tab e bottoni vanno citati come sono qui.
+- L'interfaccia è **bilingue IT/EN**: predefinita in italiano, con un interruttore IT/EN
+  in alto (accanto alla luna) che traduce tutta l'app, guide comprese. In questo documento
+  i nomi di tab e bottoni sono in italiano; se l'utente ha scelto l'inglese, cita l'equivalente.
 - Se la domanda non trova risposta in questo documento, dillo chiaramente e suggerisci
   la Guida interna dell'app (tab «📕 Guida», versioni Rapida e Completa) o una
   segnalazione su GitHub (https://github.com/marcomartinellione-create/TMS).
@@ -367,6 +369,6 @@ function scaricaGuidaAI(){
     a.href=u; a.download='TMS-guida-AI-v'+APP_VERSION+'.md';
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ try{URL.revokeObjectURL(u);}catch(e){} a.remove(); },800);
-    alert('✔ Scaricato '+a.download+'.\nCaricalo nella chat di un assistente AI (ChatGPT, Claude, Gemini…) e fagli le tue domande sul TMS.');
-  }catch(e){ alert('Errore nel download: '+e.message); logErrore('guidaAI', e); }
+    alert(t('✔ Scaricato')+' '+a.download+'.\n'+t('Caricalo nella chat di un assistente AI (ChatGPT, Claude, Gemini…) e fagli le tue domande sul TMS.'));
+  }catch(e){ alert(t('Errore nel download:')+' '+e.message); logErrore('guidaAI', e); }
 }

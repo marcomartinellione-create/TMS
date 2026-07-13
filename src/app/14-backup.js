@@ -26,7 +26,7 @@ async function backupData(){
     a.download='TMS-backup-'+(pslug(profNome())||activeProfile||'profilo')+'-'+new Date().toISOString().slice(0,10)+'.json';  /* nome del profilo attivo nel file: si capisce di chi è (il contenuto resta TUTTI i profili) */
     a.href=url;
     document.body.appendChild(a); a.click(); setTimeout(()=>{ try{URL.revokeObjectURL(url);}catch(e){} a.remove(); },600);
-  }catch(e){ alert('Errore backup: '+e.message); logErrore('backupData', e); }
+  }catch(e){ alert(t('Errore backup:')+' '+e.message); logErrore('backupData', e); }
 }
 
 /* ── backup AUTOMATICO (P-backup, v1.0.72): uno snapshot a settimana in
@@ -65,26 +65,26 @@ async function ripristinaBackupAutomatico(nomeFile){
     const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:false});
     const fh=await dir.getFileHandle(String(nomeFile),{create:false});
     await restoreData(await fh.getFile());
-  }catch(e){ alert('Backup automatico non leggibile: '+e.message); logErrore('ripristinoAuto', e); }
+  }catch(e){ alert(t('Backup automatico non leggibile:')+' '+e.message); logErrore('ripristinoAuto', e); }
 }
 
 /* ── aggiornamenti con l'interfaccia dell'app (v1.0.73): il wrapper manda gli eventi
       dell'updater via window.tmsUpdate, qui si mostrano i modali in stile pergamena ── */
 function modalAggiornamento(d){
   const nota=String((d&&d.note)||'').trim();
-  modal(`<h3>${d&&d.maggiore?'⚠ Aggiornamento MAGGIORE':'✦ Aggiornamento disponibile'}</h3>
-   <div class="callout ${d&&d.maggiore?'callout--ember':'callout--info'}"><div>È pronta la versione <b>v${esc(d.versione)}</b> <span class="muted">(hai la v${esc(d.attuale)})</span>. Confermando, il download prosegue in background: vedrai la <b>percentuale nel titolo</b> della finestra e sulla taskbar.</div></div>
-   ${nota?`<div class="sec">▌ Novità di questa versione</div>
+  modal(`<h3>${d&&d.maggiore?t('⚠ Aggiornamento MAGGIORE'):t('✦ Aggiornamento disponibile')}</h3>
+   <div class="callout ${d&&d.maggiore?'callout--ember':'callout--info'}"><div>${t('È pronta la versione')} <b>v${esc(d.versione)}</b> <span class="muted">(${t('hai la v')}${esc(d.attuale)})</span>. ${t('Confermando, il download prosegue in background: vedrai la <b>percentuale nel titolo</b> della finestra e sulla taskbar.')}</div></div>
+   ${nota?`<div class="sec">▌ ${t('Novità di questa versione')}</div>
    <div style="max-height:240px;overflow:auto;white-space:pre-wrap;font-size:12.5px;line-height:1.55;color:var(--ink-2);border:1px solid var(--border);border-radius:7px;padding:10px 12px;background:var(--paper-2)">${esc(nota)}</div>`:''}
-   <div class="modal__actions"><button class="btn" id="upd-dopo">Più tardi</button><button class="btn btn--ember" id="upd-vai">⭳ Scarica e installa</button></div>`);
+   <div class="modal__actions"><button class="btn" id="upd-dopo">${t('Più tardi')}</button><button class="btn btn--ember" id="upd-vai">${t('⭳ Scarica e installa')}</button></div>`);
   { const b=document.getElementById('upd-vai'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('scarica'); }catch(e){} }; }
   { const b=document.getElementById('upd-dopo'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('dopo'); }catch(e){} }; }
   { const m=document.getElementById('modal'); if(m) m.style.maxWidth='620px'; }
 }
 function modalRiavvio(d){
-  modal(`<h3>✦ Aggiornamento pronto</h3>
-   <div class="callout callout--info"><div>La versione <b>v${esc(d.versione)}</b> è scaricata e pronta. Vuoi <b>riavviare ora</b> per installarla? Altrimenti si installa da sola alla prossima chiusura.</div></div>
-   <div class="modal__actions"><button class="btn" id="upd-rdopo">Più tardi</button><button class="btn btn--ember" id="upd-riavvia">↻ Riavvia ora</button></div>`);
+  modal(`<h3>${t('✦ Aggiornamento pronto')}</h3>
+   <div class="callout callout--info"><div>${t('La versione')} <b>v${esc(d.versione)}</b> ${t('è scaricata e pronta. Vuoi <b>riavviare ora</b> per installarla? Altrimenti si installa da sola alla prossima chiusura.')}</div></div>
+   <div class="modal__actions"><button class="btn" id="upd-rdopo">${t('Più tardi')}</button><button class="btn btn--ember" id="upd-riavvia">${t('↻ Riavvia ora')}</button></div>`);
   { const b=document.getElementById('upd-riavvia'); if(b) b.onclick=()=>{ try{ window.tmsUpdate.rispondi('riavvia'); }catch(e){} }; }
   { const b=document.getElementById('upd-rdopo'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('dopo'); }catch(e){} }; }
 }
@@ -92,18 +92,18 @@ function modalRiavvio(d){
 /* log errori interni: modale di consultazione (5 click sulla versione nel footer) */
 function mostraLogErrori(){
   const righe=LOG_ERRORI.slice().reverse().map(v=>v.t+'  ['+v.dove+']  '+v.msg).join('\n');
-  modal(`<h3>🩺 Log errori interni <span class="pill">${LOG_ERRORI.length} voci</span></h3>
-   <div class="muted" style="font-size:12px;margin-bottom:6px">Diagnostica per l'assistenza: se qualcosa non funziona, copia questo testo e invialo insieme alla segnalazione.</div>
-   <textarea readonly style="width:100%;min-height:260px;font-family:var(--font-mono);font-size:11px">${esc(righe)||'Nessun errore registrato in questa sessione. 👍'}</textarea>
-   <div class="modal__actions"><button class="btn" id="log-copia">📋 Copia</button><button class="btn" onclick="closeModal()">Chiudi</button></div>`);
+  modal(`<h3>🩺 ${t('Log errori interni')} <span class="pill">${LOG_ERRORI.length} ${t('voci')}</span></h3>
+   <div class="muted" style="font-size:12px;margin-bottom:6px">${t('Diagnostica per l\'assistenza: se qualcosa non funziona, copia questo testo e invialo insieme alla segnalazione.')}</div>
+   <textarea readonly style="width:100%;min-height:260px;font-family:var(--font-mono);font-size:11px">${esc(righe)||t('Nessun errore registrato in questa sessione. 👍')}</textarea>
+   <div class="modal__actions"><button class="btn" id="log-copia">📋 ${t('Copia')}</button><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const c=document.getElementById('log-copia');
-  if(c) c.onclick=()=>{ try{ navigator.clipboard.writeText(righe); c.textContent='✔ Copiato'; }catch(e){} };
+  if(c) c.onclick=()=>{ try{ navigator.clipboard.writeText(righe); c.textContent=t('✔ Copiato'); }catch(e){} };
 }
 async function restoreData(file){
-  let snap; try{ snap=JSON.parse(await file.text()); }catch(e){ alert('File non leggibile.'); logErrore('ripristino', e); return; }
-  if(!snap||snap._tms!=='backup'||!snap.profiles){ alert('Questo non è un backup TMS valido.'); return; }
+  let snap; try{ snap=JSON.parse(await file.text()); }catch(e){ alert(t('File non leggibile.')); logErrore('ripristino', e); return; }
+  if(!snap||snap._tms!=='backup'||!snap.profiles){ alert(t('Questo non è un backup TMS valido.')); return; }
   const np=Object.keys(snap.profiles).length;
-  if(!confirm('Ripristinare il backup del '+String(snap.date||'').slice(0,10)+'?\nSostituirà i dati attuali ('+np+' profili).')) return;
+  if(!confirm(t('Ripristinare il backup del')+' '+String(snap.date||'').slice(0,10)+'?\n'+t('Sostituirà i dati attuali (')+np+' '+t('profili).'))) return;
   profili=(snap.profili&&snap.profili.length)?snap.profili:Object.keys(snap.profiles).map(s=>({slug:s,nome:s,creato:''}));
   if(snap.esercizi&&snap.esercizi.length) DOC.esercizi=snap.esercizi; rebuildEs();
   activeProfile=(profili[0]&&profili[0].slug)||'wander';
@@ -123,6 +123,6 @@ async function restoreData(file){
     const data={}; Object.keys(snap.profiles).forEach(s=>data[s]=snap.profiles[s]);
     try{ localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,profili:profili,active:activeProfile,data:data})); }catch(e){}
   }
-  saveCache(); alert('✔ Backup ripristinato ('+np+' profili).'); renderAll(); showTab('profilo');
+  saveCache(); alert(t('✔ Backup ripristinato (')+np+' '+t('profili).')); renderAll(); showTab('profilo');
 }
 

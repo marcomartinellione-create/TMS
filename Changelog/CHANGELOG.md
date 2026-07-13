@@ -4,6 +4,14 @@
 
 ---
 
+### 2026-07-13 — TMS v1.1.0: app bilingue IT/EN (desktop + PWA)
+
+**Tipo**: feature (richiesta esplicita di Marco: tradurre entrambe le app in inglese, bilingue con selettore)
+**File coinvolti**: nuovo strato i18n `src/app/00-i18n.js` (funzione `t()`, dizionario EN, `translateStatic()`, `exName()`) + `src/app/00b-esercizi-en.js` (mappa nome-IT→nome-EN esercizi, generata) · `tools/esercizi-en.json` + `tools/genera-esercizi-en.js` (fonte free-exercise-db) · `src/pagina/03-corpo.html` (markup `data-i18n` + pulsante lingua) · `src/manifest.json` · **tutti** i tab e i moduli in `src/app/*` (03→17) avvolti con `t()`/`exName()` · guide EN in `13a-guida.js` (`guidaRapidaEN`/`guidaCompletaEN`) · nota bilingue in `13c-guida-ai.js` · **PWA** `docs/app/index.html` (mini-i18n `tt()`/`TT`, `LANGP` con auto-rilevamento lingua telefono + toggle, CVER 1.4) e `sw.js` (cache v5) · `tests/test-app.js` (scenari IT/EN) · `01-costanti.js` + package.json ×2
+**Descrizione**: l'intera app parla ora **italiano e inglese**, con **italiano predefinito** (i clienti italiani non vedono differenze) e un **interruttore IT/EN** nella barra in alto. Tradotti tutti i 12 tab, i messaggi (alert/confirm/tooltip), i componenti condivisi e **entrambe le guide**. I **nomi degli esercizi in inglese** provengono dalla banca dati originale free-exercise-db (mappa per nome, 868 voci; i CUSTOM restano in italiano). Giorni, gruppi muscolari, fasi, sport e nomi di alimenti/esercizi restano **dati in italiano nei file**: si traducono solo a schermo (nessun dato salvato viene toccato). L'**app del telefono «TMS Scheda»** è anch'essa bilingue e **riconosce da sola la lingua del cellulare**. Il *contenuto* del documento «documentazione per AI» resta in italiano (doc per assistenti AI); tradotti i suoi messaggi UI.
+**Test**: `npm test` **288/288** (nuove verifiche: DOM in inglese, nomi esercizi via ESEN, PWA IT pinnata + EN auto-rilevata). `npm run verifica` OK (artefatti = sorgente). Verifica visiva in anteprima di disclaimer, tab Pesi e PWA.
+**Approvato da**: Marco (traduzione e rilascio v1.1.0 minor su richiesta esplicita).
+
 ### 2026-07-06 — TMS v1.0.87: la logica «app principale + taccuino» spiegata in guida, README, sito e app del telefono
 
 **Tipo**: documentazione/comunicazione (richiesta esplicita di Marco: rendere chiaro il rapporto tra le due app)

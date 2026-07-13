@@ -14,6 +14,8 @@
     "dati/02-alimenti-usav.js",
     "dati/03-seed.js",
     "dati/04-riferimenti.js",
+    "app/00-i18n.js",
+    "app/00b-esercizi-en.js",
     "app/01-costanti.js",
     "app/02-calcoli.js",
     "app/03-persistenza.js",

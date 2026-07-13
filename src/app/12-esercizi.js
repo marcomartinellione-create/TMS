@@ -43,69 +43,69 @@ function exEdit(name){
   name = name? String(name).trim() : '';
   const ex = name? (DOC.esercizi.find(e=>String(e.nome).trim()===name)||{}) : {};
   const isNew=!name;
-  const opts=GRUPPI.map(g=>`<option${(ex.macro||ex.gruppo)===g?' selected':''}>${g}</option>`).join('')
+  const opts=GRUPPI.map(g=>`<option value="${g}"${(ex.macro||ex.gruppo)===g?' selected':''}>${t(g)}</option>`).join('')
     + ((ex.macro&&!GRUPPI.includes(ex.macro))?`<option selected>${esc(ex.macro)}</option>`:'');
-  modal(`<h3>${isNew?'Nuovo esercizio':'Modifica esercizio'}</h3>
-    <div class="field"><label>Nome</label><input id="ex-nome" value="${esc(ex.nome||'')}"></div>
+  modal(`<h3>${isNew?t('Nuovo esercizio'):t('Modifica esercizio')}</h3>
+    <div class="field"><label>${t('Nome')}</label><input id="ex-nome" value="${esc(ex.nome||'')}"></div>
     <div class="row">
-      <div class="field"><label>Gruppo muscolare</label><select id="ex-macro">${opts}</select></div>
-      <div class="field"><label>Fattore TL</label><input id="ex-fatt" type="number" step="0.05" value="${ex.fattore??1}"></div>
+      <div class="field"><label>${t('Gruppo muscolare')}</label><select id="ex-macro">${opts}</select></div>
+      <div class="field"><label>${t('Fattore TL')}</label><input id="ex-fatt" type="number" step="0.05" value="${ex.fattore??1}"></div>
     </div>
-    <div class="field"><label>Target muscolare</label><input id="ex-target" value="${esc(ex.target||'')}"></div>
-    <div class="field"><label>Tipo</label><input id="ex-tipo" value="${esc(ex.tipo||'')}"></div>
-    <div class="field"><label>Sottocategoria <span class="muted" style="text-transform:none;font-family:var(--font-body)">— raggruppa nel catalogo (es. Panca, Affondi); vuota = automatica dal nome${isNew?'':(': «'+esc(sottoOf(Object.assign({},ex,{sotto:''})))+'»')}</span></label><input id="ex-sotto" value="${esc(ex.sotto||'')}" placeholder="automatica"></div>
-    <div class="field"><label>Video <span class="muted" style="text-transform:none;font-family:var(--font-body)">— nome file in <span class="mono">TMS/database/video/</span> (es. squat.mp4)</span></label><input id="ex-video" value="${esc(ex.video||'')}" placeholder="es. squat.mp4"></div>
-    ${isNew?'':`<div class="field"><label>Video personale <span class="muted" style="text-transform:none;font-family:var(--font-body)">— un tuo file al posto del predefinito (in <span class="mono">TMS_Dati/video/</span>); si attiva col toggle "Video personali" del tab Esercizi</span></label>
+    <div class="field"><label>${t('Target muscolare')}</label><input id="ex-target" value="${esc(ex.target||'')}"></div>
+    <div class="field"><label>${t('Tipo')}</label><input id="ex-tipo" value="${esc(ex.tipo||'')}"></div>
+    <div class="field"><label>${t('Sottocategoria')} <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— raggruppa nel catalogo (es. Panca, Affondi); vuota = automatica dal nome')}${isNew?'':(': «'+esc(t(sottoOf(Object.assign({},ex,{sotto:''}))))+'»')}</span></label><input id="ex-sotto" value="${esc(ex.sotto||'')}" placeholder="${t('automatica')}"></div>
+    <div class="field"><label>Video <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— nome file in')} <span class="mono">TMS/database/video/</span> ${t('(es. squat.mp4)')}</span></label><input id="ex-video" value="${esc(ex.video||'')}" placeholder="${t('es. squat.mp4')}"></div>
+    ${isNew?'':`<div class="field"><label>${t('Video personale')} <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— un tuo file al posto del predefinito (in')} <span class="mono">TMS_Dati/video/</span>${t('); si attiva col toggle "Video personali" del tab Esercizi')}</span></label>
       <div class="bar" style="margin:0;align-items:center">
         <span class="pill" id="exv-stato">…</span>
-        <label class="btn btn--sm" style="cursor:pointer">⭱ Carica video personale…<input type="file" id="exv-file" accept="video/mp4,video/webm,video/*" style="display:none"></label>
-        <button class="btn btn--sm btn--danger" id="exv-del" style="display:none">✕ Rimuovi personale</button>
+        <label class="btn btn--sm" style="cursor:pointer">${t('⭱ Carica video personale…')}<input type="file" id="exv-file" accept="video/mp4,video/webm,video/*" style="display:none"></label>
+        <button class="btn btn--sm btn--danger" id="exv-del" style="display:none">${t('✕ Rimuovi personale')}</button>
       </div></div>`}
     <div class="modal__actions">
-      ${isNew?'':'<button class="btn btn--danger" id="ex-del" style="margin-right:auto">Elimina</button>'}
-      <button class="btn" onclick="closeModal()">Annulla</button>
-      <button class="btn btn--ember" id="ex-ok">Salva</button></div>`);
+      ${isNew?'':`<button class="btn btn--danger" id="ex-del" style="margin-right:auto">${t('Elimina')}</button>`}
+      <button class="btn" onclick="closeModal()">${t('Annulla')}</button>
+      <button class="btn btn--ember" id="ex-ok">${t('Salva')}</button></div>`);
   document.getElementById('ex-ok').onclick=()=>{
     const nome=document.getElementById('ex-nome').value.trim();
-    if(!nome){alert('Il nome è obbligatorio.');return;}
+    if(!nome){alert(t('Il nome è obbligatorio.'));return;}
     const macro=document.getElementById('ex-macro').value;
     const obj={nome:nome,macro:macro,gruppo:macro,target:document.getElementById('ex-target').value.trim(),
       tipo:document.getElementById('ex-tipo').value.trim(),fattore:+document.getElementById('ex-fatt').value||1,
       video:document.getElementById('ex-video').value.trim(),
       sotto:document.getElementById('ex-sotto').value.trim()};
-    if(isNew){ if(DOC.esercizi.some(e=>String(e.nome).trim()===nome)){alert('Esiste già un esercizio con questo nome.');return;} DOC.esercizi.push(obj); }
+    if(isNew){ if(DOC.esercizi.some(e=>String(e.nome).trim()===nome)){alert(t('Esiste già un esercizio con questo nome.'));return;} DOC.esercizi.push(obj); }
     else { const idx=DOC.esercizi.findIndex(e=>String(e.nome).trim()===name);
-      if(nome!==name && DOC.esercizi.some(e=>String(e.nome).trim()===nome)){alert('Nome già in uso.');return;}
+      if(nome!==name && DOC.esercizi.some(e=>String(e.nome).trim()===nome)){alert(t('Nome già in uso.'));return;}
       if(idx>=0) DOC.esercizi[idx]=obj; }
     rebuildEs(); persist('esercizi'); closeModal(); renderEsercizi();
   };
   const del=document.getElementById('ex-del');
-  if(del) del.onclick=()=>{ if(!confirm('Eliminare «'+name+'» dal catalogo?\nLo storico resta invariato.'))return;
+  if(del) del.onclick=()=>{ if(!confirm(t('Eliminare «')+exName(name)+t('» dal catalogo?\nLo storico resta invariato.')))return;
     DOC.esercizi=DOC.esercizi.filter(e=>String(e.nome).trim()!==name); rebuildEs(); persist('esercizi'); closeModal(); renderEsercizi(); };
   if(!isNew){
     const stato=document.getElementById('exv-stato'), fIn=document.getElementById('exv-file'), bDel=document.getElementById('exv-del');
     const nomeFile=()=>document.getElementById('ex-video').value.trim();
     const aggiorna=async()=>{ if(!stato) return; const f=nomeFile();
-      if(!f){ stato.textContent='imposta prima il campo Video'; if(bDel) bDel.style.display='none'; return; }
-      if(!dataDir){ stato.textContent='dati non connessi'; if(bDel) bDel.style.display='none'; return; }
+      if(!f){ stato.textContent=t('imposta prima il campo Video'); if(bDel) bDel.style.display='none'; return; }
+      if(!dataDir){ stato.textContent=t('dati non connessi'); if(bDel) bDel.style.display='none'; return; }
       let ce=false; try{ await videoCustomHandle(f,false); ce=true; }catch(e){}
-      stato.textContent= ce? 'personale presente' : 'personale assente';
+      stato.textContent= ce? t('personale presente') : t('personale assente');
       if(bDel) bDel.style.display= ce? '' : 'none'; };
     aggiorna();
     if(fIn) fIn.onchange=async()=>{
       const file=fIn.files&&fIn.files[0]; if(!file) return;
       const f=nomeFile();
-      if(!f){ alert('Imposta prima il campo Video (nome file, es. squat.mp4): il personale usa lo stesso nome.'); fIn.value=''; return; }
-      if(!dataDir){ alert('Connetti i dati prima di caricare un video.'); fIn.value=''; return; }
+      if(!f){ alert(t('Imposta prima il campo Video (nome file, es. squat.mp4): il personale usa lo stesso nome.')); fIn.value=''; return; }
+      if(!dataDir){ alert(t('Connetti i dati prima di caricare un video.')); fIn.value=''; return; }
       try{
         const fh=await videoCustomHandle(f,true);
         const wr=await fh.createWritable(); await wr.write(file); await wr.close();
-        if(!videoPersonaliOn() && confirm('Video personale salvato. Vuoi attivare ora i "Video personali"? (Si cambia anche dal tab Esercizi.)')) setVideoPersonali(true);
-      }catch(e){ alert('Errore nel salvataggio del video: '+e.message); logErrore('videoPersonale', e); }
+        if(!videoPersonaliOn() && confirm(t('Video personale salvato. Vuoi attivare ora i "Video personali"? (Si cambia anche dal tab Esercizi.)'))) setVideoPersonali(true);
+      }catch(e){ alert(t('Errore nel salvataggio del video:')+' '+e.message); logErrore('videoPersonale', e); }
       fIn.value=''; aggiorna(); };
     if(bDel) bDel.onclick=async()=>{
       const f=nomeFile(); if(!f) return;
-      if(!confirm('Rimuovere il tuo video personale per questo esercizio? (Il predefinito resta.)')) return;
+      if(!confirm(t('Rimuovere il tuo video personale per questo esercizio? (Il predefinito resta.)'))) return;
       try{ const vd=await videoCustomDir(false); await vd.removeEntry(String(f).replace(/^video\//,'')); }catch(e){}
       aggiorna(); };
   }
@@ -130,16 +130,16 @@ async function videoSorgente(file){
 let lastVideoUrl=null;
 async function playVideo(nome){
   const file=videoOf(nome); if(!file) return;
-  if(!dirHandle){ alert('Per vedere i video collega la cartella TMS (i video vanno in TMS/database/video/).'); return; }
+  if(!dirHandle){ alert(t('Per vedere i video collega la cartella TMS (i video vanno in TMS/database/video/).')); return; }
   let url=null, fonte='predefinito';
   try{
     const s=await videoSorgente(file); fonte=s.fonte;
     url=URL.createObjectURL(await s.fh.getFile());
-  }catch(e){ alert('Video non trovato: TMS/database/video/'+file); return; }
+  }catch(e){ alert(t('Video non trovato: TMS/database/video/')+file); return; }
   if(lastVideoUrl){ try{ URL.revokeObjectURL(lastVideoUrl); }catch(e){} } lastVideoUrl=url;
-  modal(`<h3 style="margin-bottom:8px">▶ ${esc(nome)}${fonte==='personale'?' <span class="pill">video personale</span>':''}</h3>`+
+  modal(`<h3 style="margin-bottom:8px">▶ ${esc(exName(nome))}${fonte==='personale'?` <span class="pill">${t('video personale')}</span>`:''}</h3>`+
     `<video src="${url}" controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:8px;background:#000"></video>`+
-    `<div class="modal__actions"><button class="btn" onclick="closeModal()">Chiudi</button></div>`);
+    `<div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='760px';
 }
 /* ricerca «a parole»: trova se TUTTE le parole digitate compaiono (in qualunque ordine)
@@ -163,17 +163,17 @@ function renderEsercizi(){
   /* conteggio esercizi per (gruppo, sottocategoria) */
   const conta={}; sorted.forEach(e=>{ const k=(e.macro||e.gruppo||'Altro')+'::'+sottoOf(e); conta[k]=(conta[k]||0)+1; });
   let body='',lastG=null,lastS=null;
-  sorted.forEach(e=>{ const g=e.macro||e.gruppo||'Altro'; if(g!==lastG){lastG=g; lastS=null; body+=`<tr class="day-sep"><td colspan="6">▌ ${esc(g)}</td></tr>`;}
+  sorted.forEach(e=>{ const g=e.macro||e.gruppo||'Altro'; if(g!==lastG){lastG=g; lastS=null; body+=`<tr class="day-sep"><td colspan="6">▌ ${esc(t(g))}</td></tr>`;}
     const s=sottoOf(e), key=g+'::'+s, aperta=!!exFilt||!!exSottoAperte[key];  /* la ricerca apre tutto */
-    if(s!==lastS){lastS=s; body+=`<tr data-sub="${esc(key)}" style="cursor:pointer" title="${aperta?'Chiudi':'Apri'} ${esc(s)}"><td colspan="6" class="l" style="background:var(--paper-2);color:var(--ink-3);font-size:11px;letter-spacing:.4px;text-transform:uppercase;padding:5px 12px;user-select:none">${aperta?'▾':'▸'} ${esc(s)} <span style="opacity:.65;text-transform:none;letter-spacing:0">(${conta[key]})</span></td></tr>`;}
+    if(s!==lastS){lastS=s; body+=`<tr data-sub="${esc(key)}" style="cursor:pointer" title="${aperta?t('Chiudi'):t('Apri')} ${esc(t(s))}"><td colspan="6" class="l" style="background:var(--paper-2);color:var(--ink-3);font-size:11px;letter-spacing:.4px;text-transform:uppercase;padding:5px 12px;user-select:none">${aperta?'▾':'▸'} ${esc(t(s))} <span style="opacity:.65;text-transform:none;letter-spacing:0">(${conta[key]})</span></td></tr>`;}
     if(!aperta) return;
-    body+=`<tr><td class="l">${esc(e.nome)}${videoOf(e.nome)?`<button class="vidbtn no-print" data-vid="${esc(e.nome)}" title="Guarda il video">▶</button>`:''}</td><td class="l">${esc(e.target||'')}</td><td>${esc(g)}</td><td class="l">${esc(e.tipo||'')}</td><td class="num cell-out">${nf(e.fattore,2)}</td>
-      <td class="no-print"><button class="btn btn--sm" data-edit="${esc(e.nome)}" title="modifica">✎</button></td></tr>`;});
+    body+=`<tr><td class="l">${esc(exName(e.nome))}${videoOf(e.nome)?`<button class="vidbtn no-print" data-vid="${esc(e.nome)}" title="${t('Guarda il video')}">▶</button>`:''}</td><td class="l">${esc(e.target||'')}</td><td>${esc(t(g))}</td><td class="l">${esc(e.tipo||'')}</td><td class="num cell-out">${nf(e.fattore,2)}</td>
+      <td class="no-print"><button class="btn btn--sm" data-edit="${esc(e.nome)}" title="${t('modifica')}">✎</button></td></tr>`;});
   document.getElementById('panel-esercizi').innerHTML=`
-   <div class="bar"><div class="field"><label>Cerca</label><input class="search" id="ex-s" value="${esc(exFilt)}" placeholder="nome, muscolo, gruppo…"></div>
-     <div class="spacer"></div><label class="pill no-print" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px" title="Se attivo, dove hai caricato un tuo video (TMS_Dati/video/) si usa quello al posto del predefinito; dove non c'è, resta il predefinito"><input type="checkbox" id="ex-vid-pers" style="width:auto;flex:0 0 auto"${videoPersonaliOn()?' checked':''}> Video personali</label><button class="btn btn--ember no-print" id="ex-add">＋ Nuovo esercizio</button><span class="pill">${list.length} / ${EX_BASE.length}</span></div>
-   <div class="callout callout--info"><div>📖 Catalogo esercizi <b>modificabile</b>, raggruppato per macro gruppo e <b>sottocategoria</b> (famiglia di movimento: Panca, Affondi, Squat… — automatica dal nome, personalizzabile da ✎ → Sottocategoria). Il <b>Fattore</b> pesa il contributo al Training Load. I video integrati si possono <b>sostituire coi tuoi</b>: carica il file da ✎ → "Video personale" e attiva il toggle <b>Video personali</b>.</div></div>
-   <div class="tbl-wrap"><table><thead><tr><th class="l">Esercizio</th><th class="l">Target muscolare</th><th>Gruppo</th><th class="l">Tipo</th><th>Fattore</th><th class="no-print"></th></tr></thead><tbody>${body||'<tr><td colspan="6" class="empty">Catalogo vuoto. Collega la cartella TMS: gli esercizi vengono caricati dal database (esercizi.json).</td></tr>'}</tbody></table></div>`;
+   <div class="bar"><div class="field"><label>${t('Cerca')}</label><input class="search" id="ex-s" value="${esc(exFilt)}" placeholder="${t('nome, muscolo, gruppo…')}"></div>
+     <div class="spacer"></div><label class="pill no-print" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px" title="${t('Se attivo, dove hai caricato un tuo video (TMS_Dati/video/) si usa quello al posto del predefinito; dove non c\'è, resta il predefinito')}"><input type="checkbox" id="ex-vid-pers" style="width:auto;flex:0 0 auto"${videoPersonaliOn()?' checked':''}> ${t('Video personali')}</label><button class="btn btn--ember no-print" id="ex-add">${t('＋ Nuovo esercizio')}</button><span class="pill">${list.length} / ${EX_BASE.length}</span></div>
+   <div class="callout callout--info"><div>${t('📖 Catalogo esercizi <b>modificabile</b>, raggruppato per macro gruppo e <b>sottocategoria</b> (famiglia di movimento: Panca, Affondi, Squat… — automatica dal nome, personalizzabile da ✎ → Sottocategoria). Il <b>Fattore</b> pesa il contributo al Training Load. I video integrati si possono <b>sostituire coi tuoi</b>: carica il file da ✎ → "Video personale" e attiva il toggle <b>Video personali</b>.')}</div></div>
+   <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Esercizio')}</th><th class="l">${t('Target muscolare')}</th><th>${t('Gruppo')}</th><th class="l">${t('Tipo')}</th><th>${t('Fattore')}</th><th class="no-print"></th></tr></thead><tbody>${body||`<tr><td colspan="6" class="empty">${t('Catalogo vuoto. Collega la cartella TMS: gli esercizi vengono caricati dal database (esercizi.json).')}</td></tr>`}</tbody></table></div>`;
   document.getElementById('ex-s').oninput=e=>{ const pos=e.target.selectionStart; exFilt=e.target.value; renderEsercizi();
     const n=document.getElementById('ex-s'); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} } };
   { const tv=document.getElementById('ex-vid-pers'); if(tv) tv.onchange=e=>setVideoPersonali(e.target.checked); }
@@ -201,32 +201,32 @@ function pickExercise(current, onPick, filtro){
   const so=s=>s==='Varie'?'zzz':s.toLowerCase();
   const itemHtml=e=>{ const sel=String(e.nome).trim()===current, fav=!!e.fav;
     return '<div class="exp-it'+(sel?' sel':'')+'" data-nome="'+esc(e.nome)+'">'+
-      '<button type="button" class="exp-star'+(fav?' on':'')+'" data-fav="'+esc(e.nome)+'" title="'+(fav?'togli dai preferiti':'aggiungi ai preferiti')+'">'+(fav?'★':'☆')+'</button>'+
-      '<span style="flex:1">'+(sel?'✓ ':'')+esc(e.nome)+(e.target?' <span class="muted">· '+esc(e.target)+'</span>':'')+'</span></div>'; };
+      '<button type="button" class="exp-star'+(fav?' on':'')+'" data-fav="'+esc(e.nome)+'" title="'+(fav?t('togli dai preferiti'):t('aggiungi ai preferiti'))+'">'+(fav?'★':'☆')+'</button>'+
+      '<span style="flex:1">'+(sel?'✓ ':'')+esc(exName(e.nome))+(e.target?' <span class="muted">· '+esc(e.target)+'</span>':'')+'</span></div>'; };
   const catalogo=list=>{ const arr=list.slice().sort((a,b)=>{const ga=a.macro||a.gruppo||'',gb=b.macro||b.gruppo||'';return gi(ga)-gi(gb)||ga.localeCompare(gb)||so(sottoOf(a)).localeCompare(so(sottoOf(b)))||String(a.nome).localeCompare(String(b.nome));});
     let html='',lastG=null,lastS=null;
     arr.forEach(e=>{ const g=e.macro||e.gruppo||'Altro';
-      if(g!==lastG){lastG=g;lastS=null; html+='<div class="exp-grp">▌ '+esc(g)+'</div>';}
-      const s=sottoOf(e); if(s!==lastS){lastS=s; html+='<div class="exp-sub">'+esc(s)+'</div>';}
+      if(g!==lastG){lastG=g;lastS=null; html+='<div class="exp-grp">▌ '+esc(t(g))+'</div>';}
+      const s=sottoOf(e); if(s!==lastS){lastS=s; html+='<div class="exp-sub">'+esc(t(s))+'</div>';}
       html+=itemHtml(e); });
     return html; };
   function righe(q){
     q=(q||'').trim().toLowerCase();
     const all=(DOC.esercizi||[]).filter(e=>(!filtro||filtro(e)));
     if(q){ const list=all.filter(e=>exMatch(e,q));
-      return list.length? catalogo(list) : '<div class="muted" style="padding:16px;text-align:center">Nessun esercizio per «'+esc(q)+'».</div>'; }
+      return list.length? catalogo(list) : '<div class="muted" style="padding:16px;text-align:center">'+t('Nessun esercizio per «')+esc(q)+'».</div>'; }
     /* query vuota: preferiti + recenti in cima, poi tutto il catalogo */
     let html=''; const favSet=new Set();
     const fav=all.filter(e=>e.fav).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
-    if(fav.length){ html+='<div class="exp-grp">★ Preferiti</div>'; fav.forEach(e=>{ favSet.add(e.nome); html+=itemHtml(e); }); }
+    if(fav.length){ html+='<div class="exp-grp">'+t('★ Preferiti')+'</div>'; fav.forEach(e=>{ favSet.add(e.nome); html+=itemHtml(e); }); }
     const rec=[]; exRecentiNomi().forEach(n=>{ if(rec.length>=10)return; const e=esLookup(n); if(e&&(!filtro||filtro(e))&&!favSet.has(n)) rec.push(e); });
-    if(rec.length){ html+='<div class="exp-grp">🕐 Recenti</div>'; rec.forEach(e=>html+=itemHtml(e)); }
+    if(rec.length){ html+='<div class="exp-grp">'+t('🕐 Recenti')+'</div>'; rec.forEach(e=>html+=itemHtml(e)); }
     return html+catalogo(all);
   }
-  modal('<h3>Scegli esercizio</h3>'+
-    '<div class="field" style="margin:6px 0"><input id="exp-q" placeholder="cerca per nome, muscolo, gruppo…" autocomplete="off" style="width:100%"></div>'+
+  modal('<h3>'+t('Scegli esercizio')+'</h3>'+
+    '<div class="field" style="margin:6px 0"><input id="exp-q" placeholder="'+t('cerca per nome, muscolo, gruppo…')+'" autocomplete="off" style="width:100%"></div>'+
     '<div id="exp-list" style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:7px;background:var(--paper-2)">'+righe('')+'</div>'+
-    '<div class="modal__actions">'+(current?'<button class="btn btn--danger" id="exp-clear" style="margin-right:auto">Svuota</button>':'')+'<button class="btn" onclick="closeModal()">Annulla</button></div>');
+    '<div class="modal__actions">'+(current?'<button class="btn btn--danger" id="exp-clear" style="margin-right:auto">'+t('Svuota')+'</button>':'')+'<button class="btn" onclick="closeModal()">'+t('Annulla')+'</button></div>');
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='640px';
   const q=document.getElementById('exp-q'), listEl=document.getElementById('exp-list');
   const bind=()=>{

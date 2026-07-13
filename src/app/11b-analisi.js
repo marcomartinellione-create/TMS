@@ -49,11 +49,11 @@ function serieSettimanali(){
 /* grafico 1 — timeline: fasce colorate per fase + TL (asse sx) + peso (asse dx) */
 function timelineChart(sett){
   const W=560,H=240,P={l:48,r:48,t:14,b:26};
-  if(sett.length<2) return '<div class="empty">Servono almeno 2 settimane di dati (storico o misure).</div>';
+  if(sett.length<2) return `<div class="empty">${t('Servono almeno 2 settimane di dati (storico o misure).')}</div>`;
   const n=sett.length, X=i=>P.l+(W-P.l-P.r)*i/(n-1);
   const half=(W-P.l-P.r)/(n-1)/2;
   const tlv=sett.map(s=>s.tl).filter(v=>v!=null), pv=sett.map(s=>s.peso).filter(v=>v!=null);
-  if(!tlv.length&&!pv.length) return '<div class="empty">Nessun dato di carico o peso.</div>';
+  if(!tlv.length&&!pv.length) return `<div class="empty">${t('Nessun dato di carico o peso.')}</div>`;
   const sc=vs=>{ let mn=Math.min(...vs),mx=Math.max(...vs); if(mn===mx){mx+=1;mn-=1;} const pad=(mx-mn)*.1; return {mn:mn-pad,mx:mx+pad}; };
   const stl=tlv.length?sc(tlv):null, sp=pv.length?sc(pv):null;
   const Ytl=v=>P.t+(H-P.t-P.b)*(1-(v-stl.mn)/(stl.mx-stl.mn));
@@ -66,7 +66,7 @@ function timelineChart(sett){
     const x1=Math.max(P.l,X(i)-half), x2=Math.min(W-P.r,X(j)+half);
     g+=`<rect x="${x1.toFixed(1)}" y="${P.t}" width="${(x2-x1).toFixed(1)}" height="${H-P.t-P.b}" fill="${FASE_COL[f]||'rgba(120,120,120,.12)'}"/>`;
     const kc=sett[i].kcal;
-    g+=`<text class="lbl" x="${((x1+x2)/2).toFixed(1)}" y="${P.t+11}" text-anchor="middle" style="font-weight:700">${esc(FASE_LAB[f]||f)}${kc?` · ${nf(kc,0)} kcal/g`:''}</text>`;
+    g+=`<text class="lbl" x="${((x1+x2)/2).toFixed(1)}" y="${P.t+11}" text-anchor="middle" style="font-weight:700">${esc(t(FASE_LAB[f]||f))}${kc?` · ${nf(kc,0)} kcal/g`:''}</text>`;
     i=j+1; }
   /* griglia + assi sinistro (TL) e destro (peso) */
   for(let k=0;k<=4;k++){ const y=P.t+(H-P.t-P.b)*k/4;
@@ -82,19 +82,19 @@ function timelineChart(sett){
   if(stl) g+=linea(s=>s.tl,Ytl,'var(--orange-b)');
   if(sp) g+=linea(s=>s.peso,Yp,'var(--violet)');
   const leg=`<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;margin-top:6px">`+
-    (stl?`<span class="mono" style="color:var(--orange-b)">━ Training Load (asse sx)</span>`:'')+
-    (sp?`<span class="mono" style="color:var(--violet)">━ Peso kg (asse dx)</span>`:'')+
-    Object.keys(FASE_COL).map(f=>`<span class="mono"><span style="display:inline-block;width:10px;height:10px;background:${FASE_COL[f]};border:1px solid var(--border);vertical-align:-1px"></span> ${esc(FASE_LAB[f]||f)}</span>`).join(' ')+`</div>`;
+    (stl?`<span class="mono" style="color:var(--orange-b)">${t('━ Training Load (asse sx)')}</span>`:'')+
+    (sp?`<span class="mono" style="color:var(--violet)">${t('━ Peso kg (asse dx)')}</span>`:'')+
+    Object.keys(FASE_COL).map(f=>`<span class="mono"><span style="display:inline-block;width:10px;height:10px;background:${FASE_COL[f]};border:1px solid var(--border);vertical-align:-1px"></span> ${esc(t(FASE_LAB[f]||f))}</span>`).join(' ')+`</div>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"><line class="axis" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/><line class="axis" x1="${W-P.r}" y1="${P.t}" x2="${W-P.r}" y2="${H-P.b}"/><line class="axis" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>${g}</svg>${leg}`;
 }
 
 function renderAnalisi(){
   const sett=serieSettimanali();
   const periodi=((DOC.alimentazione||{}).periodi)||[];
-  const intro=`<div class="callout callout--info"><div>📊 <b>Dieta × allenamento nel tempo.</b> Le analisi incrociano i <b>periodi alimentari</b> registrati (tab 🍖 Alimentazione → "Periodi") con carico (TL), peso e metabolismo settimanali. Tutto è calcolato al volo dai tuoi dati.</div></div>`;
+  const intro=`<div class="callout callout--info"><div>${t('📊 <b>Dieta × allenamento nel tempo.</b> Le analisi incrociano i <b>periodi alimentari</b> registrati (tab 🍖 Alimentazione → "Periodi") con carico (TL), peso e metabolismo settimanali. Tutto è calcolato al volo dai tuoi dati.')}</div></div>`;
   if(!periodi.length){
     document.getElementById('panel-analisi').innerHTML=intro+
-      `<div class="empty" style="padding:28px">Nessun periodo alimentare registrato.<br><br>Vai in <b>🍖 Alimentazione → ▌ Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.<br><br><button class="btn btn--ember" onclick="showTab('alimentazione')">🍖 Vai all'Alimentazione</button></div>`;
+      `<div class="empty" style="padding:28px">${t('Nessun periodo alimentare registrato.<br><br>Vai in <b>🍖 Alimentazione → ▌ Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.')}<br><br><button class="btn btn--ember" onclick="showTab('alimentazione')">${t('🍖 Vai all\'Alimentazione')}</button></div>`;
     return;
   }
   /* 2 — Δpeso settimana successiva vs bilancio calorico (kcal piano − metabolismo) */
@@ -114,7 +114,7 @@ function renderAnalisi(){
     for(let i=0;i<sett.length-1-lag;i++){ const tl=sett[i].tl, dp=dpeso[i+lag]; /* dpeso[k] = peso[k+1]-peso[k] */
       if(tl!=null&&dp!=null){ xs.push(tl); ys.push(dp); } }
     const r=pearson(xs,ys);
-    lagBars.push({x:'+'+(lag+1)+' sett.', y:r==null?null:+r.toFixed(2), color: r==null?'var(--ink-4)':(r>=0?'var(--ok)':'var(--danger)'), n:xs.length});
+    lagBars.push({x:'+'+(lag+1)+' '+t('sett.'), y:r==null?null:+r.toFixed(2), color: r==null?'var(--ink-4)':(r>=0?'var(--ok)':'var(--danger)'), n:xs.length});
   }
   const lagValidi=lagBars.filter(b=>b.y!=null);
   /* 4 — boxplot ΔTL% e Δpeso per fase */
@@ -123,22 +123,22 @@ function renderAnalisi(){
     if(!s.fase || !settConsecutive(pr.scheda,s.scheda)) continue;
     if(s.tl&&pr.tl) perFaseTL[s.fase]&&perFaseTL[s.fase].push(((s.tl/pr.tl)-1)*100);
     if(s.peso!=null&&pr.peso!=null) perFasePeso[s.fase]&&perFasePeso[s.fase].push(+(s.peso-pr.peso).toFixed(2)); }
-  const boxTL=Object.keys(perFaseTL).map(f=>({x:FASE_LAB[f]||f, values:perFaseTL[f], color:FASE_DOT[f]}));
-  const boxPeso=Object.keys(perFasePeso).map(f=>({x:FASE_LAB[f]||f, values:perFasePeso[f], color:FASE_DOT[f]}));
+  const boxTL=Object.keys(perFaseTL).map(f=>({x:t(FASE_LAB[f]||f), values:perFaseTL[f], color:FASE_DOT[f]}));
+  const boxPeso=Object.keys(perFasePeso).map(f=>({x:t(FASE_LAB[f]||f), values:perFasePeso[f], color:FASE_DOT[f]}));
 
   document.getElementById('panel-analisi').innerHTML=intro+`
-   <div class="chart-box"><h4>🗓 Timeline — periodi alimentari, carico e peso</h4>${timelineChart(sett)}</div>
+   <div class="chart-box"><h4>${t('🗓 Timeline — periodi alimentari, carico e peso')}</h4>${timelineChart(sett)}</div>
    <div class="grid2">
-     <div class="chart-box"><h4>⚖ Δpeso vs bilancio calorico ${rPB!=null?`<span class="pill" title="correlazione di Pearson">r = ${nf(rPB,2)}</span>`:''}</h4>
-       ${scatterChart(punti,{trend:true,xl:'bilancio kcal/giorno (piano − metabolismo)',yl:'Δpeso kg →sett. dopo'})}
-       ${regr?`<div class="muted" style="font-size:11px;margin-top:4px">Retta: ogni 100 kcal/g di surplus ≈ ${nf(regr.b*100,2)} kg/settimana${rPB!=null&&Math.abs(rPB)<0.3?' · correlazione debole: servono più settimane':''}</div>`:''}</div>
-     <div class="chart-box"><h4>⏳ Correlazione con ritardo — TL → Δpeso ${lagValidi.length?`<span class="pill">${lagBars[0].n} settimane</span>`:''}</h4>
-       ${lagValidi.length? barChart(lagBars.filter(b=>b.y!=null),{fmt:x=>nf(x,2)}) : '<div class="empty">Servono più settimane con TL e peso.</div>'}
-       <div class="muted" style="font-size:11px;margin-top:4px">r di Pearson fra il carico della settimana N e la variazione di peso 1–5 settimane dopo: il picco indica con quanto ritardo l'allenamento "si vede" sulla bilancia.</div></div>
+     <div class="chart-box"><h4>${t('⚖ Δpeso vs bilancio calorico')} ${rPB!=null?`<span class="pill" title="${t('correlazione di Pearson')}">r = ${nf(rPB,2)}</span>`:''}</h4>
+       ${scatterChart(punti,{trend:true,xl:t('bilancio kcal/giorno (piano − metabolismo)'),yl:t('Δpeso kg →sett. dopo')})}
+       ${regr?`<div class="muted" style="font-size:11px;margin-top:4px">${t('Retta: ogni 100 kcal/g di surplus ≈')} ${nf(regr.b*100,2)} ${t('kg/settimana')}${rPB!=null&&Math.abs(rPB)<0.3?' · '+t('correlazione debole: servono più settimane'):''}</div>`:''}</div>
+     <div class="chart-box"><h4>${t('⏳ Correlazione con ritardo — TL → Δpeso')} ${lagValidi.length?`<span class="pill">${lagBars[0].n} ${t('settimane')}</span>`:''}</h4>
+       ${lagValidi.length? barChart(lagBars.filter(b=>b.y!=null),{fmt:x=>nf(x,2)}) : `<div class="empty">${t('Servono più settimane con TL e peso.')}</div>`}
+       <div class="muted" style="font-size:11px;margin-top:4px">${t('r di Pearson fra il carico della settimana N e la variazione di peso 1–5 settimane dopo: il picco indica con quanto ritardo l\'allenamento "si vede" sulla bilancia.')}</div></div>
    </div>
    <div class="grid2">
-     <div class="chart-box"><h4>📦 Confronto fasi — Δ Training Load % a settimana</h4>${boxChart(boxTL,{fmt:x=>nf(x,0)+'%'})}</div>
-     <div class="chart-box"><h4>📦 Confronto fasi — Δ peso kg a settimana</h4>${boxChart(boxPeso,{fmt:x=>nf(x,2)})}</div>
+     <div class="chart-box"><h4>${t('📦 Confronto fasi — Δ Training Load % a settimana')}</h4>${boxChart(boxTL,{fmt:x=>nf(x,0)+'%'})}</div>
+     <div class="chart-box"><h4>${t('📦 Confronto fasi — Δ peso kg a settimana')}</h4>${boxChart(boxPeso,{fmt:x=>nf(x,2)})}</div>
    </div>
-   <div class="callout"><div>📐 <b>Come leggere.</b> Timeline: le fasce colorate sono i periodi (con le kcal/giorno del piano); se il TL regge mentre il peso scende, il cut sta funzionando. Scatter: ogni punto è una settimana — la pendenza della retta dice quanto il surplus/deficit si traduce in peso. Boxplot: barra spessa = mediana, scatola = 50% centrale delle settimane.</div></div>`;
+   <div class="callout"><div>${t('📐 <b>Come leggere.</b> Timeline: le fasce colorate sono i periodi (con le kcal/giorno del piano); se il TL regge mentre il peso scende, il cut sta funzionando. Scatter: ogni punto è una settimana — la pendenza della retta dice quanto il surplus/deficit si traduce in peso. Boxplot: barra spessa = mediana, scatola = 50% centrale delle settimane.')}</div></div>`;
 }

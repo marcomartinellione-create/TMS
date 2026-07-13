@@ -10,7 +10,7 @@ let profili=[], activeProfile='';
 function pslug(n){ return String(n||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,32)||'profilo'; }
 function profNome(){ const p=profili.find(x=>x.slug===activeProfile); return p?p.nome:''; }
 /* il tab "Profilo" mostra il nome del profilo attivo (richiesta Marco, v1.0.66) */
-function aggiornaTabProfilo(){ const b=document.querySelector('.tab[data-tab="profilo"]'); if(b) b.innerHTML='<span class="ico">👤</span> '+esc(profNome()||'Profilo'); }
+function aggiornaTabProfilo(){ const b=document.querySelector('.tab[data-tab="profilo"]'); if(b) b.innerHTML='<span class="ico">👤</span> '+esc(profNome()||t('Profilo')); }
 
 function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open(IDB_NAME,1);r.onupgradeneeded=()=>r.result.createObjectStore(IDB_STORE);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});}
 async function idbSet(k,v){const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(v,k);tx.oncomplete=()=>{db.close();res()};tx.onerror=()=>{db.close();rej(tx.error)}});}
@@ -117,10 +117,10 @@ async function loadProfile(){
 }
 
 async function connectFlow(){
-  setConn('busy','connessione…');
+  setConn('busy',t('connessione…'));
   try{
     const perm=await dirHandle.requestPermission({mode:'readwrite'});
-    if(perm!=='granted'){ setConn('err','permesso negato'); return; }
+    if(perm!=='granted'){ setConn('err',t('permesso negato')); return; }
     dataDir=await dirHandle.getDirectoryHandle(SUBDIR,{create:true});
     /* catalogo esercizi (condiviso tra i profili) */
     const ex=await readJson(dataDir,FILES.esercizi);
@@ -154,7 +154,7 @@ async function connectFlow(){
     aggiornaTabProfilo();
     renderAll();
     backupAutomaticoSeServe();  /* fire-and-forget: uno snapshot a settimana, non blocca l'avvio */
-  }catch(e){ setConn('err','errore: '+e.message); logErrore('connectFlow', e); }
+  }catch(e){ setConn('err',t('errore: ')+e.message); logErrore('connectFlow', e); }
 }
 
 async function persistAll(){
@@ -189,7 +189,7 @@ function persist(which){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{ await flushSaves(); setConn('on', ''); }
-    catch(e){ setConn('err','errore scrittura'); logErrore('salvataggio', e); }
+    catch(e){ setConn('err',t('errore scrittura')); logErrore('salvataggio', e); }
   },350);
 }
 
@@ -210,7 +210,7 @@ async function switchProfile(slug){
       const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); applyProfileData((all.data&&all.data[slug])||blankDOC());
     }
     saveCache();
-    setConn(dataDir?'on':'', dataDir?'':'non connesso');
+    setConn(dataDir?'on':'', dataDir?'':t('non connesso'));
   }
   aggiornaTabProfilo();
   renderAll(); showTab('profilo');
@@ -223,9 +223,9 @@ async function createProfile(nome){
   await switchProfile(s);
 }
 async function deleteProfile(slug){
-  if(profili.length<=1){ alert('Deve restare almeno un profilo.'); return; }
+  if(profili.length<=1){ alert(t('Deve restare almeno un profilo.')); return; }
   const p=profili.find(x=>x.slug===slug); if(!p) return;
-  if(!confirm('Eliminare il profilo «'+p.nome+'» e TUTTI i suoi dati? Operazione irreversibile.')) return;
+  if(!confirm(t('Eliminare il profilo «')+p.nome+t('» e TUTTI i suoi dati? Operazione irreversibile.'))) return;
   profili=profili.filter(x=>x.slug!==slug);
   if(dataDir){ try{ await dataDir.removeEntry(slug,{recursive:true}); }catch(e){} try{ await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile}); }catch(e){} }
   try{ const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); if(all.data){ delete all.data[slug]; localStorage.setItem(CACHE_KEY,JSON.stringify(all)); } }catch(e){}
@@ -245,7 +245,7 @@ async function getProfileData(slug){
 }
 function renameProfile(slug){
   const p=profili.find(x=>x.slug===slug); if(!p) return;
-  chiediTesto('Rinomina profilo', p.nome, v=>{
+  chiediTesto(t('Rinomina profilo'), p.nome, v=>{
     const n=(v||'').trim(); if(!n) return;
     p.nome=n; persist('profili'); saveCache(); aggiornaTabProfilo(); renderProfilo(); });
 }

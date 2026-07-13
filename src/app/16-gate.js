@@ -6,19 +6,19 @@ function gateShow(state){
         err=document.getElementById('ov-err');
   err.classList.remove('on'); err.textContent=''; btn.style.display='';
   if(state==='unsupported'){
-    title.innerHTML='<span class="sigil">✦</span> Browser non supportato';
-    sub.innerHTML='Questo browser non può salvare su cartella.<br>Usa <strong>Chrome</strong>, <strong>Edge</strong> o l\'app <strong>Obsidian</strong>.';
-    btn.style.display='none'; note.textContent='Apri con Chrome, Edge o Obsidian per usare il TMS.';
+    title.innerHTML='<span class="sigil">✦</span> '+t('Browser non supportato');
+    sub.innerHTML=t('Questo browser non può salvare su cartella.<br>Usa <strong>Chrome</strong>, <strong>Edge</strong> o l\'app <strong>Obsidian</strong>.');
+    btn.style.display='none'; note.textContent=t('Apri con Chrome, Edge o Obsidian per usare il TMS.');
   } else if(state==='reconnect'){
-    title.innerHTML='<span class="sigil">✦</span> Ricollega la cartella';
-    sub.innerHTML='Conferma l\'accesso alla cartella <strong>'+esc(dirHandle?dirHandle.name:EXPECTED_DIR)+'</strong><br>per riattivare il salvataggio automatico in <strong>TMS_Dati/</strong>.';
-    btn.textContent='↻ Riconnetti '+(dirHandle?dirHandle.name:''); btn.onclick=reconnectDirectory;
-    note.textContent='Richiesto a inizio sessione — un solo click';
+    title.innerHTML='<span class="sigil">✦</span> '+t('Ricollega la cartella');
+    sub.innerHTML=t('Conferma l\'accesso alla cartella')+' <strong>'+esc(dirHandle?dirHandle.name:EXPECTED_DIR)+'</strong><br>'+t('per riattivare il salvataggio automatico in')+' <strong>TMS_Dati/</strong>.';
+    btn.textContent=t('↻ Riconnetti')+' '+(dirHandle?dirHandle.name:''); btn.onclick=reconnectDirectory;
+    note.textContent=t('Richiesto a inizio sessione — un solo click');
   } else {
-    title.innerHTML='<span class="sigil">✦</span> Connetti la cartella';
-    sub.innerHTML='Per salvare e sincronizzare i dati, seleziona la cartella <strong>'+EXPECTED_DIR+'</strong>.<br>Verrà creata al suo interno la sottocartella <strong>TMS_Dati/</strong>.';
-    btn.textContent='▲ Seleziona cartella…'; btn.onclick=pickDirectory;
-    note.textContent='Richiesto una volta — poi si riconnette da solo';
+    title.innerHTML='<span class="sigil">✦</span> '+t('Connetti la cartella');
+    sub.innerHTML=t('Per salvare e sincronizzare i dati, seleziona la cartella <strong>'+EXPECTED_DIR+'</strong>.<br>Verrà creata al suo interno la sottocartella <strong>TMS_Dati/</strong>.');
+    btn.textContent=t('▲ Seleziona cartella…'); btn.onclick=pickDirectory;
+    note.textContent=t('Richiesto una volta — poi si riconnette da solo');
   }
 }
 function gateHide(){ document.getElementById('overlay').classList.add('hidden'); }
@@ -26,7 +26,7 @@ function gateErr(msg){ const e=document.getElementById('ov-err'); e.textContent=
 async function reconnectDirectory(){
   if(!dirHandle){ pickDirectory(); return; }
   try{ const rp=await dirHandle.requestPermission({mode:'readwrite'});
-    if(rp==='granted'){ gateHide(); await connectFlow(); } else gateErr('Permesso negato. Riprova.');
-  }catch(e){ gateErr('Errore: '+e.message); }
+    if(rp==='granted'){ gateHide(); await connectFlow(); } else gateErr(t('Permesso negato. Riprova.'));
+  }catch(e){ gateErr(t('Errore: ')+e.message); }
 }
 

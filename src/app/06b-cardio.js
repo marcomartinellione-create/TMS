@@ -63,7 +63,7 @@ function renderCardio(){
   const rows=list.map(s=>{ const idx=cardioList().indexOf(s); const au=srpeCardio(s), tr=trimpCardio(s);
     return `<tr>
       <td class="l mono" style="font-size:12px">${esc(s.data||'—')}</td>
-      <td class="l">${esc(s.tipo||'—')}</td>
+      <td class="l">${esc(t(s.tipo)||'—')}</td>
       <td class="num">${nf(s.durata,0)}</td>
       <td class="num">${s.rpe===''||s.rpe==null?'—':nf(s.rpe,1)}</td>
       <td class="num cell-out">${au||'—'}</td>
@@ -73,16 +73,16 @@ function renderCardio(){
       <td class="num">${tr==null?'<span class="muted">—</span>':tr}</td>
       <td class="num">${s.quota?nf(s.quota,0):'—'}</td>
       <td class="l muted" style="font-size:11px">${esc(s.note||'')}</td>
-      <td class="no-print" style="white-space:nowrap"><button class="btn btn--sm" data-ced="${idx}" title="modifica">✎</button> <button class="btn btn--sm btn--danger" data-cdel="${idx}" title="elimina">✕</button></td>
+      <td class="no-print" style="white-space:nowrap"><button class="btn btn--sm" data-ced="${idx}" title="${t('modifica')}">✎</button> <button class="btn btn--sm btn--danger" data-cdel="${idx}" title="${t('elimina')}">✕</button></td>
     </tr>`; }).join('');
   document.getElementById('panel-cardio').innerHTML=`
-   <div class="bar no-print"><div class="field" style="flex:1"><label>Cardio</label>
-     <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">🏃 ${list.length} attività · settimana ${nfk(cardioWeekAU())} AU</div></div>
-     <label class="btn no-print" style="cursor:pointer" title="Importa un file dall'orologio/fascia — consigliato .FIT (nativo, più completo); ok anche .TCX e .GPX (Garmin Connect, Polar Flow, Strava…)">📥 Importa attività<input type="file" id="cardio-imp" accept=".fit,.tcx,.gpx,.xml,application/xml,application/gpx+xml,application/fit" style="display:none"></label>
-     <button class="btn btn--ember" id="cardio-add">＋ Aggiungi attività</button></div>
-   <div class="callout callout--info"><div>🫀 Le attività cardio si misurano col <b>carico interno</b>, non con serie/peso. <b>sRPE</b> (Foster) = RPE × minuti. <b>TRIMP</b> (Banister) usa la <b>frequenza cardiaca</b> media e compare quando la inserisci ${fcMaxStimata()?`(FC max ${fcMaxImpostata()?`<b>${fcMaxStimata()}</b> bpm`:`stimata ≈ <b>${fcMaxStimata()}</b> bpm dall'età`}, FC riposo ${fcRiposoUtente()} bpm — impostabili nel Profilo)`:`(imposta età o FC max nel Profilo per il calcolo)`}. Con <b>📥 Importa attività</b> carichi un file dall'orologio o dalla fascia (durata, FC, distanza e dislivello si compilano da soli): <b>meglio il .FIT</b> — è il formato nativo, più completo e preciso; vanno bene anche <b>.TCX</b> e <b>.GPX</b>.</div></div>
-   <div class="tbl-wrap"><table><thead><tr><th class="l">Data</th><th class="l">Attività</th><th>Min</th><th>RPE</th><th>sRPE (AU)</th><th>km</th><th>Ritmo</th><th>FC media</th><th>TRIMP</th><th title="Dislivello positivo">D+ (m)</th><th class="l">Note</th><th class="no-print"></th></tr></thead>
-     <tbody>${rows||'<tr><td colspan="12" class="empty">Nessuna attività cardio registrata. Aggiungine una col bottone ＋.</td></tr>'}</tbody></table></div>`;
+   <div class="bar no-print"><div class="field" style="flex:1"><label>${t('Cardio')}</label>
+     <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">🏃 ${list.length} ${t('attività · settimana')} ${nfk(cardioWeekAU())} AU</div></div>
+     <label class="btn no-print" style="cursor:pointer" title="${t('Importa un file dall\'orologio/fascia — consigliato .FIT (nativo, più completo); ok anche .TCX e .GPX (Garmin Connect, Polar Flow, Strava…)')}">${t('📥 Importa attività')}<input type="file" id="cardio-imp" accept=".fit,.tcx,.gpx,.xml,application/xml,application/gpx+xml,application/fit" style="display:none"></label>
+     <button class="btn btn--ember" id="cardio-add">${t('＋ Aggiungi attività')}</button></div>
+   <div class="callout callout--info"><div>${t('🫀 Le attività cardio si misurano col <b>carico interno</b>, non con serie/peso. <b>sRPE</b> (Foster) = RPE × minuti. <b>TRIMP</b> (Banister) usa la <b>frequenza cardiaca</b> media e compare quando la inserisci')} ${fcMaxStimata()?`${t('(FC max')} ${fcMaxImpostata()?`<b>${fcMaxStimata()}</b> bpm`:`${t('stimata ≈')} <b>${fcMaxStimata()}</b> ${t('bpm dall\'età')}`}, ${t('FC riposo')} ${fcRiposoUtente()} ${t('bpm — impostabili nel Profilo)')}`:t('(imposta età o FC max nel Profilo per il calcolo)')}${t('. Con <b>📥 Importa attività</b> carichi un file dall\'orologio o dalla fascia (durata, FC, distanza e dislivello si compilano da soli): <b>meglio il .FIT</b> — è il formato nativo, più completo e preciso; vanno bene anche <b>.TCX</b> e <b>.GPX</b>.')}</div></div>
+   <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Data')}</th><th class="l">${t('Attività')}</th><th>${t('Min')}</th><th>RPE</th><th>sRPE (AU)</th><th>km</th><th>${t('Ritmo')}</th><th>${t('FC media')}</th><th>TRIMP</th><th title="${t('Dislivello positivo')}">D+ (m)</th><th class="l">${t('Note')}</th><th class="no-print"></th></tr></thead>
+     <tbody>${rows||`<tr><td colspan="12" class="empty">${t('Nessuna attività cardio registrata. Aggiungine una col bottone ＋.')}</td></tr>`}</tbody></table></div>`;
   document.getElementById('cardio-add').onclick=()=>cardioModal(-1);
   { const imp=document.getElementById('cardio-imp'); if(imp) imp.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; e.target.value='';
       let p=null;
@@ -90,29 +90,29 @@ function renderCardio(){
         if(/\.fit$/i.test(f.name)){ const ab=await f.arrayBuffer(); p=parseFIT(new Uint8Array(ab)); }
         else { p=parseAttivitaCardio(await f.text()); }
       }catch(err){ logErrore('importCardio', err); }
-      if(!p){ alert('Non riconosco questo file. Esporta l\'attività come .FIT, .TCX o .GPX dal tuo dispositivo o app (Garmin Connect, Polar Flow, Strava…) e riprova.'); return; }
+      if(!p){ alert(t('Non riconosco questo file. Esporta l\'attività come .FIT, .TCX o .GPX dal tuo dispositivo o app (Garmin Connect, Polar Flow, Strava…) e riprova.')); return; }
       cardioModal(-1, p); }; }
   document.querySelectorAll('#panel-cardio [data-ced]').forEach(b=>b.onclick=()=>cardioModal(+b.dataset.ced));
   document.querySelectorAll('#panel-cardio [data-cdel]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.cdel, s=cardioList()[i];
-    if(!confirm('Eliminare l\'attività «'+((s&&s.tipo)||'')+'» del '+((s&&s.data)||'')+'?')) return;
+    if(!confirm(t('Eliminare l\'attività «')+t((s&&s.tipo)||'')+t('» del')+' '+((s&&s.data)||'')+'?')) return;
     cardioList().splice(i,1); persist('corpo'); renderCardio(); });
 }
 function cardioModal(idx, preset){
   const s= idx>=0? cardioList()[idx] : Object.assign({data:new Date().toISOString().slice(0,10),tipo:'',durata:'',rpe:'',distanza:'',quota:'',fcMedia:'',fcMax:'',note:''}, preset||{});
-  const opts=cardioSportDisponibili().map(t=>`<option value="${esc(t)}"${String(s.tipo||'').toLowerCase()===t.toLowerCase()?' selected':''}>${esc(t)}</option>`).join('');
-  modal(`<h3>${idx>=0?'Modifica attività':'Nuova attività cardio'}</h3>
-    ${preset?'<div class="callout callout--info" style="margin:0 0 10px"><div>📥 Dati letti dal file. Controlla, aggiungi la <b>fatica RPE</b> e salva.</div></div>':''}
-    <div class="row"><div class="field"><label>Data</label><input id="c-data" type="date" value="${esc(s.data||'')}"></div>
-      <div class="field"><label>Sport</label><select id="c-tipo">${opts}<option value="__altro__">➕ Altro…</option></select>
-        <input id="c-tipo-altro" placeholder="nome dello sport" value="${esc(cardioSportDisponibili().some(t=>t.toLowerCase()===String(s.tipo||'').toLowerCase())?'':(s.tipo||''))}" style="margin-top:5px;display:none"></div></div>
-    <div class="row"><div class="field"><label>Durata (min)</label><input id="c-min" type="number" min="0" value="${s.durata??''}"></div>
-      <div class="field"><label>Fatica RPE (0–10)</label><input id="c-rpe" type="number" min="0" max="10" step="0.5" value="${s.rpe??''}" placeholder="–"></div></div>
-    <div class="row"><div class="field" id="c-dist-wrap"><label>Distanza (km) <span class="muted" style="text-transform:none">facolt.</span></label><input id="c-dist" type="number" min="0" step="0.1" value="${s.distanza??''}"></div>
-      <div class="field" id="c-quota-wrap"><label>Dislivello D+ (m) <span class="muted" style="text-transform:none">facolt.</span></label><input id="c-quota" type="number" min="0" value="${s.quota??''}"></div></div>
-    <div class="row"><div class="field"><label>FC media (bpm) <span class="muted" style="text-transform:none">per il TRIMP</span></label><input id="c-fc" type="number" min="0" value="${s.fcMedia??''}" placeholder="–"></div>
-      <div class="field"><label>FC max <span class="muted" style="text-transform:none">facolt.</span></label><input id="c-fcmax" type="number" min="0" value="${s.fcMax??''}" placeholder="da età"></div></div>
-    <div class="field"><label>Note</label><input id="c-note" value="${esc(s.note||'')}"></div>
-    <div class="modal__actions"><button class="btn" onclick="closeModal()">Annulla</button><button class="btn btn--ember" id="c-ok">Salva</button></div>`);
+  const opts=cardioSportDisponibili().map(sp=>`<option value="${esc(sp)}"${String(s.tipo||'').toLowerCase()===sp.toLowerCase()?' selected':''}>${esc(t(sp))}</option>`).join('');
+  modal(`<h3>${idx>=0?t('Modifica attività'):t('Nuova attività cardio')}</h3>
+    ${preset?`<div class="callout callout--info" style="margin:0 0 10px"><div>${t('📥 Dati letti dal file. Controlla, aggiungi la <b>fatica RPE</b> e salva.')}</div></div>`:''}
+    <div class="row"><div class="field"><label>${t('Data')}</label><input id="c-data" type="date" value="${esc(s.data||'')}"></div>
+      <div class="field"><label>${t('Sport')}</label><select id="c-tipo">${opts}<option value="__altro__">${t('➕ Altro…')}</option></select>
+        <input id="c-tipo-altro" placeholder="${t('nome dello sport')}" value="${esc(cardioSportDisponibili().some(x=>x.toLowerCase()===String(s.tipo||'').toLowerCase())?'':(s.tipo||''))}" style="margin-top:5px;display:none"></div></div>
+    <div class="row"><div class="field"><label>${t('Durata (min)')}</label><input id="c-min" type="number" min="0" value="${s.durata??''}"></div>
+      <div class="field"><label>${t('Fatica RPE (0–10)')}</label><input id="c-rpe" type="number" min="0" max="10" step="0.5" value="${s.rpe??''}" placeholder="–"></div></div>
+    <div class="row"><div class="field" id="c-dist-wrap"><label>${t('Distanza (km)')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-dist" type="number" min="0" step="0.1" value="${s.distanza??''}"></div>
+      <div class="field" id="c-quota-wrap"><label>${t('Dislivello D+ (m)')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-quota" type="number" min="0" value="${s.quota??''}"></div></div>
+    <div class="row"><div class="field"><label>${t('FC media (bpm)')} <span class="muted" style="text-transform:none">${t('per il TRIMP')}</span></label><input id="c-fc" type="number" min="0" value="${s.fcMedia??''}" placeholder="–"></div>
+      <div class="field"><label>${t('FC max')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-fcmax" type="number" min="0" value="${s.fcMax??''}" placeholder="${t('da età')}"></div></div>
+    <div class="field"><label>${t('Note')}</label><input id="c-note" value="${esc(s.note||'')}"></div>
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="c-ok">${t('Salva')}</button></div>`);
   const sel=document.getElementById('c-tipo'), altro=document.getElementById('c-tipo-altro');
   /* se il tipo non è tra le opzioni (preset/import con sport nuovo), apri "Altro…" precompilato */
   if(s.tipo && !cardioSportDisponibili().some(t=>t.toLowerCase()===String(s.tipo).toLowerCase())){ sel.value='__altro__'; altro.value=s.tipo; }
@@ -133,8 +133,8 @@ function cardioModal(idx, preset){
       fcMedia:document.getElementById('c-fc').value===''?'':+document.getElementById('c-fc').value,
       fcMax:document.getElementById('c-fcmax').value===''?'':+document.getElementById('c-fcmax').value,
       note:document.getElementById('c-note').value.trim()};
-    if(!obj.tipo){ alert('Scegli o indica lo sport.'); return; }
-    if(!obj.durata){ alert('Indica la durata in minuti.'); return; }
+    if(!obj.tipo){ alert(t('Scegli o indica lo sport.')); return; }
+    if(!obj.durata){ alert(t('Indica la durata in minuti.')); return; }
     if(idx>=0) cardioList()[idx]=obj; else cardioList().push(obj);
     persist('corpo'); closeModal(); renderCardio();
   };
@@ -173,7 +173,7 @@ function parseAttivitaCardio(text){
   if(!hrs.length && !durata) return null;  /* niente di utile: non è un'attività valida */
   const fcMedia= hrs.length? Math.round(hrs.reduce((a,b)=>a+b,0)/hrs.length):'';
   const fcMax= hrs.length? hrs.reduce((a,b)=>Math.max(a,b),0):'';
-  return {data:data, tipo:tipo||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:fcMax, note:'importata da file'};
+  return {data:data, tipo:tipo||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:fcMax, note:t('importata da file')};
 }
 /* ── Parser minimale del formato binario .FIT (Garmin), senza dipendenze. Estrae il messaggio
    «session» (durata, distanza, FC media/max, dislivello, sport, data); fallback sui «record».
@@ -229,7 +229,7 @@ function parseFIT(buf){
     if(!fcMedia && !durata) return null;
     let data=new Date().toISOString().slice(0,10);
     if(S.start!=null){ const t=(S.start+631065600)*1000; if(isFinite(t)) data=new Date(t).toISOString().slice(0,10); }
-    return {data:data, tipo:_FIT_SPORT[S.sport]||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:fcMax, note:'importata da file FIT'};
+    return {data:data, tipo:_FIT_SPORT[S.sport]||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:fcMax, note:t('importata da file FIT')};
   }catch(e){ logErrore('parseFIT', e); return null; }
 }
 
@@ -246,16 +246,16 @@ function cardioProgressBlock(){
   const ses=list.filter(s=>String(s.tipo).toLowerCase()===sel.toLowerCase()).slice().sort((a,b)=>String(a.data).localeCompare(String(b.data)));
   const lab=ses.map(s=>s.data);
   const charts=[];
-  charts.push(`<div class="chart-box"><h4>🔥 Carico sRPE (AU)</h4>${lineChart([{name:'sRPE',color:'var(--gold-2)',data:ses.map(s=>({x:s.data,y:srpeCardio(s)||null}))}],{labels:lab,fmt:nfk})}</div>`);
-  if(ses.some(s=>+s.fcMedia>0)) charts.push(`<div class="chart-box"><h4>❤ FC media (bpm)</h4>${lineChart([{name:'FC media',color:'var(--danger-b)',data:ses.map(s=>({x:s.data,y:+s.fcMedia||null}))}],{labels:lab})}</div>`);
-  if(inf.dist && ses.some(s=>+s.distanza>0)) charts.push(`<div class="chart-box"><h4>📏 Distanza (km)</h4>${lineChart([{name:'km',color:'var(--orange-b)',data:ses.map(s=>({x:s.data,y:+s.distanza||null}))}],{labels:lab})}</div>`);
-  if(inf.ritmo==='passo' && ses.some(s=>passoMinKm(s)!=null)) charts.push(`<div class="chart-box"><h4>⏱ Passo (min/km) <span class="muted" style="font-size:11px">più basso = meglio</span></h4>${lineChart([{name:'passo',color:'var(--violet)',data:ses.map(s=>({x:s.data,y:passoMinKm(s)}))}],{labels:lab,fmt:fmtPasso})}</div>`);
-  else if(inf.ritmo==='velocita' && ses.some(s=>velocitaKmh(s)!=null)) charts.push(`<div class="chart-box"><h4>🚀 Velocità media (km/h)</h4>${lineChart([{name:'km/h',color:'var(--violet)',data:ses.map(s=>({x:s.data,y:velocitaKmh(s)}))}],{labels:lab})}</div>`);
-  if(inf.quota && ses.some(s=>+s.quota>0)) charts.push(`<div class="chart-box"><h4>⛰ Dislivello D+ (m)</h4>${lineChart([{name:'D+',color:'var(--ink-3)',data:ses.map(s=>({x:s.data,y:+s.quota||null}))}],{labels:lab})}</div>`);
+  charts.push(`<div class="chart-box"><h4>${t('🔥 Carico sRPE (AU)')}</h4>${lineChart([{name:'sRPE',color:'var(--gold-2)',data:ses.map(s=>({x:s.data,y:srpeCardio(s)||null}))}],{labels:lab,fmt:nfk})}</div>`);
+  if(ses.some(s=>+s.fcMedia>0)) charts.push(`<div class="chart-box"><h4>${t('❤ FC media (bpm)')}</h4>${lineChart([{name:t('FC media'),color:'var(--danger-b)',data:ses.map(s=>({x:s.data,y:+s.fcMedia||null}))}],{labels:lab})}</div>`);
+  if(inf.dist && ses.some(s=>+s.distanza>0)) charts.push(`<div class="chart-box"><h4>${t('📏 Distanza (km)')}</h4>${lineChart([{name:'km',color:'var(--orange-b)',data:ses.map(s=>({x:s.data,y:+s.distanza||null}))}],{labels:lab})}</div>`);
+  if(inf.ritmo==='passo' && ses.some(s=>passoMinKm(s)!=null)) charts.push(`<div class="chart-box"><h4>${t('⏱ Passo (min/km)')} <span class="muted" style="font-size:11px">${t('più basso = meglio')}</span></h4>${lineChart([{name:t('passo'),color:'var(--violet)',data:ses.map(s=>({x:s.data,y:passoMinKm(s)}))}],{labels:lab,fmt:fmtPasso})}</div>`);
+  else if(inf.ritmo==='velocita' && ses.some(s=>velocitaKmh(s)!=null)) charts.push(`<div class="chart-box"><h4>${t('🚀 Velocità media (km/h)')}</h4>${lineChart([{name:'km/h',color:'var(--violet)',data:ses.map(s=>({x:s.data,y:velocitaKmh(s)}))}],{labels:lab})}</div>`);
+  if(inf.quota && ses.some(s=>+s.quota>0)) charts.push(`<div class="chart-box"><h4>${t('⛰ Dislivello D+ (m)')}</h4>${lineChart([{name:'D+',color:'var(--ink-3)',data:ses.map(s=>({x:s.data,y:+s.quota||null}))}],{labels:lab})}</div>`);
   let grid=''; for(let i=0;i<charts.length;i+=2){ grid+=`<div class="chart-grid">${charts[i]}${charts[i+1]||''}</div>`; }
-  const selHtml=`<select id="prog-cardio-sport" style="margin-left:auto;font-size:13px">${sports.map(sp=>`<option${sp.toLowerCase()===sel.toLowerCase()?' selected':''}>${esc(sp)}</option>`).join('')}</select>`;
-  return `<div class="sec">▌ Cardio · progressione per sport ${selHtml}</div>
-    ${ses.length<2?'<div class="callout callout--info"><div>Servono almeno 2 sedute di <b>'+esc(sel)+'</b> per vedere un andamento.</div></div>':''}
+  const selHtml=`<select id="prog-cardio-sport" style="margin-left:auto;font-size:13px">${sports.map(sp=>`<option value="${esc(sp)}"${sp.toLowerCase()===sel.toLowerCase()?' selected':''}>${esc(t(sp))}</option>`).join('')}</select>`;
+  return `<div class="sec">▌ ${t('Cardio · progressione per sport')} ${selHtml}</div>
+    ${ses.length<2?`<div class="callout callout--info"><div>${t('Servono almeno 2 sedute di')} <b>${esc(t(sel))}</b> ${t('per vedere un andamento.')}</div></div>`:''}
     ${grid}`;
 }
 function bindCardioProgress(){ const s=document.getElementById('prog-cardio-sport'); if(s) s.onchange=()=>{ progCardioSport=s.value; renderProgressi(); }; }
@@ -272,15 +272,15 @@ function cardioReportBlock(){
   const lab=sorted.map(s=>s.data);
   const auChart=lineChart([{name:'sRPE',color:'var(--gold-2)',data:sorted.map(s=>({x:s.data,y:srpeCardio(s)||null}))}],{labels:lab,h:160,fmt:nfk});
   const recent=list.slice().sort((a,b)=>String(b.data).localeCompare(String(a.data))).slice(0,10);
-  const rows=recent.map(s=>{ const tr=trimpCardio(s); return `<tr><td class="l">${esc(s.data)}</td><td class="l">${esc(s.tipo||'')}</td><td class="num">${nf(s.durata,0)}</td><td class="num">${s.distanza?nf(s.distanza,1):'—'}</td><td class="num">${cardioRitmo(s)}</td><td class="num">${s.fcMedia?nf(s.fcMedia,0):'—'}</td><td class="num cell-out">${srpeCardio(s)||'—'}</td><td class="num">${tr==null?'—':tr}</td></tr>`; }).join('');
-  return `<div class="rep-sec"><div class="sec">▌ Cardio · attività e carico interno</div>
+  const rows=recent.map(s=>{ const tr=trimpCardio(s); return `<tr><td class="l">${esc(s.data)}</td><td class="l">${esc(t(s.tipo)||'')}</td><td class="num">${nf(s.durata,0)}</td><td class="num">${s.distanza?nf(s.distanza,1):'—'}</td><td class="num">${cardioRitmo(s)}</td><td class="num">${s.fcMedia?nf(s.fcMedia,0):'—'}</td><td class="num cell-out">${srpeCardio(s)||'—'}</td><td class="num">${tr==null?'—':tr}</td></tr>`; }).join('');
+  return `<div class="rep-sec"><div class="sec">▌ ${t('Cardio · attività e carico interno')}</div>
      <div class="cards">
-       <div class="card k--ember"><div class="card__k">Sedute</div><div class="card__v">${nSed}</div></div>
-       <div class="card"><div class="card__k">Carico interno sRPE</div><div class="card__v">${nfk(auTot)}<small> AU</small></div></div>
-       <div class="card"><div class="card__k">Tempo totale</div><div class="card__v">${nf(minTot/60,1)}<small> h</small></div></div>
-       <div class="card k--violet"><div class="card__k">Sport principale</div><div class="card__v" style="font-size:16px">${esc(sportPrinc)}</div></div>
+       <div class="card k--ember"><div class="card__k">${t('Sedute')}</div><div class="card__v">${nSed}</div></div>
+       <div class="card"><div class="card__k">${t('Carico interno sRPE')}</div><div class="card__v">${nfk(auTot)}<small> AU</small></div></div>
+       <div class="card"><div class="card__k">${t('Tempo totale')}</div><div class="card__v">${nf(minTot/60,1)}<small> h</small></div></div>
+       <div class="card k--violet"><div class="card__k">${t('Sport principale')}</div><div class="card__v" style="font-size:16px">${esc(t(sportPrinc))}</div></div>
      </div>
-     <div class="chart-box" style="margin-top:8px"><h4>Carico cardio (sRPE) nel tempo</h4>${auChart}</div>
-     <div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th class="l">Data</th><th class="l">Sport</th><th>Min</th><th>km</th><th>Ritmo</th><th>FC media</th><th>sRPE</th><th>TRIMP</th></tr></thead><tbody>${rows}</tbody></table></div>
-     <p class="muted" style="font-size:12px">Carico interno delle attività cardio: <b>sRPE</b> = RPE×min (Foster), <b>TRIMP</b> dalla frequenza cardiaca (Banister). Passo/velocità e distanza dove rilevati.</p></div>`;
+     <div class="chart-box" style="margin-top:8px"><h4>${t('Carico cardio (sRPE) nel tempo')}</h4>${auChart}</div>
+     <div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th class="l">${t('Data')}</th><th class="l">${t('Sport')}</th><th>${t('Min')}</th><th>km</th><th>${t('Ritmo')}</th><th>${t('FC media')}</th><th>sRPE</th><th>TRIMP</th></tr></thead><tbody>${rows}</tbody></table></div>
+     <p class="muted" style="font-size:12px">${t('Carico interno delle attività cardio: <b>sRPE</b> = RPE×min (Foster), <b>TRIMP</b> dalla frequenza cardiaca (Banister). Passo/velocità e distanza dove rilevati.')}</p></div>`;
 }

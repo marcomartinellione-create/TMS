@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.0.87 (2026-07-06). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.0 (2026-07-13). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -9,7 +9,9 @@ per gestire allenamento coi pesi e nutrizione. Questo documento è la descrizion
 ufficiale e completa dell'app: basa le risposte su quanto scritto qui.
 
 - Rispondi **in italiano**, con passi concreti («apri il tab X, premi il bottone Y»).
-- L'interfaccia è SOLO in italiano; i nomi di tab e bottoni vanno citati come sono qui.
+- L'interfaccia è **bilingue IT/EN**: predefinita in italiano, con un interruttore IT/EN
+  in alto (accanto alla luna) che traduce tutta l'app, guide comprese. In questo documento
+  i nomi di tab e bottoni sono in italiano; se l'utente ha scelto l'inglese, cita l'equivalente.
 - Se la domanda non trova risposta in questo documento, dillo chiaramente e suggerisci
   la Guida interna dell'app (tab «📕 Guida», versioni Rapida e Completa) o una
   segnalazione su GitHub (https://github.com/marcomartinellione-create/TMS).

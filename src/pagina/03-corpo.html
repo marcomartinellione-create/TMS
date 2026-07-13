@@ -5,8 +5,9 @@
 <div class="topbar">
   <div class="topbar__mark">TMS</div>
   <div class="topbar__spacer"></div>
-  <div class="conn" id="conn"><span class="conn__dot"></span><span id="conn-txt">non connesso</span></div>
-  <button class="btn btn--ghost btn--sm" id="btn-connect">⛓ Connetti cartella</button>
+  <div class="conn" id="conn"><span class="conn__dot"></span><span id="conn-txt" data-i18n>non connesso</span></div>
+  <button class="btn btn--ghost btn--sm" id="btn-connect" data-i18n>⛓ Connetti cartella</button>
+  <button class="btn btn--ghost btn--sm" id="btn-lang" title="Language / Lingua">EN</button>
   <button class="btn btn--ghost btn--sm" id="btn-theme" title="Modalità notte">🌙</button>
 </div>
 
@@ -16,18 +17,18 @@
 </div>
 
 <div class="tabs" id="tabs">
-  <button class="tab" data-tab="profilo"><span class="ico">👤</span> Profilo</button>
-  <button class="tab is-active" data-tab="allenamento"><span class="ico">🏋</span> Pesi</button>
-  <button class="tab" data-tab="cardio"><span class="ico">🏃</span> Cardio</button>
-  <button class="tab" data-tab="storico" style="display:none"><span class="ico">📜</span> Storico</button>
-  <button class="tab" data-tab="progressi"><span class="ico">📈</span> Progressi</button>
-  <button class="tab" data-tab="corpo"><span class="ico">🜂</span> Corpo</button>
-  <button class="tab" data-tab="storicocorpo" style="display:none"><span class="ico">📜</span> Misure</button>
-  <button class="tab" data-tab="alimentazione"><span class="ico">🍖</span> Alimentazione</button>
-  <button class="tab" data-tab="analisi"><span class="ico">📊</span> Analisi</button>
-  <button class="tab" data-tab="esercizi"><span class="ico">📖</span> Esercizi</button>
-  <button class="tab" data-tab="report"><span class="ico">🖨</span> Report</button>
-  <button class="tab" data-tab="guida" style="display:none"><span class="ico">📕</span> Guida</button>
+  <button class="tab" data-tab="profilo"><span class="ico">👤</span> <span data-i18n>Profilo</span></button>
+  <button class="tab is-active" data-tab="allenamento"><span class="ico">🏋</span> <span data-i18n>Pesi</span></button>
+  <button class="tab" data-tab="cardio"><span class="ico">🏃</span> <span data-i18n>Cardio</span></button>
+  <button class="tab" data-tab="storico" style="display:none"><span class="ico">📜</span> <span data-i18n>Storico</span></button>
+  <button class="tab" data-tab="progressi"><span class="ico">📈</span> <span data-i18n>Progressi</span></button>
+  <button class="tab" data-tab="corpo"><span class="ico">🜂</span> <span data-i18n>Corpo</span></button>
+  <button class="tab" data-tab="storicocorpo" style="display:none"><span class="ico">📜</span> <span data-i18n>Misure</span></button>
+  <button class="tab" data-tab="alimentazione"><span class="ico">🍖</span> <span data-i18n>Alimentazione</span></button>
+  <button class="tab" data-tab="analisi"><span class="ico">📊</span> <span data-i18n>Analisi</span></button>
+  <button class="tab" data-tab="esercizi"><span class="ico">📖</span> <span data-i18n>Esercizi</span></button>
+  <button class="tab" data-tab="report"><span class="ico">🖨</span> <span data-i18n>Report</span></button>
+  <button class="tab" data-tab="guida" style="display:none"><span class="ico">📕</span> <span data-i18n>Guida</span></button>
 </div>
 
 <div class="wrap">
@@ -43,21 +44,21 @@
   <section class="panel" id="panel-esercizi"></section>
   <section class="panel" id="panel-report"></section>
   <section class="panel" id="panel-guida"></section>
-  <div class="footer">Training Monitor System — by Wander · <span class="mono" id="app-ver" title="versione"></span> · dati locali, nessun cloud · <span id="dot-storico" style="color:var(--ink-4)">●</span> <a href="#" id="lnk-storico" style="color:var(--ink-3);text-decoration:underline">Storico</a> · <span id="dot-misure" style="color:var(--ink-4)">●</span> <a href="#" id="lnk-misure" style="color:var(--ink-3);text-decoration:underline">Misure</a></div>
+  <div class="footer">Training Monitor System — by Wander · <span class="mono" id="app-ver" title="versione"></span> · <span data-i18n>dati locali, nessun cloud</span> · <span id="dot-storico" style="color:var(--ink-4)">●</span> <a href="#" id="lnk-storico" style="color:var(--ink-3);text-decoration:underline" data-i18n>Storico</a> · <span id="dot-misure" style="color:var(--ink-4)">●</span> <a href="#" id="lnk-misure" style="color:var(--ink-3);text-decoration:underline" data-i18n>Misure</a></div>
 </div>
 
-<button class="btn btn--gold no-print" id="fab-guida" title="Apri la guida" style="position:fixed;right:18px;bottom:18px;z-index:35;box-shadow:0 4px 16px rgba(28,14,4,.28);border-radius:22px;padding:9px 16px">📕 Guida</button>
+<button class="btn btn--gold no-print" id="fab-guida" data-i18n data-i18n-title="Apri la guida" title="Apri la guida" style="position:fixed;right:18px;bottom:18px;z-index:35;box-shadow:0 4px 16px rgba(28,14,4,.28);border-radius:22px;padding:9px 16px">📕 Guida</button>
 
 <!-- overlay connessione: gate a tutto schermo -->
 <div class="overlay hidden" id="overlay">
   <div class="overlay__logo"><span class="mk">✦</span><span class="br">Training Monitor System</span></div>
   <div class="overlay__card">
     <div class="icon">📁</div>
-    <h2 id="ov-title"><span class="sigil">✦</span> Connetti la cartella</h2>
-    <p id="overlay-sub">Per salvare e sincronizzare i dati, seleziona la cartella <strong>TMS</strong>.<br>Verrà creata al suo interno la sottocartella <strong>TMS_Dati/</strong>.</p>
-    <button class="btn btn--gold" id="overlay-btn" style="width:100%;height:44px;justify-content:center">▲ Seleziona cartella…</button>
+    <h2 id="ov-title"><span class="sigil">✦</span> <span data-i18n>Connetti la cartella</span></h2>
+    <p id="overlay-sub" data-i18n-html>Per salvare e sincronizzare i dati, seleziona la cartella <strong>TMS</strong>.<br>Verrà creata al suo interno la sottocartella <strong>TMS_Dati/</strong>.</p>
+    <button class="btn btn--gold" id="overlay-btn" data-i18n style="width:100%;height:44px;justify-content:center">▲ Seleziona cartella…</button>
     <div class="overlay__err" id="ov-err"></div>
-    <div class="overlay__note" id="ov-note">Richiesto una volta — poi si riconnette da solo</div>
+    <div class="overlay__note" id="ov-note" data-i18n>Richiesto una volta — poi si riconnette da solo</div>
   </div>
 </div>
 
@@ -65,10 +66,10 @@
 <div class="overlay hidden" id="disclaimer" style="z-index:10001">
   <div class="overlay__card" style="max-width:480px">
     <div class="icon">⚠️</div>
-    <h2><span class="sigil">✦</span> Prima di iniziare</h2>
-    <p style="text-align:center">Progetto amatoriale. Creato per uso personale e distribuito gratuitamente per spirito di condivisione, da un appassionato di fitness, non da un professionista, con lo scopo di aiutarti con il monitoraggio del tuo allenamento. Lo strumento funziona ed è testato, ma è ancora in fase sperimentale quindi fai sempre un backup dei dati. Codice sviluppato con l'assistenza di Claude (Anthropic).</p>
-    <label style="display:flex;align-items:center;gap:8px;justify-content:center;font-size:13px;margin:4px 0 14px;cursor:pointer"><input type="checkbox" id="disc-read"> Segna come letto (non mostrare più)</label>
-    <button class="btn btn--gold" id="disc-ok">Ho capito</button>
+    <h2><span class="sigil">✦</span> <span data-i18n>Prima di iniziare</span></h2>
+    <p style="text-align:center" data-i18n>Progetto amatoriale. Creato per uso personale e distribuito gratuitamente per spirito di condivisione, da un appassionato di fitness, non da un professionista, con lo scopo di aiutarti con il monitoraggio del tuo allenamento. Lo strumento funziona ed è testato, ma è ancora in fase sperimentale quindi fai sempre un backup dei dati. Codice sviluppato con l'assistenza di Claude (Anthropic).</p>
+    <label style="display:flex;align-items:center;gap:8px;justify-content:center;font-size:13px;margin:4px 0 14px;cursor:pointer"><input type="checkbox" id="disc-read"> <span data-i18n>Segna come letto (non mostrare più)</span></label>
+    <button class="btn btn--gold" id="disc-ok" data-i18n>Ho capito</button>
   </div>
 </div>
 

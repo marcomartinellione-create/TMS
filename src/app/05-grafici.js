@@ -2,7 +2,7 @@
 function lineChart(series,opts){
   opts=opts||{}; const W=opts.w||560,H=opts.h||200,P={l:42,r:12,t:10,b:24};
   const all=[].concat(...series.map(s=>s.data.map(d=>d.y))).filter(v=>v!=null&&!isNaN(v));
-  if(!all.length) return '<div class="empty">Nessun dato</div>';
+  if(!all.length) return `<div class="empty">${t('Nessun dato')}</div>`;
   let mn=Math.min(...all),mx=Math.max(...all); if(mn===mx){mx+=1;mn-=1;} const pad=(mx-mn)*.08; mn-=pad; mx+=pad;
   const n=Math.max(...series.map(s=>s.data.length));
   const X=i=>P.l+(n<=1?0:(W-P.l-P.r)*i/(n-1));
@@ -29,7 +29,7 @@ function lineChart(series,opts){
 function scatterChart(pts,opts){ /* pts: [{x,y,color,label}] · opts: xl/yl etichette assi, trend:true per retta di regressione */
   opts=opts||{}; const W=opts.w||560,H=opts.h||230,P={l:50,r:14,t:12,b:34};
   const valid=pts.filter(p=>p.x!=null&&p.y!=null&&!isNaN(p.x)&&!isNaN(p.y));
-  if(valid.length<3) return '<div class="empty">Servono almeno 3 punti (settimane con dati completi).</div>';
+  if(valid.length<3) return `<div class="empty">${t('Servono almeno 3 punti (settimane con dati completi).')}</div>`;
   let xmn=Math.min(...valid.map(p=>p.x)),xmx=Math.max(...valid.map(p=>p.x)),ymn=Math.min(...valid.map(p=>p.y)),ymx=Math.max(...valid.map(p=>p.y));
   if(xmn===xmx){xmx+=1;xmn-=1;} if(ymn===ymx){ymx+=1;ymn-=1;}
   const padx=(xmx-xmn)*.08,pady=(ymx-ymn)*.1; xmn-=padx;xmx+=padx;ymn-=pady;ymx+=pady;
@@ -53,7 +53,7 @@ function scatterChart(pts,opts){ /* pts: [{x,y,color,label}] · opts: xl/yl etic
 function boxChart(groups,opts){ /* groups: [{x,values:[..],color}] — box min/Q1/mediana/Q3/max */
   opts=opts||{}; const W=opts.w||560,H=opts.h||230,P={l:50,r:14,t:12,b:30};
   const gs=groups.filter(b=>b.values&&b.values.length>=3);
-  if(!gs.length) return '<div class="empty">Servono almeno 3 settimane per fase.</div>';
+  if(!gs.length) return `<div class="empty">${t('Servono almeno 3 settimane per fase.')}</div>`;
   const all=[].concat(...gs.map(b=>b.values));
   let mn=Math.min(...all),mx=Math.max(...all); if(mn===mx){mx+=1;mn-=1;} const pad=(mx-mn)*.1; mn-=pad;mx+=pad;
   const Y=v=>P.t+(H-P.t-P.b)*(1-(v-mn)/(mx-mn));
@@ -88,7 +88,7 @@ function pearson(xs,ys){ const n=Math.min(xs.length,ys.length); if(n<3) return n
 }
 function barChart(data,opts){
   opts=opts||{}; const W=opts.w||560,H=opts.h||200,P={l:42,r:12,t:10,b:34};
-  const vals=data.map(d=>d.y).filter(v=>v!=null&&!isNaN(v)); if(!vals.length)return '<div class="empty">Nessun dato</div>';
+  const vals=data.map(d=>d.y).filter(v=>v!=null&&!isNaN(v)); if(!vals.length)return `<div class="empty">${t('Nessun dato')}</div>`;
   const mx=Math.max(...vals,0), mn=Math.min(...vals,0);
   const Y=v=>P.t+(H-P.t-P.b)*(1-(v-mn)/((mx-mn)||1));
   const bw=(W-P.l-P.r)/data.length*.62, gap=(W-P.l-P.r)/data.length;

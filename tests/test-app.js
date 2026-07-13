@@ -91,6 +91,7 @@ function load(opts){
     url: 'https://tms.test/index.html',  /* origine non-opaca: serve a localStorage (toggle video, tema) */
     virtualConsole: vc,
     beforeParse(window){
+      if(opts.lang) window.localStorage.setItem('tms-lang', opts.lang);
       window.fetch = () => Promise.reject(new Error('offline'));
       if(!window.matchMedia) window.matchMedia = ()=>({matches:false,addListener(){},removeListener(){}});
       if(opts.idb) window.indexedDB = opts.idb;
@@ -465,7 +466,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   let rientroApp = null;
   {
     const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
-      beforeParse(win){ win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli)); } });
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli)); } });
     await settle(400);
     const sd = sub.window.document;
     ok(sd.getElementById('benvenuto').hidden === true && sd.getElementById('menu').hidden === false && sd.getElementById('home').hidden === true, 'app cliente: scheda memorizzata → parte dal MENU (Scheda + Alimentazione)');
@@ -505,7 +506,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   {
     /* riapertura dell'app: scheda ritrovata + bozza ricaricata (persistenza sul telefono) */
     const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
-      beforeParse(win){ win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli));
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli));
         win.localStorage.setItem(bozzaKey, JSON.stringify({ 'n-0': 'ripresa', 's-0': '7' })); } });
     await settle(400);
     const sd = sub.window.document;
@@ -519,6 +520,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     await settle(300);
     const sd = sub.window.document;
     ok(sd.getElementById('benvenuto').hidden === false && sd.getElementById('file-scheda') !== null, 'app cliente: senza scheda mostra il benvenuto con «Carica la scheda»');
+    ok(sub.window.eval('LANGP') === 'en' && (sd.querySelector('#benvenuto [data-i18n]')||{}).textContent === '👋 Welcome', 'app cliente EN: lingua auto-rilevata + benvenuto tradotto');
     ok(sub.window.eval('validaScheda({tipo:"x"})') === false && sub.window.eval('validaScheda(' + JSON.stringify(schedaCli) + ')') === true, 'app cliente: validazione del file scheda (tipo tms-scheda)');
     sub.window.close();
   }
@@ -769,6 +771,40 @@ console.log('--- T5: browser senza FSA e senza ponte -> gate non supportato ---'
   ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   ok(/non supportato/i.test(d.getElementById('ov-title').textContent), 'titolo "Browser non supportato"');
   dom.window.close();
+}
+
+console.log('--- T6: bilingue IT/EN (interruttore lingua, traduzione markup statico) ---');
+{
+  /* default IT: il markup statico resta italiano */
+  const { dom: domIt, errors: errIt } = await load({ idb: makeIDB(null), tmsFS: makeTmsFS(), fsa: true });
+  await settle();
+  const wIt = domIt.window, dIt = wIt.document;
+  ok(errIt.length === 0, 'IT: nessun errore runtime' + (errIt.length ? ' -> ' + errIt.join(' | ') : ''));
+  ok(wIt.eval("t('Ho capito')") === 'Ho capito', 'IT: t() restituisce la stringa italiana invariata');
+  ok(dIt.querySelector('[data-tab="allenamento"] [data-i18n]').textContent === 'Pesi', 'IT: tab «Pesi» in italiano');
+  ok(dIt.getElementById('btn-lang').textContent === 'EN', 'IT: il pulsante lingua propone «EN»');
+  domIt.window.close();
+
+  /* lingua EN salvata: il markup statico è tradotto in inglese */
+  const { dom: domEn, errors: errEn } = await load({ idb: makeIDB(null), tmsFS: makeTmsFS(), fsa: true, lang: 'en' });
+  await settle();
+  const wEn = domEn.window, dEn = wEn.document;
+  ok(errEn.length === 0, 'EN: nessun errore runtime' + (errEn.length ? ' -> ' + errEn.join(' | ') : ''));
+  ok(wEn.eval("LANG") === 'en', 'EN: lingua letta da localStorage');
+  ok(wEn.eval("t('Ho capito')") === 'Got it', 'EN: t() traduce dal dizionario');
+  ok(wEn.eval("t('stringa non tradotta xyz')") === 'stringa non tradotta xyz', 'EN: fallback all\'italiano se manca la voce');
+  ok(dEn.querySelector('[data-tab="allenamento"] [data-i18n]').textContent === 'Weights', 'EN: tab «Pesi» → «Weights»');
+  ok(dEn.querySelector('[data-tab="alimentazione"] [data-i18n]').textContent === 'Nutrition', 'EN: tab «Alimentazione» → «Nutrition»');
+  ok(dEn.getElementById('disc-ok').textContent === 'Got it', 'EN: disclaimer «Ho capito» → «Got it»');
+  ok(dEn.getElementById('lnk-storico').textContent === 'History', 'EN: footer «Storico» → «History»');
+  ok(/select the <strong>TMS<\/strong> folder/i.test(dEn.getElementById('overlay-sub').innerHTML), 'EN: overlay-sub (data-i18n-html) tradotto');
+  ok(dEn.getElementById('btn-lang').textContent === 'IT', 'EN: il pulsante lingua propone «IT»');
+  ok(wEn.eval("renderProfilo(); document.getElementById('prof-new').textContent") === '＋ New profile', 'EN: tab Profilo «＋ Nuovo profilo» → «＋ New profile»');
+  ok(wEn.eval("renderProfilo(); (document.querySelector('#panel-profilo .sec')||{}).textContent||''").includes('Backup (all profiles together)'), 'EN: tab Profilo sezione Backup tradotta');
+  ok(wEn.eval("renderAllenamento(); document.getElementById('btn-save-sched').textContent") === '💾 Save to History', 'EN: tab Pesi «Salva nello Storico» tradotto');
+  ok(wEn.eval("exName('Squat con bilanciere')") === 'Barbell Squat', 'EN: nome esercizio dall\'inglese originale (ESEN per nome)');
+  ok(wEn.eval("exName('Panca piana con bilanciere - presa media')") === 'Barbell Bench Press - Medium Grip', 'EN: nome esercizio composto tradotto');
+  domEn.window.close();
 }
 
 console.log('');

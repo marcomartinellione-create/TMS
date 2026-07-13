@@ -12,7 +12,7 @@ function lastPerf(nome){ if(!nome)return null; const rows=DOC.storico.filter(r=>
   return {peso:+best.peso||0, rip:+best.rip||0, rir:(best.rir==null?'':best.rir), scheda:maxS}; }
 function prefillFromLast(){ const rows=schedaRows(); let n=0;
   rows.forEach(r=>{ if(!r.esercizio)return; const lp=lastPerf(r.esercizio); if(lp){ r.peso=lp.peso; r.rip=lp.rip; if(lp.rir!==''&&lp.rir!=null) r.rir=lp.rir; n++; } });
-  if(!n){ alert('Nessuno storico da cui precompilare.'); return; }
+  if(!n){ alert(t('Nessuno storico da cui precompilare.')); return; }
   persist('scheda'); renderAllenamento(); }
 /* ── Co-pilota LED passivo: pallino 🟢/🟡/🔴 accanto al Peso digitato. Confronta il peso
    col set di pari posizione della scorsa scheda (come ΔTL set) e pesa i segnali di
@@ -31,14 +31,14 @@ function caricoLED(pesoNuovo, pvPeso, lastRir, sig){
   const p=+pesoNuovo||0; if(p<=0 || !(pvPeso>0)) return null;
   const d=(p-pvPeso)/pvPeso, pc=Math.round(d*100);
   let level, msg;
-  if(d>0.20){ level='danger'; msg='Salto molto grande (+'+pc+'% vs scorsa): di solito si sale di poco, ricontrolla'; }
-  else if(d>0.10){ level='warn'; msg='Aumento deciso (+'+pc+'%): ok se la tecnica regge'; }
-  else if(d>=-0.05){ level='ok'; msg=(d>0.001?('Progressione sensata (+'+pc+'%)'):(d<-0.001?('Lieve scarico ('+pc+'%)'):'Stesso carico della scorsa')); }
-  else if(d>=-0.15){ level='warn'; msg='Calo del '+(-pc)+'%: scarico voluto?'; }
-  else { level='warn'; msg='Calo marcato ('+(-pc)+'%): deload/scarico?'; }
-  if(level==='ok' && d>0.05 && lastRir!=null && lastRir<=1){ level='warn'; msg='Aumenti, ma la scorsa eri al limite (RIR '+lastRir+'): occhio'; }
-  if(sig && sig.sovraccarico && d>0.02){ level='danger'; msg='Carico settimanale già alto (ACWR '+nf(sig.acwr,2)+'): meglio non aumentare, valuta uno scarico'; }
-  else if(level==='ok' && sig && sig.monoHigh && d>0.05){ level='warn'; msg='Settimana poco variata (monotonia alta): aumento ok, ma varia i carichi'; }
+  if(d>0.20){ level='danger'; msg=t('Salto molto grande')+' (+'+pc+'% '+t('vs scorsa): di solito si sale di poco, ricontrolla'); }
+  else if(d>0.10){ level='warn'; msg=t('Aumento deciso')+' (+'+pc+'%): '+t('ok se la tecnica regge'); }
+  else if(d>=-0.05){ level='ok'; msg=(d>0.001?(t('Progressione sensata')+' (+'+pc+'%)'):(d<-0.001?(t('Lieve scarico')+' ('+pc+'%)'):t('Stesso carico della scorsa'))); }
+  else if(d>=-0.15){ level='warn'; msg=t('Calo del')+' '+(-pc)+'%: '+t('scarico voluto?'); }
+  else { level='warn'; msg=t('Calo marcato')+' ('+(-pc)+'%): '+t('deload/scarico?'); }
+  if(level==='ok' && d>0.05 && lastRir!=null && lastRir<=1){ level='warn'; msg=t('Aumenti, ma la scorsa eri al limite (RIR')+' '+lastRir+'): '+t('occhio'); }
+  if(sig && sig.sovraccarico && d>0.02){ level='danger'; msg=t('Carico settimanale già alto (ACWR')+' '+nf(sig.acwr,2)+'): '+t('meglio non aumentare, valuta uno scarico'); }
+  else if(level==='ok' && sig && sig.monoHigh && d>0.05){ level='warn'; msg=t('Settimana poco variata (monotonia alta): aumento ok, ma varia i carichi'); }
   return {level, msg};
 }
 /* pallino reso accanto alle frecce ▲▼ nella cella esercizio (flex con gap): niente margine */
@@ -54,9 +54,9 @@ function caricoLedApply(span, led){
 }
 function rpeDayControls(g){ const d=dayRpe(g), ld=dayLoad(g);
   return `<span class="rpe-ctl no-print" style="float:right;display:inline-flex;gap:6px;align-items:center;font-weight:400">`+
-    `<label style="font-size:11px;color:var(--ink-3)">RPE</label><input class="cell-in rpe-in" type="number" min="0" max="10" step="0.5" data-rpe-day="${esc(g)}" data-rpe-f="rpe" value="${d.rpe??''}" style="width:46px" placeholder="0–10" title="RPE della seduta intera (Foster) · 0–10">`+
-    `<label style="font-size:11px;color:var(--ink-3)">min</label><input class="cell-in rpe-in" type="number" min="0" step="1" data-rpe-day="${esc(g)}" data-rpe-f="min" value="${d.min??''}" style="width:54px" placeholder="min" title="Durata della seduta in minuti">`+
-    `<span class="pill" data-rpe-load="${esc(g)}" title="Carico interno seduta = RPE × min (AU)">${ld?nfk(ld)+' AU':'—'}</span></span>`; }
+    `<label style="font-size:11px;color:var(--ink-3)">RPE</label><input class="cell-in rpe-in" type="number" min="0" max="10" step="0.5" data-rpe-day="${esc(g)}" data-rpe-f="rpe" value="${d.rpe??''}" style="width:46px" placeholder="0–10" title="${t('RPE della seduta intera (Foster) · 0–10')}">`+
+    `<label style="font-size:11px;color:var(--ink-3)">min</label><input class="cell-in rpe-in" type="number" min="0" step="1" data-rpe-day="${esc(g)}" data-rpe-f="min" value="${d.min??''}" style="width:54px" placeholder="min" title="${t('Durata della seduta in minuti')}">`+
+    `<span class="pill" data-rpe-load="${esc(g)}" title="${t('Carico interno seduta = RPE × min (AU)')}">${ld?nfk(ld)+' AU':'—'}</span></span>`; }
 function renderAllenamento(){
   const rows=schedaRows();
   const smap=sedutaMap(rows);
@@ -67,25 +67,25 @@ function renderAllenamento(){
   const sigCarico=caricoSignals();
   rows.forEach((r,i)=>{
     if(r.giorno && r.giorno!==lastDay){ lastDay=r.giorno;
-      body+=`<tr class="day-sep"><td colspan="12">▌ ${esc(r.giorno)}${useRpeActive()?rpeDayControls(r.giorno):''}</td></tr>`; }
+      body+=`<tr class="day-sep"><td colspan="12">▌ ${esc(t(r.giorno))}${useRpeActive()?rpeDayControls(r.giorno):''}</td></tr>`; }
     const sd=rowSeduta(smap,r), bk=r.esercizio+'|'+sd;
     const firstOfBlock=r.esercizio && !blockSeen[bk]; if(r.esercizio) blockSeen[bk]=true;
-    const m=sRM(r), p=sPct(r), t=sTL(r);
+    const m=sRM(r), p=sPct(r), tl=sTL(r);
     /* Δ TL per SET: questo set vs il set di pari posizione (stessa seduta) della scorsa scheda */
     let dperc=null, ledCarico=null;
     if(r.esercizio && !r.test){ const ix=setIdx[bk]||0; setIdx[bk]=ix+1;
-      const prevSets=lastSetsCache[bk]||(lastSetsCache[bk]=lastBlockSets(r.esercizio,sd)); const pv=prevSets[ix]||0; if(pv>0) dperc=t/pv-1;
+      const prevSets=lastSetsCache[bk]||(lastSetsCache[bk]=lastBlockSets(r.esercizio,sd)); const pv=prevSets[ix]||0; if(pv>0) dperc=tl/pv-1;
       const prevPesi=lastPesiCache[bk]||(lastPesiCache[bk]=lastBlockPesi(r.esercizio,sd));
       const lp=lpCache[r.esercizio]||(lpCache[r.esercizio]=lastPerf(r.esercizio));
       const lastRir=(lp&&lp.rir!==''&&lp.rir!=null)? +lp.rir : null;
       ledCarico=caricoLED(r.peso, prevPesi[ix]||0, lastRir, sigCarico); }
     const [fl,fc]=fascia(p);
-    const sdBadge=(r.esercizio && sd>1 && firstOfBlock)? ` <span class="pill" style="padding:0 6px" title="Seduta ${sd} della settimana (auto)">S${sd}</span>`:'';
+    const sdBadge=(r.esercizio && sd>1 && firstOfBlock)? ` <span class="pill" style="padding:0 6px" title="${t('Seduta')} ${sd} ${t('della settimana (auto)')}">S${sd}</span>`:'';
     const canUp=i>0 && rows[i-1] && rows[i-1].giorno===r.giorno, canDown=i<rows.length-1 && rows[i+1] && rows[i+1].giorno===r.giorno;
     body+=`<tr data-i="${i}"${r.test?' style="background:rgba(122,62,168,.07)"':''}>
-      <td class="l"><button type="button" class="cell-in txt ex-pick" style="min-width:170px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(r.esercizio):'<span class="muted">＋ scegli esercizio</span>'} <span style="opacity:.5">▾</span></button>${sdBadge}
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="Guarda il video">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="ultima registrazione (scheda ${lp.scheda})">ult: ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}<span style="flex:1"></span>${caricoLedHTML(ledCarico)}<button class="btn btn--sm no-print" data-mvup="${i}" title="sposta su (nel giorno)"${canUp?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="sposta giù (nel giorno)"${canDown?'':' disabled'}>▼</button></div></td>
-      <td class="l"><textarea class="cell-in txt note-area" data-f="note" placeholder="note" style="min-width:90px">${esc(r.note||'')}</textarea></td>
+      <td class="l"><button type="button" class="cell-in txt ex-pick" style="min-width:170px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>${sdBadge}
+        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="${t('ultima registrazione (scheda')} ${lp.scheda})">${t('ult:')} ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}<span style="flex:1"></span>${caricoLedHTML(ledCarico)}<button class="btn btn--sm no-print" data-mvup="${i}" title="${t('sposta su (nel giorno)')}"${canUp?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="${t('sposta giù (nel giorno)')}"${canDown?'':' disabled'}>▼</button></div></td>
+      <td class="l"><textarea class="cell-in txt note-area" data-f="note" placeholder="${t('note')}" style="min-width:90px">${esc(r.note||'')}</textarea></td>
       <td><input class="cell-in" type="number" min="0" value="${r.serie??''}" data-f="serie" style="width:48px"></td>
       <td><input class="cell-in" type="number" min="0" value="${r.rip??''}" data-f="rip" style="width:52px"></td>
       <td><input class="cell-in" type="number" min="0" step="0.5" value="${r.peso??''}" data-f="peso" style="width:60px"></td>
@@ -93,35 +93,35 @@ function renderAllenamento(){
       <td><input class="cell-in" value="${esc(r.rest||'')}" data-f="rest" style="width:54px" placeholder="m:ss"></td>
       <td class="cell-calc num">${m?nf(m,1):'—'}</td>
       <td class="cell-calc num">${p?nf(p,1):'—'}</td>
-      <td class="cell-out num">${t?nfk(t):'—'}</td>
-      <td class="num ${dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'}" title="Δ TL del set vs il set di pari posizione della scorsa scheda">${dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'}</td>
-      <td style="white-space:nowrap"><span class="fascia ${fc}">${fl}</span>
-        <button class="btn btn--sm no-print" data-set="${i}" title="aggiungi un set a questo esercizio">＋set</button>
-        <button class="btn btn--sm no-print" data-test="${i}" title="segna/togli test 1RM (escluso dalla progressione)" style="${r.test?'color:var(--violet);border-color:var(--violet)':''}">★</button>
-        <button class="btn btn--sm btn--danger no-print" data-del="${i}" title="elimina">✕</button></td>
+      <td class="cell-out num">${tl?nfk(tl):'—'}</td>
+      <td class="num ${dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'}" title="${t('Δ TL del set vs il set di pari posizione della scorsa scheda')}">${dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'}</td>
+      <td style="white-space:nowrap"><span class="fascia ${fc}">${t(fl)}</span>
+        <button class="btn btn--sm no-print" data-set="${i}" title="${t('aggiungi un set a questo esercizio')}">${t('＋set')}</button>
+        <button class="btn btn--sm no-print" data-test="${i}" title="${t('segna/togli test 1RM (escluso dalla progressione)')}" style="${r.test?'color:var(--violet);border-color:var(--violet)':''}">★</button>
+        <button class="btn btn--sm btn--danger no-print" data-del="${i}" title="${t('elimina')}">✕</button></td>
     </tr>`;
   });
   document.getElementById('panel-allenamento').innerHTML=`
    <div class="bar no-print">
-     <div class="field"><label>Scheda</label>
+     <div class="field"><label>${t('Scheda')}</label>
        <select id="sched-mode">
-         <option value="settimanale"${schedaMode==='settimanale'?' selected':''}>Settimanale</option>
-         <option value="mensile"${schedaMode==='mensile'?' selected':''}>Mensile</option>
+         <option value="settimanale"${schedaMode==='settimanale'?' selected':''}>${t('Settimanale')}</option>
+         <option value="mensile"${schedaMode==='mensile'?' selected':''}>${t('Mensile')}</option>
        </select></div>
      <div class="spacer"></div>
-     <button class="btn" id="btn-addrow">＋ Esercizio</button>
-     <button class="btn" id="btn-addday">＋ Giorno</button>
-     <button class="btn" id="btn-prefill" title="Riprendi peso/rip/RIR dalla scorsa registrazione">↧ Dalla scorsa</button>
-     <button class="btn btn--ember" id="btn-save-sched">💾 Salva nello Storico</button>
-     <button class="btn btn--danger" id="btn-undo-sched">↶ Annulla ultimo</button>
+     <button class="btn" id="btn-addrow">${t('＋ Esercizio')}</button>
+     <button class="btn" id="btn-addday">${t('＋ Giorno')}</button>
+     <button class="btn" id="btn-prefill" title="${t('Riprendi peso/rip/RIR dalla scorsa registrazione')}">${t('↧ Dalla scorsa')}</button>
+     <button class="btn btn--ember" id="btn-save-sched">${t('💾 Salva nello Storico')}</button>
+     <button class="btn btn--danger" id="btn-undo-sched">${t('↶ Annulla ultimo')}</button>
    </div>
    ${statusBanner(DOC.storico,'Storico allenamento')}
-   <div class="sec">▌ Scheda ${schedaMode} <span class="pill">${rows.length} righe-set</span><span class="pill" id="hdr-tottl" style="margin-left:6px">TL totale ${nfk(totTL)}</span><span id="hdr-delta">${deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${schedaMode==='mensile'?'mese':'settimana'} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px" title="TL totale ultima scheda salvata">ultima ${nfk(prevTotal)}</span>`}</span></div>
+   <div class="sec">▌ ${t('Scheda '+schedaMode)} <span class="pill">${rows.length} ${t('righe-set')}</span><span class="pill" id="hdr-tottl" style="margin-left:6px">${t('TL totale')} ${nfk(totTL)}</span><span id="hdr-delta">${deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px" title="${t('TL totale ultima scheda salvata')}">${t('ultima')} ${nfk(prevTotal)}</span>`}</span></div>
    <div class="tbl-wrap"><table class="${useRirActive()?'':'hide-rir'}">
-     <thead><tr><th class="l">Esercizio</th><th class="l">Note</th><th>Serie</th><th>Rip.</th><th>Peso</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th>Rest</th><th>1RM</th><th>%1RM</th><th>TL</th><th title="Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda">Δ TL set</th><th>Fascia / azioni</th></tr></thead>
-     <tbody>${body||'<tr><td colspan="12" class="empty">Nessun esercizio. Aggiungine uno o un giorno.</td></tr>'}</tbody>
+     <thead><tr><th class="l">${t('Esercizio')}</th><th class="l">${t('Note')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th>${t('Rest')}</th><th>1RM</th><th>%1RM</th><th>TL</th><th title="${t('Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda')}">Δ TL set</th><th>${t('Fascia / azioni')}</th></tr></thead>
+     <tbody>${body||`<tr><td colspan="12" class="empty">${t('Nessun esercizio. Aggiungine uno o un giorno.')}</td></tr>`}</tbody>
    </table></div>
-   <div class="callout callout--info"><div>🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto alle frecce ▲▼ dell'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:#c9961f">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.</div></div>`;
+   <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto alle frecce ▲▼ dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:#c9961f">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
   document.getElementById('sched-mode').onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
   // auto-resize note textareas
   document.getElementById('panel-allenamento').addEventListener('input', e=>{
@@ -134,7 +134,7 @@ function renderAllenamento(){
   document.querySelectorAll('.note-area').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
   document.getElementById('btn-addrow').onclick=aggiungiEsercizioModal;
   document.getElementById('btn-addday').onclick=addDay;
-  { const pf=document.getElementById('btn-prefill'); if(pf) pf.onclick=()=>{ if(confirm('Precompilo peso/rip/RIR dalla scorsa registrazione di ogni esercizio? Sovrascrive i valori attuali della scheda.')) prefillFromLast(); }; }
+  { const pf=document.getElementById('btn-prefill'); if(pf) pf.onclick=()=>{ if(confirm(t('Precompilo peso/rip/RIR dalla scorsa registrazione di ogni esercizio? Sovrascrive i valori attuali della scheda.'))) prefillFromLast(); }; }
   document.getElementById('btn-save-sched').onclick=saveSchedaModal;
   document.getElementById('btn-undo-sched').onclick=undoScheda;
   document.querySelectorAll('#panel-allenamento input').forEach(inp=>{
@@ -170,14 +170,14 @@ function aggStatus(arr){ const codes=(arr||[]).map(r=>+r.scheda||0).filter(x=>x>
   const last=codes.length?Math.max(...codes):0; const w=isoWeek(new Date()); const cur=schedaCode(w.anno,w.sett); const prev=weekPrev(cur);
   return {ok:last>=prev, last, cur, prev}; }
 function statusBanner(arr,label){ const s=aggStatus(arr);
-  if(s.ok) return `<div class="callout no-print" style="margin:0 0 12px;background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ <b>${label} aggiornato</b> · ultima registrazione: settimana <b>${s.last}</b> (corrente ${s.cur}).</div></div>`;
-  const what=s.last?`l'ultima è la settimana <b>${s.last}</b>`:'non ci sono ancora registrazioni';
-  return `<div class="callout no-print" style="margin:0 0 12px;background:var(--danger-t);border-color:#e6b8b8;border-left-color:var(--danger)"><div>⚠ <b>${label} da aggiornare</b> · ${what}; manca almeno la settimana precedente (<b>${s.prev}</b>). Ricordati di salvare.</div></div>`;
+  if(s.ok) return `<div class="callout no-print" style="margin:0 0 12px;background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ <b>${t(label)} ${t('aggiornato')}</b> · ${t('ultima registrazione: settimana')} <b>${s.last}</b> (${t('corrente')} ${s.cur}).</div></div>`;
+  const what=s.last?`${t('l\'ultima è la settimana')} <b>${s.last}</b>`:t('non ci sono ancora registrazioni');
+  return `<div class="callout no-print" style="margin:0 0 12px;background:var(--danger-t);border-color:#e6b8b8;border-left-color:var(--danger)"><div>⚠ <b>${t(label)} ${t('da aggiornare')}</b> · ${what}; ${t('manca almeno la settimana precedente')} (<b>${s.prev}</b>). ${t('Ricordati di salvare.')}</div></div>`;
 }
 function updateStatusDots(){ const so=aggStatus(DOC.storico), bo=aggStatus(DOC.storico_io);
   const ds=document.getElementById('dot-storico'), dm=document.getElementById('dot-misure');
-  if(ds){ ds.style.color=so.ok?'var(--ok-b)':'var(--danger-b)'; ds.title=so.ok?('Storico aggiornato (ultima '+so.last+')'):('Storico da aggiornare — manca la settimana '+so.prev); }
-  if(dm){ dm.style.color=bo.ok?'var(--ok-b)':'var(--danger-b)'; dm.title=bo.ok?('Misure aggiornate (ultima '+bo.last+')'):('Misure da aggiornare — manca la settimana '+bo.prev); }
+  if(ds){ ds.style.color=so.ok?'var(--ok-b)':'var(--danger-b)'; ds.title=so.ok?(t('Storico aggiornato (ultima')+' '+so.last+')'):(t('Storico da aggiornare — manca la settimana')+' '+so.prev); }
+  if(dm){ dm.style.color=bo.ok?'var(--ok-b)':'var(--danger-b)'; dm.title=bo.ok?(t('Misure aggiornate (ultima')+' '+bo.last+')'):(t('Misure da aggiornare — manca la settimana')+' '+bo.prev); }
 }
 function refreshSchedaCalc(){
   const rows=schedaRows(), smap=sedutaMap(rows);
@@ -185,16 +185,16 @@ function refreshSchedaCalc(){
   const sigCarico=caricoSignals();
   document.querySelectorAll('#panel-allenamento tbody tr[data-i]').forEach(tr=>{
     const i=+tr.dataset.i, r=rows[i]; if(!r)return; const c=tr.children;
-    const m=sRM(r), p=sPct(r), t=sTL(r), fa=fascia(p);
-    totTL+=t;
+    const m=sRM(r), p=sPct(r), tl=sTL(r), fa=fascia(p);
+    totTL+=tl;
     if(c[7])c[7].textContent=m?nf(m,1):'—';
     if(c[8])c[8].textContent=p?nf(p,1):'—';
-    if(c[9])c[9].textContent=t?nfk(t):'—';
-    const fsp=c[11]&&c[11].querySelector('.fascia'); if(fsp){fsp.className='fascia '+fa[1]; fsp.textContent=fa[0];}
+    if(c[9])c[9].textContent=tl?nfk(tl):'—';
+    const fsp=c[11]&&c[11].querySelector('.fascia'); if(fsp){fsp.className='fascia '+fa[1]; fsp.textContent=t(fa[0]);}
     const sd=rowSeduta(smap,r), bk=r.esercizio+'|'+sd;
     let dperc=null, ledCarico=null;
     if(r.esercizio && !r.test){ const ix=setIdx[bk]||0; setIdx[bk]=ix+1;
-      const prevSets=lastSetsCache[bk]||(lastSetsCache[bk]=lastBlockSets(r.esercizio,sd)); const pv=prevSets[ix]||0; if(pv>0) dperc=t/pv-1;
+      const prevSets=lastSetsCache[bk]||(lastSetsCache[bk]=lastBlockSets(r.esercizio,sd)); const pv=prevSets[ix]||0; if(pv>0) dperc=tl/pv-1;
       const prevPesi=lastPesiCache[bk]||(lastPesiCache[bk]=lastBlockPesi(r.esercizio,sd));
       const lp=lpCache[r.esercizio]||(lpCache[r.esercizio]=lastPerf(r.esercizio));
       const lastRir=(lp&&lp.rir!==''&&lp.rir!=null)? +lp.rir : null;
@@ -204,16 +204,16 @@ function refreshSchedaCalc(){
   });
   let prevTotal=0; if(DOC.storico.length){ const mx=Math.max(...DOC.storico.map(r=>+r.scheda||0)); prevTotal=DOC.storico.filter(r=>(+r.scheda)===mx&&!r.test).reduce((a,r)=>a+sTL(r),0); }
   const deltaW=prevTotal>0?(totTL/prevTotal-1):null;
-  const ht=document.getElementById('hdr-tottl'); if(ht)ht.textContent='TL totale '+nfk(totTL);
-  const hd=document.getElementById('hdr-delta'); if(hd)hd.innerHTML=deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${schedaMode==='mensile'?'mese':'settimana'} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px">ultima ${nfk(prevTotal)}</span>`;
+  const ht=document.getElementById('hdr-tottl'); if(ht)ht.textContent=t('TL totale')+' '+nfk(totTL);
+  const hd=document.getElementById('hdr-delta'); if(hd)hd.innerHTML=deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px">${t('ultima')} ${nfk(prevTotal)}</span>`;
 }
 /* ＋ Esercizio: chiede in quale giorno aggiungerlo e lo inserisce in fondo a quel giorno
    (se il giorno non esiste ancora, crea la sezione). */
 function aggiungiEsercizioModal(){
   const rows=schedaRows(); const def=(rows.length?rows[rows.length-1].giorno:'')||'Lunedì';
-  modal(`<h3>Aggiungi esercizio</h3>
-    <div class="field"><label>In quale giorno?</label><select id="m-day">${GIORNI.map(g=>`<option${g===def?' selected':''}>${g}</option>`).join('')}</select></div>
-    <div class="modal__actions"><button class="btn" onclick="closeModal()">Annulla</button><button class="btn btn--ember" id="m-ok">Aggiungi</button></div>`);
+  modal(`<h3>${t('Aggiungi esercizio')}</h3>
+    <div class="field"><label>${t('In quale giorno?')}</label><select id="m-day">${GIORNI.map(g=>`<option value="${g}"${g===def?' selected':''}>${t(g)}</option>`).join('')}</select></div>
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="m-ok">${t('Aggiungi')}</button></div>`);
   document.getElementById('m-ok').onclick=()=>{ const g=document.getElementById('m-day').value; closeModal();
     const r=schedaRows(), nuova={giorno:g,esercizio:'',note:'',serie:3,rip:10,peso:0,rest:'1:30'};
     let last=-1; r.forEach((x,i)=>{ if(x.giorno===g) last=i; });
@@ -221,33 +221,33 @@ function aggiungiEsercizioModal(){
     persist('scheda'); renderAllenamento(); };
 }
 function addDay(){
-  modal(`<h3>Aggiungi giorno</h3>
-    <div class="field"><label>Giorno</label><select id="m-day">${GIORNI.map(g=>`<option>${g}</option>`).join('')}</select></div>
-    <div class="modal__actions"><button class="btn" onclick="closeModal()">Annulla</button>
-    <button class="btn btn--ember" id="m-ok">Aggiungi</button></div>`);
+  modal(`<h3>${t('Aggiungi giorno')}</h3>
+    <div class="field"><label>${t('Giorno')}</label><select id="m-day">${GIORNI.map(g=>`<option value="${g}">${t(g)}</option>`).join('')}</select></div>
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button>
+    <button class="btn btn--ember" id="m-ok">${t('Aggiungi')}</button></div>`);
   document.getElementById('m-ok').onclick=()=>{ const g=document.getElementById('m-day').value;
     schedaRows().push({giorno:g,esercizio:'',note:'',serie:3,rip:10,peso:0,rest:'1:30'}); persist('scheda'); closeModal(); renderAllenamento(); };
 }
 function saveSchedaModal(){
   const w=isoWeek(new Date());
   const _pad=n=>String(n).padStart(2,'0'); const wk=w.anno+'-W'+_pad(w.sett);
-  modal(`<h3>💾 Salva scheda nello Storico</h3>
-    <p class="muted" style="font-size:13px;margin:0 0 8px">Scegli la <b>settimana</b> dal calendario (oppure regola Anno/Settimana). Codice = Anno·100 + Settimana.</p>
-    <div class="field"><label>Settimana (calendario)</label><input id="m-week" type="week" value="${wk}" style="width:100%"></div>
-    <div class="row"><div class="field"><label>Anno</label><input id="m-anno" type="number" value="${w.anno}"></div>
-      <div class="field"><label>Settimana ISO</label><input id="m-sett" type="number" min="1" max="53" value="${w.sett}"></div></div>
-    <p class="muted" style="font-size:13px;margin:6px 0 0">Codice scheda: <b id="m-codeprev">${schedaCode(w.anno,w.sett)}</b></p>
-    <div class="modal__actions"><button class="btn" onclick="closeModal()">Annulla</button>
-      <button class="btn btn--ember" id="m-ok">Salva</button></div>`);
+  modal(`<h3>${t('💾 Salva scheda nello Storico')}</h3>
+    <p class="muted" style="font-size:13px;margin:0 0 8px">${t('Scegli la <b>settimana</b> dal calendario (oppure regola Anno/Settimana). Codice = Anno·100 + Settimana.')}</p>
+    <div class="field"><label>${t('Settimana (calendario)')}</label><input id="m-week" type="week" value="${wk}" style="width:100%"></div>
+    <div class="row"><div class="field"><label>${t('Anno')}</label><input id="m-anno" type="number" value="${w.anno}"></div>
+      <div class="field"><label>${t('Settimana ISO')}</label><input id="m-sett" type="number" min="1" max="53" value="${w.sett}"></div></div>
+    <p class="muted" style="font-size:13px;margin:6px 0 0">${t('Codice scheda:')} <b id="m-codeprev">${schedaCode(w.anno,w.sett)}</b></p>
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button>
+      <button class="btn btn--ember" id="m-ok">${t('Salva')}</button></div>`);
   const _upd=()=>{ const a=+document.getElementById('m-anno').value, st=+document.getElementById('m-sett').value; const cp=document.getElementById('m-codeprev'); if(cp&&a&&st>=1&&st<=53) cp.textContent=schedaCode(a,st); };
   { const wkEl=document.getElementById('m-week'); if(wkEl) wkEl.onchange=()=>{ const m=/^(\d{4})-W(\d{1,2})$/.exec(wkEl.value||''); if(m){ document.getElementById('m-anno').value=+m[1]; document.getElementById('m-sett').value=+m[2]; _upd(); } }; }
   ['m-anno','m-sett'].forEach(id=>{ const el=document.getElementById(id); if(el) el.oninput=()=>{ const a=+document.getElementById('m-anno').value, st=+document.getElementById('m-sett').value; const wkEl=document.getElementById('m-week'); if(wkEl&&a&&st>=1&&st<=53) wkEl.value=a+'-W'+_pad(st); _upd(); }; });
   document.getElementById('m-ok').onclick=()=>{
     const anno=+document.getElementById('m-anno').value, sett=+document.getElementById('m-sett').value;
-    if(!anno||sett<1||sett>53){alert('Anno/settimana non validi');return;}
+    if(!anno||sett<1||sett>53){alert(t('Anno/settimana non validi'));return;}
     const code=schedaCode(anno,sett);
     const exist=DOC.storico.filter(r=>(+r.scheda)===code).length;
-    if(exist && !confirm(`Esiste già la scheda ${code} (${exist} righe). Le nuove righe verranno AGGIUNTE. Procedo?`)) return;
+    if(exist && !confirm(t('Esiste già la scheda')+' '+code+' ('+exist+' '+t('righe). Le nuove righe verranno AGGIUNTE. Procedo?'))) return;
     const preMax={}; DOC.storico.forEach(r=>{ if(r.esercizio)preMax[r.esercizio]=Math.max(preMax[r.esercizio]||0,+r.peso||0); });
     let added=0; const smap=sedutaMap(schedaRows()); const prs={};
     schedaRows().forEach(r=>{ if(!r.esercizio||!String(r.esercizio).trim())return;
@@ -263,18 +263,18 @@ function saveSchedaModal(){
       DOC.scheda.rpe[schedaMode]={}; persist('corpo'); }
     persist('scheda'); persist('storico'); closeModal();
     const prk=Object.keys(prs);
-    let _msg=`✔ Scheda ${code} salvata — ${added} esercizi aggiunti allo Storico.`;
-    if(prk.length) _msg+='\n\n🎉 Nuovo record: '+prk.map(k=>k+' '+nf(prs[k],1)+' kg').join(', ');
+    let _msg=t('✔ Scheda')+' '+code+' '+t('salvata —')+' '+added+' '+t('esercizi aggiunti allo Storico.');
+    if(prk.length) _msg+='\n\n'+t('🎉 Nuovo record:')+' '+prk.map(k=>exName(k)+' '+nf(prs[k],1)+' kg').join(', ');
     alert(_msg);
     if(curTab==='storico')renderStorico(); else renderAllenamento(); updateStatusDots();
   };
 }
 function undoScheda(){
-  if(!DOC.storico.length){alert('Storico vuoto.');return;}
+  if(!DOC.storico.length){alert(t('Storico vuoto.'));return;}
   const maxS=Math.max(...DOC.storico.map(r=>+r.scheda||0));
   const n=DOC.storico.filter(r=>(+r.scheda)===maxS).length;
-  if(!confirm(`Elimino l'ultima scheda salvata (${maxS}, ${n} righe)? Operazione non annullabile.`))return;
+  if(!confirm(t('Elimino l\'ultima scheda salvata (')+maxS+', '+n+' '+t('righe)? Operazione non annullabile.')))return;
   DOC.storico=DOC.storico.filter(r=>(+r.scheda)!==maxS); persist('storico');
-  alert(`✔ Scheda ${maxS} eliminata (${n} righe).`); if(curTab==='storico')renderStorico(); else renderAllenamento(); updateStatusDots();
+  alert(t('✔ Scheda')+' '+maxS+' '+t('eliminata (')+n+' '+t('righe).')); if(curTab==='storico')renderStorico(); else renderAllenamento(); updateStatusDots();
 }
 

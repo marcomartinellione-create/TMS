@@ -90,40 +90,40 @@ async function cruscottoDati(){
 const CR_COL={danger:'var(--danger)', warn:'#c9961f', ok:'var(--ok)', none:'var(--ink-3)'};
 const CR_LED={danger:'🔴', warn:'🟡', ok:'🟢', none:'⚪'};
 /* riga di sintesi (grigia) sotto il nome del profilo: ACWR · aggiornamento · monotonia · PR */
-function semaforoSummaryHTML(t){
-  if(!t.hasData) return '<span style="color:var(--ink-3)">nessun dato registrato</span>';
-  const acwrCol=t.acwr==null?'var(--ink-3)':(t.acwr>1.5?'var(--danger)':((t.acwr<0.8||t.acwr>1.3)?'#c9961f':'var(--ok)'));
-  const acwrTxt=t.acwr==null?'—':nf(t.acwr,2);
-  const stTxt=t.stale==null?'<span style="color:var(--danger)">mai aggiornata</span>':(t.stale<=0?'<span style="color:var(--ok)">questa sett.</span>':(t.stale>=3?`<span style="color:var(--danger)">${t.stale} sett. fa</span>`:(t.stale===2?`<span style="color:#c9961f">2 sett. fa</span>`:'1 sett. fa')));
-  const monoTxt=t.hasRpe?` · 📊 mono <b style="color:${t.monoHigh?'var(--danger)':'inherit'}">${t.mono==null?'—':nf(t.mono,2)}</b>`:'';
-  const prTxt=t.prs&&t.prs.length?` · <span style="color:var(--ok)" title="${esc(t.prs.slice(0,5).map(p=>p.nome+' '+nf(p.peso,0)+' kg').join(' · '))}">🎉 ${t.prs.length} PR</span>`:'';
+function semaforoSummaryHTML(tg){
+  if(!tg.hasData) return `<span style="color:var(--ink-3)">${t('nessun dato registrato')}</span>`;
+  const acwrCol=tg.acwr==null?'var(--ink-3)':(tg.acwr>1.5?'var(--danger)':((tg.acwr<0.8||tg.acwr>1.3)?'#c9961f':'var(--ok)'));
+  const acwrTxt=tg.acwr==null?'—':nf(tg.acwr,2);
+  const stTxt=tg.stale==null?`<span style="color:var(--danger)">${t('mai aggiornata')}</span>`:(tg.stale<=0?`<span style="color:var(--ok)">${t('questa sett.')}</span>`:(tg.stale>=3?`<span style="color:var(--danger)">${tg.stale} ${t('sett. fa')}</span>`:(tg.stale===2?`<span style="color:#c9961f">2 ${t('sett. fa')}</span>`:`1 ${t('sett. fa')}`)));
+  const monoTxt=tg.hasRpe?` · 📊 mono <b style="color:${tg.monoHigh?'var(--danger)':'inherit'}">${tg.mono==null?'—':nf(tg.mono,2)}</b>`:'';
+  const prTxt=tg.prs&&tg.prs.length?` · <span style="color:var(--ok)" title="${esc(tg.prs.slice(0,5).map(p=>exName(p.nome)+' '+nf(p.peso,0)+' kg').join(' · '))}">🎉 ${tg.prs.length} PR</span>`:'';
   return `⚖ ACWR <b style="color:${acwrCol}">${acwrTxt}</b> · 🏋 ${stTxt}${monoTxt}${prTxt}`;
 }
 /* testo del tooltip sul pallino: perché è di quel colore */
-function semaforoTitolo(t){
-  if(!t.hasData) return '⚪ Nessun dato registrato per questo profilo';
+function semaforoTitolo(tg){
+  if(!tg.hasData) return t('⚪ Nessun dato registrato per questo profilo');
   const m=[];
-  if(t.level==='danger'){
-    if(t.acwr!=null&&t.acwr>1.5) m.push('carico alto (ACWR '+nf(t.acwr,2)+')');
-    if(t.stale!=null&&t.stale>=3) m.push('scheda ferma da '+t.stale+' settimane');
-    if(t.monoHigh&&t.acwr!=null&&t.acwr>1.3) m.push('monotonia alta col carico elevato');
-    return '🔴 A rischio: '+(m.join(' · ')||'segnali critici');
+  if(tg.level==='danger'){
+    if(tg.acwr!=null&&tg.acwr>1.5) m.push(t('carico alto (ACWR')+' '+nf(tg.acwr,2)+')');
+    if(tg.stale!=null&&tg.stale>=3) m.push(t('scheda ferma da')+' '+tg.stale+' '+t('settimane'));
+    if(tg.monoHigh&&tg.acwr!=null&&tg.acwr>1.3) m.push(t('monotonia alta col carico elevato'));
+    return t('🔴 A rischio:')+' '+(m.join(' · ')||t('segnali critici'));
   }
-  if(t.level==='warn'){
-    if(t.acwr!=null&&(t.acwr>1.3||t.acwr<0.8)) m.push('ACWR fuori zona ('+nf(t.acwr,2)+')');
-    if(t.stale!=null&&t.stale>=2) m.push('scheda ferma da '+t.stale+' settimane');
-    if(t.monoHigh) m.push('monotonia alta');
-    return '🟡 Attenzione: '+(m.join(' · ')||'da tenere d\'occhio');
+  if(tg.level==='warn'){
+    if(tg.acwr!=null&&(tg.acwr>1.3||tg.acwr<0.8)) m.push(t('ACWR fuori zona (')+nf(tg.acwr,2)+')');
+    if(tg.stale!=null&&tg.stale>=2) m.push(t('scheda ferma da')+' '+tg.stale+' '+t('settimane'));
+    if(tg.monoHigh) m.push(t('monotonia alta'));
+    return t('🟡 Attenzione:')+' '+(m.join(' · ')||t('da tenere d\'occhio'));
   }
-  return '🟢 Tutto in zona e aggiornato';
+  return t('🟢 Tutto in zona e aggiornato');
 }
 /* riempie i segnaposto (pallino + sintesi) già presenti in ogni riga profilo */
 function applicaSemafori(dati){
-  (dati||[]).forEach(t=>{
-    const led=document.getElementById('cr-led-'+t.slug);
-    if(led){ led.textContent=CR_LED[t.level]; led.style.color=CR_COL[t.level]; led.title=semaforoTitolo(t); }
-    const sum=document.getElementById('cr-sum-'+t.slug);
-    if(sum) sum.innerHTML=semaforoSummaryHTML(t);
+  (dati||[]).forEach(tg=>{
+    const led=document.getElementById('cr-led-'+tg.slug);
+    if(led){ led.textContent=CR_LED[tg.level]; led.style.color=CR_COL[tg.level]; led.title=semaforoTitolo(tg); }
+    const sum=document.getElementById('cr-sum-'+tg.slug);
+    if(sum) sum.innerHTML=semaforoSummaryHTML(tg);
   });
 }
 let cruscottoCache=null, cruscottoTime=0, cruscottoGen=0;
