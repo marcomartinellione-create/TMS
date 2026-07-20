@@ -53,8 +53,8 @@
  .al-g{font-weight:bold;white-space:nowrap;font-size:15px}
  .al-kcal{color:#7a6648;font-size:12px;white-space:nowrap}
  .ex{background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin-bottom:11px}
- .ex-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
- .ex-name{font-size:15.5px;font-weight:bold;color:#2b1d10}
+ .ex-top{display:flex;align-items:center;gap:9px}
+ .ex-name{font-size:15.5px;font-weight:bold;color:#2b1d10;flex:1 1 auto;min-width:0}
  .ex-coach{color:#9a8a6a;font-size:12px;margin-top:3px;font-style:italic}
  .ex-prev{color:#7a6648;font-size:13px;border-bottom:1px dashed #e6d9bd;padding-bottom:8px;margin:6px 0 2px}
  .f{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #f0e6cf}
@@ -74,6 +74,8 @@
  .mini.on{background:#9a5b1f;color:#fff;border-color:#9a5b1f}
  .mini.rec{font-weight:bold}
  .mini.del{color:#a33;border-color:#d9a9a9}
+ /* timer sulla riga del titolo, spinto sul lato opposto al video, ~20% dello schermo */
+ .mini.rec-top{flex:0 0 auto;width:20vw;min-width:66px;max-width:130px;text-align:center;padding-left:4px;padding-right:4px}
  .ex.custom{border-color:#b97a39;border-style:dashed}
  .ex-tag{font-size:10.5px;color:#9a5b1f;background:#f1e6cd;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
  /* pannello «modifica esercizio» (rinomina, sposta giorno, ritocca il previsto e il rest) */
@@ -208,7 +210,7 @@
    (tipo 'tms-rientro', identico al formato storico: l'import nel TMS non cambia).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='1.5';
+const CVER='1.6';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -399,9 +401,9 @@ function cardEsercizio(r){
   const prev=(+r.serie||0)+'×'+(+r.rip||0)+' @'+(+r.peso||0)+' kg'+(rir!=null?(' · RIR '+rir):'')+(r.rest?(' · rest '+esc(r.rest)):'');
   const vb=(r.video&&SCHEDA.video&&SCHEDA.video[r.video])?'<button type="button" class="vbtn" data-v="'+esc(r.video)+'" title="'+esc(tt('Guarda il video'))+'">'+tt('▶ video')+'</button>':'';
   const sec=restSec(r.rest);
-  const rec=sec>0?'<button type="button" class="mini rec" data-rec="'+i+'" title="'+esc(tt('Avvia il timer di recupero'))+'">⏱ '+fmtSec(sec)+'</button>':'';
+  const rec=sec>0?'<button type="button" class="mini rec rec-top" data-rec="'+i+'" title="'+esc(tt('Avvia il timer di recupero'))+'">⏱ '+fmtSec(sec)+'</button>':'';
   const star='<button type="button" class="mini'+(r.test?' on':'')+'" data-star="'+i+'" title="'+esc(tt('Segna come test del massimale (1RM): il coach lo vedrà a parte, escluso dalla progressione.'))+'">★ '+tt('Test')+'</button>';
-  return '<div class="ex'+(r.custom?' custom':'')+'" id="ex-'+i+'"><div class="ex-top"><span class="ex-name">'+esc(r.esercizio||tt('Nuovo esercizio'))+'</span>'+(r.custom?'<span class="ex-tag">'+tt('aggiunto')+'</span>':'')+vb+'</div>'+
+  return '<div class="ex'+(r.custom?' custom':'')+'" id="ex-'+i+'"><div class="ex-top">'+vb+'<span class="ex-name">'+esc(r.esercizio||tt('Nuovo esercizio'))+'</span>'+(r.custom?'<span class="ex-tag">'+tt('aggiunto')+'</span>':'')+rec+'</div>'+
     (r.note?'<div class="ex-coach">'+esc(r.note)+'</div>':'')+
     (r.custom?'':'<div class="ex-prev"><b>'+tt('Previsto:')+'</b> '+prev+'</div>')+
     '<div class="f"><label>'+tt('Serie')+'</label><input id="s-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
@@ -409,7 +411,7 @@ function cardEsercizio(r){
     '<div class="f"><label>'+tt('Peso (kg)')+'</label><input id="p-'+i+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+(+r.peso||'')+'"></div>'+
     '<div class="f"><label>RIR</label><input id="rir-'+i+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="" placeholder="–" title="'+esc(tt('Quante ripetizioni avevi ancora in canna: si compila DOPO l’allenamento'))+'"></div>'+
     '<div class="f note"><label>'+tt('Note')+'</label><input id="n-'+i+'" type="text" class="nota" placeholder="'+esc(tt('com’è andata?'))+'"></div>'+
-    (function(){ const azioni=rec+(ed?(star+
+    (function(){ const azioni=(ed?(star+
         '<button type="button" class="mini" data-edit="'+i+'">'+tt('✎ Modifica')+'</button>'+
         '<button type="button" class="mini del" data-del="'+i+'">'+tt('🗑 Elimina')+'</button>'):'');
       return (azioni?'<div class="ex-actions">'+azioni+'</div>':'')+(ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':''); })()+
@@ -566,10 +568,11 @@ let timerId=null, timerLeft=0, timerPaused=false, timerAudio=null;
 function timerBeep(){
   try{ timerAudio=timerAudio||new (window.AudioContext||window.webkitAudioContext)();
     const a=timerAudio, o=a.createOscillator(), g=a.createGain(); o.type='sine'; o.frequency.value=880;
-    o.connect(g); g.connect(a.destination); g.gain.setValueAtTime(.0001,a.currentTime);
-    g.gain.exponentialRampToValueAtTime(.4,a.currentTime+.02); g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.6);
-    o.start(); o.stop(a.currentTime+.6); }catch(e){}
-  try{ if(navigator.vibrate) navigator.vibrate([220,90,220]); }catch(e){}
+    o.connect(g); g.connect(a.destination); const t0=a.currentTime;
+    g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(.4,t0+.02);
+    g.gain.setValueAtTime(.4,t0+1.0); g.gain.exponentialRampToValueAtTime(.0001,t0+1.25);
+    o.start(); o.stop(t0+1.3); }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate([400,140,400,140,400]); }catch(e){}
 }
 function timerRun(){ clearInterval(timerId); timerId=setInterval(()=>{ if(timerPaused) return;
   timerLeft--;
