@@ -67,6 +67,32 @@
  .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin:14px 0 6px}
  .seduta-t{font-size:12px;color:#9a5b1f;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
  .vbtn{border:1px solid #cdb889;background:#fff;border-radius:6px;cursor:pointer;font-size:12.5px;padding:3px 11px;color:#9a5b1f}
+ /* riga azioni sotto ogni esercizio: timer, test 1RM, modifica, elimina */
+ .ex-actions{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0 1px}
+ .mini{border:1px solid #cdb889;background:#fff;border-radius:6px;cursor:pointer;font:inherit;font-size:12.5px;padding:5px 11px;color:#9a5b1f}
+ .mini:active{background:#f1e6cd}
+ .mini.on{background:#9a5b1f;color:#fff;border-color:#9a5b1f}
+ .mini.rec{font-weight:bold}
+ .mini.del{color:#a33;border-color:#d9a9a9}
+ .ex.custom{border-color:#b97a39;border-style:dashed}
+ .ex-tag{font-size:10.5px;color:#9a5b1f;background:#f1e6cd;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+ /* pannello «modifica esercizio» (rinomina, sposta giorno, ritocca il previsto e il rest) */
+ .ex-edit{margin:9px 0 1px;padding:11px 12px;border:1px dashed #b97a39;border-radius:9px;background:#fbf4e6}
+ .ex-edit input,.ex-edit select{font:inherit;font-size:16px}
+ .ex-edit input.nome,.ex-edit select.giorno{width:100%;height:34px;border:1px solid #cdb889;border-radius:5px;background:#fff;padding:0 8px}
+ /* bottone «aggiungi esercizio» in fondo a ogni giorno */
+ .add-ex{display:block;width:100%;margin:4px 0 12px;padding:12px;font:inherit;font-size:15px;font-weight:bold;background:#fbf4e6;color:#9a5b1f;border:1.5px dashed #b97a39;border-radius:10px;cursor:pointer;text-align:center}
+ .add-ex:active{background:#f1e6cd}
+ /* barra del timer di recupero, fissa in basso */
+ #tbar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:#2b1d10;color:#f4ead8;display:none;align-items:center;gap:9px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -3px 14px rgba(0,0,0,.35);max-width:620px;margin-inline:auto}
+ #tbar.show{display:flex}
+ #tbar .t-l{flex:1;min-width:0}
+ #tbar .t-ex{font-size:12px;color:#d9b66a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #tbar .t-time{font-size:29px;font-weight:bold;font-variant-numeric:tabular-nums;line-height:1.05}
+ #tbar.done .t-time{color:#7fd39f}
+ #tbar button{border:1px solid #b97a39;background:#3a2a18;color:#f4ead8;border-radius:8px;cursor:pointer;font:inherit;font-size:15px;font-weight:bold;padding:9px 12px;min-width:46px}
+ #tbar button:active{background:#4a371f}
+ #tbar .t-x{border-color:#7a6648;color:#d9c3a0}
  .btn-big{display:block;width:100%;margin:8px 0;padding:15px;font:inherit;font-size:17px;font-weight:bold;background:#9a5b1f;color:#fff;border:0;border-radius:10px;cursor:pointer;text-align:center}
  .btn-big:active{background:#7e4a18}
  .btn-lite{display:block;width:100%;margin:8px 0;padding:11px;font:inherit;font-size:14px;background:#fbf4e6;color:#5b4a30;border:1px solid #cdb889;border-radius:10px;cursor:pointer;text-align:center}
@@ -162,6 +188,15 @@
 <!-- ── pagine-giorno generate dal JS ── -->
 <div id="pagine"></div>
 
+<!-- ── barra del timer di recupero (parte dal bottone ⏱ su ogni esercizio, legge il Rest) ── -->
+<div id="tbar">
+  <div class="t-l"><div class="t-ex" id="t-ex"></div><div class="t-time" id="t-time">0:00</div></div>
+  <button type="button" id="t-m15" title="−15 s">−15</button>
+  <button type="button" id="t-pause" title="pausa / riprendi">⏸</button>
+  <button type="button" id="t-p15" title="+15 s">+15</button>
+  <button type="button" id="t-x" class="t-x" title="chiudi">✕</button>
+</div>
+
 <div id="vov"><button id="vclose" type="button">✕</button><video controls playsinline></video></div>
 <footer>TMS Scheda · <span data-i18n>app del</span> <a href="../index.html" style="color:#9a5b1f">Training Monitor System</a> · <span id="cver"></span></footer>
 
@@ -173,7 +208,7 @@
    (tipo 'tms-rientro', identico al formato storico: l'import nel TMS non cambia).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='1.4';
+const CVER='1.5';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -232,7 +267,23 @@ const TT={en:{
   '📲 <b>Installa l’app sul telefono</b> per averla sempre a portata di mano: ':'📲 <b>Install the app on your phone</b> to always have it at hand: ',
   'Installa':'Install',
   '📲 <b>Aggiungi l’app alla schermata Home</b>: tocca <b>Condividi</b> (il quadrato con la freccia) e poi <b>«Aggiungi alla schermata Home»</b>. Da lì funziona anche offline.':'📲 <b>Add the app to the Home screen</b>: tap <b>Share</b> (the square with an arrow) then <b>«Add to Home Screen»</b>. From there it works offline too.',
-  '📲 <b>Aggiungi l’app alla schermata Home</b>: menu del browser (⋮) → <b>«Installa app»</b> o <b>«Aggiungi a schermata Home»</b>. Da lì funziona anche offline.':'📲 <b>Add the app to the Home screen</b>: browser menu (⋮) → <b>«Install app»</b> or <b>«Add to Home Screen»</b>. From there it works offline too.'
+  '📲 <b>Aggiungi l’app alla schermata Home</b>: menu del browser (⋮) → <b>«Installa app»</b> o <b>«Aggiungi a schermata Home»</b>. Da lì funziona anche offline.':'📲 <b>Add the app to the Home screen</b>: browser menu (⋮) → <b>«Install app»</b> or <b>«Add to Home Screen»</b>. From there it works offline too.',
+  /* v1.5 — aggiungere/eliminare/modificare esercizi + test massimale (1RM) + timer di recupero */
+  '➕ Aggiungi esercizio':'➕ Add exercise',
+  'Nuovo esercizio':'New exercise',
+  'aggiunto':'added',
+  'Test':'Test',
+  'Segna come test del massimale (1RM): il coach lo vedrà a parte, escluso dalla progressione.':'Mark as a 1RM (max) test: the coach will see it separately, excluded from progression.',
+  '✎ Modifica':'✎ Edit',
+  '🗑 Elimina':'🗑 Delete',
+  'Vuoi eliminare questo esercizio dalla scheda?':'Remove this exercise from the program?',
+  'Nome dell’esercizio':'Exercise name',
+  'Giorno':'Day',
+  'Rest (min:sec)':'Rest (min:sec)',
+  '💾 Salva':'💾 Save',
+  'Annulla':'Cancel',
+  'Avvia il timer di recupero':'Start the rest timer',
+  'Recupero':'Rest'
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 function applyI18n(){
@@ -264,7 +315,7 @@ async function leggiScheda(){ if(memScheda) return memScheda;
   return null; }
 
 /* ── stato ── */
-let SCHEDA=null, GIORNI=[], BK='';
+let SCHEDA=null, GIORNI=[], BK='', WROWS=[], ridSeq=0;
 const stOk=(()=>{ try{ localStorage.setItem('t','1'); localStorage.removeItem('t'); return true; }catch(e){ return false; } })();
 
 function validaScheda(d){ return d && d.tipo==='tms-scheda' && Array.isArray(d.righe) && d.righe.length>0; }
@@ -279,6 +330,25 @@ async function caricaFile(file){
   SCHEDA=dati; avvia();
 }
 
+/* ── modello di lavoro (WROWS): righe MODIFICABILI con id STABILE (rid). Parte dalle
+      righe del coach (rid = indice) e, se la bozza contiene la struttura salvata
+      (_wrows: aggiunte/eliminazioni/rinomine/spostamenti/★ test), riprende quella.
+      I valori «fatti» (serie/rip/peso/RIR/note) restano nei campi + bozza piatta come prima. ── */
+function normRow(r,rid){ return {rid:+rid, giorno:String(r.giorno||''), esercizio:String(r.esercizio||''),
+  note:r.note||'', video:r.video||'', serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0,
+  rir:(r.rir===''||r.rir==null)?null:+r.rir, rest:r.rest||'', custom:!!r.custom, test:!!r.test}; }
+function buildWrows(){
+  WROWS=[]; ridSeq=0; let saved=null;
+  if(stOk){ try{ const raw=localStorage.getItem(BK); if(raw){ const o=JSON.parse(raw); if(Array.isArray(o._wrows)&&o._wrows.length) saved=o._wrows; } }catch(e){} }
+  WROWS=saved ? saved.map((r,i)=>normRow(r,(r.rid==null?i:r.rid))) : SCHEDA.righe.map((r,i)=>normRow(r,i));
+  WROWS.forEach(r=>{ if(r.rid>=ridSeq) ridSeq=r.rid+1; });
+}
+function rowById(rid){ rid=+rid; return WROWS.find(r=>r.rid===rid); }
+function wrowsDelGiorno(g){ return WROWS.filter(r=>r.giorno===g); }
+/* scheda MODIFICABILE (scelta dal coach all'export): abilita aggiungi/elimina/modifica/★.
+   Se il campo manca (file vecchi) → scheda FISSA. Il timer resta in entrambe le modalità. */
+function canEdit(){ return !!(SCHEDA && SCHEDA.modificabile); }
+
 /* ── render ── */
 function avvia(){
   const ben=$('benvenuto');
@@ -287,46 +357,63 @@ function avvia(){
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
+  buildWrows();
   $('sub').textContent=tt('Ciao')+' '+(((SCHEDA.profilo||{}).nome)||'')+tt('! Il tuo taccuino: scheda e alimentazione dal TMS, da annotare in palestra.');
   $('scheda-info').innerHTML=tt('📋 Scheda del')+' <b>'+esc((SCHEDA.profilo||{}).nome||'')+'</b> · '+tt('esportata il')+' <b>'+esc(SCHEDA.esportata||'?')+'</b>'+(SCHEDA.app?' · TMS v'+esc(SCHEDA.app):'');
-  /* menu: sottotitoli delle due macro-sezioni */
-  $('meta-scheda').textContent=GIORNI.length+' '+tt(GIORNI.length===1?'giorno':'giorni')+' · '+SCHEDA.righe.length+' '+tt(SCHEDA.righe.length===1?'esercizio':'esercizi');
   const dieta=SCHEDA.dieta, haDieta=!!(dieta&&Array.isArray(dieta.righe)&&dieta.righe.length);
   $('meta-alim').textContent=haDieta? (tt(dieta.label||dieta.fase||'piano')+(dieta.tot?(' · '+(dieta.tot.kcal||0)+' '+tt('kcal/giorno')):'')) : tt('non inclusa in questo file');
   $('vai-alim').disabled=!haDieta;
   renderAlim();
-  /* lista giorni */
+  renderScheda();
+  mostra('menu'); mostraInstallHint();
+}
+/* ricostruisce lista giorni e pagine-giorno dal modello WROWS; poi riaggancia gli
+   eventi, ricarica i valori compilati (bozza piatta) e le spunte ✔ */
+function renderScheda(){
+  $('meta-scheda').textContent=GIORNI.length+' '+tt(GIORNI.length===1?'giorno':'giorni')+' · '+WROWS.length+' '+tt(WROWS.length===1?'esercizio':'esercizi');
   let days='';
-  GIORNI.forEach((g,gi)=>{ const cnt=SCHEDA.righe.filter(r=>r.giorno===g).length;
+  GIORNI.forEach((g,gi)=>{ const cnt=wrowsDelGiorno(g).length;
     days+='<button type="button" class="day-card" data-go="'+gi+'">'+
       '<span class="day-l"><span class="day-name">'+esc(g)+'</span><span class="day-meta">'+cnt+' '+tt(cnt===1?'esercizio':'esercizi')+'</span></span>'+
       '<span class="day-r"><span class="day-done" id="stato-'+gi+'"></span><span class="chev">›</span></span></button>'; });
   $('days').innerHTML=days;
-  /* pagine giorno */
   let pagine='';
   GIORNI.forEach((g,gi)=>{
-    let exs='';
-    SCHEDA.righe.forEach((r,i)=>{ if(r.giorno!==g) return;
-      const rir=(r.rir===''||r.rir==null)?null:+r.rir;
-      const prev=(+r.serie||0)+'×'+(+r.rip||0)+' @'+(+r.peso||0)+' kg'+(rir!=null?(' · RIR '+rir):'')+(r.rest?(' · rest '+esc(r.rest)):'');
-      const vb=(r.video&&SCHEDA.video&&SCHEDA.video[r.video])?'<button type="button" class="vbtn" data-v="'+esc(r.video)+'" title="'+esc(tt('Guarda il video'))+'">'+tt('▶ video')+'</button>':'';
-      exs+='<div class="ex"><div class="ex-top"><span class="ex-name">'+esc(r.esercizio)+'</span>'+vb+'</div>'+
-        (r.note?'<div class="ex-coach">'+esc(r.note)+'</div>':'')+
-        '<div class="ex-prev"><b>'+tt('Previsto:')+'</b> '+prev+'</div>'+
-        '<div class="f"><label>'+tt('Serie')+'</label><input id="s-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
-        '<div class="f"><label>'+tt('Ripetizioni')+'</label><input id="r-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.rip||'')+'"></div>'+
-        '<div class="f"><label>'+tt('Peso (kg)')+'</label><input id="p-'+i+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+(+r.peso||'')+'"></div>'+
-        '<div class="f"><label>RIR</label><input id="rir-'+i+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="" placeholder="–" title="'+esc(tt('Quante ripetizioni avevi ancora in canna: si compila DOPO l’allenamento'))+'"></div>'+
-        '<div class="f note"><label>'+tt('Note')+'</label><input id="n-'+i+'" type="text" class="nota" placeholder="'+esc(tt('com’è andata?'))+'"></div></div>'; });
+    let exs=''; wrowsDelGiorno(g).forEach(r=>{ exs+=cardEsercizio(r); });
     pagine+='<div class="day-page" id="day-'+gi+'" hidden>'+
       '<button type="button" class="back-btn" data-back>'+tt('‹ Torna ai giorni')+'</button>'+
       '<h2>▌ '+esc(g)+'</h2>'+exs+
+      (canEdit()?'<button type="button" class="add-ex" data-add="'+gi+'">'+tt('➕ Aggiungi esercizio')+'</button>':'')+
       '<div class="seduta"><div class="seduta-t">'+tt('Fine giornata')+'</div>'+
       '<div class="f"><label>'+tt('Fatica seduta (RPE 0–10)')+'</label><input id="rpe-'+gi+'" type="number" inputmode="decimal" min="0" max="10" step="0.5" placeholder="–"></div>'+
       '<div class="f"><label>'+tt('Durata (min)')+'</label><input id="min-'+gi+'" type="number" inputmode="numeric" min="0" step="1" placeholder="–"></div></div>'+
       '<button type="button" class="back-btn bottom" data-back>'+tt('‹ Torna ai giorni')+'</button></div>'; });
   $('pagine').innerHTML=pagine;
-  wire(); caricaBozza(); aggiornaStato(); mostra('menu'); mostraInstallHint();
+  wire(); caricaBozza(); aggiornaStato();
+}
+/* una card esercizio (id dei campi = rid stabile della riga). Nelle schede FISSE
+   restano solo i campi da compilare + il timer; ★/✎/🗑 solo nelle modificabili. */
+function cardEsercizio(r){
+  const i=r.rid, ed=canEdit();
+  const rir=(r.rir===''||r.rir==null)?null:+r.rir;
+  const prev=(+r.serie||0)+'×'+(+r.rip||0)+' @'+(+r.peso||0)+' kg'+(rir!=null?(' · RIR '+rir):'')+(r.rest?(' · rest '+esc(r.rest)):'');
+  const vb=(r.video&&SCHEDA.video&&SCHEDA.video[r.video])?'<button type="button" class="vbtn" data-v="'+esc(r.video)+'" title="'+esc(tt('Guarda il video'))+'">'+tt('▶ video')+'</button>':'';
+  const sec=restSec(r.rest);
+  const rec=sec>0?'<button type="button" class="mini rec" data-rec="'+i+'" title="'+esc(tt('Avvia il timer di recupero'))+'">⏱ '+fmtSec(sec)+'</button>':'';
+  const star='<button type="button" class="mini'+(r.test?' on':'')+'" data-star="'+i+'" title="'+esc(tt('Segna come test del massimale (1RM): il coach lo vedrà a parte, escluso dalla progressione.'))+'">★ '+tt('Test')+'</button>';
+  return '<div class="ex'+(r.custom?' custom':'')+'" id="ex-'+i+'"><div class="ex-top"><span class="ex-name">'+esc(r.esercizio||tt('Nuovo esercizio'))+'</span>'+(r.custom?'<span class="ex-tag">'+tt('aggiunto')+'</span>':'')+vb+'</div>'+
+    (r.note?'<div class="ex-coach">'+esc(r.note)+'</div>':'')+
+    (r.custom?'':'<div class="ex-prev"><b>'+tt('Previsto:')+'</b> '+prev+'</div>')+
+    '<div class="f"><label>'+tt('Serie')+'</label><input id="s-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
+    '<div class="f"><label>'+tt('Ripetizioni')+'</label><input id="r-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.rip||'')+'"></div>'+
+    '<div class="f"><label>'+tt('Peso (kg)')+'</label><input id="p-'+i+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+(+r.peso||'')+'"></div>'+
+    '<div class="f"><label>RIR</label><input id="rir-'+i+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="" placeholder="–" title="'+esc(tt('Quante ripetizioni avevi ancora in canna: si compila DOPO l’allenamento'))+'"></div>'+
+    '<div class="f note"><label>'+tt('Note')+'</label><input id="n-'+i+'" type="text" class="nota" placeholder="'+esc(tt('com’è andata?'))+'"></div>'+
+    (function(){ const azioni=rec+(ed?(star+
+        '<button type="button" class="mini" data-edit="'+i+'">'+tt('✎ Modifica')+'</button>'+
+        '<button type="button" class="mini del" data-del="'+i+'">'+tt('🗑 Elimina')+'</button>'):'');
+      return (azioni?'<div class="ex-actions">'+azioni+'</div>':'')+(ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':''); })()+
+    '</div>';
 }
 function mostra(id){ ['menu','home','alim'].forEach(s=>{ $(s).hidden=(id!==s); });
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
@@ -348,29 +435,36 @@ function renderAlim(){
       PREVISTO del coach: la spunta ✔ dei giorni si basa sui campi TOCCATI dal cliente
       (set _t nella bozza), non sul semplice «campo non vuoto». ── */
 let TOCCATI=new Set();
-function idsCampi(){ const ids=[]; SCHEDA.righe.forEach((r,i)=>{ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+i)); });
+function idsCampi(){ const ids=[]; WROWS.forEach(r=>{ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+r.rid)); });
   GIORNI.forEach((g,gi)=>{ ids.push('rpe-'+gi); ids.push('min-'+gi); }); return ids; }
-function salvaBozza(){ if(!stOk||!SCHEDA) return; const o={_t:[...TOCCATI]};
+/* la bozza salva sia i valori compilati (chiavi piatte s-/r-/p-/rir-/n-/rpe-/min-, come
+   sempre) sia la STRUTTURA (_wrows: aggiunte/eliminazioni/rinomine/spostamenti/★) */
+function salvaBozza(){ if(!stOk||!SCHEDA) return;
+  const o={_t:[...TOCCATI], _wrows:WROWS.map(r=>({rid:r.rid, giorno:r.giorno, esercizio:r.esercizio, note:r.note,
+    video:r.video, serie:r.serie, rip:r.rip, peso:r.peso, rir:r.rir, rest:r.rest, custom:r.custom, test:r.test}))};
   idsCampi().forEach(id=>{ const el=$(id); if(el&&el.value!=='') o[id]=el.value; });
   try{ localStorage.setItem(BK,JSON.stringify(o));
     const n=$('bozza-stato'); if(n) n.textContent=tt('💾 salvato')+' '+new Date().toLocaleTimeString(LANGP==='en'?'en-GB':'it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){} }
 function caricaBozza(){ TOCCATI=new Set(); if(!stOk) return; let raw=null; try{ raw=localStorage.getItem(BK); }catch(e){}
   if(!raw) return; try{ const o=JSON.parse(raw);
-    Object.keys(o).forEach(id=>{ if(id==='_t') return; const el=$(id); if(el) el.value=o[id]; });
-    TOCCATI=new Set(Array.isArray(o._t)? o._t : Object.keys(o).filter(k=>k!=='_t'));
+    Object.keys(o).forEach(id=>{ if(id==='_t'||id==='_wrows') return; const el=$(id); if(el) el.value=o[id]; });
+    TOCCATI=new Set(Array.isArray(o._t)? o._t : Object.keys(o).filter(k=>k!=='_t'&&k!=='_wrows'));
     const n=$('bozza-stato'); if(n) n.textContent=tt('✔ Ho ricaricato quello che avevi scritto.'); }catch(e){} }
-function dayIds(gi){ const ids=[]; SCHEDA.righe.forEach((r,i)=>{ if(r.giorno===GIORNI[gi]){ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+i)); } });
+function dayIds(gi){ const ids=[]; WROWS.forEach(r=>{ if(r.giorno===GIORNI[gi]){ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+r.rid)); } });
   ids.push('rpe-'+gi); ids.push('min-'+gi); return ids; }
 function aggiornaStato(){ if(!SCHEDA) return; GIORNI.forEach((g,gi)=>{
   const fatto=dayIds(gi).some(id=>TOCCATI.has(id));
   const s=$('stato-'+gi); if(s) s.textContent=fatto?'✔':''; }); }
 
-/* ── rientro per il coach (STESSO formato di sempre: l'import nel TMS non cambia) ── */
+/* ── rientro per il coach: STESSO formato (tipo tms-rientro, import TMS invariato).
+      Ora scorre il modello WROWS (quindi include gli esercizi aggiunti, salta quelli
+      eliminati) e porta il flag `test` (★ massimale). Righe senza nome vengono scartate. ── */
 function num(id){ const el=$(id); const v=el?el.value:''; return v===''?null:+v; }
 function costruisciRientro(){
-  const righe=SCHEDA.righe.map((r,i)=>({giorno:r.giorno, esercizio:r.esercizio,
-    serie:num('s-'+i)||0, rip:num('r-'+i)||0, peso:num('p-'+i)||0,
-    rir:num('rir-'+i), note:(($('n-'+i)&&$('n-'+i).value)||'').trim()}));
+  const righe=WROWS.map(r=>({giorno:r.giorno, esercizio:String(r.esercizio||'').trim(),
+    serie:num('s-'+r.rid)||0, rip:num('r-'+r.rid)||0, peso:num('p-'+r.rid)||0,
+    rir:num('rir-'+r.rid), note:(($('n-'+r.rid)&&$('n-'+r.rid).value)||'').trim(), test:!!r.test}))
+    .filter(x=>x.esercizio);
   const sedute=[]; GIORNI.forEach((g,gi)=>{ const rp=num('rpe-'+gi), mn=num('min-'+gi);
     if(rp&&mn) sedute.push({giorno:g, rpe:rp, min:mn}); });
   return {tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
@@ -394,7 +488,7 @@ async function inviaRientro(){
   alert(tt('File creato:')+' '+nome+'\n'+tt('Lo trovi nei Download — rimandalo al tuo coach.'));
 }
 
-/* ── video (data URI incorporati nel file scheda) ── */
+/* ── eventi delle card + navigazione (data URI video incorporati nel file scheda) ── */
 function wire(){
   document.querySelectorAll('.vbtn').forEach(b=>{ b.onclick=()=>{
     const ov=$('vov'), v=ov.querySelector('video');
@@ -403,18 +497,114 @@ function wire(){
   document.querySelectorAll('[data-go]').forEach(b=>{ b.onclick=()=>mostra('day-'+b.getAttribute('data-go')); });
   document.querySelectorAll('[data-back]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('home'); }; });
   document.querySelectorAll('[data-menu]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('menu'); }; });
+  document.querySelectorAll('[data-add]').forEach(b=>{ b.onclick=()=>addEsercizio(+b.getAttribute('data-add')); });
+  document.querySelectorAll('[data-del]').forEach(b=>{ b.onclick=()=>delEsercizio(+b.getAttribute('data-del')); });
+  document.querySelectorAll('[data-star]').forEach(b=>{ b.onclick=()=>toggleStar(+b.getAttribute('data-star')); });
+  document.querySelectorAll('[data-edit]').forEach(b=>{ b.onclick=()=>openEdit(+b.getAttribute('data-edit')); });
+  document.querySelectorAll('[data-rec]').forEach(b=>{ b.onclick=()=>{ const r=rowById(+b.getAttribute('data-rec')); if(r) startTimer(r.esercizio||tt('Recupero'), restSec(r.rest)); }; });
   const vs=$('vai-scheda'); if(vs) vs.onclick=()=>mostra('home');
   const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled) mostra('alim'); };
 }
+function giornoIndex(g){ const i=GIORNI.indexOf(g); return i<0?0:i; }
+/* ── aggiungi / elimina / test 1RM / modifica un esercizio (agiscono su WROWS) ── */
+function addEsercizio(gi){
+  const g=GIORNI[gi]; if(g==null) return;
+  const rid=ridSeq++;
+  WROWS.push(normRow({giorno:g, esercizio:'', serie:3, rip:10, peso:0, rir:null, rest:'1:30', custom:true, test:false}, rid));
+  salvaBozza(); renderScheda(); mostra('day-'+gi); openEdit(rid);
+  const c=$('ex-'+rid); if(c&&c.scrollIntoView) try{ c.scrollIntoView({block:'center'}); }catch(e){}
+}
+function delEsercizio(rid){
+  const r=rowById(rid); if(!r) return;
+  if(!confirm(tt('Vuoi eliminare questo esercizio dalla scheda?'))) return;
+  const gi=giornoIndex(r.giorno);
+  WROWS=WROWS.filter(x=>x.rid!==+rid);
+  ['s-','r-','p-','rir-','n-'].forEach(p=>TOCCATI.delete(p+rid));
+  salvaBozza(); renderScheda(); mostra('day-'+gi);
+}
+function toggleStar(rid){
+  const r=rowById(rid); if(!r) return; r.test=!r.test;
+  const b=document.querySelector('[data-star="'+rid+'"]'); if(b) b.classList.toggle('on', r.test);
+  salvaBozza();
+}
+function openEdit(rid){
+  const r=rowById(rid), box=$('edit-'+rid); if(!r||!box) return;
+  const opts=GIORNI.map(g=>'<option value="'+esc(g)+'"'+(g===r.giorno?' selected':'')+'>'+esc(g)+'</option>').join('');
+  box.innerHTML='<div class="f note"><label>'+tt('Nome dell’esercizio')+'</label><input class="nome" id="ename-'+rid+'" type="text" value="'+esc(r.esercizio)+'"></div>'+
+    '<div class="f note"><label>'+tt('Giorno')+'</label><select class="giorno" id="eday-'+rid+'">'+opts+'</select></div>'+
+    '<div class="f"><label>'+tt('Serie')+'</label><input id="eser-'+rid+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
+    '<div class="f"><label>'+tt('Ripetizioni')+'</label><input id="erip-'+rid+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.rip||'')+'"></div>'+
+    '<div class="f"><label>'+tt('Peso (kg)')+'</label><input id="epeso-'+rid+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+(+r.peso||'')+'"></div>'+
+    '<div class="f"><label>RIR</label><input id="erir-'+rid+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="'+(r.rir==null?'':r.rir)+'" placeholder="–"></div>'+
+    '<div class="f"><label>'+tt('Rest (min:sec)')+'</label><input id="erest-'+rid+'" type="text" value="'+esc(r.rest||'')+'" placeholder="1:30" style="width:82px;text-align:center"></div>'+
+    '<div class="ex-actions"><button type="button" class="mini rec" id="savedit-'+rid+'">'+tt('💾 Salva')+'</button>'+
+      '<button type="button" class="mini" id="canceledit-'+rid+'">'+tt('Annulla')+'</button></div>';
+  box.hidden=false;
+  $('savedit-'+rid).onclick=()=>saveEdit(rid);
+  $('canceledit-'+rid).onclick=()=>{ box.hidden=true; box.innerHTML=''; };
+}
+function saveEdit(rid){
+  const r=rowById(rid); if(!r) return;
+  const gv=id=>{ const el=$(id); return el?el.value:''; };
+  r.esercizio=String(gv('ename-'+rid)||'').trim();
+  const nd=String(gv('eday-'+rid)||r.giorno); if(GIORNI.indexOf(nd)>=0) r.giorno=nd;
+  r.serie=+gv('eser-'+rid)||0; r.rip=+gv('erip-'+rid)||0; r.peso=+gv('epeso-'+rid)||0;
+  const rr=gv('erir-'+rid); r.rir=(rr===''?null:+rr);
+  r.rest=String(gv('erest-'+rid)||'').trim();
+  salvaBozza(); renderScheda(); mostra('day-'+giornoIndex(r.giorno));
+}
+
+/* ── timer di recupero: legge il Rest della scheda (formato m:ss, o secondi, o «1m30s») ── */
+function restSec(v){ v=String(v==null?'':v).trim(); if(!v) return 0;
+  if(/^\d+$/.test(v)) return +v;
+  const m=v.match(/^(\d+):([0-5]?\d)$/); if(m) return (+m[1])*60+(+m[2]);
+  const mm=v.match(/(\d+)\s*m/i), ss=v.match(/(\d+)\s*s/i);
+  if(mm||ss) return (mm?(+mm[1])*60:0)+(ss?(+ss[1]):0);
+  const n=parseInt(v,10); return isNaN(n)?0:n; }
+function fmtSec(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+let timerId=null, timerLeft=0, timerPaused=false, timerAudio=null;
+function timerBeep(){
+  try{ timerAudio=timerAudio||new (window.AudioContext||window.webkitAudioContext)();
+    const a=timerAudio, o=a.createOscillator(), g=a.createGain(); o.type='sine'; o.frequency.value=880;
+    o.connect(g); g.connect(a.destination); g.gain.setValueAtTime(.0001,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(.4,a.currentTime+.02); g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.6);
+    o.start(); o.stop(a.currentTime+.6); }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate([220,90,220]); }catch(e){}
+}
+function timerRun(){ clearInterval(timerId); timerId=setInterval(()=>{ if(timerPaused) return;
+  timerLeft--;
+  if(timerLeft<=0){ timerLeft=0; $('t-time').textContent='0:00'; clearInterval(timerId); timerId=null;
+    $('tbar').classList.add('done'); timerBeep(); return; }
+  $('t-time').textContent=fmtSec(timerLeft); },1000); }
+function startTimer(nome,sec){ sec=+sec||0; if(sec<=0) sec=90;
+  const bar=$('tbar'); if(!bar) return;
+  timerPaused=false; timerLeft=sec; $('t-ex').textContent=nome||'';
+  bar.classList.remove('done'); bar.classList.add('show'); $('t-pause').textContent='⏸'; $('t-time').textContent=fmtSec(timerLeft);
+  try{ if(!timerAudio) timerAudio=new (window.AudioContext||window.webkitAudioContext)(); if(timerAudio&&timerAudio.resume) timerAudio.resume(); }catch(e){}
+  timerRun();
+}
+function timerAdjust(delta){ const bar=$('tbar'); if(!bar||!bar.classList.contains('show')) return;
+  timerLeft=Math.max(0,timerLeft+delta); $('t-time').textContent=fmtSec(timerLeft);
+  if(timerLeft>0){ bar.classList.remove('done'); if(!timerId&&!timerPaused) timerRun(); } }
+function timerToggle(){ const bar=$('tbar'); if(!bar||!bar.classList.contains('show')||timerLeft<=0) return;
+  timerPaused=!timerPaused; $('t-pause').textContent=timerPaused?'▶':'⏸'; if(!timerPaused&&!timerId) timerRun(); }
+function timerClose(){ clearInterval(timerId); timerId=null; timerPaused=false; const bar=$('tbar'); if(bar) bar.classList.remove('show','done'); }
 $('vclose').onclick=()=>{ const ov=$('vov'), v=ov.querySelector('video'); v.pause(); v.removeAttribute('src'); ov.style.display='none'; };
 /* pannello QR «By Wander» (Instagram / YouTube / GitHub), come nel TMS desktop */
 $('qr-btn').onclick=()=>{ $('qrov').style.display='flex'; };
 $('qrclose').onclick=()=>{ $('qrov').style.display='none'; };
 $('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; };
 $('invia').onclick=inviaRientro;
+/* controlli fissi della barra timer di recupero */
+$('t-pause').onclick=timerToggle;
+$('t-p15').onclick=()=>timerAdjust(15);
+$('t-m15').onclick=()=>timerAdjust(-15);
+$('t-x').onclick=timerClose;
 [['file-scheda'],['file-scheda-2']].forEach(([id])=>{ const inp=$(id);
   inp.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) caricaFile(f); }; });
-document.addEventListener('input',e=>{ if(e.target&&e.target.id) TOCCATI.add(e.target.id); salvaBozza(); aggiornaStato(); });
+/* autosalvataggio: solo sui campi «fatto» del cliente (non sui campi del pannello Modifica) */
+document.addEventListener('input',e=>{ const id=e.target&&e.target.id;
+  if(id && /^(s|r|p|rir|n|rpe|min)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); } });
 
 /* ── suggerimento d'installazione (solo se non già installata) ── */
 let deferredInstall=null;

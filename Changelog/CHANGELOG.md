@@ -4,6 +4,14 @@
 
 ---
 
+### 2026-07-20 — TMS v1.1.1: il cliente modifica la scheda dal telefono (fissa/modificabile), timer di recupero, test 1RM
+
+**Tipo**: feature (richiesta esplicita di Marco: aggiungere/eliminare/modificare esercizi e i massimali dall'app del telefono + un timer che legge il tempo di riposo dalla scheda; poi scelta fissa/modificabile al momento dell'export)
+**File coinvolti**: PWA `docs/app/index.html` (nuovo modello di lavoro `WROWS` con id stabile `rid`; aggiungi/elimina/modifica esercizi; ★ test 1RM; timer di recupero `restSec`/`fmtSec` + barra fissa con pausa/±15s/beep+vibrazione; bozza estesa `_wrows`; `canEdit()`; CVER 1.5) + `docs/app/sw.js` (cache v6) · desktop `src/app/15-scambio.js` (popup `chiediModalitaScheda`, campo `modificabile` in `costruisciSchedaJSON`, flag `test` nell'export e in `caricaRientroInScheda`) · `src/app/00-i18n.js` (stringhe EN del popup) · guide `src/app/13a-guida.js` (rapida + completa §10, IT ed EN) e `src/app/13c-guida-ai.js` (§8) + `docs/guida-ai.md` rigenerata · `tests/test-app.js` · `src/app/01-costanti.js` + package.json ×2
+**Descrizione**: l'app del telefono «TMS Scheda» non è più di sola compilazione. Ogni esercizio ha un **timer di recupero** che parte dal tempo di riposo scritto nella scheda (pausa, ±15 s, suono+vibrazione a fine recupero), disponibile **sempre**. All'**export** dal TMS un **popup** chiede se la scheda è **🔒 fissa** (sola compilazione, esattamente come prima) o **✏️ modificabile**; nelle modificabili il cliente può **aggiungere / eliminare / modificare** esercizi (rinomina, sposta di giorno, ritocca il previsto e il rest) e segnare i **test del massimale (★)**. Aggiunte/eliminazioni e il flag `test` tornano nel **rientro** (formato 'tms-rientro' invariato; l'import ricostruisce la scheda 🏋 Pesi dalle righe e l'esercizio arriva già col ★, che lo Storico esclude dalla progressione). Contratto dati **retro-compatibile**: file e coach senza i nuovi campi funzionano come prima (campo `modificabile` mancante = fissa). Guide aggiornate (rapida + completa §10 in IT/EN, guida-AI §8).
+**Test**: `npm test` **310/310** (nuove verifiche: aggiunta/eliminazione/★ nel rientro, bozza `_wrows`, timer `restSec`/`fmtSec`/barra, scheda fissa vs modificabile, popup all'export, import del flag `test`). `npm run verifica` OK (artefatti = sorgente). Verifica dal vivo in anteprima: fissa (niente ➕/✎/🗑/★, timer sì) e modificabile (tutto).
+**Approvato da**: Marco (implementazione e rilascio v1.1.1 su comando esplicito).
+
 ### 2026-07-13 — TMS v1.1.0: app bilingue IT/EN (desktop + PWA)
 
 **Tipo**: feature (richiesta esplicita di Marco: tradurre entrambe le app in inglese, bilingue con selettore)

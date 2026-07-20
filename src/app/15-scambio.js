@@ -4,8 +4,9 @@
       inclusi come data-URI, stesso embed del Report digitale) e la manda via chat/email;
    2. il cliente la apre nell'app «TMS Scheda» (PWA su GitHub Pages, APP_CLIENTE_URL;
       installabile, offline, sorgente in docs/app/): compila ciò che ha fatto DAVVERO
-      (serie/rip/peso/RIR, note, fatica sRPE e durata per seduta — gli esercizi non si
-      cambiano) e genera il "file di rientro" (JSON tipo 'tms-rientro', INVARIATO);
+      (serie/rip/peso/RIR, note, fatica sRPE e durata per seduta) e, dal v1.5 della PWA,
+      può anche aggiungere/eliminare/modificare esercizi e segnare i test 1RM (flag `test`);
+      genera il "file di rientro" (JSON tipo 'tms-rientro', INVARIATO nel formato);
    3. il trainer lo importa dal tab Profilo: safe check su profilo/catalogo, poi
       l'allenamento entra nella scheda Pesi per la revisione e il salvataggio manuale. */
 
@@ -32,33 +33,61 @@ function costruisciDietaJSON(){
 /* file scheda per l'app del cliente: solo dati (niente markup). I video degli esercizi
    viaggiano come data-URI nella mappa `video` (nome file → URI), come nel Report digitale;
    `dieta` è il piano alimentare della fase attiva (null se vuoto). */
-function costruisciSchedaJSON(videoMap){
+/* `modificabile`: scelto dal coach all'export (popup). true = il cliente può
+   aggiungere/eliminare/modificare esercizi e segnare i test 1RM nell'app; false =
+   scheda "fissa", sola compilazione (il timer di recupero resta in entrambi i casi). */
+function costruisciSchedaJSON(videoMap, modificabile){
   videoMap=videoMap||{};
   const righe=righeSchedaCliente();
   const rows=righe.map(r=>({giorno:r.giorno, esercizio:String(r.esercizio).trim(),
     serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0, rest:r.rest||'',
-    rir:(r.rir===''||r.rir==null)?null:+r.rir, note:r.note||'', video:videoOf(r.esercizio)||''}));
-  return {tipo:'tms-scheda', versione:1, app:APP_VERSION,
+    rir:(r.rir===''||r.rir==null)?null:+r.rir, test:!!r.test, note:r.note||'', video:videoOf(r.esercizio)||''}));
+  return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile,
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
     appCliente:APP_CLIENTE_URL, righe:rows, video:videoMap, dieta:costruisciDietaJSON()};
+}
+
+/* popup all'export: scheda FISSA (sola compilazione, come prima) o MODIFICABILE (il
+   cliente può anche cambiare gli esercizi + test 1RM). Ritorna una Promise con
+   'fissa' | 'modificabile' | null (Annulla). */
+function chiediModalitaScheda(){
+  return new Promise(res=>{
+    modal(`<h3>${t('Che tipo di scheda per il cliente?')}</h3>
+      <p style="margin:8px 0;line-height:1.5">${t('Come potrà usare la scheda nell\'app del telefono:')}</p>
+      <ul style="margin:6px 0 10px 18px;line-height:1.5;padding:0">
+        <li><b>${t('🔒 Fissa')}</b> — ${t('compila solo ciò che ha fatto (serie, ripetizioni, peso, RIR, note). Non cambia gli esercizi.')}</li>
+        <li><b>${t('✏️ Modificabile')}</b> — ${t('può anche aggiungere, eliminare e modificare esercizi e segnare i test del massimale (1RM).')}</li>
+      </ul>
+      <p style="margin:0 0 4px;color:var(--muted);font-size:.9em">${t('Il timer di recupero è disponibile in entrambe.')}</p>
+      <div class="modal__actions"><button class="btn" id="ms-cancel">${t('Annulla')}</button>
+        <button class="btn" id="ms-fissa">${t('🔒 Fissa')}</button>
+        <button class="btn btn--ember" id="ms-mod">${t('✏️ Modificabile')}</button></div>`);
+    document.getElementById('ms-cancel').onclick=()=>{ closeModal(); res(null); };
+    document.getElementById('ms-fissa').onclick=()=>{ closeModal(); res('fissa'); };
+    document.getElementById('ms-mod').onclick=()=>{ closeModal(); res('modificabile'); };
+  });
 }
 
 async function esportaSchedaCliente(){
   const righe=righeSchedaCliente();
   if(!righe.length){ alert(t('La scheda settimanale è vuota: niente da esportare.')); return; }
+  const modo=await chiediModalitaScheda();
+  if(modo==null) return;  /* Annulla: nessun export */
+  const modificabile=(modo==='modificabile');
   let map={};
   const vids=collectSchedaVideos();
   if(vids.length && dirHandle && confirm(t('Includere i')+' '+vids.length+' '+t('video degli esercizi nel file? (più pesante, ma il cliente li vede offline nell\'app)'))){
     map=await embedVideoFiles(vids.map(v=>v.file));
   }
-  const dati=costruisciSchedaJSON(map);
+  const dati=costruisciSchedaJSON(map, modificabile);
   const blob=new Blob([JSON.stringify(dati)],{type:'application/json'});
   const u=URL.createObjectURL(blob); const a=document.createElement('a');
   a.href=u; a.download='Scheda_'+(activeProfile||'cliente')+'_'+dati.esportata+'.json';
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },800);
   const kb=blob.size/1024;
-  alert(t('✔ Scheda esportata (')+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+')'+(dati.dieta?' '+t('— incluso il piano alimentare della fase')+' '+t(dati.dieta.label||'')+'.':'.')+'\n'+
+  alert(t('✔ Scheda esportata (')+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+')'+
+    ' · '+(modificabile?t('scheda modificabile'):t('scheda fissa'))+(dati.dieta?' '+t('— incluso il piano alimentare della fase')+' '+t(dati.dieta.label||'')+'.':'.')+'\n'+
     t('Inviala al cliente: la apre nell\'app «TMS Scheda», compila e ti rimanda il file di rientro (da importare qui nel Profilo).')+'\n\n'+
     t('Prima volta? Il cliente apre questo link sul telefono e aggiunge l\'app alla schermata Home (poi funziona anche offline):')+'\n'+APP_CLIENTE_URL);
 }
@@ -72,7 +101,7 @@ function caricaRientroInScheda(dati){
   DOC.scheda.settimanale=righe.filter(r=>r&&r.esercizio&&String(r.esercizio).trim()).map(r=>({
     giorno:String((r&&r.giorno)||'Lunedì'), esercizio:String(r.esercizio).trim(), note:String((r&&r.note)||''),
     serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0, rest:'',
-    rir:(r.rir===''||r.rir==null)?'':+r.rir }));
+    rir:(r.rir===''||r.rir==null)?'':+r.rir, test:!!(r&&r.test) }));
   if(!DOC.scheda.rpe||typeof DOC.scheda.rpe!=='object') DOC.scheda.rpe={};
   DOC.scheda.rpe.settimanale={};
   if(dati && Array.isArray(dati.sedute)) dati.sedute.forEach(s=>{ const g=String((s&&s.giorno)||''),

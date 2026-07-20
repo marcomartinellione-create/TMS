@@ -452,9 +452,16 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const vfileCli = w.eval('(costruisciSchedaJSON({}).righe.find(r => r.video) || {}).video || ""');
   ok(vfileCli !== '', 'export scheda JSON: almeno un esercizio del template ha il video associato');
   const mapCli = {}; if (vfileCli) mapCli[vfileCli] = 'data:video/mp4;base64,AAAA';
-  const schedaCli = w.eval('costruisciSchedaJSON(' + JSON.stringify(mapCli) + ')');
+  const schedaCli = w.eval('costruisciSchedaJSON(' + JSON.stringify(mapCli) + ', true)');
   ok(schedaCli.tipo === 'tms-scheda' && schedaCli.profilo.slug === 'template' && schedaCli.profilo.nome === 'Atleta Template' && schedaCli.righe.length > 0, 'export scheda JSON: meta profilo + righe della scheda del template');
+  ok(schedaCli.modificabile === true && w.eval('costruisciSchedaJSON({}).modificabile') === false && w.eval('costruisciSchedaJSON({}, true).modificabile') === true, 'export scheda JSON: flag modificabile (default false = scheda fissa)');
+  /* v1.5: popup all'export che chiede Fissa o Modificabile */
+  w.eval('window.__mp = chiediModalitaScheda();');
+  ok(d.getElementById('ms-fissa') !== null && d.getElementById('ms-mod') !== null && d.getElementById('ms-cancel') !== null, 'export: popup con scelta Fissa / Modificabile');
+  d.getElementById('ms-mod').click();
+  ok((await w.eval('window.__mp')) === 'modificabile', 'export: la scelta «Modificabile» risolve la Promise');
   ok(schedaCli.righe.every(r => r.giorno && r.esercizio && typeof r.serie === 'number') && schedaCli.video[vfileCli].startsWith('data:video/'), 'export scheda JSON: righe complete + video come data-URI');
+  ok(schedaCli.righe.every(r => typeof r.test === 'boolean'), 'export scheda JSON: ogni riga porta il flag test (★ 1RM), default false');
   /* dieta della fase attiva inclusa nell'export (valori precalcolati: il cliente non ha la banca USAV) */
   ok(schedaCli.dieta && schedaCli.dieta.fase === 'bulk' && Array.isArray(schedaCli.dieta.righe) && schedaCli.dieta.righe.length > 0, 'export scheda JSON: piano alimentare della fase attiva incluso (' + (schedaCli.dieta ? schedaCli.dieta.righe.length : 0) + ' righe)');
   ok(schedaCli.dieta.tot.kcal > 1000 && schedaCli.dieta.righe.every(r => r.alimento && typeof r.kcal === 'number' && typeof r.grammi === 'number'), 'export scheda JSON: kcal/macro precalcolate per riga + totale giornaliero (' + schedaCli.dieta.tot.kcal + ' kcal)');
@@ -524,6 +531,62 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sub.window.eval('validaScheda({tipo:"x"})') === false && sub.window.eval('validaScheda(' + JSON.stringify(schedaCli) + ')') === true, 'app cliente: validazione del file scheda (tipo tms-scheda)');
     sub.window.close();
   }
+  /* v1.5: la PWA può aggiungere / eliminare / modificare esercizi + segnare i test 1RM + timer di recupero */
+  {
+    const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli)); } });
+    await settle(400);
+    const sd = sub.window.document, sw = sub.window;
+    /* timer di recupero: parser del Rest + barra fissa in basso */
+    ok(sw.eval('restSec("1:30")') === 90 && sw.eval('restSec("90")') === 90 && sw.eval('restSec("2min")') === 120 && sw.eval('restSec("")') === 0, 'app cliente/timer: restSec legge m:ss, secondi puri e «2min»');
+    ok(sw.eval('fmtSec(90)') === '1:30' && sw.eval('fmtSec(5)') === '0:05', 'app cliente/timer: fmtSec formatta mm:ss');
+    sw.eval('startTimer("Test", 90)');
+    ok(sd.getElementById('tbar').classList.contains('show') && sd.getElementById('t-time').textContent === '1:30', 'app cliente/timer: startTimer mostra la barra col tempo del Rest (1:30)');
+    sd.getElementById('t-x').click();
+    ok(!sd.getElementById('tbar').classList.contains('show'), 'app cliente/timer: ✕ chiude la barra');
+    sd.getElementById('vai-scheda').click();
+    /* ★ test 1RM sul primo esercizio */
+    const star0 = sd.querySelector('[data-star]');
+    ok(star0 !== null, 'app cliente/1RM: bottone ★ Test presente su ogni esercizio');
+    star0.click();
+    ok(star0.classList.contains('on'), 'app cliente/1RM: il ★ si accende al tocco');
+    /* aggiungi un esercizio nel primo giorno */
+    const before = sw.eval('WROWS.length');
+    sd.querySelector('[data-add="0"]').click();
+    const newRid = sw.eval('WROWS[WROWS.length-1].rid');
+    ok(sw.eval('WROWS.length') === before + 1 && sw.eval('WROWS[WROWS.length-1].custom') === true, 'app cliente/esercizi: ➕ aggiunge una riga custom nel giorno scelto');
+    ok(sd.getElementById('ename-' + newRid) !== null, 'app cliente/esercizi: il nuovo esercizio apre subito il pannello Modifica per il nome');
+    sd.getElementById('ename-' + newRid).value = 'Plank';
+    sd.getElementById('savedit-' + newRid).click();
+    ok(sw.eval('WROWS.find(r=>r.rid===' + newRid + ').esercizio') === 'Plank', 'app cliente/esercizi: la Modifica salva il nome del nuovo esercizio');
+    sd.getElementById('s-' + newRid).value = '3';
+    sd.getElementById('s-' + newRid).dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+    const rientro2 = sw.eval('costruisciRientro()');
+    ok(rientro2.righe.length === before + 1 && rientro2.righe.some(r => r.esercizio === 'Plank'), 'app cliente/esercizi: l\'esercizio aggiunto entra nel rientro');
+    ok(rientro2.righe[0].test === true, 'app cliente/1RM: il flag test torna nel rientro (★ sul 1° esercizio)');
+    const bozza2 = JSON.parse(sw.localStorage.getItem(bozzaKey) || '{}');
+    ok(Array.isArray(bozza2._wrows) && bozza2._wrows.some(r => r.esercizio === 'Plank') && bozza2._wrows[0].test === true, 'app cliente: la bozza salva la STRUTTURA (_wrows: esercizio aggiunto + ★) → sopravvive al riavvio');
+    /* elimina il primo esercizio (confirm stubbato) */
+    sw.confirm = () => true;
+    const firstRid = sw.eval('WROWS[0].rid');
+    sd.querySelector('[data-del="' + firstRid + '"]').click();
+    ok(sw.eval('WROWS.some(r=>r.rid===' + firstRid + ')') === false && sw.eval('WROWS.length') === before, 'app cliente/esercizi: 🗑 elimina la riga (dopo +1/−1 il totale torna all\'originale)');
+    sub.window.close();
+  }
+  /* v1.5: scheda FISSA (modificabile:false) → niente aggiungi/modifica/elimina/★, ma il timer resta */
+  {
+    const schedaFissa = JSON.parse(JSON.stringify(schedaCli)); schedaFissa.modificabile = false; schedaFissa.righe[0].rest = '1:30';
+    const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaFissa)); } });
+    await settle(400);
+    const sd = sub.window.document;
+    sd.getElementById('vai-scheda').click();
+    ok(sub.window.eval('canEdit()') === false, 'app cliente/fissa: canEdit() = false');
+    ok(sd.querySelector('[data-add]') === null && sd.querySelector('[data-del]') === null && sd.querySelector('[data-edit]') === null && sd.querySelector('[data-star]') === null, 'app cliente/fissa: nessun comando di modifica (➕ 🗑 ✎ ★)');
+    ok(sd.querySelector('[data-rec]') !== null, 'app cliente/fissa: il timer di recupero resta disponibile');
+    ok(sd.getElementById('s-0') !== null && +sd.getElementById('s-0').value === schedaFissa.righe[0].serie, 'app cliente/fissa: i campi da compilare restano (sola compilazione, come prima)');
+    sub.window.close();
+  }
   /* GIRO COMPLETO: il rientro generato dall'app entra nella scheda Pesi del TMS */
   {
     w.eval('window.__rientro = ' + JSON.stringify(rientroApp));
@@ -575,6 +638,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
      'rientro caricato nella scheda Pesi (righe con serie/peso del cliente)');
   ok(w.eval('DOC.scheda.rpe.settimanale["Lunedì"].rpe') === 8 && w.eval('DOC.scheda.rpe.settimanale["Lunedì"].min') === 75, 'rientro: seduta RPE (fatica+durata) nella bozza della scheda');
   ok(w.eval('DOC.storico.length') === stoPrima, 'rientro: lo Storico NON cambia finché il coach non salva a mano');
+  /* v1.5: il flag test (★ massimale) del cliente arriva nella scheda Pesi all'import */
+  const rientroTest = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
+    righe:[ {giorno:'Lunedì',esercizio:'Stacco da terra con bilanciere',serie:1,rip:3,peso:150,rir:0,note:'test max',test:true} ], sedute:[] };
+  await w.eval('caricaRientroInScheda(' + JSON.stringify(rientroTest) + ')');
+  ok(w.eval('DOC.scheda.settimanale[0].test') === true, 'rientro: il flag test (★ 1RM) del cliente arriva nella scheda Pesi del coach');
   /* import e2e: file non valido + file valido -> carica in Pesi, niente scrittura automatica */
   await w.eval('importaRientroFile(' + JSON.stringify({}) + ')'); /* oggetto non-file: alert "non valido", nessun crash */
   const fakeFile = { text: async () => JSON.stringify(rientro) };
@@ -603,7 +671,12 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* v1.0.75: il bottone 📤 nella riga di un profilo NON attivo lo attiva e ne esporta la scheda */
   w.eval('showTab("profilo")');
   ok(d.querySelector('#panel-profilo [data-pexs="wander"]') !== null, 'bottone 📤 nella riga del profilo non attivo, senza aprire la tendina');
-  const nomeEx = await w.eval('(async()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ await document.querySelector(\'#panel-profilo [data-pexs="wander"]\').onclick(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
+  /* l'export ora apre il popup Fissa/Modificabile: avvio, aspetto il popup, scelgo «Modificabile» */
+  w.eval('window.__oc2=window.confirm; window.confirm=function(){return false;}; window.__cap=null; window.__oa=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ window.__cap=this.download; }; window.__pexp=document.querySelector(\'#panel-profilo [data-pexs="wander"]\').onclick();');
+  for (let i = 0; i < 40 && !d.getElementById('ms-mod'); i++) { await settle(20); }
+  d.getElementById('ms-mod').click();
+  await w.eval('(async()=>{ try{ await window.__pexp; } finally { HTMLAnchorElement.prototype.click=window.__oa; window.confirm=window.__oc2; } })()');
+  const nomeEx = w.eval('window.__cap');
   ok(w.eval('activeProfile') === 'wander', 'export dalla riga: profilo attivato da solo');
   ok(typeof nomeEx === 'string' && nomeEx.startsWith('Scheda_wander_') && nomeEx.endsWith('.json'), 'export dalla riga: file JSON del profilo giusto (' + nomeEx + ')');
   const apertoPrima = w.eval('profOpen');

@@ -224,8 +224,11 @@ nei dispositivi.
    nasce «Scheda_profilo_data.json» (tipo interno 'tms-scheda') con la scheda giorno
    per giorno, il previsto e — se il piano della fase attiva non è vuoto — anche la
    **dieta** (campo 'dieta': pasti, alimenti, grammi, kcal/macro precalcolati, perché
-   il cliente non ha la banca alimenti). Alla domanda sui video: includendoli il
-   cliente vede le esecuzioni offline nell'app ma il file pesa di più.
+   il cliente non ha la banca alimenti). Un popup chiede il TIPO di scheda: FISSA
+   (sola compilazione, come le versioni precedenti) o MODIFICABILE (il cliente può
+   anche aggiungere/eliminare/modificare esercizi e segnare i test del massimale 1RM);
+   la scelta è nel campo 'modificabile' del file (default false = fissa). Alla domanda
+   sui video: includendoli il cliente vede le esecuzioni offline nell'app ma il file pesa di più.
 2. **Il cliente compila nell'app** — salva il file sul telefono e lo carica in TMS
    Scheda con «📂 Carica la scheda»: la scheda resta memorizzata nell'app (la ritrova
    a ogni apertura, con la **bozza salvata da sola** mentre compila). L'app si apre su
@@ -236,7 +239,12 @@ nei dispositivi.
    tastiera numerica; una spunta ✔ segna i giorni con campi realmente toccati; bottoni
    «‹ Torna ai giorni / al menu» ben visibili. Inserisce ciò che ha fatto davvero
    (serie, ripetizioni, peso, RIR, note per esercizio; fatica RPE 0-10 e durata per
-   seduta; gli esercizi non sono modificabili). NOTA: il campo **RIR parte sempre
+   seduta). Ogni esercizio ha un **timer di recupero** (bottone ⏱ che parte dal tempo
+   di riposo della scheda, con pausa e +15/-15; disponibile in FISSA e MODIFICABILE).
+   Se la scheda è MODIFICABILE il cliente può anche **aggiungere/eliminare/modificare**
+   esercizi (rinomina, sposta di giorno, ritocca il previsto) e segnare i **test del
+   massimale (★)**: aggiunte ed eliminazioni e il flag 'test' tornano nel rientro (l'import
+   ricostruisce la scheda Pesi dalle righe). NOTA: il campo **RIR parte sempre
    vuoto** (non eredita il valore del coach: si inserisce dopo l'allenamento; il
    previsto resta indicato sopra i campi). Guarda i ▶ video, e preme «📩 Crea il file
    per il coach»: nasce «Rientro_profilo_data.json» (formato 'tms-rientro', identico
