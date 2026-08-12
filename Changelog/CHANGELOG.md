@@ -4,6 +4,33 @@
 
 ---
 
+### 2026-07-20 — TMS v1.1.2: Training Set — più schede alternative da scambiare al volo (tab Pesi)
+
+**Tipo**: feature (richiesta esplicita di Marco: profili di scheda scambiabili, come i loadout nei
+giochi di ruolo — es. una scheda per la palestra e una diversa per casa)
+**File coinvolti**: `src/app/06-allenamento.js` (selettore Training Set nella barra Pesi;
+`ensureSets`/`switchTrainingSet`/`creaTrainingSet`/`nuovoTrainingSetModal`/`rinominaTrainingSet`/
+`eliminaTrainingSet`) · `src/app/00-i18n.js` (stringhe EN) · guide `src/app/13a-guida.js` (rapida
++ completa, IT ed EN) e `src/app/13c-guida-ai.js` (§4) + `docs/guida-ai.md` rigenerata ·
+`tests/test-app.js` · `src/app/01-costanti.js` + package.json ×2
+**Descrizione**: nel tab <b>🏋 Pesi</b>, accanto al selettore «Scheda» (settimanale/mensile), un
+nuovo selettore <b>Training Set</b> permette di tenere più versioni alternative dell'intera scheda
+Pesi (settimanale + mensile) e passare dall'una all'altra scegliendola dal menù — pensato per chi
+si allena in contesti diversi (palestra/casa) con esercizi molto diversi. Il set su cui si stava
+lavorando si <b>salva da solo</b> al cambio (nessuna perdita, nessun bottone da ricordare). Le
+azioni sono <b>dentro il menù a tendina stesso</b> (gruppo «Azioni», compaiono solo aprendolo, su
+richiesta di Marco): <b>➕ Nuovo Training Set…</b> chiede il nome e se partire da zero o copiare un
+set esistente; <b>✎ Rinomina</b>; <b>🗑 Elimina</b> (solo se resta almeno un altro set). Architettura
+pensata per l'integrità dei dati: il piano ATTIVO resta canonico in `DOC.scheda.settimanale/mensile`
+(zero modifiche a report/scambio-scheda/esercizi/test 1RM, che continuano a leggerlo come sempre); i
+set inattivi vivono in `DOC.scheda.setsSalvati` con **copie profonde** (nessun riferimento condiviso,
+niente bug di sincronia). Migrazione idempotente e retro-compatibile: le schede esistenti diventano
+da sole il set «Base» al primo avvio, senza toccare un solo esercizio.
+**Test**: `npm test` **327/327** (17 nuove verifiche: migrazione, creazione da zero/da copia, cambio
+con autosalvataggio, rinomina, eliminazione con almeno un set superstite, azioni dentro il menù).
+`npm run verifica` OK (artefatti = sorgente). Collaudato da Marco con `PROVA_APP.bat` prima della release.
+**Approvato da**: Marco (implementazione e rilascio v1.1.2 su comando esplicito).
+
 ### 2026-07-20 — TMS v1.1.1: il cliente modifica la scheda dal telefono (fissa/modificabile), timer di recupero, test 1RM
 
 **Tipo**: feature (richiesta esplicita di Marco: aggiungere/eliminare/modificare esercizi e i massimali dall'app del telefono + un timer che legge il tempo di riposo dalla scheda; poi scelta fissa/modificabile al momento dell'export)

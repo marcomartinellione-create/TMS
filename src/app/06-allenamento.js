@@ -1,6 +1,59 @@
 /* ════════════════ RENDER: ALLENAMENTO ════════════════ */
 let schedaMode='settimanale';
 function schedaRows(){ return DOC.scheda[schedaMode] || (DOC.scheda[schedaMode]=[]); }
+
+/* ── Training Set (loadout della scheda Pesi): il piano ATTIVO resta in DOC.scheda.settimanale/
+      mensile (canonico, tutto il resto lo legge da lì); i set INATTIVI stanno in
+      DOC.scheda.setsSalvati {nome→{settimanale,mensile}}; DOC.scheda.setAttivo = nome attivo;
+      DOC.scheda.setsOrdine = ordine per il menù. Cambiare set = salva l'attivo tra i salvati e
+      carica l'altro (copie profonde: nessun riferimento condiviso → nessun bug di sincronia).
+      Idempotente e retro-compatibile: le schede esistenti diventano il set "Base". ── */
+function tsCopy(o){ try{ return JSON.parse(JSON.stringify(o||[])); }catch(e){ return []; } }
+function ensureSets(){ const s=DOC.scheda; if(!s||typeof s!=='object') return s;
+  if(typeof s.setAttivo!=='string'||!s.setAttivo) s.setAttivo='Base';
+  if(!s.setsSalvati||typeof s.setsSalvati!=='object') s.setsSalvati={};
+  let ord=Array.isArray(s.setsOrdine)?s.setsOrdine.filter(n=>n===s.setAttivo||s.setsSalvati[n]):[];
+  [s.setAttivo].concat(Object.keys(s.setsSalvati)).forEach(n=>{ if(ord.indexOf(n)<0) ord.push(n); });
+  s.setsOrdine=ord; return s; }
+function switchTrainingSet(nome){ const s=ensureSets(); if(!nome||nome===s.setAttivo||!s.setsSalvati[nome]) return;
+  s.setsSalvati[s.setAttivo]={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[])};  /* salva l'attivo */
+  const tgt=s.setsSalvati[nome]||{};                                                                   /* carica il target */
+  s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]);
+  delete s.setsSalvati[nome]; s.setAttivo=nome; persist('scheda'); renderAllenamento(); }
+function creaTrainingSet(nome, sorgente){ const s=ensureSets(); nome=String(nome||'').trim();
+  if(!nome || nome===s.setAttivo || s.setsSalvati[nome]) return;
+  s.setsSalvati[s.setAttivo]={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[])};  /* salva l'attivo */
+  let base={settimanale:[], mensile:[]};
+  if(sorgente && sorgente!=='__vuota__' && s.setsSalvati[sorgente]){ const src=s.setsSalvati[sorgente];
+    base={settimanale:tsCopy(src.settimanale||[]), mensile:tsCopy(src.mensile||[])}; }
+  s.settimanale=base.settimanale; s.mensile=base.mensile; s.setAttivo=nome;
+  if(s.setsOrdine.indexOf(nome)<0) s.setsOrdine.push(nome);
+  persist('scheda'); renderAllenamento(); }
+function nuovoTrainingSetModal(){ const s=ensureSets();
+  const opts='<option value="__vuota__">'+t('Scheda vuota (da zero)')+'</option>'+
+    s.setsOrdine.map(n=>'<option value="'+esc(n)+'">'+t('Copia da:')+' '+esc(n)+'</option>').join('');
+  modal(`<h3>${t('Nuovo Training Set')}</h3>
+    <div class="field" style="margin-top:8px"><label>${t('Nome')}</label><input id="ts-nome" placeholder="${t('es. Casa, Palestra…')}" style="width:100%"></div>
+    <div class="field" style="margin-top:8px"><label>${t('Punto di partenza')}</label><select id="ts-src" style="width:100%">${opts}</select></div>
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="ts-ok">${t('Crea')}</button></div>`);
+  const src=document.getElementById('ts-src'); if(src) src.value=s.setAttivo;
+  document.getElementById('ts-ok').onclick=()=>{ const nome=(document.getElementById('ts-nome').value||'').trim();
+    if(!nome){ alert(t('Dai un nome al Training Set.')); return; }
+    if(nome===s.setAttivo||s.setsSalvati[nome]){ alert(t('Esiste già un Training Set con questo nome.')); return; }
+    const sorgente=document.getElementById('ts-src').value; closeModal(); creaTrainingSet(nome, sorgente); };
+  setTimeout(()=>{ try{ document.getElementById('ts-nome').focus(); }catch(e){} },0); }
+function rinominaTrainingSet(){ const s=ensureSets(); const old=s.setAttivo;
+  chiediTesto(t('Rinomina Training Set'), old, nome=>{ nome=(nome||'').trim(); if(!nome||nome===old) return;
+    if(s.setsSalvati[nome]){ alert(t('Esiste già un Training Set con questo nome.')); return; }
+    s.setAttivo=nome; s.setsOrdine=s.setsOrdine.map(n=>n===old?nome:n); persist('scheda'); renderAllenamento(); }); }
+function eliminaTrainingSet(){ const s=ensureSets(); const nomi=s.setsOrdine;
+  if(nomi.length<=1){ alert(t('Deve restare almeno un Training Set.')); return; }
+  const vitt=s.setAttivo;
+  if(!confirm(t('Eliminare il Training Set «')+vitt+t('» e la sua scheda? Operazione irreversibile.'))) return;
+  const altro=nomi.find(n=>n!==vitt); const tgt=s.setsSalvati[altro]||{};
+  s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]);
+  delete s.setsSalvati[altro]; delete s.setsSalvati[vitt];
+  s.setAttivo=altro; s.setsOrdine=nomi.filter(n=>n!==vitt); persist('scheda'); renderAllenamento(); }
 /* Bozza RPE/durata per-giorno (Foster): vive in scheda.json (autosave), azzerata al salvataggio nello Storico */
 function schedaRpe(){ const s=DOC.scheda; if(!s.rpe||typeof s.rpe!=='object')s.rpe={}; if(!s.rpe[schedaMode])s.rpe[schedaMode]={}; return s.rpe[schedaMode]; }
 function dayRpe(g){ const d=schedaRpe()[g]; return d||{}; }
@@ -58,6 +111,7 @@ function rpeDayControls(g){ const d=dayRpe(g), ld=dayLoad(g);
     `<label style="font-size:11px;color:var(--ink-3)">min</label><input class="cell-in rpe-in" type="number" min="0" step="1" data-rpe-day="${esc(g)}" data-rpe-f="min" value="${d.min??''}" style="width:54px" placeholder="min" title="${t('Durata della seduta in minuti')}">`+
     `<span class="pill" data-rpe-load="${esc(g)}" title="${t('Carico interno seduta = RPE × min (AU)')}">${ld?nfk(ld)+' AU':'—'}</span></span>`; }
 function renderAllenamento(){
+  const S=ensureSets();
   const rows=schedaRows();
   const smap=sedutaMap(rows);
   let totTL=0; rows.forEach(r=>{ totTL+=sTL(r); });
@@ -108,6 +162,8 @@ function renderAllenamento(){
          <option value="settimanale"${schedaMode==='settimanale'?' selected':''}>${t('Settimanale')}</option>
          <option value="mensile"${schedaMode==='mensile'?' selected':''}>${t('Mensile')}</option>
        </select></div>
+     <div class="field"><label>Training Set</label>
+       <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, rinominarle o eliminarle')}">${S.setsOrdine.map(n=>`<option value="${esc(n)}"${n===S.setAttivo?' selected':''}>${esc(n)}</option>`).join('')}<optgroup label="${t('Azioni')}"><option value="__new__">${t('➕ Nuovo Training Set…')}</option><option value="__rename__">${t('✎ Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('🗑 Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
      <div class="spacer"></div>
      <button class="btn" id="btn-addrow">${t('＋ Esercizio')}</button>
      <button class="btn" id="btn-addday">${t('＋ Giorno')}</button>
@@ -123,6 +179,12 @@ function renderAllenamento(){
    </table></div>
    <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto alle frecce ▲▼ dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:#c9961f">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
   document.getElementById('sched-mode').onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
+  { const ts=document.getElementById('training-set');
+    if(ts) ts.onchange=e=>{ const v=e.target.value; e.target.value=DOC.scheda.setAttivo;  /* le voci Azioni non restano selezionate */
+      if(v==='__new__') nuovoTrainingSetModal();
+      else if(v==='__rename__') rinominaTrainingSet();
+      else if(v==='__delete__') eliminaTrainingSet();
+      else switchTrainingSet(v); }; }
   // auto-resize note textareas
   document.getElementById('panel-allenamento').addEventListener('input', e=>{
     if(e.target.classList.contains('note-area')){

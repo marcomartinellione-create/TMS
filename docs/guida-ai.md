@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.1 (2026-07-20). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.2 (2026-07-20). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -90,6 +90,16 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   recente); la stellina ☆/★ accanto a ogni esercizio lo aggiunge/toglie dai preferiti.
   Campi per riga: Serie, Ripetizioni, Peso, RIR (opzionale), Note, recupero. Obbligatori
   solo esercizio/serie/ripetizioni/peso.
+
+- **Training Set** (dal v1.1.2): selettore accanto a «Scheda» per tenere più versioni
+  alternative dell'intera scheda Pesi (settimanale + mensile) — es. «Palestra» e «Casa» —
+  e passare dall'una all'altra. Il set su cui si stava lavorando si salva da solo al
+  cambio. Le azioni (nuovo/rinomina/elimina) sono voci dentro il menù a tendina stesso,
+  sotto un separatore «Azioni», e compaiono solo aprendolo: «➕ Nuovo Training Set…»
+  (chiede il nome e se partire da zero o copiare un set esistente), «✎ Rinomina»,
+  «🗑 Elimina» (solo se resta almeno un altro set). Dati: campo 'setAttivo' (nome attivo),
+  'setsSalvati' (mappa nome→scheda dei set inattivi), 'setsOrdine' in scheda.json; le
+  schede preesistenti diventano da sole il set «Base» al primo avvio dopo l'aggiornamento.
 
 ## 4-bis · Cardio (tab 🏃 Cardio)
 

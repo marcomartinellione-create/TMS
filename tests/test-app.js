@@ -622,6 +622,43 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(d.getElementById('m-day') !== null, 'Pesi: ＋ Esercizio apre la scelta del giorno');
     w.eval('document.getElementById("m-day").value="Mercoledì";'); d.getElementById('m-ok').click();
     ok(w.eval('DOC.scheda.settimanale.length') === nPrima + 1 && w.eval('DOC.scheda.settimanale.some(r=>r.giorno==="Mercoledì"&&!r.esercizio)'), 'Pesi: l\'esercizio viene aggiunto nel giorno scelto (Mercoledì)'); }
+  /* Training Set — loadout della scheda Pesi (crea/cambia/rinomina/elimina), piano attivo canonico */
+  w.eval('schedaMode="settimanale"; DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Panca",serie:3,rip:8,peso:60}]; DOC.scheda.mensile=[]; delete DOC.scheda.setAttivo; delete DOC.scheda.setsSalvati; delete DOC.scheda.setsOrdine; ensureSets();');
+  ok(w.eval('DOC.scheda.setAttivo') === 'Base' && w.eval('JSON.stringify(DOC.scheda.setsOrdine)') === '["Base"]', 'Training Set: migrazione idempotente → set «Base» attivo, ordine ["Base"]');
+  w.eval('creaTrainingSet("Casa","Base")');
+  ok(w.eval('DOC.scheda.setAttivo') === 'Casa' && w.eval('DOC.scheda.setsOrdine.indexOf("Casa")>=0') && w.eval('!!DOC.scheda.setsSalvati["Base"]') === true, 'Training Set: crea «Casa» copiando «Base» (Casa attivo, Base tra i salvati)');
+  ok(w.eval('DOC.scheda.settimanale.length') === 1 && w.eval('DOC.scheda.settimanale[0].esercizio') === 'Panca', 'Training Set: la copia riporta gli esercizi dell\'origine');
+  w.eval('DOC.scheda.settimanale[0].peso=50; DOC.scheda.settimanale.push({giorno:"Lunedì",esercizio:"Piegamenti",serie:3,rip:15,peso:0});');
+  w.eval('switchTrainingSet("Base")');
+  ok(w.eval('DOC.scheda.setAttivo') === 'Base' && w.eval('DOC.scheda.settimanale.length') === 1 && w.eval('DOC.scheda.settimanale[0].peso') === 60, 'Training Set: cambiare set carica il piano giusto (Base = Panca 60)');
+  ok(w.eval('DOC.scheda.setsSalvati["Casa"].settimanale.length') === 2 && w.eval('DOC.scheda.setsSalvati["Casa"].settimanale[0].peso') === 50, 'Training Set: al cambio l\'altro set viene salvato (Casa = 2 esercizi, peso 50)');
+  ok(w.eval('!!DOC.scheda.setsSalvati["Base"]') === false, 'Training Set: il set attivo non resta duplicato tra i salvati');
+  w.eval('window.__ct=chiediTesto; chiediTesto=function(tit,val,cb){ cb("Palestra"); };');
+  w.eval('rinominaTrainingSet()');
+  w.eval('chiediTesto=window.__ct;');
+  ok(w.eval('DOC.scheda.setAttivo') === 'Palestra' && w.eval('DOC.scheda.setsOrdine.indexOf("Base")<0') && w.eval('DOC.scheda.setsOrdine.indexOf("Palestra")>=0'), 'Training Set: rinomina il set attivo (Base → Palestra)');
+  w.eval('window.__oc3=window.confirm; window.confirm=function(){return true;};');
+  w.eval('eliminaTrainingSet()');
+  w.eval('window.confirm=window.__oc3;');
+  ok(w.eval('DOC.scheda.setAttivo') === 'Casa' && w.eval('DOC.scheda.setsOrdine.indexOf("Palestra")<0'), 'Training Set: elimina il set attivo → ne attiva un altro (Casa)');
+  ok(w.eval('DOC.scheda.settimanale.length') === 2 && w.eval('DOC.scheda.settimanale[0].peso') === 50, 'Training Set: dopo l\'eliminazione la scheda attiva è quella di Casa (2 esercizi, peso 50)');
+  w.eval('creaTrainingSet("Vuota","__vuota__")');
+  ok(w.eval('DOC.scheda.setAttivo') === 'Vuota' && w.eval('DOC.scheda.settimanale.length') === 0, 'Training Set: «Scheda vuota» crea un set senza esercizi');
+  ok(w.eval('DOC.scheda.setsOrdine.length') === 2 && w.eval('!!DOC.scheda.setsSalvati["Casa"]') === true, 'Training Set: due set totali (Casa salvato, Vuota attivo)');
+  /* la barra Pesi mostra il selettore Training Set con le AZIONI dentro il menù (niente bottoni separati) */
+  w.eval('showTab("allenamento")');
+  ok(d.getElementById('training-set') !== null && d.getElementById('ts-new') === null && d.getElementById('ts-del') === null, 'Training Set: solo il selettore nella barra (niente bottoni separati)');
+  { const opts = [...d.getElementById('training-set').options].map(o=>o.value);
+    ok(opts.includes('Casa') && opts.includes('__new__') && opts.includes('__rename__') && opts.includes('__delete__'), 'Training Set: le azioni (Nuovo/Rinomina/Elimina) sono opzioni dentro il menù a tendina');
+    ok(d.querySelector('#training-set optgroup') !== null, 'Training Set: le azioni sono in un gruppo «Azioni» separato'); }
+  ok(d.getElementById('training-set').value === 'Vuota', 'Training Set: il selettore ha l\'attivo selezionato (Vuota)');
+  /* scegliere «➕ Nuovo…» dal menù apre il modale, e la voce Azione non resta selezionata */
+  w.eval('var _sel=document.getElementById("training-set"); _sel.value="__new__"; _sel.onchange({target:_sel});');
+  ok(d.getElementById('ts-nome') !== null && w.eval('document.getElementById("training-set").value') === 'Vuota', 'Training Set: «➕ Nuovo…» apre il modale e il selettore torna sull\'attivo');
+  w.eval('closeModal();');
+  /* scegliere un set dal menù lo attiva */
+  w.eval('var _s2=document.getElementById("training-set"); _s2.value="Casa"; _s2.onchange({target:_s2});');
+  ok(w.eval('DOC.scheda.setAttivo') === 'Casa', 'Training Set: scegliere un set dal menù lo attiva');
   ok(w.eval('schedaCode(isoWeek(new Date("2026-06-11T12:00:00")).anno, isoWeek(new Date("2026-06-11T12:00:00")).sett)') === 202624, 'conversione data -> settimana ISO (11/06/2026 = 202624)');
   const rientro = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
     righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:70,rir:2,note:'ok'},
