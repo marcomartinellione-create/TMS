@@ -4,6 +4,37 @@
 
 ---
 
+### 2026-08-14 — TMS v1.1.3: Riscaldamento per Training Set (tab Pesi), filtrato allo stretching
+
+**Tipo**: feature (richiesta esplicita di Marco: una vista di riscaldamento per Training Set, con
+gli esercizi scelti solo tra quelli di stretching, fuori da ogni calcolo) + fix estetico (allineamento
+della barra Pesi)
+**File coinvolti**: `src/app/06-allenamento.js` (vista `pesiView`, `riscaldaRows`, `renderRiscaldamento`,
+`barSelettori`/`wireBarSelettori` condivisi, dati `DOC.scheda.riscaldamento` portati da
+`switchTrainingSet`/`creaTrainingSet`/`eliminaTrainingSet`/`ensureSets`) · `src/app/12-esercizi.js`
+(`isStretching(e)`, filtro applicato al selettore della scheda Pesi e a quello del riscaldamento) ·
+`src/pagina/02-stili.css` (`.bar--bottom`) · `src/app/00-i18n.js` (stringhe EN) · guide
+`src/app/13a-guida.js` (completa, IT ed EN) e `src/app/13c-guida-ai.js` (§4) + `docs/guida-ai.md`
+rigenerata · `tests/test-app.js` · `src/app/01-costanti.js` + package.json ×2
+**Descrizione**: nel tab <b>🏋 Pesi</b>, accanto al selettore Training Set, un nuovo <b>pulsante
+arancione «🔥 Riscaldamento»</b> cambia vista e mostra, per il Training Set attivo, i riscaldamenti
+<b>giorno per giorno</b> — i giorni sono ripresi da quelli già presenti nella scheda. Per ogni riga
+si sceglie l'esercizio dal catalogo, ma il selettore è <b>filtrato ai soli esercizi di categoria
+"stretching"</b> (123 nel catalogo standard); il selettore della scheda Pesi, di converso, ora
+<b>esclude</b> lo stretching (oltre al cardio, già escluso) — le due liste non si mescolano più. Il
+riscaldamento porta solo Esercizio/Serie/Ripetizioni/Note e <b>non entra mai in TL, Storico o alcun
+calcolo</b> (vive in un array separato che nessun calcolo legge — garanzia verificata da test
+dedicato). Ogni Training Set ha il proprio riscaldamento (viaggia con le copie profonde del set:
+crea/cambia/elimina lo portano con sé); retro-compatibile (set precedenti senza riscaldamento →
+vuoto). Il pulsante diventa <b>«◂ Scheda»</b> per tornare. Corretto anche un difetto di allineamento
+nella barra Pesi: pulsanti e selettori "galleggiavano" ad altezze diverse — ora i bordi inferiori
+sono allineati (nuova classe `.bar--bottom`, scoped alle barre Pesi).
+**Test**: `npm test` **341/341** (nuove verifiche: apertura/chiusura vista, giorni ripresi dalla
+scheda, selettore riscaldamento con SOLE 123 voci di stretching, selettore scheda che le esclude,
+il riscaldamento non altera il TL, persistenza per Training Set, eliminazione riga). `npm run
+verifica` OK (artefatti = sorgente). Collaudato da Marco con `PROVA_APP.bat` prima della release.
+**Approvato da**: Marco (implementazione e rilascio v1.1.3 su comando esplicito).
+
 ### 2026-07-20 — TMS v1.1.2: Training Set — più schede alternative da scambiare al volo (tab Pesi)
 
 **Tipo**: feature (richiesta esplicita di Marco: profili di scheda scambiabili, come i loadout nei

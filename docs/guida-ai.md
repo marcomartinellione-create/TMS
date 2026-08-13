@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.2 (2026-07-20). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.3 (2026-08-14). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -100,6 +100,15 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   «🗑 Elimina» (solo se resta almeno un altro set). Dati: campo 'setAttivo' (nome attivo),
   'setsSalvati' (mappa nome→scheda dei set inattivi), 'setsOrdine' in scheda.json; le
   schede preesistenti diventano da sole il set «Base» al primo avvio dopo l'aggiornamento.
+
+- **🔥 Riscaldamento** (dal v1.1.3): pulsante arancione accanto a Training Set, cambia vista
+  e mostra i riscaldamenti **giorno per giorno del Training Set attivo** (i giorni sono
+  ripresi dalla scheda Pesi). Campi per riga: Esercizio (scelto dal catalogo, **filtrato ai
+  soli esercizi di categoria "stretching"**, 123 nel catalogo standard — il selettore della
+  scheda Pesi invece li esclude, mostra solo esercizi di allenamento), Serie, Ripetizioni,
+  Note. **Non entra in TL, Storico o alcun calcolo**: vive in un array separato
+  (campo 'riscaldamento' per modalità, dentro ogni Training Set) che nessun calcolo legge —
+  serve solo a prepararsi. Il pulsante diventa «◂ Scheda» per tornare.
 
 ## 4-bis · Cardio (tab 🏃 Cardio)
 

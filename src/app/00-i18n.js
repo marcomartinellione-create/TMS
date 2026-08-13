@@ -754,6 +754,15 @@ const EN={
   'Deve restare almeno un Training Set.':'At least one Training Set must remain.',
   'Eliminare il Training Set «':'Delete the Training Set «',
   '» e la sua scheda? Operazione irreversibile.':'» and its program? This cannot be undone.',
+  /* ══════════ Riscaldamento (vista Pesi) ══════════ */
+  'Riscaldamento':'Warm-up',
+  'Apri i riscaldamenti giorno per giorno di questo Training Set':'Open the day-by-day warm-ups for this Training Set',
+  'Per prima cosa aggiungi dei giorni nella scheda Pesi: i giorni del riscaldamento sono ripresi da lì.':'First add some days in the Weights program: the warm-up days are taken from there.',
+  'es. cyclette 5 min, mobilità spalle…':'e.g. 5 min bike, shoulder mobility…',
+  'Nessun esercizio di riscaldamento per questo giorno.':'No warm-up exercise for this day.',
+  '＋ riscaldamento':'＋ warm-up',
+  '🔥 <b>Riscaldamento</b> del Training Set «':'🔥 <b>Warm-up</b> for the Training Set «',
+  '». Solo esercizio, serie, ripetizioni e note: serve a prepararsi, <b>non conta nel TL né in alcun calcolo</b>. I giorni sono ripresi dalla scheda.':'». Only exercise, sets, reps and notes: it\'s just to warm up, <b>it does not count in TL or any calculation</b>. The days are taken from the program.',
   /* ══════════ profili (persistenza) ══════════ */
   'Deve restare almeno un profilo.':'At least one profile must remain.',
   'Eliminare il profilo «':'Delete the profile «',

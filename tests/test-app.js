@@ -659,6 +659,43 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* scegliere un set dal menù lo attiva */
   w.eval('var _s2=document.getElementById("training-set"); _s2.value="Casa"; _s2.onchange({target:_s2});');
   ok(w.eval('DOC.scheda.setAttivo') === 'Casa', 'Training Set: scegliere un set dal menù lo attiva');
+  /* Riscaldamento — vista alternativa per Training Set (giorni dalla scheda), fuori dai calcoli */
+  w.eval('pesiView="scheda"; showTab("allenamento");');
+  ok(d.getElementById('btn-warm') !== null && /btn--ember/.test(d.getElementById('btn-warm').className), 'Riscaldamento: pulsante 🔥 arancione (btn--ember) accanto ai selettori');
+  ok(/Riscaldamento/.test(d.getElementById('btn-warm').textContent), 'Riscaldamento: in vista scheda il pulsante dice «Riscaldamento»');
+  d.getElementById('btn-warm').click();
+  ok(w.eval('pesiView') === 'riscaldamento' && /Scheda/.test(d.getElementById('btn-warm').textContent), 'Riscaldamento: il pulsante apre la vista e diventa «Scheda» (per tornare)');
+  ok(d.querySelector('#panel-allenamento [data-waddday="Lunedì"]') !== null, 'Riscaldamento: il giorno «Lunedì» è ripreso dalla scheda');
+  const tlPrima = w.eval('schedaRows().reduce(function(a,r){return a+sTL(r);},0)');
+  d.querySelector('#panel-allenamento [data-waddday="Lunedì"]').click();
+  ok(w.eval('riscaldaRows().length') === 1 && w.eval('riscaldaRows()[0].giorno') === 'Lunedì', 'Riscaldamento: ＋ aggiunge una riga di riscaldamento nel giorno');
+  { const sIn = d.querySelector('#panel-allenamento tr[data-wi="0"] [data-wf="serie"]'); sIn.value = '1'; sIn.oninput(); }
+  /* divisione per categoria del database: stretching vs allenamento */
+  ok(w.eval('isStretching({categoria:"stretching"})') === true && w.eval('isStretching({categoria:"forza"})') === false, 'filtro: isStretching riconosce la categoria del database');
+  /* la cella esercizio del riscaldamento apre un selettore con SOLO esercizi di stretching */
+  d.querySelector('#panel-allenamento .warm-pick').click();
+  ok(d.getElementById('exp-q') !== null, 'Riscaldamento: la cella esercizio apre il selettore esercizi');
+  { const names = [...d.querySelectorAll('.exp-it')].map(x=>x.dataset.nome);
+    const soloStretch = names.length>0 && w.eval('('+JSON.stringify(names)+').every(function(n){var e=esLookup(n);return e&&String(e.categoria||"").toLowerCase()==="stretching";})');
+    ok(names.length>40 && soloStretch, 'Riscaldamento: il selettore mostra SOLO esercizi di stretching ('+names.length+' voci)'); }
+  w.eval('closeModal();');
+  w.eval('riscaldaRows()[0].esercizio="Stretch test"; persist("scheda");');  /* simula la scelta dal picker */
+  ok(w.eval('riscaldaRows()[0].esercizio') === 'Stretch test' && w.eval('riscaldaRows()[0].serie') === 1, 'Riscaldamento: esercizio (dal selettore) + serie salvati');
+  ok(w.eval('schedaRows().reduce(function(a,r){return a+sTL(r);},0)') === tlPrima && w.eval('schedaRows().length') === 2, 'Riscaldamento: NON conta nel TL né tocca la scheda Pesi');
+  w.eval('creaTrainingSet("Vuota2","__vuota__");');
+  ok(w.eval('riscaldaRows().length') === 0, 'Riscaldamento: un nuovo set (vuoto) parte senza riscaldamenti');
+  w.eval('switchTrainingSet("Casa");');
+  ok(w.eval('riscaldaRows().length') === 1 && w.eval('riscaldaRows()[0].esercizio') === 'Stretch test', 'Riscaldamento: appartiene al Training Set (tornando a «Casa» è ancora lì)');
+  w.eval('pesiView="riscaldamento"; renderAllenamento();');
+  d.querySelector('#panel-allenamento [data-wdel="0"]').click();
+  ok(w.eval('riscaldaRows().length') === 0, 'Riscaldamento: ✕ elimina la riga');
+  w.eval('pesiView="scheda"; showTab("allenamento");');
+  /* il selettore della scheda Pesi ESCLUDE lo stretching (solo esercizi di allenamento) */
+  d.querySelector('#panel-allenamento .ex-pick').click();
+  { const names = [...d.querySelectorAll('.exp-it')].map(x=>x.dataset.nome);
+    const nessunoStretch = names.length>0 && w.eval('('+JSON.stringify(names)+').every(function(n){var e=esLookup(n);return e&&String(e.categoria||"").toLowerCase()!=="stretching";})');
+    ok(nessunoStretch, 'Scheda Pesi: il selettore esercizi ESCLUDE lo stretching ('+names.length+' voci)'); }
+  w.eval('closeModal();');
   ok(w.eval('schedaCode(isoWeek(new Date("2026-06-11T12:00:00")).anno, isoWeek(new Date("2026-06-11T12:00:00")).sett)') === 202624, 'conversione data -> settimana ISO (11/06/2026 = 202624)');
   const rientro = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
     righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:70,rir:2,note:'ok'},

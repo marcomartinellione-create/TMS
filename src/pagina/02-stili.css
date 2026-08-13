@@ -203,6 +203,8 @@ input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange)
 
 /* toolbars */
 .bar{display:flex; flex-wrap:wrap; gap:9px; align-items:center; margin:4px 0 14px}
+/* barra Pesi: selettori (etichetta sopra + menù) e pulsanti allineati in basso, stessa linea */
+.bar--bottom{align-items:flex-end}
 .bar .spacer{flex:1}
 .field{display:flex; flex-direction:column; gap:3px}
 .field label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); font-family:var(--font-mono)}

@@ -154,6 +154,10 @@ function exMatch(e,q){
    serve a tenerlo FUORI dal selettore dei Pesi (le attività cardio vivono nel tab Cardio). */
 function isCardio(e){ if(!e) return false;
   return String(e.macro||e.gruppo||'').toLowerCase()==='cardio' || String(e.categoria||'').toLowerCase()==='cardio'; }
+/* un esercizio è "stretching/allungamento" (categoria del database): serve a mostrare SOLO
+   stretching nel Riscaldamento e a tenerlo FUORI dalla scheda Pesi (dove vanno gli esercizi
+   di allenamento). Gli esercizi personalizzati (senza categoria) restano nella scheda. */
+function isStretching(e){ if(!e) return false; return String(e.categoria||'').toLowerCase()==='stretching'; }
 let exSottoAperte={};  /* "macro::sotto" -> true se il menù a tendina è aperto */
 function renderEsercizi(){
   const list=EX_BASE.filter(e=>exMatch(e,exFilt));

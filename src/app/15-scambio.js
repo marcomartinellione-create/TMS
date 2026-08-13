@@ -95,7 +95,7 @@ async function esportaSchedaCliente(){
 /* carica il rientro del cliente nella SCHEDA PESI (settimanale) per la revisione del coach,
    prima del salvataggio manuale nello Storico (💾 Salva nello Storico). Pura, senza dialoghi. */
 function caricaRientroInScheda(dati){
-  schedaMode='settimanale';
+  schedaMode='settimanale'; pesiView='scheda';
   if(!DOC.scheda || typeof DOC.scheda!=='object') DOC.scheda={settimanale:[],mensile:[]};
   const righe=(dati&&Array.isArray(dati.righe))?dati.righe:[];
   DOC.scheda.settimanale=righe.filter(r=>r&&r.esercizio&&String(r.esercizio).trim()).map(r=>({

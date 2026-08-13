@@ -1,6 +1,12 @@
 /* ════════════════ RENDER: ALLENAMENTO ════════════════ */
 let schedaMode='settimanale';
+let pesiView='scheda';  /* 'scheda' | 'riscaldamento' — vista del tab Pesi (toggle col pulsante arancione) */
 function schedaRows(){ return DOC.scheda[schedaMode] || (DOC.scheda[schedaMode]=[]); }
+/* righe di RISCALDAMENTO del Training Set attivo, per modalità (settimanale/mensile).
+   Solo {giorno,esercizio,serie,rip,note}: NON entrano in TL, Storico o alcun calcolo —
+   vivono in un array separato (DOC.scheda.riscaldamento), che nessun calcolo legge. */
+function riscaldaRows(){ const s=DOC.scheda; if(!s.riscaldamento||typeof s.riscaldamento!=='object'||Array.isArray(s.riscaldamento)) s.riscaldamento={};
+  if(!Array.isArray(s.riscaldamento[schedaMode])) s.riscaldamento[schedaMode]=[]; return s.riscaldamento[schedaMode]; }
 
 /* ── Training Set (loadout della scheda Pesi): il piano ATTIVO resta in DOC.scheda.settimanale/
       mensile (canonico, tutto il resto lo legge da lì); i set INATTIVI stanno in
@@ -12,21 +18,22 @@ function tsCopy(o){ try{ return JSON.parse(JSON.stringify(o||[])); }catch(e){ re
 function ensureSets(){ const s=DOC.scheda; if(!s||typeof s!=='object') return s;
   if(typeof s.setAttivo!=='string'||!s.setAttivo) s.setAttivo='Base';
   if(!s.setsSalvati||typeof s.setsSalvati!=='object') s.setsSalvati={};
+  if(!s.riscaldamento||typeof s.riscaldamento!=='object'||Array.isArray(s.riscaldamento)) s.riscaldamento={};
   let ord=Array.isArray(s.setsOrdine)?s.setsOrdine.filter(n=>n===s.setAttivo||s.setsSalvati[n]):[];
   [s.setAttivo].concat(Object.keys(s.setsSalvati)).forEach(n=>{ if(ord.indexOf(n)<0) ord.push(n); });
   s.setsOrdine=ord; return s; }
 function switchTrainingSet(nome){ const s=ensureSets(); if(!nome||nome===s.setAttivo||!s.setsSalvati[nome]) return;
-  s.setsSalvati[s.setAttivo]={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[])};  /* salva l'attivo */
+  s.setsSalvati[s.setAttivo]={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[]), riscaldamento:tsCopy(s.riscaldamento||{})};  /* salva l'attivo */
   const tgt=s.setsSalvati[nome]||{};                                                                   /* carica il target */
-  s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]);
+  s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]); s.riscaldamento=tsCopy(tgt.riscaldamento||{});
   delete s.setsSalvati[nome]; s.setAttivo=nome; persist('scheda'); renderAllenamento(); }
 function creaTrainingSet(nome, sorgente){ const s=ensureSets(); nome=String(nome||'').trim();
   if(!nome || nome===s.setAttivo || s.setsSalvati[nome]) return;
-  s.setsSalvati[s.setAttivo]={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[])};  /* salva l'attivo */
-  let base={settimanale:[], mensile:[]};
+  s.setsSalvati[s.setAttivo]={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[]), riscaldamento:tsCopy(s.riscaldamento||{})};  /* salva l'attivo */
+  let base={settimanale:[], mensile:[], riscaldamento:{}};
   if(sorgente && sorgente!=='__vuota__' && s.setsSalvati[sorgente]){ const src=s.setsSalvati[sorgente];
-    base={settimanale:tsCopy(src.settimanale||[]), mensile:tsCopy(src.mensile||[])}; }
-  s.settimanale=base.settimanale; s.mensile=base.mensile; s.setAttivo=nome;
+    base={settimanale:tsCopy(src.settimanale||[]), mensile:tsCopy(src.mensile||[]), riscaldamento:tsCopy(src.riscaldamento||{})}; }
+  s.settimanale=base.settimanale; s.mensile=base.mensile; s.riscaldamento=base.riscaldamento; s.setAttivo=nome;
   if(s.setsOrdine.indexOf(nome)<0) s.setsOrdine.push(nome);
   persist('scheda'); renderAllenamento(); }
 function nuovoTrainingSetModal(){ const s=ensureSets();
@@ -51,7 +58,7 @@ function eliminaTrainingSet(){ const s=ensureSets(); const nomi=s.setsOrdine;
   const vitt=s.setAttivo;
   if(!confirm(t('Eliminare il Training Set «')+vitt+t('» e la sua scheda? Operazione irreversibile.'))) return;
   const altro=nomi.find(n=>n!==vitt); const tgt=s.setsSalvati[altro]||{};
-  s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]);
+  s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]); s.riscaldamento=tsCopy(tgt.riscaldamento||{});
   delete s.setsSalvati[altro]; delete s.setsSalvati[vitt];
   s.setAttivo=altro; s.setsOrdine=nomi.filter(n=>n!==vitt); persist('scheda'); renderAllenamento(); }
 /* Bozza RPE/durata per-giorno (Foster): vive in scheda.json (autosave), azzerata al salvataggio nello Storico */
@@ -110,8 +117,66 @@ function rpeDayControls(g){ const d=dayRpe(g), ld=dayLoad(g);
     `<label style="font-size:11px;color:var(--ink-3)">RPE</label><input class="cell-in rpe-in" type="number" min="0" max="10" step="0.5" data-rpe-day="${esc(g)}" data-rpe-f="rpe" value="${d.rpe??''}" style="width:46px" placeholder="0–10" title="${t('RPE della seduta intera (Foster) · 0–10')}">`+
     `<label style="font-size:11px;color:var(--ink-3)">min</label><input class="cell-in rpe-in" type="number" min="0" step="1" data-rpe-day="${esc(g)}" data-rpe-f="min" value="${d.min??''}" style="width:54px" placeholder="min" title="${t('Durata della seduta in minuti')}">`+
     `<span class="pill" data-rpe-load="${esc(g)}" title="${t('Carico interno seduta = RPE × min (AU)')}">${ld?nfk(ld)+' AU':'—'}</span></span>`; }
+/* selettori condivisi della barra Pesi (Scheda + Training Set + pulsante 🔥 Riscaldamento/◂ Scheda),
+   usati sia dalla vista scheda sia da quella riscaldamento */
+function barSelettori(S){ return `
+     <div class="field"><label>${t('Scheda')}</label>
+       <select id="sched-mode">
+         <option value="settimanale"${schedaMode==='settimanale'?' selected':''}>${t('Settimanale')}</option>
+         <option value="mensile"${schedaMode==='mensile'?' selected':''}>${t('Mensile')}</option>
+       </select></div>
+     <div class="field"><label>Training Set</label>
+       <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, rinominarle o eliminarle')}">${S.setsOrdine.map(n=>`<option value="${esc(n)}"${n===S.setAttivo?' selected':''}>${esc(n)}</option>`).join('')}<optgroup label="${t('Azioni')}"><option value="__new__">${t('➕ Nuovo Training Set…')}</option><option value="__rename__">${t('✎ Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('🗑 Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
+     <button class="btn btn--ember" id="btn-warm" title="${t('Apri i riscaldamenti giorno per giorno di questo Training Set')}">${pesiView==='riscaldamento'?('◂ '+t('Scheda')):('🔥 '+t('Riscaldamento'))}</button>`; }
+function wireBarSelettori(){
+  const sm=document.getElementById('sched-mode'); if(sm) sm.onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
+  { const ts=document.getElementById('training-set');
+    if(ts) ts.onchange=e=>{ const v=e.target.value; e.target.value=DOC.scheda.setAttivo;  /* le voci Azioni non restano selezionate */
+      if(v==='__new__') nuovoTrainingSetModal();
+      else if(v==='__rename__') rinominaTrainingSet();
+      else if(v==='__delete__') eliminaTrainingSet();
+      else switchTrainingSet(v); }; }
+  const bw=document.getElementById('btn-warm'); if(bw) bw.onclick=()=>{ pesiView=(pesiView==='riscaldamento'?'scheda':'riscaldamento'); renderAllenamento(); };
+}
+/* ── Vista RISCALDAMENTO: i giorni sono quelli della scheda (modalità corrente), per ogni giorno
+      le righe di riscaldamento del Training Set attivo. Fuori da TL/Storico/calcoli. ── */
+function renderRiscaldamento(S){
+  const days=schedaDays(schedaRows()), warm=riscaldaRows();
+  let content='';
+  if(!days.length){
+    content=`<div class="callout callout--info"><div>${t('Per prima cosa aggiungi dei giorni nella scheda Pesi: i giorni del riscaldamento sono ripresi da lì.')}</div></div>`;
+  } else days.forEach(g=>{
+    let body='';
+    warm.forEach((r,i)=>{ if(r.giorno!==g) return;
+      body+=`<tr data-wi="${i}">`+
+        `<td class="l"><button type="button" class="cell-in txt warm-pick" style="min-width:150px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button></td>`+
+        `<td><input class="cell-in" data-wf="serie" type="number" min="0" step="1" value="${r.serie??''}" style="width:52px"></td>`+
+        `<td><input class="cell-in" data-wf="rip" type="number" min="0" step="1" value="${r.rip??''}" style="width:56px"></td>`+
+        `<td><input class="cell-in" data-wf="note" value="${esc(r.note||'')}" style="width:100%"></td>`+
+        `<td><button class="btn btn--sm btn--danger no-print" data-wdel="${i}" title="${t('elimina')}">✕</button></td></tr>`; });
+    content+=`<div class="sec">▌ ${esc(t(g))}</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th class="l">${t('Note')}</th><th></th></tr></thead>
+        <tbody>${body||`<tr><td colspan="5" class="empty">${t('Nessun esercizio di riscaldamento per questo giorno.')}</td></tr>`}</tbody>
+      </table></div>
+      <button class="btn btn--sm no-print" data-waddday="${esc(g)}">${t('＋ riscaldamento')}</button>`;
+  });
+  document.getElementById('panel-allenamento').innerHTML=`
+   <div class="bar bar--bottom no-print">${barSelettori(S)}<div class="spacer"></div></div>
+   <div class="callout callout--info"><div>${t('🔥 <b>Riscaldamento</b> del Training Set «')}${esc(S.setAttivo)}${t('». Solo esercizio, serie, ripetizioni e note: serve a prepararsi, <b>non conta nel TL né in alcun calcolo</b>. I giorni sono ripresi dalla scheda.')}</div></div>
+   ${content}`;
+  wireBarSelettori();
+  document.querySelectorAll('#panel-allenamento .warm-pick').forEach(b=>b.onclick=()=>{ const i=+b.closest('tr').dataset.wi;
+    pickExercise(riscaldaRows()[i].esercizio, nome=>{ riscaldaRows()[i].esercizio=nome; persist('scheda'); renderRiscaldamento(ensureSets()); }, e=>isStretching(e)); });
+  document.querySelectorAll('#panel-allenamento [data-wf]').forEach(inp=>inp.oninput=()=>{
+    const tr=inp.closest('tr'); if(!tr) return; const i=+tr.dataset.wi, w=riscaldaRows(); if(!w[i]) return;
+    const f=inp.dataset.wf; w[i][f]=(f==='serie'||f==='rip')?(+inp.value||0):inp.value; persist('scheda'); });
+  document.querySelectorAll('#panel-allenamento [data-wdel]').forEach(b=>b.onclick=()=>{ riscaldaRows().splice(+b.dataset.wdel,1); persist('scheda'); renderRiscaldamento(ensureSets()); });
+  document.querySelectorAll('#panel-allenamento [data-waddday]').forEach(b=>b.onclick=()=>{ riscaldaRows().push({giorno:b.dataset.waddday,esercizio:'',serie:1,rip:10,note:''}); persist('scheda'); renderRiscaldamento(ensureSets()); });
+}
 function renderAllenamento(){
   const S=ensureSets();
+  if(pesiView==='riscaldamento'){ renderRiscaldamento(S); return; }
   const rows=schedaRows();
   const smap=sedutaMap(rows);
   let totTL=0; rows.forEach(r=>{ totTL+=sTL(r); });
@@ -156,14 +221,7 @@ function renderAllenamento(){
     </tr>`;
   });
   document.getElementById('panel-allenamento').innerHTML=`
-   <div class="bar no-print">
-     <div class="field"><label>${t('Scheda')}</label>
-       <select id="sched-mode">
-         <option value="settimanale"${schedaMode==='settimanale'?' selected':''}>${t('Settimanale')}</option>
-         <option value="mensile"${schedaMode==='mensile'?' selected':''}>${t('Mensile')}</option>
-       </select></div>
-     <div class="field"><label>Training Set</label>
-       <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, rinominarle o eliminarle')}">${S.setsOrdine.map(n=>`<option value="${esc(n)}"${n===S.setAttivo?' selected':''}>${esc(n)}</option>`).join('')}<optgroup label="${t('Azioni')}"><option value="__new__">${t('➕ Nuovo Training Set…')}</option><option value="__rename__">${t('✎ Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('🗑 Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
+   <div class="bar bar--bottom no-print">${barSelettori(S)}
      <div class="spacer"></div>
      <button class="btn" id="btn-addrow">${t('＋ Esercizio')}</button>
      <button class="btn" id="btn-addday">${t('＋ Giorno')}</button>
@@ -178,13 +236,7 @@ function renderAllenamento(){
      <tbody>${body||`<tr><td colspan="12" class="empty">${t('Nessun esercizio. Aggiungine uno o un giorno.')}</td></tr>`}</tbody>
    </table></div>
    <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto alle frecce ▲▼ dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:#c9961f">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
-  document.getElementById('sched-mode').onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
-  { const ts=document.getElementById('training-set');
-    if(ts) ts.onchange=e=>{ const v=e.target.value; e.target.value=DOC.scheda.setAttivo;  /* le voci Azioni non restano selezionate */
-      if(v==='__new__') nuovoTrainingSetModal();
-      else if(v==='__rename__') rinominaTrainingSet();
-      else if(v==='__delete__') eliminaTrainingSet();
-      else switchTrainingSet(v); }; }
+  wireBarSelettori();
   // auto-resize note textareas
   document.getElementById('panel-allenamento').addEventListener('input', e=>{
     if(e.target.classList.contains('note-area')){
@@ -215,7 +267,7 @@ function renderAllenamento(){
   document.querySelectorAll('#panel-allenamento [data-vid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.vid));
   document.querySelectorAll('#panel-allenamento .ex-pick').forEach(b=>b.onclick=()=>{
     const tr=b.closest('tr'); const i=+tr.dataset.i;
-    pickExercise(schedaRows()[i].esercizio, nome=>{ schedaRows()[i].esercizio=nome; persist('scheda'); renderAllenamento(); }, e=>!isCardio(e)); });
+    pickExercise(schedaRows()[i].esercizio, nome=>{ schedaRows()[i].esercizio=nome; persist('scheda'); renderAllenamento(); }, e=>!isCardio(e)&&!isStretching(e)); });
   document.querySelectorAll('#panel-allenamento [data-set]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.set, r=schedaRows()[i];
     schedaRows().splice(i+1,0,{giorno:r.giorno,esercizio:r.esercizio,note:'',serie:r.serie,rip:r.rip,peso:r.peso,rest:r.rest}); persist('scheda'); renderAllenamento(); });
   document.querySelectorAll('#panel-allenamento [data-test]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.test; schedaRows()[i].test=!schedaRows()[i].test; persist('scheda'); renderAllenamento(); });
