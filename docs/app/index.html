@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TMS Scheda — il taccuino digitale da palestra</title>
-<meta name="description" content="Il taccuino digitale del Training Monitor System: la scheda e la dieta si creano nel TMS sul PC (dal coach o da te), qui le annoti in palestra — video, grammi, serie, pesi e fatica. Tutto offline: i dati restano sul telefono.">
+<meta name="description" content="Il taccuino digitale del Training Monitor System: la scheda e la dieta si creano nel TMS sul PC (dal coach o da te), qui le annoti in palestra — riscaldamento, video, grammi, serie, pesi e fatica. Tutto offline: i dati restano sul telefono.">
 <meta name="theme-color" content="#2b1d10">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -13,107 +13,149 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TMS Scheda">
 <style>
- /* ── TMS Scheda (app del cliente, PWA) — stesso stile pergamena della scheda coach↔cliente.
-       Mobile-first: due schermate (lista giorni → giorno), campi su UNA colonna, input 16px
-       (iOS non zooma al focus). TUTTO in locale: la scheda vive nel telefono. ── */
+ /* ── TMS Scheda (app del cliente, PWA) — stile pergamena del TMS.
+       v2.0: la giornata è una SEDUTA in fasi (🔥 riscaldamento · 🏋 esercizi · ✅ fine).
+       Lista esercizi compatta; toccandone uno si apre a schermo pieno (stessi campi,
+       nessun doppione nel DOM: la riga diventa overlay). Testi compatti ma leggibili,
+       niente spazi sprecati. TUTTO in locale: la scheda vive nel telefono. ── */
  *{box-sizing:border-box}
  [hidden]{display:none!important}
- body{font-family:Georgia,'Times New Roman',serif;background:#f4ead8;color:#2b1d10;margin:0;padding:14px 12px calc(20px + env(safe-area-inset-bottom));max-width:620px;margin-inline:auto;-webkit-text-size-adjust:100%}
- h1{font-size:20px;margin:0 0 2px}
- .sub{color:#7a6648;font-size:13px;margin-bottom:12px;line-height:1.4}
- .avviso{background:#fdf0d4;border:1px solid #d9b66a;border-radius:9px;padding:9px 12px;font-size:12.5px;margin:0 0 14px;color:#5b4a30;line-height:1.45}
- .box{background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:14px 16px;margin-bottom:12px}
- .pick-title{font-size:15px;color:#9a5b1f;font-weight:bold;margin:4px 0 9px}
- .days{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
- .day-card{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:15px 16px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+ body{font-family:Georgia,'Times New Roman',serif;background:#f4ead8;color:#2b1d10;margin:0;padding:12px 12px calc(18px + env(safe-area-inset-bottom));max-width:620px;margin-inline:auto;-webkit-text-size-adjust:100%}
+ h1{font-size:19px;margin:0 0 2px}
+ .sub{color:#7a6648;font-size:12.5px;margin-bottom:10px;line-height:1.35}
+ .avviso{background:#fdf0d4;border:1px solid #d9b66a;border-radius:9px;padding:8px 11px;font-size:12.5px;margin:0 0 11px;color:#5b4a30;line-height:1.4}
+ .box{background:#fbf4e6;border:1px solid #cdb889;border-radius:11px;padding:11px 13px;margin-bottom:10px}
+ .pick-title{font-size:15px;color:#9a5b1f;font-weight:bold;margin:2px 0 8px}
+ .days{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+ .day-card{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:11px;padding:12px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
  .day-card:active{background:#f1e6cd}
- .day-l{display:flex;flex-direction:column;gap:2px}
- .day-name{font-size:17px;font-weight:bold;color:#2b1d10}
- .day-meta{color:#7a6648;font-size:12.5px}
- .day-r{display:flex;align-items:center;gap:8px}
- .day-done{color:#2f7d4f;font-size:18px;font-weight:bold;min-width:14px;text-align:right}
- .chev{font-size:22px;color:#9a5b1f;line-height:1}
- .day-page h2,.sez-t{font-size:17px;color:#9a5b1f;margin:8px 0 12px}
- /* macro-card del menu principale (Scheda / Alimentazione) */
- .macro-card{display:flex;align-items:center;gap:14px;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:14px;padding:19px 18px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+ .day-l{display:flex;flex-direction:column;gap:1px;min-width:0}
+ .day-name{font-size:16px;font-weight:bold;color:#2b1d10}
+ .day-meta{color:#7a6648;font-size:12px}
+ .day-r{display:flex;align-items:center;gap:7px}
+ .day-done{color:#2f7d4f;font-size:17px;font-weight:bold;min-width:13px;text-align:right}
+ .chev{font-size:20px;color:#9a5b1f;line-height:1}
+ .day-page h2,.sez-t{font-size:16px;color:#9a5b1f;margin:6px 0 8px}
+ /* macro-card del menu principale (Allenamento / Alimentazione) */
+ .macro-card{display:flex;align-items:center;gap:12px;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:13px;padding:15px 16px;font:inherit;color:inherit;cursor:pointer;text-align:left}
  .macro-card:active{background:#f1e6cd}
  .macro-card[disabled]{opacity:.55;cursor:default}
- .macro-ico{font-size:30px;line-height:1}
- .macro-l{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
- .macro-name{font-size:18px;font-weight:bold;color:#2b1d10}
- .macro-meta{color:#7a6648;font-size:12.5px}
+ .macro-ico{font-size:27px;line-height:1}
+ .macro-l{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+ .macro-name{font-size:17px;font-weight:bold;color:#2b1d10}
+ .macro-meta{color:#7a6648;font-size:12px}
  /* bottone «torna indietro» ben visibile (richiesta Marco) */
- .back-btn{display:block;width:100%;margin:2px 0 12px;padding:12px;font:inherit;font-size:16px;font-weight:bold;background:#fff;color:#9a5b1f;border:2px solid #b97a39;border-radius:10px;cursor:pointer;text-align:center}
+ .back-btn{display:block;width:100%;margin:0 0 10px;padding:10px;font:inherit;font-size:15px;font-weight:bold;background:#fff;color:#9a5b1f;border:2px solid #b97a39;border-radius:9px;cursor:pointer;text-align:center}
  .back-btn:active{background:#f1e6cd}
- .back-btn.bottom{margin:14px 0 4px}
+ .back-btn.bottom{margin:12px 0 4px}
  /* righe del piano alimentare (sola lettura) */
- .al-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid #f0e6cf}
+ .al-row{display:flex;align-items:baseline;gap:9px;padding:5px 0;border-bottom:1px solid #f0e6cf}
  .al-row:last-child{border-bottom:0}
- .al-nome{flex:1;min-width:0;font-size:14.5px}
- .al-g{font-weight:bold;white-space:nowrap;font-size:15px}
- .al-kcal{color:#7a6648;font-size:12px;white-space:nowrap}
- .ex{background:#fbf4e6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin-bottom:11px}
- .ex-top{display:flex;align-items:center;gap:9px}
- .ex-name{font-size:15.5px;font-weight:bold;color:#2b1d10;flex:1 1 auto;min-width:0}
- /* riga sotto il nome: video a sinistra, timer a destra (lato opposto) */
- .ex-media{display:flex;align-items:center;gap:9px;margin:8px 0 2px}
- .ex-coach{color:#9a8a6a;font-size:12px;margin-top:3px;font-style:italic}
- .ex-prev{color:#7a6648;font-size:13px;border-bottom:1px dashed #e6d9bd;padding-bottom:8px;margin:6px 0 2px}
- .f{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #f0e6cf}
- .f:last-child{border-bottom:0}
- .f label{color:#5b4a30;font-size:14px;font-weight:bold}
- .f input{height:31px;font:inherit;font-size:16px;border:1px solid #cdb889;border-radius:5px;background:#fff;text-align:center;padding:0 6px;width:82px}
- .f.note{flex-direction:column;align-items:stretch;gap:5px}
- .f.note label{font-size:13px}
- .f.note input.nota{width:100%;text-align:left}
- .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:12px;padding:12px 14px;margin:14px 0 6px}
- .seduta-t{font-size:12px;color:#9a5b1f;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
- .vbtn{border:1px solid #cdb889;background:#fff;border-radius:6px;cursor:pointer;font-size:12.5px;padding:3px 11px;color:#9a5b1f}
- /* riga azioni sotto ogni esercizio: timer, test 1RM, modifica, elimina */
- .ex-actions{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0 1px}
- .mini{border:1px solid #cdb889;background:#fff;border-radius:6px;cursor:pointer;font:inherit;font-size:12.5px;padding:5px 11px;color:#9a5b1f}
+ .al-nome{flex:1;min-width:0;font-size:14px}
+ .al-g{font-weight:bold;white-space:nowrap;font-size:14.5px}
+ .al-kcal{color:#7a6648;font-size:11.5px;white-space:nowrap}
+ /* ── avanzamento della seduta ── */
+ .prog{height:5px;background:#e6d9bd;border-radius:4px;overflow:hidden;margin:2px 0 4px}
+ .prog>i{display:block;height:100%;width:0;background:#2f7d4f;border-radius:4px;transition:width .2s}
+ .plab{color:#7a6648;font-size:11.5px;margin-bottom:9px}
+ /* ── fasi della seduta (tab) ── */
+ .fasi{display:flex;gap:3px;margin:0 0 10px;background:#efe3c8;border:1px solid #cdb889;border-radius:9px;padding:3px}
+ .fasi button{flex:1;border:0;background:none;font:inherit;font-size:12.5px;font-weight:bold;color:#7a6648;padding:7px 3px;border-radius:7px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .fasi button.on{background:#9a5b1f;color:#fff}
+ /* ── riscaldamento: sola lettura, compatto ── */
+ .w-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #f0e6cf}
+ .w-row:last-child{border-bottom:0}
+ .w-nm{flex:1;min-width:0;font-size:14px;line-height:1.35}
+ .w-note{color:#9a8a6a;font-style:italic}
+ .w-q{color:#5b4a30;font-size:13px;font-weight:bold;white-space:nowrap}
+ /* ── riga esercizio: sommario compatto; i campi stanno nel corpo, che si apre a schermo pieno ── */
+ .ex-row{background:#fbf4e6;border:1px solid #cdb889;border-radius:10px;padding:9px 11px;margin-bottom:7px}
+ .ex-row.custom{border-color:#b97a39;border-style:dashed}
+ .ex-sum{cursor:pointer}
+ .ex-hd{display:flex;align-items:center;gap:8px}
+ .ex-nm{flex:1;min-width:0;font-size:15px;font-weight:bold;color:#2b1d10}
+ .ex-ck{color:#2f7d4f;font-size:15px;font-weight:bold}
+ .ex-sub{color:#7a6648;font-size:12.5px;margin-top:2px;line-height:1.35}
+ .ex-last{color:#2f7d4f;font-size:12px;margin-top:1px}
+ .ex-tag{font-size:10px;color:#9a5b1f;background:#f1e6cd;border-radius:4px;padding:1px 5px}
+ .ex-coach{color:#9a8a6a;font-size:12px;margin:6px 0 0;font-style:italic;line-height:1.35}
+ .ex-body{display:none}
+ /* schermo pieno: la STESSA riga diventa overlay (nessun doppione di campi nel DOM) */
+ .ex-row.open{position:fixed;inset:0;z-index:12;margin:0;border:0;border-radius:0;overflow-y:auto;padding:12px 13px calc(66px + env(safe-area-inset-bottom))}
+ .ex-row.open .ex-sum{cursor:default}
+ .ex-row.open .ex-body{display:block}
+ .ex-row.open .chev{display:none}
+ /* campi: griglia compatta 2 colonne, numeri grandi e leggibili */
+ .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0 2px}
+ .fld{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid #cdb889;border-radius:8px;padding:5px 8px}
+ .fld label{font-size:10.5px;color:#7a6648;font-weight:bold;text-transform:uppercase;letter-spacing:.3px}
+ .fld input{border:0;background:none;font:inherit;font-size:17px;font-weight:bold;padding:0;width:100%;color:#2b1d10;min-width:0}
+ .fld input:focus{outline:none}
+ .fld.wide{grid-column:1/-1}
+ .fld.wide input{font-size:15px;font-weight:normal}
+ /* barra avanti/indietro della vista a schermo pieno */
+ #exnav{position:fixed;left:0;right:0;bottom:0;z-index:13;display:none;gap:6px;padding:7px 10px calc(7px + env(safe-area-inset-bottom));background:#f4ead8;border-top:1px solid #cdb889;max-width:620px;margin-inline:auto}
+ #exnav.show{display:flex}
+ #exnav button{flex:1;border:1px solid #b97a39;background:#fff;color:#9a5b1f;border-radius:9px;font:inherit;font-size:13.5px;font-weight:bold;padding:10px 5px;cursor:pointer;white-space:nowrap}
+ #exnav button.pri{background:#9a5b1f;color:#fff;border-color:#9a5b1f;flex:1.3}
+ #exnav button:disabled{opacity:.35}
+ /* azioni sotto i campi (video, timer, ★, modifica, elimina) */
+ .ex-actions{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 1px}
+ .mini{border:1px solid #cdb889;background:#fff;border-radius:7px;cursor:pointer;font:inherit;font-size:12.5px;padding:7px 11px;color:#9a5b1f}
  .mini:active{background:#f1e6cd}
  .mini.on{background:#9a5b1f;color:#fff;border-color:#9a5b1f}
- .mini.rec{font-weight:bold}
  .mini.del{color:#a33;border-color:#d9a9a9}
- /* timer sulla riga del titolo, spinto sul lato opposto al video, ~20% dello schermo */
- .mini.rec-top{margin-left:auto;flex:0 0 auto;width:22vw;min-width:84px;max-width:150px;text-align:center;font-size:16px;font-weight:bold;padding:9px 6px}
- .ex.custom{border-color:#b97a39;border-style:dashed}
- .ex-tag{font-size:10.5px;color:#9a5b1f;background:#f1e6cd;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
- /* pannello «modifica esercizio» (rinomina, sposta giorno, ritocca il previsto e il rest) */
- .ex-edit{margin:9px 0 1px;padding:11px 12px;border:1px dashed #b97a39;border-radius:9px;background:#fbf4e6}
+ .mini.rec{font-weight:bold;font-size:14px}
+ .vbtn{border:1px solid #cdb889;background:#fff;border-radius:6px;cursor:pointer;font:inherit;font-size:12.5px;padding:4px 10px;color:#9a5b1f}
+ /* pannello «modifica esercizio» */
+ .ex-edit{margin:9px 0 1px;padding:10px 11px;border:1px dashed #b97a39;border-radius:9px;background:#fbf4e6}
  .ex-edit input,.ex-edit select{font:inherit;font-size:16px}
- .ex-edit input.nome,.ex-edit select.giorno{width:100%;height:34px;border:1px solid #cdb889;border-radius:5px;background:#fff;padding:0 8px}
- /* bottone «aggiungi esercizio» in fondo a ogni giorno */
- .add-ex{display:block;width:100%;margin:4px 0 12px;padding:12px;font:inherit;font-size:15px;font-weight:bold;background:#fbf4e6;color:#9a5b1f;border:1.5px dashed #b97a39;border-radius:10px;cursor:pointer;text-align:center}
+ .f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #f0e6cf}
+ .f:last-child{border-bottom:0}
+ .f label{color:#5b4a30;font-size:13.5px;font-weight:bold}
+ .f input{height:31px;font:inherit;font-size:16px;border:1px solid #cdb889;border-radius:5px;background:#fff;text-align:center;padding:0 6px;width:82px}
+ .f.note{flex-direction:column;align-items:stretch;gap:4px}
+ .f.note label{font-size:12.5px}
+ .f.note input.nome,.f.note select.giorno{width:100%;height:34px;border:1px solid #cdb889;border-radius:5px;background:#fff;padding:0 8px;text-align:left}
+ /* bottone «aggiungi esercizio» */
+ .add-ex{display:block;width:100%;margin:2px 0 10px;padding:10px;font:inherit;font-size:14px;font-weight:bold;background:#fbf4e6;color:#9a5b1f;border:1.5px dashed #b97a39;border-radius:9px;cursor:pointer;text-align:center}
  .add-ex:active{background:#f1e6cd}
+ /* fine seduta */
+ .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:11px;padding:10px 13px;margin:0 0 10px}
+ .seduta-t{font-size:11.5px;color:#9a5b1f;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+ /* riepilogo prima dell'invio */
+ .riep-row{display:flex;align-items:baseline;gap:9px;padding:6px 0;border-bottom:1px solid #f0e6cf}
+ .riep-row:last-child{border-bottom:0}
+ .riep-g{flex:1;min-width:0;font-size:14px;font-weight:bold}
+ .riep-n{font-size:13px;color:#5b4a30;white-space:nowrap}
+ .riep-s{font-size:12px;color:#7a6648;white-space:nowrap;min-width:74px;text-align:right}
  /* barra del timer di recupero, fissa in basso */
- #tbar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:#2b1d10;color:#f4ead8;display:none;align-items:center;gap:9px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -3px 14px rgba(0,0,0,.35);max-width:620px;margin-inline:auto}
+ #tbar{position:fixed;left:0;right:0;bottom:0;z-index:14;background:#2b1d10;color:#f4ead8;display:none;align-items:center;gap:9px;padding:9px 13px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -3px 14px rgba(0,0,0,.35);max-width:620px;margin-inline:auto}
  #tbar.show{display:flex}
  #tbar .t-l{flex:1;min-width:0}
- #tbar .t-ex{font-size:12px;color:#d9b66a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- #tbar .t-time{font-size:29px;font-weight:bold;font-variant-numeric:tabular-nums;line-height:1.05}
+ #tbar .t-ex{font-size:11.5px;color:#d9b66a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #tbar .t-time{font-size:27px;font-weight:bold;font-variant-numeric:tabular-nums;line-height:1.05}
  #tbar.done .t-time{color:#7fd39f}
- #tbar button{border:1px solid #b97a39;background:#3a2a18;color:#f4ead8;border-radius:8px;cursor:pointer;font:inherit;font-size:15px;font-weight:bold;padding:9px 12px;min-width:46px}
+ #tbar button{border:1px solid #b97a39;background:#3a2a18;color:#f4ead8;border-radius:8px;cursor:pointer;font:inherit;font-size:14px;font-weight:bold;padding:8px 11px;min-width:44px}
  #tbar button:active{background:#4a371f}
  #tbar .t-x{border-color:#7a6648;color:#d9c3a0}
- .btn-big{display:block;width:100%;margin:8px 0;padding:15px;font:inherit;font-size:17px;font-weight:bold;background:#9a5b1f;color:#fff;border:0;border-radius:10px;cursor:pointer;text-align:center}
+ .btn-big{display:block;width:100%;margin:8px 0;padding:14px;font:inherit;font-size:16px;font-weight:bold;background:#9a5b1f;color:#fff;border:0;border-radius:10px;cursor:pointer;text-align:center}
  .btn-big:active{background:#7e4a18}
- .btn-lite{display:block;width:100%;margin:8px 0;padding:11px;font:inherit;font-size:14px;background:#fbf4e6;color:#5b4a30;border:1px solid #cdb889;border-radius:10px;cursor:pointer;text-align:center}
- .fine{color:#7a6648;font-size:12px;text-align:center;margin-bottom:16px;line-height:1.4}
- #bozza-stato{color:#7a6648;font-size:12px;text-align:center;margin:8px 0;min-height:15px}
- #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+ .btn-lite{display:block;width:100%;margin:7px 0;padding:10px;font:inherit;font-size:13.5px;background:#fbf4e6;color:#5b4a30;border:1px solid #cdb889;border-radius:10px;cursor:pointer;text-align:center}
+ .fine{color:#7a6648;font-size:11.5px;text-align:center;margin-bottom:12px;line-height:1.35}
+ #bozza-stato{color:#7a6648;font-size:11.5px;text-align:center;margin:6px 0;min-height:14px}
+ #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:15;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:10px;background:#000}
  #vclose{position:absolute;top:14px;right:18px;font-size:30px;color:#fff;background:none;border:0;cursor:pointer}
- .install{background:#efe3c8;border:1px dashed #b99a5e;border-radius:9px;padding:9px 12px;font-size:12.5px;color:#5b4a30;line-height:1.5;margin:10px 0}
- footer{color:#9a8a6a;font-size:11px;text-align:center;margin-top:22px}
- .privacy{color:#7a6648;font-size:11.5px;line-height:1.45;text-align:center;margin-top:6px}
+ .install{background:#efe3c8;border:1px dashed #b99a5e;border-radius:9px;padding:8px 11px;font-size:12px;color:#5b4a30;line-height:1.45;margin:9px 0}
+ footer{color:#9a8a6a;font-size:11px;text-align:center;margin-top:18px}
+ .privacy{color:#7a6648;font-size:11.5px;line-height:1.4;text-align:center;margin-top:6px}
  /* pulsante QR in alto a destra + pannello «By Wander» (come nel TMS desktop) */
- .apphead{display:flex;align-items:flex-start;gap:10px}
+ .apphead{display:flex;align-items:flex-start;gap:9px}
  .apphead h1{flex:1;margin:0}
- #qr-btn{flex:0 0 auto;width:42px;height:42px;padding:3px;border:1px solid #cdb889;border-radius:9px;background:#fff;cursor:pointer}
+ #qr-btn{flex:0 0 auto;width:40px;height:40px;padding:3px;border:1px solid #cdb889;border-radius:9px;background:#fff;cursor:pointer}
  #qr-btn img{width:100%;height:100%;display:block;image-rendering:pixelated}
- #qrov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
+ #qrov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:16;padding:16px}
  .qr-panel{background:#f4ead8;border:1px solid #cdb889;border-radius:12px;padding:16px 16px 12px;max-width:520px;width:100%;max-height:88vh;overflow:auto;position:relative}
  .qr-panel h3{margin:2px 0 12px;color:#9a5b1f;text-align:center}
  .qr-grid{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
@@ -127,7 +169,7 @@
 <body>
 <div class="apphead">
   <h1>✦ TMS Scheda</h1>
-  <button type="button" id="lang-btn" title="Language / Lingua" style="flex:0 0 auto;height:42px;padding:0 12px;border:1px solid #cdb889;border-radius:9px;background:#fff;cursor:pointer;font:inherit;font-weight:bold;color:#9a5b1f">EN</button>
+  <button type="button" id="lang-btn" title="Language / Lingua" style="flex:0 0 auto;height:40px;padding:0 11px;border:1px solid #cdb889;border-radius:9px;background:#fff;cursor:pointer;font:inherit;font-weight:bold;color:#9a5b1f">EN</button>
   <button type="button" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><img src="qr-ig.png" alt="QR"></button>
 </div>
 <div class="sub" id="sub" data-i18n>Il taccuino digitale del Training Monitor System: qui annoti l'allenamento in palestra.</div>
@@ -146,15 +188,15 @@
 <div id="benvenuto" hidden>
   <div class="box">
     <div class="pick-title" data-i18n>👋 Benvenuto</div>
-    <p style="font-size:14px;line-height:1.5;margin:6px 0" data-i18n-html>Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> — dal tuo coach, o da te se ti alleni in autonomia — e qui le <b>annoti in palestra</b>.</p>
-    <p style="font-size:14px;line-height:1.5;margin:6px 0" data-i18n-html>Dal TMS arriva un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai gli allenamenti con i video e la dieta, annoti ciò che fai davvero e rimandi il risultato al TMS con un tocco.</p>
+    <p style="font-size:13.5px;line-height:1.45;margin:5px 0" data-i18n-html>Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> — dal tuo coach, o da te se ti alleni in autonomia — e qui le <b>annoti in palestra</b>.</p>
+    <p style="font-size:13.5px;line-height:1.45;margin:5px 0" data-i18n-html>Dal TMS arriva un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai riscaldamento, allenamenti coi video e la dieta, annoti ciò che fai davvero e rimandi il risultato al TMS con un tocco.</p>
     <label class="btn-big" style="cursor:pointer"><span data-i18n>📂 Carica la scheda</span><input id="file-scheda" type="file" accept="application/json,.json" style="display:none"></label>
   </div>
   <div class="privacy" data-i18n-html>🔒 Tutto resta <b>sul tuo telefono</b>: questa app non invia niente a nessun server. Funziona anche offline.</div>
   <div class="install" id="install-hint" hidden></div>
 </div>
 
-<!-- ── schermata MENU: due macro-sezioni (Scheda / Alimentazione) ── -->
+<!-- ── schermata MENU: due macro-sezioni (Allenamento / Alimentazione) ── -->
 <div id="menu" hidden>
   <div class="avviso" id="scheda-info"></div>
   <div class="days">
@@ -178,7 +220,15 @@
   <div class="days" id="days"></div>
   <div id="bozza-stato"></div>
   <button type="button" class="btn-big" id="invia" data-i18n>📩 Crea il file per il coach</button>
-  <div class="fine" data-i18n-html>Quando hai compilato i giorni premi il bottone: nasce un file <b>Rientro_….json</b> da rimandare al coach. Quello che scrivi <b>si salva da solo</b> su questo telefono.</div>
+  <div class="fine" data-i18n-html>Quando hai finito premi il bottone: vedrai un riepilogo e poi nasce un file <b>Rientro_….json</b> da rimandare al coach. Quello che scrivi <b>si salva da solo</b> su questo telefono.</div>
+</div>
+
+<!-- ── schermata RIEPILOGO: controllo prima di creare il file ── -->
+<div id="riepilogo" hidden>
+  <button type="button" class="back-btn" data-home data-i18n>‹ Torna ai giorni</button>
+  <div class="pick-title" data-i18n>✅ Controlla e invia</div>
+  <div id="riep-body"></div>
+  <button type="button" class="btn-big" id="invia-ok" data-i18n>📩 Crea il file per il coach</button>
 </div>
 
 <!-- ── schermata ALIMENTAZIONE: piano del coach, sola lettura ── -->
@@ -192,7 +242,14 @@
 <!-- ── pagine-giorno generate dal JS ── -->
 <div id="pagine"></div>
 
-<!-- ── barra del timer di recupero (parte dal bottone ⏱ su ogni esercizio, legge il Rest) ── -->
+<!-- ── barra avanti/indietro della vista esercizio a schermo pieno ── -->
+<div id="exnav">
+  <button type="button" id="nav-prev">‹</button>
+  <button type="button" id="nav-close" class="pri"><span id="nav-lab"></span></button>
+  <button type="button" id="nav-next">›</button>
+</div>
+
+<!-- ── barra del timer di recupero (parte dal bottone ⏱, legge il Rest della scheda) ── -->
 <div id="tbar">
   <div class="t-l"><div class="t-ex" id="t-ex"></div><div class="t-time" id="t-time">0:00</div></div>
   <button type="button" id="t-m15" title="−15 s">−15</button>
@@ -208,11 +265,13 @@
 'use strict';
 /* ════ TMS Scheda — app del cliente (PWA) ════
    Legge il file Scheda_*.json esportato dal TMS del coach (tipo 'tms-scheda'),
-   mostra giorni/esercizi/video, il cliente compila e riesporta il Rientro_*.json
+   mostra riscaldamento/esercizi/video, il cliente compila e riesporta il Rientro_*.json
    (tipo 'tms-rientro', identico al formato storico: l'import nel TMS non cambia).
+   v2.0 — la giornata è una SEDUTA in fasi: 🔥 riscaldamento (sola lettura, NON torna al
+   coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='1.7';
+const CVER='2.0';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -225,7 +284,7 @@ const TT={en:{
   'Il taccuino digitale del Training Monitor System: qui annoti l\'allenamento in palestra.':'The Training Monitor System\'s digital notebook: record your gym training here.',
   '👋 Benvenuto':'👋 Welcome',
   'Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> — dal tuo coach, o da te se ti alleni in autonomia — e qui le <b>annoti in palestra</b>.':'This app is the <b>digital notebook</b> of the <b>Training Monitor System</b>: the program and the diet <b>are created in TMS on the PC</b> — by your coach, or by you if you train solo — and here you <b>record them at the gym</b>.',
-  'Dal TMS arriva un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai gli allenamenti con i video e la dieta, annoti ciò che fai davvero e rimandi il risultato al TMS con un tocco.':'From TMS comes a <b>Scheda_….json</b> file (via chat or email). <b>Save it on the phone</b> (e.g. in Downloads) and load it here: you\'ll see the workouts with videos and the diet, note what you actually do and send the result back to TMS with one tap.',
+  'Dal TMS arriva un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai riscaldamento, allenamenti coi video e la dieta, annoti ciò che fai davvero e rimandi il risultato al TMS con un tocco.':'From TMS comes a <b>Scheda_….json</b> file (via chat or email). <b>Save it on the phone</b> (e.g. in Downloads) and load it here: you\'ll see the warm-up, the workouts with videos and the diet, note what you actually do and send the result back to TMS with one tap.',
   '📂 Carica la scheda':'📂 Load the program',
   '🔒 Tutto resta <b>sul tuo telefono</b>: questa app non invia niente a nessun server. Funziona anche offline.':'🔒 Everything stays <b>on your phone</b>: this app sends nothing to any server. It works offline too.',
   'Scheda allenamento':'Training program',
@@ -234,7 +293,7 @@ const TT={en:{
   '‹ Torna al menu':'‹ Back to menu',
   '📋 Seleziona il giorno da compilare':'📋 Select the day to fill in',
   '📩 Crea il file per il coach':'📩 Create the file for the coach',
-  'Quando hai compilato i giorni premi il bottone: nasce un file <b>Rientro_….json</b> da rimandare al coach. Quello che scrivi <b>si salva da solo</b> su questo telefono.':'When you\'ve filled in the days press the button: a <b>Rientro_….json</b> file is created to send back to the coach. What you write <b>saves itself</b> on this phone.',
+  'Quando hai finito premi il bottone: vedrai un riepilogo e poi nasce un file <b>Rientro_….json</b> da rimandare al coach. Quello che scrivi <b>si salva da solo</b> su questo telefono.':'When you\'re done press the button: you\'ll see a summary and then a <b>Rientro_….json</b> file is created to send back to the coach. What you write <b>saves itself</b> on this phone.',
   '▌ Alimentazione':'▌ Nutrition',
   'app del':'app of the',
   'Apri ↗':'Open ↗',
@@ -255,6 +314,7 @@ const TT={en:{
   '▶ video':'▶ video',
   'Previsto:':'Planned:',
   'Serie':'Sets','Ripetizioni':'Reps','Peso (kg)':'Weight (kg)','Note':'Notes',
+  'Rip.':'Reps','Peso':'Weight',
   'Quante ripetizioni avevi ancora in canna: si compila DOPO l’allenamento':'How many reps you still had left: fill in AFTER training',
   'com’è andata?':'how did it go?',
   '‹ Torna ai giorni':'‹ Back to days',
@@ -287,7 +347,22 @@ const TT={en:{
   '💾 Salva':'💾 Save',
   'Annulla':'Cancel',
   'Avvia il timer di recupero':'Start the rest timer',
-  'Recupero':'Rest'
+  'Recupero':'Rest',
+  /* v2.0 — seduta in fasi, riscaldamento, «l'ultima volta», riepilogo */
+  '🔥 Riscaldamento':'🔥 Warm-up',
+  '🏋 Esercizi':'🏋 Exercises',
+  '✅ Fine':'✅ Done',
+  'fatti':'done',
+  'Solo da leggere: il riscaldamento lo decide il coach e non torna indietro.':'Read only: the warm-up is set by the coach and doesn\'t go back.',
+  'Il coach non ha previsto un riscaldamento per questo giorno.':'The coach didn\'t plan a warm-up for this day.',
+  'ultima volta:':'last time:',
+  'Chiudi':'Close',
+  '✅ Controlla e invia':'✅ Check and send',
+  'Stai per creare il file da rimandare al coach: ecco cosa contiene.':'You\'re about to create the file to send back to the coach: here\'s what it contains.',
+  '⚠ Non hai ancora segnato nessun esercizio: il file sarebbe vuoto.':'⚠ You haven\'t marked any exercise yet: the file would be empty.',
+  'esercizi segnati':'exercises marked',
+  'sedute con fatica e durata':'sessions with effort and duration',
+  'da compilare':'to fill in'
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 function applyI18n(){
@@ -319,7 +394,7 @@ async function leggiScheda(){ if(memScheda) return memScheda;
   return null; }
 
 /* ── stato ── */
-let SCHEDA=null, GIORNI=[], BK='', WROWS=[], ridSeq=0;
+let SCHEDA=null, GIORNI=[], BK='', WROWS=[], ridSeq=0, OPEN_RID=null;
 const stOk=(()=>{ try{ localStorage.setItem('t','1'); localStorage.removeItem('t'); return true; }catch(e){ return false; } })();
 
 function validaScheda(d){ return d && d.tipo==='tms-scheda' && Array.isArray(d.righe) && d.righe.length>0; }
@@ -352,12 +427,16 @@ function wrowsDelGiorno(g){ return WROWS.filter(r=>r.giorno===g); }
 /* scheda MODIFICABILE (scelta dal coach all'export): abilita aggiungi/elimina/modifica/★.
    Se il campo manca (file vecchi) → scheda FISSA. Il timer resta in entrambe le modalità. */
 function canEdit(){ return !!(SCHEDA && SCHEDA.modificabile); }
+/* riscaldamento del giorno (sola lettura, NON torna nel rientro). Assente nei file vecchi. */
+function warmDelGiorno(g){ return ((SCHEDA&&SCHEDA.riscaldamento)||[]).filter(r=>r&&String(r.giorno||'')===g&&String(r.esercizio||'').trim()); }
+/* «l'ultima volta» dallo Storico del TMS (mappa nome esercizio → {peso,rip,rir}) */
+function ultimaDi(nome){ const u=(SCHEDA&&SCHEDA.ultima)||null; return (u&&u[String(nome||'').trim()])||null; }
 
 /* ── render ── */
 function avvia(){
   const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
-  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); return; }
+  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','riepilogo'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); return; }
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
@@ -372,57 +451,103 @@ function avvia(){
   mostra('menu'); mostraInstallHint();
 }
 /* ricostruisce lista giorni e pagine-giorno dal modello WROWS; poi riaggancia gli
-   eventi, ricarica i valori compilati (bozza piatta) e le spunte ✔ */
+   eventi, ricarica i valori compilati (bozza piatta) e gli stati ✔ */
 function renderScheda(){
   $('meta-scheda').textContent=GIORNI.length+' '+tt(GIORNI.length===1?'giorno':'giorni')+' · '+WROWS.length+' '+tt(WROWS.length===1?'esercizio':'esercizi');
   let days='';
   GIORNI.forEach((g,gi)=>{ const cnt=wrowsDelGiorno(g).length;
     days+='<button type="button" class="day-card" data-go="'+gi+'">'+
-      '<span class="day-l"><span class="day-name">'+esc(g)+'</span><span class="day-meta">'+cnt+' '+tt(cnt===1?'esercizio':'esercizi')+'</span></span>'+
+      '<span class="day-l"><span class="day-name">'+esc(g)+'</span><span class="day-meta" id="dmeta-'+gi+'">'+cnt+' '+tt(cnt===1?'esercizio':'esercizi')+'</span></span>'+
       '<span class="day-r"><span class="day-done" id="stato-'+gi+'"></span><span class="chev">›</span></span></button>'; });
   $('days').innerHTML=days;
-  let pagine='';
-  GIORNI.forEach((g,gi)=>{
-    let exs=''; wrowsDelGiorno(g).forEach(r=>{ exs+=cardEsercizio(r); });
-    pagine+='<div class="day-page" id="day-'+gi+'" hidden>'+
-      '<button type="button" class="back-btn" data-back>'+tt('‹ Torna ai giorni')+'</button>'+
-      '<h2>▌ '+esc(g)+'</h2>'+exs+
-      (canEdit()?'<button type="button" class="add-ex" data-add="'+gi+'">'+tt('➕ Aggiungi esercizio')+'</button>':'')+
-      '<div class="seduta"><div class="seduta-t">'+tt('Fine giornata')+'</div>'+
-      '<div class="f"><label>'+tt('Fatica seduta (RPE 0–10)')+'</label><input id="rpe-'+gi+'" type="number" inputmode="decimal" min="0" max="10" step="0.5" placeholder="–"></div>'+
-      '<div class="f"><label>'+tt('Durata (min)')+'</label><input id="min-'+gi+'" type="number" inputmode="numeric" min="0" step="1" placeholder="–"></div></div>'+
-      '<button type="button" class="back-btn bottom" data-back>'+tt('‹ Torna ai giorni')+'</button></div>'; });
+  let pagine=''; GIORNI.forEach((g,gi)=>{ pagine+=paginaGiorno(g,gi); });
   $('pagine').innerHTML=pagine;
   wire(); caricaBozza(); aggiornaStato();
 }
-/* una card esercizio (id dei campi = rid stabile della riga). Nelle schede FISSE
-   restano solo i campi da compilare + il timer; ★/✎/🗑 solo nelle modificabili. */
-function cardEsercizio(r){
+/* una giornata = una SEDUTA in fasi: 🔥 riscaldamento (se c'è) · 🏋 esercizi · ✅ fine */
+function paginaGiorno(g,gi){
+  const warm=warmDelGiorno(g), haW=warm.length>0;
+  const rows=wrowsDelGiorno(g);
+  let esercizi=''; rows.forEach(r=>{ esercizi+=rigaEsercizio(r); });
+  const faseW=haW?('<div class="fase" data-fase="w" hidden><div class="box">'+
+      warm.map(r=>{
+        const vb=(r.video&&SCHEDA.video&&SCHEDA.video[r.video])?'<button type="button" class="vbtn" data-v="'+esc(r.video)+'" title="'+esc(tt('Guarda il video'))+'">▶</button>':'';
+        const q=(+r.serie||0)?((+r.serie)+'×'+(+r.rip||0)):'';
+        return '<div class="w-row"><span class="w-nm">'+esc(r.esercizio)+(r.note?'<span class="w-note"> · '+esc(r.note)+'</span>':'')+'</span>'+
+          (q?'<span class="w-q">'+q+'</span>':'')+vb+'</div>'; }).join('')+
+      '</div><div class="fine">'+tt('Solo da leggere: il riscaldamento lo decide il coach e non torna indietro.')+'</div></div>'):'';
+  return '<div class="day-page" id="day-'+gi+'" hidden>'+
+    '<button type="button" class="back-btn" data-back>'+tt('‹ Torna ai giorni')+'</button>'+
+    '<h2>▌ '+esc(g)+'</h2>'+
+    '<div class="prog"><i id="prog-'+gi+'"></i></div><div class="plab" id="plab-'+gi+'"></div>'+
+    '<div class="fasi">'+
+      (haW?'<button type="button" data-f="w" data-gi="'+gi+'">'+tt('🔥 Riscaldamento')+'</button>':'')+
+      '<button type="button" data-f="e" data-gi="'+gi+'" class="on">'+tt('🏋 Esercizi')+'</button>'+
+      '<button type="button" data-f="f" data-gi="'+gi+'">'+tt('✅ Fine')+'</button>'+
+    '</div>'+
+    faseW+
+    '<div class="fase" data-fase="e">'+esercizi+
+      (canEdit()?'<button type="button" class="add-ex" data-add="'+gi+'">'+tt('➕ Aggiungi esercizio')+'</button>':'')+
+    '</div>'+
+    '<div class="fase" data-fase="f" hidden>'+
+      '<div class="seduta"><div class="seduta-t">'+tt('Fine giornata')+'</div>'+
+      '<div class="f"><label>'+tt('Fatica seduta (RPE 0–10)')+'</label><input id="rpe-'+gi+'" type="number" inputmode="decimal" min="0" max="10" step="0.5" placeholder="–"></div>'+
+      '<div class="f"><label>'+tt('Durata (min)')+'</label><input id="min-'+gi+'" type="number" inputmode="numeric" min="0" step="1" placeholder="–"></div></div>'+
+      '<button type="button" class="btn-lite" data-back>'+tt('‹ Torna ai giorni')+'</button>'+
+    '</div>'+
+    '<button type="button" class="back-btn bottom" data-back>'+tt('‹ Torna ai giorni')+'</button></div>';
+}
+/* riga esercizio: sommario compatto sempre visibile + corpo coi campi (si apre a schermo
+   pieno sulla STESSA riga: un solo set di input nel DOM, gli id restano s-/r-/p-/rir-/n-). */
+function rigaEsercizio(r){
   const i=r.rid, ed=canEdit();
   const rir=(r.rir===''||r.rir==null)?null:+r.rir;
   const prev=(+r.serie||0)+'×'+(+r.rip||0)+' @'+(+r.peso||0)+' kg'+(rir!=null?(' · RIR '+rir):'')+(r.rest?(' · rest '+esc(r.rest)):'');
+  const u=ultimaDi(r.esercizio);
+  const ultima=u?('<div class="ex-last">'+tt('ultima volta:')+' <b>'+(+u.peso||0)+' kg × '+(+u.rip||0)+'</b>'+(u.rir!=null?(' · RIR '+u.rir):'')+'</div>'):'';
   const vb=(r.video&&SCHEDA.video&&SCHEDA.video[r.video])?'<button type="button" class="vbtn" data-v="'+esc(r.video)+'" title="'+esc(tt('Guarda il video'))+'">'+tt('▶ video')+'</button>':'';
   const sec=restSec(r.rest);
-  const rec=sec>0?'<button type="button" class="mini rec rec-top" data-rec="'+i+'" title="'+esc(tt('Avvia il timer di recupero'))+'">⏱ '+fmtSec(sec)+'</button>':'';
+  const rec=sec>0?'<button type="button" class="mini rec" data-rec="'+i+'" title="'+esc(tt('Avvia il timer di recupero'))+'">⏱ '+fmtSec(sec)+'</button>':'';
   const star='<button type="button" class="mini'+(r.test?' on':'')+'" data-star="'+i+'" title="'+esc(tt('Segna come test del massimale (1RM): il coach lo vedrà a parte, escluso dalla progressione.'))+'">★ '+tt('Test')+'</button>';
-  const media=(vb||rec)?'<div class="ex-media">'+vb+rec+'</div>':'';
-  return '<div class="ex'+(r.custom?' custom':'')+'" id="ex-'+i+'"><div class="ex-top"><span class="ex-name">'+esc(r.esercizio||tt('Nuovo esercizio'))+'</span>'+(r.custom?'<span class="ex-tag">'+tt('aggiunto')+'</span>':'')+'</div>'+media+
-    (r.note?'<div class="ex-coach">'+esc(r.note)+'</div>':'')+
-    (r.custom?'':'<div class="ex-prev"><b>'+tt('Previsto:')+'</b> '+prev+'</div>')+
-    '<div class="f"><label>'+tt('Serie')+'</label><input id="s-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
-    '<div class="f"><label>'+tt('Ripetizioni')+'</label><input id="r-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.rip||'')+'"></div>'+
-    '<div class="f"><label>'+tt('Peso (kg)')+'</label><input id="p-'+i+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+(+r.peso||'')+'"></div>'+
-    '<div class="f"><label>RIR</label><input id="rir-'+i+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="" placeholder="–" title="'+esc(tt('Quante ripetizioni avevi ancora in canna: si compila DOPO l’allenamento'))+'"></div>'+
-    '<div class="f note"><label>'+tt('Note')+'</label><input id="n-'+i+'" type="text" class="nota" placeholder="'+esc(tt('com’è andata?'))+'"></div>'+
-    (function(){ const azioni=(ed?(star+
+  return '<div class="ex-row'+(r.custom?' custom':'')+'" id="ex-'+i+'">'+
+    '<div class="ex-sum" data-open="'+i+'">'+
+      '<div class="ex-hd"><span class="ex-nm">'+esc(r.esercizio||tt('Nuovo esercizio'))+'</span>'+
+        (r.custom?'<span class="ex-tag">'+tt('aggiunto')+'</span>':'')+
+        '<span class="ex-ck" id="ck-'+i+'"></span><span class="chev">›</span></div>'+
+      (r.custom?'':'<div class="ex-sub">'+prev+'</div>')+ultima+
+    '</div>'+
+    '<div class="ex-body">'+
+      (r.note?'<div class="ex-coach">'+esc(r.note)+'</div>':'')+
+      '<div class="grid2">'+
+        '<div class="fld"><label>'+tt('Serie')+'</label><input id="s-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
+        '<div class="fld"><label>'+tt('Rip.')+'</label><input id="r-'+i+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.rip||'')+'"></div>'+
+        '<div class="fld"><label>'+tt('Peso')+' (kg)</label><input id="p-'+i+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+(+r.peso||'')+'"></div>'+
+        '<div class="fld"><label>RIR</label><input id="rir-'+i+'" type="number" inputmode="numeric" min="0" max="9" step="1" value="" placeholder="–" title="'+esc(tt('Quante ripetizioni avevi ancora in canna: si compila DOPO l’allenamento'))+'"></div>'+
+        '<div class="fld wide"><label>'+tt('Note')+'</label><input id="n-'+i+'" type="text" placeholder="'+esc(tt('com’è andata?'))+'"></div>'+
+      '</div>'+
+      '<div class="ex-actions">'+vb+rec+(ed?(star+
         '<button type="button" class="mini" data-edit="'+i+'">'+tt('✎ Modifica')+'</button>'+
-        '<button type="button" class="mini del" data-del="'+i+'">'+tt('🗑 Elimina')+'</button>'):'');
-      return (azioni?'<div class="ex-actions">'+azioni+'</div>':'')+(ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':''); })()+
-    '</div>';
+        '<button type="button" class="mini del" data-del="'+i+'">'+tt('🗑 Elimina')+'</button>'):'')+'</div>'+
+      (ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':'')+
+    '</div></div>';
 }
-function mostra(id){ ['menu','home','alim'].forEach(s=>{ $(s).hidden=(id!==s); });
+function mostra(id){ ['menu','home','alim','riepilogo'].forEach(s=>{ $(s).hidden=(id!==s); });
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
+/* fase visibile dentro la pagina-giorno ('w' riscaldamento · 'e' esercizi · 'f' fine) */
+function mostraFase(gi,fase){
+  const page=$('day-'+gi); if(!page) return;
+  page.querySelectorAll('.fase').forEach(f=>{ f.hidden=(f.dataset.fase!==fase); });
+  page.querySelectorAll('.fasi button').forEach(b=>{ b.classList.toggle('on', b.dataset.f===fase); });
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+/* apre il giorno: parte dal riscaldamento se c'è e non hai ancora segnato niente */
+function apriGiorno(gi){
+  const g=GIORNI[gi]; mostra('day-'+gi);
+  const haW=warmDelGiorno(g).length>0;
+  const iniziato=wrowsDelGiorno(g).some(r=>exFatto(r.rid));
+  mostraFase(gi,(haW&&!iniziato)?'w':'e');
+}
 /* piano alimentare del coach (sola lettura): pasti nell'ordine del piano, grammi in evidenza */
 function renderAlim(){
   const box=$('alim-body'); if(!box) return; const D=SCHEDA&&SCHEDA.dieta;
@@ -431,13 +556,13 @@ function renderAlim(){
   D.righe.forEach(r=>{ const m=(r.pasto||'').trim()||'Piano'; if(!byP[m]){ byP[m]=[]; pasti.push(m); } byP[m].push(r); });
   let h='<div class="avviso">'+tt('🍖 Piano')+' <b>'+esc(tt(D.label||D.fase||''))+'</b>'+(D.tot?(' · <b>'+(D.tot.kcal||0)+' '+tt('kcal/giorno')+'</b> · P '+(D.tot.proteine||0)+' · G '+(D.tot.grassi||0)+' · C '+(D.tot.carboidrati||0)):'')+'<br>'+tt('Segui i grammi indicati: è il piano della tua fase attuale (lo cambia il coach).')+'</div>';
   pasti.forEach(m=>{ const rs=byP[m]; const kc=Math.round(rs.reduce((a,r)=>a+(+r.kcal||0),0));
-    h+='<div class="ex"><div class="ex-top"><span class="ex-name">'+esc(m)+'</span><span class="al-kcal">'+kc+' kcal</span></div>'+
+    h+='<div class="box"><div class="ex-hd"><span class="ex-nm">'+esc(m)+'</span><span class="al-kcal">'+kc+' kcal</span></div>'+
       rs.map(r=>'<div class="al-row"><span class="al-nome">'+esc(r.alimento)+'</span><span class="al-g">'+(+r.grammi||0)+' g</span><span class="al-kcal">'+Math.round(+r.kcal||0)+' kcal</span></div>').join('')+'</div>'; });
   box.innerHTML=h;
 }
 
 /* ── bozza autosalvata (localStorage, per scheda). I campi partono precompilati col
-      PREVISTO del coach: la spunta ✔ dei giorni si basa sui campi TOCCATI dal cliente
+      PREVISTO del coach: le spunte ✔ si basano sui campi TOCCATI dal cliente
       (set _t nella bozza), non sul semplice «campo non vuoto». ── */
 let TOCCATI=new Set();
 function idsCampi(){ const ids=[]; WROWS.forEach(r=>{ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+r.rid)); });
@@ -455,15 +580,73 @@ function caricaBozza(){ TOCCATI=new Set(); if(!stOk) return; let raw=null; try{ 
     Object.keys(o).forEach(id=>{ if(id==='_t'||id==='_wrows') return; const el=$(id); if(el) el.value=o[id]; });
     TOCCATI=new Set(Array.isArray(o._t)? o._t : Object.keys(o).filter(k=>k!=='_t'&&k!=='_wrows'));
     const n=$('bozza-stato'); if(n) n.textContent=tt('✔ Ho ricaricato quello che avevi scritto.'); }catch(e){} }
+function exFatto(rid){ return ['s-','r-','p-','rir-','n-'].some(p=>TOCCATI.has(p+rid)); }
 function dayIds(gi){ const ids=[]; WROWS.forEach(r=>{ if(r.giorno===GIORNI[gi]){ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+r.rid)); } });
   ids.push('rpe-'+gi); ids.push('min-'+gi); return ids; }
-function aggiornaStato(){ if(!SCHEDA) return; GIORNI.forEach((g,gi)=>{
-  const fatto=dayIds(gi).some(id=>TOCCATI.has(id));
-  const s=$('stato-'+gi); if(s) s.textContent=fatto?'✔':''; }); }
+/* spunte ✔ (giorni ed esercizi) + barra di avanzamento della seduta */
+function aggiornaStato(){ if(!SCHEDA) return;
+  GIORNI.forEach((g,gi)=>{
+    const rows=wrowsDelGiorno(g); let fatti=0;
+    rows.forEach(r=>{ const ok=exFatto(r.rid); if(ok) fatti++;
+      const ck=$('ck-'+r.rid); if(ck) ck.textContent=ok?'✔':''; });
+    const s=$('stato-'+gi); if(s) s.textContent=dayIds(gi).some(id=>TOCCATI.has(id))?'✔':'';
+    const dm=$('dmeta-'+gi); if(dm) dm.textContent=(fatti?fatti+'/'+rows.length+' '+tt('fatti'):rows.length+' '+tt(rows.length===1?'esercizio':'esercizi'));
+    const pb=$('prog-'+gi); if(pb) pb.style.width=(rows.length?Math.round(fatti/rows.length*100):0)+'%';
+    const pl=$('plab-'+gi); if(pl) pl.textContent=fatti+'/'+rows.length+' '+tt('fatti');
+  });
+}
+
+/* ── vista esercizio a schermo pieno (la riga stessa diventa overlay) ── */
+function apriEx(rid){
+  if(OPEN_RID!=null){ const p=$('ex-'+OPEN_RID); if(p) p.classList.remove('open'); }
+  const row=$('ex-'+rid); if(!row) return;
+  OPEN_RID=+rid; row.classList.add('open');
+  try{ document.body.style.overflow='hidden'; row.scrollTop=0; }catch(e){}
+  const nav=$('exnav'); if(nav) nav.classList.add('show');
+  aggiornaNav();
+}
+function chiudiEx(){
+  if(OPEN_RID!=null){ const row=$('ex-'+OPEN_RID); if(row) row.classList.remove('open'); }
+  OPEN_RID=null;
+  try{ document.body.style.overflow=''; }catch(e){}
+  const nav=$('exnav'); if(nav) nav.classList.remove('show');
+  aggiornaStato();
+}
+function exNav(dir){
+  const r=rowById(OPEN_RID); if(!r) return;
+  const lista=wrowsDelGiorno(r.giorno), i=lista.findIndex(x=>x.rid===r.rid);
+  const next=lista[i+dir]; if(next) apriEx(next.rid);
+}
+function aggiornaNav(){
+  const r=rowById(OPEN_RID); if(!r) return;
+  const lista=wrowsDelGiorno(r.giorno), i=lista.findIndex(x=>x.rid===r.rid);
+  const p=$('nav-prev'), n=$('nav-next'), lab=$('nav-lab');
+  if(p) p.disabled=(i<=0);
+  if(n) n.disabled=(i>=lista.length-1);
+  if(lab) lab.textContent=(i+1)+'/'+lista.length+' · '+tt('Chiudi');
+}
+
+/* ── riepilogo prima dell'invio ── */
+function renderRiepilogo(){
+  const box=$('riep-body'); if(!box) return;
+  let righe='', totEx=0, totF=0, sed=0;
+  GIORNI.forEach((g,gi)=>{
+    const rows=wrowsDelGiorno(g), f=rows.filter(r=>exFatto(r.rid)).length;
+    totEx+=rows.length; totF+=f;
+    const rp=num('rpe-'+gi), mn=num('min-'+gi), haS=!!(rp&&mn); if(haS) sed++;
+    righe+='<div class="riep-row"><span class="riep-g">'+esc(g)+'</span>'+
+      '<span class="riep-n">'+f+'/'+rows.length+'</span>'+
+      '<span class="riep-s">'+(haS?('RPE '+rp+' · '+mn+' min'):('— '+tt('da compilare')))+'</span></div>';
+  });
+  box.innerHTML='<div class="avviso">'+tt('Stai per creare il file da rimandare al coach: ecco cosa contiene.')+'</div>'+
+    '<div class="box">'+righe+'</div>'+
+    '<div class="fine"><b>'+totF+'/'+totEx+'</b> '+tt('esercizi segnati')+' · <b>'+sed+'</b> '+tt('sedute con fatica e durata')+'</div>'+
+    (totF===0?'<div class="avviso">'+tt('⚠ Non hai ancora segnato nessun esercizio: il file sarebbe vuoto.')+'</div>':'');
+}
 
 /* ── rientro per il coach: STESSO formato (tipo tms-rientro, import TMS invariato).
-      Ora scorre il modello WROWS (quindi include gli esercizi aggiunti, salta quelli
-      eliminati) e porta il flag `test` (★ massimale). Righe senza nome vengono scartate. ── */
+      Scorre WROWS (include gli esercizi aggiunti, salta quelli eliminati) e porta il
+      flag `test` (★ massimale). Il riscaldamento NON entra: è solo informativo. ── */
 function num(id){ const el=$(id); const v=el?el.value:''; return v===''?null:+v; }
 function costruisciRientro(){
   const righe=WROWS.map(r=>({giorno:r.giorno, esercizio:String(r.esercizio||'').trim(),
@@ -493,20 +676,23 @@ async function inviaRientro(){
   alert(tt('File creato:')+' '+nome+'\n'+tt('Lo trovi nei Download — rimandalo al tuo coach.'));
 }
 
-/* ── eventi delle card + navigazione (data URI video incorporati nel file scheda) ── */
+/* ── eventi (data URI video incorporati nel file scheda) ── */
 function wire(){
-  document.querySelectorAll('.vbtn').forEach(b=>{ b.onclick=()=>{
+  document.querySelectorAll('.vbtn').forEach(b=>{ b.onclick=e=>{ e.stopPropagation();
     const ov=$('vov'), v=ov.querySelector('video');
     v.src=(SCHEDA.video&&SCHEDA.video[b.getAttribute('data-v')])||''; ov.style.display='flex';
-    try{ v.play(); }catch(e){} }; });
-  document.querySelectorAll('[data-go]').forEach(b=>{ b.onclick=()=>mostra('day-'+b.getAttribute('data-go')); });
+    try{ v.play(); }catch(e2){} }; });
+  document.querySelectorAll('[data-go]').forEach(b=>{ b.onclick=()=>apriGiorno(+b.getAttribute('data-go')); });
   document.querySelectorAll('[data-back]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('home'); }; });
   document.querySelectorAll('[data-menu]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('menu'); }; });
+  document.querySelectorAll('[data-home]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('home'); }; });
+  document.querySelectorAll('.fasi button').forEach(b=>{ b.onclick=()=>mostraFase(+b.dataset.gi, b.dataset.f); });
+  document.querySelectorAll('[data-open]').forEach(b=>{ b.onclick=()=>apriEx(+b.getAttribute('data-open')); });
   document.querySelectorAll('[data-add]').forEach(b=>{ b.onclick=()=>addEsercizio(+b.getAttribute('data-add')); });
-  document.querySelectorAll('[data-del]').forEach(b=>{ b.onclick=()=>delEsercizio(+b.getAttribute('data-del')); });
-  document.querySelectorAll('[data-star]').forEach(b=>{ b.onclick=()=>toggleStar(+b.getAttribute('data-star')); });
-  document.querySelectorAll('[data-edit]').forEach(b=>{ b.onclick=()=>openEdit(+b.getAttribute('data-edit')); });
-  document.querySelectorAll('[data-rec]').forEach(b=>{ b.onclick=()=>{ const r=rowById(+b.getAttribute('data-rec')); if(r) startTimer(r.esercizio||tt('Recupero'), restSec(r.rest)); }; });
+  document.querySelectorAll('[data-del]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); delEsercizio(+b.getAttribute('data-del')); }; });
+  document.querySelectorAll('[data-star]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); toggleStar(+b.getAttribute('data-star')); }; });
+  document.querySelectorAll('[data-edit]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); openEdit(+b.getAttribute('data-edit')); }; });
+  document.querySelectorAll('[data-rec]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); const r=rowById(+b.getAttribute('data-rec')); if(r) startTimer(r.esercizio||tt('Recupero'), restSec(r.rest)); }; });
   const vs=$('vai-scheda'); if(vs) vs.onclick=()=>mostra('home');
   const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled) mostra('alim'); };
 }
@@ -516,16 +702,16 @@ function addEsercizio(gi){
   const g=GIORNI[gi]; if(g==null) return;
   const rid=ridSeq++;
   WROWS.push(normRow({giorno:g, esercizio:'', serie:3, rip:10, peso:0, rir:null, rest:'1:30', custom:true, test:false}, rid));
-  salvaBozza(); renderScheda(); mostra('day-'+gi); openEdit(rid);
-  const c=$('ex-'+rid); if(c&&c.scrollIntoView) try{ c.scrollIntoView({block:'center'}); }catch(e){}
+  salvaBozza(); renderScheda(); mostra('day-'+gi); mostraFase(gi,'e'); apriEx(rid); openEdit(rid);
 }
 function delEsercizio(rid){
   const r=rowById(rid); if(!r) return;
   if(!confirm(tt('Vuoi eliminare questo esercizio dalla scheda?'))) return;
   const gi=giornoIndex(r.giorno);
+  if(OPEN_RID===+rid) chiudiEx();
   WROWS=WROWS.filter(x=>x.rid!==+rid);
   ['s-','r-','p-','rir-','n-'].forEach(p=>TOCCATI.delete(p+rid));
-  salvaBozza(); renderScheda(); mostra('day-'+gi);
+  salvaBozza(); renderScheda(); mostra('day-'+gi); mostraFase(gi,'e');
 }
 function toggleStar(rid){
   const r=rowById(rid); if(!r) return; r.test=!r.test;
@@ -556,7 +742,8 @@ function saveEdit(rid){
   r.serie=+gv('eser-'+rid)||0; r.rip=+gv('erip-'+rid)||0; r.peso=+gv('epeso-'+rid)||0;
   const rr=gv('erir-'+rid); r.rir=(rr===''?null:+rr);
   r.rest=String(gv('erest-'+rid)||'').trim();
-  salvaBozza(); renderScheda(); mostra('day-'+giornoIndex(r.giorno));
+  const gi=giornoIndex(r.giorno);
+  chiudiEx(); salvaBozza(); renderScheda(); mostra('day-'+gi); mostraFase(gi,'e');
 }
 
 /* ── timer di recupero: legge il Rest della scheda (formato m:ss, o secondi, o «1m30s») ── */
@@ -600,7 +787,13 @@ $('vclose').onclick=()=>{ const ov=$('vov'), v=ov.querySelector('video'); v.paus
 $('qr-btn').onclick=()=>{ $('qrov').style.display='flex'; };
 $('qrclose').onclick=()=>{ $('qrov').style.display='none'; };
 $('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; };
-$('invia').onclick=inviaRientro;
+/* invio: prima il riepilogo, poi il file */
+$('invia').onclick=()=>{ renderRiepilogo(); mostra('riepilogo'); };
+$('invia-ok').onclick=inviaRientro;
+/* barra della vista esercizio a schermo pieno */
+$('nav-prev').onclick=()=>exNav(-1);
+$('nav-next').onclick=()=>exNav(1);
+$('nav-close').onclick=chiudiEx;
 /* controlli fissi della barra timer di recupero */
 $('t-pause').onclick=timerToggle;
 $('t-p15').onclick=()=>timerAdjust(15);

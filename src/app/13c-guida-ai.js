@@ -172,7 +172,11 @@ Due modi per registrare una seduta:
   con media mobile, ACWR con la zona sicura evidenziata, TL per gruppo muscolare,
   distribuzione delle intensità (%1RM), carico interno sRPE (se abilitato),
   monotonia/strain, progressione del singolo esercizio (1RM e peso max nel tempo).
-  I grafici hanno senso da 2-3 settimane salvate in poi.
+  I grafici hanno senso da 2-3 settimane salvate in poi. Dal v1.1.4 in cima c'è il
+  selettore **«Dati da analizzare»**: «Tutto il percorso» oppure un singolo **Training Set**
+  (patch al limite noto della confrontabilità del TL tra schede molto diverse — es. Palestra
+  vs Casa). Ogni settimana salvata porta il campo 'set' col Training Set attivo; le settimane
+  salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso».
 - **Storico** (link «📜» nel footer): archivio completo delle registrazioni, in codici
   settimana ISO formato AAAASS (es. 202624 = settimana 24 del 2026).
 - **Corpo**: peso e misure corporee con BMI e stime masse; lo storico misure è in un
@@ -253,12 +257,15 @@ nei dispositivi.
    a ogni apertura, con la **bozza salvata da sola** mentre compila). L'app si apre su
    un **menu con due sezioni**: «🏋 Scheda allenamento» e «🍖 Alimentazione» (piano in
    sola lettura: pasti coi grammi in evidenza e kcal; se il file non contiene la dieta
-   la sezione appare disattivata). Nella scheda sceglie il **giorno** da un elenco, poi
-   compila solo quel giorno — un esercizio sotto l'altro, campi su una colonna e
-   tastiera numerica; una spunta ✔ segna i giorni con campi realmente toccati; bottoni
-   «‹ Torna ai giorni / al menu» ben visibili. Inserisce ciò che ha fatto davvero
-   (serie, ripetizioni, peso, RIR, note per esercizio; fatica RPE 0-10 e durata per
-   seduta). Ogni esercizio ha un **timer di recupero** (bottone ⏱ che parte dal tempo
+   la sezione appare disattivata). Nella scheda sceglie il **giorno** da un elenco; dal
+   v2.0 dell'app ogni giornata è una **seduta in tre fasi** (tab): 🔥 Riscaldamento (solo
+   se presente nel Training Set: SOLA LETTURA coi video, NON torna nel rientro), 🏋 Esercizi,
+   ✅ Fine. Nella fase Esercizi la lista è compatta e toccando una riga l'esercizio si apre
+   **a schermo pieno** (campi grandi, avanti/indietro tra esercizi); sotto ogni esercizio
+   compare **«l'ultima volta»** (ultima prestazione dallo Storico, campo 'ultima' nel file).
+   Una spunta ✔ e una barra di avanzamento segnano gli esercizi toccati. Inserisce ciò che
+   ha fatto davvero (serie, ripetizioni, peso, RIR, note per esercizio; fatica RPE 0-10 e
+   durata nella fase Fine). Ogni esercizio ha un **timer di recupero** (bottone ⏱ che parte dal tempo
    di riposo della scheda, con pausa e +15/-15; disponibile in FISSA e MODIFICABILE).
    Se la scheda è MODIFICABILE il cliente può anche **aggiungere/eliminare/modificare**
    esercizi (rinomina, sposta di giorno, ritocca il previsto) e segnare i **test del
@@ -266,9 +273,11 @@ nei dispositivi.
    ricostruisce la scheda Pesi dalle righe). NOTA: il campo **RIR parte sempre
    vuoto** (non eredita il valore del coach: si inserisce dopo l'allenamento; il
    previsto resta indicato sopra i campi). Guarda i ▶ video, e preme «📩 Crea il file
-   per il coach»: nasce «Rientro_profilo_data.json» (formato 'tms-rientro', identico
-   alle versioni precedenti) da rimandare al coach, dove possibile con la condivisione
-   diretta (WhatsApp ecc.).
+   per il coach» (prima vede un **riepilogo** di quanto ha segnato): nasce
+   «Rientro_profilo_data.json» (formato 'tms-rientro', identico alle versioni precedenti)
+   da rimandare al coach, dove possibile con la condivisione diretta (WhatsApp ecc.).
+   Il **riscaldamento** viaggia nella scheda (campo 'riscaldamento') ma è solo informativo:
+   NON entra nel rientro e non conta in alcun calcolo.
 3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e l'allenamento
    del cliente viene **caricato nella scheda 🏋 Pesi** (NON scritto subito nello Storico).
    Il coach lo rivede, eventualmente corregge, poi preme «💾 Salva nello Storico» scegliendo

@@ -445,6 +445,20 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const pr=d.getElementById('panel-progressi').innerHTML;
     ok(pr.includes('Cardio · progressione per sport') && d.getElementById('prog-cardio-sport')!==null, 'Progressi: sezione cardio per sport con selettore');
     ok(pr.includes('Passo') && pr.includes('Distanza') && pr.includes('FC media'), 'Progressi cardio: grafici passo/distanza/FC per la Corsa'); }
+  /* v1.1.4: selettore «Dati da analizzare» — tutto il percorso oppure un singolo Training Set */
+  { const stoPre = w.eval('DOC.storico.length');
+    ok(w.eval('schedeAggr("__tutti__").length') === w.eval('schedeAggr().length'), 'Progressi/filtro: «tutto il percorso» equivale a nessun filtro (chiamanti esistenti invariati)');
+    /* due settimane etichettate con Training Set diversi */
+    w.eval('DOC.storico.push({scheda:202701,esercizio:"Panca piana con bilanciere - presa media",seduta:1,macro:"Pettorali",serie:3,rip:8,peso:60,rir:null,test:false,set:"Palestra"});');
+    w.eval('DOC.storico.push({scheda:202702,esercizio:"Piegamenti sulle braccia",seduta:1,macro:"Pettorali",serie:3,rip:20,peso:0,rir:null,test:false,set:"Casa"});');
+    ok(w.eval('setDiStorico().indexOf("Palestra")>=0 && setDiStorico().indexOf("Casa")>=0', 'setDiStorico'), 'Progressi/filtro: i Training Set presenti nello storico compaiono tra le scelte');
+    ok(w.eval('schedeAggr("Palestra").length') === 1 && w.eval('schedeAggr("Palestra")[0].scheda') === 202701, 'Progressi/filtro: scegliendo «Palestra» resta solo la sua settimana');
+    ok(w.eval('schedeAggr("Casa").length') === 1 && w.eval('schedeAggr("Casa")[0].scheda') === 202702, 'Progressi/filtro: scegliendo «Casa» resta solo la sua settimana');
+    ok(w.eval('senzaEtichetta()') === true, 'Progressi/filtro: rileva le settimane vecchie senza etichetta (avviso all\'utente)');
+    w.eval('progSet="Palestra"; showTab("progressi");');
+    ok(d.getElementById('prog-set') !== null && d.getElementById('prog-set').value === 'Palestra', 'Progressi/filtro: selettore in pagina con il set attivo selezionato');
+    ok(d.getElementById('panel-progressi').textContent.includes('Tutto il percorso'), 'Progressi/filtro: tra le opzioni c\'è «Tutto il percorso»');
+    w.eval('progSet="__tutti__"; DOC.storico.length=' + stoPre + '; showTab("progressi");'); }
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');
@@ -452,6 +466,9 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const vfileCli = w.eval('(costruisciSchedaJSON({}).righe.find(r => r.video) || {}).video || ""');
   ok(vfileCli !== '', 'export scheda JSON: almeno un esercizio del template ha il video associato');
   const mapCli = {}; if (vfileCli) mapCli[vfileCli] = 'data:video/mp4;base64,AAAA';
+  /* v2.0: il riscaldamento del Training Set attivo viaggia nella scheda (sola lettura per il cliente) */
+  { const g1 = w.eval('costruisciSchedaJSON({}).righe[0].giorno');
+    w.eval('ensureSets(); DOC.scheda.riscaldamento={settimanale:[{giorno:' + JSON.stringify(g1) + ',esercizio:"Allungamento dei flessori dell\'anca",serie:2,rip:30,note:"per lato"}],mensile:[]};'); }
   const schedaCli = w.eval('costruisciSchedaJSON(' + JSON.stringify(mapCli) + ', true)');
   ok(schedaCli.tipo === 'tms-scheda' && schedaCli.profilo.slug === 'template' && schedaCli.profilo.nome === 'Atleta Template' && schedaCli.righe.length > 0, 'export scheda JSON: meta profilo + righe della scheda del template');
   ok(schedaCli.modificabile === true && w.eval('costruisciSchedaJSON({}).modificabile') === false && w.eval('costruisciSchedaJSON({}, true).modificabile') === true, 'export scheda JSON: flag modificabile (default false = scheda fissa)');
@@ -462,6 +479,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok((await w.eval('window.__mp')) === 'modificabile', 'export: la scelta «Modificabile» risolve la Promise');
   ok(schedaCli.righe.every(r => r.giorno && r.esercizio && typeof r.serie === 'number') && schedaCli.video[vfileCli].startsWith('data:video/'), 'export scheda JSON: righe complete + video come data-URI');
   ok(schedaCli.righe.every(r => typeof r.test === 'boolean'), 'export scheda JSON: ogni riga porta il flag test (★ 1RM), default false');
+  /* v2.0: riscaldamento (sola lettura) + «l'ultima volta» dallo Storico nel file per il cliente */
+  ok(Array.isArray(schedaCli.riscaldamento) && schedaCli.riscaldamento.length === 1
+     && schedaCli.riscaldamento[0].esercizio.startsWith('Allungamento') && schedaCli.riscaldamento[0].serie === 2 && schedaCli.riscaldamento[0].rip === 30,
+     'export scheda JSON: riscaldamento del Training Set incluso (esercizio/serie/rip/note)');
+  ok(schedaCli.riscaldamento[0].note === 'per lato' && typeof schedaCli.riscaldamento[0].video === 'string', 'export scheda JSON: il riscaldamento porta note e (se c\'è) il video');
+  { const u = schedaCli.ultima || {}, nomi = Object.keys(u);
+    ok(nomi.length > 0 && typeof u[nomi[0]].peso === 'number' && typeof u[nomi[0]].rip === 'number',
+       'export scheda JSON: «ultima volta» per esercizio dallo Storico (' + nomi.length + ' esercizi)'); }
+  w.eval('DOC.scheda.riscaldamento={settimanale:[],mensile:[]};');  /* ripulisce il seed: i test desktop del riscaldamento partono da vuoto */
   /* dieta della fase attiva inclusa nell'export (valori precalcolati: il cliente non ha la banca USAV) */
   ok(schedaCli.dieta && schedaCli.dieta.fase === 'bulk' && Array.isArray(schedaCli.dieta.righe) && schedaCli.dieta.righe.length > 0, 'export scheda JSON: piano alimentare della fase attiva incluso (' + (schedaCli.dieta ? schedaCli.dieta.righe.length : 0) + ' righe)');
   ok(schedaCli.dieta.tot.kcal > 1000 && schedaCli.dieta.righe.every(r => r.alimento && typeof r.kcal === 'number' && typeof r.grammi === 'number'), 'export scheda JSON: kcal/macro precalcolate per riga + totale giornaliero (' + schedaCli.dieta.tot.kcal + ' kcal)');
@@ -497,6 +523,30 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sd.getElementById('rir-0') !== null && sd.getElementById('rir-0').value === '', 'app cliente: RIR NON precompilato (si inserisce dopo l\'allenamento)');
     ok(sd.querySelector('.day-page .back-btn') !== null && sd.querySelector('.day-page .back-btn').textContent.includes('Torna ai giorni'), 'app cliente: bottone «Torna ai giorni» evidente nella pagina giorno');
     ok(sd.querySelector('.vbtn') !== null, 'app cliente: bottone ▶ video presente (video nel file)');
+    /* v2.0: la giornata è una SEDUTA in fasi (🔥 riscaldamento · 🏋 esercizi · ✅ fine) */
+    { const pag0 = sd.getElementById('day-0');
+      ok(pag0.querySelector('.fasi') !== null && pag0.querySelectorAll('.fase').length === 3, 'app cliente v2: la pagina-giorno ha le 3 fasi (riscaldamento, esercizi, fine)');
+      ok(pag0.querySelector('[data-fase="w"] .w-row') !== null && /Allungamento/.test(pag0.querySelector('[data-fase="w"]').textContent), 'app cliente v2: fase Riscaldamento con l\'esercizio del coach');
+      ok(pag0.querySelector('[data-fase="w"] input') === null, 'app cliente v2: il riscaldamento è SOLA LETTURA (nessun campo da compilare)');
+      /* il giorno senza riscaldamento non mostra la fase (niente spazi vuoti) */
+      const senzaW = [...sd.querySelectorAll('.day-page')].find(p => p.id !== 'day-0');
+      ok(!senzaW || senzaW.querySelector('[data-fase="w"]') === null, 'app cliente v2: i giorni senza riscaldamento non mostrano la fase');
+      /* i tab cambiano fase */
+      pag0.querySelector('.fasi [data-f="f"]').click();
+      ok(pag0.querySelector('[data-fase="f"]').hidden === false && pag0.querySelector('[data-fase="e"]').hidden === true, 'app cliente v2: il tab ✅ Fine mostra RPE e durata');
+      pag0.querySelector('.fasi [data-f="e"]').click();
+      ok(pag0.querySelector('[data-fase="e"]').hidden === false, 'app cliente v2: si torna al tab 🏋 Esercizi'); }
+    /* «l'ultima volta» dallo Storico, sotto il previsto */
+    ok(sd.querySelector('#ex-0 .ex-last') !== null && /kg/.test(sd.querySelector('#ex-0 .ex-last').textContent), 'app cliente v2: «ultima volta» mostrata sotto l\'esercizio');
+    /* esercizio a schermo pieno: la stessa riga diventa overlay (un solo set di campi nel DOM) */
+    ok(sub.window.eval('document.querySelectorAll("#s-0").length') === 1, 'app cliente v2: un solo campo Serie per esercizio nel DOM (nessun doppione)');
+    sd.querySelector('#ex-0 .ex-sum').click();
+    ok(sd.getElementById('ex-0').classList.contains('open') && sd.getElementById('exnav').classList.contains('show'), 'app cliente v2: toccando l\'esercizio si apre a schermo pieno con la barra avanti/indietro');
+    ok(sub.window.eval('OPEN_RID') === 0 && sd.getElementById('nav-prev').disabled === true, 'app cliente v2: sul primo esercizio «‹ precedente» è disattivato');
+    sd.getElementById('nav-next').click();
+    ok(sub.window.eval('OPEN_RID') === 1 && sd.getElementById('ex-1').classList.contains('open') && !sd.getElementById('ex-0').classList.contains('open'), 'app cliente v2: «successivo ›» passa all\'esercizio dopo');
+    sd.getElementById('nav-close').click();
+    ok(sub.window.eval('OPEN_RID') === null && !sd.getElementById('exnav').classList.contains('show'), 'app cliente v2: «Chiudi» torna alla lista');
     /* compila un campo → bozza autosalvata */
     sd.getElementById('n-0').value = 'fatto tutto';
     sd.getElementById('s-0').value = '5';
@@ -508,6 +558,17 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(rientroApp && rientroApp.tipo === 'tms-rientro' && rientroApp.versione === 1 && rientroApp.profilo.slug === 'template', 'app cliente: rientro nel formato tms-rientro (import TMS invariato)');
     ok(rientroApp.righe.length === schedaCli.righe.length && rientroApp.righe[0].serie === 5 && rientroApp.righe[0].note === 'fatto tutto', 'app cliente: il rientro riflette ciò che il cliente ha compilato');
     ok(rientroApp.righe[0].rir === null, 'app cliente: RIR non toccato → null nel rientro (niente valore ereditato dal coach)');
+    /* il riscaldamento NON torna al coach (solo informativo) */
+    ok(rientroApp.riscaldamento === undefined && !rientroApp.righe.some(r => /Allungamento/.test(r.esercizio)), 'app cliente v2: il riscaldamento NON entra nel rientro (solo informativo)');
+    /* avanzamento della seduta + spunta sull'esercizio compilato */
+    ok(sd.getElementById('ck-0').textContent === '✔' && /1\//.test(sd.getElementById('plab-0').textContent), 'app cliente v2: spunta ✔ sull\'esercizio e avanzamento «1/n fatti»');
+    ok(sd.getElementById('prog-0').style.width !== '' && sd.getElementById('prog-0').style.width !== '0%', 'app cliente v2: la barra di avanzamento si riempie');
+    /* riepilogo prima dell'invio */
+    sd.getElementById('invia').click();
+    ok(sd.getElementById('riepilogo').hidden === false && sd.querySelectorAll('#riep-body .riep-row').length === giorniCli.length, 'app cliente v2: «Crea il file» apre prima il RIEPILOGO (una riga per giorno)');
+    ok(/esercizi segnati/.test(sd.getElementById('riep-body').textContent) && sd.getElementById('invia-ok') !== null, 'app cliente v2: il riepilogo conta gli esercizi segnati e ha il bottone di invio');
+    sd.querySelector('#riepilogo [data-home]').click();
+    ok(sd.getElementById('home').hidden === false, 'app cliente v2: dal riepilogo si torna ai giorni');
     sub.window.close();
   }
   {

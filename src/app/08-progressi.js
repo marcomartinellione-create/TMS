@@ -1,7 +1,21 @@
 /* ════════════════ RENDER: PROGRESSI ════════════════ */
+/* ── Filtro «dati da analizzare» (Training Set): patch al problema noto della
+      confrontabilità del carico tra schede molto diverse (es. Palestra vs Casa).
+      Le righe salvate portano il campo `set` (dal v1.1.4); quelle più vecchie no e
+      compaiono solo in «Tutto il percorso». Il filtro è un PARAMETRO opzionale: i
+      chiamanti esistenti (Report, Cruscotto, Analisi, LED) restano invariati. ── */
+let progSet='__tutti__';   /* selettore del tab Progressi (in memoria, non persistito) */
+function setDiStorico(){ const s=new Set();
+  (DOC.storico||[]).forEach(r=>{ const n=String((r&&r.set)||'').trim(); if(n) s.add(n); });
+  const sc=DOC.scheda; if(sc&&Array.isArray(sc.setsOrdine)) sc.setsOrdine.forEach(n=>{ if(n) s.add(n); });
+  return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
+function senzaEtichetta(){ return (DOC.storico||[]).some(r=>!String((r&&r.set)||'').trim()); }
+function filtraSet(rows,sf){ if(!sf||sf==='__tutti__') return rows||[];
+  return (rows||[]).filter(r=>String((r&&r.set)||'')===sf); }
+function storicoSet(sf){ return filtraSet(DOC.storico||[],sf); }
 /* ════ FOSTER 2001 — carico interno (session-RPE) ════
    loadGiorno = RPE × min (AU) · settimanale = somma · monotonia = media7 ÷ SD7 (riposi=0 inclusi) · strain = settimanale × monotonia */
-function rpeByWeek(){ const m={}; (DOC.storico_rpe||[]).forEach(r=>{ const s=+r.scheda||0; const ld=(+r.rpe||0)*(+r.min||0);
+function rpeByWeek(sf){ const m={}; filtraSet(DOC.storico_rpe||[],sf).forEach(r=>{ const s=+r.scheda||0; const ld=(+r.rpe||0)*(+r.min||0);
   if(!m[s])m[s]={day:{},load:0}; m[s].day[r.giorno]=(m[s].day[r.giorno]||0)+ld; m[s].load+=ld; }); return m; }
 function fosterWeek(dayMap){
   const vals=GIORNI.map(g=>+(dayMap&&dayMap[g])||0), n=vals.length;
@@ -9,9 +23,9 @@ function fosterWeek(dayMap){
   const mean=load/n, sd=Math.sqrt(vals.reduce((a,v)=>a+(v-mean)*(v-mean),0)/n);
   const monotony=sd>0? mean/sd : null, strain=monotony!=null? load*monotony : null;
   return {load,monotony,strain}; }
-function schedeAggr(){
+function schedeAggr(sf){
   const map={};
-  DOC.storico.forEach(r=>{ if(r.test) return; const s=+r.scheda; if(!map[s])map[s]={scheda:s,tl:0,pctSum:0,pctN:0,grp:{},sets:{},band:{},tonn:0};
+  storicoSet(sf).forEach(r=>{ if(r.test) return; const s=+r.scheda; if(!map[s])map[s]={scheda:s,tl:0,pctSum:0,pctN:0,grp:{},sets:{},band:{},tonn:0};
     const _t=sTL(r), _p=sPct(r), ser=+r.serie||0; map[s].tl+=_t; if(_p){map[s].pctSum+=_p; map[s].pctN++;}
     const g=r.macro||'Altro'; map[s].grp[g]=(map[s].grp[g]||0)+_t; map[s].sets[g]=(map[s].sets[g]||0)+ser;
     map[s].tonn+=ser*(+r.rip||0)*(+r.peso||0);
@@ -32,15 +46,15 @@ function radarChart(items,opts){
   for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); g+=`<circle cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="2.6" fill="var(--orange)"/>`; }
   return `<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
 }
-function exerciseList(){ const s=new Set(); DOC.storico.forEach(r=>{ if(r.esercizio) s.add(r.esercizio); }); return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
-function exProgression(nome){ const mm={}; DOC.storico.forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,sRM(r)); mm[s].peso=Math.max(mm[s].peso,+r.peso||0); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
-function realMax(nome){ let best=null; DOC.storico.forEach(r=>{ if(r.esercizio!==nome)return; const pe=+r.peso||0; if(pe>0&&(!best||pe>best.peso)) best={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return best; }
-function prList(){ const m={}; DOC.storico.forEach(r=>{ if(!r.esercizio)return; const pe=+r.peso||0; if(pe<=0)return; if(!m[r.esercizio]||pe>m[r.esercizio].peso) m[r.esercizio]={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return Object.entries(m).map(([nome,v])=>({nome:nome,peso:v.peso,rip:v.rip,scheda:v.scheda})).sort((a,b)=>b.peso-a.peso); }
+function exerciseList(sf){ const s=new Set(); storicoSet(sf).forEach(r=>{ if(r.esercizio) s.add(r.esercizio); }); return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
+function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,sRM(r)); mm[s].peso=Math.max(mm[s].peso,+r.peso||0); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
+function realMax(nome,sf){ let best=null; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const pe=+r.peso||0; if(pe>0&&(!best||pe>best.peso)) best={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return best; }
+function prList(sf){ const m={}; storicoSet(sf).forEach(r=>{ if(!r.esercizio)return; const pe=+r.peso||0; if(pe<=0)return; if(!m[r.esercizio]||pe>m[r.esercizio].peso) m[r.esercizio]={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return Object.entries(m).map(([nome,v])=>({nome:nome,peso:v.peso,rip:v.rip,scheda:v.scheda})).sort((a,b)=>b.peso-a.peso); }
 let progEx=null;
-function plateauList(){
+function plateauList(sf){
   const out=[];
-  exerciseList().forEach(nome=>{
-    const rows=DOC.storico.filter(r=>r.esercizio===nome && !r.test && (+r.peso||0)>0); if(!rows.length)return;
+  exerciseList(sf).forEach(nome=>{
+    const rows=storicoSet(sf).filter(r=>r.esercizio===nome && !r.test && (+r.peso||0)>0); if(!rows.length)return;
     const bySch={}; rows.forEach(r=>{ const s=+r.scheda; bySch[s]=(bySch[s]||0)+sTL(r); }); /* TL per scheda (carico+ripetizioni) */
     const schede=Object.keys(bySch).map(Number).sort((a,b)=>a-b); if(schede.length<4)return;
     const maxTL=Math.max(...schede.map(s=>bySch[s]));
@@ -50,16 +64,31 @@ function plateauList(){
   });
   return out.sort((a,b)=>b.since-a.since);
 }
+/* barra «Dati da analizzare»: tutto il percorso oppure un singolo Training Set */
+function barraSetProgressi(){
+  const sets=setDiStorico();
+  if(!sets.length) return '';
+  const opts=`<option value="__tutti__"${progSet==='__tutti__'?' selected':''}>${t('Tutto il percorso')}</option>`+
+    sets.map(n=>`<option value="${esc(n)}"${n===progSet?' selected':''}>${esc(n)}</option>`).join('');
+  const nota=(progSet!=='__tutti__'&&senzaEtichetta())
+    ? `<div class="muted" style="font-size:11.5px;margin:-6px 0 10px">${t('Le settimane salvate prima di questa versione non hanno l\'etichetta del Training Set: si vedono solo in «Tutto il percorso».')}</div>` : '';
+  return `<div class="bar no-print"><div class="field"><label>${t('Dati da analizzare')}</label>
+      <select id="prog-set" title="${t('Analizza tutto il percorso oppure un singolo Training Set (es. solo Palestra): utile quando le schede sono molto diverse tra loro')}">${opts}</select></div>
+    <div class="spacer"></div></div>${nota}`;
+}
 function renderProgressi(){
-  const ag=schedeAggr();
-  if(!ag.length){ document.getElementById('panel-progressi').innerHTML=`<div class="empty">${t('Nessuna scheda salvata: salvane almeno una per vedere i progressi.')}</div>`; return; }
+  const sf=progSet;
+  const ag=schedeAggr(sf);
+  if(!ag.length){ document.getElementById('panel-progressi').innerHTML=barraSetProgressi()+
+      `<div class="empty">${sf==='__tutti__'?t('Nessuna scheda salvata: salvane almeno una per vedere i progressi.'):t('Nessuna scheda salvata con questo Training Set.')}</div>`;
+    { const s=document.getElementById('prog-set'); if(s) s.onchange=e=>{ progSet=e.target.value; renderProgressi(); }; } return; }
   const labels=ag.map(a=>schedaLabel(a.scheda));
   const last=ag[ag.length-1];
   const grpColors={Gambe:'#c2500a',Pettorali:'#d4a017',Schiena:'#2f7d4f',Spalle:'#7a3ea8',Braccia:'#b8860b',Core:'#991b1b',Altro:'#7a6a50'};
   const mavg=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); return w.reduce((s,x)=>s+x.tl,0)/w.length; });
   const acwr=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; return c? a.tl/c:null; });
   const lastAcwr=acwr[acwr.length-1];
-  const cards=`<div class="sec">▌ ${t('Record personali · carico massimo')}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(L.nome); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
+  const cards=`<div class="sec">▌ ${t('Record personali · carico massimo')}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(L.nome,sf); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
   const tlSeries=[{name:'TL',color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:a.tl||null}))},{name:t('Media mobile 4'),color:'var(--ink-3)',data:ag.map((a,i)=>({x:labels[i],y:mavg[i]}))}];
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
@@ -70,12 +99,12 @@ function renderProgressi(){
   const BANDS=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
   const bcol={'Forza':'#991b1b','Forza+Iper':'#c2500a','Ipertrofia':'#d4a017','Resistenza':'#2f7d4f','Metabolico':'#7a3ea8'};
   const intData=BANDS.map(b=>({x:t(b),y:last.band[b]||0,color:bcol[b]}));
-  const exs=exerciseList(); if(progEx==null||!exs.includes(progEx)) progEx=exs[0]||'';
-  const prog=exProgression(progEx); const plab=prog.map(p=>schedaLabel(p.scheda));
+  const exs=exerciseList(sf); if(progEx==null||!exs.includes(progEx)) progEx=exs[0]||'';
+  const prog=exProgression(progEx,sf); const plab=prog.map(p=>schedaLabel(p.scheda));
   const exSeries=[{name:t('1RM stimato'),color:'var(--orange-b)',data:prog.map((p,i)=>({x:plab[i],y:p.rm||null}))},{name:t('Peso max'),color:'var(--violet)',data:prog.map((p,i)=>({x:plab[i],y:p.peso||null}))}];
-  const plats=plateauList();
+  const plats=plateauList(sf);
   /* Foster — carico interno settimanale, allineato ai codici-settimana dello storico esterno */
-  const rpw=rpeByWeek();
+  const rpw=rpeByWeek(sf);
   const foster=ag.map(a=>fosterWeek(rpw[a.scheda]&&rpw[a.scheda].day));
   const hasRpe=useRpeActive() && foster.some(x=>x&&x.load>0);
   const sRpeSeries=[{name:t('Carico interno (sRPE)'),color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:foster[i].load||null}))}];
@@ -92,7 +121,7 @@ function renderProgressi(){
   else if(lastAcwr!=null && lastAcwr<0.8) segnali+=`<div class="callout callout--info"><div>🛌 ${t('<b>Carico basso</b> (ACWR')} ${nf(lastAcwr,2)}${t('): fase di scarico/ripresa. Se non voluto, aumenta gradualmente.')}</div></div>`;
   if(plats.length) segnali+=`<div class="callout"><div>⏸ ${t('<b>In stallo</b> (TL fermo da ≥3 schede):')} ${plats.slice(0,6).map(p=>esc(exName(p.nome))+' <span class="muted">('+p.since+' '+t('sett.')+')</span>').join(' · ')}. ${t('Valuta variazione di carico, volume o esercizio.')}</div></div>`;
   if(!segnali) segnali=`<div class="callout" style="background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ ${t('Nessun segnale critico: carico e progressione regolari.')}</div></div>`;
-  document.getElementById('panel-progressi').innerHTML=cards+`
+  document.getElementById('panel-progressi').innerHTML=barraSetProgressi()+cards+`
    <div class="sec">▌ ${t('Segnali')}</div>${segnali}
    <div class="sec">▌ ${t('Carico allenante (Training Load)')}</div>
    <div class="chart-grid">
@@ -130,5 +159,6 @@ function renderProgressi(){
    ${cardioProgressBlock()}
 `;
   const sel=document.getElementById('prog-ex'); if(sel) sel.onchange=e=>{ progEx=e.target.value; renderProgressi(); };
+  const selS=document.getElementById('prog-set'); if(selS) selS.onchange=e=>{ progSet=e.target.value; progEx=null; renderProgressi(); };
   bindCardioProgress();
 }

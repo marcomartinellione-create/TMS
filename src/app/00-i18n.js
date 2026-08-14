@@ -754,6 +754,12 @@ const EN={
   'Deve restare almeno un Training Set.':'At least one Training Set must remain.',
   'Eliminare il Training Set «':'Delete the Training Set «',
   '» e la sua scheda? Operazione irreversibile.':'» and its program? This cannot be undone.',
+  /* ══════════ Progressi: filtro «dati da analizzare» (Training Set) ══════════ */
+  'Dati da analizzare':'Data to analyze',
+  'Tutto il percorso':'Whole journey',
+  'Analizza tutto il percorso oppure un singolo Training Set (es. solo Palestra): utile quando le schede sono molto diverse tra loro':'Analyze the whole journey or a single Training Set (e.g. Gym only): useful when the programs differ a lot from one another',
+  'Nessuna scheda salvata con questo Training Set.':'No program saved with this Training Set.',
+  'Le settimane salvate prima di questa versione non hanno l\'etichetta del Training Set: si vedono solo in «Tutto il percorso».':'Weeks saved before this version have no Training Set label: they only show under «Whole journey».',
   /* ══════════ Riscaldamento (vista Pesi) ══════════ */
   'Riscaldamento':'Warm-up',
   'Apri i riscaldamenti giorno per giorno di questo Training Set':'Open the day-by-day warm-ups for this Training Set',

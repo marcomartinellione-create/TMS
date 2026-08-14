@@ -366,14 +366,17 @@ function saveSchedaModal(){
     let added=0; const smap=sedutaMap(schedaRows()); const prs={};
     schedaRows().forEach(r=>{ if(!r.esercizio||!String(r.esercizio).trim())return;
       const pe=+r.peso||0; if(pe>0 && pe>(preMax[r.esercizio]||0)) prs[r.esercizio]=Math.max(prs[r.esercizio]||0,pe);
+      /* `set`: Training Set con cui è stata svolta la settimana — serve al selettore dei
+         Progressi per analizzare un percorso alla volta (righe più vecchie: campo assente). */
       DOC.storico.push({scheda:code,esercizio:r.esercizio,seduta:rowSeduta(smap,r),test:!!r.test,
-        macro:gruppoOf(r.esercizio),serie:+r.serie||0,rip:+r.rip||0,peso:+r.peso||0,rest:r.rest||'',rir:(r.rir===''||r.rir==null)?null:+r.rir}); added++; });
+        macro:gruppoOf(r.esercizio),serie:+r.serie||0,rip:+r.rip||0,peso:+r.peso||0,rest:r.rest||'',
+        rir:(r.rir===''||r.rir==null)?null:+r.rir,set:(ensureSets()||{}).setAttivo||''}); added++; });
     /* Foster: committa il carico interno dei giorni allenati in storico_rpe e azzera la bozza RPE della modalità salvata */
     if(useRpeActive()){ const days=schedaDays(schedaRows()), draft=schedaRpe();
       if(!Array.isArray(DOC.storico_rpe)) DOC.storico_rpe=[];
       days.forEach(g=>{ const d=draft[g]||{}, rp=+d.rpe||0, mn=+d.min||0;
         DOC.storico_rpe=DOC.storico_rpe.filter(x=>!((+x.scheda)===code && x.giorno===g));
-        if(rp>0&&mn>0) DOC.storico_rpe.push({scheda:code,giorno:g,rpe:rp,min:mn}); });
+        if(rp>0&&mn>0) DOC.storico_rpe.push({scheda:code,giorno:g,rpe:rp,min:mn,set:(ensureSets()||{}).setAttivo||''}); });
       DOC.scheda.rpe[schedaMode]={}; persist('corpo'); }
     persist('scheda'); persist('storico'); closeModal();
     const prk=Object.keys(prs);

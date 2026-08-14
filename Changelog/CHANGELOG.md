@@ -4,6 +4,38 @@
 
 ---
 
+### 2026-08-14 — TMS v1.1.4: app telefono v2.0 (seduta in fasi + riscaldamento + «ultima volta»); selettore Training Set nei Progressi
+
+**Tipo**: feature (richiesta esplicita di Marco: ripensare la struttura dell'app cliente
+mantenendo le funzioni, inserendo il riscaldamento; + patch temporanea alla confrontabilità del TL
+tra Training Set con un selettore nei grafici)
+**File coinvolti**: PWA `docs/app/index.html` (riscritta v2.0: giornata come SEDUTA in fasi
+🔥/🏋/✅; lista esercizi compatta che si apre a schermo pieno sulla stessa riga — `.ex-row.open`,
+`apriEx`/`chiudiEx`/`exNav`; «ultima volta» da `SCHEDA.ultima`; avanzamento + riepilogo pre-invio;
+CVER 2.0) + `docs/app/sw.js` (cache v9) · desktop `src/app/15-scambio.js` (export di `riscaldamento`
+e `ultima`; `collectRiscaldamentoVideos` per i video del riscaldamento) · `src/app/06-allenamento.js`
+(campo `set` = Training Set attivo salvato in Storico e storico_rpe) · `src/app/08-progressi.js`
+(selettore «Dati da analizzare»: filtro opzionale `sf` su schedeAggr/rpeByWeek/plateauList/realMax/
+exerciseList/exProgression/prList — chiamanti esistenti invariati) · `src/app/00-i18n.js` (stringhe EN) ·
+guide `src/app/13a-guida.js` (§10 IT/EN) e `src/app/13c-guida-ai.js` (§5, §8) + `docs/guida-ai.md` ·
+`tests/test-app.js` · `01-costanti.js` + package.json ×2
+**Descrizione**: la <b>PWA «TMS Scheda» è stata ripensata</b> mantenendo identiche import/export,
+compilazione, RPE/durata, video, timer, bozza, aggiungi/modifica/elimina + ★, IT/EN, offline
+(contratto dati e id dei campi invariati). Ogni giornata è ora una <b>seduta in tre fasi</b>: <b>🔥
+Riscaldamento</b> (sola lettura coi video — NON torna nel rientro, puramente informativo), <b>🏋
+Esercizi</b> (lista compatta; toccando una riga l'esercizio si apre <b>a schermo pieno</b> con
+numeri grandi, video, timer e avanti/indietro) e <b>✅ Fine</b> (RPE e durata). Sotto ogni esercizio
+compare <b>«l'ultima volta»</b> (ultima prestazione dallo Storico). Barra di avanzamento + spunte
+✔ per giorno/esercizio; «Crea il file» apre prima un <b>riepilogo</b>. Il <b>riscaldamento del
+Training Set</b> ora viaggia nell'export (coi video). Nel <b>tab Progressi</b> del PC un selettore
+<b>«Dati da analizzare»</b> permette di guardare tutto il percorso o un singolo Training Set (patch
+al limite noto della confrontabilità del TL tra schede diverse); prerequisito: ogni settimana salvata
+porta ora il campo `set` (le settimane precedenti restano solo in «Tutto il percorso», con avviso).
+**Test**: `npm test` <b>369/369</b> (27 nuove verifiche: export riscaldamento/ultima, fasi, sola
+lettura del riscaldamento, apertura a schermo pieno + avanti/indietro, avanzamento, riepilogo, filtro
+Progressi per Training Set). `npm run verifica` OK. Verificato dal vivo in anteprima (mobile 375×812).
+**Approvato da**: Marco (implementazione e rilascio v1.1.4 su comando esplicito).
+
 ### 2026-08-14 — TMS v1.1.3: Riscaldamento per Training Set (tab Pesi), filtrato allo stretching
 
 **Tipo**: feature (richiesta esplicita di Marco: una vista di riscaldamento per Training Set, con
