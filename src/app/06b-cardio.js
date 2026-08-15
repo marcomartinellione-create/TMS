@@ -254,7 +254,7 @@ function cardioProgressBlock(){
   if(inf.quota && ses.some(s=>+s.quota>0)) charts.push(`<div class="chart-box"><h4>${t('⛰ Dislivello D+ (m)')}</h4>${lineChart([{name:'D+',color:'var(--ink-3)',data:ses.map(s=>({x:s.data,y:+s.quota||null}))}],{labels:lab})}</div>`);
   let grid=''; for(let i=0;i<charts.length;i+=2){ grid+=`<div class="chart-grid">${charts[i]}${charts[i+1]||''}</div>`; }
   const selHtml=`<select id="prog-cardio-sport" style="margin-left:auto;font-size:13px">${sports.map(sp=>`<option value="${esc(sp)}"${sp.toLowerCase()===sel.toLowerCase()?' selected':''}>${esc(t(sp))}</option>`).join('')}</select>`;
-  return `<div class="sec">▌ ${t('Cardio · progressione per sport')} ${selHtml}</div>
+  return `<div class="sec">${t('Cardio · progressione per sport')} ${selHtml}</div>
     ${ses.length<2?`<div class="callout callout--info"><div>${t('Servono almeno 2 sedute di')} <b>${esc(t(sel))}</b> ${t('per vedere un andamento.')}</div></div>`:''}
     ${grid}`;
 }
@@ -273,7 +273,7 @@ function cardioReportBlock(){
   const auChart=lineChart([{name:'sRPE',color:'var(--gold-2)',data:sorted.map(s=>({x:s.data,y:srpeCardio(s)||null}))}],{labels:lab,h:160,fmt:nfk});
   const recent=list.slice().sort((a,b)=>String(b.data).localeCompare(String(a.data))).slice(0,10);
   const rows=recent.map(s=>{ const tr=trimpCardio(s); return `<tr><td class="l">${esc(s.data)}</td><td class="l">${esc(t(s.tipo)||'')}</td><td class="num">${nf(s.durata,0)}</td><td class="num">${s.distanza?nf(s.distanza,1):'—'}</td><td class="num">${cardioRitmo(s)}</td><td class="num">${s.fcMedia?nf(s.fcMedia,0):'—'}</td><td class="num cell-out">${srpeCardio(s)||'—'}</td><td class="num">${tr==null?'—':tr}</td></tr>`; }).join('');
-  return `<div class="rep-sec"><div class="sec">▌ ${t('Cardio · attività e carico interno')}</div>
+  return `<div class="rep-sec"><div class="sec">${t('Cardio · attività e carico interno')}</div>
      <div class="cards">
        <div class="card k--ember"><div class="card__k">${t('Sedute')}</div><div class="card__v">${nSed}</div></div>
        <div class="card"><div class="card__k">${t('Carico interno sRPE')}</div><div class="card__v">${nfk(auTot)}<small> AU</small></div></div>

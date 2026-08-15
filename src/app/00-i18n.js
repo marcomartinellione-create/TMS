@@ -594,7 +594,7 @@ const EN={
   '━ Training Load (asse sx)':'━ Training Load (left axis)',
   '━ Peso kg (asse dx)':'━ Weight kg (right axis)',
   '📊 <b>Dieta × allenamento nel tempo.</b> Le analisi incrociano i <b>periodi alimentari</b> registrati (tab 🍖 Alimentazione → "Periodi") con carico (TL), peso e metabolismo settimanali. Tutto è calcolato al volo dai tuoi dati.':'📊 <b>Diet × training over time.</b> The analyses cross the recorded <b>nutrition periods</b> (🍖 Nutrition tab → "Periods") with weekly load (TL), weight and metabolism. Everything is computed on the fly from your data.',
-  'Nessun periodo alimentare registrato.<br><br>Vai in <b>🍖 Alimentazione → ▌ Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.':'No nutrition period recorded.<br><br>Go to <b>🍖 Nutrition → ▌ Periods</b> and record the current plan with its dates (e.g. "bulk from 1/3 to 30/4"): from then on these charts light up.',
+  'Nessun periodo alimentare registrato.<br><br>Vai in <b>🍖 Alimentazione → Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.':'No nutrition period recorded.<br><br>Go to <b>🍖 Nutrition → ▌ Periods</b> and record the current plan with its dates (e.g. "bulk from 1/3 to 30/4"): from then on these charts light up.',
   '🍖 Vai all\'Alimentazione':'🍖 Go to Nutrition',
   '🗓 Timeline — periodi alimentari, carico e peso':'🗓 Timeline — nutrition periods, load and weight',
   '⚖ Δpeso vs bilancio calorico':'⚖ Δweight vs calorie balance',

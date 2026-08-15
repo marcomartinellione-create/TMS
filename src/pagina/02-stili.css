@@ -10,13 +10,14 @@
   --orange:#c2500a; --orange-b:#ea580c; --orange-t:#fff4ec;
   --gold:#d4a017; --gold-2:#b8860b; --gold-t:#fbf3d8;
   --ok:#2f7d4f; --ok-b:#43c463; --ok-t:#e7f4ec;
-  --danger:#991b1b; --danger-b:#e0524f; --danger-t:#fdecec;
+  --danger:#991b1b; --danger-b:#e0524f; --danger-t:#fdecec; --danger-bd:#d9a8a8;
   --violet:#7a3ea8;
   --grace:#e8c45a;
   --font-disp:'Cinzel','Trajan Pro',Georgia,'Times New Roman',serif;
   --font-body:'Iowan Old Style','Palatino Linotype','Book Antiqua',Georgia,serif;
   --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,'Courier New',monospace;
   --shadow:0 1px 3px rgba(28,14,4,.10),0 6px 18px rgba(28,14,4,.06);
+  --topbar-h:49px;   /* altezza reale della topbar: i tab ci si agganciano sotto (sticky) */
 }
 [data-theme="notte"]{
   --paper:#1b160f; --paper-2:#15110b; --paper-3:#262019; --paper-4:#2e2619;
@@ -26,7 +27,7 @@
   --orange:#e0700f; --orange-b:#f6852a; --orange-t:#2a1707;
   --gold:#e3b53c; --gold-2:#c79a2a; --gold-t:#2c2410;
   --ok:#54b07a; --ok-b:#5fd089; --ok-t:#10241a;
-  --danger:#e0524f; --danger-b:#ef6a67; --danger-t:#2c1210;
+  --danger:#e0524f; --danger-b:#ef6a67; --danger-t:#2c1210; --danger-bd:rgba(224,82,79,.45);
   --violet:#b07ed8; --grace:#f0d676;
   --shadow:0 1px 3px rgba(0,0,0,.45),0 6px 18px rgba(0,0,0,.35);
   color-scheme:dark;
@@ -36,7 +37,6 @@
 [data-theme="notte"] .tab.is-active{ border-bottom-color:var(--paper); }
 [data-theme="notte"] .topbar{ color:#f1e7d5 }
 [data-theme="notte"] .btn--ghost{ color:#f1e7d5 }
-[data-theme="notte"] .topbar__mark small{ color:#9a8c72 }
 [data-theme="notte"] thead th{ color:#f0d676 }
 [data-theme="notte"] .fascia{ filter:none }
 [data-theme="notte"] .f-forza{ background:rgba(224,82,79,.16); color:#ef8a87; border-color:rgba(224,82,79,.42) }
@@ -69,7 +69,6 @@ button{font-family:inherit; cursor:pointer}
   font-family:var(--font-disp); font-size:18px; font-weight:700; letter-spacing:.06em;
   color:var(--grace); text-shadow:0 0 12px rgba(232,196,90,.4); white-space:nowrap;
 }
-.topbar__mark small{display:block; font-size:9px; letter-spacing:.32em; color:var(--ink-4); font-family:var(--font-mono); margin-top:1px}
 .topbar__spacer{flex:1}
 .conn{display:flex; align-items:center; gap:8px; font-size:12.5px; font-family:var(--font-mono)}
 .conn__dot{width:9px; height:9px; border-radius:50%; background:var(--ink-4); box-shadow:0 0 0 3px rgba(168,150,122,.2)}
@@ -89,8 +88,8 @@ button{font-family:inherit; cursor:pointer}
 .btn--gold:hover{filter:brightness(1.08); color:#1c0e04}
 .btn--ghost{background:transparent; color:var(--paper); border-color:rgba(255,255,255,.22)}
 .btn--ghost:hover{background:rgba(255,255,255,.08); color:#fff; border-color:var(--grace)}
-.btn--danger{color:var(--danger); border-color:#d9a) }
-.btn--danger:hover{background:var(--danger-t); border-color:var(--danger); color:var(--danger)}
+.btn--danger{color:var(--danger); border-color:var(--danger-bd)}
+.btn--danger:hover{background:var(--danger-t); border-color:var(--danger)}
 .btn--sm{padding:3px 9px; font-size:12px}
 .btn:disabled{opacity:.45; cursor:not-allowed}
 
@@ -98,14 +97,14 @@ button{font-family:inherit; cursor:pointer}
 .hero{
   padding:20px 24px 16px; background:linear-gradient(180deg,#f9f3e6,#f2ead9);
   border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
 }
 .hero h1{font-size:25px; color:var(--ember-2); display:flex; align-items:center; gap:12px}
 .hero h1 .sigil{color:var(--gold-2); font-size:22px}
-.hero p{margin:5px 0 0; color:var(--ink-3); font-size:13.5px; max-width:70ch}
 
 /* ── TABS ── */
 .tabs{display:flex; flex-wrap:wrap; gap:4px; padding:0 18px; background:var(--paper-2);
-  border-bottom:1px solid var(--border); position:sticky; top:51px; z-index:30}
+  border-bottom:1px solid var(--border); position:sticky; top:var(--topbar-h); z-index:30}
 .tab{
   border:1px solid transparent; border-bottom:none; background:none; color:var(--ink-3);
   padding:9px 15px 8px; font-size:13.5px; border-radius:5px 5px 0 0; margin-bottom:-1px;
@@ -160,7 +159,6 @@ button{font-family:inherit; cursor:pointer}
 .card__v small{font-size:13px; color:var(--ink-3); font-family:var(--font-body)}
 .card__sub{font-size:11.5px; color:var(--ink-4); margin-top:2px}
 .pr-card{text-align:center; padding:15px 12px}
-.pr-card::before{background:var(--gold)}
 .pr-ex{font-family:var(--font-disp); font-size:12.5px; color:var(--ink-2); letter-spacing:.05em; text-transform:uppercase}
 .pr-val{font-family:var(--font-disp); font-size:36px; line-height:1; color:var(--ember-2); margin:9px 0 4px}
 .pr-val span{font-size:14px; color:var(--ink-3); font-family:var(--font-body); margin-left:3px}
@@ -197,9 +195,10 @@ input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange)
 .cell-out{font-family:var(--font-mono); font-weight:600; color:var(--ember-2); background:rgba(212,160,23,.10)}
 .delta-up{color:var(--ok)} .delta-dn{color:var(--danger)}
 .fascia{display:inline-block; padding:1px 7px; border-radius:10px; font-size:10.5px; font-family:var(--font-mono); border:1px solid}
-.f-forza{background:#fdecec; color:#991b1b; border-color:#e0a} .f-ipf{background:#fff4ec; color:#c2500a; border-color:#eb9}
-.f-iper{background:var(--gold-t); color:#8a6608; border-color:#d9c} .f-res{background:#eef6ee; color:#2f7d4f; border-color:#9c9}
-.f-met{background:#f0eaf6; color:#7a3ea8; border-color:#c9b} .f-none{background:var(--paper-3); color:var(--ink-3); border-color:var(--border)}
+/* bordo di ogni fascia: stessa tinta del testo, schiarita — famiglia coerente */
+.f-forza{background:#fdecec; color:#991b1b; border-color:#e0b0b0} .f-ipf{background:#fff4ec; color:#c2500a; border-color:#eebb99}
+.f-iper{background:var(--gold-t); color:#8a6608; border-color:#ddc389} .f-res{background:#eef6ee; color:#2f7d4f; border-color:#a9cdb6}
+.f-met{background:#f0eaf6; color:#7a3ea8; border-color:#c9b0de} .f-none{background:var(--paper-3); color:var(--ink-3); border-color:var(--border)}
 
 /* toolbars */
 .bar{display:flex; flex-wrap:wrap; gap:9px; align-items:center; margin:4px 0 14px}
@@ -207,7 +206,8 @@ input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange)
 .bar--bottom{align-items:flex-end}
 .bar .spacer{flex:1}
 .field{display:flex; flex-direction:column; gap:3px}
-.field label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); font-family:var(--font-mono)}
+.field label,.bar__lab{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); font-family:var(--font-mono)}
+.bar__lab{align-self:center}   /* etichetta a sé stante dentro una .bar (senza campo sotto) */
 .field label.optchk{font-size:13px; text-transform:none; letter-spacing:normal; color:var(--ink-2); font-family:var(--font-body); line-height:1.35}
 .modal label.optchk input[type=checkbox]{width:auto; flex:0 0 auto; margin:2px 0 0}
 .pill{display:inline-block; padding:2px 9px; border-radius:11px; font-size:11px; font-family:var(--font-mono);
@@ -249,9 +249,6 @@ svg .ln{fill:none; stroke-width:2}
 .overlay__err{display:none; margin-top:12px; font-size:12.5px; color:var(--danger)}
 .overlay__err.on{display:block}
 .overlay__note{font-size:11px; color:var(--ink-4); font-family:var(--font-mono); margin-top:14px}
-.overlay__skip{display:block; margin:10px auto 0; font-size:11.5px; color:var(--ink-4);
-  text-decoration:underline; cursor:pointer; background:none; border:none; font-family:var(--font-body)}
-.overlay__skip:hover{color:var(--ink-2)}
 .modal-bk{position:fixed; inset:0; z-index:95; background:rgba(22,11,3,.55); display:flex; align-items:center; justify-content:center}
 .modal-bk.hidden{display:none}
 .modal{background:var(--paper); border:1px solid var(--border-2); border-radius:9px; padding:22px 24px; max-width:430px; width:92%; box-shadow:0 12px 50px rgba(0,0,0,.4)}
@@ -267,8 +264,11 @@ svg .ln{fill:none; stroke-width:2}
 .row-add{margin-top:8px}
 .grp-tot{font-family:var(--font-mono); font-weight:600; color:var(--orange)}
 
-@media (max-width:760px){.chart-grid{grid-template-columns:1fr} .hero h1{font-size:21px} .wrap{padding:16px 12px 70px}}
 @media (max-width:760px){
+  :root{ --topbar-h:70px }   /* qui la topbar va a capo: i tab si agganciano più in basso */
+  .chart-grid{grid-template-columns:1fr}
+  .hero h1{font-size:21px}
+  .wrap{padding:16px 12px 70px}
   .topbar{flex-wrap:wrap; gap:8px; padding:8px 12px}
   .topbar__mark{font-size:16px}
   .conn{order:3}

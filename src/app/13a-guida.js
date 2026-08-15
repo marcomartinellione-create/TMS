@@ -17,7 +17,7 @@ function renderGuida(){
 function guidaRapida(){
   return `
    <div class="callout callout--ember"><div>⚡ <b>Guida rapida</b> — il minimo per usarlo subito. Per formule e dettagli tecnici passa a <span data-gmode="completa" style="color:var(--ember-2);font-weight:700;text-decoration:underline;cursor:pointer" title="Apri la Guida completa">📖 Completa</span>.</div></div>
-   <div class="sec">▌ In 4 passi</div>
+   <div class="sec">In 4 passi</div>
    <ol style="margin:0 0 6px 18px;line-height:1.9">
      <li><b>Apri l'app: è già pronta.</b> Su desktop non serve collegare niente — i dati vivono in locale sul tuo PC (niente cloud, niente account) e sopravvivono agli aggiornamenti. Trovi il profilo dimostrativo <b>Atleta Template</b> già compilato per esplorare; il tuo lo crei dal tab <b>👤 Profilo → ＋ Nuovo profilo</b>.</li>
      <li><b>Compila la scheda.</b> In <b>🏋 Pesi</b> aggiungi un Giorno e scegli gli esercizi: tocca <b>＋ scegli esercizio</b> e usa la <b>barra di ricerca</b> o scorri la <b>lista per categoria</b>. Inserisci serie, ripetizioni, peso (e <b>RIR</b> se vuoi): 1RM/%1RM/TL si calcolano da soli. Usa <b>＋set</b> per i set extra e <b>↧ Dalla scorsa</b> per ripartire dai valori dell'ultima volta. Il ▶ accanto all'esercizio mostra il video. Con <b>Training Set</b> puoi tenere più schede alternative (es. «Palestra»/«Casa») e passare dall'una all'altra: apri il menù per crearne una nuova, rinominarla o eliminarla. Le attività <b>cardio</b> (corsa, bici, nuoto…) vanno nel tab <b>🏃 Cardio</b>, separato.</li>
@@ -25,15 +25,15 @@ function guidaRapida(){
      <li><b>Guarda i risultati.</b> <b>📈 Progressi</b> per grafici e record, <b>📊 Analisi</b> per incrociare dieta e allenamento, <b>🖨 Report</b> per il PDF da consegnare.</li>
    </ol>
    <div class="callout"><div>🔔 Un pallino/banner verde o rosso (in Pesi, Corpo e nel footer) ti avvisa se non hai ancora registrato la settimana.</div></div>
-   <div class="sec">▌ Le due app: il TMS e il taccuino da palestra</div>
+   <div class="sec">Le due app: il TMS e il taccuino da palestra</div>
    <p style="margin:4px 0 8px">Questo TMS è l'<b>app principale</b>: qui si <b>crea</b> (scheda e dieta) e si <b>analizza</b> (storico, grafici, report). <b>TMS Scheda</b>, l'app per smartphone, è la sua <b>derivata</b>: un <b>taccuino digitale</b> per annotare l'allenamento in palestra — scheda coi video sotto gli occhi, dieta da seguire, e ciò che fai davvero scritto sul momento. Il flusso è un cerchio: <b>il PC progetta → il telefono annota → i dati tornano al PC</b> e diventano storico e grafici. Funziona in due modi: <b>coach + atleta</b> (tu hai il TMS completo, il cliente solo il taccuino sul telefono) oppure <b>atleta autonomo</b> (usi entrambi gli strumenti: programmi qui, annoti col telefono, reimporti su di te).</p>
-   <div class="sec">▌ Coach ↔ cliente: la scheda che viaggia</div>
+   <div class="sec">Coach ↔ cliente: la scheda che viaggia</div>
    <ol style="margin:0 0 6px 18px;line-height:1.9">
      <li><b>Esporta.</b> In <b>👤 Profilo</b>, nella riga del cliente (o del tuo profilo, se ti alleni da solo), premi <b>📤 Esporta scheda</b>: crea il file della sua scheda (con i video, se vuoi). Un popup ti chiede che tipo di scheda: <b>🔒 fissa</b> (il cliente compila e basta) o <b>✏️ modificabile</b> (può anche aggiungere, togliere e modificare esercizi e segnare i test del massimale). Invialo via chat o email — o passalo al tuo stesso telefono.</li>
      <li><b>Il cliente compila.</b> Apre il file nell'app <b>TMS Scheda</b> sul telefono (gratis, la installa una volta dal link che le esportazioni gli mostrano; funziona anche offline), inserisce ciò che ha fatto davvero — serie, ripetizioni, peso, RIR, note e fatica della seduta — con un <b>timer di recupero</b> che parte dal tempo di riposo scritto nella scheda (vale sempre). Se la scheda è <b>modificabile</b> può anche <b>aggiungere / togliere / modificare</b> esercizi e segnare i <b>test del massimale (★)</b>. Poi preme <b>📩 Crea il file per il coach</b>: nasce un piccolo file di rientro da rimandarti.</li>
      <li><b>Importa.</b> Sempre nella riga del cliente, <b>📥 Importa rientro</b>: scegli il file — l'allenamento del cliente viene <b>caricato nella scheda 🏋 Pesi</b>, dove lo controlli (e correggi se serve). Quando sei pronto, <b>💾 Salva nello Storico</b> scegliendo la settimana: da lì alimenta TL, ACWR, grafici e Report.</li>
    </ol>
-   <div class="sec">▌ Le sezioni in breve</div>
+   <div class="sec">Le sezioni in breve</div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta/cliente attivo e anagrafica (il tab mostra il nome del profilo attivo). Ogni profilo nella lista ha un <b>semaforo</b> accanto al nome (🟢 ok · 🟡 attenzione · 🔴 a rischio) con sotto ACWR, da quanto non aggiorna e i PR recenti — un colpo d'occhio sullo stato, sola lettura. Più profili = più clienti: nella riga di ognuno i bottoni dello <b>scambio scheda col cliente</b> (📤 esporta la scheda compilabile, 📥 importa il file di rientro). In fondo alla pagina il <b>Backup/Ripristino</b> di tutti i dati.</td></tr>
      <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Crei la scheda dei pesi e la salvi nello storico; ▶ per i video degli esercizi. Il selettore <b>Training Set</b> tiene più schede alternative (es. Palestra/Casa) pronte da scambiare — le azioni (nuovo/rinomina/elimina) sono nel suo menù. Accanto alle frecce ▲▼ dell'esercizio un <b>pallino</b> 🟢/🟡/🔴 (co-pilota) ti dice se il Peso che digiti è sensato: solo un suggerimento, non scrive nulla.</td></tr>
@@ -46,7 +46,7 @@ function guidaRapida(){
      <tr><td class="l"><b>🖨 Report</b></td><td class="l">Documento stampabile (PDF A4) e <b>Report digitale</b> per smartphone con video.</td></tr>
      <tr><td class="l"><b>📜 Storico / Misure</b></td><td class="l">Archivi completi (link nel footer).</td></tr>
    </tbody></table></div>
-   <div class="sec">▌ Indicatori in breve</div>
+   <div class="sec">Indicatori in breve</div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>1RM</b></td><td class="l">Massimale stimato (forza).</td></tr>
      <tr><td class="l"><b>%1RM</b></td><td class="l">Intensità: quanto pesante lavori (dipende dalle ripetizioni).</td></tr>
@@ -64,7 +64,7 @@ function guidaCompleta(){
 
    <div class="callout"><div>⚠️ <b>Progetto amatoriale.</b> Creato per uso personale e condiviso gratuitamente, da un appassionato di fitness e non da un professionista. Funziona ed è testato, ma usalo a tuo rischio e fai backup dei dati. Codice sviluppato con l'assistenza di Claude (Anthropic).</div></div>
 
-   <div class="sec" id="gc-avvio">▌ 1 · Avvio e salvataggio</div>
+   <div class="sec" id="gc-avvio">1 · Avvio e salvataggio</div>
    <p>L'app è un singolo file HTML: aprilo con doppio clic (consigliati <b>Chrome</b>, <b>Edge</b> o l'app <b>Obsidian</b>). Al primo avvio compare il <b>gate di connessione</b>:</p>
    <ol style="margin:0 0 6px 18px;line-height:1.7">
      <li><b>Connetti la cartella</b> (consigliata: una cartella chiamata <span class="mono">TMS</span>). L'app crea al suo interno <span class="mono">TMS_Dati/</span> con i JSON dei dati. <b>È obbligatorio</b>: senza cartella collegata l'app non si usa.</li>
@@ -72,11 +72,11 @@ function guidaCompleta(){
    </ol>
    <div class="callout callout--info"><div>🔎 Se colleghi una cartella con nome diverso da <span class="mono">TMS</span> compare un avviso non bloccante: serve solo a ricordarti dove finiscono i dati. Per <b>aggiornare</b> l'app basta sostituire l'HTML: i dati nella cartella restano e vengono migrati in automatico.</div></div>
 
-   <div class="sec" id="gc-profili">▌ 2 · Profili (multi-atleta)</div>
+   <div class="sec" id="gc-profili">2 · Profili (multi-atleta)</div>
    <p>Nel tab <b>👤 Profilo</b> gestisci più atleti/clienti (crea, attiva, rinomina, elimina). Ogni profilo ha <b>scheda, storico, misure e alimentazione propri</b>; il <b>catalogo Esercizi è condiviso</b>. I dati per profilo stanno in <span class="mono">TMS_Dati/&lt;profilo&gt;/</span>. L'anagrafica invariante (sesso, data di nascita, altezza) si imposta qui col pulsante ✎: l'<b>età è calcolata</b> dalla data di nascita.</p>
    <p>Ogni profilo nella lista ha un <b>semaforo</b> accanto al nome, così vedi <b>chi sta bene e chi no senza aprirli uno per uno</b>: 🟢 ok, 🟡 attenzione, 🔴 a rischio, ⚪ senza dati. Sotto al nome, una riga riassume i numeri che contano: <b>ACWR</b> (sicurezza del carico), da <b>quante settimane non aggiorna</b> la scheda, la <b>monotonia</b> (se hai attivato il Session-RPE) e i <b>🎉 PR recenti</b>. Il semaforo è rosso se il carico è troppo alto (ACWR sopra 1.5), se la scheda è ferma da 3+ settimane o se la monotonia è alta con carico elevato; giallo per gli stessi segnali più lievi. È solo uno specchio dello stato del cliente: <b>non modifica nulla</b>; per i dettagli apri il profilo o vai nei suoi Progressi.</p>
 
-   <div class="sec" id="gc-flusso">▌ 3 · Flusso d'uso</div>
+   <div class="sec" id="gc-flusso">3 · Flusso d'uso</div>
    <p><b>1 · Compila la scheda.</b> In <b>🏋 Pesi</b> scegli la modalità (Settimanale/Mensile), aggiungi un Giorno e gli Esercizi (dal selettore con barra di ricerca e lista per categoria; le attività cardio sono nel tab <b>🏃 Cardio</b> a parte). Per i set incrementali dello stesso esercizio usa <b>＋set</b> (ripetere l'esercizio è il modo corretto: niente più «+1/+2»). Se un esercizio compare in un secondo giorno della settimana viene marcato in automatico come <b>S2</b> (2ª seduta). Sotto ogni esercizio compare <b>«ult: …»</b> (l'ultima registrazione) e con <b>↧ Dalla scorsa</b> riporti peso/rip/RIR dall'ultima volta. Il campo <b>RIR</b> (ripetizioni in riserva) è opzionale.</p>
    <p><b>Training Set (più schede alternative).</b> Accanto al selettore Scheda c'è <b>Training Set</b>: tieni pronte più versioni della scheda Pesi (es. «Palestra» e «Casa») e passi dall'una all'altra scegliendola dal menù — la scheda intera (settimanale + mensile) cambia con lei. Il set su cui stavi lavorando <b>si salva da solo</b> nel cambio, non serve premere nulla. Apri il menù per trovare, sotto un separatore «Azioni»: <b>➕ Nuovo Training Set…</b> (ti chiede il nome e se partire da zero o copiare un set esistente), <b>✎ Rinomina</b> e <b>🗑 Elimina</b> (quest'ultima compare solo se ne hai più di uno: deve restare sempre almeno un set).</p>
    <p><b>🔥 Riscaldamento.</b> Il pulsante arancione accanto a Training Set apre, per il set attivo, i riscaldamenti <b>giorno per giorno</b> (i giorni sono ripresi dalla scheda: aggiungine uno lì se manca). Per ogni giorno tocchi <b>＋ scegli esercizio</b> e scegli tra gli <b>esercizi di stretching</b> del catalogo (il selettore della scheda Pesi mostra invece solo gli esercizi di allenamento: le due liste non si mescolano); aggiungi serie, ripetizioni e note. Il riscaldamento <b>non conta nel TL né in alcun calcolo</b>: serve solo a prepararti. Il pulsante diventa <b>◂ Scheda</b> per tornare indietro.</p>
@@ -84,7 +84,7 @@ function guidaCompleta(){
    <p><b>3 · Salva nello Storico.</b> <b>💾 Salva nello Storico</b> → anno e settimana (default correnti). Il codice scheda è <span class="mono">AAAASS</span> (anno×100 + settimana). <b>↶ Annulla ultimo</b> rimuove l'ultima scheda (irreversibile).</p>
    <p><b>4 · Misure corpo (facoltativo).</b> In <b>Corpo</b> aggiorni peso e composizione e premi <b>💾 Salva misure</b>: utile per i grafici di ricomposizione. Sotto, le <b>📸 Foto progressi</b>: carichi le foto datate (anteriore/laterale/posteriore), le scorri come un timelapse (<b>▶ Riproduzione</b>: con la vista «tutti» vedi le viste della stessa data <b>affiancate</b>) o le metti a confronto <b>prima/dopo</b> (<b>⚖ Confronto</b>, scegliendo le due date da un <b>calendario</b>). La gestione è raggruppata per data. Le foto restano <b>sul tuo PC</b> (in <span class="mono">TMS_Dati/&lt;profilo&gt;/foto/</span>), non vengono caricate da nessuna parte; il backup salva le date/etichette, non le immagini (per quelle copia la cartella TMS_Dati). Puoi anche inserire un <b>prima/dopo</b> nel <b>Report</b>.</p>
 
-   <div class="sec" id="gc-sezioni">▌ 4 · Le sezioni in dettaglio</div>
+   <div class="sec" id="gc-sezioni">4 · Le sezioni in dettaglio</div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Sezione</th><th class="l">A cosa serve</th></tr></thead><tbody>
      <tr><td class="l"><b>👤 Profilo</b></td><td class="l">Atleta attivo, gestione profili, anagrafica invariante, Backup/Ripristino dati.</td></tr>
      <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Scheda settimanale/mensile per giorno; calcoli automatici; salva/annulla nello storico. Selettore <b>Training Set</b> per schede alternative (Palestra/Casa…), con creazione/rinomina/eliminazione nel suo menù. <b>Pallino co-pilota</b> accanto alle frecce ▲▼ dell'esercizio (sul Peso): 🟢 progressione sensata · 🟡 attenzione (aumento deciso, calo, RIR basso o monotonia alta) · 🔴 salto troppo grande o ACWR alto (meglio scaricare). Solo suggerimento, decidi tu.</td></tr>
@@ -98,7 +98,7 @@ function guidaCompleta(){
      <tr><td class="l"><b>🖨 Report</b></td><td class="l">Documento per il cliente: scegli con le caselle <b>quali sezioni</b> includere e con le frecce <b>▲▼ il loro ordine</b> (vale per PDF A4 multipagina e report digitale). La scelta si salva per profilo.</td></tr>
    </tbody></table></div>
 
-   <div class="sec" id="gc-ind">▌ 5 · Indicatori & formule</div>
+   <div class="sec" id="gc-ind">5 · Indicatori & formule</div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Indicatore</th><th class="l">Formula</th><th class="l">Significato</th></tr></thead><tbody>
      <tr><td class="l"><b>1RM</b></td><td class="l mono">Peso · (1 + Rip/30)</td><td class="l">Massimale stimato; formula scegliibile nel Profilo (Epley default, Brzycki, Lombardi, Media), ±5%. Nei <b>record</b> mostriamo invece il <b>carico reale</b> più alto sollevato.</td></tr>
      <tr><td class="l"><b>%1RM</b></td><td class="l mono">Peso / 1RM · 100 = 100/(1+Rip/30)</td><td class="l">Intensità relativa. Dipende solo dalle ripetizioni: a parità di reps non cambia col peso.</td></tr>
@@ -120,7 +120,7 @@ function guidaCompleta(){
    </tbody></table></div>
    <div class="callout callout--info"><div>⚖️ <b>ACWR</b> (acuto:cronico): carico dell'ultima settimana ÷ media delle ultime 4. Zona produttiva e sicura ≈ <b>0.8–1.3</b>; sopra 1.5 cresce il rischio di sovraccarico/infortunio.</div></div>
 
-   <div class="sec" id="gc-calc">▌ 6 · Logica dei calcoli (in dettaglio)</div>
+   <div class="sec" id="gc-calc">6 · Logica dei calcoli (in dettaglio)</div>
    <p>Tutti i numeri derivati (1RM, %1RM, TL, Δ, ACWR, fasce) sono <b>ricalcolati dai dati grezzi</b> a ogni apertura: nello storico salviamo solo Serie/Rip/Peso/RIR e il Fattore dell'esercizio. Così, se cambi una formula o il Fattore, anche lo storico si allinea da solo.</p>
 
    <p><b>6.1 · Massimale stimato (1RM)</b> — quattro formule selezionabili nel Profilo. Con r = ripetizioni, w = peso:</p>
@@ -160,7 +160,7 @@ function guidaCompleta(){
    <p class="mono">carico seduta = RPE × durata(min)   ·   settimanale = Σ giorni   ·   monotonia = media7gg ÷ SD7gg (riposi inclusi)   ·   strain = settimanale × monotonia</p>
    <p>I valori RPE/durata sono una <b>bozza autosalvata</b> nella scheda: persistono mentre lavori e si <b>azzerano quando salvi la scheda nello Storico</b> (il carico interno dei giorni allenati viene archiviato per quella settimana). <b>Monotonia</b> alta (&gt;2) segnala una settimana poco variata; secondo Foster <b>monotonia e carico entrambi elevati</b> aumentano il rischio di sovraccarico/malattia. Riferimento in §12.</p>
 
-   <div class="sec" id="gc-graf">▌ 7 · Lettura dei grafici (Progressi)</div>
+   <div class="sec" id="gc-graf">7 · Lettura dei grafici (Progressi)</div>
    <p>Tutti i valori si <b>ricalcolano</b> dai dati grezzi; le settimane senza dati vengono saltate.</p>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Grafico</th><th class="l">Cosa mostra e come si legge</th></tr></thead><tbody>
      <tr><td class="l"><b>Record (carico max)</b></td><td class="l">In cima: il <b>peso reale più alto</b> sollevato su Squat, Stacco, Panca, Military, Trazioni.</td></tr>
@@ -178,17 +178,17 @@ function guidaCompleta(){
      <tr><td class="l"><b>Segnali</b></td><td class="l">Avvisi automatici: 🎉 record al salvataggio, ⏸ esercizi in stallo (TL fermo da ≥3 schede), ⚠️ deload se ACWR alto, ⚠️ monotonia alta (Foster).</td></tr>
    </tbody></table></div>
 
-   <div class="sec" id="gc-nutri">▌ 8 · Alimentazione & indice OMS</div>
+   <div class="sec" id="gc-nutri">8 · Alimentazione & indice OMS</div>
    <p>L'alimentazione è divisa in tre <b>fasi</b> — <b>Bulk</b>, <b>Mantenimento</b>, <b>Cut</b> — ma ne vedi <b>solo quella attiva</b>, che scegli coi <b>bottoni in cima al tab</b> (le altre restano salvate, semplicemente non mostrate). I <b>pasti</b> sono riordinabili: le frecce <b>▲▼</b> accanto al nome spostano il pasto (e i suoi alimenti) su/giù; <b>✎</b> rinomina, <b>🗑</b> elimina. Per ogni alimento premi <b>＋ scegli alimento…</b> e selezionalo dalla tabella (valori per 100 g, scalati sui grammi): la <b>ricerca è «a parole»</b> (più parole, anche non vicine) e a campo vuoto trovi in cima i <b>★ Preferiti</b> e i <b>🕐 Recenti</b>, con la <b>stellina</b> ☆/★ per gestire i preferiti. Con <b>▸</b> vedi tutti i micro/macro. Il bottone <b>⬇ Stampa dieta (PDF A4)</b> in cima genera un <b>PDF A4 orizzontale</b> del piano della fase attiva (alimenti, grammi, kcal e macro, totali per pasto e giornaliero) da dare al cliente. L'<b>indice settimanale OMS/FAO</b> confronta l'intake (piano × 7) coi riferimenti per adulto (energia e proteine personalizzate); i nutrienti <b>(max)</b> sono limiti da non superare. Valori indicativi, non un piano medico.</p>
 
    <p><b>Fonte dati alimenti:</b> Banca dati svizzera dei valori nutritivi (USAV/FSVO) — 1190 alimenti generici, valori per 100 g di parte edibile, usata con citazione della fonte come da licenza: <a href="https://naehrwertdaten.ch/it/" target="_blank">naehrwertdaten.ch</a>. Il campo <b>Carboidrati</b> sono i glucidi disponibili; <b>di cui zuccheri</b> sono gli zuccheri totali.</p>
    <p><b>Riferimenti OMS/FAO usati nell'indice</b> (adulto): grassi totali ≤30% E · grassi saturi ≤10% E · <b>zuccheri ≤10% E</b> (ideale &lt;5%) · sale &lt;5 g/die (≈ sodio &lt;2000 mg) · grassi <b>trans &lt;1% E</b> · carboidrati ~55% E · proteine 0,83 g/kg; micronutrienti sui valori di riferimento OMS/FAO. <span class="muted">L'indice usa gli <i>zuccheri totali</i> come proxy del limite OMS sugli zuccheri liberi; i grassi <i>trans</i> non sono nel dataset, quindi la soglia &lt;1% E è indicata ma non calcolata per alimento.</span></p>
    <p>Fonti OMS/FAO: <a href="https://www.who.int/news-room/fact-sheets/detail/healthy-diet" target="_blank">Healthy diet</a> · <a href="https://www.who.int/news/item/17-07-2023-who-updates-guidelines-on-fats-and-carbohydrates" target="_blank">Aggiornamento 2023 grassi/carboidrati</a> · <a href="https://www.fao.org/4/y5686e/y5686e00.htm" target="_blank">Fabbisogno energetico (FAO/WHO/UNU)</a> · <a href="https://www.fao.org/nutrition/requirements/archive/en/" target="_blank">Archivio fabbisogni FAO</a>.</p>
 
-   <div class="sec" id="gc-dati">▌ 9 · Dati, profili e backup</div>
+   <div class="sec" id="gc-dati">9 · Dati, profili e backup</div>
    <p>Tutto in locale, <b>nessun cloud</b>. Per profilo: <span class="mono">TMS_Dati/&lt;profilo&gt;/</span> con <span class="mono">scheda.json</span>, <span class="mono">storico.json</span>, <span class="mono">corpo.json</span>, <span class="mono">alimentazione.json</span>; condivisi alla root <span class="mono">profili.json</span> ed <span class="mono">esercizi.json</span>. Copia di sicurezza anche nel browser. Migrazioni automatiche con backup <span class="mono">storico.backup.json</span>. <b>Backup/Ripristino</b> (tab Profilo): <b>⭳ Backup</b> esporta tutti i dati in un file JSON, <b>⭱ Ripristina</b> li reimporta. In alternativa, backup manuale: copia la cartella <span class="mono">TMS_Dati</span>. <b>Cross-PC</b>: se la cartella è sincronizzata (es. cloud), i dati si spostano; connetti la cartella una volta per PC e non modificare in contemporanea su due dispositivi.</p>
 
-   <div class="sec" id="gc-scambio">▌ 10 · Scheda ↔ cliente: le due app (TMS + taccuino)</div>
+   <div class="sec" id="gc-scambio">10 · Scheda ↔ cliente: le due app (TMS + taccuino)</div>
    <p><b>Il concetto.</b> Il TMS che stai usando è l'<b>app principale</b>: il centro di comando dove si <b>crea</b> (scheda pesi, piano alimentare) e si <b>analizza</b> (storico, grafici 1RM/TL/ACWR, misure, foto, report). L'app gratuita <b>TMS Scheda</b> (<a href="${APP_CLIENTE_URL}" target="_blank" rel="noopener">${APP_CLIENTE_URL}</a>) è la sua <b>derivata</b> per smartphone: un <b>taccuino digitale da palestra</b> che non crea nulla — riceve la scheda e la dieta dal TMS, le mostra durante l'allenamento (esercizi coi video, grammi della dieta) e raccoglie le annotazioni sul momento. Poi il taccuino «si consegna»: il rientro torna al TMS, che lo trasforma in storico e grafici. <b>Il PC progetta → il telefono annota → i dati tornano al PC.</b></p>
    <p><b>Due modi d'uso.</b> ① <b>Coach + atleta</b>: il coach ha il TMS completo (un profilo per cliente), l'atleta ha <b>solo TMS Scheda</b> sul telefono — non gli serve un PC né installare il TMS. ② <b>Atleta autonomo</b>: la stessa persona usa entrambi gli strumenti — programma e analizza sul PC, annota in palestra col telefono, reimporta su di sé (i passi sotto valgono uguali: esporti dal tuo profilo e mandi il file al tuo stesso telefono). La scheda <b>viaggia come file</b> — via chat o email, senza cloud.</p>
    <ol style="margin:0 0 6px 18px;line-height:1.8">
@@ -200,7 +200,7 @@ function guidaCompleta(){
    <p class="muted" style="font-size:12px">Nota privacy: il sito ospita solo l'app (il «guscio»); schede e rientri non passano da nessun server — viaggiano solo nella chat tra te e il cliente e vivono nei rispettivi dispositivi. I vecchi file <span class="mono">Rientro_*.json</span> generati dalle schede HTML delle versioni precedenti restano importabili.</p>
    <p><b>Controlli di sicurezza</b> all'import: file non valido → errore chiaro; <b>profilo diverso</b> da quello attivo → conferma esplicita; esercizi fuori catalogo → avviso con elenco; <b>scheda Pesi non vuota</b> → conferma prima di sostituirla con i dati del cliente (così non perdi una scheda in corso per sbaglio).</p>
 
-   <div class="sec" id="gc-faq">▌ 11 · FAQ & risoluzione problemi</div>
+   <div class="sec" id="gc-faq">11 · FAQ & risoluzione problemi</div>
    <p><b>Campi obbligatori?</b> Solo Esercizio, Serie, Ripetizioni, Peso. Note e recupero facoltativi.</p>
    <p><b>Nuovo esercizio?</b> Tab <b>Esercizi</b> → ＋ Nuovo (nome, gruppo, target, tipo, fattore). Compare subito nei menù.</p>
    <p><b>Dato sbagliato?</b> Nella scheda corrente correggi diretto; nello storico usa «↶ Annulla ultimo» e risalva.</p>
@@ -209,7 +209,7 @@ function guidaCompleta(){
    <p><b>Grafici vuoti.</b> Servono almeno 2–3 schede salvate.</p>
    <p><b>La stampa taglia?</b> Usa il pulsante 🖨 (apre la finestra impaginata), poi nel dialogo: A4, Margini «Nessuno», Scala 100%, Grafica di sfondo attiva.</p>
 
-   <div class="sec" id="gc-sci">▌ 12 · Basi scientifiche</div>
+   <div class="sec" id="gc-sci">12 · Basi scientifiche</div>
    <ol style="margin:0 0 4px 18px;line-height:1.7;font-size:13px">
      <li>Scott B.R. et al., <i>Training Monitoring for Resistance Exercise…</i>, Sports Medicine, 2016 — base del Training Load.</li>
      <li>Gabbett T.J., <i>The training-injury prevention paradox</i>, BJSM, 2016 — fondamento dell'ACWR.</li>
@@ -218,7 +218,7 @@ function guidaCompleta(){
      <li>OMS/FAO — <i>Human energy requirements</i> e <i>Vitamin and mineral requirements</i>.</li>
    </ol>
 
-   <div class="sec" id="gc-doc">▌ 13 · Documentazione di riferimento</div>
+   <div class="sec" id="gc-doc">13 · Documentazione di riferimento</div>
    <p>I modelli del TMS si basano sui paper elencati qui sotto. I paper <b>non vengono distribuiti</b> con l'app (sono soggetti a copyright): <b>DOI</b> porta alla pagina ufficiale dell'editore e <b>Scholar</b> alla ricerca — spesso si trovano copie open-access legali, preprint o la versione caricata dagli autori; molte università danno accesso istituzionale.</p>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Paper</th><th>DOI</th><th>Scholar</th></tr></thead><tbody>
      <tr><td class="l">Scott 2016 — Training Load (base)</td><td><a href="https://doi.org/10.1007/s40279-015-0454-0" target="_blank">DOI</a></td><td><a href="https://scholar.google.com/scholar?q=Training+Monitoring+for+Resistance+Exercise+Theory+and+Applications" target="_blank">Scholar</a></td></tr>
@@ -235,7 +235,7 @@ function guidaCompleta(){
      <tr><td class="l">Plews 2013 — HRV / readiness</td><td><a href="https://doi.org/10.1007/s40279-013-0071-8" target="_blank">DOI</a></td><td><a href="https://scholar.google.com/scholar?q=Training+adaptation+and+heart+rate+variability+in+elite+endurance+athletes" target="_blank">Scholar</a></td></tr>
         </tbody></table></div>
 
-   <div class="sec" id="gc-lic">▌ 14 · Licenza & crediti</div>
+   <div class="sec" id="gc-lic">14 · Licenza & crediti</div>
    <div class="callout callout--ember"><div>📢 <b>Progetto aperto e gratuito.</b> Liberi di usarlo, condividerlo e personalizzarlo. Si chiede solo di <b>mantenere i crediti</b> e di <b>non venderlo</b> a scopo di lucro. «Train hard, share knowledge.» 💪 — by Wander</div></div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>Catalogo esercizi</b></td><td class="l">derivato da <a href="https://github.com/yuhonas/free-exercise-db" target="_blank" rel="noopener">free-exercise-db</a> di yuhonas (licenza Unlicense, pubblico dominio) — 800+ esercizi, tradotti e adattati per il TMS.</td></tr>
@@ -248,7 +248,7 @@ function guidaCompleta(){
 function guidaRapidaEN(){
   return `
    <div class="callout callout--ember"><div>⚡ <b>Quick guide</b> — the minimum to start right away. For formulas and technical details switch to <span data-gmode="completa" style="color:var(--ember-2);font-weight:700;text-decoration:underline;cursor:pointer" title="Open the Full guide">📖 Full</span>.</div></div>
-   <div class="sec">▌ In 4 steps</div>
+   <div class="sec">In 4 steps</div>
    <ol style="margin:0 0 6px 18px;line-height:1.9">
      <li><b>Open the app: it's ready.</b> On desktop you don't need to connect anything — data lives locally on your PC (no cloud, no account) and survives updates. There's a demo profile <b>Atleta Template</b> already filled in to explore; create yours from <b>👤 Profile → ＋ New profile</b>.</li>
      <li><b>Fill in the program.</b> In <b>🏋 Weights</b> add a Day and pick the exercises: tap <b>＋ pick exercise</b> and use the <b>search bar</b> or scroll the <b>list by category</b>. Enter sets, reps, weight (and <b>RIR</b> if you like): 1RM/%1RM/TL are computed for you. Use <b>＋set</b> for extra sets and <b>↧ From last</b> to start from last time's values. The ▶ next to the exercise shows the video. With <b>Training Set</b> you can keep several alternative programs (e.g. «Gym»/«Home») and switch between them: open the menu to create, rename or delete one. <b>Cardio</b> activities (running, cycling, swimming…) go in the separate <b>🏃 Cardio</b> tab.</li>
@@ -256,15 +256,15 @@ function guidaRapidaEN(){
      <li><b>See the results.</b> <b>📈 Progress</b> for charts and records, <b>📊 Analysis</b> to cross diet and training, <b>🖨 Report</b> for the PDF to hand over.</li>
    </ol>
    <div class="callout"><div>🔔 A green or red dot/banner (in Weights, Body and the footer) warns you if you haven't recorded the week yet.</div></div>
-   <div class="sec">▌ The two apps: TMS and the gym notebook</div>
+   <div class="sec">The two apps: TMS and the gym notebook</div>
    <p style="margin:4px 0 8px">This TMS is the <b>main app</b>: here you <b>create</b> (program and diet) and <b>analyze</b> (history, charts, reports). <b>TMS Scheda</b>, the smartphone app, is its <b>derivative</b>: a <b>digital notebook</b> to record training at the gym — program with videos in front of you, diet to follow, and what you actually do written down on the spot. The flow is a circle: <b>the PC designs → the phone records → the data returns to the PC</b> and becomes history and charts. It works in two ways: <b>coach + athlete</b> (you have the full TMS, the client only the notebook on the phone) or <b>solo athlete</b> (you use both tools: program here, record on the phone, re-import on yourself).</p>
-   <div class="sec">▌ Coach ↔ client: the program that travels</div>
+   <div class="sec">Coach ↔ client: the program that travels</div>
    <ol style="margin:0 0 6px 18px;line-height:1.9">
      <li><b>Export.</b> In <b>👤 Profile</b>, on the client's row (or your own, if you train alone), press <b>📤 Export program</b>: it creates the file of their program (with videos, if you want). A popup asks the program type: <b>🔒 fixed</b> (the client only fills things in) or <b>✏️ editable</b> (they can also add, remove and edit exercises and mark max (1RM) tests). Send it via chat or email — or pass it to your own phone.</li>
      <li><b>The client fills it in.</b> They open the file in the <b>TMS Scheda</b> app on their phone (free, installed once from the link the exports show them; works offline too), enter what they actually did — sets, reps, weight, RIR, notes and session effort — with a <b>rest timer</b> that starts from the program's rest time (always available). If the program is <b>editable</b> they can also <b>add / remove / edit</b> exercises and mark the <b>max tests (★)</b>. Then they press <b>📩 Create the file for the coach</b>: a small log file to send back to you.</li>
      <li><b>Import.</b> Still on the client's row, <b>📥 Import log</b>: pick the file — the client's workout is <b>loaded into the 🏋 Weights program</b>, where you review it (and fix it if needed). When you're ready, <b>💾 Save to History</b> choosing the week: from there it feeds TL, ACWR, charts and Report.</li>
    </ol>
-   <div class="sec">▌ The sections in brief</div>
+   <div class="sec">The sections in brief</div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>👤 Profile</b></td><td class="l">Active athlete/client and details (the tab shows the active profile's name). Each profile in the list has a <b>traffic light</b> next to the name (🟢 ok · 🟡 caution · 🔴 at risk) with ACWR, time since last update and recent PRs below — a read-only glance at the status. More profiles = more clients: on each row the buttons for the <b>program exchange with the client</b> (📤 export the fillable program, 📥 import the log file). At the bottom of the page, <b>Backup/Restore</b> of all data.</td></tr>
      <tr><td class="l"><b>🏋 Weights</b></td><td class="l">You build the weights program and save it to history; ▶ for the exercise videos. The <b>Training Set</b> picker keeps several alternative programs ready to swap (Gym/Home…) — create/rename/delete them from its menu. Next to the exercise's ▲▼ arrows a <b>dot</b> 🟢/🟡/🔴 (co-pilot) tells you whether the Weight you type is sensible: just a hint, it writes nothing.</td></tr>
@@ -277,7 +277,7 @@ function guidaRapidaEN(){
      <tr><td class="l"><b>🖨 Report</b></td><td class="l">Printable document (A4 PDF) and <b>Digital report</b> for smartphone with videos.</td></tr>
      <tr><td class="l"><b>📜 History / Measurements</b></td><td class="l">Full archives (links in the footer).</td></tr>
    </tbody></table></div>
-   <div class="sec">▌ Indicators in brief</div>
+   <div class="sec">Indicators in brief</div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>1RM</b></td><td class="l">Estimated one-rep max (strength).</td></tr>
      <tr><td class="l"><b>%1RM</b></td><td class="l">Intensity: how heavy you work (depends on reps).</td></tr>
@@ -295,7 +295,7 @@ function guidaCompletaEN(){
 
    <div class="callout"><div>⚠️ <b>Amateur project.</b> Created for personal use and shared for free, by a fitness enthusiast and not a professional. It works and is tested, but use it at your own risk and back up your data. Code developed with the assistance of Claude (Anthropic).</div></div>
 
-   <div class="sec" id="gc-avvio">▌ 1 · Start and saving</div>
+   <div class="sec" id="gc-avvio">1 · Start and saving</div>
    <p>The app is a single HTML file: open it with a double click (recommended <b>Chrome</b>, <b>Edge</b> or the <b>Obsidian</b> app). On first launch the <b>connection gate</b> appears:</p>
    <ol style="margin:0 0 6px 18px;line-height:1.7">
      <li><b>Connect the folder</b> (recommended: a folder named <span class="mono">TMS</span>). The app creates <span class="mono">TMS_Dati/</span> inside it with the data JSONs. <b>It is required</b>: without a connected folder the app cannot be used.</li>
@@ -303,11 +303,11 @@ function guidaCompletaEN(){
    </ol>
    <div class="callout callout--info"><div>🔎 If you connect a folder with a name other than <span class="mono">TMS</span> a non-blocking notice appears: it just reminds you where the data goes. To <b>update</b> the app just replace the HTML: the data in the folder stays and is migrated automatically.</div></div>
 
-   <div class="sec" id="gc-profili">▌ 2 · Profiles (multi-athlete)</div>
+   <div class="sec" id="gc-profili">2 · Profiles (multi-athlete)</div>
    <p>In the <b>👤 Profile</b> tab you manage several athletes/clients (create, activate, rename, delete). Each profile has <b>its own program, history, measurements and nutrition</b>; the <b>Exercises catalog is shared</b>. Per-profile data is in <span class="mono">TMS_Dati/&lt;profile&gt;/</span>. The invariant details (sex, date of birth, height) are set here with the ✎ button: <b>age is computed</b> from the date of birth.</p>
    <p>Each profile in the list has a <b>traffic light</b> next to the name, so you see <b>who's fine and who's not without opening them one by one</b>: 🟢 ok, 🟡 caution, 🔴 at risk, ⚪ no data. Below the name, a line sums up the numbers that matter: <b>ACWR</b> (load safety), <b>how many weeks since the last update</b> of the program, <b>monotony</b> (if you enabled Session-RPE) and the <b>🎉 recent PRs</b>. The light is red if the load is too high (ACWR above 1.5), if the program has been stalled for 3+ weeks or if monotony is high with high load; yellow for the same, milder signals. It's only a mirror of the client's status: <b>it changes nothing</b>; for details open the profile or go to their Progress.</p>
 
-   <div class="sec" id="gc-flusso">▌ 3 · Usage flow</div>
+   <div class="sec" id="gc-flusso">3 · Usage flow</div>
    <p><b>1 · Fill in the program.</b> In <b>🏋 Weights</b> choose the mode (Weekly/Monthly), add a Day and the Exercises (from the picker with search bar and list by category; cardio activities are in the separate <b>🏃 Cardio</b> tab). For incremental sets of the same exercise use <b>＋set</b> (repeating the exercise is the correct way: no more «+1/+2»). If an exercise appears on a second day of the week it is automatically marked as <b>S2</b> (2nd session). Under each exercise appears <b>«last: …»</b> (the last record) and with <b>↧ From last</b> you bring back weight/reps/RIR from last time. The <b>RIR</b> field (reps in reserve) is optional.</p>
    <p><b>Training Set (alternative programs).</b> Next to the Program selector there's <b>Training Set</b>: keep several versions of the Weights program ready (e.g. «Gym» and «Home») and switch between them by picking one from the menu — the whole program (weekly + monthly) changes with it. The set you were working on <b>saves itself</b> on switch, nothing to press. Open the menu to find, under an «Actions» separator: <b>➕ New Training Set…</b> (asks for a name and whether to start from scratch or copy an existing set), <b>✎ Rename</b> and <b>🗑 Delete</b> (the latter only shows if you have more than one: at least one set must always remain).</p>
    <p><b>🔥 Warm-up.</b> The orange button next to Training Set opens, for the active set, the day-by-day warm-ups (the days are taken from the program: add one there if it's missing). For each day tap <b>＋ pick exercise</b> and choose among the <b>stretching exercises</b> in the catalog (the Weights program picker instead shows only training exercises: the two lists don't mix); add sets, reps and notes. The warm-up <b>doesn't count in TL or any calculation</b>: it's only there to help you prepare. The button turns into <b>◂ Program</b> to go back.</p>
@@ -315,7 +315,7 @@ function guidaCompletaEN(){
    <p><b>3 · Save to History.</b> <b>💾 Save to History</b> → year and week (current by default). The program code is <span class="mono">YYYYWW</span> (year×100 + week). <b>↶ Undo last</b> removes the last program (irreversible).</p>
    <p><b>4 · Body measurements (optional).</b> In <b>Body</b> you update weight and composition and press <b>💾 Save measurements</b>: useful for recomposition charts. Below, the <b>📸 Progress photos</b>: you upload dated photos (front/side/back), scroll them like a timelapse (<b>▶ Playback</b>: with the «all» view you see the views of the same date <b>side by side</b>) or compare <b>before/after</b> (<b>⚖ Compare</b>, picking the two dates from a <b>calendar</b>). Management is grouped by date. Photos stay <b>on your PC</b> (in <span class="mono">TMS_Dati/&lt;profile&gt;/foto/</span>), they are not uploaded anywhere; the backup saves the dates/labels, not the images (for those copy the TMS_Dati folder). You can also add a <b>before/after</b> to the <b>Report</b>.</p>
 
-   <div class="sec" id="gc-sezioni">▌ 4 · The sections in detail</div>
+   <div class="sec" id="gc-sezioni">4 · The sections in detail</div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Section</th><th class="l">What it's for</th></tr></thead><tbody>
      <tr><td class="l"><b>👤 Profile</b></td><td class="l">Active athlete, profile management, invariant details, data Backup/Restore.</td></tr>
      <tr><td class="l"><b>🏋 Weights</b></td><td class="l">Weekly/monthly program by day; automatic calculations; save/undo to history. <b>Training Set</b> picker for alternative programs (Gym/Home…), with create/rename/delete in its menu. <b>Co-pilot dot</b> next to the exercise's ▲▼ arrows (on the Weight): 🟢 sensible progression · 🟡 caution (strong increase, drop, low RIR or high monotony) · 🔴 jump too big or high ACWR (better to deload). Hint only, you decide.</td></tr>
@@ -329,7 +329,7 @@ function guidaCompletaEN(){
      <tr><td class="l"><b>🖨 Report</b></td><td class="l">Document for the client: choose with the checkboxes <b>which sections</b> to include and with the <b>▲▼</b> arrows <b>their order</b> (applies to multi-page A4 PDF and digital report). The choice is saved per profile.</td></tr>
    </tbody></table></div>
 
-   <div class="sec" id="gc-ind">▌ 5 · Indicators & formulas</div>
+   <div class="sec" id="gc-ind">5 · Indicators & formulas</div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Indicator</th><th class="l">Formula</th><th class="l">Meaning</th></tr></thead><tbody>
      <tr><td class="l"><b>1RM</b></td><td class="l mono">Weight · (1 + Reps/30)</td><td class="l">Estimated max; formula selectable in the Profile (Epley default, Brzycki, Lombardi, Average), ±5%. In <b>records</b> we show the <b>highest actual load</b> lifted instead.</td></tr>
      <tr><td class="l"><b>%1RM</b></td><td class="l mono">Weight / 1RM · 100 = 100/(1+Reps/30)</td><td class="l">Relative intensity. It depends only on reps: at equal reps it doesn't change with weight.</td></tr>
@@ -351,7 +351,7 @@ function guidaCompletaEN(){
    </tbody></table></div>
    <div class="callout callout--info"><div>⚖️ <b>ACWR</b> (acute:chronic): last week's load ÷ average of the last 4. Productive and safe zone ≈ <b>0.8–1.3</b>; above 1.5 the risk of overload/injury grows.</div></div>
 
-   <div class="sec" id="gc-calc">▌ 6 · Calculation logic (in detail)</div>
+   <div class="sec" id="gc-calc">6 · Calculation logic (in detail)</div>
    <p>All derived numbers (1RM, %1RM, TL, Δ, ACWR, zones) are <b>recomputed from raw data</b> at every opening: in history we save only Sets/Reps/Weight/RIR and the exercise's Factor. So if you change a formula or the Factor, history realigns by itself.</p>
 
    <p><b>6.1 · Estimated max (1RM)</b> — four formulas selectable in the Profile. With r = reps, w = weight:</p>
@@ -391,7 +391,7 @@ function guidaCompletaEN(){
    <p class="mono">session load = RPE × duration(min)   ·   weekly = Σ days   ·   monotony = mean7d ÷ SD7d (rests included)   ·   strain = weekly × monotony</p>
    <p>The RPE/duration values are an <b>auto-saved draft</b> in the program: they persist while you work and <b>reset when you save the program to History</b> (the internal load of trained days is archived for that week). High <b>monotony</b> (&gt;2) signals a low-variety week; according to Foster <b>high monotony and high load together</b> increase the risk of overload/illness. Reference in §12.</p>
 
-   <div class="sec" id="gc-graf">▌ 7 · Reading the charts (Progress)</div>
+   <div class="sec" id="gc-graf">7 · Reading the charts (Progress)</div>
    <p>All values are <b>recomputed</b> from raw data; weeks without data are skipped.</p>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Chart</th><th class="l">What it shows and how to read it</th></tr></thead><tbody>
      <tr><td class="l"><b>Records (max load)</b></td><td class="l">At the top: the <b>highest actual weight</b> lifted on Squat, Deadlift, Bench, Military, Pull-ups.</td></tr>
@@ -409,17 +409,17 @@ function guidaCompletaEN(){
      <tr><td class="l"><b>Signals</b></td><td class="l">Automatic alerts: 🎉 record on save, ⏸ stalled exercises (TL flat for ≥3 programs), ⚠️ deload if ACWR high, ⚠️ high monotony (Foster).</td></tr>
    </tbody></table></div>
 
-   <div class="sec" id="gc-nutri">▌ 8 · Nutrition & WHO index</div>
+   <div class="sec" id="gc-nutri">8 · Nutrition & WHO index</div>
    <p>Nutrition is split into three <b>phases</b> — <b>Bulk</b>, <b>Maintenance</b>, <b>Cut</b> — but you see <b>only the active one</b>, which you choose with the <b>buttons at the top of the tab</b> (the others stay saved, simply not shown). The <b>meals</b> are reorderable: the <b>▲▼</b> arrows next to the name move the meal (and its foods) up/down; <b>✎</b> renames, <b>🗑</b> deletes. For each food press <b>＋ pick food…</b> and select it from the table (values per 100 g, scaled to the grams): the <b>search is «by words»</b> (multiple words, even non-adjacent) and with an empty field you find at the top the <b>★ Favorites</b> and the <b>🕐 Recent</b>, with the <b>star</b> ☆/★ to manage favorites. With <b>▸</b> you see all micros/macros. The <b>⬇ Print diet (A4 PDF)</b> button at the top generates a <b>landscape A4 PDF</b> of the active phase plan (foods, grams, kcal and macros, per-meal and daily totals) to give to the client. The <b>weekly WHO/FAO index</b> compares the intake (plan × 7) with adult references (energy and protein personalized); the <b>(max)</b> nutrients are limits not to exceed. Indicative values, not a medical plan.</p>
 
    <p><b>Food data source:</b> Swiss Food Composition Database (USAV/FSVO) — 1190 generic foods, values per 100 g of edible part, used with attribution as per license: <a href="https://naehrwertdaten.ch/it/" target="_blank">naehrwertdaten.ch</a>. The <b>Carbs</b> field is available carbohydrates; <b>of which sugars</b> is total sugars.</p>
    <p><b>WHO/FAO references used in the index</b> (adult): total fat ≤30% E · saturated fat ≤10% E · <b>sugars ≤10% E</b> (ideally &lt;5%) · salt &lt;5 g/day (≈ sodium &lt;2000 mg) · <b>trans fat &lt;1% E</b> · carbs ~55% E · protein 0.83 g/kg; micronutrients on WHO/FAO reference values. <span class="muted">The index uses <i>total sugars</i> as a proxy for the WHO limit on free sugars; <i>trans</i> fats are not in the dataset, so the &lt;1% E threshold is indicated but not computed per food.</span></p>
    <p>WHO/FAO sources: <a href="https://www.who.int/news-room/fact-sheets/detail/healthy-diet" target="_blank">Healthy diet</a> · <a href="https://www.who.int/news/item/17-07-2023-who-updates-guidelines-on-fats-and-carbohydrates" target="_blank">2023 fats/carbs update</a> · <a href="https://www.fao.org/4/y5686e/y5686e00.htm" target="_blank">Energy requirements (FAO/WHO/UNU)</a> · <a href="https://www.fao.org/nutrition/requirements/archive/en/" target="_blank">FAO requirements archive</a>.</p>
 
-   <div class="sec" id="gc-dati">▌ 9 · Data, profiles and backup</div>
+   <div class="sec" id="gc-dati">9 · Data, profiles and backup</div>
    <p>All local, <b>no cloud</b>. Per profile: <span class="mono">TMS_Dati/&lt;profile&gt;/</span> with <span class="mono">scheda.json</span>, <span class="mono">storico.json</span>, <span class="mono">corpo.json</span>, <span class="mono">alimentazione.json</span>; shared at the root <span class="mono">profili.json</span> and <span class="mono">esercizi.json</span>. Safety copy also in the browser. Automatic migrations with backup <span class="mono">storico.backup.json</span>. <b>Backup/Restore</b> (Profile tab): <b>⭳ Backup</b> exports all data to a JSON file, <b>⭱ Restore</b> re-imports them. Alternatively, manual backup: copy the <span class="mono">TMS_Dati</span> folder. <b>Cross-PC</b>: if the folder is synced (e.g. cloud), the data moves; connect the folder once per PC and don't edit on two devices at the same time.</p>
 
-   <div class="sec" id="gc-scambio">▌ 10 · Program ↔ client: the two apps (TMS + notebook)</div>
+   <div class="sec" id="gc-scambio">10 · Program ↔ client: the two apps (TMS + notebook)</div>
    <p><b>The concept.</b> The TMS you're using is the <b>main app</b>: the command center where you <b>create</b> (weights program, nutrition plan) and <b>analyze</b> (history, 1RM/TL/ACWR charts, measurements, photos, reports). The free <b>TMS Scheda</b> app (<a href="${APP_CLIENTE_URL}" target="_blank" rel="noopener">${APP_CLIENTE_URL}</a>) is its <b>derivative</b> for smartphone: a <b>digital gym notebook</b> that creates nothing — it receives the program and the diet from the TMS, shows them during training (exercises with videos, diet grams) and collects the notes on the spot. Then the notebook is «handed in»: the log returns to the TMS, which turns it into history and charts. <b>The PC designs → the phone records → the data returns to the PC.</b></p>
    <p><b>Two ways to use it.</b> ① <b>Coach + athlete</b>: the coach has the full TMS (one profile per client), the athlete has <b>only TMS Scheda</b> on the phone — no PC needed, no TMS install. ② <b>Solo athlete</b>: the same person uses both tools — programs and analyzes on the PC, records at the gym on the phone, re-imports on themselves (the steps below are the same: export from your profile and send the file to your own phone). The program <b>travels as a file</b> — via chat or email, no cloud.</p>
    <ol style="margin:0 0 6px 18px;line-height:1.8">
@@ -431,7 +431,7 @@ function guidaCompletaEN(){
    <p class="muted" style="font-size:12px">Privacy note: the site hosts only the app (the «shell»); programs and logs never pass through a server — they travel only in the chat between you and the client and live on the respective devices. Old <span class="mono">Rientro_*.json</span> files generated by the HTML programs of previous versions remain importable.</p>
    <p><b>Safety checks</b> on import: invalid file → clear error; <b>profile different</b> from the active one → explicit confirmation; exercises outside the catalog → notice with list; <b>Weights program not empty</b> → confirmation before replacing it with the client's data (so you don't lose an in-progress program by mistake).</p>
 
-   <div class="sec" id="gc-faq">▌ 11 · FAQ & troubleshooting</div>
+   <div class="sec" id="gc-faq">11 · FAQ & troubleshooting</div>
    <p><b>Required fields?</b> Only Exercise, Sets, Reps, Weight. Notes and rest optional.</p>
    <p><b>New exercise?</b> <b>Exercises</b> tab → ＋ New (name, group, target, type, factor). It appears in the menus right away.</p>
    <p><b>Wrong data?</b> In the current program fix it directly; in history use «↶ Undo last» and save again.</p>
@@ -440,7 +440,7 @@ function guidaCompletaEN(){
    <p><b>Empty charts.</b> You need at least 2–3 saved programs.</p>
    <p><b>Printing cuts off?</b> Use the 🖨 button (opens the paginated window), then in the dialog: A4, Margins «None», Scale 100%, Background graphics on.</p>
 
-   <div class="sec" id="gc-sci">▌ 12 · Scientific basis</div>
+   <div class="sec" id="gc-sci">12 · Scientific basis</div>
    <ol style="margin:0 0 4px 18px;line-height:1.7;font-size:13px">
      <li>Scott B.R. et al., <i>Training Monitoring for Resistance Exercise…</i>, Sports Medicine, 2016 — basis of the Training Load.</li>
      <li>Gabbett T.J., <i>The training-injury prevention paradox</i>, BJSM, 2016 — foundation of the ACWR.</li>
@@ -449,7 +449,7 @@ function guidaCompletaEN(){
      <li>WHO/FAO — <i>Human energy requirements</i> and <i>Vitamin and mineral requirements</i>.</li>
    </ol>
 
-   <div class="sec" id="gc-doc">▌ 13 · Reference documentation</div>
+   <div class="sec" id="gc-doc">13 · Reference documentation</div>
    <p>The TMS models are based on the papers listed below. The papers are <b>not distributed</b> with the app (they are copyrighted): <b>DOI</b> leads to the publisher's official page and <b>Scholar</b> to the search — legal open-access copies, preprints or the author-uploaded version are often available; many universities give institutional access.</p>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Paper</th><th>DOI</th><th>Scholar</th></tr></thead><tbody>
      <tr><td class="l">Scott 2016 — Training Load (basis)</td><td><a href="https://doi.org/10.1007/s40279-015-0454-0" target="_blank">DOI</a></td><td><a href="https://scholar.google.com/scholar?q=Training+Monitoring+for+Resistance+Exercise+Theory+and+Applications" target="_blank">Scholar</a></td></tr>
@@ -466,7 +466,7 @@ function guidaCompletaEN(){
      <tr><td class="l">Plews 2013 — HRV / readiness</td><td><a href="https://doi.org/10.1007/s40279-013-0071-8" target="_blank">DOI</a></td><td><a href="https://scholar.google.com/scholar?q=Training+adaptation+and+heart+rate+variability+in+elite+endurance+athletes" target="_blank">Scholar</a></td></tr>
         </tbody></table></div>
 
-   <div class="sec" id="gc-lic">▌ 14 · License & credits</div>
+   <div class="sec" id="gc-lic">14 · License & credits</div>
    <div class="callout callout--ember"><div>📢 <b>Open and free project.</b> Free to use, share and customize. You are only asked to <b>keep the credits</b> and <b>not sell it</b> for profit. «Train hard, share knowledge.» 💪 — by Wander</div></div>
    <div class="tbl-wrap"><table><tbody>
      <tr><td class="l"><b>Exercise catalog</b></td><td class="l">derived from <a href="https://github.com/yuhonas/free-exercise-db" target="_blank" rel="noopener">free-exercise-db</a> by yuhonas (Unlicense, public domain) — 800+ exercises, translated and adapted for the TMS.</td></tr>

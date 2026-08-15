@@ -31,7 +31,7 @@ function renderReport(){
      <label class="pill" style="cursor:pointer;align-self:center;display:inline-flex;align-items:center;gap:5px" title="${t('Incorpora i video nel file (più pesante)')}"><input type="checkbox" id="rep-incl-vid" checked style="width:auto;flex:0 0 auto"> ${t('video')}</label></div>
    <div class="bar no-print" style="flex-wrap:wrap;gap:8px;align-items:center"><span class="muted mono" style="font-size:11px">${t('Sezioni (spunta per includere · ▲▼ per l\'ordine):')}</span>${ordine.map((k,i)=>{const lab=(toggles.find(x=>x[0]===k)||[])[1]||k;return `<span class="pill" style="display:inline-flex;align-items:center;gap:3px"><label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" data-rep="${k}" ${R[k]?'checked':''} style="vertical-align:-1px">${lab}</label><button data-repmove="${k}" data-dir="-1" title="${t('Sposta su')}" style="${mvStyle}"${i===0?' disabled':''}>▲</button><button data-repmove="${k}" data-dir="1" title="${t('Sposta giù')}" style="${mvStyle}"${i===ordine.length-1?' disabled':''}>▼</button></span>`;}).join('')}</div>`;
   const B={};
-  if(R.profilo){ B.profilo=`<div class="rep-sec"><div class="sec">▌ ${t('Profilo & composizione corporea')}</div>
+  if(R.profilo){ B.profilo=`<div class="rep-sec"><div class="sec">${t('Profilo & composizione corporea')}</div>
      <div class="cards">
        <div class="card"><div class="card__k">${t('Età')}</div><div class="card__v">${nf(etaOf(u),0)}<small> ${t('anni')}</small></div></div>
        <div class="card"><div class="card__k">${t('Altezza')}</div><div class="card__v">${nf(u.altezza,0)}<small> cm</small></div></div>
@@ -47,9 +47,9 @@ function renderReport(){
     if(fp||fd){ const cell=(f,lab)=>{ if(!f) return `<div style="flex:1;text-align:center"><div style="font-weight:700;color:var(--ember-2)">${lab}</div><div class="muted" style="padding:16px">—</div></div>`;
         const du=fotoReportUri[f.file], pz=fotoPeso(f.data);
         return `<div style="flex:1;text-align:center;min-width:0"><div style="font-weight:700;color:var(--ember-2)">${lab}</div>${du?`<img src="${du}" alt="${lab}" style="max-width:100%;max-height:340px;border-radius:8px;border:1px solid var(--border)">`:`<div class="muted" style="padding:16px">${t('(caricamento foto…)')}</div>`}<div class="muted" style="font-size:12px;margin-top:3px">${esc(fotoDataLabel(f))}${pz?' · '+nf(pz,1)+' kg':''}</div></div>`; };
-      B.foto=`<div class="rep-sec"><div class="sec">▌ ${t('Foto progressi — prima / dopo')}</div>
+      B.foto=`<div class="rep-sec"><div class="sec">${t('Foto progressi — prima / dopo')}</div>
        <div style="display:flex;gap:14px;align-items:flex-start">${cell(fp,t('Prima'))}${cell(fd,t('Dopo'))}</div></div>`; } }
-  if(R.riepilogo && last){ B.riepilogo=`<div class="rep-sec"><div class="sec">▌ ${t('Riepilogo allenamento')}</div>
+  if(R.riepilogo && last){ B.riepilogo=`<div class="rep-sec"><div class="sec">${t('Riepilogo allenamento')}</div>
      <div class="cards">
        <div class="card k--ember"><div class="card__k">${t('Carico (TL) ultima scheda')}</div><div class="card__v">${nfk(last.tl)}</div></div>
        <div class="card ${dTL>=0?'k--ok':'k--danger'}"><div class="card__k">${t('Variazione vs prec.')}</div><div class="card__v">${dTL>=0?'▲':'▼'} ${nf(Math.abs(dTL),1)}%</div></div>
@@ -57,9 +57,9 @@ function renderReport(){
        <div class="card ${acwr==null?'':(acwr>=0.8&&acwr<=1.3?'k--ok':'k--danger')}"><div class="card__k">${t('Sicurezza carico')}</div><div class="card__v">${acwr==null?'—':nf(acwr,2)}</div><div class="card__sub">ACWR · ${acwr==null?'':(acwr<0.8?t('scarico'):acwr<=1.3?t('ottimale'):t('alto'))}</div></div>
      </div>
      <p class="muted" style="font-size:12px">${t('Il <b>carico (TL)</b> riassume il lavoro svolto: più cresce nel tempo, più c\'è progressione. La <b>sicurezza carico (ACWR)</b> indica se l\'aumento è sostenibile (ideale 0.8–1.3).')}</p></div>`; }
-  if(R.scheda && prog.some(r=>r.esercizio)){ B.scheda=`<div class="rep-sec big"><div class="sec">▌ ${t('Scheda di allenamento')} <span class="pill" style="margin-left:auto">${t('carico piano')} ${nfk(progTL)}</span></div>
+  if(R.scheda && prog.some(r=>r.esercizio)){ B.scheda=`<div class="rep-sec big"><div class="sec">${t('Scheda di allenamento')} <span class="pill" style="margin-left:auto">${t('carico piano')} ${nfk(progTL)}</span></div>
      <div class="tbl-wrap"><table style="table-layout:fixed;width:100%"><colgroup><col style="width:24%"><col style="width:32%"><col style="width:12%"><col style="width:10%"><col style="width:9%"><col style="width:13%"></colgroup><thead><tr><th class="l">${t('Esercizio')}</th><th class="l">${t('Target muscolare')}</th><th>${t('Serie×Rip')}</th><th>${t('Peso')}</th><th>${t('Rec.')}</th><th>${t('Zona')}</th></tr></thead><tbody>${progBody}</tbody></table></div></div>`; }
-  if(R.andamento && ag.length){ B.andamento=`<div class="rep-sec"><div class="sec">▌ ${t('Andamento del carico')}</div>
+  if(R.andamento && ag.length){ B.andamento=`<div class="rep-sec"><div class="sec">${t('Andamento del carico')}</div>
      <div class="chart-grid">
        <div class="chart-box"><h4>${t('Carico (TL) nel tempo')}</h4>${lineChart([{name:'TL',color:'var(--orange-b)',data:ag.map(a=>({x:schedaLabel(a.scheda),y:a.tl||null}))}],{labels,h:160,fmt:nfk})}</div>
        <div class="chart-box"><h4>${t('Equilibrio volume (serie)')}</h4>${radarChart(GRUPPI.map(g=>({label:t(g),value:(last.sets[g]||0)+(g==='Cardio'?cardioEquivSets(last.scheda):0)})),{h:230})}</div>
@@ -67,24 +67,24 @@ function renderReport(){
      <p class="muted" style="font-size:12px">${t('A sinistra la crescita del carico settimana dopo settimana; a destra quanto è bilanciato il lavoro tra i gruppi muscolari.')}</p></div>`; }
   if(R.progressione && mainLifts.length){ const cols=['#c2500a','#d4a017','#2f7d4f','#7a3ea8','#991b1b'];
      const series=mainLifts.map((n,idx)=>({name:exName(n.replace(' / Overhead press','')),color:cols[idx%cols.length],data:exProgression(n).map(p=>({x:schedaLabel(p.scheda),y:p.rm||null}))}));
-     B.progressione=`<div class="rep-sec"><div class="sec">▌ ${t('Progressione di forza (1RM stimato)')}</div>
+     B.progressione=`<div class="rep-sec"><div class="sec">${t('Progressione di forza (1RM stimato)')}</div>
      <div class="chart-box">${lineChart(series,{h:210})}</div>
      <p class="muted" style="font-size:12px">${t('Massimale stimato sui principali esercizi: una linea che sale significa aumento di forza.')}</p></div>`; }
-  if(R.record){ B.record=`<div class="rep-sec big"><div class="sec">▌ ${t('Record personali (carico massimo)')}</div>
+  if(R.record){ B.record=`<div class="rep-sec big"><div class="sec">${t('Record personali (carico massimo)')}</div>
      <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Carico max')}</th><th>${t('Rip.')}</th><th>${t('Scheda')}</th></tr></thead><tbody>${prs.map(p=>`<tr><td class="l">${esc(exName(p.nome))}</td><td class="num cell-out">${nf(p.peso,1)} kg</td><td class="num">${nf(p.rip,0)}</td><td class="num">${p.scheda}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">—</td></tr>'}</tbody></table></div></div>`; }
   if(R.cardio){ B.cardio=cardioReportBlock(); }
-  if(R.alimentazione){ B.alimentazione=`<div class="rep-sec"><div class="sec">▌ ${t('Quadro alimentare · fase')} ${t(FASE_LAB[faseR]||faseR)} ${t('(piano giornaliero)')}</div>
+  if(R.alimentazione){ B.alimentazione=`<div class="rep-sec"><div class="sec">${t('Quadro alimentare · fase')} ${t(FASE_LAB[faseR]||faseR)} ${t('(piano giornaliero)')}</div>
      <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Fase')}</th><th>Kcal</th><th>${t('Proteine')}</th><th>${t('Grassi')}</th><th>${t('Carboidrati')}</th><th>${t('Fibre')}</th></tr></thead><tbody>
        <tr><td class="l">${t(FASE_LAB[faseR]||faseR)}</td><td class="num cell-out">${nf(tR.kcal,0)}</td><td class="num">${nf(tR.proteine,1)}</td><td class="num">${nf(tR.grassi,1)}</td><td class="num">${nf(tR.zuccheri,1)}</td><td class="num">${nf(tR.fibre,1)}</td></tr>
      </tbody></table></div></div>`; }
   if(R.analisi){
     const periodiR=((DOC.alimentazione||{}).periodi)||[];
     if(periodiR.length){ const settR=serieSettimanali();
-      B.analisi=`<div class="rep-sec"><div class="sec">▌ ${t('Dieta × allenamento — periodi, carico e peso')}</div>
+      B.analisi=`<div class="rep-sec"><div class="sec">${t('Dieta × allenamento — periodi, carico e peso')}</div>
        ${timelineChart(settR)}
        <div class="muted" style="font-size:11px;margin-top:4px">${t('Fasce colorate = periodi alimentari registrati (con le kcal/giorno del piano); linee = Training Load settimanale (asse sx) e peso corporeo (asse dx).')}</div></div>`; }
   }
-  if(R.note){ B.note=`<div class="rep-sec"><div class="sec">▌ ${t('Note del coach')}</div>
+  if(R.note){ B.note=`<div class="rep-sec"><div class="sec">${t('Note del coach')}</div>
      <textarea id="rep-nota" class="no-print" placeholder="${t('Commento, indicazioni, prossimi step…')}" style="width:100%;min-height:90px">${esc(R.nota||'')}</textarea>
      <div class="rep-nota-print" style="white-space:pre-wrap;font-size:13px">${esc(R.nota||'')||'<span class="muted">—</span>'}</div></div>`; }
   const S=[`<div class="rep-sec" style="border-bottom:2px solid var(--gold-2);padding-bottom:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start">

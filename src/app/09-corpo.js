@@ -29,7 +29,7 @@ function renderCorpo(){
    <div class="bar no-print"><div class="spacer"></div><button class="btn btn--ember" id="btn-save-io">${t('💾 Salva misure nello Storico')}</button><button class="btn btn--danger" id="btn-undo-io">${t('↶ Annulla ultimo')}</button></div>
    <div class="chart-grid">
      <div>
-       <div class="sec">▌ ${t('Dati corporei')}</div>
+       <div class="sec">${t('Dati corporei')}</div>
        <div class="tbl-wrap"><table><tbody>
          ${F('peso','Peso','0.1','kg')}
          ${F('massa_grassa','Massa grassa','0.001','frazione (es. 0.145)')}

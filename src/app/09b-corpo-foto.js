@@ -133,7 +133,7 @@ function renderFotoSezione(){
   const addBtn=`<label class="btn btn--ember no-print" style="cursor:pointer" title="${profileDir?t('Aggiungi una foto progressi (resta sul tuo PC)'):t('Connetti i dati per aggiungere foto')}"${profileDir?'':' aria-disabled="true"'}>${t('⭱ Aggiungi foto')}<input type="file" id="foto-file" accept="image/jpeg,image/png,image/webp,image/*" style="display:none"${profileDir?'':' disabled'}></label>`;
   const tagChips=tags.length?`<span class="muted mono" style="font-size:11px;align-self:center">${t('vista:')}</span>`+
     [['',t('tutti')]].concat(tags.map(x=>[x,x])).map(([v,lab])=>`<button class="pill no-print" data-ftag="${esc(v)}" style="cursor:pointer;${fotoTag===v?'background:var(--gold-t);border-color:var(--gold-2)':''}">${esc(lab)}</button>`).join(''):'';
-  const head=`<div class="sec" style="margin-top:16px">▌ ${t('📸 Foto progressi')}</div>
+  const head=`<div class="sec" style="margin-top:16px">${t('📸 Foto progressi')}</div>
     <div class="bar no-print" style="flex-wrap:wrap;gap:6px;align-items:center">${addBtn}<div class="spacer"></div>${tagChips}</div>`;
   if(!all.length){
     box.innerHTML=head+`<div class="callout callout--info"><div>${t('Nessuna foto.')} ${profileDir?t('Aggiungi le prime foto (es. <b>anteriore</b>, <b>laterale</b>, <b>posteriore</b>) per vedere i progressi nel tempo.'):t('Connetti i dati (in alto) per salvare le foto.')} ${t('Restano <b>sul tuo PC</b>, nessun upload.')}</div></div>`;
@@ -176,7 +176,7 @@ function renderFotoSezione(){
     return `<tr class="day-sep"><td colspan="2">📅 ${esc(fotoDataIt(d))} <span class="muted" style="font-weight:400">· ${fotos.length} ${t('foto')}</span></td></tr>`+
       fotos.map(f=>`<tr><td class="l">${esc(f.tag||'—')}</td><td class="no-print" style="white-space:nowrap;text-align:right"><button class="btn btn--sm" data-fsee="${esc(f.file)}" title="${t('Vedi')}">👁</button> <button class="btn btn--sm" data-fedit="${esc(f.file)}" title="${t('Modifica data/vista')}">✎</button> <button class="btn btn--sm btn--danger" data-fdel="${esc(f.file)}" title="${t('Elimina')}">✕</button></td></tr>`).join('');
   }).join('');
-  const gest=`<div class="sec no-print" style="margin-top:14px;font-size:12px">▌ ${t('Gestione foto (')}${all.length})</div>
+  const gest=`<div class="sec no-print" style="margin-top:14px;font-size:12px">${t('Gestione foto (')}${all.length})</div>
     <div class="tbl-wrap no-print"><table><tbody>${gestRows}</tbody></table></div>`;
   box.innerHTML=head+tabs+view+gest;
   wireFoto(box);

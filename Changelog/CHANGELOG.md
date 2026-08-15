@@ -4,6 +4,41 @@
 
 ---
 
+### 2026-08-15 — TMS v1.1.5: revisione critica design/estetica desktop — imperfezioni, ridondanze, coerenza
+
+**Tipo**: pulizia estetica (richiesta esplicita di Marco: analisi critica del design dell'app PC,
+correggere imperfezioni/ridondanze SENZA toccare funzionalità, mantenendo l'estetica attuale)
+**File coinvolti**: `src/pagina/02-stili.css` (fix sintassi, bordi badge, variabile `--topbar-h`,
+CSS morto rimosso, `--danger-bd` per la modalità notte) · `src/pagina/03-corpo.html` (hero: style
+inline → classe) · `src/app/05-grafici.js` e `src/app/11b-analisi.js` (etichette asse X che non
+si sovrappongono più) · rimosso il glifo ▌ ridondante da 68 intestazioni `.sec` in 11 file
+(`06-allenamento.js`, `06b-cardio.js`, `08-progressi.js`, `09-corpo.js`, `09b-corpo-foto.js`,
+`10-storico-corpo.js`, `11-alimentazione.js`, `13-report.js`, `13a-guida.js`, `13b-profilo.js`,
+`14-backup.js`) + testi allineati in `00-i18n.js`/`13c-guida-ai.js` · `tests/test-app.js` ·
+`docs/img/*.png` rigenerati
+**Descrizione**: analisi condotta guardando l'app realmente (screenshot Electron col profilo
+template) e misurando il layout nel browser. <b>Difetti oggettivi</b>: (1) `.btn--danger` aveva
+`border-color:#d9a)` — parentesi spuria, il browser scartava la dichiarazione e i bottoni
+«pericolo» restavano col bordo neutro; (2) i badge fascia (Forza/Ipertrofia/Metabolico ecc.)
+avevano bordi hex a 3 cifre sbagliati (es. `#e0a` = magenta acceso su un badge rosso) — ora la
+tinta del testo, schiarita; (3) l'ultima etichetta dell'asse X nei grafici si disegnava sempre,
+anche addosso alla precedente (es. «20/04/26» su «04/05/26») — stesso difetto corretto in due
+punti (`lineChart` e la timeline di Analisi); (4) i tab sticky usavano `top:51px` fisso mentre la
+topbar è alta 49px (70px sotto i 760px) → fino a 19px di tab nascosti sui telefoni — ora variabile
+`--topbar-h`. <b>Ridondanza</b>: le intestazioni `.sec` disegnano già una barra arancione via CSS,
+ma il testo iniziava anche col glifo «▌» → due barre a 16px di distanza (verificato campionando i
+pixel dello screenshot); tolto ovunque tranne dove serve davvero (separatori di riga nelle
+tabelle, dove la barra CSS non c'è). <b>CSS morto rimosso</b>: `.topbar__mark small` (elemento
+inesistente), `.hero p` (l'hero non ha paragrafi), `.overlay__skip` (residuo della modalità
+browser dismessa), `.pr-card::before` (duplicato di `.card::before`), due `@media` identici
+uniti. <b>Coerenza</b>: hero allineato alla propria classe invece che a `style=` inline; etichetta
+«Fase del piano:» ora condivide lo stile con le altre etichette di barra (`.bar__lab`); bordo
+«pericolo» con valore dedicato per la modalità notte (altrimenti troppo acceso sul fondo scuro).
+<b>Non toccato di proposito</b>: icone dei tab, colore del pulsante Riscaldamento, zebratura righe.
+**Test**: `npm test` <b>370/370</b> (nuova verifica: nessun glifo doppio nelle intestazioni).
+`npm run verifica` OK. Verificato in entrambi i temi (giorno/notte) e a 375px (mobile).
+**Approvato da**: Marco (implementazione e rilascio v1.1.5 su comando esplicito).
+
 ### 2026-08-14 — TMS v1.1.4: app telefono v2.0 (seduta in fasi + riscaldamento + «ultima volta»); selettore Training Set nei Progressi
 
 **Tipo**: feature (richiesta esplicita di Marco: ripensare la struttura dell'app cliente

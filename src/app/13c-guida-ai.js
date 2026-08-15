@@ -72,7 +72,7 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   la tendina): «📤 Esporta scheda» e «📥 Importa rientro» — lo scambio col cliente,
   vedi sezione 8. Lavorano sul profilo della riga: se non è quello attivo, l'app lo
   attiva da sola.
-- In fondo alla pagina: «▌ Backup (tutti i profili insieme)» con «⭳ Backup dati»
+- In fondo alla pagina: «Backup (tutti i profili insieme)» con «⭳ Backup dati»
   (esporta TUTTO in un file JSON) e «⭱ Ripristina» (reimporta, sostituendo i dati
   attuali previa conferma). Sotto, la riga dei **backup automatici**: l'app ne crea
   uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5

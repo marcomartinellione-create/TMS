@@ -796,7 +796,8 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(!guida.includes('Documentazione/') && guida.includes('doi.org'), 'Guida §12 (completa): niente link locali, restano DOI/Scholar');
   /* v1.0.71: passo coach ↔ cliente nella Guida (rapida e completa) */
   ok(guida.includes('Scheda ↔ cliente') && guida.includes('gc-scambio') && guida.includes('Crea il file per il coach') && guida.includes('TMS Scheda'), 'Guida completa: sezione 10 Scheda ↔ cliente (app TMS Scheda)');
-  ok(guida.includes('▌ 14 · Licenza'), 'Guida completa: sezioni rinumerate (Licenza = 14)');
+  ok(guida.includes('14 · Licenza'), 'Guida completa: sezioni rinumerate (Licenza = 14)');
+  ok(!/class="sec[^"]*"[^>]*>▌/.test(guida), 'Guida: nessun glifo ▌ nelle intestazioni (la barra è quella del CSS, non doppia)');
   w.eval('guidaMode = "rapida"; renderGuida()');
   const rapida = d.getElementById('panel-guida').innerHTML;
   ok(rapida.includes('Coach ↔ cliente') && rapida.includes('📤 Esporta scheda'), 'Guida rapida: passo coach ↔ cliente');

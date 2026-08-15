@@ -73,8 +73,14 @@ function timelineChart(sett){
     g+=`<line class="grid" x1="${P.l}" y1="${y.toFixed(1)}" x2="${W-P.r}" y2="${y.toFixed(1)}"/>`;
     if(stl) g+=`<text class="lbl" x="${P.l-5}" y="${(y+3).toFixed(1)}" text-anchor="end" style="fill:var(--orange-b)">${nfk(stl.mx-(stl.mx-stl.mn)*k/4)}</text>`;
     if(sp) g+=`<text class="lbl" x="${W-P.r+5}" y="${(y+3).toFixed(1)}" style="fill:var(--violet)">${nf(sp.mx-(sp.mx-sp.mn)*k/4,1)}</text>`; }
-  const labels=sett.map(s=>schedaLabel(s.scheda)); const step=Math.ceil(n/8);
-  labels.forEach((lb,k)=>{ if(k%step===0||k===n-1) g+=`<text class="lbl" x="${X(k).toFixed(1)}" y="${H-8}" text-anchor="middle">${esc(lb)}</text>`; });
+  const labels=sett.map(s=>schedaLabel(s.scheda)); const step=Math.ceil(n/8), ult=n-1;
+  /* come in lineChart: l'ultima data si mostra sempre, ma se cadrebbe addosso alla
+     precedente quella precedente si salta (le due date finali si sovrapponevano) */
+  labels.forEach((lb,k)=>{
+    const suPasso=(k%step===0), ultima=(k===ult);
+    if(!suPasso && !ultima) return;
+    if(suPasso && !ultima && (ult-k)<step*0.6) return;
+    g+=`<text class="lbl" x="${X(k).toFixed(1)}" y="${H-8}" text-anchor="middle">${esc(lb)}</text>`; });
   /* linee */
   const linea=(get,Yf,col)=>{ let p='',dots=''; sett.forEach((s,k)=>{ const v=get(s); if(v==null)return; const x=X(k),y=Yf(v);
       p+=(p?' L':'M')+x.toFixed(1)+' '+y.toFixed(1); dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${col}"/>`; });
@@ -94,7 +100,7 @@ function renderAnalisi(){
   const intro=`<div class="callout callout--info"><div>${t('📊 <b>Dieta × allenamento nel tempo.</b> Le analisi incrociano i <b>periodi alimentari</b> registrati (tab 🍖 Alimentazione → "Periodi") con carico (TL), peso e metabolismo settimanali. Tutto è calcolato al volo dai tuoi dati.')}</div></div>`;
   if(!periodi.length){
     document.getElementById('panel-analisi').innerHTML=intro+
-      `<div class="empty" style="padding:28px">${t('Nessun periodo alimentare registrato.<br><br>Vai in <b>🍖 Alimentazione → ▌ Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.')}<br><br><button class="btn btn--ember" onclick="showTab('alimentazione')">${t('🍖 Vai all\'Alimentazione')}</button></div>`;
+      `<div class="empty" style="padding:28px">${t('Nessun periodo alimentare registrato.<br><br>Vai in <b>🍖 Alimentazione → Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.')}<br><br><button class="btn btn--ember" onclick="showTab('alimentazione')">${t('🍖 Vai all\'Alimentazione')}</button></div>`;
     return;
   }
   /* 2 — Δpeso settimana successiva vs bilancio calorico (kcal piano − metabolismo) */

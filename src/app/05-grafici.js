@@ -13,8 +13,15 @@ function lineChart(series,opts){
        `<text class="lbl" x="${P.l-5}" y="${(y+3).toFixed(1)}" text-anchor="end">${(opts.fmt||(x=>nf(x,Math.abs(mx)<10?1:0)))(v)}</text>`;}
   if(opts.band){ const yl=Y(opts.band[0]), yh=Y(opts.band[1]); g+=`<rect x="${P.l}" y="${Math.min(yl,yh).toFixed(1)}" width="${(W-P.l-P.r).toFixed(1)}" height="${Math.abs(yl-yh).toFixed(1)}" fill="${opts.band[2]||'rgba(47,125,79,.12)'}"/>`; }
   const labels=opts.labels||series[0].data.map(d=>d.x);
-  const step=Math.ceil(n/8);
-  labels.forEach((lb,i)=>{ if(i%step===0||i===n-1){ g+=`<text class="lbl" x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${esc(lb)}</text>`; }});
+  const step=Math.ceil(n/8), ult=n-1;
+  /* si mostra 1 etichetta ogni `step` più SEMPRE l'ultima (la più recente); se però
+     l'ultima cadrebbe addosso alla precedente, quella precedente si salta: senza questo
+     controllo le due date finali si sovrapponevano (es. «20/04/26» su «04/05/26»). */
+  labels.forEach((lb,i)=>{
+    const suPasso=(i%step===0), ultima=(i===ult);
+    if(!suPasso && !ultima) return;
+    if(suPasso && !ultima && (ult-i)<step*0.6) return;
+    g+=`<text class="lbl" x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${esc(lb)}</text>`; });
   series.forEach(s=>{
     let dpath='',pts='';
     s.data.forEach((d,i)=>{ if(d.y==null||isNaN(d.y))return; const x=X(i),y=Y(d.y);

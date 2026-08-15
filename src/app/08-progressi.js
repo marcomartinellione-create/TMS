@@ -88,7 +88,7 @@ function renderProgressi(){
   const mavg=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); return w.reduce((s,x)=>s+x.tl,0)/w.length; });
   const acwr=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; return c? a.tl/c:null; });
   const lastAcwr=acwr[acwr.length-1];
-  const cards=`<div class="sec">▌ ${t('Record personali · carico massimo')}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(L.nome,sf); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
+  const cards=`<div class="sec">${t('Record personali · carico massimo')}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(L.nome,sf); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
   const tlSeries=[{name:'TL',color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:a.tl||null}))},{name:t('Media mobile 4'),color:'var(--ink-3)',data:ag.map((a,i)=>({x:labels[i],y:mavg[i]}))}];
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
@@ -122,8 +122,8 @@ function renderProgressi(){
   if(plats.length) segnali+=`<div class="callout"><div>⏸ ${t('<b>In stallo</b> (TL fermo da ≥3 schede):')} ${plats.slice(0,6).map(p=>esc(exName(p.nome))+' <span class="muted">('+p.since+' '+t('sett.')+')</span>').join(' · ')}. ${t('Valuta variazione di carico, volume o esercizio.')}</div></div>`;
   if(!segnali) segnali=`<div class="callout" style="background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ ${t('Nessun segnale critico: carico e progressione regolari.')}</div></div>`;
   document.getElementById('panel-progressi').innerHTML=barraSetProgressi()+cards+`
-   <div class="sec">▌ ${t('Segnali')}</div>${segnali}
-   <div class="sec">▌ ${t('Carico allenante (Training Load)')}</div>
+   <div class="sec">${t('Segnali')}</div>${segnali}
+   <div class="sec">${t('Carico allenante (Training Load)')}</div>
    <div class="chart-grid">
      <div class="chart-box"><h4>${t('📈 TL totale + media mobile')}</h4>${lineChart(tlSeries,{labels,fmt:nfk})}</div>
      <div class="chart-box"><h4>${t('⚖ ACWR (acuto:cronico) · zona 0.8–1.3')}</h4>${lineChart(acwrSeries,{labels,band:[0.8,1.3,'rgba(47,125,79,.13)']})}</div>
@@ -132,7 +132,7 @@ function renderProgressi(){
      <div class="chart-box"><h4>${t('🏋 Tonnellaggio per scheda (kg)')}</h4>${lineChart(tonnSeries,{labels,fmt:nfk})}</div>
      <div class="chart-box"><h4>${t('Δ Variazione TL %')}</h4>${lineChart(dSeries,{labels})}</div>
    </div>
-   ${hasRpe?`<div class="sec">▌ ${t('Carico interno · session-RPE (Foster 2001)')}</div>
+   ${hasRpe?`<div class="sec">${t('Carico interno · session-RPE (Foster 2001)')}</div>
    ${fosterSignal}
    <div class="chart-grid">
      <div class="chart-box"><h4>${t('🔥 Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span></h4>${lineChart(sRpeSeries,{labels,fmt:nfk})}</div>
@@ -142,7 +142,7 @@ function renderProgressi(){
      <div class="chart-box"><h4>${t('⚡ Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span></h4>${lineChart(strainSeries,{labels,fmt:nfk})}</div>
      <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span></h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],{labels})})()}</div>
    </div>`:''}
-   <div class="sec">▌ ${t('Volume & equilibrio per gruppo muscolare')}</div>
+   <div class="sec">${t('Volume & equilibrio per gruppo muscolare')}</div>
    <div class="chart-grid">
      <div class="chart-box"><h4>${t('🕸 Equilibrio volume · serie per gruppo')} <span class="muted" style="font-size:11px">${t('(Cardio: min÷10 dal tab Cardio · 2 h/sett ≈ 12)')}</span></h4>${radarChart(radarItems)}</div>
      <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(zona ipertrofia 10–20)')}</span></h4>${barChart(setsData,{refs:[{y:10,label:'10',color:'var(--ok)'},{y:20,label:'20',color:'var(--danger-b)'}]})}</div>
@@ -151,7 +151,7 @@ function renderProgressi(){
      <div class="chart-box"><h4>${t('Andamento TL per gruppo')}</h4>${lineChart(grpSeries,{labels,fmt:nfk})}</div>
      <div class="chart-box"><h4>${t('🎯 Distribuzione intensità · ultima (serie per fascia)')}</h4>${barChart(intData)}</div>
    </div>
-   <div class="sec">▌ ${t('Progressione per esercizio')}</div>
+   <div class="sec">${t('Progressione per esercizio')}</div>
    <div class="chart-box">
      <div class="bar" style="margin:0 0 8px"><div class="field"><label>${t('Esercizio')}</label><select id="prog-ex" style="min-width:220px">${exs.map(e=>`<option value="${esc(e)}"${e===progEx?' selected':''}>${esc(exName(e))}</option>`).join('')}</select></div></div>
      ${prog.length?lineChart(exSeries,{labels:plab,h:230}):`<div class="empty">${t('Nessun dato per questo esercizio.')}</div>`}
