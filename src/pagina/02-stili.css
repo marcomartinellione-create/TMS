@@ -46,6 +46,15 @@
 [data-theme="notte"] .f-met{ background:rgba(176,126,216,.16); color:#c9a3e6; border-color:rgba(176,126,216,.42) }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
+/* ── barra di scorrimento in tinta col tema (invece di quella di sistema) ── */
+*{scrollbar-width:thin; scrollbar-color:var(--border-2) transparent}
+::-webkit-scrollbar{width:11px; height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-2); border-radius:7px;
+  border:2px solid transparent; background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-4); background-clip:content-box}
+::-webkit-scrollbar-thumb:active{background:var(--orange); background-clip:content-box}
+::-webkit-scrollbar-corner{background:transparent}
 body{
   font-family:var(--font-body); color:var(--ink); font-size:15px; line-height:1.5;
   background:var(--paper-2);

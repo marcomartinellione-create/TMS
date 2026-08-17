@@ -4,6 +4,44 @@
 
 ---
 
+### 2026-08-17 — TMS v1.1.7: app telefono senza sotto-menù, tasto indietro nativo, foto progressi
+
+**Tipo**: feature (richieste esplicite di Marco: eliminare la vista a schermo pieno introdotta in
+v2.0 — «troppi click, voglio tutto visibile insieme»; il tasto indietro del telefono deve navigare
+dentro l'app invece di chiuderla; aggiungere una sezione foto progressi a tre riquadri
+fronte/lato/retro che confluisca nel tab Corpo del TMS; nascondere RPE/durata quando il coach non
+usa il Session-RPE)
+**File coinvolti**: `docs/app/index.html`+`sw.js` (rimossa la vista a schermo pieno — via
+`apriEx/chiudiEx/exNav/#exnav`; nuova navigazione a cronologia `navEntra/navIndietro/risali` +
+`popstate`; sezione `#foto` con tre riquadri, `fotoRidimensiona`/`fotoAggiungi`/`fotoSalva`
+(IndexedDB); casella «Giorno completato» quando `rpe:false`; CVER 2.2, cache v11) ·
+`src/app/15-scambio.js` (`costruisciSchedaJSON` porta `rpe:useRpeActive()`;
+`importaFotoRientro` decodifica le foto del rientro in file veri + metadati DOC.foto) ·
+`src/app/09b-corpo-foto.js` (fix: `FOTO_VISTE` usava anteriore/laterale/posteriore mentre i tag
+reali sono fronte/lato/retro — l'ordinamento delle foto non combaciava mai; ora riconosce anche i
+sinonimi lunghi) · `src/pagina/02-stili.css` (scrollbar in tinta col tema, giorno e notte) ·
+`src/app/00-i18n.js` · guide `13a-guida.js` (IT/EN) e `13c-guida-ai.js` (§8) + `docs/guida-ai.md`
+rigenerata · `tests/test-app.js`
+**Descrizione**: la vista "a schermo pieno" per esercizio (v2.0) viene **rimossa** — era pensata
+per essere comoda ma in palestra costava troppi tocchi; ora <b>tutti i campi di tutti gli
+esercizi</b> sono sempre visibili nella lista. Il <b>tasto indietro del telefono</b> ora risale un
+livello alla volta dentro l'app (video/QR → riepilogo → giorno → lista giorni → menu; solo dal
+menu l'app si chiude), invece di uscire subito. Nuova sezione <b>📸 Foto progressi</b>: tre
+riquadri fronte/lato/retro, tocco → fotocamera o galleria, scatto <b>rimpicciolito</b> (lato lungo
+1280px JPEG, orientamento EXIF rispettato) e incorporato nel rientro; il TMS le scrive come file
+veri in `TMS_Dati/<profilo>/foto/` con gli stessi metadati di quelle aggiunte a mano, quindi
+Riproduzione e Confronto le leggono senza distinzione. Se il profilo non usa il Session-RPE, la
+fase Fine mostra solo una casella <b>«Giorno completato»</b> invece di fatica/durata (l'export ora
+porta il campo `rpe`). Corretto anche un difetto latente: l'ordinamento delle foto sul PC
+confrontava tag inesistenti (anteriore/laterale/posteriore) con quelli davvero usati
+(fronte/lato/retro) e non funzionava mai.
+**Test**: `npm test` <b>406/406</b> (18 nuove verifiche: campi tutti visibili senza click, tasto
+indietro su tre livelli, tre riquadri foto con anteprima/conteggio/rientro, flag rpe nell'export,
+giorni «completati» senza sedute inventate, import foto in file+metadati, ordine viste corretto).
+`npm run verifica` OK. Verificato dal vivo con screenshot: sezione foto, casella giorno
+completato, campi aperti.
+**Approvato da**: Marco (implementazione e rilascio v1.1.7 su comando esplicito).
+
 ### 2026-08-15 — TMS v1.1.6: massimali sempre completi, riscaldamento con video+cardio a tempo, radar Volume/Equilibrio
 
 **Tipo**: feature (richieste esplicite di Marco: i record personali devono restare gli stessi

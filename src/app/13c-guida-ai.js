@@ -265,35 +265,49 @@ nei dispositivi.
    sui video: includendoli il cliente vede le esecuzioni offline nell'app ma il file pesa di più.
 2. **Il cliente compila nell'app** — salva il file sul telefono e lo carica in TMS
    Scheda con «📂 Carica la scheda»: la scheda resta memorizzata nell'app (la ritrova
-   a ogni apertura, con la **bozza salvata da sola** mentre compila). L'app si apre su
-   un **menu con due sezioni**: «🏋 Scheda allenamento» e «🍖 Alimentazione» (piano in
-   sola lettura: pasti coi grammi in evidenza e kcal; se il file non contiene la dieta
-   la sezione appare disattivata). Nella scheda sceglie il **giorno** da un elenco; dal
-   v2.0 dell'app ogni giornata è una **seduta in tre fasi** (tab): 🔥 Riscaldamento (solo
-   se presente nel Training Set: SOLA LETTURA coi video, NON torna nel rientro), 🏋 Esercizi,
-   ✅ Fine. Nella fase Esercizi la lista è compatta e toccando una riga l'esercizio si apre
-   **a schermo pieno** (campi grandi, avanti/indietro tra esercizi); sotto ogni esercizio
-   compare **«l'ultima volta»** (ultima prestazione dallo Storico, campo 'ultima' nel file).
-   Una spunta ✔ e una barra di avanzamento segnano gli esercizi toccati. Inserisce ciò che
-   ha fatto davvero (serie, ripetizioni, peso, RIR, note per esercizio; fatica RPE 0-10 e
-   durata nella fase Fine). Ogni esercizio ha un **timer di recupero** (bottone ⏱ che parte dal tempo
-   di riposo della scheda, con pausa e +15/-15; disponibile in FISSA e MODIFICABILE).
-   Se la scheda è MODIFICABILE il cliente può anche **aggiungere/eliminare/modificare**
-   esercizi (rinomina, sposta di giorno, ritocca il previsto) e segnare i **test del
-   massimale (★)**: aggiunte ed eliminazioni e il flag 'test' tornano nel rientro (l'import
-   ricostruisce la scheda Pesi dalle righe). NOTA: il campo **RIR parte sempre
-   vuoto** (non eredita il valore del coach: si inserisce dopo l'allenamento; il
-   previsto resta indicato sopra i campi). Guarda i ▶ video, e preme «📩 Crea il file
-   per il coach» (prima vede un **riepilogo** di quanto ha segnato): nasce
-   «Rientro_profilo_data.json» (formato 'tms-rientro', identico alle versioni precedenti)
-   da rimandare al coach, dove possibile con la condivisione diretta (WhatsApp ecc.).
+   a ogni apertura, con la **bozza salvata da sola** mentre compila; dalla v2.2 il
+   **tasto indietro del telefono** risale nell'app invece di chiuderla — video/QR aperti,
+   poi riepilogo → giorno → lista giorni → menu, solo da lì l'app si chiude davvero).
+   L'app si apre su un **menu con tre sezioni**: «🏋 Scheda allenamento», «🍖 Alimentazione»
+   (piano in sola lettura: pasti coi grammi in evidenza e kcal; se il file non contiene
+   la dieta la sezione appare disattivata) e «📸 Foto progressi» (dalla v2.2: tre riquadri
+   fronte/lato/retro, scatto da fotocamera o scelta da galleria; le foto vengono
+   RIMPICCIOLITE — lato lungo 1280px, JPEG — prima di essere incorporate nel rientro).
+   Nella scheda sceglie il **giorno** da un elenco; ogni giornata è una **seduta in tre
+   fasi** (tab): 🔥 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con
+   video, stretching o cardio a minuti, NON torna nel rientro), 🏋 Esercizi, ✅ Fine.
+   Dalla v2.2 (richiesta esplicita dell'utente: «niente sotto-menù, troppi click») i campi
+   di TUTTI gli esercizi della fase sono **già visibili insieme** nella lista — non c'è
+   più una vista a schermo pieno da aprire; sotto ogni esercizio compare **«l'ultima
+   volta»** (ultima prestazione dallo Storico, campo 'ultima' nel file). Una spunta ✔ e
+   una barra di avanzamento segnano gli esercizi toccati. Inserisce ciò che ha fatto
+   davvero (serie, ripetizioni, peso, RIR, note per esercizio). Nella fase Fine: se il
+   profilo usa il Session-RPE (campo 'rpe' del file scheda) trova fatica 0-10 e durata;
+   se NON lo usa, trova solo una **casella «Giorno completato»** (nel rientro diventa
+   {giorno,fatto:true} dentro 'sedute'). Ogni esercizio ha un **timer di recupero**
+   (bottone ⏱ che parte dal tempo di riposo della scheda, con pausa e +15/-15; disponibile
+   in FISSA e MODIFICABILE). Se la scheda è MODIFICABILE il cliente può anche
+   **aggiungere/eliminare/modificare** esercizi (rinomina, sposta di giorno, ritocca il
+   previsto) e segnare i **test del massimale (★)**: aggiunte ed eliminazioni e il flag
+   'test' tornano nel rientro (l'import ricostruisce la scheda Pesi dalle righe). NOTA:
+   il campo **RIR parte sempre vuoto** (non eredita il valore del coach: si inserisce
+   dopo l'allenamento; il previsto resta indicato sopra i campi). Guarda i ▶ video, e
+   preme «📩 Crea il file per il coach» (prima vede un **riepilogo** di quanto ha
+   segnato): nasce «Rientro_profilo_data.json» (formato 'tms-rientro', con in più il
+   campo opzionale 'foto': [{tag,data,img}] se ha scattato foto) da rimandare al coach,
+   dove possibile con la condivisione diretta (WhatsApp ecc.).
    Il **riscaldamento** viaggia nella scheda (campo 'riscaldamento') ma è solo informativo:
    NON entra nel rientro e non conta in alcun calcolo.
 3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e l'allenamento
-   del cliente viene **caricato nella scheda 🏋 Pesi** (NON scritto subito nello Storico).
-   Il coach lo rivede, eventualmente corregge, poi preme «💾 Salva nello Storico» scegliendo
-   la settimana: solo allora entra nello Storico (con sedute e RPE) e alimenta TL/ACWR/grafici.
-   Questo dà al coach un controllo manuale prima del salvataggio.
+   del cliente viene **caricato nella scheda 🏋 Pesi** (NON scritto subito nello Storico);
+   se il cliente non usa il Session-RPE, i giorni con 'fatto:true' vengono contati e mostrati
+   nell'avviso come «giorni segnati come completati». Le eventuali **foto** ('foto' nel
+   rientro) vengono decodificate e salvate come file veri in TMS_Dati/<profilo>/foto/ +
+   metadati in DOC.foto (stesso formato delle foto aggiunte a mano dal tab Corpo — tag
+   fronte/lato/retro), tramite 'importaFotoRientro'. Il coach rivede la scheda Pesi,
+   eventualmente corregge, poi preme «💾 Salva nello Storico» scegliendo la settimana: solo
+   allora entra nello Storico (con sedute e RPE) e alimenta TL/ACWR/grafici. Questo dà al
+   coach un controllo manuale prima del salvataggio.
 Controlli all'import: file non valido → errore chiaro; profilo diverso da quello
 della riga → richiesta conferma; esercizi fuori catalogo → avviso con elenco;
 scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.

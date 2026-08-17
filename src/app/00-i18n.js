@@ -735,6 +735,8 @@ const EN={
   '» caricato nella scheda Pesi:':'» loaded into the Weights program:',
   'esercizi':'exercises',
   'sedute con RPE':'sessions with RPE',
+  'giorni segnati come completati':'days marked as completed',
+  'foto salvate nel tab Corpo':'photos saved in the Body tab',
   'Controlla i valori, poi premi «💾 Salva nello Storico» (scegli tu la settimana).':'Check the values, then press «💾 Save to History» (you choose the week).',
   /* ══════════ Training Set (loadout scheda Pesi) ══════════ */
   'Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, rinominarle o eliminarle':'Program loadout: create several programs (e.g. Gym, Home) and switch between them. Open the menu to create, rename or delete them',

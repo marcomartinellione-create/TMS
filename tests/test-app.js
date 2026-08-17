@@ -501,6 +501,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(c.esercizio === 'Cyclette' && c.min === 10 && c.serie === 0 && c.video, 'export scheda JSON: riscaldamento cardio a tempo (10 min, col video)'); }
   ok(schedaCli.riscaldamento[0].note === 'per lato' && typeof schedaCli.riscaldamento[0].video === 'string', 'export scheda JSON: il riscaldamento porta note e (se c\'è) il video');
   ok(typeof schedaCli.riscaldamento[0].min === 'number', 'export scheda JSON: il riscaldamento porta i minuti (cardio a tempo)');
+  /* v1.1.7: l'export dice se il profilo usa il Session-RPE (se no, il telefono mostra solo la casella «giorno completato») */
+  ok(schedaCli.rpe === w.eval('useRpeActive()'), 'export scheda JSON: porta il flag rpe del profilo (' + schedaCli.rpe + ')');
+  { const senzaRpe = w.eval('(function(){var o=DOC.dati_utente.useRpe; DOC.dati_utente.useRpe=false; var s=costruisciSchedaJSON({},true); DOC.dati_utente.useRpe=o; return s.rpe;})()');
+    ok(senzaRpe === false, 'export scheda JSON: con Session-RPE disattivato il flag è false'); }
   { const u = schedaCli.ultima || {}, nomi = Object.keys(u);
     ok(nomi.length > 0 && typeof u[nomi[0]].peso === 'number' && typeof u[nomi[0]].rip === 'number',
        'export scheda JSON: «ultima volta» per esercizio dallo Storico (' + nomi.length + ' esercizi)'); }
@@ -559,15 +563,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       ok(pag0.querySelector('[data-fase="e"]').hidden === false, 'app cliente v2: si torna al tab 🏋 Esercizi'); }
     /* «l'ultima volta» dallo Storico, sotto il previsto */
     ok(sd.querySelector('#ex-0 .ex-last') !== null && /kg/.test(sd.querySelector('#ex-0 .ex-last').textContent), 'app cliente v2: «ultima volta» mostrata sotto l\'esercizio');
-    /* esercizio a schermo pieno: la stessa riga diventa overlay (un solo set di campi nel DOM) */
+    /* v2.2 (richiesta Marco): NIENTE sotto-menù — i campi di ogni esercizio sono già tutti
+       visibili nella lista, senza tocchi per aprire e senza barra avanti/indietro */
     ok(sub.window.eval('document.querySelectorAll("#s-0").length') === 1, 'app cliente v2: un solo campo Serie per esercizio nel DOM (nessun doppione)');
-    sd.querySelector('#ex-0 .ex-sum').click();
-    ok(sd.getElementById('ex-0').classList.contains('open') && sd.getElementById('exnav').classList.contains('show'), 'app cliente v2: toccando l\'esercizio si apre a schermo pieno con la barra avanti/indietro');
-    ok(sub.window.eval('OPEN_RID') === 0 && sd.getElementById('nav-prev').disabled === true, 'app cliente v2: sul primo esercizio «‹ precedente» è disattivato');
-    sd.getElementById('nav-next').click();
-    ok(sub.window.eval('OPEN_RID') === 1 && sd.getElementById('ex-1').classList.contains('open') && !sd.getElementById('ex-0').classList.contains('open'), 'app cliente v2: «successivo ›» passa all\'esercizio dopo');
-    sd.getElementById('nav-close').click();
-    ok(sub.window.eval('OPEN_RID') === null && !sd.getElementById('exnav').classList.contains('show'), 'app cliente v2: «Chiudi» torna alla lista');
+    { const corpi = [...sd.querySelectorAll('#day-0 [data-fase="e"] .ex-body')];
+      const attesi = schedaCli.righe.filter(r => r.giorno === giorniCli[0]).length;
+      ok(corpi.length === attesi && corpi.every(c => sub.window.getComputedStyle(c).display !== 'none'),
+         'app cliente v2.2: i campi di TUTTI gli esercizi sono visibili insieme (' + corpi.length + ' esercizi, nessun click per aprirli)');
+      ok(sd.getElementById('exnav') === null && sub.window.eval('typeof apriEx') === 'undefined', 'app cliente v2.2: via la vista a schermo pieno e la barra avanti/indietro');
+      ok(sd.querySelector('#ex-0 .chev') === null, 'app cliente v2.2: via la freccia ›  dalla riga (non c\'è più nulla da aprire)'); }
     /* compila un campo → bozza autosalvata */
     sd.getElementById('n-0').value = 'fatto tutto';
     sd.getElementById('s-0').value = '5';
@@ -588,8 +592,36 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     sd.getElementById('invia').click();
     ok(sd.getElementById('riepilogo').hidden === false && sd.querySelectorAll('#riep-body .riep-row').length === giorniCli.length, 'app cliente v2: «Crea il file» apre prima il RIEPILOGO (una riga per giorno)');
     ok(/esercizi segnati/.test(sd.getElementById('riep-body').textContent) && sd.getElementById('invia-ok') !== null, 'app cliente v2: il riepilogo conta gli esercizi segnati e ha il bottone di invio');
+    /* i bottoni «torna» passano dalla cronologia (così il tasto indietro del telefono fa lo
+       stesso percorso): la navigazione avviene al popstate, quindi si attende un istante */
     sd.querySelector('#riepilogo [data-home]').click();
+    await settle(60);
     ok(sd.getElementById('home').hidden === false, 'app cliente v2: dal riepilogo si torna ai giorni');
+    /* v2.2: il tasto INDIETRO del telefono risale nell'app invece di chiuderla */
+    sd.querySelector('.day-card').click();                       /* entra nel giorno */
+    ok(sd.getElementById('day-0').hidden === false, 'app cliente v2.2: si entra nel giorno');
+    sub.window.history.back();                                    /* = tasto indietro del telefono */
+    await settle(60);
+    ok(sd.getElementById('home').hidden === false && sd.getElementById('day-0').hidden === true, 'app cliente v2.2: il tasto indietro torna alla lista dei giorni (non chiude l\'app)');
+    sub.window.history.back();
+    await settle(60);
+    ok(sd.getElementById('menu').hidden === false, 'app cliente v2.2: un altro indietro torna al menu');
+    ok(sub.window.eval('risali()') === false, 'app cliente v2.2: al menu non c\'è più nulla sopra (da lì l\'app può chiudersi)');
+    /* v2.2: sezione FOTO — tre riquadri (fronte/lato/retro) che entrano nel rientro */
+    ok(sd.getElementById('vai-foto') !== null && sd.getElementById('foto') !== null, 'app cliente foto: card nel menu + schermata dedicata');
+    sd.getElementById('vai-foto').click();
+    await settle(30);
+    ok(sd.getElementById('foto').hidden === false && sd.querySelectorAll('#foto-grid .foto-box').length === 3, 'app cliente foto: tre riquadri (fronte/lato/retro)');
+    ok([...sd.querySelectorAll('#foto-grid .foto-box')].map(b=>b.dataset.foto).join(',') === 'fronte,lato,retro', 'app cliente foto: i tag sono quelli che il TMS si aspetta');
+    ok(sd.getElementById('foto-file') !== null && sd.getElementById('foto-file').accept === 'image/*' && !sd.getElementById('foto-file').hasAttribute('capture'),
+       'app cliente foto: il selettore accetta immagini e lascia scegliere fotocamera o galleria');
+    /* simula due scatti già ridimensionati e verifica che finiscano nel rientro */
+    sub.window.eval('FOTO={fronte:{img:"data:image/jpeg;base64,AAAA",data:"2026-08-17"},retro:{img:"data:image/jpeg;base64,BBBB",data:"2026-08-17"}}; renderFoto();');
+    ok(sd.querySelectorAll('#foto-grid .foto-box.pieno').length === 2 && sd.querySelectorAll('#foto-grid .foto-x').length === 2, 'app cliente foto: i riquadri pieni mostrano l\'anteprima e il tasto per togliere');
+    ok(/2 /.test(sd.getElementById('meta-foto').textContent), 'app cliente foto: il menu conta le foto scattate');
+    { const rr = sub.window.eval('costruisciRientro()');
+      ok(Array.isArray(rr.foto) && rr.foto.length === 2 && rr.foto[0].tag === 'fronte' && rr.foto[0].img.startsWith('data:image/'),
+         'app cliente foto: le foto entrano nel rientro con tag e immagine'); }
     sub.window.close();
   }
   {
@@ -824,6 +856,25 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     righe:[ {giorno:'Lunedì',esercizio:'Stacco da terra con bilanciere',serie:1,rip:3,peso:150,rir:0,note:'test max',test:true} ], sedute:[] };
   await w.eval('caricaRientroInScheda(' + JSON.stringify(rientroTest) + ')');
   ok(w.eval('DOC.scheda.settimanale[0].test') === true, 'rientro: il flag test (★ 1RM) del cliente arriva nella scheda Pesi del coach');
+  /* v1.1.7: giorni «completati» (cliente senza Session-RPE) e FOTO dal telefono */
+  { const rf = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
+      righe:[{giorno:'Lunedì',esercizio:'Squat con bilanciere',serie:3,rip:5,peso:100,rir:null}],
+      sedute:[{giorno:'Lunedì',fatto:true},{giorno:'Mercoledì',fatto:true}] };
+    const r2 = await w.eval('caricaRientroInScheda(' + JSON.stringify(rf) + ')');
+    ok(r2.fatti === 2 && r2.sedute === 0, 'rientro senza RPE: conta i giorni spuntati come completati (2) senza inventare sedute');
+    /* foto: dal data-URI al file binario in foto/ + metadati in DOC.foto */
+    const nFotoPre = w.eval('(DOC.foto||[]).length');
+    const imgUri = 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT,'docs','img','logo.png')).toString('base64');
+    const nSalvate = await w.eval('importaFotoRientro(' + JSON.stringify([{tag:'fronte',data:'2026-08-17',img:imgUri},{tag:'retro',data:'2026-08-17',img:imgUri}]) + ')');
+    ok(nSalvate === 2 && w.eval('(DOC.foto||[]).length') === nFotoPre + 2, 'rientro foto: le due immagini vengono salvate (metadati in DOC.foto)');
+    { const ff = w.eval('DOC.foto[DOC.foto.length-2]');
+      ok(ff.tag === 'fronte' && ff.data === '2026-08-17' && /^f\d+-[a-z0-9]+\.png$/.test(ff.file), 'rientro foto: tag, data e nome file nel formato del tab Corpo (' + ff.file + ')');
+      ok(w.eval('(function(){var n=DOC.foto[DOC.foto.length-2].file; return !!(dirHandle||window.tmsFS);})()'), 'rientro foto: scritte tramite lo stesso canale binario delle altre foto'); }
+    /* l'ordinamento delle viste ora riconosce i tag veri (fronte/lato/retro) */
+    ok(w.eval('fotoViewOrder("fronte")') === 0 && w.eval('fotoViewOrder("lato")') === 1 && w.eval('fotoViewOrder("retro")') === 2, 'foto: ordine viste fronte→lato→retro (prima non combaciava coi tag usati)');
+    ok(w.eval('fotoViewOrder("anteriore")') === 0 && w.eval('fotoViewOrder("posteriore")') === 2, 'foto: riconosciuti anche i sinonimi lunghi (anteriore/posteriore)');
+    w.eval('DOC.foto.length=' + nFotoPre + ';');   /* ripulisce: i test foto successivi partono dallo stato del template */
+  }
   /* import e2e: file non valido + file valido -> carica in Pesi, niente scrittura automatica */
   await w.eval('importaRientroFile(' + JSON.stringify({}) + ')'); /* oggetto non-file: alert "non valido", nessun crash */
   const fakeFile = { text: async () => JSON.stringify(rientro) };

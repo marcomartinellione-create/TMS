@@ -54,6 +54,19 @@
  .al-nome{flex:1;min-width:0;font-size:14px}
  .al-g{font-weight:bold;white-space:nowrap;font-size:14.5px}
  .al-kcal{color:#7a6648;font-size:11.5px;white-space:nowrap}
+ /* ── foto progressi: tre riquadri (fronte/lato/retro) ── */
+ .foto-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+ .foto-box{position:relative;background:#fbf4e6;border:1.5px dashed #b97a39;border-radius:11px;padding:0;cursor:pointer;
+   aspect-ratio:3/4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;overflow:hidden;font:inherit;color:inherit}
+ .foto-box:active{background:#f1e6cd}
+ .foto-box.pieno{border-style:solid;border-color:#2f7d4f}
+ .foto-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+ .foto-ico{font-size:24px;line-height:1}
+ .foto-lab{font-size:12px;font-weight:bold;color:#9a5b1f;text-align:center;padding:0 3px}
+ .foto-x{position:absolute;top:4px;right:4px;z-index:2;border:0;background:rgba(20,10,2,.72);color:#fff;
+   width:26px;height:26px;border-radius:50%;font-size:15px;line-height:1;cursor:pointer;padding:0}
+ .foto-ok{position:absolute;bottom:4px;left:4px;z-index:2;background:rgba(47,125,79,.9);color:#fff;
+   font-size:10.5px;font-weight:bold;padding:2px 7px;border-radius:8px}
  /* ── avanzamento della seduta ── */
  .prog{height:5px;background:#e6d9bd;border-radius:4px;overflow:hidden;margin:2px 0 4px}
  .prog>i{display:block;height:100%;width:0;background:#2f7d4f;border-radius:4px;transition:width .2s}
@@ -71,7 +84,6 @@
  /* ── riga esercizio: sommario compatto; i campi stanno nel corpo, che si apre a schermo pieno ── */
  .ex-row{background:#fbf4e6;border:1px solid #cdb889;border-radius:10px;padding:9px 11px;margin-bottom:7px}
  .ex-row.custom{border-color:#b97a39;border-style:dashed}
- .ex-sum{cursor:pointer}
  .ex-hd{display:flex;align-items:center;gap:8px}
  .ex-nm{flex:1;min-width:0;font-size:15px;font-weight:bold;color:#2b1d10}
  .ex-ck{color:#2f7d4f;font-size:15px;font-weight:bold}
@@ -79,12 +91,9 @@
  .ex-last{color:#2f7d4f;font-size:12px;margin-top:1px}
  .ex-tag{font-size:10px;color:#9a5b1f;background:#f1e6cd;border-radius:4px;padding:1px 5px}
  .ex-coach{color:#9a8a6a;font-size:12px;margin:6px 0 0;font-style:italic;line-height:1.35}
- .ex-body{display:none}
- /* schermo pieno: la STESSA riga diventa overlay (nessun doppione di campi nel DOM) */
- .ex-row.open{position:fixed;inset:0;z-index:12;margin:0;border:0;border-radius:0;overflow-y:auto;padding:12px 13px calc(66px + env(safe-area-inset-bottom))}
- .ex-row.open .ex-sum{cursor:default}
- .ex-row.open .ex-body{display:block}
- .ex-row.open .chev{display:none}
+ /* i campi di OGNI esercizio restano sempre aperti: tutto visibile insieme, senza
+    sotto-menù né avanti/indietro (richiesta di Marco: meno click possibili) */
+ .ex-body{display:block}
  /* campi: griglia compatta 2 colonne, numeri grandi e leggibili */
  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0 2px}
  .fld{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid #cdb889;border-radius:8px;padding:5px 8px}
@@ -94,11 +103,6 @@
  .fld.wide{grid-column:1/-1}
  .fld.wide input{font-size:15px;font-weight:normal}
  /* barra avanti/indietro della vista a schermo pieno */
- #exnav{position:fixed;left:0;right:0;bottom:0;z-index:13;display:none;gap:6px;padding:7px 10px calc(7px + env(safe-area-inset-bottom));background:#f4ead8;border-top:1px solid #cdb889;max-width:620px;margin-inline:auto}
- #exnav.show{display:flex}
- #exnav button{flex:1;border:1px solid #b97a39;background:#fff;color:#9a5b1f;border-radius:9px;font:inherit;font-size:13.5px;font-weight:bold;padding:10px 5px;cursor:pointer;white-space:nowrap}
- #exnav button.pri{background:#9a5b1f;color:#fff;border-color:#9a5b1f;flex:1.3}
- #exnav button:disabled{opacity:.35}
  /* azioni sotto i campi (video, timer, ★, modifica, elimina) */
  .ex-actions{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 1px}
  .mini{border:1px solid #cdb889;background:#fff;border-radius:7px;cursor:pointer;font:inherit;font-size:12.5px;padding:7px 11px;color:#9a5b1f}
@@ -123,6 +127,10 @@
  /* fine seduta */
  .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:11px;padding:10px 13px;margin:0 0 10px}
  .seduta-t{font-size:11.5px;color:#9a5b1f;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+ /* casella «giorno completato» (quando il coach non usa la fatica di seduta) */
+ .f.fatto{justify-content:flex-start;gap:10px;cursor:pointer;padding:8px 0}
+ .f.fatto input{width:22px;height:22px;flex:0 0 auto}
+ .f.fatto span{font-size:15px;font-weight:bold;color:#5b4a30}
  /* riepilogo prima dell'invio */
  .riep-row{display:flex;align-items:baseline;gap:9px;padding:6px 0;border-bottom:1px solid #f0e6cf}
  .riep-row:last-child{border-bottom:0}
@@ -208,6 +216,10 @@
       <span class="macro-ico">🍖</span>
       <span class="macro-l"><span class="macro-name" data-i18n>Alimentazione</span><span class="macro-meta" id="meta-alim"></span></span>
       <span class="chev">›</span></button>
+    <button type="button" class="macro-card" id="vai-foto">
+      <span class="macro-ico">📸</span>
+      <span class="macro-l"><span class="macro-name" data-i18n>Foto progressi</span><span class="macro-meta" id="meta-foto"></span></span>
+      <span class="chev">›</span></button>
   </div>
   <label class="btn-lite" style="cursor:pointer"><span data-i18n>📂 Carica una nuova scheda</span><input id="file-scheda-2" type="file" accept="application/json,.json" style="display:none"></label>
   <div class="install" id="install-hint-2" hidden></div>
@@ -231,6 +243,17 @@
   <button type="button" class="btn-big" id="invia-ok" data-i18n>📩 Crea il file per il coach</button>
 </div>
 
+<!-- ── schermata FOTO PROGRESSI: tre viste (fronte/lato/retro), da fotocamera o galleria.
+       Restano sul telefono e viaggiano nel file di rientro, per finire nel tab Corpo del TMS. ── -->
+<div id="foto" hidden>
+  <button type="button" class="back-btn" data-menu data-i18n>‹ Torna al menu</button>
+  <div class="sez-t" data-i18n>▌ Foto progressi</div>
+  <div class="avviso" data-i18n-html>Scatta o scegli una foto per ogni vista: finiscono nel file per il coach e da lì nel <b>tuo storico foto</b> sul PC. 🔒 Restano sul telefono fino a quando invii il file.</div>
+  <div class="foto-grid" id="foto-grid"></div>
+  <div class="fine" id="foto-nota" data-i18n>Le foto vengono rimpicciolite per non appesantire il file.</div>
+  <button type="button" class="back-btn bottom" data-menu data-i18n>‹ Torna al menu</button>
+</div>
+
 <!-- ── schermata ALIMENTAZIONE: piano del coach, sola lettura ── -->
 <div id="alim" hidden>
   <button type="button" class="back-btn" data-menu data-i18n>‹ Torna al menu</button>
@@ -242,13 +265,6 @@
 <!-- ── pagine-giorno generate dal JS ── -->
 <div id="pagine"></div>
 
-<!-- ── barra avanti/indietro della vista esercizio a schermo pieno ── -->
-<div id="exnav">
-  <button type="button" id="nav-prev">‹</button>
-  <button type="button" id="nav-close" class="pri"><span id="nav-lab"></span></button>
-  <button type="button" id="nav-next">›</button>
-</div>
-
 <!-- ── barra del timer di recupero (parte dal bottone ⏱, legge il Rest della scheda) ── -->
 <div id="tbar">
   <div class="t-l"><div class="t-ex" id="t-ex"></div><div class="t-time" id="t-time">0:00</div></div>
@@ -258,6 +274,7 @@
   <button type="button" id="t-x" class="t-x" title="chiudi">✕</button>
 </div>
 
+<input id="foto-file" type="file" accept="image/*" style="display:none">
 <div id="vov"><button id="vclose" type="button">✕</button><video controls playsinline></video></div>
 <footer>TMS Scheda · <span data-i18n>app del</span> <a href="../index.html" style="color:#9a5b1f">Training Monitor System</a> · <span id="cver"></span></footer>
 
@@ -271,7 +288,7 @@
    coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.1';
+const CVER='2.2';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -362,7 +379,20 @@ const TT={en:{
   '⚠ Non hai ancora segnato nessun esercizio: il file sarebbe vuoto.':'⚠ You haven\'t marked any exercise yet: the file would be empty.',
   'esercizi segnati':'exercises marked',
   'sedute con fatica e durata':'sessions with effort and duration',
-  'da compilare':'to fill in'
+  'da compilare':'to fill in',
+  /* v2.2 — foto progressi, casella «giorno completato» */
+  'Foto progressi':'Progress photos',
+  '▌ Foto progressi':'▌ Progress photos',
+  'Scatta o scegli una foto per ogni vista: finiscono nel file per il coach e da lì nel <b>tuo storico foto</b> sul PC. 🔒 Restano sul telefono fino a quando invii il file.':'Take or pick a photo for each view: they go into the file for the coach and from there into <b>your photo history</b> on the PC. 🔒 They stay on your phone until you send the file.',
+  'Le foto vengono rimpicciolite per non appesantire il file.':'Photos are downscaled to keep the file small.',
+  'Fronte':'Front','Lato':'Side','Retro':'Back',
+  'di':'of',
+  'nessuna foto':'no photos',
+  'Togli la foto':'Remove the photo',
+  'Vuoi togliere questa foto?':'Remove this photo?',
+  'Non riesco a leggere questa immagine.':'I can\'t read this image.',
+  'Giorno completato':'Day completed',
+  'foto':'photos'
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 function applyI18n(){
@@ -394,7 +424,7 @@ async function leggiScheda(){ if(memScheda) return memScheda;
   return null; }
 
 /* ── stato ── */
-let SCHEDA=null, GIORNI=[], BK='', WROWS=[], ridSeq=0, OPEN_RID=null;
+let SCHEDA=null, GIORNI=[], BK='', WROWS=[], ridSeq=0;
 const stOk=(()=>{ try{ localStorage.setItem('t','1'); localStorage.removeItem('t'); return true; }catch(e){ return false; } })();
 
 function validaScheda(d){ return d && d.tipo==='tms-scheda' && Array.isArray(d.righe) && d.righe.length>0; }
@@ -427,6 +457,8 @@ function wrowsDelGiorno(g){ return WROWS.filter(r=>r.giorno===g); }
 /* scheda MODIFICABILE (scelta dal coach all'export): abilita aggiungi/elimina/modifica/★.
    Se il campo manca (file vecchi) → scheda FISSA. Il timer resta in entrambe le modalità. */
 function canEdit(){ return !!(SCHEDA && SCHEDA.modificabile); }
+/* il coach usa il Session-RPE? Se il file non lo dice (schede vecchie) si assume SÌ. */
+function useRpeScheda(){ return !(SCHEDA && SCHEDA.rpe===false); }
 /* riscaldamento del giorno (sola lettura, NON torna nel rientro). Assente nei file vecchi. */
 function warmDelGiorno(g){ return ((SCHEDA&&SCHEDA.riscaldamento)||[]).filter(r=>r&&String(r.giorno||'')===g&&String(r.esercizio||'').trim()); }
 /* «l'ultima volta» dallo Storico del TMS (mappa nome esercizio → {peso,rip,rir}) */
@@ -436,7 +468,7 @@ function ultimaDi(nome){ const u=(SCHEDA&&SCHEDA.ultima)||null; return (u&&u[Str
 function avvia(){
   const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
-  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','riepilogo'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); return; }
+  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','riepilogo','foto'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); return; }
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
@@ -448,6 +480,7 @@ function avvia(){
   $('vai-alim').disabled=!haDieta;
   renderAlim();
   renderScheda();
+  fotoLeggi().then(f=>{ FOTO=f||{}; renderFoto(); }).catch(()=>{ FOTO={}; renderFoto(); });
   mostra('menu'); mostraInstallHint();
 }
 /* ricostruisce lista giorni e pagine-giorno dal modello WROWS; poi riaggancia gli
@@ -492,8 +525,13 @@ function paginaGiorno(g,gi){
     '</div>'+
     '<div class="fase" data-fase="f" hidden>'+
       '<div class="seduta"><div class="seduta-t">'+tt('Fine giornata')+'</div>'+
-      '<div class="f"><label>'+tt('Fatica seduta (RPE 0–10)')+'</label><input id="rpe-'+gi+'" type="number" inputmode="decimal" min="0" max="10" step="0.5" placeholder="–"></div>'+
-      '<div class="f"><label>'+tt('Durata (min)')+'</label><input id="min-'+gi+'" type="number" inputmode="numeric" min="0" step="1" placeholder="–"></div></div>'+
+      /* il coach usa la fatica di seduta? se no (campo `rpe` false nel file) niente RPE e
+         durata: resta solo la casella per dire «questo giorno l'ho fatto». */
+      (useRpeScheda()
+        ? '<div class="f"><label>'+tt('Fatica seduta (RPE 0–10)')+'</label><input id="rpe-'+gi+'" type="number" inputmode="decimal" min="0" max="10" step="0.5" placeholder="–"></div>'+
+          '<div class="f"><label>'+tt('Durata (min)')+'</label><input id="min-'+gi+'" type="number" inputmode="numeric" min="0" step="1" placeholder="–"></div>'
+        : '<label class="f fatto"><input id="fatto-'+gi+'" type="checkbox"><span>'+tt('Giorno completato')+'</span></label>')+
+      '</div>'+
       '<button type="button" class="btn-lite" data-back>'+tt('‹ Torna ai giorni')+'</button>'+
     '</div>'+
     '<button type="button" class="back-btn bottom" data-back>'+tt('‹ Torna ai giorni')+'</button></div>';
@@ -511,10 +549,10 @@ function rigaEsercizio(r){
   const rec=sec>0?'<button type="button" class="mini rec" data-rec="'+i+'" title="'+esc(tt('Avvia il timer di recupero'))+'">⏱ '+fmtSec(sec)+'</button>':'';
   const star='<button type="button" class="mini'+(r.test?' on':'')+'" data-star="'+i+'" title="'+esc(tt('Segna come test del massimale (1RM): il coach lo vedrà a parte, escluso dalla progressione.'))+'">★ '+tt('Test')+'</button>';
   return '<div class="ex-row'+(r.custom?' custom':'')+'" id="ex-'+i+'">'+
-    '<div class="ex-sum" data-open="'+i+'">'+
+    '<div class="ex-sum">'+
       '<div class="ex-hd"><span class="ex-nm">'+esc(r.esercizio||tt('Nuovo esercizio'))+'</span>'+
         (r.custom?'<span class="ex-tag">'+tt('aggiunto')+'</span>':'')+
-        '<span class="ex-ck" id="ck-'+i+'"></span><span class="chev">›</span></div>'+
+        '<span class="ex-ck" id="ck-'+i+'"></span></div>'+
       (r.custom?'':'<div class="ex-sub">'+prev+'</div>')+ultima+
     '</div>'+
     '<div class="ex-body">'+
@@ -532,7 +570,7 @@ function rigaEsercizio(r){
       (ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':'')+
     '</div></div>';
 }
-function mostra(id){ ['menu','home','alim','riepilogo'].forEach(s=>{ $(s).hidden=(id!==s); });
+function mostra(id){ ['menu','home','alim','riepilogo','foto'].forEach(s=>{ $(s).hidden=(id!==s); });
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
 /* fase visibile dentro la pagina-giorno ('w' riscaldamento · 'e' esercizi · 'f' fine) */
@@ -562,6 +600,66 @@ function renderAlim(){
   box.innerHTML=h;
 }
 
+/* ── FOTO PROGRESSI: tre viste (fronte/lato/retro), da fotocamera o galleria. Restano nel
+      telefono (IndexedDB) e viaggiano nel file di rientro come immagini incorporate; il TMS
+      le salva nel tab Corpo. Vengono RIMPICCIOLITE prima di essere incorporate, altrimenti
+      tre scatti da telefono farebbero un file da decine di MB impossibile da mandare. ── */
+const FOTO_VISTE=['fronte','lato','retro'];
+const FOTO_LAB={fronte:'Fronte',lato:'Lato',retro:'Retro'};
+const FOTO_MAXLATO=1280, FOTO_Q=.82;
+let FOTO={}, fotoVistaAttesa='';
+function fotoKey(){ return 'tms-foto-'+(((SCHEDA&&SCHEDA.profilo)||{}).slug||'cliente')+'-'+((SCHEDA&&SCHEDA.esportata)||''); }
+async function fotoSalva(){ const s=JSON.stringify(FOTO);
+  try{ if(typeof indexedDB!=='undefined'){ await idbReq('readwrite',st=>st.put(s,fotoKey())); return; } }catch(e){}
+  try{ localStorage.setItem(fotoKey(),s); }catch(e){} }
+async function fotoLeggi(){
+  try{ if(typeof indexedDB!=='undefined'){ const s=await idbReq('readonly',st=>st.get(fotoKey())); if(s) return JSON.parse(s); } }catch(e){}
+  try{ const s=localStorage.getItem(fotoKey()); if(s) return JSON.parse(s); }catch(e){}
+  return {}; }
+/* rimpicciolisce lo scatto: lato lungo max 1280 px, JPEG. createImageBitmap rispetta
+   l'orientamento EXIF (foto scattate in verticale non escono ruotate). */
+async function fotoRidimensiona(file){
+  const disegna=(src,w,h)=>{ const c=document.createElement('canvas'); c.width=w; c.height=h;
+    c.getContext('2d').drawImage(src,0,0,w,h); return c.toDataURL('image/jpeg',FOTO_Q); };
+  const scala=(w,h)=>{ const m=Math.max(w,h); if(m<=FOTO_MAXLATO) return [w,h];
+    const k=FOTO_MAXLATO/m; return [Math.round(w*k),Math.round(h*k)]; };
+  try{ if(typeof createImageBitmap==='function'){
+    const bm=await createImageBitmap(file,{imageOrientation:'from-image'});
+    const [w,h]=scala(bm.width,bm.height); const out=disegna(bm,w,h); if(bm.close) bm.close(); return out; } }catch(e){}
+  /* ripiego: FileReader + <img> */
+  const dataUri=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(file); });
+  try{ const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(0); i.src=dataUri; });
+    const [w,h]=scala(im.naturalWidth||im.width, im.naturalHeight||im.height); return disegna(im,w,h);
+  }catch(e){ return dataUri; }
+}
+async function fotoAggiungi(vista,file){
+  if(!file) return;
+  let img=null;
+  try{ img=await fotoRidimensiona(file); }catch(e){ alert(tt('Non riesco a leggere questa immagine.')); return; }
+  FOTO[vista]={img:img, data:new Date().toISOString().slice(0,10)};
+  await fotoSalva(); renderFoto();
+}
+async function fotoRimuovi(vista){
+  if(!confirm(tt('Vuoi togliere questa foto?'))) return;
+  delete FOTO[vista]; await fotoSalva(); renderFoto();
+}
+function fotoQuante(){ return FOTO_VISTE.filter(v=>FOTO[v]&&FOTO[v].img).length; }
+function renderFoto(){
+  const box=$('foto-grid');
+  const mf=$('meta-foto'); if(mf){ const n=fotoQuante();
+    mf.textContent=n? (n+' '+tt('di')+' '+FOTO_VISTE.length) : tt('nessuna foto'); }
+  if(!box) return;
+  box.innerHTML=FOTO_VISTE.map(v=>{ const f=FOTO[v];
+    return '<div class="foto-box'+(f?' pieno':'')+'" data-foto="'+v+'">'+
+      (f? '<img src="'+f.img+'" alt="'+esc(tt(FOTO_LAB[v]))+'"><span class="foto-ok">'+esc(tt(FOTO_LAB[v]))+' ✔</span>'+
+          '<button type="button" class="foto-x" data-fotox="'+v+'" title="'+esc(tt('Togli la foto'))+'">✕</button>'
+        : '<span class="foto-ico">📷</span><span class="foto-lab">'+esc(tt(FOTO_LAB[v]))+'</span>')+
+      '</div>'; }).join('');
+  box.querySelectorAll('[data-foto]').forEach(b=>{ b.onclick=()=>{ fotoVistaAttesa=b.getAttribute('data-foto');
+    const inp=$('foto-file'); if(inp){ inp.value=''; inp.click(); } }; });
+  box.querySelectorAll('[data-fotox]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); fotoRimuovi(b.getAttribute('data-fotox')); }; });
+}
+
 /* ── bozza autosalvata (localStorage, per scheda). I campi partono precompilati col
       PREVISTO del coach: le spunte ✔ si basano sui campi TOCCATI dal cliente
       (set _t nella bozza), non sul semplice «campo non vuoto». ── */
@@ -574,16 +672,18 @@ function salvaBozza(){ if(!stOk||!SCHEDA) return;
   const o={_t:[...TOCCATI], _wrows:WROWS.map(r=>({rid:r.rid, giorno:r.giorno, esercizio:r.esercizio, note:r.note,
     video:r.video, serie:r.serie, rip:r.rip, peso:r.peso, rir:r.rir, rest:r.rest, custom:r.custom, test:r.test}))};
   idsCampi().forEach(id=>{ const el=$(id); if(el&&el.value!=='') o[id]=el.value; });
+  GIORNI.forEach((g,gi)=>{ const c=$('fatto-'+gi); if(c&&c.checked) o['fatto-'+gi]='1'; });
   try{ localStorage.setItem(BK,JSON.stringify(o));
     const n=$('bozza-stato'); if(n) n.textContent=tt('💾 salvato')+' '+new Date().toLocaleTimeString(LANGP==='en'?'en-GB':'it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){} }
 function caricaBozza(){ TOCCATI=new Set(); if(!stOk) return; let raw=null; try{ raw=localStorage.getItem(BK); }catch(e){}
   if(!raw) return; try{ const o=JSON.parse(raw);
-    Object.keys(o).forEach(id=>{ if(id==='_t'||id==='_wrows') return; const el=$(id); if(el) el.value=o[id]; });
+    Object.keys(o).forEach(id=>{ if(id==='_t'||id==='_wrows') return; const el=$(id); if(!el) return;
+      if(el.type==='checkbox') el.checked=(o[id]==='1'); else el.value=o[id]; });
     TOCCATI=new Set(Array.isArray(o._t)? o._t : Object.keys(o).filter(k=>k!=='_t'&&k!=='_wrows'));
     const n=$('bozza-stato'); if(n) n.textContent=tt('✔ Ho ricaricato quello che avevi scritto.'); }catch(e){} }
 function exFatto(rid){ return ['s-','r-','p-','rir-','n-'].some(p=>TOCCATI.has(p+rid)); }
 function dayIds(gi){ const ids=[]; WROWS.forEach(r=>{ if(r.giorno===GIORNI[gi]){ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+r.rid)); } });
-  ids.push('rpe-'+gi); ids.push('min-'+gi); return ids; }
+  ids.push('rpe-'+gi); ids.push('min-'+gi); ids.push('fatto-'+gi); return ids; }
 /* spunte ✔ (giorni ed esercizi) + barra di avanzamento della seduta */
 function aggiornaStato(){ if(!SCHEDA) return;
   GIORNI.forEach((g,gi)=>{
@@ -597,35 +697,24 @@ function aggiornaStato(){ if(!SCHEDA) return;
   });
 }
 
-/* ── vista esercizio a schermo pieno (la riga stessa diventa overlay) ── */
-function apriEx(rid){
-  if(OPEN_RID!=null){ const p=$('ex-'+OPEN_RID); if(p) p.classList.remove('open'); }
-  const row=$('ex-'+rid); if(!row) return;
-  OPEN_RID=+rid; row.classList.add('open');
-  try{ document.body.style.overflow='hidden'; row.scrollTop=0; }catch(e){}
-  const nav=$('exnav'); if(nav) nav.classList.add('show');
-  aggiornaNav();
+/* ── tasto INDIETRO del telefono: risale di un livello DENTRO l'app invece di chiuderla.
+      Ogni volta che si entra in una schermata più profonda si aggiunge una tacca alla
+      cronologia; il tasto indietro la consuma e noi risaliamo. Gli stessi bottoni «‹ Torna…»
+      passano da qui, così cronologia e schermate restano allineate. ── */
+let navLivelli=0;
+function navEntra(){ navLivelli++; try{ history.pushState({tms:navLivelli},''); }catch(e){} }
+function navIndietro(){ if(navLivelli>0){ try{ history.back(); return; }catch(e){} } risali(); }
+/* dove si torna: prima si chiudono gli overlay, poi si risale di schermata */
+function risali(){
+  const vov=$('vov'); if(vov && vov.style.display==='flex'){ chiudiVideo(); return true; }
+  const qrov=$('qrov'); if(qrov && qrov.style.display==='flex'){ qrov.style.display='none'; return true; }
+  if(!$('riepilogo').hidden){ aggiornaStato(); mostra('home'); return true; }
+  const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
+  if(giorno){ aggiornaStato(); mostra('home'); return true; }
+  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden){ aggiornaStato(); mostra('menu'); return true; }
+  return false;   /* siamo al menu: non c'è più nulla sopra, l'app può chiudersi */
 }
-function chiudiEx(){
-  if(OPEN_RID!=null){ const row=$('ex-'+OPEN_RID); if(row) row.classList.remove('open'); }
-  OPEN_RID=null;
-  try{ document.body.style.overflow=''; }catch(e){}
-  const nav=$('exnav'); if(nav) nav.classList.remove('show');
-  aggiornaStato();
-}
-function exNav(dir){
-  const r=rowById(OPEN_RID); if(!r) return;
-  const lista=wrowsDelGiorno(r.giorno), i=lista.findIndex(x=>x.rid===r.rid);
-  const next=lista[i+dir]; if(next) apriEx(next.rid);
-}
-function aggiornaNav(){
-  const r=rowById(OPEN_RID); if(!r) return;
-  const lista=wrowsDelGiorno(r.giorno), i=lista.findIndex(x=>x.rid===r.rid);
-  const p=$('nav-prev'), n=$('nav-next'), lab=$('nav-lab');
-  if(p) p.disabled=(i<=0);
-  if(n) n.disabled=(i>=lista.length-1);
-  if(lab) lab.textContent=(i+1)+'/'+lista.length+' · '+tt('Chiudi');
-}
+window.addEventListener('popstate',()=>{ if(navLivelli>0) navLivelli--; risali(); });
 
 /* ── riepilogo prima dell'invio ── */
 function renderRiepilogo(){
@@ -655,9 +744,13 @@ function costruisciRientro(){
     rir:num('rir-'+r.rid), note:(($('n-'+r.rid)&&$('n-'+r.rid).value)||'').trim(), test:!!r.test}))
     .filter(x=>x.esercizio);
   const sedute=[]; GIORNI.forEach((g,gi)=>{ const rp=num('rpe-'+gi), mn=num('min-'+gi);
-    if(rp&&mn) sedute.push({giorno:g, rpe:rp, min:mn}); });
+    if(rp&&mn){ sedute.push({giorno:g, rpe:rp, min:mn}); return; }
+    const c=$('fatto-'+gi); if(c&&c.checked) sedute.push({giorno:g, fatto:true}); });
+  /* foto progressi (se scattate): tag fronte/lato/retro + immagine incorporata → il TMS le
+     salva nel tab Corpo con la data dello scatto */
+  const foto=FOTO_VISTE.filter(v=>FOTO[v]&&FOTO[v].img).map(v=>({tag:v, data:FOTO[v].data||new Date().toISOString().slice(0,10), img:FOTO[v].img}));
   return {tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
-    esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:righe, sedute:sedute};
+    esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:righe, sedute:sedute, foto:foto};
 }
 async function inviaRientro(){
   const out=costruisciRientro();
@@ -683,19 +776,19 @@ function wire(){
     const ov=$('vov'), v=ov.querySelector('video');
     v.src=(SCHEDA.video&&SCHEDA.video[b.getAttribute('data-v')])||''; ov.style.display='flex';
     try{ v.play(); }catch(e2){} }; });
-  document.querySelectorAll('[data-go]').forEach(b=>{ b.onclick=()=>apriGiorno(+b.getAttribute('data-go')); });
-  document.querySelectorAll('[data-back]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('home'); }; });
-  document.querySelectorAll('[data-menu]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('menu'); }; });
-  document.querySelectorAll('[data-home]').forEach(b=>{ b.onclick=()=>{ aggiornaStato(); mostra('home'); }; });
+  document.querySelectorAll('[data-go]').forEach(b=>{ b.onclick=()=>{ navEntra(); apriGiorno(+b.getAttribute('data-go')); }; });
+  document.querySelectorAll('[data-back]').forEach(b=>{ b.onclick=navIndietro; });
+  document.querySelectorAll('[data-menu]').forEach(b=>{ b.onclick=navIndietro; });
+  document.querySelectorAll('[data-home]').forEach(b=>{ b.onclick=navIndietro; });
   document.querySelectorAll('.fasi button').forEach(b=>{ b.onclick=()=>mostraFase(+b.dataset.gi, b.dataset.f); });
-  document.querySelectorAll('[data-open]').forEach(b=>{ b.onclick=()=>apriEx(+b.getAttribute('data-open')); });
   document.querySelectorAll('[data-add]').forEach(b=>{ b.onclick=()=>addEsercizio(+b.getAttribute('data-add')); });
   document.querySelectorAll('[data-del]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); delEsercizio(+b.getAttribute('data-del')); }; });
   document.querySelectorAll('[data-star]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); toggleStar(+b.getAttribute('data-star')); }; });
   document.querySelectorAll('[data-edit]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); openEdit(+b.getAttribute('data-edit')); }; });
   document.querySelectorAll('[data-rec]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); const r=rowById(+b.getAttribute('data-rec')); if(r) startTimer(r.esercizio||tt('Recupero'), restSec(r.rest)); }; });
-  const vs=$('vai-scheda'); if(vs) vs.onclick=()=>mostra('home');
-  const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled) mostra('alim'); };
+  const vs=$('vai-scheda'); if(vs) vs.onclick=()=>{ navEntra(); mostra('home'); };
+  const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled){ navEntra(); mostra('alim'); } };
+  const vf=$('vai-foto'); if(vf) vf.onclick=()=>{ navEntra(); mostra('foto'); };
 }
 function giornoIndex(g){ const i=GIORNI.indexOf(g); return i<0?0:i; }
 /* ── aggiungi / elimina / test 1RM / modifica un esercizio (agiscono su WROWS) ── */
@@ -703,13 +796,13 @@ function addEsercizio(gi){
   const g=GIORNI[gi]; if(g==null) return;
   const rid=ridSeq++;
   WROWS.push(normRow({giorno:g, esercizio:'', serie:3, rip:10, peso:0, rir:null, rest:'1:30', custom:true, test:false}, rid));
-  salvaBozza(); renderScheda(); mostra('day-'+gi); mostraFase(gi,'e'); apriEx(rid); openEdit(rid);
+  salvaBozza(); renderScheda(); mostra('day-'+gi); mostraFase(gi,'e'); openEdit(rid);
+  { const c=$('ex-'+rid); if(c&&c.scrollIntoView) try{ c.scrollIntoView({block:'center'}); }catch(e){} }
 }
 function delEsercizio(rid){
   const r=rowById(rid); if(!r) return;
   if(!confirm(tt('Vuoi eliminare questo esercizio dalla scheda?'))) return;
   const gi=giornoIndex(r.giorno);
-  if(OPEN_RID===+rid) chiudiEx();
   WROWS=WROWS.filter(x=>x.rid!==+rid);
   ['s-','r-','p-','rir-','n-'].forEach(p=>TOCCATI.delete(p+rid));
   salvaBozza(); renderScheda(); mostra('day-'+gi); mostraFase(gi,'e');
@@ -744,7 +837,7 @@ function saveEdit(rid){
   const rr=gv('erir-'+rid); r.rir=(rr===''?null:+rr);
   r.rest=String(gv('erest-'+rid)||'').trim();
   const gi=giornoIndex(r.giorno);
-  chiudiEx(); salvaBozza(); renderScheda(); mostra('day-'+gi); mostraFase(gi,'e');
+  salvaBozza(); renderScheda(); mostra('day-'+gi); mostraFase(gi,'e');
 }
 
 /* ── timer di recupero: legge il Rest della scheda (formato m:ss, o secondi, o «1m30s») ── */
@@ -783,28 +876,27 @@ function timerAdjust(delta){ const bar=$('tbar'); if(!bar||!bar.classList.contai
 function timerToggle(){ const bar=$('tbar'); if(!bar||!bar.classList.contains('show')||timerLeft<=0) return;
   timerPaused=!timerPaused; $('t-pause').textContent=timerPaused?'▶':'⏸'; if(!timerPaused&&!timerId) timerRun(); }
 function timerClose(){ clearInterval(timerId); timerId=null; timerPaused=false; const bar=$('tbar'); if(bar) bar.classList.remove('show','done'); }
-$('vclose').onclick=()=>{ const ov=$('vov'), v=ov.querySelector('video'); v.pause(); v.removeAttribute('src'); ov.style.display='none'; };
+function chiudiVideo(){ const ov=$('vov'), v=ov.querySelector('video'); try{ v.pause(); }catch(e){} v.removeAttribute('src'); ov.style.display='none'; }
+$('vclose').onclick=chiudiVideo;
 /* pannello QR «By Wander» (Instagram / YouTube / GitHub), come nel TMS desktop */
 $('qr-btn').onclick=()=>{ $('qrov').style.display='flex'; };
 $('qrclose').onclick=()=>{ $('qrov').style.display='none'; };
 $('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; };
 /* invio: prima il riepilogo, poi il file */
-$('invia').onclick=()=>{ renderRiepilogo(); mostra('riepilogo'); };
+$('invia').onclick=()=>{ renderRiepilogo(); navEntra(); mostra('riepilogo'); };
 $('invia-ok').onclick=inviaRientro;
 /* barra della vista esercizio a schermo pieno */
-$('nav-prev').onclick=()=>exNav(-1);
-$('nav-next').onclick=()=>exNav(1);
-$('nav-close').onclick=chiudiEx;
 /* controlli fissi della barra timer di recupero */
 $('t-pause').onclick=timerToggle;
 $('t-p15').onclick=()=>timerAdjust(15);
 $('t-m15').onclick=()=>timerAdjust(-15);
 $('t-x').onclick=timerClose;
+{ const fi=$('foto-file'); if(fi) fi.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f&&fotoVistaAttesa) fotoAggiungi(fotoVistaAttesa,f); }; }
 [['file-scheda'],['file-scheda-2']].forEach(([id])=>{ const inp=$(id);
   inp.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) caricaFile(f); }; });
 /* autosalvataggio: solo sui campi «fatto» del cliente (non sui campi del pannello Modifica) */
 document.addEventListener('input',e=>{ const id=e.target&&e.target.id;
-  if(id && /^(s|r|p|rir|n|rpe|min)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); } });
+  if(id && /^(s|r|p|rir|n|rpe|min|fatto)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); } });
 
 /* ── suggerimento d'installazione (solo se non già installata) ── */
 let deferredInstall=null;

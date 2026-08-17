@@ -68,7 +68,9 @@ function costruisciSchedaJSON(videoMap, modificabile){
     rir:(r.rir===''||r.rir==null)?null:+r.rir, test:!!r.test, note:r.note||'', video:videoOf(r.esercizio)||''}));
   const warm=righeRiscaldamentoCliente().map(r=>({giorno:String(r.giorno||''), esercizio:String(r.esercizio).trim(),
     serie:+r.serie||0, rip:+r.rip||0, min:+r.min||0, note:r.note||'', video:videoOf(r.esercizio)||''}));
-  return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile,
+  /* `rpe`: il profilo usa il Session-RPE? Se no, l'app del cliente non mostra fatica e
+     durata — resta solo una casella per spuntare il giorno come completato. */
+  return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile, rpe:useRpeActive(),
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
     appCliente:APP_CLIENTE_URL, righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),
     video:videoMap, dieta:costruisciDietaJSON()};
@@ -133,9 +135,39 @@ function caricaRientroInScheda(dati){
     rir:(r.rir===''||r.rir==null)?'':+r.rir, test:!!(r&&r.test) }));
   if(!DOC.scheda.rpe||typeof DOC.scheda.rpe!=='object') DOC.scheda.rpe={};
   DOC.scheda.rpe.settimanale={};
+  let fatti=0;
   if(dati && Array.isArray(dati.sedute)) dati.sedute.forEach(s=>{ const g=String((s&&s.giorno)||''),
-    rp=+((s&&s.rpe)||0), mn=+((s&&s.min)||0); if(g&&(rp>0||mn>0)) DOC.scheda.rpe.settimanale[g]={rpe:rp||'',min:mn||''}; });
-  return {righe:DOC.scheda.settimanale.length, sedute:Object.keys(DOC.scheda.rpe.settimanale).length};
+    rp=+((s&&s.rpe)||0), mn=+((s&&s.min)||0);
+    if(g&&(rp>0||mn>0)){ DOC.scheda.rpe.settimanale[g]={rpe:rp||'',min:mn||''}; return; }
+    if(g&&s&&s.fatto) fatti++;   /* cliente senza Session-RPE: ha solo spuntato il giorno */ });
+  return {righe:DOC.scheda.settimanale.length, sedute:Object.keys(DOC.scheda.rpe.settimanale).length, fatti:fatti};
+}
+
+/* FOTO dal rientro del cliente → file binari in TMS_Dati/<profilo>/foto/ + metadati in
+   corpo.json, identici alle foto aggiunte a mano dal tab Corpo (così Riproduzione e
+   Confronto le leggono senza sapere da dove arrivano). Ritorna quante ne ha salvate. */
+async function importaFotoRientro(foto){
+  if(!Array.isArray(foto) || !foto.length || !profileDir) return 0;
+  let n=0;
+  for(const f of foto){
+    const m=String((f&&f.img)||'').match(/^data:image\/([a-z0-9+]+);base64,(.+)$/i);
+    if(!m) continue;
+    let ext=m[1].toLowerCase(); if(ext==='jpeg') ext='jpg';
+    if(['jpg','png','webp','gif'].indexOf(ext)<0) ext='jpg';
+    let bytes;
+    try{ const bin=atob(m[2]); bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); }
+    catch(e){ logErrore('importFoto/base64', e); continue; }   /* immagine corrotta: si salta, ma resta tracciata */
+    const fname='f'+Date.now()+'-'+Math.random().toString(36).slice(2,6)+'.'+ext;
+    try{ const fh=await fotoHandle(fname,true); const wr=await fh.createWritable(); await wr.write(bytes); await wr.close(); }
+    catch(e){ logErrore('importFoto', e); continue; }
+    (DOC.foto=DOC.foto||[]).push({file:fname,
+      data:String((f&&f.data)||'').slice(0,10)||new Date().toISOString().slice(0,10),
+      tag:String((f&&f.tag)||'').trim()});
+    n++;
+  }
+  if(n) persist('corpo');
+  return n;
 }
 
 async function importaRientroFile(file){
@@ -156,6 +188,12 @@ async function importaRientroFile(file){
      cliente entra nella scheda Pesi, il coach lo rivede e poi salva a mano (💾 Salva nello Storico). */
   const ris=caricaRientroInScheda(dati);
   persist('scheda');
+  /* foto progressi scattate dal cliente col telefono: entrano nel tab Corpo */
+  let nFoto=0; try{ nFoto=await importaFotoRientro(dati.foto); }catch(e){ logErrore('importFoto', e); }
   showTab('allenamento');
-  alert(t('📥 Allenamento di «')+pn+t('» caricato nella scheda Pesi:')+' '+ris.righe+' '+t('esercizi')+(ris.sedute?(' · '+ris.sedute+' '+t('sedute con RPE')):'')+'.\n\n'+t('Controlla i valori, poi premi «💾 Salva nello Storico» (scegli tu la settimana).'));
+  alert(t('📥 Allenamento di «')+pn+t('» caricato nella scheda Pesi:')+' '+ris.righe+' '+t('esercizi')+
+    (ris.sedute?(' · '+ris.sedute+' '+t('sedute con RPE')):'')+
+    (ris.fatti?(' · '+ris.fatti+' '+t('giorni segnati come completati')):'')+
+    (nFoto?(' · '+nFoto+' '+t('foto salvate nel tab Corpo')):'')+'.\n\n'+
+    t('Controlla i valori, poi premi «💾 Salva nello Storico» (scegli tu la settimana).'));
 }

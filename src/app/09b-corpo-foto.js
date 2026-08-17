@@ -17,8 +17,14 @@ async function fotoObjUrl(file){
   fotoUrlCache[file]=url; return url;
 }
 function fotoTagsPresenti(){ return [...new Set((DOC.foto||[]).map(f=>(f.tag||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
-const FOTO_VISTE=['anteriore','laterale','posteriore'];
-function fotoViewOrder(t){ const i=FOTO_VISTE.indexOf(String(t||'').toLowerCase()); return i<0?99:i; }
+/* ordine delle viste: i tag usati davvero sono fronte/lato/retro (quelli suggeriti dal
+   campo Tag e quelli che arrivano dall'app del telefono); i sinonimi lunghi restano
+   riconosciuti per compatibilità con eventuali foto etichettate a mano. */
+const FOTO_VISTE=['fronte','lato','retro'];
+const FOTO_SINONIMI={anteriore:'fronte',frontale:'fronte',laterale:'lato',posteriore:'retro',dietro:'retro'};
+function fotoViewOrder(tag){ let v=String(tag||'').toLowerCase().trim();
+  if(FOTO_SINONIMI[v]) v=FOTO_SINONIMI[v];
+  const i=FOTO_VISTE.indexOf(v); return i<0?99:i; }
 function fotoDates(){ return [...new Set((DOC.foto||[]).map(f=>f.data).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b))); }
 function fotoOfDate(data){ return (DOC.foto||[]).filter(f=>f.data===data && (!fotoTag||(f.tag||'')===fotoTag))
   .sort((a,b)=>fotoViewOrder(a.tag)-fotoViewOrder(b.tag)); }
