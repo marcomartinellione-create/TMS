@@ -458,6 +458,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     w.eval('progSet="Palestra"; showTab("progressi");');
     ok(d.getElementById('prog-set') !== null && d.getElementById('prog-set').value === 'Palestra', 'Progressi/filtro: selettore in pagina con il set attivo selezionato');
     ok(d.getElementById('panel-progressi').textContent.includes('Tutto il percorso'), 'Progressi/filtro: tra le opzioni c\'è «Tutto il percorso»');
+    /* i MASSIMALI non seguono il filtro: un record è un record (richiesta di Marco) */
+    { const valori=[...d.querySelectorAll('#panel-progressi .pr-card .pr-val')].map(e=>e.textContent.trim());
+      const conDati=valori.filter(v=>v && !v.startsWith('—')).length;
+      ok(valori.length>0 && conDati===valori.length, 'Progressi/record: i massimali restano tutti valorizzati anche filtrando un Training Set ('+conDati+'/'+valori.length+')');
+      ok(d.getElementById('panel-progressi').textContent.includes('su tutto il percorso'), 'Progressi/record: avvisa che i record sono su tutto il percorso');
+      /* confronto diretto: card = massimo di TUTTO lo storico, non del solo set filtrato */
+      const attesoPrimo=w.eval('(function(){var r=realMax(MAINLIFTS[0].nome);return r?nf(r.peso,0):"—";})()');
+      ok(valori[0].indexOf(attesoPrimo)===0, 'Progressi/record: il valore mostrato è il massimo di tutto lo storico ('+attesoPrimo+')'); }
+    w.eval('progSet="__tutti__"; showTab("progressi");');
     w.eval('progSet="__tutti__"; DOC.storico.length=' + stoPre + '; showTab("progressi");'); }
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
@@ -468,7 +477,12 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const mapCli = {}; if (vfileCli) mapCli[vfileCli] = 'data:video/mp4;base64,AAAA';
   /* v2.0: il riscaldamento del Training Set attivo viaggia nella scheda (sola lettura per il cliente) */
   { const g1 = w.eval('costruisciSchedaJSON({}).righe[0].giorno');
-    w.eval('ensureSets(); DOC.scheda.riscaldamento={settimanale:[{giorno:' + JSON.stringify(g1) + ',esercizio:"Allungamento dei flessori dell\'anca",serie:2,rip:30,note:"per lato"}],mensile:[]};'); }
+    w.eval('ensureSets(); DOC.scheda.riscaldamento={settimanale:['
+      + '{giorno:' + JSON.stringify(g1) + ',esercizio:"Allungamento dei flessori dell\'anca",serie:2,rip:30,min:0,note:"per lato"},'
+      + '{giorno:' + JSON.stringify(g1) + ',esercizio:"Cyclette",serie:0,rip:0,min:10,note:""}'
+      + '],mensile:[]};');
+    /* l'export reale incorpora anche i video del riscaldamento: li aggiungo alla mappa */
+    w.eval('collectRiscaldamentoVideos().map(function(v){return v.file;})').forEach(f=>{ if(f) mapCli[f]='data:video/mp4;base64,AAAA'; }); }
   const schedaCli = w.eval('costruisciSchedaJSON(' + JSON.stringify(mapCli) + ', true)');
   ok(schedaCli.tipo === 'tms-scheda' && schedaCli.profilo.slug === 'template' && schedaCli.profilo.nome === 'Atleta Template' && schedaCli.righe.length > 0, 'export scheda JSON: meta profilo + righe della scheda del template');
   ok(schedaCli.modificabile === true && w.eval('costruisciSchedaJSON({}).modificabile') === false && w.eval('costruisciSchedaJSON({}, true).modificabile') === true, 'export scheda JSON: flag modificabile (default false = scheda fissa)');
@@ -480,10 +494,13 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(schedaCli.righe.every(r => r.giorno && r.esercizio && typeof r.serie === 'number') && schedaCli.video[vfileCli].startsWith('data:video/'), 'export scheda JSON: righe complete + video come data-URI');
   ok(schedaCli.righe.every(r => typeof r.test === 'boolean'), 'export scheda JSON: ogni riga porta il flag test (★ 1RM), default false');
   /* v2.0: riscaldamento (sola lettura) + «l'ultima volta» dallo Storico nel file per il cliente */
-  ok(Array.isArray(schedaCli.riscaldamento) && schedaCli.riscaldamento.length === 1
+  ok(Array.isArray(schedaCli.riscaldamento) && schedaCli.riscaldamento.length === 2
      && schedaCli.riscaldamento[0].esercizio.startsWith('Allungamento') && schedaCli.riscaldamento[0].serie === 2 && schedaCli.riscaldamento[0].rip === 30,
      'export scheda JSON: riscaldamento del Training Set incluso (esercizio/serie/rip/note)');
+  { const c = schedaCli.riscaldamento[1];
+    ok(c.esercizio === 'Cyclette' && c.min === 10 && c.serie === 0 && c.video, 'export scheda JSON: riscaldamento cardio a tempo (10 min, col video)'); }
   ok(schedaCli.riscaldamento[0].note === 'per lato' && typeof schedaCli.riscaldamento[0].video === 'string', 'export scheda JSON: il riscaldamento porta note e (se c\'è) il video');
+  ok(typeof schedaCli.riscaldamento[0].min === 'number', 'export scheda JSON: il riscaldamento porta i minuti (cardio a tempo)');
   { const u = schedaCli.ultima || {}, nomi = Object.keys(u);
     ok(nomi.length > 0 && typeof u[nomi[0]].peso === 'number' && typeof u[nomi[0]].rip === 'number',
        'export scheda JSON: «ultima volta» per esercizio dallo Storico (' + nomi.length + ' esercizi)'); }
@@ -528,6 +545,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       ok(pag0.querySelector('.fasi') !== null && pag0.querySelectorAll('.fase').length === 3, 'app cliente v2: la pagina-giorno ha le 3 fasi (riscaldamento, esercizi, fine)');
       ok(pag0.querySelector('[data-fase="w"] .w-row') !== null && /Allungamento/.test(pag0.querySelector('[data-fase="w"]').textContent), 'app cliente v2: fase Riscaldamento con l\'esercizio del coach');
       ok(pag0.querySelector('[data-fase="w"] input') === null, 'app cliente v2: il riscaldamento è SOLA LETTURA (nessun campo da compilare)');
+      { const w0=pag0.querySelector('[data-fase="w"]');
+        ok(/2×30/.test(w0.textContent), 'app cliente v2: riscaldamento stretching mostrato come serie×ripetizioni');
+        ok(/Cyclette/.test(w0.textContent) && /10 min/.test(w0.textContent), 'app cliente v2: riscaldamento cardio mostrato coi MINUTI (Cyclette 10 min)');
+        ok(w0.querySelectorAll('.vbtn').length >= 1, 'app cliente v2: video ▶ disponibile nel riscaldamento'); }
       /* il giorno senza riscaldamento non mostra la fase (niente spazi vuoti) */
       const senzaW = [...sd.querySelectorAll('.day-page')].find(p => p.id !== 'day-0');
       ok(!senzaW || senzaW.querySelector('[data-fase="w"]') === null, 'app cliente v2: i giorni senza riscaldamento non mostrano la fase');
@@ -733,16 +754,41 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const sIn = d.querySelector('#panel-allenamento tr[data-wi="0"] [data-wf="serie"]'); sIn.value = '1'; sIn.oninput(); }
   /* divisione per categoria del database: stretching vs allenamento */
   ok(w.eval('isStretching({categoria:"stretching"})') === true && w.eval('isStretching({categoria:"forza"})') === false, 'filtro: isStretching riconosce la categoria del database');
-  /* la cella esercizio del riscaldamento apre un selettore con SOLO esercizi di stretching */
+  /* il selettore del riscaldamento mostra stretching + cardio di base, MAI esercizi coi pesi */
   d.querySelector('#panel-allenamento .warm-pick').click();
   ok(d.getElementById('exp-q') !== null, 'Riscaldamento: la cella esercizio apre il selettore esercizi');
   { const names = [...d.querySelectorAll('.exp-it')].map(x=>x.dataset.nome);
-    const soloStretch = names.length>0 && w.eval('('+JSON.stringify(names)+').every(function(n){var e=esLookup(n);return e&&String(e.categoria||"").toLowerCase()==="stretching";})');
-    ok(names.length>40 && soloStretch, 'Riscaldamento: il selettore mostra SOLO esercizi di stretching ('+names.length+' voci)'); }
+    const cat = n => w.eval('(function(){var e=esLookup(' + JSON.stringify(n) + ');return e?String(e.categoria||"").toLowerCase():"";})()');
+    const soloAmmessi = names.length>0 && w.eval('('+JSON.stringify(names)+').every(function(n){var e=esLookup(n);var c=String((e&&e.categoria)||"").toLowerCase();return c==="stretching"||c==="cardio";})');
+    ok(names.length>40 && soloAmmessi, 'Riscaldamento: il selettore mostra solo stretching + cardio, nessun esercizio coi pesi ('+names.length+' voci)');
+    ok(names.some(n=>cat(n)==='cardio') && names.some(n=>cat(n)==='stretching'), 'Riscaldamento: nel selettore ci sono sia stretching sia cardio (tapis roulant, cyclette…)'); }
   w.eval('closeModal();');
+  /* cardio nel riscaldamento: solo minuti, niente serie/ripetizioni */
+  w.eval('riscaldaRows()[0].esercizio="Cyclette"; riscaldaRows()[0].serie=0; riscaldaRows()[0].rip=0; riscaldaRows()[0].min=10; persist("scheda"); renderRiscaldamento(ensureSets());');
+  { const tr = d.querySelector('#panel-allenamento tr[data-wi="0"]');
+    ok(tr.querySelector('[data-wf="min"]') !== null && +tr.querySelector('[data-wf="min"]').value === 10, 'Riscaldamento cardio: campo Min compilato (10)');
+    ok(tr.querySelector('[data-wf="serie"]') === null && tr.querySelector('[data-wf="rip"]') === null, 'Riscaldamento cardio: serie e ripetizioni non si compilano (solo tempo)');
+    ok(tr.querySelector('[data-vid]') !== null, 'Riscaldamento: bottone ▶ video sulla riga (come nella scheda)'); }
+  w.eval('riscaldaRows()[0].esercizio=""; riscaldaRows()[0].serie=1; riscaldaRows()[0].rip=10; riscaldaRows()[0].min=0; persist("scheda"); renderRiscaldamento(ensureSets());');
   w.eval('riscaldaRows()[0].esercizio="Stretch test"; persist("scheda");');  /* simula la scelta dal picker */
   ok(w.eval('riscaldaRows()[0].esercizio') === 'Stretch test' && w.eval('riscaldaRows()[0].serie') === 1, 'Riscaldamento: esercizio (dal selettore) + serie salvati');
   ok(w.eval('schedaRows().reduce(function(a,r){return a+sTL(r);},0)') === tlPrima && w.eval('schedaRows().length') === 2, 'Riscaldamento: NON conta nel TL né tocca la scheda Pesi');
+  /* v1.1.6: il cardio del riscaldamento conta SOLO nel radar Volume/Equilibrio (scelta di Marco) */
+  { const code = 202699;
+    w.eval('DOC.storico_risc=[{scheda:' + code + ',giorno:"Lunedì",esercizio:"Cyclette",min:20,set:"Base"},{scheda:' + code + ',giorno:"Mercoledì",esercizio:"Ellittica",min:10,set:"Base"}];');
+    ok(w.eval('riscEquivSets(' + code + ')') === 3, 'Radar/riscaldamento: 30 min di cardio → 3 serie equivalenti (min÷10)');
+    ok(w.eval('riscEquivSets(' + code + ',"Casa")') === 0 && w.eval('riscEquivSets(' + code + ',"Base")') === 3, 'Radar/riscaldamento: rispetta il filtro Training Set');
+    ok(w.eval('riscEquivSets(202600)') === 0, 'Radar/riscaldamento: nessun contributo per settimane senza riscaldamento cardio');
+    /* la garanzia che conta: NON entra nelle metriche di carico */
+    const tlPre = w.eval('JSON.stringify(schedeAggr().map(function(a){return [a.scheda,Math.round(a.tl)];}))');
+    const rpePre = w.eval('JSON.stringify(rpeByWeek())');
+    w.eval('DOC.storico_risc.push({scheda:' + code + ',giorno:"Venerdì",esercizio:"Vogatore",min:60,set:"Base"});');
+    ok(w.eval('JSON.stringify(schedeAggr().map(function(a){return [a.scheda,Math.round(a.tl)];}))') === tlPre, 'Radar/riscaldamento: aggiungerne NON cambia il TL (metriche di carico intatte)');
+    ok(w.eval('JSON.stringify(rpeByWeek())') === rpePre, 'Radar/riscaldamento: NON entra nel carico interno sRPE/monotonia');
+    /* persistenza: viaggia nel profilo e nel backup */
+    ok(w.eval('Object.keys(docProfileData()).indexOf("storico_risc")>=0'), 'Radar/riscaldamento: storico_risc incluso nei dati del profilo (persistenza)');
+    w.eval('DOC.storico_risc=[];');
+  }
   w.eval('creaTrainingSet("Vuota2","__vuota__");');
   ok(w.eval('riscaldaRows().length') === 0, 'Riscaldamento: un nuovo set (vuoto) parte senza riscaldamenti');
   w.eval('switchTrainingSet("Casa");');

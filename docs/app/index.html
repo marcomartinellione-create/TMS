@@ -271,7 +271,7 @@
    coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.0';
+const CVER='2.1';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -472,7 +472,8 @@ function paginaGiorno(g,gi){
   const faseW=haW?('<div class="fase" data-fase="w" hidden><div class="box">'+
       warm.map(r=>{
         const vb=(r.video&&SCHEDA.video&&SCHEDA.video[r.video])?'<button type="button" class="vbtn" data-v="'+esc(r.video)+'" title="'+esc(tt('Guarda il video'))+'">▶</button>':'';
-        const q=(+r.serie||0)?((+r.serie)+'×'+(+r.rip||0)):'';
+        /* cardio di base (tapis roulant, cyclette…): solo i minuti; stretching: serie×rip */
+        const q=(+r.min||0)?((+r.min)+' '+tt('min')):((+r.serie||0)?((+r.serie)+'×'+(+r.rip||0)):'');
         return '<div class="w-row"><span class="w-nm">'+esc(r.esercizio)+(r.note?'<span class="w-note"> · '+esc(r.note)+'</span>':'')+'</span>'+
           (q?'<span class="w-q">'+q+'</span>':'')+vb+'</div>'; }).join('')+
       '</div><div class="fine">'+tt('Solo da leggere: il riscaldamento lo decide il coach e non torna indietro.')+'</div></div>'):'';

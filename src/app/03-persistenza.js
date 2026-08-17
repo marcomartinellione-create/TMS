@@ -24,9 +24,9 @@ function setConn(state,txt){
 }
 
 /* dati del profilo attivo (scheda/storico/corpo/alimentazione); esercizi è condiviso */
-function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,cardio:DOC.cardio,foto:DOC.foto,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
-function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; }
-function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],cardio:[],foto:[],dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
+function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
+function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; }
+function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],storico_risc:[],cardio:[],foto:[],dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
 
 function saveCache(){ try{
   const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); const data=all.data||{};
@@ -108,7 +108,7 @@ async function pickDirectory(){
 async function loadProfile(){
   const sc=await readJson(profileDir,FILES.scheda), st=await readJson(profileDir,FILES.storico),
         co=await readJson(profileDir,FILES.corpo), al=await readJson(profileDir,FILES.alimentazione);
-  applyProfileData({scheda:sc, storico:st, storico_io:co&&co.storico_io, storico_rpe:co&&co.storico_rpe, cardio:co&&co.cardio, foto:co&&co.foto, dati_utente:co&&co.dati_utente, alimentazione:al});
+  applyProfileData({scheda:sc, storico:st, storico_io:co&&co.storico_io, storico_rpe:co&&co.storico_rpe, storico_risc:co&&co.storico_risc, cardio:co&&co.cardio, foto:co&&co.foto, dati_utente:co&&co.dati_utente, alimentazione:al});
   const preMig=JSON.stringify(DOC.storico);
   const preMigScheda=JSON.stringify(DOC.scheda);
   const migged=!!(migrateStorico()|migrateScheda()|migrateExNames()); normalizeAlim();
@@ -142,7 +142,7 @@ async function connectFlow(){
       activeProfile=(profili[0]&&profili[0].slug)||'wander';
       const lsc=await readJson(dataDir,FILES.scheda), lst=await readJson(dataDir,FILES.storico),
             lco=await readJson(dataDir,FILES.corpo), lal=await readJson(dataDir,FILES.alimentazione);
-      if(lsc||lst||lco||lal){ applyProfileData({scheda:lsc,storico:lst,storico_io:lco&&lco.storico_io,storico_rpe:lco&&lco.storico_rpe,cardio:lco&&lco.cardio,foto:lco&&lco.foto,dati_utente:lco&&lco.dati_utente,alimentazione:lal}); }
+      if(lsc||lst||lco||lal){ applyProfileData({scheda:lsc,storico:lst,storico_io:lco&&lco.storico_io,storico_rpe:lco&&lco.storico_rpe,storico_risc:lco&&lco.storico_risc,cardio:lco&&lco.cardio,foto:lco&&lco.foto,dati_utente:lco&&lco.dati_utente,alimentazione:lal}); }
       migrateStorico(); migrateScheda(); migrateExNames(); normalizeAlim();
       profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});
       await persistAll();
@@ -162,7 +162,7 @@ async function persistAll(){
   if(profileDir){
     await writeJson(profileDir,FILES.scheda,DOC.scheda);
     await writeJson(profileDir,FILES.storico,DOC.storico);
-    await writeJson(profileDir,FILES.corpo,{dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,cardio:DOC.cardio,foto:DOC.foto});
+    await writeJson(profileDir,FILES.corpo,{dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto});
     await writeJson(profileDir,FILES.alimentazione,DOC.alimentazione);
   }
   await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
@@ -174,7 +174,7 @@ async function flushSaves(){
   for(const which of keys){
     if(which==='scheda'&&profileDir) await writeJson(profileDir,FILES.scheda,DOC.scheda);
     else if(which==='storico'&&profileDir) await writeJson(profileDir,FILES.storico,DOC.storico);
-    else if(which==='corpo'&&profileDir) await writeJson(profileDir,FILES.corpo,{dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,cardio:DOC.cardio,foto:DOC.foto});
+    else if(which==='corpo'&&profileDir) await writeJson(profileDir,FILES.corpo,{dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto});
     else if(which==='alimentazione'&&profileDir) await writeJson(profileDir,FILES.alimentazione,DOC.alimentazione);
     else if(which==='esercizi') await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
     else if(which==='profili') await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile});

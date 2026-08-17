@@ -105,14 +105,19 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   'setsSalvati' (mappa nome→scheda dei set inattivi), 'setsOrdine' in scheda.json; le
   schede preesistenti diventano da sole il set «Base» al primo avvio dopo l'aggiornamento.
 
-- **🔥 Riscaldamento** (dal v1.1.3): pulsante arancione accanto a Training Set, cambia vista
-  e mostra i riscaldamenti **giorno per giorno del Training Set attivo** (i giorni sono
-  ripresi dalla scheda Pesi). Campi per riga: Esercizio (scelto dal catalogo, **filtrato ai
-  soli esercizi di categoria "stretching"**, 123 nel catalogo standard — il selettore della
-  scheda Pesi invece li esclude, mostra solo esercizi di allenamento), Serie, Ripetizioni,
-  Note. **Non entra in TL, Storico o alcun calcolo**: vive in un array separato
-  (campo 'riscaldamento' per modalità, dentro ogni Training Set) che nessun calcolo legge —
-  serve solo a prepararsi. Il pulsante diventa «◂ Scheda» per tornare.
+- **🔥 Riscaldamento** (dal v1.1.3, video+cardio dal v1.1.6): pulsante arancione accanto a
+  Training Set, cambia vista e mostra i riscaldamenti **giorno per giorno del Training Set
+  attivo** (i giorni sono ripresi dalla scheda Pesi). Il selettore esercizio mostra **stretching
+  E cardio di base** dal catalogo (corsa/camminata su tapis roulant, cyclette, ellittica,
+  vogatore, salto della corda… — 137 voci in tutto; il selettore della scheda Pesi invece li
+  esclude entrambi, mostra solo esercizi di allenamento). Campi per riga: Esercizio, Serie,
+  Ripetizioni (vuoti per il cardio: usa solo i Minuti), Min (durata: obbligatorio per il cardio,
+  facoltativo per lo stretching), Note; un ▶ apre il video se il catalogo ce l'ha. **Non entra in
+  TL, Storico principale, ACWR o monotonia**: vive in due array separati che i calcoli di carico
+  NON leggono — 'riscaldamento' per modalità dentro ogni Training Set (righe) e, dal v1.1.6,
+  'storico_risc' (minuti di cardio salvati per settimana, campo 'set'): quest'ultimo alimenta
+  SOLO il radar Volume/Equilibrio (vedi §5), nessun'altra metrica. Il pulsante diventa
+  «◂ Scheda» per tornare.
 
 ## 4-bis · Cardio (tab 🏃 Cardio)
 
@@ -176,7 +181,13 @@ Due modi per registrare una seduta:
   selettore **«Dati da analizzare»**: «Tutto il percorso» oppure un singolo **Training Set**
   (patch al limite noto della confrontabilità del TL tra schede molto diverse — es. Palestra
   vs Casa). Ogni settimana salvata porta il campo 'set' col Training Set attivo; le settimane
-  salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso».
+  salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso». **Eccezione
+  (dal v1.1.6)**: i «Record personali · carico massimo» NON seguono questo filtro — un record
+  è un record, sempre calcolato su TUTTO lo storico indipendentemente dal Training Set attivo;
+  quando un filtro è impostato compare la pill «su tutto il percorso» accanto al titolo per
+  spiegarlo. Il radar «Volume ed equilibrio · serie per gruppo» somma sull'asse Cardio anche i
+  minuti di cardio registrati nel Riscaldamento (oltre a quelli del tab Cardio), min÷10 —
+  vedi §4 per i dettagli su cosa NON tocca (TL/ACWR/monotonia restano intatti).
 - **Storico** (link «📜» nel footer): archivio completo delle registrazioni, in codici
   settimana ISO formato AAAASS (es. 202624 = settimana 24 del 2026).
 - **Corpo**: peso e misure corporee con BMI e stime masse; lo storico misure è in un

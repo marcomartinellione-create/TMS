@@ -67,7 +67,7 @@ function costruisciSchedaJSON(videoMap, modificabile){
     serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0, rest:r.rest||'',
     rir:(r.rir===''||r.rir==null)?null:+r.rir, test:!!r.test, note:r.note||'', video:videoOf(r.esercizio)||''}));
   const warm=righeRiscaldamentoCliente().map(r=>({giorno:String(r.giorno||''), esercizio:String(r.esercizio).trim(),
-    serie:+r.serie||0, rip:+r.rip||0, note:r.note||'', video:videoOf(r.esercizio)||''}));
+    serie:+r.serie||0, rip:+r.rip||0, min:+r.min||0, note:r.note||'', video:videoOf(r.esercizio)||''}));
   return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile,
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
     appCliente:APP_CLIENTE_URL, righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),

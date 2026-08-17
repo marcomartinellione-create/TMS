@@ -13,6 +13,11 @@ function senzaEtichetta(){ return (DOC.storico||[]).some(r=>!String((r&&r.set)||
 function filtraSet(rows,sf){ if(!sf||sf==='__tutti__') return rows||[];
   return (rows||[]).filter(r=>String((r&&r.set)||'')===sf); }
 function storicoSet(sf){ return filtraSet(DOC.storico||[],sf); }
+/* minuti di cardio svolti nel RISCALDAMENTO di una settimana → serie equivalenti per il solo
+   radar «Volume ed equilibrio» (stesso fattore del tab Cardio, min÷10). Non tocca TL/ACWR/sRPE. */
+function riscEquivSets(code,sf){
+  const min=filtraSet(DOC.storico_risc||[],sf).reduce((a,r)=>a+((+r.scheda===+code)?(+r.min||0):0),0);
+  return Math.round(min*CARDIO_RADAR_PER_MIN*10)/10; }
 /* ════ FOSTER 2001 — carico interno (session-RPE) ════
    loadGiorno = RPE × min (AU) · settimanale = somma · monotonia = media7 ÷ SD7 (riposi=0 inclusi) · strain = settimanale × monotonia */
 function rpeByWeek(sf){ const m={}; filtraSet(DOC.storico_rpe||[],sf).forEach(r=>{ const s=+r.scheda||0; const ld=(+r.rpe||0)*(+r.min||0);
@@ -88,12 +93,14 @@ function renderProgressi(){
   const mavg=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); return w.reduce((s,x)=>s+x.tl,0)/w.length; });
   const acwr=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; return c? a.tl/c:null; });
   const lastAcwr=acwr[acwr.length-1];
-  const cards=`<div class="sec">${t('Record personali · carico massimo')}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(L.nome,sf); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
+  /* i RECORD non seguono il filtro: un massimale è un massimale, in qualunque Training Set
+     sia stato fatto (richiesta di Marco). Quando un filtro è attivo lo si dice, per chiarezza. */
+  const cards=`<div class="sec">${t('Record personali · carico massimo')}${sf!=='__tutti__'?`<span class="pill muted" style="margin-left:auto;text-transform:none">${t('su tutto il percorso')}</span>`:''}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(L.nome); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
   const tlSeries=[{name:'TL',color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:a.tl||null}))},{name:t('Media mobile 4'),color:'var(--ink-3)',data:ag.map((a,i)=>({x:labels[i],y:mavg[i]}))}];
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
   const tonnSeries=[{name:t('Tonnellaggio'),color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:a.tonn||null}))}];
-  const radarItems=GRUPPI.map(g=>({label:t(g),value:(last.sets[g]||0)+(g==='Cardio'?cardioEquivSets(last.scheda):0)}));
+  const radarItems=GRUPPI.map(g=>({label:t(g),value:(last.sets[g]||0)+(g==='Cardio'?(cardioEquivSets(last.scheda)+riscEquivSets(last.scheda,sf)):0)}));
   const setsData=GRUPPI.map(g=>({x:t(g),y:last.sets[g]||0,color:grpColors[g]}));
   const grpSeries=GRUPPI.map(g=>({name:t(g),color:grpColors[g],data:ag.map((a,i)=>({x:labels[i],y:a.grp[g]||null}))}));
   const BANDS=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
@@ -144,7 +151,7 @@ function renderProgressi(){
    </div>`:''}
    <div class="sec">${t('Volume & equilibrio per gruppo muscolare')}</div>
    <div class="chart-grid">
-     <div class="chart-box"><h4>${t('🕸 Equilibrio volume · serie per gruppo')} <span class="muted" style="font-size:11px">${t('(Cardio: min÷10 dal tab Cardio · 2 h/sett ≈ 12)')}</span></h4>${radarChart(radarItems)}</div>
+     <div class="chart-box"><h4>${t('🕸 Equilibrio volume · serie per gruppo')} <span class="muted" style="font-size:11px">${t('(Cardio: min÷10 dal tab Cardio e dal riscaldamento · 2 h/sett ≈ 12)')}</span></h4>${radarChart(radarItems)}</div>
      <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(zona ipertrofia 10–20)')}</span></h4>${barChart(setsData,{refs:[{y:10,label:'10',color:'var(--ok)'},{y:20,label:'20',color:'var(--danger-b)'}]})}</div>
    </div>
    <div class="chart-grid">

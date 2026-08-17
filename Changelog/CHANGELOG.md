@@ -4,6 +4,40 @@
 
 ---
 
+### 2026-08-15 — TMS v1.1.6: massimali sempre completi, riscaldamento con video+cardio a tempo, radar Volume/Equilibrio
+
+**Tipo**: feature (richieste esplicite di Marco: i record personali devono restare gli stessi
+qualunque Training Set sia filtrato; il riscaldamento deve poter includere video e cardio di
+base misurato a minuti; il cardio del riscaldamento deve contare nel radar Volume/Equilibrio
+SENZA toccare le metriche di carico/rischio)
+**File coinvolti**: `src/app/08-progressi.js` (`realMax` senza filtro per le card record, pill
+«su tutto il percorso», `riscEquivSets`) · `src/app/06-allenamento.js` (picker riscaldamento
+esteso a `isStretching||isCardio`, colonna Min, video ▶, salvataggio `storico_risc` al «Salva
+nello Storico») · `src/app/03-persistenza.js` + `src/app/14-backup.js` (nuovo contenitore
+`storico_risc` in tutti i punti di lettura/scrittura/backup del profilo, come `storico_rpe`) ·
+`src/app/13-report.js` (radar del Report aggiornato) · `src/app/15-scambio.js` (campo `min`
+nell'export del riscaldamento) · `docs/app/index.html`+`sw.js` (PWA: cardio a minuti nel
+riscaldamento, CVER 2.1/cache v10) · `src/app/00-i18n.js` · guide `13a-guida.js` (IT/EN) e
+`13c-guida-ai.js` (§4, §5) + `docs/guida-ai.md` rigenerata · `tests/test-app.js`
+**Descrizione**: le card <b>«Record personali · carico massimo»</b> in 📈 Progressi non seguono
+più il selettore «Dati da analizzare» — un massimale resta il massimale di tutto il percorso,
+con una pill «su tutto il percorso» quando un filtro è attivo, per chiarezza. Il <b>🔥
+Riscaldamento</b> ora offre, oltre allo stretching, gli esercizi <b>cardio di base</b> del
+catalogo (corsa/camminata su tapis roulant, cyclette, ellittica, vogatore, salto della corda…);
+per quelle righe serie/ripetizioni lasciano il posto ai soli <b>minuti</b>, e un ▶ apre il video
+se disponibile — arriva fino all'app del telefono (che mostra «8 min» invece di «serie×rip» per
+il cardio). Al <b>💾 Salva nello Storico</b> i minuti di cardio del riscaldamento della
+settimana vengono salvati in un contenitore <b>separato</b> (`storico_risc`) che alimenta
+<b>solo</b> l'asse Cardio del radar «Volume ed equilibrio» (min÷10, come il tab 🏃 Cardio):
+verificato che TL, ACWR, monotonia e sRPE restano <b>invariati</b> aggiungendo minuti di
+riscaldamento, per costruzione (i calcoli di carico non leggono quel contenitore). Rispetta il
+filtro Training Set; persistenza completa (profilo + backup).
+**Test**: `npm test` <b>388/388</b> (14 nuove verifiche: massimali non filtrati, picker con
+stretching+cardio, cardio a soli minuti, video nel riscaldamento, export/PWA col campo min,
+contributo al radar che rispetta il filtro set, e la garanzia esplicita che TL/sRPE non cambiano).
+`npm run verifica` OK. Verificato dal vivo sulla PWA (cardio coi minuti + video).
+**Approvato da**: Marco (implementazione e rilascio v1.1.6 su comando esplicito).
+
 ### 2026-08-15 — TMS v1.1.5: revisione critica design/estetica desktop — imperfezioni, ridondanze, coerenza
 
 **Tipo**: pulizia estetica (richiesta esplicita di Marco: analisi critica del design dell'app PC,

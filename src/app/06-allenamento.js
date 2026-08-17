@@ -148,31 +148,43 @@ function renderRiscaldamento(S){
   } else days.forEach(g=>{
     let body='';
     warm.forEach((r,i)=>{ if(r.giorno!==g) return;
+      /* le attività cardio (corsa sul tapis roulant, cyclette, ellittica…) non hanno serie e
+         ripetizioni: si misurano col TEMPO. Per quelle righe serie/rip non si compilano. */
+      const aTempo=isCardio(esLookup(r.esercizio));
       body+=`<tr data-wi="${i}">`+
-        `<td class="l"><button type="button" class="cell-in txt warm-pick" style="min-width:150px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button></td>`+
-        `<td><input class="cell-in" data-wf="serie" type="number" min="0" step="1" value="${r.serie??''}" style="width:52px"></td>`+
-        `<td><input class="cell-in" data-wf="rip" type="number" min="0" step="1" value="${r.rip??''}" style="width:56px"></td>`+
+        `<td class="l"><button type="button" class="cell-in txt warm-pick" style="min-width:150px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>`+
+          (videoOf(r.esercizio)?`<div style="margin-top:3px"><button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button></div>`:'')+`</td>`+
+        `<td>${aTempo?`<span class="muted">—</span>`:`<input class="cell-in" data-wf="serie" type="number" min="0" step="1" value="${r.serie??''}" style="width:52px">`}</td>`+
+        `<td>${aTempo?`<span class="muted">—</span>`:`<input class="cell-in" data-wf="rip" type="number" min="0" step="1" value="${r.rip??''}" style="width:56px">`}</td>`+
+        `<td><input class="cell-in" data-wf="min" type="number" min="0" step="1" value="${r.min??''}" style="width:58px" placeholder="–" title="${t('Durata in minuti (per cardio e per gli esercizi a tempo)')}"></td>`+
         `<td><input class="cell-in" data-wf="note" value="${esc(r.note||'')}" style="width:100%"></td>`+
         `<td><button class="btn btn--sm btn--danger no-print" data-wdel="${i}" title="${t('elimina')}">✕</button></td></tr>`; });
     content+=`<div class="sec">${esc(t(g))}</div>
       <div class="tbl-wrap"><table>
-        <thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th class="l">${t('Note')}</th><th></th></tr></thead>
-        <tbody>${body||`<tr><td colspan="5" class="empty">${t('Nessun esercizio di riscaldamento per questo giorno.')}</td></tr>`}</tbody>
+        <thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Min')}</th><th class="l">${t('Note')}</th><th></th></tr></thead>
+        <tbody>${body||`<tr><td colspan="6" class="empty">${t('Nessun esercizio di riscaldamento per questo giorno.')}</td></tr>`}</tbody>
       </table></div>
       <button class="btn btn--sm no-print" data-waddday="${esc(g)}">${t('＋ riscaldamento')}</button>`;
   });
   document.getElementById('panel-allenamento').innerHTML=`
    <div class="bar bar--bottom no-print">${barSelettori(S)}<div class="spacer"></div></div>
-   <div class="callout callout--info"><div>${t('🔥 <b>Riscaldamento</b> del Training Set «')}${esc(S.setAttivo)}${t('». Solo esercizio, serie, ripetizioni e note: serve a prepararsi, <b>non conta nel TL né in alcun calcolo</b>. I giorni sono ripresi dalla scheda.')}</div></div>
+   <div class="callout callout--info"><div>${t('🔥 <b>Riscaldamento</b> del Training Set «')}${esc(S.setAttivo)}${t('». Scegli esercizi di <b>stretching</b> oppure <b>cardio di base</b> (corsa sul tapis roulant, cyclette, ellittica, vogatore…): il cardio non ha serie e ripetizioni, solo i <b>minuti</b>. Il ▶ mostra il video. Serve a prepararsi: <b>non conta nel TL né in alcun calcolo</b>. I giorni sono ripresi dalla scheda.')}</div></div>
    ${content}`;
   wireBarSelettori();
+  document.querySelectorAll('#panel-allenamento [data-vid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.vid));
+  /* nel riscaldamento si scelgono gli esercizi di STRETCHING e le attività CARDIO di base
+     (corsa sul tapis roulant, cyclette, ellittica, vogatore…): niente esercizi coi pesi. */
   document.querySelectorAll('#panel-allenamento .warm-pick').forEach(b=>b.onclick=()=>{ const i=+b.closest('tr').dataset.wi;
-    pickExercise(riscaldaRows()[i].esercizio, nome=>{ riscaldaRows()[i].esercizio=nome; persist('scheda'); renderRiscaldamento(ensureSets()); }, e=>isStretching(e)); });
+    pickExercise(riscaldaRows()[i].esercizio, nome=>{ const w=riscaldaRows(); if(!w[i]) return;
+      w[i].esercizio=nome;
+      if(isCardio(esLookup(nome))){ w[i].serie=0; w[i].rip=0; if(!(+w[i].min)) w[i].min=10; }  /* cardio: solo tempo */
+      else if(!(+w[i].serie)){ w[i].serie=1; w[i].rip=10; }
+      persist('scheda'); renderRiscaldamento(ensureSets()); }, e=>isStretching(e)||isCardio(e)); });
   document.querySelectorAll('#panel-allenamento [data-wf]').forEach(inp=>inp.oninput=()=>{
     const tr=inp.closest('tr'); if(!tr) return; const i=+tr.dataset.wi, w=riscaldaRows(); if(!w[i]) return;
-    const f=inp.dataset.wf; w[i][f]=(f==='serie'||f==='rip')?(+inp.value||0):inp.value; persist('scheda'); });
+    const f=inp.dataset.wf; w[i][f]=(f==='serie'||f==='rip'||f==='min')?(+inp.value||0):inp.value; persist('scheda'); });
   document.querySelectorAll('#panel-allenamento [data-wdel]').forEach(b=>b.onclick=()=>{ riscaldaRows().splice(+b.dataset.wdel,1); persist('scheda'); renderRiscaldamento(ensureSets()); });
-  document.querySelectorAll('#panel-allenamento [data-waddday]').forEach(b=>b.onclick=()=>{ riscaldaRows().push({giorno:b.dataset.waddday,esercizio:'',serie:1,rip:10,note:''}); persist('scheda'); renderRiscaldamento(ensureSets()); });
+  document.querySelectorAll('#panel-allenamento [data-waddday]').forEach(b=>b.onclick=()=>{ riscaldaRows().push({giorno:b.dataset.waddday,esercizio:'',serie:1,rip:10,min:0,note:''}); persist('scheda'); renderRiscaldamento(ensureSets()); });
 }
 function renderAllenamento(){
   const S=ensureSets();
@@ -378,6 +390,16 @@ function saveSchedaModal(){
         DOC.storico_rpe=DOC.storico_rpe.filter(x=>!((+x.scheda)===code && x.giorno===g));
         if(rp>0&&mn>0) DOC.storico_rpe.push({scheda:code,giorno:g,rpe:rp,min:mn,set:(ensureSets()||{}).setAttivo||''}); });
       DOC.scheda.rpe[schedaMode]={}; persist('corpo'); }
+    /* minuti di CARDIO del riscaldamento della settimana (scelta di Marco 2026-08-15):
+       entrano SOLO nel radar «Volume ed equilibrio», MAI in TL, ACWR, monotonia o sRPE —
+       per questo vivono in un array a parte (storico_risc) che nessun calcolo di carico legge. */
+    { if(!Array.isArray(DOC.storico_risc)) DOC.storico_risc=[];
+      DOC.storico_risc=DOC.storico_risc.filter(x=>(+x.scheda)!==code);
+      const gg=schedaDays(schedaRows()), setNome=(ensureSets()||{}).setAttivo||'';
+      riscaldaRows().forEach(r=>{ const mn=+r.min||0;
+        if(mn>0 && gg.indexOf(r.giorno)>=0 && isCardio(esLookup(r.esercizio)))
+          DOC.storico_risc.push({scheda:code,giorno:String(r.giorno||''),esercizio:String(r.esercizio||''),min:mn,set:setNome}); });
+      persist('corpo'); }
     persist('scheda'); persist('storico'); closeModal();
     const prk=Object.keys(prs);
     let _msg=t('✔ Scheda')+' '+code+' '+t('salvata —')+' '+added+' '+t('esercizi aggiunti allo Storico.');
