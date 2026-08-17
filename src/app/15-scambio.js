@@ -128,11 +128,20 @@ async function esportaSchedaCliente(){
 function caricaRientroInScheda(dati){
   schedaMode='settimanale'; pesiView='scheda';
   if(!DOC.scheda || typeof DOC.scheda!=='object') DOC.scheda={settimanale:[],mensile:[]};
+  /* il tempo di recupero è la prescrizione del coach: NON deve andare perso all'import.
+     Lo si prende dal rientro se il cliente l'ha rimandato (app recenti), altrimenti si
+     conserva quello della scheda attuale abbinando giorno+esercizio (rientri più vecchi). */
+  const prima=(DOC.scheda && Array.isArray(DOC.scheda.settimanale))?DOC.scheda.settimanale:[];
+  const restPrec=(g,e)=>{ const k=String(e||'').trim().toLowerCase();
+    const m=prima.find(x=>x && String(x.giorno)===g && String(x.esercizio||'').trim().toLowerCase()===k);
+    return (m&&m.rest)||''; };
   const righe=(dati&&Array.isArray(dati.righe))?dati.righe:[];
-  DOC.scheda.settimanale=righe.filter(r=>r&&r.esercizio&&String(r.esercizio).trim()).map(r=>({
-    giorno:String((r&&r.giorno)||'Lunedì'), esercizio:String(r.esercizio).trim(), note:String((r&&r.note)||''),
-    serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0, rest:'',
-    rir:(r.rir===''||r.rir==null)?'':+r.rir, test:!!(r&&r.test) }));
+  DOC.scheda.settimanale=righe.filter(r=>r&&r.esercizio&&String(r.esercizio).trim()).map(r=>{
+    const giorno=String((r&&r.giorno)||'Lunedì'), esercizio=String(r.esercizio).trim();
+    return { giorno:giorno, esercizio:esercizio, note:String((r&&r.note)||''),
+    serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0,
+    rest:String((r&&r.rest)||'')||restPrec(giorno,esercizio),
+    rir:(r.rir===''||r.rir==null)?'':+r.rir, test:!!(r&&r.test) }; });
   if(!DOC.scheda.rpe||typeof DOC.scheda.rpe!=='object') DOC.scheda.rpe={};
   DOC.scheda.rpe.settimanale={};
   let fatti=0;

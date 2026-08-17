@@ -4,6 +4,30 @@
 
 ---
 
+### 2026-08-18 — TMS v1.1.8: fix completamento giornata e timer di recupero (app telefono)
+
+**Tipo**: bugfix (tre difetti segnalati da Marco sull'app del telefono dopo v1.1.7)
+**File coinvolti**: `docs/app/index.html`+`sw.js` (CVER 2.3, cache v12) · `src/app/15-scambio.js`
+· `tests/test-app.js`
+**Descrizione**:
+1. La casella «Giorno completato» (modalità senza Session-RPE) non si toglieva più una volta
+   spuntata — restava segnata per sempre.
+2. Modificare un esercizio (es. aumentare le serie) marcava il giorno come completato da solo.
+   **Causa comune**: la spunta ✔ del giorno si basava su `TOCCATI` (insieme dei campi toccati,
+   che cresce e non si svuota mai). Sostituita con `giornoCompletato(gi)`: il giorno risulta
+   completato SOLO con un gesto esplicito di fine seduta (la casella, oppure fatica+durata in
+   modalità RPE). Il file di rientro era già corretto: nessun cambiamento ai dati verso il coach.
+3. Il **timer di recupero** poteva sparire dopo un giro coach→cliente→coach: l'import del
+   rientro ricostruiva la scheda con `rest:''`, azzerando i tempi di riposo (il bottone ⏱
+   compare solo se `rest` è impostato). Fix a due lati: il telefono ora riporta `rest` nel
+   rientro; il PC lo conserva all'import (usa quello del rientro se presente, altrimenti quello
+   della scheda attuale abbinando giorno+esercizio — copre anche i rientri di app già in giro).
+**Test**: `npm test` <b>415/415</b> (+9 dalla v1.1.7: regressione completamento giorno, casella
+senza RPE spunta/despunta, `rest` nel rientro, conservazione `rest` all'import nei due casi).
+`npm run verifica` OK. Verificato dal vivo: modifica esercizio → giorno NON completato;
+spunta→despunta funziona; timer ⏱ riparte a 1:30.
+**Approvato da**: Marco (implementazione e rilascio v1.1.8 su comando esplicito).
+
 ### 2026-08-17 — TMS v1.1.7: app telefono senza sotto-menù, tasto indietro nativo, foto progressi
 
 **Tipo**: feature (richieste esplicite di Marco: eliminare la vista a schermo pieno introdotta in

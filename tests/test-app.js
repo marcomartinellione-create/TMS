@@ -632,7 +632,13 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     await settle(400);
     const sd = sub.window.document;
     ok(sd.getElementById('n-0').value === 'ripresa' && sd.getElementById('s-0').value === '7', 'app cliente: bozza ricaricata alla riapertura dell\'app');
-    ok(sd.getElementById('stato-0').textContent === '✔', 'app cliente: spunta ✔ sul giorno già compilato');
+    /* REGRESSIONE (2026-08-18): aver solo compilato gli esercizi NON marca il giorno come
+       «completato» — la spunta ✔ arriva solo con la fine-seduta esplicita (fatica+durata,
+       o la casella «Giorno completato» in modalità senza RPE). */
+    ok(sd.getElementById('stato-0').textContent === '', 'app cliente: modificare gli esercizi NON marca il giorno completato');
+    sd.getElementById('rpe-0').value = '7'; sd.getElementById('rpe-0').dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+    sd.getElementById('min-0').value = '55'; sd.getElementById('min-0').dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+    ok(sd.getElementById('stato-0').textContent === '✔', 'app cliente: la spunta ✔ appare a seduta conclusa (fatica + durata)');
     sub.window.close();
   }
   {
@@ -643,6 +649,25 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sd.getElementById('benvenuto').hidden === false && sd.getElementById('file-scheda') !== null, 'app cliente: senza scheda mostra il benvenuto con «Carica la scheda»');
     ok(sub.window.eval('LANGP') === 'en' && (sd.querySelector('#benvenuto [data-i18n]')||{}).textContent === '👋 Welcome', 'app cliente EN: lingua auto-rilevata + benvenuto tradotto');
     ok(sub.window.eval('validaScheda({tipo:"x"})') === false && sub.window.eval('validaScheda(' + JSON.stringify(schedaCli) + ')') === true, 'app cliente: validazione del file scheda (tipo tms-scheda)');
+    sub.window.close();
+  }
+  {
+    /* modalità SENZA Session-RPE: la fase Fine mostra solo la casella «Giorno completato».
+       REGRESSIONE bug 1 (2026-08-18): spuntare e poi TOGLIERE la spunta deve riportare il
+       giorno a «non completato» (prima restava segnato per sempre). */
+    const sNoRpe = JSON.parse(JSON.stringify(schedaCli)); sNoRpe.rpe = false;
+    const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(sNoRpe)); } });
+    await settle(400);
+    const sd = sub.window.document;
+    ok(sd.getElementById('rpe-0') === null && sd.getElementById('fatto-0') !== null, 'app cliente senza RPE: la fase Fine ha la casella «Giorno completato», non RPE/durata');
+    const box = sd.getElementById('fatto-0');
+    box.checked = true; box.dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+    ok(sd.getElementById('stato-0').textContent === '✔', 'app cliente senza RPE: la spunta marca il giorno ✔');
+    ok(sub.window.eval('costruisciRientro().sedute').some(s => s.fatto === true), 'app cliente senza RPE: la spunta entra nel rientro come {fatto:true}');
+    box.checked = false; box.dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+    ok(sd.getElementById('stato-0').textContent === '', 'app cliente senza RPE: TOGLIERE la spunta rimuove il completato (bug corretto)');
+    ok(!sub.window.eval('costruisciRientro().sedute').some(s => s.fatto === true), 'app cliente senza RPE: tolta la spunta, niente {fatto:true} nel rientro');
     sub.window.close();
   }
   /* v1.5: la PWA può aggiungere / eliminare / modificare esercizi + segnare i test 1RM + timer di recupero */
@@ -678,6 +703,9 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     const rientro2 = sw.eval('costruisciRientro()');
     ok(rientro2.righe.length === before + 1 && rientro2.righe.some(r => r.esercizio === 'Plank'), 'app cliente/esercizi: l\'esercizio aggiunto entra nel rientro');
     ok(rientro2.righe[0].test === true, 'app cliente/1RM: il flag test torna nel rientro (★ sul 1° esercizio)');
+    /* il recupero (rest) prescritto dal coach torna nel rientro → all'import non va perso */
+    sw.eval('WROWS[0].rest="2:15";');
+    ok(sw.eval('costruisciRientro().righe[0].rest') === '2:15', 'app cliente/timer: il recupero (rest) torna al coach nel rientro');
     const bozza2 = JSON.parse(sw.localStorage.getItem(bozzaKey) || '{}');
     ok(Array.isArray(bozza2._wrows) && bozza2._wrows.some(r => r.esercizio === 'Plank') && bozza2._wrows[0].test === true, 'app cliente: la bozza salva la STRUTTURA (_wrows: esercizio aggiunto + ★) → sopravvive al riavvio');
     /* elimina il primo esercizio (confirm stubbato) */
@@ -851,6 +879,16 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
      'rientro caricato nella scheda Pesi (righe con serie/peso del cliente)');
   ok(w.eval('DOC.scheda.rpe.settimanale["Lunedì"].rpe') === 8 && w.eval('DOC.scheda.rpe.settimanale["Lunedì"].min') === 75, 'rientro: seduta RPE (fatica+durata) nella bozza della scheda');
   ok(w.eval('DOC.storico.length') === stoPrima, 'rientro: lo Storico NON cambia finché il coach non salva a mano');
+  /* REGRESSIONE (2026-08-18): il tempo di recupero (rest) NON va perso all'import — il timer
+     sul telefono lo legge da lì. Se il rientro non lo porta (app già in giro), si conserva
+     quello della scheda del coach; se lo porta (app recente), vince quello del rientro. */
+  w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:70,rest:"2:00"}];');
+  w.eval('caricaRientroInScheda(' + JSON.stringify({ tipo:'tms-rientro', versione:1, profilo:{slug:'template'},
+    righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:72,rir:2} ], sedute:[] }) + ')');
+  ok(w.eval('DOC.scheda.settimanale[0].rest') === '2:00', 'rientro: il recupero NON si perde se il rientro non lo porta (conservato dalla scheda del coach → il timer resta)');
+  w.eval('caricaRientroInScheda(' + JSON.stringify({ tipo:'tms-rientro', versione:1, profilo:{slug:'template'},
+    righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:72,rir:2,rest:'1:45'} ], sedute:[] }) + ')');
+  ok(w.eval('DOC.scheda.settimanale[0].rest') === '1:45', 'rientro: se il cliente rimanda il recupero (app recente), vince quello del rientro');
   /* v1.5: il flag test (★ massimale) del cliente arriva nella scheda Pesi all'import */
   const rientroTest = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
     righe:[ {giorno:'Lunedì',esercizio:'Stacco da terra con bilanciere',serie:1,rip:3,peso:150,rir:0,note:'test max',test:true} ], sedute:[] };

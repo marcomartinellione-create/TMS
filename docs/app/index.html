@@ -288,7 +288,7 @@
    coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.2';
+const CVER='2.3';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -682,15 +682,19 @@ function caricaBozza(){ TOCCATI=new Set(); if(!stOk) return; let raw=null; try{ 
     TOCCATI=new Set(Array.isArray(o._t)? o._t : Object.keys(o).filter(k=>k!=='_t'&&k!=='_wrows'));
     const n=$('bozza-stato'); if(n) n.textContent=tt('✔ Ho ricaricato quello che avevi scritto.'); }catch(e){} }
 function exFatto(rid){ return ['s-','r-','p-','rir-','n-'].some(p=>TOCCATI.has(p+rid)); }
-function dayIds(gi){ const ids=[]; WROWS.forEach(r=>{ if(r.giorno===GIORNI[gi]){ ['s-','r-','p-','rir-','n-'].forEach(p=>ids.push(p+r.rid)); } });
-  ids.push('rpe-'+gi); ids.push('min-'+gi); ids.push('fatto-'+gi); return ids; }
+/* un giorno è «completato» SOLO con un gesto esplicito di fine seduta: la spunta «Giorno
+   completato» (modalità senza fatica) oppure fatica+durata inseriti (modalità con RPE).
+   Modificare un campo — es. aumentare le serie — NON conta come seduta conclusa. */
+function giornoCompletato(gi){ const c=$('fatto-'+gi);
+  if(c) return c.checked;
+  return !!(num('rpe-'+gi) && num('min-'+gi)); }
 /* spunte ✔ (giorni ed esercizi) + barra di avanzamento della seduta */
 function aggiornaStato(){ if(!SCHEDA) return;
   GIORNI.forEach((g,gi)=>{
     const rows=wrowsDelGiorno(g); let fatti=0;
     rows.forEach(r=>{ const ok=exFatto(r.rid); if(ok) fatti++;
       const ck=$('ck-'+r.rid); if(ck) ck.textContent=ok?'✔':''; });
-    const s=$('stato-'+gi); if(s) s.textContent=dayIds(gi).some(id=>TOCCATI.has(id))?'✔':'';
+    const s=$('stato-'+gi); if(s) s.textContent=giornoCompletato(gi)?'✔':'';
     const dm=$('dmeta-'+gi); if(dm) dm.textContent=(fatti?fatti+'/'+rows.length+' '+tt('fatti'):rows.length+' '+tt(rows.length===1?'esercizio':'esercizi'));
     const pb=$('prog-'+gi); if(pb) pb.style.width=(rows.length?Math.round(fatti/rows.length*100):0)+'%';
     const pl=$('plab-'+gi); if(pl) pl.textContent=fatti+'/'+rows.length+' '+tt('fatti');
@@ -741,7 +745,8 @@ function num(id){ const el=$(id); const v=el?el.value:''; return v===''?null:+v;
 function costruisciRientro(){
   const righe=WROWS.map(r=>({giorno:r.giorno, esercizio:String(r.esercizio||'').trim(),
     serie:num('s-'+r.rid)||0, rip:num('r-'+r.rid)||0, peso:num('p-'+r.rid)||0,
-    rir:num('rir-'+r.rid), note:(($('n-'+r.rid)&&$('n-'+r.rid).value)||'').trim(), test:!!r.test}))
+    rir:num('rir-'+r.rid), note:(($('n-'+r.rid)&&$('n-'+r.rid).value)||'').trim(),
+    rest:r.rest||'', test:!!r.test}))   /* il recupero torna al coach: non va perso all'import */
     .filter(x=>x.esercizio);
   const sedute=[]; GIORNI.forEach((g,gi)=>{ const rp=num('rpe-'+gi), mn=num('min-'+gi);
     if(rp&&mn){ sedute.push({giorno:g, rpe:rp, min:mn}); return; }
