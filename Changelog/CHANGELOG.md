@@ -4,6 +4,36 @@
 
 ---
 
+### 2026-08-19 — TMS v1.1.9: estetica desktop più morbida, backup con foto, colonne scegliibili
+
+**Tipo**: estetica + feature (richiesta esplicita di Marco: ispirarsi a Movienaitor per forme
+più morbide senza toccare i colori né la funzione; poi tre miglioramenti aggiuntivi da lui
+selezionati tra le proposte fatte durante il restyle — cardio nel carico rimandato a sua scelta)
+**File coinvolti**: `src/pagina/02-stili.css` (sistema di token per raggi/superfici/ombre) ·
+stili inline in vari `src/app/*.js` (foto, video, report, profilo, backup, QR) · `src/app/06-
+allenamento.js` (▦ Colonne) · `src/app/14-backup.js` (backup completo con foto) · `src/app/13b-
+profilo.js` (bottone + avviso backup) · `src/app/08-progressi.js` (stati vuoti) · `docs/app/
+index.html`+`sw.js` (stesso stile sul telefono, CVER 2.4, cache v13) · `src/app/00-i18n.js` ·
+guide (IT/EN + guida-AI) · `CLAUDE.md` (corretta nota .FIT non aggiornata) · `tests/test-app.js`
+**Descrizione**:
+- **Estetica**: gli angoli erano numeri sparsi decisi caso per caso (3-13px): ora una scala a
+  gradini (`--r-xs/sm/md/lg/pill`), superfici con sfumatura verticale appena percettibile al
+  posto della tinta piatta, ombre più ampie e diffuse, transizioni morbide. Colori invariati
+  (pergamena/ember, giorno e notte). In stampa le superfici tornano piatte: il PDF non cambia.
+  Stessa scala applicata anche alla PWA, che prima non aveva ombre.
+- **Backup completo (con foto)**: il backup normale portava solo i riferimenti alle foto
+  progressi, non le immagini — ripristinandolo su un altro PC mancavano. Il nuovo bottone le
+  incorpora come data-URI e le riscrive al ripristino (byte-identiche, verificato nei test).
+- **▦ Colonne** nella scheda Pesi: nasconde Note/Rest/1RM+%1RM/TL/Δ TL set, solo visivo,
+  preferenza salvata per profilo.
+- **Accessibilità**: `:focus-visible` — prima la navigazione da tastiera non si vedeva.
+- **Stati vuoti** (scheda Pesi vuota, Progressi senza dati) con icona e pulsante dell'azione
+  successiva al posto della riga in corsivo.
+**Test**: `npm test` <b>428/428</b> (+8 dalla v1.1.8: colonne, backup con foto andata/ritorno,
+stati vuoti). `npm run verifica` OK. Verificato a schermo su tutti i tab, tema notte e telefono.
+**Approvato da**: Marco (implementazione su ramo separato con via di fuga a v1.1.8; rilascio
+v1.1.9 su comando esplicito «pubblica»).
+
 ### 2026-08-18 — TMS v1.1.8: fix completamento giornata e timer di recupero (app telefono)
 
 **Tipo**: bugfix (tre difetti segnalati da Marco sull'app del telefono dopo v1.1.7)
