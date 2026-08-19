@@ -84,6 +84,11 @@ h1,h2,h3,h4{font-family:var(--font-disp); font-weight:600; letter-spacing:.02em;
 a{color:var(--orange); text-decoration:none}
 a:hover{color:var(--orange-b)}
 button{font-family:inherit; cursor:pointer}
+/* messa a fuoco da TASTIERA: prima chi navigava con Tab non vedeva mai dov'era.
+   Solo :focus-visible, così il contorno non compare a ogni click col mouse. */
+:focus-visible{outline:2px solid var(--orange); outline-offset:2px; border-radius:var(--r-xs)}
+/* i campi hanno già il loro alone arancione al fuoco: lì il contorno raddoppierebbe */
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .mono{font-family:var(--font-mono)}
 
 /* ── TOPBAR ── */
@@ -298,6 +303,13 @@ svg .ln{fill:none; stroke-width:2}
 .footer{text-align:center; color:var(--ink-4); font-size:11.5px; font-family:var(--font-mono);
   padding:18px; border-top:1px solid var(--border); margin-top:20px; letter-spacing:.04em}
 .empty{padding:40px; text-align:center; color:var(--ink-4); font-style:italic}
+/* quando lo stato vuoto è un riquadro a sé (non una cella di tabella) diventa un
+   pannello tratteggiato: si legge come «qui non c'è ancora niente», non come un errore */
+div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); background:var(--paper-2);
+  font-style:normal; line-height:1.6; padding:34px 26px}
+.empty__ico{display:block; font-size:30px; margin-bottom:8px; opacity:.75; font-style:normal}
+.empty b{color:var(--ink-2)}
+.empty .btn{margin-top:14px; font-style:normal}
 .row-add{margin-top:8px}
 .grp-tot{font-family:var(--font-mono); font-weight:600; color:var(--orange)}
 
@@ -374,3 +386,9 @@ svg .ln{fill:none; stroke-width:2}
 #pdf-stage table{ width:100%; font-size:9.5px } #pdf-stage thead th{ position:static }
 #pdf-stage.land{ width:297mm } #pdf-stage.land .pg{ width:297mm; height:210mm } /* A4 orizzontale (stampa dieta) */
 table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
+/* colonne facoltative della scheda Pesi (▦ Colonne): stessa convenzione del RIR */
+table.hide-note th.col-note,table.hide-note td.col-note,
+table.hide-rest th.col-rest,table.hide-rest td.col-rest,
+table.hide-rm th.col-rm,table.hide-rm td.col-rm,
+table.hide-tl th.col-tl,table.hide-tl td.col-tl,
+table.hide-dtl th.col-dtl,table.hide-dtl td.col-dtl{display:none}

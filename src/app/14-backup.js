@@ -1,15 +1,61 @@
 /* ════ BACKUP / RIPRISTINO ════ */
 /* fotografia completa di TUTTI i profili (usata dal backup manuale e da quello automatico).
    Dal v1.0.72 include anche storico_rpe dei profili non attivi (prima andava perso). */
-async function costruisciSnapshot(){
+/* ── FOTO nel backup (2026-08-19) ────────────────────────────────────────────
+   Lo snapshot ha sempre portato i METADATI delle foto (file, data, tag) ma non le
+   immagini: ripristinando su un PC nuovo restavano voci che puntavano a file
+   inesistenti. Con «backup completo» le immagini viaggiano dentro il JSON come
+   data-URI, e il ripristino le riscrive nella cartella foto/ del profilo.
+   I video NON entrano: pesano troppo e sono rigenerabili dal catalogo. ── */
+function bytesToBase64(buf){
+  let bin=''; const CH=8192;                     /* a blocchi: con file grandi
+     un solo String.fromCharCode(...tuttiIByte) sfonda lo stack degli argomenti */
+  for(let i=0;i<buf.length;i+=CH) bin+=String.fromCharCode.apply(null, buf.subarray(i,i+CH));
+  return btoa(bin);
+}
+function mimeFoto(nome){
+  const e=String(nome||'').toLowerCase().split('.').pop();
+  return e==='png'?'image/png':e==='webp'?'image/webp':e==='gif'?'image/gif':'image/jpeg';
+}
+async function fotoLeggiDataUri(pd, nome){
+  const fd=await pd.getDirectoryHandle('foto',{create:false});
+  const fh=await fd.getFileHandle(String(nome),{create:false});
+  const f=await fh.getFile();
+  return 'data:'+(f.type||mimeFoto(nome))+';base64,'+bytesToBase64(new Uint8Array(await f.arrayBuffer()));
+}
+async function fotoScriviDataUri(pd, nome, dataUri){
+  const m=String(dataUri||'').match(/^data:[^;]*;base64,(.+)$/);
+  if(!m) return false;
+  const bin=atob(m[1]); const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  const fd=await pd.getDirectoryHandle('foto',{create:true});
+  const fh=await fd.getFileHandle(String(nome),{create:true});
+  const wr=await fh.createWritable(); await wr.write(bytes); await wr.close();
+  return true;
+}
+/* legge le immagini di un profilo e le allega al suo blocco dello snapshot */
+async function allegaFoto(pd, blocco){
+  const meta=(blocco&&blocco.foto)||[]; if(!meta.length) return;
+  const files={};
+  for(const f of meta){
+    if(!f||!f.file||files[f.file]) continue;
+    try{ files[f.file]=await fotoLeggiDataUri(pd, f.file); }
+    catch(e){ logErrore('backupFoto:'+f.file, e); }   /* foto mancante: si salta, il resto del backup vale comunque */
+  }
+  if(Object.keys(files).length) blocco.fotoFiles=files;
+}
+async function costruisciSnapshot(conFoto){
   if(dataDir&&profileDir){ try{ await persistAll(); }catch(e){} } else { saveCache(); }
   const snap={_tms:'backup', version:APP_VERSION, date:new Date().toISOString(), profili:profili, esercizi:DOC.esercizi, profiles:{}};
   if(dataDir){
     for(const p of profili){
-      if(p.slug===activeProfile){ snap.profiles[p.slug]=docProfileData(); continue; }
+      if(p.slug===activeProfile){ snap.profiles[p.slug]=docProfileData();
+        if(conFoto&&profileDir){ try{ await allegaFoto(profileDir, snap.profiles[p.slug]); }catch(e){ logErrore('backupFoto', e); } }
+        continue; }
       try{ const pd=await dataDir.getDirectoryHandle(p.slug,{create:false});
         const sc=await readJson(pd,FILES.scheda), st=await readJson(pd,FILES.storico), co=await readJson(pd,FILES.corpo), al=await readJson(pd,FILES.alimentazione);
         snap.profiles[p.slug]={scheda:sc||{settimanale:[],mensile:[]},storico:st||[],storico_io:(co&&co.storico_io)||[],storico_rpe:(co&&co.storico_rpe)||[],storico_risc:(co&&co.storico_risc)||[],cardio:(co&&co.cardio)||[],foto:(co&&co.foto)||[],dati_utente:(co&&co.dati_utente)||{},alimentazione:al||{bulk:[],mant:[],cut:[]}};
+        if(conFoto){ try{ await allegaFoto(pd, snap.profiles[p.slug]); }catch(e){ logErrore('backupFoto:'+p.slug, e); } }
       }catch(e){ snap.profiles[p.slug]=blankDOC(); logErrore('snapshot:'+p.slug, e); }
     }
   } else {
@@ -18,12 +64,19 @@ async function costruisciSnapshot(){
   }
   return snap;
 }
-async function backupData(){
+async function backupData(conFoto){
   try{
-    const snap=await costruisciSnapshot();
+    const snap=await costruisciSnapshot(conFoto);
     const blob=new Blob([JSON.stringify(snap,null,2)],{type:'application/json'});
+    if(conFoto){
+      const nFoto=Object.keys(snap.profiles).reduce((n,s)=>n+Object.keys((snap.profiles[s]||{}).fotoFiles||{}).length,0);
+      const mb=blob.size/1048576;
+      if(!nFoto){ alert(t('Nessuna foto da includere: uso il backup normale.')); }
+      else if(!confirm(t('Backup completo:')+' '+nFoto+' '+t('foto incluse, circa')+' '+mb.toFixed(1)+' MB.\n\n'+
+        t('I file grandi sono più lenti da salvare e da ripristinare. Procedo?'))) return;
+    }
     const url=URL.createObjectURL(blob); const a=document.createElement('a');
-    a.download='TMS-backup-'+(pslug(profNome())||activeProfile||'profilo')+'-'+new Date().toISOString().slice(0,10)+'.json';  /* nome del profilo attivo nel file: si capisce di chi è (il contenuto resta TUTTI i profili) */
+    a.download='TMS-backup'+(conFoto?'-completo':'')+'-'+(pslug(profNome())||activeProfile||'profilo')+'-'+new Date().toISOString().slice(0,10)+'.json';  /* nome del profilo attivo nel file: si capisce di chi è (il contenuto resta TUTTI i profili) */
     a.href=url;
     document.body.appendChild(a); a.click(); setTimeout(()=>{ try{URL.revokeObjectURL(url);}catch(e){} a.remove(); },600);
   }catch(e){ alert(t('Errore backup:')+' '+e.message); logErrore('backupData', e); }
@@ -108,6 +161,7 @@ async function restoreData(file){
   if(snap.esercizi&&snap.esercizi.length) DOC.esercizi=snap.esercizi; rebuildEs();
   activeProfile=(profili[0]&&profili[0].slug)||'wander';
   applyProfileData(snap.profiles[activeProfile]||blankDOC());
+  let fotoRipristinate=0;
   if(dataDir){
     for(const slug of Object.keys(snap.profiles)){
       const pd=await dataDir.getDirectoryHandle(slug,{create:true}); const d=snap.profiles[slug]||blankDOC();
@@ -115,6 +169,12 @@ async function restoreData(file){
       await writeJson(pd,FILES.storico,d.storico||[]);
       await writeJson(pd,FILES.corpo,{dati_utente:d.dati_utente||{},storico_io:d.storico_io||[],storico_rpe:d.storico_rpe||[],storico_risc:d.storico_risc||[],cardio:d.cardio||[],foto:d.foto||[]});
       await writeJson(pd,FILES.alimentazione,d.alimentazione||{bulk:[],mant:[],cut:[]});
+      /* backup completo: rimette anche le immagini nella cartella foto/ del profilo */
+      const ff=d.fotoFiles||{};
+      for(const nome of Object.keys(ff)){
+        try{ if(await fotoScriviDataUri(pd, nome, ff[nome])) fotoRipristinate++; }
+        catch(e){ logErrore('ripristinoFoto:'+nome, e); }
+      }
     }
     await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
     await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile});
@@ -123,6 +183,6 @@ async function restoreData(file){
     const data={}; Object.keys(snap.profiles).forEach(s=>data[s]=snap.profiles[s]);
     try{ localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,profili:profili,active:activeProfile,data:data})); }catch(e){}
   }
-  saveCache(); alert(t('✔ Backup ripristinato (')+np+' '+t('profili).')); renderAll(); showTab('profilo');
+  saveCache(); alert(t('✔ Backup ripristinato (')+np+' '+t('profili).')+(fotoRipristinate?' '+fotoRipristinate+' '+t('foto rimesse al loro posto.'):'')); renderAll(); showTab('profilo');
 }
 

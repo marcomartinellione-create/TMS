@@ -308,6 +308,22 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const snapFix = await w.eval('costruisciSnapshot()');
   ok(Array.isArray(snapFix.profiles['wander'].storico_rpe) && snapFix.profiles['wander'].storico_rpe.length === 1, 'snapshot: storico_rpe del profilo non attivo incluso (fix)');
   ok((await w.eval('getProfileData("wander")')).dati_utente.nome === 'Wander', 'getProfileData legge i parametri di un profilo non attivo (fix lint)');
+  ok(snapFix.profiles['template'].fotoFiles === undefined, 'backup normale: nessuna immagine allegata (file leggero, come prima)');
+  /* 2026-08-19 — ▦ COLONNE della scheda Pesi: 12 colonne sono troppe su schermi
+     piccoli. Si nascondono solo visivamente: i valori restano calcolati e salvati. */
+  w.eval('showTab("allenamento")');
+  ok(d.getElementById('btn-colonne') !== null, 'Pesi: bottone ▦ Colonne nella barra');
+  { const tab = () => d.querySelector('#panel-allenamento table');
+    ok(tab().querySelectorAll('th.col-rm').length === 2 && tab().querySelector('th.col-dtl') !== null, 'Pesi: 1RM/%1RM e Δ TL set marcate come colonne facoltative');
+    ok(!/hide-rm/.test(tab().className) && !/hide-note/.test(tab().className), 'Pesi: di default si vedono tutte le colonne (come prima)');
+    w.eval('colonnePesi().rm=false; colonnePesi().dtl=false; renderAllenamento();');
+    ok(/hide-rm/.test(tab().className) && /hide-dtl/.test(tab().className), 'Pesi: le colonne deselezionate spariscono dalla tabella');
+    ok(w.getComputedStyle(tab().querySelector('th.col-rm')).display === 'none', 'Pesi: 1RM davvero non visibile (regola CSS applicata)');
+    /* il dato NON si perde: la cella c'è ancora e il TL resta calcolato */
+    ok(tab().querySelector('td.col-rm') !== null && tab().querySelector('td.col-tl').textContent.trim() !== '', 'Pesi: nascondere è solo visivo — i valori restano nella tabella e nei calcoli');
+    ok(w.eval('JSON.parse(JSON.stringify(docProfileData())).dati_utente.colonnePesi.rm') === false, 'Pesi: la scelta delle colonne si salva nel profilo (ogni atleta la sua)');
+    w.eval('COLONNE_PESI.forEach(c=>colonnePesi()[c.k]=true); renderAllenamento();');
+    ok(!/hide-/.test(tab().className.replace('hide-rir', '')), 'Pesi: «Mostra tutte» riporta la tabella completa'); }
   /* v1.0.70: bottone Rinomina profilo (P1) e Zwieback disambiguato (P11) */
   w.eval('showTab("profilo")');
   /* v1.0.75: bottoni di scambio nella riga di ogni profilo, visibili a tendina chiusa */
@@ -1016,6 +1032,22 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(corpoJson && Array.isArray(corpoJson.foto) && corpoJson.foto.some(x => x.file === fmeta.file), 'foto: metadati persistiti in corpo.json');
   const snapFoto = await w.eval('costruisciSnapshot()');
   ok(Array.isArray(snapFoto.profiles['wander'].foto) && snapFoto.profiles['wander'].foto.length >= 1, 'foto: metadati nel backup (le immagini restano file, come i video)');
+  /* 2026-08-19 — BACKUP COMPLETO: prima il backup portava solo i riferimenti alle foto,
+     quindi ripristinandolo su un altro PC le immagini mancavano. Ora, su richiesta,
+     viaggiano dentro il file e il ripristino le riscrive su disco. */
+  { const snapFull = await w.eval('costruisciSnapshot(true)');
+    const ff = snapFull.profiles['wander'].fotoFiles || {};
+    ok(Object.keys(ff).length >= 1 && ff[fmeta.file] && /^data:image\/[a-z]+;base64,.+/.test(ff[fmeta.file]),
+       'backup completo: l\'immagine entra nel file come data-URI');
+    /* il ripristino rimette il file al suo posto: lo cancello dal disco e lo riscrivo */
+    const via = 'TMS_Dati/wander/foto/' + fmeta.file;
+    fsmem._files.delete(via);
+    ok(!fsmem._files.has(via), 'prova: immagine rimossa dal disco');
+    ok(await w.eval('fotoScriviDataUri(profileDir,' + JSON.stringify(fmeta.file) + ',' + JSON.stringify(ff[fmeta.file]) + ')') === true,
+       'ripristino: l\'immagine viene riscritta nella cartella foto/');
+    const tornati = fsmem._files.get(via);
+    ok(tornati && tornati.length === fbytes.length && tornati[0] === 255 && tornati[1] === 216,
+       'ripristino: i byte tornano IDENTICI all\'originale (andata e ritorno base64 senza perdite)'); }
   /* modalità Confronto: due viste con immagini caricate dal disco */
   w.eval('fotoMode="confronto"; renderFotoSezione();'); await settle(80);
   ok(d.getElementById('foto-cmp-a') !== null && d.getElementById('foto-cmp-b') !== null, 'foto: modalità Confronto con selettori prima/dopo');
