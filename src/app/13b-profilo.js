@@ -23,7 +23,7 @@ function renderProfilo(){
         </div>`;
       } else { body=`<div class="muted" style="padding:8px">${t('Caricamento parametri…')}</div>`; }
     }
-    return `<div class="prof-item" style="border:1px solid var(--border);border-radius:7px;margin-bottom:8px;background:${isAct?'var(--gold-t)':'var(--paper-2)'}">
+    return `<div class="prof-item" style="border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;background:${isAct?'var(--gold-t)':'var(--paper-2)'}">
       <div data-popen="${esc(p.slug)}" style="display:flex;align-items:center;gap:10px;padding:11px 13px;cursor:pointer">
         <span style="font-family:var(--font-mono)">${open?'▾':'▸'}</span>
         <span class="cr-led" id="cr-led-${esc(p.slug)}" style="font-size:13px;color:var(--ink-3);flex:0 0 auto" title="Stato in calcolo…">⚪</span>

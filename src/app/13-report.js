@@ -23,7 +23,7 @@ function renderReport(){
   /* foto report: default prima=più vecchia, dopo=più recente (se ci sono foto) */
   const _fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
   if(_fl.length){ if(!_fl.some(f=>f.file===R.fotoPrima)) R.fotoPrima=_fl[0].file; if(!_fl.some(f=>f.file===R.fotoDopo)) R.fotoDopo=_fl[_fl.length-1].file; }
-  const mvStyle='border:1px solid var(--border);background:var(--paper-2);border-radius:4px;cursor:pointer;font-size:10px;line-height:1;padding:2px 4px;color:var(--ink-2)';
+  const mvStyle='border:1px solid var(--border);background:var(--paper-2);border-radius:var(--r-xs);cursor:pointer;font-size:10px;line-height:1;padding:2px 4px;color:var(--ink-2)';
   const ctrl=`<div class="bar no-print" style="flex-wrap:wrap">
      <div class="field" style="flex:1;min-width:240px"><label>${t('Obiettivo del cliente (in copertina)')}</label><input id="rep-goal" value="${esc(R.obiettivo||'')}" placeholder="${t('es. ricomposizione corporea, +forza panca…')}" style="width:100%"></div>
      <button class="btn btn--gold" id="rep-pdf-btn" onclick="printReport()">${t('⬇ Scarica PDF (A4)')}</button>
@@ -46,7 +46,7 @@ function renderReport(){
   if(R.foto){ const fp=(DOC.foto||[]).find(x=>x.file===R.fotoPrima), fd=(DOC.foto||[]).find(x=>x.file===R.fotoDopo);
     if(fp||fd){ const cell=(f,lab)=>{ if(!f) return `<div style="flex:1;text-align:center"><div style="font-weight:700;color:var(--ember-2)">${lab}</div><div class="muted" style="padding:16px">—</div></div>`;
         const du=fotoReportUri[f.file], pz=fotoPeso(f.data);
-        return `<div style="flex:1;text-align:center;min-width:0"><div style="font-weight:700;color:var(--ember-2)">${lab}</div>${du?`<img src="${du}" alt="${lab}" style="max-width:100%;max-height:340px;border-radius:8px;border:1px solid var(--border)">`:`<div class="muted" style="padding:16px">${t('(caricamento foto…)')}</div>`}<div class="muted" style="font-size:12px;margin-top:3px">${esc(fotoDataLabel(f))}${pz?' · '+nf(pz,1)+' kg':''}</div></div>`; };
+        return `<div style="flex:1;text-align:center;min-width:0"><div style="font-weight:700;color:var(--ember-2)">${lab}</div>${du?`<img src="${du}" alt="${lab}" style="max-width:100%;max-height:340px;border-radius:var(--r-sm);border:1px solid var(--border)">`:`<div class="muted" style="padding:16px">${t('(caricamento foto…)')}</div>`}<div class="muted" style="font-size:12px;margin-top:3px">${esc(fotoDataLabel(f))}${pz?' · '+nf(pz,1)+' kg':''}</div></div>`; };
       B.foto=`<div class="rep-sec"><div class="sec">${t('Foto progressi — prima / dopo')}</div>
        <div style="display:flex;gap:14px;align-items:flex-start">${cell(fp,t('Prima'))}${cell(fd,t('Dopo'))}</div></div>`; } }
   if(R.riepilogo && last){ B.riepilogo=`<div class="rep-sec"><div class="sec">${t('Riepilogo allenamento')}</div>
@@ -94,7 +94,7 @@ function renderReport(){
      <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`];
   ordine.forEach(k=>{ if(B[k]) S.push(B[k]); });
   S.push(`<p class="muted" style="font-size:11px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px">${t('Report generato dal Training Monitor System. Indici a scopo informativo, non sostituiscono un parere medico/professionale.')}</p>`);
-  document.getElementById('panel-report').innerHTML=ctrl+fotoReportCtrl(R)+`<div class="rep-doc" style="background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:28px;box-shadow:var(--shadow)">${S.join('')}</div>`;
+  document.getElementById('panel-report').innerHTML=ctrl+fotoReportCtrl(R)+`<div class="rep-doc" style="background:var(--paper);border:1px solid var(--border);border-radius:var(--r-md);padding:28px;box-shadow:var(--shadow)">${S.join('')}</div>`;
   const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo'); };
   document.querySelectorAll('#panel-report [data-rep]').forEach(cb=>cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); });
   document.querySelectorAll('#panel-report [data-repmove]').forEach(b=>b.onclick=()=>{
@@ -208,7 +208,7 @@ function buildVideoSection(items){
   if(!items || !items.length) return '';
   return '<div class="rep-sec"><div class="sec">▶ '+t('Video degli esercizi')+'</div>'+
     items.map(it=>'<div class="vid-item"><div class="vid-name">▶ '+esc(exName(it.nome))+'</div>'+
-      '<video controls playsinline preload="none" style="width:100%;max-height:70vh;border-radius:8px;background:#000"><source src="'+it.dataUri+'"></video></div>').join('')+
+      '<video controls playsinline preload="none" style="width:100%;max-height:70vh;border-radius:var(--r-sm);background:#000"><source src="'+it.dataUri+'"></video></div>').join('')+
     '<p class="muted" style="font-size:12px">'+t('Tocca un video per riprodurlo. Funziona offline, direttamente da questo file.')+'</p></div>';
 }
 function collectSchedaVideos(){

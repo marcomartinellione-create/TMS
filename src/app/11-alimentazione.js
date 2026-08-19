@@ -54,7 +54,7 @@ function renderFoodPicker(fase,i){
   const m=document.getElementById('modal'); m.style.maxWidth='820px';
   m.innerHTML=`<h3>${t('Scegli un alimento')} <span class="pill" style="font-weight:400">${count} ${t('risultati')}${count>cap?' · '+t('primi')+' '+cap:''}</span></h3>
     <input id="fp-q" class="search" style="width:100%;margin-bottom:8px" placeholder="${t('cerca a parole: nome o categoria…')}" value="${esc(fpFilter)}">
-    <div style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:6px">
+    <div style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:var(--r-sm)">
     <table><thead><tr><th class="no-print"></th><th class="l">${t('Alimento')}</th><th class="l">${t('Categoria')}</th><th>Kcal</th><th>Prot</th><th>${t('Grassi')}</th><th>Carbo</th><th>${t('Fibre')}</th></tr></thead>
     <tbody>${body||`<tr><td colspan="8" class="empty">${t('Nessun alimento.')}</td></tr>`}</tbody></table></div>
     <div class="muted" style="font-size:11px;margin-top:6px">${t('Valori per 100 g · clicca una riga per selezionare · ☆/★ per i preferiti')}</div>
@@ -113,7 +113,7 @@ function omsRenderSection(){
     body+=`<tr><td class="l">${t(lab)} ${type==='limit'?`<span class="muted" title="${t('limite massimo da non superare')}">${t('(max)')}</span>`:''}</td>
       <td class="num">${nf(week,dec)} ${unit}</td><td class="num muted">${nf(refw,dec)} ${unit}</td>
       <td class="num" style="color:${col};font-weight:600">${nf(pct,0)}%</td>
-      <td style="width:130px"><div style="background:var(--paper-3);border-radius:3px;height:9px;overflow:hidden"><div style="width:${barw}%;height:100%;background:${col}"></div></div></td></tr>`;
+      <td style="width:130px"><div style="background:var(--paper-3);border-radius:var(--r-pill);height:9px;overflow:hidden"><div style="width:${barw}%;height:100%;background:${col}"></div></div></td></tr>`;
   });
   return `<div class="sec">${t('Indice nutrienti settimanale · riferimenti OMS/FAO')} <span class="pill no-print" style="margin-left:auto">${t('fase')} ${t(FASE_LAB[fase]||fase)}</span></div>
     <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Nutriente')}</th><th>${t('Settimana')}</th><th>${t('Riferimento')}</th><th>${t('Indice')}</th><th>—</th></tr></thead><tbody>${body}</tbody></table></div>
