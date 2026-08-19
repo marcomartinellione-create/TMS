@@ -16,8 +16,24 @@
   --font-disp:'Cinzel','Trajan Pro',Georgia,'Times New Roman',serif;
   --font-body:'Iowan Old Style','Palatino Linotype','Book Antiqua',Georgia,serif;
   --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,'Courier New',monospace;
-  --shadow:0 1px 3px rgba(28,14,4,.10),0 6px 18px rgba(28,14,4,.06);
+  --shadow:0 2px 6px rgba(28,14,4,.06),0 12px 28px rgba(28,14,4,.07);
   --topbar-h:49px;   /* altezza reale della topbar: i tab ci si agganciano sotto (sticky) */
+  /* ── FORME E PROFONDITÀ (2026-08-19) ───────────────────────────────────────
+     Un solo posto per angoli, superfici e ombre: prima erano numeri sparsi
+     (3,4,5,6,7,8,9,11,12 px) che rendevano l'insieme spigoloso e disomogeneo.
+     Scala a gradini netti — campi < pulsanti < contenitori < modali — così
+     elementi diversi si riconoscono anche dalla curvatura. */
+  --r-xs:7px;      /* campi di testo, pulsanti piccoli */
+  --r-sm:10px;     /* pulsanti, tab, avvisi */
+  --r-md:14px;     /* schede, tabelle, riquadri dei grafici */
+  --r-lg:18px;     /* modali e riquadri a tutto schermo */
+  --r-pill:999px;  /* etichette e fasce: completamente stondate */
+  /* le superfici non sono più tinta piatta ma una sfumatura verticale appena
+     percepibile: dà volume senza sporcare i colori pergamena */
+  --sup:linear-gradient(180deg,var(--paper),var(--paper-2));
+  --shadow-sm:0 1px 2px rgba(28,14,4,.05),0 2px 8px rgba(28,14,4,.04);
+  --shadow-lg:0 8px 20px rgba(28,14,4,.09),0 24px 56px rgba(28,14,4,.10);
+  --rapida:.12s; --media:.2s;   /* durate transizioni */
 }
 [data-theme="notte"]{
   --paper:#1b160f; --paper-2:#15110b; --paper-3:#262019; --paper-4:#2e2619;
@@ -29,7 +45,10 @@
   --ok:#54b07a; --ok-b:#5fd089; --ok-t:#10241a;
   --danger:#e0524f; --danger-b:#ef6a67; --danger-t:#2c1210; --danger-bd:rgba(224,82,79,.45);
   --violet:#b07ed8; --grace:#f0d676;
-  --shadow:0 1px 3px rgba(0,0,0,.45),0 6px 18px rgba(0,0,0,.35);
+  --shadow:0 2px 6px rgba(0,0,0,.40),0 12px 28px rgba(0,0,0,.34);
+  --sup:linear-gradient(180deg,var(--paper),var(--paper-2));
+  --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.25);
+  --shadow-lg:0 8px 20px rgba(0,0,0,.45),0 24px 56px rgba(0,0,0,.40);
   color-scheme:dark;
 }
 [data-theme="notte"] body{ background-image:radial-gradient(circle at 20% -10%, rgba(227,181,60,.05), transparent 40%),radial-gradient(circle at 100% 0%, rgba(224,112,15,.05), transparent 35%); }
@@ -65,6 +84,11 @@ h1,h2,h3,h4{font-family:var(--font-disp); font-weight:600; letter-spacing:.02em;
 a{color:var(--orange); text-decoration:none}
 a:hover{color:var(--orange-b)}
 button{font-family:inherit; cursor:pointer}
+/* messa a fuoco da TASTIERA: prima chi navigava con Tab non vedeva mai dov'era.
+   Solo :focus-visible, così il contorno non compare a ogni click col mouse. */
+:focus-visible{outline:2px solid var(--orange); outline-offset:2px; border-radius:var(--r-xs)}
+/* i campi hanno già il loro alone arancione al fuoco: lì il contorno raddoppierebbe */
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .mono{font-family:var(--font-mono)}
 
 /* ── TOPBAR ── */
@@ -86,11 +110,13 @@ button{font-family:inherit; cursor:pointer}
 .conn.is-busy .conn__dot{background:var(--gold); box-shadow:0 0 0 3px rgba(212,160,23,.3); animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.4}}
 .btn{
-  border:1px solid var(--border-2); background:var(--paper); color:var(--ink-2);
-  border-radius:3px; padding:6px 13px; font-size:13px; font-family:var(--font-body);
-  transition:all .14s; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  border:1px solid var(--border-2); background:var(--sup); color:var(--ink-2);
+  border-radius:var(--r-sm); padding:7px 15px; font-size:13px; font-family:var(--font-body);
+  transition:background var(--media),border-color var(--media),color var(--media),box-shadow var(--media),transform var(--rapida);
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap; box-shadow:var(--shadow-sm);
 }
-.btn:hover{border-color:var(--orange); color:var(--orange); background:var(--orange-t)}
+.btn:hover{border-color:var(--orange); color:var(--orange); background:var(--orange-t); box-shadow:var(--shadow)}
+.btn:active{transform:translateY(1px); box-shadow:var(--shadow-sm)}
 .btn--ember{background:linear-gradient(180deg,#d8590e,#b5450a); color:#fff4ec; border-color:#8a3406; box-shadow:var(--shadow)}
 .btn--ember:hover{background:linear-gradient(180deg,#ea580c,#c2500a); color:#fff}
 .btn--gold{background:linear-gradient(180deg,var(--gold),var(--gold-2)); color:#2e1a08; border-color:#8a6608; font-weight:600}
@@ -99,7 +125,7 @@ button{font-family:inherit; cursor:pointer}
 .btn--ghost:hover{background:rgba(255,255,255,.08); color:#fff; border-color:var(--grace)}
 .btn--danger{color:var(--danger); border-color:var(--danger-bd)}
 .btn--danger:hover{background:var(--danger-t); border-color:var(--danger)}
-.btn--sm{padding:3px 9px; font-size:12px}
+.btn--sm{padding:4px 10px; font-size:12px; border-radius:var(--r-xs)}
 .btn:disabled{opacity:.45; cursor:not-allowed}
 
 /* ── HERO ── */
@@ -116,7 +142,8 @@ button{font-family:inherit; cursor:pointer}
   border-bottom:1px solid var(--border); position:sticky; top:var(--topbar-h); z-index:30}
 .tab{
   border:1px solid transparent; border-bottom:none; background:none; color:var(--ink-3);
-  padding:9px 15px 8px; font-size:13.5px; border-radius:5px 5px 0 0; margin-bottom:-1px;
+  padding:9px 16px 8px; font-size:13.5px; border-radius:var(--r-sm) var(--r-sm) 0 0; margin-bottom:-1px;
+  transition:background var(--rapida),color var(--rapida);
   display:inline-flex; align-items:center; gap:7px; font-family:var(--font-body);
 }
 .tab:hover{color:var(--ink); background:var(--paper-3)}
@@ -135,8 +162,8 @@ button{font-family:inherit; cursor:pointer}
 /* ── SECTION HEADER ▌ ── */
 .sec{
   font-family:var(--font-disp); font-size:14px; color:var(--ember-2); font-weight:600;
-  margin:24px 0 12px; padding:7px 12px; background:var(--paper-3);
-  border-left:4px solid var(--orange); border-radius:0 4px 4px 0;
+  margin:24px 0 12px; padding:8px 14px; background:var(--paper-3);
+  border-left:4px solid var(--orange); border-radius:0 var(--r-sm) var(--r-sm) 0;
   display:flex; align-items:center; gap:10px; letter-spacing:.03em;
 }
 .sec:first-child{margin-top:6px}
@@ -157,9 +184,11 @@ button{font-family:inherit; cursor:pointer}
 /* ── CARDS ── */
 .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:6px 0 4px}
 .card{
-  background:var(--paper); border:1px solid var(--border); border-radius:6px; padding:13px 15px;
+  background:var(--sup); border:1px solid var(--border); border-radius:var(--r-md); padding:15px 17px;
   box-shadow:var(--shadow); position:relative; overflow:hidden;
+  transition:box-shadow var(--media),transform var(--media);
 }
+.card:hover{box-shadow:var(--shadow-lg); transform:translateY(-1px)}
 .card::before{content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--gold)}
 .card.k--ember::before{background:var(--orange)} .card.k--ok::before{background:var(--ok-b)}
 .card.k--danger::before{background:var(--danger-b)} .card.k--violet::before{background:var(--violet)}
@@ -174,7 +203,7 @@ button{font-family:inherit; cursor:pointer}
 .pr-sub{font-size:10.5px; color:var(--ink-4); font-family:var(--font-mono)}
 
 /* ── TABLES ── */
-.tbl-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:6px; box-shadow:var(--shadow); background:var(--paper)}
+.tbl-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow); background:var(--paper)}
 table{border-collapse:collapse; width:100%; font-size:13px}
 thead th{
   background:linear-gradient(180deg,#2e1a08,#241405); color:var(--gold-t);
@@ -185,6 +214,7 @@ thead th.l{text-align:left}
 tbody td{padding:6px 9px; border-bottom:1px solid var(--paper-3); text-align:center; vertical-align:middle}
 tbody td.l{text-align:left}
 tbody tr:nth-child(even){background:var(--paper-2)}
+tbody tr{transition:background var(--rapida)}
 tbody tr:hover{background:var(--gold-t)}
 tbody tr.day-sep td{background:#241606; color:#fbf3d8; font-family:var(--font-disp);
   font-size:12px; text-align:left; letter-spacing:.06em; padding:5px 12px}
@@ -194,16 +224,19 @@ td .num{font-family:var(--font-mono)}
 /* inputs in tables */
 input,select,textarea{
   font-family:var(--font-body); font-size:13px; color:var(--ink);
-  background:var(--paper); border:1px solid var(--border-2); border-radius:3px; padding:4px 6px;
+  background:var(--paper); border:1px solid var(--border-2); border-radius:var(--r-xs); padding:4px 6px;
+  transition:border-color var(--rapida),box-shadow var(--rapida);
 }
-input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange); box-shadow:0 0 0 2px rgba(194,80,10,.15)}
+input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange); box-shadow:0 0 0 3px rgba(194,80,10,.14)}
 .cell-in{width:100%; min-width:46px; text-align:center; background:var(--gold-t); border-color:var(--gold-2)}
 .cell-in.txt{text-align:left; background:var(--paper)}
 .note-area{resize:none; overflow:hidden; min-height:24px; line-height:1.4; padding:2px 4px; box-sizing:border-box; vertical-align:top; font-family:inherit; font-size:inherit}
 .cell-calc{font-family:var(--font-mono); color:var(--ink-2)}
 .cell-out{font-family:var(--font-mono); font-weight:600; color:var(--ember-2); background:rgba(212,160,23,.10)}
+/* freccia e percentuale restano sulla stessa riga anche quando la colonna si stringe */
+.delta-up,.delta-dn{white-space:nowrap}
 .delta-up{color:var(--ok)} .delta-dn{color:var(--danger)}
-.fascia{display:inline-block; padding:1px 7px; border-radius:10px; font-size:10.5px; font-family:var(--font-mono); border:1px solid}
+.fascia{display:inline-block; padding:2px 9px; border-radius:var(--r-pill); font-size:10.5px; font-family:var(--font-mono); border:1px solid}
 /* bordo di ogni fascia: stessa tinta del testo, schiarita — famiglia coerente */
 .f-forza{background:#fdecec; color:#991b1b; border-color:#e0b0b0} .f-ipf{background:#fff4ec; color:#c2500a; border-color:#eebb99}
 .f-iper{background:var(--gold-t); color:#8a6608; border-color:#ddc389} .f-res{background:#eef6ee; color:#2f7d4f; border-color:#a9cdb6}
@@ -219,19 +252,19 @@ input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange)
 .bar__lab{align-self:center}   /* etichetta a sé stante dentro una .bar (senza campo sotto) */
 .field label.optchk{font-size:13px; text-transform:none; letter-spacing:normal; color:var(--ink-2); font-family:var(--font-body); line-height:1.35}
 .modal label.optchk input[type=checkbox]{width:auto; flex:0 0 auto; margin:2px 0 0}
-.pill{display:inline-block; padding:2px 9px; border-radius:11px; font-size:11px; font-family:var(--font-mono);
+.pill{display:inline-block; padding:3px 11px; border-radius:var(--r-pill); font-size:11px; font-family:var(--font-mono);
   background:var(--paper-3); border:1px solid var(--border); color:var(--ink-2)}
 .search{min-width:200px}
 
 /* callout */
-.callout{display:flex; gap:11px; padding:12px 14px; border-radius:6px; background:var(--gold-t);
+.callout{display:flex; gap:11px; padding:13px 16px; border-radius:var(--r-sm); background:var(--gold-t);
   border:1px solid #e6cf8f; border-left:4px solid var(--gold-2); margin:14px 0; font-size:13px}
 .callout--ember{background:var(--orange-t); border-color:#f0bf9c; border-left-color:var(--orange)}
 .callout--info{background:var(--paper-3); border-color:var(--border); border-left-color:var(--ink-3)}
 .callout b{color:var(--ember-2)}
 
 /* charts */
-.chart-box{background:var(--paper); border:1px solid var(--border); border-radius:6px; padding:12px 14px 8px; box-shadow:var(--shadow); margin-bottom:14px}
+.chart-box{background:var(--sup); border:1px solid var(--border); border-radius:var(--r-md); padding:14px 16px 10px; box-shadow:var(--shadow); margin-bottom:14px}
 .chart-box h4{font-size:13px; color:var(--ember-2); margin-bottom:8px; display:flex; align-items:center; gap:8px}
 .chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
 svg .axis{stroke:var(--border); stroke-width:1}
@@ -246,9 +279,9 @@ svg .ln{fill:none; stroke-width:2}
 .overlay.hidden{display:none}
 .overlay__logo{display:flex; align-items:center; gap:12px}
 .overlay__logo .mk{display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px;
-  background:linear-gradient(180deg,var(--gold),var(--gold-2)); color:#2e1a08; border-radius:8px; font-size:20px; box-shadow:0 0 22px rgba(232,196,90,.4)}
+  background:linear-gradient(180deg,var(--gold),var(--gold-2)); color:#2e1a08; border-radius:var(--r-sm); font-size:20px; box-shadow:0 0 22px rgba(232,196,90,.4)}
 .overlay__logo .br{font-family:var(--font-disp); font-size:16px; font-weight:700; color:var(--grace); letter-spacing:.05em}
-.overlay__card{background:var(--paper); border:1px solid var(--gold-2); border-radius:12px;
+.overlay__card{background:var(--sup); border:1px solid var(--gold-2); border-radius:var(--r-lg);
   padding:30px 34px; max-width:470px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.55)}
 .overlay__card .icon{font-size:42px; margin-bottom:13px; opacity:.85}
 .overlay__card h2{font-size:20px; color:var(--ember-2); margin-bottom:9px}
@@ -260,7 +293,7 @@ svg .ln{fill:none; stroke-width:2}
 .overlay__note{font-size:11px; color:var(--ink-4); font-family:var(--font-mono); margin-top:14px}
 .modal-bk{position:fixed; inset:0; z-index:95; background:rgba(22,11,3,.55); display:flex; align-items:center; justify-content:center}
 .modal-bk.hidden{display:none}
-.modal{background:var(--paper); border:1px solid var(--border-2); border-radius:9px; padding:22px 24px; max-width:430px; width:92%; box-shadow:0 12px 50px rgba(0,0,0,.4)}
+.modal{background:var(--sup); border:1px solid var(--border-2); border-radius:var(--r-lg); padding:24px 26px; max-width:430px; width:92%; box-shadow:0 16px 60px rgba(0,0,0,.42)}
 .modal h3{font-size:18px; color:var(--ember-2); margin-bottom:12px}
 .modal .row{display:flex; gap:10px; margin:9px 0}
 .modal .row .field{flex:1}
@@ -270,6 +303,13 @@ svg .ln{fill:none; stroke-width:2}
 .footer{text-align:center; color:var(--ink-4); font-size:11.5px; font-family:var(--font-mono);
   padding:18px; border-top:1px solid var(--border); margin-top:20px; letter-spacing:.04em}
 .empty{padding:40px; text-align:center; color:var(--ink-4); font-style:italic}
+/* quando lo stato vuoto è un riquadro a sé (non una cella di tabella) diventa un
+   pannello tratteggiato: si legge come «qui non c'è ancora niente», non come un errore */
+div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); background:var(--paper-2);
+  font-style:normal; line-height:1.6; padding:34px 26px}
+.empty__ico{display:block; font-size:30px; margin-bottom:8px; opacity:.75; font-style:normal}
+.empty b{color:var(--ink-2)}
+.empty .btn{margin-top:14px; font-style:normal}
 .row-add{margin-top:8px}
 .grp-tot{font-family:var(--font-mono); font-weight:600; color:var(--orange)}
 
@@ -318,6 +358,9 @@ svg .ln{fill:none; stroke-width:2}
   .sec{ break-after:avoid; page-break-after:avoid; break-inside:avoid; page-break-inside:avoid }
   .cards{ break-inside:auto; page-break-inside:auto }
   .card{ box-shadow:none; break-inside:avoid; page-break-inside:avoid }
+  /* su carta le superfici tornano tinta piatta: la sfumatura verticale serve a dare
+     volume a schermo, in stampa diventerebbe solo una banda grigia */
+  .card,.chart-box,.modal,.btn{ background:var(--paper) !important }
   /* grafici: impilati (no grid) e mai spezzati */
   .chart-grid{ display:block !important }
   .chart-box{ box-shadow:none; break-inside:avoid; page-break-inside:avoid; margin:0 0 8px; width:auto !important }
@@ -331,7 +374,7 @@ svg .ln{fill:none; stroke-width:2}
   .page-break{ break-before:page; page-break-before:always }
   .rep-nota-print{ display:block }
 }
-.vidbtn{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:18px; padding:0; margin-left:5px; vertical-align:middle; border:1px solid var(--orange); color:var(--orange); background:var(--orange-t); border-radius:4px; font-size:9px; line-height:1; cursor:pointer }
+.vidbtn{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:18px; padding:0; margin-left:5px; vertical-align:middle; border:1px solid var(--orange); color:var(--orange); background:var(--orange-t); border-radius:var(--r-xs); font-size:9px; line-height:1; cursor:pointer }
 .vidbtn:hover{ background:var(--orange); color:#fff }
 #pdf-stage{ position:fixed; left:-10000px; top:0; width:210mm; background:#fff }
 #pdf-stage .pg{ position:relative; width:210mm; height:297mm; box-sizing:border-box; padding:13mm 14mm; background:#fff; overflow:hidden; margin:0 }
@@ -343,3 +386,9 @@ svg .ln{fill:none; stroke-width:2}
 #pdf-stage table{ width:100%; font-size:9.5px } #pdf-stage thead th{ position:static }
 #pdf-stage.land{ width:297mm } #pdf-stage.land .pg{ width:297mm; height:210mm } /* A4 orizzontale (stampa dieta) */
 table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
+/* colonne facoltative della scheda Pesi (▦ Colonne): stessa convenzione del RIR */
+table.hide-note th.col-note,table.hide-note td.col-note,
+table.hide-rest th.col-rest,table.hide-rest td.col-rest,
+table.hide-rm th.col-rm,table.hide-rm td.col-rm,
+table.hide-tl th.col-tl,table.hide-tl td.col-tl,
+table.hide-dtl th.col-dtl,table.hide-dtl td.col-dtl{display:none}

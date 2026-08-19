@@ -89,7 +89,7 @@ async function eliminaFoto(file){
 async function vediFoto(file){ const f=(DOC.foto||[]).find(x=>x.file===file);
   let url; try{ url=await fotoObjUrl(file); }catch(e){ alert(t('Foto non trovata sul disco.')); return; }
   modal(`<h3 style="margin-bottom:8px">📸 ${esc(fotoDataLabel(f))}</h3>
-    <img src="${url}" alt="foto" style="width:100%;max-height:74vh;object-fit:contain;border-radius:8px;background:var(--paper-3)">
+    <img src="${url}" alt="foto" style="width:100%;max-height:74vh;object-fit:contain;border-radius:var(--r-sm);background:var(--paper-3)">
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const mEl=document.getElementById('modal'); if(mEl) mEl.style.maxWidth='720px';
 }
@@ -98,7 +98,7 @@ async function vediFoto(file){ const f=(DOC.foto||[]).find(x=>x.file===file);
 /* riempie un contenitore flex con una o più foto affiancate (e ne carica le immagini) */
 function fotoMostraGruppo(boxId, fotos, maxH){
   const c=document.getElementById(boxId); if(!c) return;
-  c.innerHTML=fotos.length? fotos.map((f,i)=>`<figure style="margin:0;flex:1 1 0;min-width:0;text-align:center"><img id="${boxId}-${i}" alt="${esc(f.tag||'foto')}" style="width:100%;max-height:${maxH};object-fit:contain;border-radius:8px;background:var(--paper-3)"><figcaption class="muted" style="font-size:11px;margin-top:2px">${esc(f.tag||'')}</figcaption></figure>`).join('')
+  c.innerHTML=fotos.length? fotos.map((f,i)=>`<figure style="margin:0;flex:1 1 0;min-width:0;text-align:center"><img id="${boxId}-${i}" alt="${esc(f.tag||'foto')}" style="width:100%;max-height:${maxH};object-fit:contain;border-radius:var(--r-sm);background:var(--paper-3)"><figcaption class="muted" style="font-size:11px;margin-top:2px">${esc(f.tag||'')}</figcaption></figure>`).join('')
     : `<div class="muted" style="padding:16px">${t('nessuna foto per questa data/vista')}</div>`;
   fotos.forEach((f,i)=>{ const img=document.getElementById(boxId+'-'+i); if(img) fotoObjUrl(f.file).then(u=>{ if(img.isConnected) img.src=u; }).catch(()=>{ if(img.isConnected) img.alt=t('foto non trovata'); }); });
 }

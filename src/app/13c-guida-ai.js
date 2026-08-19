@@ -73,8 +73,12 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   vedi sezione 8. Lavorano sul profilo della riga: se non è quello attivo, l'app lo
   attiva da sola.
 - In fondo alla pagina: «Backup (tutti i profili insieme)» con «⭳ Backup dati»
-  (esporta TUTTO in un file JSON) e «⭱ Ripristina» (reimporta, sostituendo i dati
-  attuali previa conferma). Sotto, la riga dei **backup automatici**: l'app ne crea
+  (esporta TUTTO in un file JSON), «⭳ Backup completo (con foto)» e «⭱ Ripristina»
+  (reimporta, sostituendo i dati attuali previa conferma). DIFFERENZA: il backup dati
+  porta solo i METADATI delle foto, quindi ripristinandolo altrove le immagini mancano;
+  il backup completo incorpora le immagini come data-URI (file molto più grande, chiede
+  conferma mostrando numero di foto e MB) e al ripristino le riscrive in
+  TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, la riga dei **backup automatici**: l'app ne crea
   uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5
   copie) con link «ripristina» accanto a ciascuno.
 - Per ogni profilo i file sono: scheda.json, storico.json, corpo.json,
@@ -94,6 +98,12 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   recente); la stellina ☆/★ accanto a ogni esercizio lo aggiunge/toglie dai preferiti.
   Campi per riga: Serie, Ripetizioni, Peso, RIR (opzionale), Note, recupero. Obbligatori
   solo esercizio/serie/ripetizioni/peso.
+  **▦ Colonne** (bottone a destra del titolo della scheda, dal 2026-08-19): apre la scelta
+  delle colonne facoltative da mostrare — Note, Rest, 1RM e %1RM, TL, Delta TL set. Serve
+  quando la tabella (12 colonne) è troppo larga per lo schermo. È solo VISIVO: i valori
+  restano calcolati, salvati e presenti nei report; la scelta si salva nel profilo attivo
+  (dati_utente.colonnePesi), quindi ogni atleta ha la sua. Esercizio, Serie, Ripetizioni,
+  Peso e le azioni non si possono nascondere; il RIR ha il suo interruttore nel Profilo.
 
 - **Training Set** (dal v1.1.2): selettore accanto a «Scheda» per tenere più versioni
   alternative dell'intera scheda Pesi (settimanale + mensile) — es. «Palestra» e «Casa» —
@@ -198,9 +208,9 @@ Due modi per registrare una seduta:
   video, play/pausa; con la vista «tutti» ogni passo è una data con le viste affiancate, con
   una vista specifica una foto per volta) e «⚖ Confronto» (due date scelte da un calendario,
   vecchia sopra/recente sotto, con data e peso; «tutti» = viste affiancate). Filtro per vista
-  (tag), gestione raggruppata per data. I backup JSON
-  includono solo i metadati, non le immagini (per quelle si copia la cartella TMS_Dati,
-  come per i video). Si può inserire un confronto prima/dopo anche nel Report.
+  (tag), gestione raggruppata per data. Il backup dati
+  include solo i metadati; per portarsi dietro anche le immagini serve «Backup completo
+  (con foto)» oppure copiare la cartella TMS_Dati (come per i video). Si può inserire un confronto prima/dopo anche nel Report.
 
 ## 6 · Alimentazione (tab 🍖 Alimentazione)
 
@@ -409,8 +419,9 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - «Vedere i progressi / il rischio di sovraccarico» → Progressi (record, TL, ACWR).
 - «Impostare la dieta» → Alimentazione (fase attiva scelta coi bottoni in cima al tab);
   per le analisi nel tempo registrare i Periodi.
-- «Backup prima di formattare il PC» → Profilo → ⭳ Backup dati (un file JSON con
-  tutti i profili); al ripristino ⭱ Ripristina.
+- «Backup prima di formattare il PC» → Profilo → ⭳ Backup completo (con foto), così
+  le foto progressi non restano indietro (il semplice ⭳ Backup dati porta solo i
+  riferimenti); al ripristino ⭱ Ripristina.
 - «Aggiungere un esercizio che manca» → Esercizi → ＋ Nuovo.
 - «Stampare la scheda da consegnare» → Report → PDF (impostazioni di stampa sopra).
 `;

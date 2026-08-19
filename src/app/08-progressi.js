@@ -85,7 +85,10 @@ function renderProgressi(){
   const sf=progSet;
   const ag=schedeAggr(sf);
   if(!ag.length){ document.getElementById('panel-progressi').innerHTML=barraSetProgressi()+
-      `<div class="empty">${sf==='__tutti__'?t('Nessuna scheda salvata: salvane almeno una per vedere i progressi.'):t('Nessuna scheda salvata con questo Training Set.')}</div>`;
+      `<div class="empty"><span class="empty__ico">📈</span>${sf==='__tutti__'
+        ?t('<b>Ancora nessun progresso da mostrare.</b><br>I grafici si accendono quando salvi la prima scheda nello Storico: compila la scheda in <b>🏋 Pesi</b> e premi «💾 Salva nello Storico».')+
+         `<br><button class="btn btn--ember" onclick="showTab('allenamento')">${t('🏋 Vai alla scheda Pesi')}</button>`
+        :t('<b>Nessuna scheda salvata con questo Training Set.</b><br>Cambia Training Set qui sopra, oppure salva una scheda mentre questo è attivo.')}</div>`;
     { const s=document.getElementById('prog-set'); if(s) s.onchange=e=>{ progSet=e.target.value; renderProgressi(); }; } return; }
   const labels=ag.map(a=>schedaLabel(a.scheda));
   const last=ag[ag.length-1];

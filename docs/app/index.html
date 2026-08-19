@@ -18,16 +18,25 @@
        Lista esercizi compatta; toccandone uno si apre a schermo pieno (stessi campi,
        nessun doppione nel DOM: la riga diventa overlay). Testi compatti ma leggibili,
        niente spazi sprecati. TUTTO in locale: la scheda vive nel telefono. ── */
+ /* forme e profondità: stessa scala del TMS sul PC (2026-08-19), così le due app si
+    somigliano. Prima erano numeri sparsi (4,5,6,7,8,9,10,11,12,13px) e le schede non
+    avevano nessuna ombra: tutto sembrava incollato al fondo. */
+ :root{
+   --r-xs:7px; --r-sm:11px; --r-md:15px; --r-pill:999px;
+   --sh-sm:0 1px 2px rgba(80,55,20,.05),0 2px 8px rgba(80,55,20,.05);
+   --sh:0 2px 6px rgba(80,55,20,.06),0 10px 24px rgba(80,55,20,.08);
+   --sup:linear-gradient(180deg,#fdf8ee,#f9f1e0);   /* superficie delle schede */
+ }
  *{box-sizing:border-box}
  [hidden]{display:none!important}
  body{font-family:Georgia,'Times New Roman',serif;background:#f4ead8;color:#2b1d10;margin:0;padding:12px 12px calc(18px + env(safe-area-inset-bottom));max-width:620px;margin-inline:auto;-webkit-text-size-adjust:100%}
  h1{font-size:19px;margin:0 0 2px}
  .sub{color:#7a6648;font-size:12.5px;margin-bottom:10px;line-height:1.35}
- .avviso{background:#fdf0d4;border:1px solid #d9b66a;border-radius:9px;padding:8px 11px;font-size:12.5px;margin:0 0 11px;color:#5b4a30;line-height:1.4}
- .box{background:#fbf4e6;border:1px solid #cdb889;border-radius:11px;padding:11px 13px;margin-bottom:10px}
+ .avviso{background:#fdf0d4;border:1px solid #d9b66a;border-radius:var(--r-sm);padding:8px 11px;font-size:12.5px;margin:0 0 11px;color:#5b4a30;line-height:1.4}
+ .box{background:var(--sup);border:1px solid #cdb889;border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px;box-shadow:var(--sh-sm)}
  .pick-title{font-size:15px;color:#9a5b1f;font-weight:bold;margin:2px 0 8px}
  .days{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
- .day-card{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:11px;padding:12px 14px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+ .day-card{display:flex;align-items:center;justify-content:space-between;width:100%;background:var(--sup);border:1px solid #cdb889;border-radius:var(--r-md);padding:13px 15px;box-shadow:var(--sh-sm);transition:box-shadow .15s,transform .15s;font:inherit;color:inherit;cursor:pointer;text-align:left}
  .day-card:active{background:#f1e6cd}
  .day-l{display:flex;flex-direction:column;gap:1px;min-width:0}
  .day-name{font-size:16px;font-weight:bold;color:#2b1d10}
@@ -37,7 +46,7 @@
  .chev{font-size:20px;color:#9a5b1f;line-height:1}
  .day-page h2,.sez-t{font-size:16px;color:#9a5b1f;margin:6px 0 8px}
  /* macro-card del menu principale (Allenamento / Alimentazione) */
- .macro-card{display:flex;align-items:center;gap:12px;width:100%;background:#fbf4e6;border:1px solid #cdb889;border-radius:13px;padding:15px 16px;font:inherit;color:inherit;cursor:pointer;text-align:left}
+ .macro-card{display:flex;align-items:center;gap:12px;width:100%;background:var(--sup);border:1px solid #cdb889;border-radius:var(--r-md);padding:16px 17px;box-shadow:var(--sh);font:inherit;color:inherit;cursor:pointer;text-align:left}
  .macro-card:active{background:#f1e6cd}
  .macro-card[disabled]{opacity:.55;cursor:default}
  .macro-ico{font-size:27px;line-height:1}
@@ -45,7 +54,7 @@
  .macro-name{font-size:17px;font-weight:bold;color:#2b1d10}
  .macro-meta{color:#7a6648;font-size:12px}
  /* bottone «torna indietro» ben visibile (richiesta Marco) */
- .back-btn{display:block;width:100%;margin:0 0 10px;padding:10px;font:inherit;font-size:15px;font-weight:bold;background:#fff;color:#9a5b1f;border:2px solid #b97a39;border-radius:9px;cursor:pointer;text-align:center}
+ .back-btn{display:block;width:100%;margin:0 0 10px;padding:10px;font:inherit;font-size:15px;font-weight:bold;background:#fff;color:#9a5b1f;border:2px solid #b97a39;border-radius:var(--r-sm);cursor:pointer;text-align:center}
  .back-btn:active{background:#f1e6cd}
  .back-btn.bottom{margin:12px 0 4px}
  /* righe del piano alimentare (sola lettura) */
@@ -56,7 +65,7 @@
  .al-kcal{color:#7a6648;font-size:11.5px;white-space:nowrap}
  /* ── foto progressi: tre riquadri (fronte/lato/retro) ── */
  .foto-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
- .foto-box{position:relative;background:#fbf4e6;border:1.5px dashed #b97a39;border-radius:11px;padding:0;cursor:pointer;
+ .foto-box{position:relative;background:#fbf4e6;border:1.5px dashed #b97a39;border-radius:var(--r-sm);padding:0;cursor:pointer;
    aspect-ratio:3/4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;overflow:hidden;font:inherit;color:inherit}
  .foto-box:active{background:#f1e6cd}
  .foto-box.pieno{border-style:solid;border-color:#2f7d4f}
@@ -66,14 +75,14 @@
  .foto-x{position:absolute;top:4px;right:4px;z-index:2;border:0;background:rgba(20,10,2,.72);color:#fff;
    width:26px;height:26px;border-radius:50%;font-size:15px;line-height:1;cursor:pointer;padding:0}
  .foto-ok{position:absolute;bottom:4px;left:4px;z-index:2;background:rgba(47,125,79,.9);color:#fff;
-   font-size:10.5px;font-weight:bold;padding:2px 7px;border-radius:8px}
+   font-size:10.5px;font-weight:bold;padding:2px 7px;border-radius:var(--r-sm)}
  /* ── avanzamento della seduta ── */
- .prog{height:5px;background:#e6d9bd;border-radius:4px;overflow:hidden;margin:2px 0 4px}
- .prog>i{display:block;height:100%;width:0;background:#2f7d4f;border-radius:4px;transition:width .2s}
+ .prog{height:5px;background:#e6d9bd;border-radius:var(--r-xs);overflow:hidden;margin:2px 0 4px}
+ .prog>i{display:block;height:100%;width:0;background:#2f7d4f;border-radius:var(--r-xs);transition:width .2s}
  .plab{color:#7a6648;font-size:11.5px;margin-bottom:9px}
  /* ── fasi della seduta (tab) ── */
- .fasi{display:flex;gap:3px;margin:0 0 10px;background:#efe3c8;border:1px solid #cdb889;border-radius:9px;padding:3px}
- .fasi button{flex:1;border:0;background:none;font:inherit;font-size:12.5px;font-weight:bold;color:#7a6648;padding:7px 3px;border-radius:7px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .fasi{display:flex;gap:3px;margin:0 0 10px;background:#efe3c8;border:1px solid #cdb889;border-radius:var(--r-sm);padding:3px}
+ .fasi button{flex:1;border:0;background:none;font:inherit;font-size:12.5px;font-weight:bold;color:#7a6648;padding:7px 3px;border-radius:var(--r-xs);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .fasi button.on{background:#9a5b1f;color:#fff}
  /* ── riscaldamento: sola lettura, compatto ── */
  .w-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #f0e6cf}
@@ -82,21 +91,21 @@
  .w-note{color:#9a8a6a;font-style:italic}
  .w-q{color:#5b4a30;font-size:13px;font-weight:bold;white-space:nowrap}
  /* ── riga esercizio: sommario compatto; i campi stanno nel corpo, che si apre a schermo pieno ── */
- .ex-row{background:#fbf4e6;border:1px solid #cdb889;border-radius:10px;padding:9px 11px;margin-bottom:7px}
+ .ex-row{background:#fbf4e6;border:1px solid #cdb889;border-radius:var(--r-sm);padding:9px 11px;margin-bottom:7px}
  .ex-row.custom{border-color:#b97a39;border-style:dashed}
  .ex-hd{display:flex;align-items:center;gap:8px}
  .ex-nm{flex:1;min-width:0;font-size:15px;font-weight:bold;color:#2b1d10}
  .ex-ck{color:#2f7d4f;font-size:15px;font-weight:bold}
  .ex-sub{color:#7a6648;font-size:12.5px;margin-top:2px;line-height:1.35}
  .ex-last{color:#2f7d4f;font-size:12px;margin-top:1px}
- .ex-tag{font-size:10px;color:#9a5b1f;background:#f1e6cd;border-radius:4px;padding:1px 5px}
+ .ex-tag{font-size:10px;color:#9a5b1f;background:#f1e6cd;border-radius:var(--r-xs);padding:1px 5px}
  .ex-coach{color:#9a8a6a;font-size:12px;margin:6px 0 0;font-style:italic;line-height:1.35}
  /* i campi di OGNI esercizio restano sempre aperti: tutto visibile insieme, senza
     sotto-menù né avanti/indietro (richiesta di Marco: meno click possibili) */
  .ex-body{display:block}
  /* campi: griglia compatta 2 colonne, numeri grandi e leggibili */
  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0 2px}
- .fld{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid #cdb889;border-radius:8px;padding:5px 8px}
+ .fld{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid #cdb889;border-radius:var(--r-sm);padding:5px 8px}
  .fld label{font-size:10.5px;color:#7a6648;font-weight:bold;text-transform:uppercase;letter-spacing:.3px}
  .fld input{border:0;background:none;font:inherit;font-size:17px;font-weight:bold;padding:0;width:100%;color:#2b1d10;min-width:0}
  .fld input:focus{outline:none}
@@ -105,27 +114,27 @@
  /* barra avanti/indietro della vista a schermo pieno */
  /* azioni sotto i campi (video, timer, ★, modifica, elimina) */
  .ex-actions{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 1px}
- .mini{border:1px solid #cdb889;background:#fff;border-radius:7px;cursor:pointer;font:inherit;font-size:12.5px;padding:7px 11px;color:#9a5b1f}
+ .mini{border:1px solid #cdb889;background:#fff;border-radius:var(--r-xs);cursor:pointer;font:inherit;font-size:12.5px;padding:7px 11px;color:#9a5b1f}
  .mini:active{background:#f1e6cd}
  .mini.on{background:#9a5b1f;color:#fff;border-color:#9a5b1f}
  .mini.del{color:#a33;border-color:#d9a9a9}
  .mini.rec{font-weight:bold;font-size:14px}
- .vbtn{border:1px solid #cdb889;background:#fff;border-radius:6px;cursor:pointer;font:inherit;font-size:12.5px;padding:4px 10px;color:#9a5b1f}
+ .vbtn{border:1px solid #cdb889;background:#fff;border-radius:var(--r-xs);cursor:pointer;font:inherit;font-size:12.5px;padding:4px 10px;color:#9a5b1f}
  /* pannello «modifica esercizio» */
- .ex-edit{margin:9px 0 1px;padding:10px 11px;border:1px dashed #b97a39;border-radius:9px;background:#fbf4e6}
+ .ex-edit{margin:9px 0 1px;padding:10px 11px;border:1px dashed #b97a39;border-radius:var(--r-sm);background:#fbf4e6}
  .ex-edit input,.ex-edit select{font:inherit;font-size:16px}
  .f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #f0e6cf}
  .f:last-child{border-bottom:0}
  .f label{color:#5b4a30;font-size:13.5px;font-weight:bold}
- .f input{height:31px;font:inherit;font-size:16px;border:1px solid #cdb889;border-radius:5px;background:#fff;text-align:center;padding:0 6px;width:82px}
+ .f input{height:31px;font:inherit;font-size:16px;border:1px solid #cdb889;border-radius:var(--r-xs);background:#fff;text-align:center;padding:0 6px;width:82px}
  .f.note{flex-direction:column;align-items:stretch;gap:4px}
  .f.note label{font-size:12.5px}
- .f.note input.nome,.f.note select.giorno{width:100%;height:34px;border:1px solid #cdb889;border-radius:5px;background:#fff;padding:0 8px;text-align:left}
+ .f.note input.nome,.f.note select.giorno{width:100%;height:34px;border:1px solid #cdb889;border-radius:var(--r-xs);background:#fff;padding:0 8px;text-align:left}
  /* bottone «aggiungi esercizio» */
- .add-ex{display:block;width:100%;margin:2px 0 10px;padding:10px;font:inherit;font-size:14px;font-weight:bold;background:#fbf4e6;color:#9a5b1f;border:1.5px dashed #b97a39;border-radius:9px;cursor:pointer;text-align:center}
+ .add-ex{display:block;width:100%;margin:2px 0 10px;padding:10px;font:inherit;font-size:14px;font-weight:bold;background:#fbf4e6;color:#9a5b1f;border:1.5px dashed #b97a39;border-radius:var(--r-sm);cursor:pointer;text-align:center}
  .add-ex:active{background:#f1e6cd}
  /* fine seduta */
- .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:11px;padding:10px 13px;margin:0 0 10px}
+ .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:var(--r-sm);padding:10px 13px;margin:0 0 10px}
  .seduta-t{font-size:11.5px;color:#9a5b1f;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
  /* casella «giorno completato» (quando il coach non usa la fatica di seduta) */
  .f.fatto{justify-content:flex-start;gap:10px;cursor:pointer;padding:8px 0}
@@ -144,33 +153,34 @@
  #tbar .t-ex{font-size:11.5px;color:#d9b66a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  #tbar .t-time{font-size:27px;font-weight:bold;font-variant-numeric:tabular-nums;line-height:1.05}
  #tbar.done .t-time{color:#7fd39f}
- #tbar button{border:1px solid #b97a39;background:#3a2a18;color:#f4ead8;border-radius:8px;cursor:pointer;font:inherit;font-size:14px;font-weight:bold;padding:8px 11px;min-width:44px}
+ #tbar button{border:1px solid #b97a39;background:#3a2a18;color:#f4ead8;border-radius:var(--r-sm);cursor:pointer;font:inherit;font-size:14px;font-weight:bold;padding:8px 11px;min-width:44px}
  #tbar button:active{background:#4a371f}
  #tbar .t-x{border-color:#7a6648;color:#d9c3a0}
- .btn-big{display:block;width:100%;margin:8px 0;padding:14px;font:inherit;font-size:16px;font-weight:bold;background:#9a5b1f;color:#fff;border:0;border-radius:10px;cursor:pointer;text-align:center}
+ .btn-big{display:block;width:100%;margin:8px 0;padding:14px;font:inherit;font-size:16px;font-weight:bold;background:linear-gradient(180deg,#a9662a,#8d5119);color:#fff;border:0;border-radius:var(--r-sm);cursor:pointer;text-align:center;box-shadow:var(--sh)}
+ .btn-big:active{transform:translateY(1px);box-shadow:var(--sh-sm)}
  .btn-big:active{background:#7e4a18}
- .btn-lite{display:block;width:100%;margin:7px 0;padding:10px;font:inherit;font-size:13.5px;background:#fbf4e6;color:#5b4a30;border:1px solid #cdb889;border-radius:10px;cursor:pointer;text-align:center}
+ .btn-lite{display:block;width:100%;margin:7px 0;padding:10px;font:inherit;font-size:13.5px;background:var(--sup);color:#5b4a30;border:1px solid #cdb889;border-radius:var(--r-sm);cursor:pointer;text-align:center;box-shadow:var(--sh-sm)}
  .fine{color:#7a6648;font-size:11.5px;text-align:center;margin-bottom:12px;line-height:1.35}
  #bozza-stato{color:#7a6648;font-size:11.5px;text-align:center;margin:6px 0;min-height:14px}
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:15;padding:16px}
- #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:10px;background:#000}
+ #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:var(--r-sm);background:#000}
  #vclose{position:absolute;top:14px;right:18px;font-size:30px;color:#fff;background:none;border:0;cursor:pointer}
- .install{background:#efe3c8;border:1px dashed #b99a5e;border-radius:9px;padding:8px 11px;font-size:12px;color:#5b4a30;line-height:1.45;margin:9px 0}
+ .install{background:#efe3c8;border:1px dashed #b99a5e;border-radius:var(--r-sm);padding:8px 11px;font-size:12px;color:#5b4a30;line-height:1.45;margin:9px 0}
  footer{color:#9a8a6a;font-size:11px;text-align:center;margin-top:18px}
  .privacy{color:#7a6648;font-size:11.5px;line-height:1.4;text-align:center;margin-top:6px}
  /* pulsante QR in alto a destra + pannello «By Wander» (come nel TMS desktop) */
  .apphead{display:flex;align-items:flex-start;gap:9px}
  .apphead h1{flex:1;margin:0}
- #qr-btn{flex:0 0 auto;width:40px;height:40px;padding:3px;border:1px solid #cdb889;border-radius:9px;background:#fff;cursor:pointer}
+ #qr-btn{flex:0 0 auto;width:40px;height:40px;padding:3px;border:1px solid #cdb889;border-radius:var(--r-sm);background:#fff;cursor:pointer}
  #qr-btn img{width:100%;height:100%;display:block;image-rendering:pixelated}
  #qrov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:16;padding:16px}
- .qr-panel{background:#f4ead8;border:1px solid #cdb889;border-radius:12px;padding:16px 16px 12px;max-width:520px;width:100%;max-height:88vh;overflow:auto;position:relative}
+ .qr-panel{background:#f4ead8;border:1px solid #cdb889;border-radius:var(--r-md);padding:16px 16px 12px;max-width:520px;width:100%;max-height:88vh;overflow:auto;position:relative}
  .qr-panel h3{margin:2px 0 12px;color:#9a5b1f;text-align:center}
  .qr-grid{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
  .qr-item{text-align:center;flex:0 1 auto}
  .qr-item .qr-lab{font-size:11px;color:#7a6648;margin-bottom:5px}
- .qr-item img{width:150px;height:150px;max-width:38vw;border-radius:10px;border:1px solid #cdb889;background:#fff}
- .qr-item a{display:inline-block;margin-top:7px;background:#c89b3c;color:#2b1d10;text-decoration:none;font-weight:bold;font-size:13px;padding:6px 14px;border-radius:8px}
+ .qr-item img{width:150px;height:150px;max-width:38vw;border-radius:var(--r-sm);border:1px solid #cdb889;background:#fff}
+ .qr-item a{display:inline-block;margin-top:7px;background:#c89b3c;color:#2b1d10;text-decoration:none;font-weight:bold;font-size:13px;padding:6px 14px;border-radius:var(--r-sm)}
  #qrclose{position:absolute;top:8px;right:12px;font-size:26px;color:#7a6648;background:none;border:0;cursor:pointer;line-height:1}
 </style>
 </head>
@@ -288,7 +298,7 @@
    coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.3';
+const CVER='2.4';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

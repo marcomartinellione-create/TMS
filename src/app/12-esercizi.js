@@ -138,7 +138,7 @@ async function playVideo(nome){
   }catch(e){ alert(t('Video non trovato: TMS/database/video/')+file); return; }
   if(lastVideoUrl){ try{ URL.revokeObjectURL(lastVideoUrl); }catch(e){} } lastVideoUrl=url;
   modal(`<h3 style="margin-bottom:8px">▶ ${esc(exName(nome))}${fonte==='personale'?` <span class="pill">${t('video personale')}</span>`:''}</h3>`+
-    `<video src="${url}" controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:8px;background:#000"></video>`+
+    `<video src="${url}" controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:var(--r-sm);background:#000"></video>`+
     `<div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='760px';
 }
@@ -229,7 +229,7 @@ function pickExercise(current, onPick, filtro){
   }
   modal('<h3>'+t('Scegli esercizio')+'</h3>'+
     '<div class="field" style="margin:6px 0"><input id="exp-q" placeholder="'+t('cerca per nome, muscolo, gruppo…')+'" autocomplete="off" style="width:100%"></div>'+
-    '<div id="exp-list" style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:7px;background:var(--paper-2)">'+righe('')+'</div>'+
+    '<div id="exp-list" style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--paper-2)">'+righe('')+'</div>'+
     '<div class="modal__actions">'+(current?'<button class="btn btn--danger" id="exp-clear" style="margin-right:auto">'+t('Svuota')+'</button>':'')+'<button class="btn" onclick="closeModal()">'+t('Annulla')+'</button></div>');
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='640px';
   const q=document.getElementById('exp-q'), listEl=document.getElementById('exp-list');
