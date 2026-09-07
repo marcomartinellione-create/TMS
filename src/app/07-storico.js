@@ -13,7 +13,7 @@ function renderStorico(){
     const [fl,fc]=fascia(sPct(r));
     body+=`<tr${r.test?' style="background:rgba(122,62,168,.06)"':''}><td class="l">${esc(exName(r.esercizio))}</td><td>${esc(t(r.macro)||'')}</td><td class="num">${(+r.seduta||1)}${r.test?' ★':''}</td>
       <td class="num">${nf(r.serie,0)}</td><td class="num">${nf(r.rip,0)}</td><td class="num">${nf(r.peso,1)}</td>
-      <td class="num">${(r.rir==null||r.rir==='')?'–':r.rir}</td><td class="num cell-calc">${nf(sRM(r),1)}</td><td class="num cell-calc">${nf(sPct(r),1)}</td>
+      <td class="num">${(r.rir==null||r.rir==='')?'–':r.rir}</td><td class="num cell-calc">${nf(rmMostrato(r),1)}</td><td class="num cell-calc">${nf(sPct(r),1)}</td>
       <td class="num cell-out">${nfk(sTL(r))}</td><td><span class="fascia ${fc}">${t(fl)}</span></td></tr>`;
   });
   document.getElementById('panel-storico').innerHTML=`

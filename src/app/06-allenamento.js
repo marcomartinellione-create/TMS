@@ -234,7 +234,7 @@ function renderAllenamento(){
       body+=`<tr class="day-sep"><td colspan="12">▌ ${esc(t(r.giorno))}${useRpeActive()?rpeDayControls(r.giorno):''}</td></tr>`; }
     const sd=rowSeduta(smap,r), bk=r.esercizio+'|'+sd;
     const firstOfBlock=r.esercizio && !blockSeen[bk]; if(r.esercizio) blockSeen[bk]=true;
-    const m=sRM(r), p=sPct(r), tl=sTL(r);
+    const m=rmMostrato(r), p=sPct(r), tl=sTL(r);
     /* Δ TL per SET: questo set vs il set di pari posizione (stessa seduta) della scorsa scheda */
     let dperc=null, ledCarico=null;
     if(r.esercizio && !r.test){ const ix=setIdx[bk]||0; setIdx[bk]=ix+1;
@@ -348,7 +348,7 @@ function refreshSchedaCalc(){
   const sigCarico=caricoSignals();
   document.querySelectorAll('#panel-allenamento tbody tr[data-i]').forEach(tr=>{
     const i=+tr.dataset.i, r=rows[i]; if(!r)return; const c=tr.children;
-    const m=sRM(r), p=sPct(r), tl=sTL(r), fa=fascia(p);
+    const m=rmMostrato(r), p=sPct(r), tl=sTL(r), fa=fascia(p);
     totTL+=tl;
     if(c[7])c[7].textContent=m?nf(m,1):'—';
     if(c[8])c[8].textContent=p?nf(p,1):'—';

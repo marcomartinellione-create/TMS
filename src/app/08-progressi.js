@@ -52,7 +52,7 @@ function radarChart(items,opts){
   return `<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
 }
 function exerciseList(sf){ const s=new Set(); storicoSet(sf).forEach(r=>{ if(r.esercizio) s.add(r.esercizio); }); return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
-function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,sRM(r)); mm[s].peso=Math.max(mm[s].peso,caricoEff(r)); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
+function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,rmMostrato(r)); mm[s].peso=Math.max(mm[s].peso,caricoEff(r)); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
 /* il record è il carico REALMENTE mosso: per trazioni e dip include il peso del corpo
    dell'epoca (caricoEff), altrimenti una trazione a corpo libero varrebbe 0 kg */
 function realMax(nome,sf){ let best=null; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const pe=caricoEff(r); if(pe>0&&(!best||pe>best.peso)) best={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return best; }

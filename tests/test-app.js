@@ -857,11 +857,13 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     /* 1RM espresso come ZAVORRA massima (richiesta Marco 2026-09-07): si stima il
        massimale del sistema completo e si toglie il corpo. %1RM resta invece sul carico
        totale, altrimenti la fascia di allenamento risulterebbe sbagliata. */
-    { const rmTot = w.eval('rm1(' + (pc + 10) + ', 6)');
-      const rm = w.eval('sRM({esercizio:"Trazioni alla sbarra (pull-up)",serie:3,rip:6,peso:10,rir:""})');
-      ok(Math.abs(rm - (rmTot - pc)) < 0.01, 'corpo libero/1RM: mostra la ZAVORRA massima, non il carico totale (' + rm.toFixed(1) + ' invece di ' + rmTot.toFixed(1) + ')');
-      ok(rm >= 10, 'corpo libero/1RM: mai inferiore alla zavorra già sollevata');
-      ok(w.eval('sRM({esercizio:"Trazioni alla sbarra (pull-up)",serie:3,rip:1,peso:0,rir:""})') >= 0,
+    { const rTz = '{esercizio:"Trazioni alla sbarra (pull-up)",serie:3,rip:6,peso:10,rir:""}';
+      const rmTot = w.eval('sRM(' + rTz + ')'), rmVis = w.eval('rmMostrato(' + rTz + ')');
+      /* il CALCOLO resta sul carico reale; la sottrazione è solo ciò che si legge */
+      ok(Math.abs(rmTot - w.eval('rm1(' + (pc + 10) + ', 6)')) < 0.01, 'corpo libero/1RM: il calcolo resta sul carico reale (' + rmTot.toFixed(1) + ' kg)');
+      ok(Math.abs(rmVis - (rmTot - pc)) < 0.01, 'corpo libero/1RM: nella cella si MOSTRA la zavorra (' + rmVis.toFixed(1) + ' invece di ' + rmTot.toFixed(1) + ')');
+      ok(rmVis >= 10, 'corpo libero/1RM: la zavorra mostrata non è mai inferiore a quella già sollevata');
+      ok(w.eval('rmMostrato({esercizio:"Trazioni alla sbarra (pull-up)",serie:3,rip:1,peso:0,rir:""})') >= 0,
          'corpo libero/1RM: a corpo libero puro non diventa negativo');
       /* la fascia non deve cambiare: dipende dalle ripetizioni, non dal come esprimiamo il carico */
       const pctTraz = w.eval('sPct({esercizio:"Trazioni alla sbarra (pull-up)",serie:3,rip:6,peso:10,rir:""})');
@@ -869,8 +871,8 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       ok(Math.abs(pctTraz - pctPanca) < 0.01, 'corpo libero/%1RM: resta sul carico totale — stessa intensità di una serie equivalente coi pesi');
       ok(w.eval('fascia(' + pctTraz + ')[0]') === w.eval('fascia(' + pctPanca + ')[0]'), 'corpo libero: la fascia di allenamento non viene falsata (' + w.eval('fascia(' + pctTraz + ')[0]') + ')');
       /* gli altri esercizi non cambiano di una virgola */
-      ok(Math.abs(w.eval('sRM({esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:6,peso:70,rir:""})') - w.eval('rm1(70,6)')) < 0.01,
-         'corpo libero/1RM: per bilancieri e manubri il massimale resta quello di sempre'); }
+      ok(Math.abs(w.eval('rmMostrato({esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:6,peso:70,rir:""})') - w.eval('rm1(70,6)')) < 0.01,
+         'corpo libero/1RM: per bilancieri e manubri non si sottrae nulla, resta come sempre'); }
     /* un esercizio col bilanciere non cambia di una virgola */
     const rPanca = { esercizio:'Panca piana con bilanciere - presa media', serie:3, rip:8, peso:70, rir:'' };
     ok(w.eval('caricoEff(' + JSON.stringify(rPanca) + ')') === 70, 'corpo libero: gli altri esercizi restano col peso digitato');

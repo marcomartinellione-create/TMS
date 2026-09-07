@@ -367,9 +367,10 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
   ATTENZIONE al 1RM, che si comporta diversamente (scelta di Marco): per questi esercizi
   la colonna 1RM mostra la ZAVORRA MASSIMA stimata, non il carico totale — cioè quanto
   potresti appenderti per una singola ripetizione («trazioni con +25 kg»), che è il modo
-  in cui se ne parla in palestra e il numero su cui si programma. Tecnicamente si stima
-  il massimale del sistema completo (corpo + zavorra) e poi si sottrae il peso del corpo;
-  non può risultare negativo. La %1RM invece resta calcolata sul carico TOTALE, perché
+  in cui se ne parla in palestra e il numero su cui si programma. Tecnicamente il CALCOLO
+  resta sul carico reale (funzione sRM, sistema completo corpo + zavorra): la sottrazione
+  del peso corporeo avviene solo al momento di mostrarlo (funzione rmMostrato), come
+  informazione visiva. Non può risultare negativa. La %1RM invece resta calcolata sul carico TOTALE, perché
   indica l intensità della serie e quindi la fascia di allenamento: calcolarla sulla sola
   zavorra la falserebbe (6 ripetizioni finirebbero in "metabolico" invece che in
   "forza+ipertrofia"). Nella tabella il numero del 1RM porta la dicitura "zav". Prima una serie di trazioni pulite valeva TL zero, cioè "non allenamento".
