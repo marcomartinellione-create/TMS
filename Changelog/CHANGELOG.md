@@ -4,6 +4,45 @@
 
 ---
 
+### 2026-09-08 — TMS v1.1.11: segnalazioni bug/idee, taccuino dell'autore, 1RM come zavorra
+
+**Tipo**: feature + correzione (richieste di Marco: «inseriamo un sistema di report bug come è
+stato fatto per Movienaitor», poi il disegno a due modalità — utenti verso GitHub/Instagram,
+autore con un taccuino dentro la cartella dell'app; e prima ancora: il 1RM degli esercizi a corpo
+libero mostrato come zavorra, «non come calcolo ma come informazione visiva»)
+**File coinvolti**: nuovo `src/app/15b-segnalazioni.js` (+ `src/manifest.json`) ·
+`src/pagina/03-corpo.html` (pulsante 🐞) · `src/app/17-init.js` (aggancio + gesto del taccuino) ·
+`electron/main.js` (link esterni al browser di sistema) · `src/app/02-calcoli.js` (`rmMostrato`) ·
+`src/app/06-allenamento.js`, `07-storico.js`, `08-progressi.js` (punti di visualizzazione) ·
+`src/app/00-i18n.js` · guide IT/EN (nuova §13b) e guida-AI · `tests/test-app.js` · `.gitignore`
+**Descrizione**:
+- **🐞 Segnala** (in basso a sinistra, speculare al 📕 Guida): modulo per bug e idee con tipo,
+  racconto e gravità. Il valore è la **scheda tecnica allegata in automatico** — versione,
+  modalità dati, sistema, tab aperto e gli **ultimi errori interni**: senza, una segnalazione
+  resta un «non funziona» non diagnosticabile. Il testo completo è **visibile e modificabile
+  prima dell'invio** e nessuna chiamata di rete parte dall'app. Due canali paritari (GitHub con
+  issue precompilata, Instagram col testo già copiato negli appunti) più copia e salvataggio su
+  file. L'indirizzo della issue viene accorciato sotto i 6000 caratteri: oltre, alcuni browser
+  troncano in silenzio.
+- **Taccuino dell'autore** (5 click sul ✦ del titolo; gesto gemello del log errori, che sta sulla
+  versione nel footer): due elenchi separati — le note scritte al volo, salvate in
+  `TMS_Dati/taccuino.json` e quindi funzionanti **offline**, e le **issue aperte del repo**, lette
+  da GitHub solo su richiesta e in **sola lettura**. Lo stato si cambia su GitHub: un elenco che
+  rispecchia e basta non può divergere dalla realtà. L'ultima lettura resta salvata, così la lista
+  si vede anche senza rete; da ogni nota si apre la issue già compilata.
+- **1RM degli esercizi a corpo libero come zavorra**: la colonna mostra quanto ci si potrebbe
+  appendere per una singola ripetizione invece del carico totale. È una trasformazione di sola
+  **presentazione** (`rmMostrato`): `sRM()` continua a restituire il massimale del carico reale.
+  La **%1RM resta sul carico totale**, altrimenti la fascia di allenamento risulterebbe sbagliata.
+- **Difetto preesistente corretto**: `electron/main.js` non aveva `setWindowOpenHandler`, quindi i
+  link esterni già presenti (GitHub, Instagram, YouTube del pannello QR) aprivano una **finestra
+  Electron spoglia**, senza barra indirizzi né pulsante indietro. Ora vanno al browser di sistema.
+- `PROVA_APP.bat` (lanciatore locale) tolto dal repo pubblico e messo in `.gitignore`.
+**Test**: `npm test` <b>472/472</b> (+18 dalla v1.1.10: scheda tecnica e accorciamento della issue,
+taccuino con salvataggio su disco, lettura GitHub simulata, scarto delle pull request, rifiuto 403
+segnalato invece che silenzioso). `npm run verifica` OK. Provato nell'app vera col gesto reale.
+**Approvato da**: Marco (disegno delle due modalità deciso da lui; rilascio su «pubblichiamo»).
+
 ### 2026-09-07 — TMS v1.1.10: trazioni e dip col peso del corpo nel carico
 
 **Tipo**: feature + correzione di un difetto di misura (richiesta di Marco: «vorrei che tutti gli
