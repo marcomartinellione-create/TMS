@@ -362,8 +362,17 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - **%1RM**: intensità della serie rispetto al massimale stimato.
 - **Esercizi a corpo libero** (dal 2026-08-19): per trazioni e dip il carico vero non è
   il numero scritto nella colonna Peso, ma PESO DEL CORPO + quel numero (che vale come
-  ZAVORRA: 0 = a corpo libero, 15 = con 15 kg appesi). Vale per 1RM, %1RM, TL, record,
-  tonnellaggio. Prima una serie di trazioni pulite valeva TL zero, cioè "non allenamento".
+  ZAVORRA: 0 = a corpo libero, 15 = con 15 kg appesi). Vale per %1RM, TL, record e
+  tonnellaggio.
+  ATTENZIONE al 1RM, che si comporta diversamente (scelta di Marco): per questi esercizi
+  la colonna 1RM mostra la ZAVORRA MASSIMA stimata, non il carico totale — cioè quanto
+  potresti appenderti per una singola ripetizione («trazioni con +25 kg»), che è il modo
+  in cui se ne parla in palestra e il numero su cui si programma. Tecnicamente si stima
+  il massimale del sistema completo (corpo + zavorra) e poi si sottrae il peso del corpo;
+  non può risultare negativo. La %1RM invece resta calcolata sul carico TOTALE, perché
+  indica l intensità della serie e quindi la fascia di allenamento: calcolarla sulla sola
+  zavorra la falserebbe (6 ripetizioni finirebbero in "metabolico" invece che in
+  "forza+ipertrofia"). Nella tabella il numero del 1RM porta la dicitura "zav". Prima una serie di trazioni pulite valeva TL zero, cioè "non allenamento".
   Il peso del corpo arriva dalle misure del tab Corpo: per una riga dello STORICO si usa
   quello DELL EPOCA (misura della stessa settimana, o la più vicina precedente), non
   quello di oggi; in mancanza di misure si usa il peso in anagrafica. Nello storico resta

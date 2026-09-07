@@ -42,7 +42,16 @@ function pesoCorpoScheda(code){
 }
 /* carico realmente mosso: zavorra + corpo dove ha senso */
 function caricoEff(r){ return (+r.peso||0) + (isCorpoLibero(r&&r.esercizio)? pesoCorpoScheda(r&&r.scheda) : 0); }
-function sRM(r){ return rm1(caricoEff(r), effRip(r)); }
+/* 1RM: negli esercizi a corpo libero si esprime come ZAVORRA massima («trazioni con
+   +25 kg»), non come carico totale — è così che se ne parla in palestra ed è il numero
+   su cui si programma. Si stima il massimale del sistema completo (corpo + zavorra) e
+   poi si toglie il corpo. Non può venire negativo: con almeno 1 ripetizione il massimale
+   stimato è sempre ≥ del carico mosso, quindi ≥ del peso corporeo. */
+function sRM(r){ const m=rm1(caricoEff(r), effRip(r));
+  return isCorpoLibero(r&&r.esercizio)? Math.max(0, m-pesoCorpoScheda(r&&r.scheda)) : m; }
+/* %1RM invece resta sul carico TOTALE: è l'intensità della serie, e serve a dire in che
+   fascia stai allenando (forza/ipertrofia/…). Calcolarla sulla sola zavorra falserebbe la
+   fascia — 6 ripetizioni risulterebbero «metabolico» invece che «forza+ipertrofia». */
 function sPct(r){ return pct1rm(caricoEff(r), effRip(r)); }
 function sTL(r){ const w=caricoEff(r); const p=pct1rm(w, effRip(r)); return (+r.serie||0)*(+r.rip||0)*w*(p/100)*fattore(r.esercizio); }
 function isoWeek(d){
