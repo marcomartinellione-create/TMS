@@ -20,21 +20,36 @@ function logErrore(dove, e){
 const YT_URL='https://www.youtube.com/@TrainingMonitorSystem';  /* canale YouTube dei video tutorial; vuoto = riquadro QR nascosto */
 const QR_YT_SRC='data:image/png;base64,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';  /* QR del canale (data URI base64) — generato da tools/genera-qr.py, non scriverlo a mano */
 const MAINLIFTS=[{label:'Squat',nome:'Squat con bilanciere'},{label:'Stacco',nome:'Stacco da terra con bilanciere'},{label:'Panca',nome:'Panca piana con bilanciere - presa media'},{label:'Military',nome:'Military press in piedi'},{label:'Trazioni',nome:'Trazioni alla sbarra (pull-up)'}];
-/* ── ESERCIZI A CORPO LIBERO (2026-08-19) ─────────────────────────────────────
+/* ── ESERCIZI A CORPO LIBERO AL 100% (cernita del 2026-09-07) ─────────────────
    Qui il carico vero non è quello scritto nella colonna Peso: è il PESO DEL CORPO
    più l'eventuale zavorra (0 = a corpo libero, 15 = con 15 kg appesi). Senza questo
    una serie di trazioni pulite valeva TL zero, cioè "non allenamento".
-   È un ELENCO ESPLICITO, non una regola sul nome, e non a caso: nel catalogo sotto
-   «trazioni»/«dip» ci sono anche varianti al cavo, alla macchina e assistite con
-   elastico, dove il peso NON si somma (semmai l'assistenza andrebbe sottratta).
-   Es. «Pull-up corda al cavo basso» ha nomi simili ma è un esercizio al cavo.
-   Per ora solo trazioni e dip a pieno carico corporeo (richiesta di Marco): gli altri
-   a corpo libero (piegamenti, addominali…) si valuteranno dopo. */
+
+   CRITERIO (deciso con Marco): entra SOLO chi solleva il 100% del proprio peso, cioè
+   il corpo è interamente sospeso o in appoggio sulle sole braccia e viene mosso in
+   verticale. Chi ne carica una frazione resta fuori finché non gestiremo le percentuali
+   (piegamenti ~65%, dip alla panca ~50%, squat a corpo libero ~70%…).
+
+   È un ELENCO ESPLICITO, non una regola sul nome: passati in rassegna tutti i 111
+   esercizi a peso corporeo del catalogo più ogni voce con trazioni/dip/sbarra/anelli.
+   ESCLUSI di proposito, benché di nome simile:
+   · al cavo o a macchina — «Pull-up corda al cavo basso», «Dip alla macchina»
+   · assistiti — «Trazioni Assistite con Elastico» (lì semmai l'aiuto va sottratto)
+   · a carico parziale — «Dip alla panca», «Bench dip con peso», «Rematore a corpo
+     libero alla sbarra», «Tricipiti al corpo libero alla sbarra», piegamenti, squat
+   · da appeso ma che sollevano le sole gambe, non il corpo — «Leg raise da appeso»,
+     «Pike da appeso», «Sollevamento ginocchia/anche alle parallele», «Wind sprint» */
 const CORPO_LIBERO=[
+  /* trazioni: corpo appeso alla sbarra/anelli e tirato su per intero */
   'Trazioni alla sbarra (pull-up)','Trazioni alla sbarra con peso','Trazioni presa supina (chin-up)',
-  'Trazioni a presa mista','Trazioni da lato a lato','Trazione a un braccio (chin-up)','Scapular pull-up',
+  'Trazioni a presa mista','Trazioni da lato a lato','Trazione a un braccio (chin-up)',
+  'Trazione dietro il collo presa larga','Trazione con maniglia a V','Rocky pull-up / pulldown',
+  'Scapular pull-up','Gorilla chin/crunch',
+  /* dip: corpo sospeso sulle braccia fra parallele o anelli */
   'Dip alle parallele','Dip alle parallele - versione petto','Dip alle parallele - versione tricipiti',
-  'Dip agli anelli'
+  'Dip agli anelli',
+  /* arrampicata: il corpo intero sale lungo la corda */
+  'Salita alla corda'
 ];
 const CORPO_LIBERO_SET={}; CORPO_LIBERO.forEach(n=>{ CORPO_LIBERO_SET[n.trim().toLowerCase()]=true; });
 /* il nome può portare i suffissi di variante/seduta (-N2, -MAX): si confronta la base */

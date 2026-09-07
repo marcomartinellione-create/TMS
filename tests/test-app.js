@@ -830,6 +830,21 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
        'corpo libero: trazioni alla sbarra e dip alle parallele riconosciute');
     ok(w.eval('isCorpoLibero("Pull-up corda al cavo basso")') === false && w.eval('isCorpoLibero("Dip alla macchina")') === false && w.eval('isCorpoLibero("Trazioni Assistite con Elastico")') === false,
        'corpo libero: cavo, macchina e assistite con elastico ESCLUSE (lì il peso non si somma)');
+    /* cernita 2026-09-07: dentro solo chi solleva il 100% del proprio peso */
+    ok(w.eval('isCorpoLibero("Trazione dietro il collo presa larga")') === true && w.eval('isCorpoLibero("Trazione con maniglia a V")') === true
+       && w.eval('isCorpoLibero("Rocky pull-up / pulldown")') === true && w.eval('isCorpoLibero("Gorilla chin/crunch")') === true
+       && w.eval('isCorpoLibero("Salita alla corda")') === true,
+       'corpo libero: dentro le altre trazioni da appeso e la salita alla corda (100% del peso)');
+    ok(w.eval('isCorpoLibero("Dip alla panca")') === false && w.eval('isCorpoLibero("Bench dip con peso")') === false
+       && w.eval('isCorpoLibero("Piegamenti sulle braccia")') === false && w.eval('isCorpoLibero("Squat a corpo libero")') === false
+       && w.eval('isCorpoLibero("Rematore a corpo libero alla sbarra")') === false && w.eval('isCorpoLibero("Tricipiti al corpo libero alla sbarra")') === false,
+       'corpo libero: FUORI chi carica solo una frazione del peso (panca, piegamenti, squat, rematore)');
+    ok(w.eval('isCorpoLibero("Leg raise da appeso")') === false && w.eval('isCorpoLibero("Pike da appeso")') === false
+       && w.eval('isCorpoLibero("Sollevamento ginocchia/anche alle parallele")') === false && w.eval('isCorpoLibero("Wind sprint (alla sbarra)")') === false,
+       'corpo libero: FUORI chi sta appeso ma solleva le sole gambe (leg raise, pike, ginocchia)');
+    /* ogni nome dell'elenco deve esistere davvero nel catalogo: un refuso lo renderebbe muto */
+    ok(w.eval('CORPO_LIBERO.filter(function(n){ return !esLookup(n); }).length') === 0,
+       'corpo libero: tutti i ' + w.eval('CORPO_LIBERO.length') + ' nomi dell\'elenco esistono nel catalogo');
     ok(w.eval('isCorpoLibero("Panca piana con bilanciere - presa media")') === false, 'corpo libero: i bilancieri restano come prima');
     /* la variante di seduta (-N2) non deve far perdere il riconoscimento */
     ok(w.eval('isCorpoLibero("Trazioni alla sbarra (pull-up) -N2")') === true, 'corpo libero: riconosciuto anche con il suffisso di seduta');

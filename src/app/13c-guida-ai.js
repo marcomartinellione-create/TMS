@@ -368,12 +368,23 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
   quello DELL EPOCA (misura della stessa settimana, o la più vicina precedente), non
   quello di oggi; in mancanza di misure si usa il peso in anagrafica. Nello storico resta
   salvata la sola zavorra: il corpo si somma al volo, come tutti i valori derivati.
-  L elenco degli esercizi interessati è ESPLICITO (costante CORPO_LIBERO): trazioni alla
-  sbarra/presa supina/presa mista/a un braccio/da lato a lato, scapular pull-up, dip alle
-  parallele (3 varianti) e agli anelli. NON sono inclusi cavo, macchina e assistite con
-  elastico (lì il peso non si somma, semmai l assistenza si sottrae): es. "Pull-up corda
-  al cavo basso", "Dip alla macchina", "Trazioni Assistite con Elastico". Gli altri
-  esercizi a corpo libero (piegamenti, addominali) NON sono ancora inclusi.
+  CRITERIO: entra solo chi solleva il 100% del proprio peso, cioè il corpo è interamente
+  sospeso (o in appoggio sulle sole braccia) e viene mosso in verticale. L elenco è
+  ESPLICITO (costante CORPO_LIBERO, 16 voci), frutto di una cernita su tutti i 111
+  esercizi a peso corporeo del catalogo: 11 trazioni da appeso (alla sbarra, con peso,
+  presa supina, presa mista, da lato a lato, a un braccio, dietro il collo presa larga,
+  con maniglia a V, Rocky pull-up, scapular pull-up, gorilla chin/crunch), 4 dip (alle
+  parallele nelle 3 versioni e agli anelli) e la salita alla corda.
+  NON sono inclusi, benché di nome simile:
+  · al cavo o a macchina: "Pull-up corda al cavo basso", "Dip alla macchina";
+  · assistiti: "Trazioni Assistite con Elastico" (lì semmai l aiuto andrebbe sottratto);
+  · a carico PARZIALE: "Dip alla panca" e "Bench dip con peso" (~50%), piegamenti (~65%),
+    squat a corpo libero (~70%), "Rematore a corpo libero alla sbarra", "Tricipiti al
+    corpo libero alla sbarra";
+  · da appeso ma che sollevano le sole gambe, non il corpo: "Leg raise da appeso",
+    "Pike da appeso", "Sollevamento ginocchia/anche alle parallele", "Wind sprint".
+  Gli esercizi a carico parziale entreranno quando si gestiranno le percentuali di peso
+  corporeo: se l utente lo chiede, spiega che per ora vanno compilati come prima.
 - **TL (Training Load)**: volume × intensità, sommato su serie e righe, con un
   fattore per esercizio (esercizi più sistemici pesano di più). Conta soprattutto il
   trend nel tempo, non il valore assoluto.
