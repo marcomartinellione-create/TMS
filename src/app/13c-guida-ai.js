@@ -31,6 +31,18 @@ ufficiale e completa dell'app: basa le risposte su quanto scritto qui.
   viene accorciato e lo dice), copiare negli appunti, o salvare un file .md da mandare
   su Instagram (@marco_the_wander). Se l utente segnala un problema, suggerisci di usare
   questo pulsante: senza la scheda tecnica la diagnosi è molto più difficile.
+  Il modulo offre DUE canali paritari: GitHub (issue già compilata) e Instagram (apre il
+  profilo dopo aver copiato il testo negli appunti, perché Instagram non accetta un
+  messaggio nell indirizzo). In più: copia negli appunti e salvataggio su file .md.
+- **Taccuino dell autore** (non è una funzione per l utente: NON proporla): 5 click
+  ravvicinati sul simbolo ✦ accanto al titolo aprono il quaderno di lavoro di Marco.
+  Due elenchi separati: le sue note scritte a mano (salvate in TMS_Dati/taccuino.json,
+  quindi funzionano offline) e le issue aperte del repo, lette da GitHub SOLO su
+  richiesta e in sola lettura. Lo stato delle issue si cambia su GitHub, non nell app:
+  un elenco che rispecchia e basta non può divergere dalla realtà. L ultima lettura
+  resta salvata, così la lista si vede anche senza rete. Da ogni nota si può aprire la
+  issue GitHub già compilata. Se un utente qualunque chiede del taccuino, spiega che è
+  uno strumento dell autore e indirizzalo al pulsante 🐞 Segnala.
 - L'app NON fornisce consigli medici: i suoi calcoli sono strumenti di monitoraggio.
   Se l'utente chiede indicazioni mediche o nutrizionali personalizzate, ricordagli di
   rivolgersi a un professionista.

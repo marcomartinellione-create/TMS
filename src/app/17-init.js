@@ -47,6 +47,12 @@ async function init(){
     if(av){ av.textContent='v'+APP_VERSION;
       let nClick=0, tClick=0;  /* 5 click ravvicinati sulla versione = log errori interni */
       av.onclick=()=>{ const ora=Date.now(); if(ora-tClick>3000) nClick=0; tClick=ora; if(++nClick>=5){ nClick=0; mostraLogErrori(); } }; } }
+  /* 5 click ravvicinati sul ✦ del titolo = TACCUINO dell'autore. Gesto gemello di
+     quello sulla versione, ma su un elemento diverso: così non si pestano. */
+  { const sg=document.querySelector('.hero h1 .sigil');
+    if(sg){ sg.style.cursor='default'; let n=0, tt=0;
+      sg.onclick=async()=>{ const ora=Date.now(); if(ora-tt>3000) n=0; tt=ora;
+        if(++n>=5){ n=0; await taccLeggi(); taccModal(); } }; } }
   translateStatic();  /* traduce il markup statico (barra, tab, footer, overlay, disclaimer) in EN */
   { const bl=document.getElementById('btn-lang');
     if(bl){ bl.textContent=LANG==='it'?'EN':'IT'; bl.title=LANG==='it'?'Switch to English':'Torna all\'italiano';

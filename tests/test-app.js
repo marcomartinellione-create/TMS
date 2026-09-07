@@ -210,6 +210,40 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
        'segnalazioni: il modulo mostra in anteprima il testo completo prima di mandarlo');
     ok(d.getElementById('sg-github') !== null && d.getElementById('sg-copia') !== null && d.getElementById('sg-file') !== null,
        'segnalazioni: tre strade — GitHub, copia, salva su file (chi non ha GitHub non resta a piedi)');
+    ok(d.getElementById('sg-ig') !== null, 'segnalazioni: GitHub e Instagram come scelta paritaria (dove preferisce contattare)');
+    w.eval('closeModal()'); }
+  /* ── TACCUINO dell'autore: 5 click sul ✦ del titolo (gesto gemello del log errori,
+     che sta invece sulla versione nel footer). Note locali + specchio delle issue. ── */
+  { const sigil = d.querySelector('.hero h1 .sigil');
+    ok(sigil !== null, 'taccuino: il ✦ del titolo è il punto del gesto');
+    for (let i = 0; i < 5; i++) sigil.click();
+    await settle(120);
+    ok(d.getElementById('tacc-testo') !== null, 'taccuino: 5 click sul ✦ lo aprono');
+    ok(d.getElementById('tacc-note') !== null && d.getElementById('tacc-iss') !== null,
+       'taccuino: due elenchi separati — le mie note e quelle da GitHub');
+    /* una nota scritta a mano deve sopravvivere su disco */
+    d.getElementById('tacc-testo').value = 'ACWR non si aggiorna cambiando Training Set';
+    await w.eval('(function(){ document.getElementById("tacc-add").click(); })()');
+    await settle(150);
+    ok(w.eval('TACC.note.length') === 1 && w.eval('TACC.note[0].testo').startsWith('ACWR'), 'taccuino: la nota entra nell\'elenco');
+    { let salvato = null; try { salvato = JSON.parse(fsmem._files.get('TMS_Dati/taccuino.json')); } catch(e){}
+      ok(salvato && Array.isArray(salvato.note) && salvato.note.length === 1,
+         'taccuino: le note vivono nella cartella dati (taccuino.json), quindi funzionano offline'); }
+    /* lo specchio GitHub: nessuna rete nei test, si simula la risposta */
+    w.fetch = async () => ({ ok:true, json: async () => ([
+      { number:12, title:'Il TL resta a zero', html_url:'https://x/12', labels:[{name:'bug'}], created_at:'2026-09-01T10:00:00Z' },
+      { number:13, title:'Non è una issue', html_url:'https://x/13', labels:[], created_at:'2026-09-02T10:00:00Z', pull_request:{} }
+    ]) });
+    const n = await w.eval('taccScaricaIssues()');
+    ok(n === 1, 'taccuino: le pull request vengono scartate, restano le issue vere (' + n + ')');
+    ok(w.eval('TACC.github.issues[0].n') === 12 && w.eval('TACC.github.issues[0].etichette[0]') === 'bug',
+       'taccuino: numero, titolo ed etichette rispecchiati da GitHub');
+    ok(w.eval('!!TACC.github.aggiornato'), 'taccuino: l\'ultima lettura resta salvata, così l\'elenco si vede anche senza rete');
+    /* errore di rete: deve dirlo, non sparire in silenzio */
+    w.fetch = async () => ({ ok:false, status:403 });
+    let messaggio = '';
+    try { await w.eval('taccScaricaIssues()'); } catch(e){ messaggio = String(e && e.message || e); }
+    ok(/403/.test(messaggio), 'taccuino: se GitHub rifiuta la lettura lo dice invece di fallire in silenzio');
     w.eval('closeModal()'); }
   w.eval('closeModal()');
   /* v1.0.73: dialoghi di aggiornamento in stile app (via canale tmsUpdate) */
