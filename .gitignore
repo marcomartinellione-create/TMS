@@ -17,6 +17,7 @@ Report/
 Doc/
 
 # locale
+PROVA_APP.bat
 .claude/
 Thumbs.db
 Desktop.ini
