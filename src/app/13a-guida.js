@@ -236,6 +236,8 @@ function guidaCompleta(){
      <tr><td class="l">Plews 2013 — HRV / readiness</td><td><a href="https://doi.org/10.1007/s40279-013-0071-8" target="_blank">DOI</a></td><td><a href="https://scholar.google.com/scholar?q=Training+adaptation+and+heart+rate+variability+in+elite+endurance+athletes" target="_blank">Scholar</a></td></tr>
         </tbody></table></div>
 
+   <div class="sec">13b · Segnalare un problema o un'idea</div>
+   <p>In basso a sinistra c'è <b>🐞 Segnala</b> (accanto a 📕 Guida). Scegli se è qualcosa che <b>non funziona</b> o una <b>proposta</b>, racconta cosa succede e come farlo succedere di nuovo, e per i problemi quanto ti pesa. L'app allega da sola una <b>scheda tecnica</b> — versione, sistema, tab aperto e gli <b>ultimi errori interni</b>: sono quelli che permettono di capire il guasto, senza si resta a «non funziona». <b>Vedi e puoi modificare il testo prima di mandarlo</b>: niente parte da solo, l'app non contatta nessuno per conto suo. Poi scegli: <b>Apri su GitHub</b> (issue già compilata, serve un account gratuito), <b>Copia</b> negli appunti, oppure <b>Salva come file</b> e mandamelo su Instagram.</p>
    <div class="sec" id="gc-lic">14 · Licenza & crediti</div>
    <div class="callout callout--ember"><div>📢 <b>Progetto aperto e gratuito.</b> Liberi di usarlo, condividerlo e personalizzarlo. Si chiede solo di <b>mantenere i crediti</b> e di <b>non venderlo</b> a scopo di lucro. «Train hard, share knowledge.» 💪 — by Wander</div></div>
    <div class="tbl-wrap"><table><tbody>
@@ -468,6 +470,8 @@ function guidaCompletaEN(){
      <tr><td class="l">Plews 2013 — HRV / readiness</td><td><a href="https://doi.org/10.1007/s40279-013-0071-8" target="_blank">DOI</a></td><td><a href="https://scholar.google.com/scholar?q=Training+adaptation+and+heart+rate+variability+in+elite+endurance+athletes" target="_blank">Scholar</a></td></tr>
         </tbody></table></div>
 
+   <div class="sec">13b · Reporting a problem or an idea</div>
+   <p>Bottom left there is <b>🐞 Report</b> (next to 📕 Guide). Pick whether something <b>isn't working</b> or it's a <b>suggestion</b>, tell what happens and how to make it happen again, and for problems how much it weighs. The app attaches a <b>technical sheet</b> by itself — version, system, open tab and the <b>last internal errors</b>: those are what make a fault understandable, without them you are left with «it doesn't work». <b>You see and can edit the text before sending it</b>: nothing leaves on its own, the app contacts nobody by itself. Then choose: <b>Open on GitHub</b> (pre-filled issue, needs a free account), <b>Copy</b> to the clipboard, or <b>Save as file</b> and send it to me on Instagram.</p>
    <div class="sec" id="gc-lic">14 · License & credits</div>
    <div class="callout callout--ember"><div>📢 <b>Open and free project.</b> Free to use, share and customize. You are only asked to <b>keep the credits</b> and <b>not sell it</b> for profit. «Train hard, share knowledge.» 💪 — by Wander</div></div>
    <div class="tbl-wrap"><table><tbody>

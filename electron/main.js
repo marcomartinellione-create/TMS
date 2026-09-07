@@ -2,7 +2,7 @@
 // Serve renderer/ da uno scheme privilegiato e SICURO (app://tms) così che:
 //  - window.showDirectoryPicker (File System Access API) sia disponibile (secure context)
 //  - IndexedDB abbia origine stabile -> l'handle cartella persiste tra i riavvii
-const { app, BrowserWindow, protocol, net, session, dialog, ipcMain } = require('electron');
+const { app, BrowserWindow, protocol, net, session, dialog, ipcMain, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
@@ -43,6 +43,20 @@ function createWindow () {
     }
   });
   win.removeMenu(); // niente menu Electron (app pulita)
+  // Link esterni (GitHub, Instagram, YouTube, segnalazioni) → browser di SISTEMA.
+  // Senza questo Electron apriva una sua finestra spoglia, senza barra indirizzi né
+  // pulsante indietro: l'utente ci restava dentro. Si aprono solo http/https.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
+    return { action: 'deny' };
+  });
+  // stessa regola per una navigazione fuori da app://tms (es. click su <a> senza target)
+  win.webContents.on('will-navigate', (e, url) => {
+    if (!url.startsWith('app://tms')) {
+      e.preventDefault();
+      if (/^https?:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
+    }
+  });
   win.on('close', (e) => {
     if (!aggiornamento.inCorso) return;
     e.preventDefault();

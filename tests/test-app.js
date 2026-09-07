@@ -190,6 +190,27 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(w.eval('LOG_ERRORI.length') >= 1 && w.eval('LOG_ERRORI[LOG_ERRORI.length-1].msg') === 'boom di prova', 'logErrore registra nel ring buffer');
   w.eval('mostraLogErrori()');
   ok(d.getElementById('modal').innerHTML.includes('boom di prova'), 'modale log errori (5 click sulla versione) con la voce');
+  /* ── 2026-09-07 — SEGNALAZIONI (🐞): modulo bug/idee con scheda tecnica allegata ── */
+  w.eval('closeModal()');
+  ok(d.getElementById('fab-segnala') !== null, 'segnalazioni: pulsante 🐞 fisso in basso a sinistra');
+  { const st = w.eval('segnSchedaTecnica()');
+    ok(st.includes('TMS v') && /Modalità|Mode/.test(st) && /Tab/.test(st), 'segnalazioni: la scheda tecnica porta versione, modalità e tab aperto');
+    ok(st.includes('boom di prova'), 'segnalazioni: allega gli ULTIMI ERRORI interni — è ciò che rende la segnalazione diagnosticabile');
+    const testo = w.eval('segnTesto({tipo:"bug",cosa:"il TL resta a zero",passi:"salvo la scheda",gravita:"blocca"})');
+    ok(testo.includes('il TL resta a zero') && testo.includes('salvo la scheda') && testo.includes('TMS v'),
+       'segnalazioni: il testo unisce racconto dell\'utente e scheda tecnica');
+    /* l\'indirizzo GitHub non deve superare il limite pratico: oltre, i browser troncano in silenzio */
+    const url = w.eval('segnUrlGitHub("[bug] prova", ' + JSON.stringify('x'.repeat(20000)) + ')');
+    ok(url.startsWith(w.eval('GH_REPO_URL') + '/issues/new') && url.length <= 6000,
+       'segnalazioni: la issue GitHub viene accorciata sotto il limite (' + url.length + ' caratteri) invece di essere troncata dal browser');
+    ok(w.eval('segnUrlGitHub("t","corto")').includes('body=corto'), 'segnalazioni: un testo breve passa intero nell\'indirizzo');
+    /* il modulo si apre e mostra l\'anteprima già compilata */
+    w.eval('segnalaModal()');
+    ok(d.getElementById('sg-testo') !== null && d.getElementById('sg-testo').value.includes('TMS v'),
+       'segnalazioni: il modulo mostra in anteprima il testo completo prima di mandarlo');
+    ok(d.getElementById('sg-github') !== null && d.getElementById('sg-copia') !== null && d.getElementById('sg-file') !== null,
+       'segnalazioni: tre strade — GitHub, copia, salva su file (chi non ha GitHub non resta a piedi)');
+    w.eval('closeModal()'); }
   w.eval('closeModal()');
   /* v1.0.73: dialoghi di aggiornamento in stile app (via canale tmsUpdate) */
   w.eval('window.__upd.cb({tipo:"disponibile", versione:"9.9.9", attuale:APP_VERSION, maggiore:true, note:"Novita di prova"})');
