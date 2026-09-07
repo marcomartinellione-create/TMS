@@ -369,7 +369,7 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
   informazione visiva. Non può risultare negativa. La %1RM invece resta calcolata sul carico TOTALE, perché
   indica l intensità della serie e quindi la fascia di allenamento: calcolarla sulla sola
   zavorra la falserebbe (6 ripetizioni finirebbero in "metabolico" invece che in
-  "forza+ipertrofia"). Nella tabella il numero del 1RM porta la dicitura "zav". Prima una serie di trazioni pulite valeva TL zero, cioè "non allenamento".
+  "forza+ipertrofia"). Prima una serie di trazioni pulite valeva TL zero, cioè "non allenamento".
   Il peso del corpo arriva dalle misure del tab Corpo: per una riga dello STORICO si usa
   quello DELL EPOCA (misura della stessa settimana, o la più vicina precedente), non
   quello di oggi; in mancanza di misure si usa il peso in anagrafica. Nello storico resta

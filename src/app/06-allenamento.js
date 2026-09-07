@@ -258,7 +258,7 @@ function renderAllenamento(){
       <td><input class="cell-in" type="number" min="0" step="0.5" value="${r.peso??''}" data-f="peso" style="width:60px"${clib?` placeholder="0" title="${esc(t('Solo la zavorra: 0 = a corpo libero. Il peso del corpo lo somma l’app nei calcoli.'))}"`:''}></td>
       <td class="rir-col"><input class="cell-in" type="number" min="0" max="10" value="${r.rir??''}" data-f="rir" style="width:42px" placeholder="–" title="Reps In Reserve · RPE=10−RIR"></td>
       <td class="col-rest"><input class="cell-in" value="${esc(r.rest||'')}" data-f="rest" style="width:54px" placeholder="m:ss"></td>
-      <td class="cell-calc num col-rm"${clib?` title="${esc(t('Massimale stimato come ZAVORRA: quanto potresti appenderti per una ripetizione singola (il peso del corpo è già scontato).'))}"`:''}>${m?nf(m,1):'—'}${clib&&m?'<span class="muted" style="font-size:9px"> zav</span>':''}</td>
+      <td class="cell-calc num col-rm"${clib?` title="${esc(t('Massimale stimato come ZAVORRA: quanto potresti appenderti per una ripetizione singola (il peso del corpo è già scontato).'))}"`:''}>${m?nf(m,1):'—'}</td>
       <td class="cell-calc num col-rm">${p?nf(p,1):'—'}</td>
       <td class="cell-out num col-tl">${tl?nfk(tl):'—'}</td>
       <td class="col-dtl num ${dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'}" title="${t('Δ TL del set vs il set di pari posizione della scorsa scheda')}">${dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'}</td>
