@@ -246,13 +246,16 @@ function renderAllenamento(){
     const [fl,fc]=fascia(p);
     const sdBadge=(r.esercizio && sd>1 && firstOfBlock)? ` <span class="pill" style="padding:0 6px" title="${t('Seduta')} ${sd} ${t('della settimana (auto)')}">S${sd}</span>`:'';
     const canUp=i>0 && rows[i-1] && rows[i-1].giorno===r.giorno, canDown=i<rows.length-1 && rows[i+1] && rows[i+1].giorno===r.giorno;
+    /* esercizio a corpo libero: nella colonna Peso va SOLO la zavorra, il corpo lo somma
+       l'app nei calcoli — va detto, altrimenti «Peso 0» con un TL alto sembra un errore */
+    const clib=isCorpoLibero(r.esercizio), clibKg=clib?pesoCorpoScheda(0):0;
     body+=`<tr data-i="${i}"${r.test?' style="background:rgba(122,62,168,.07)"':''}>
       <td class="l"><button type="button" class="cell-in txt ex-pick" style="min-width:170px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>${sdBadge}
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="${t('ultima registrazione (scheda')} ${lp.scheda})">${t('ult:')} ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}<span style="flex:1"></span>${caricoLedHTML(ledCarico)}<button class="btn btn--sm no-print" data-mvup="${i}" title="${t('sposta su (nel giorno)')}"${canUp?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="${t('sposta giù (nel giorno)')}"${canDown?'':' disabled'}>▼</button></div></td>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="${t('ultima registrazione (scheda')} ${lp.scheda})">${t('ult:')} ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}${clib?`<span class="pill" style="font-size:9.5px;padding:1px 7px" title="${esc(t('A corpo libero: al peso scritto (la zavorra) si somma il tuo peso corporeo per 1RM, TL e record. Lo aggiorni dal tab Corpo.'))}">🧍 +${nf(clibKg,1)} kg</span>`:''}<span style="flex:1"></span>${caricoLedHTML(ledCarico)}<button class="btn btn--sm no-print" data-mvup="${i}" title="${t('sposta su (nel giorno)')}"${canUp?'':' disabled'}>▲</button><button class="btn btn--sm no-print" data-mvdn="${i}" title="${t('sposta giù (nel giorno)')}"${canDown?'':' disabled'}>▼</button></div></td>
       <td class="l col-note"><textarea class="cell-in txt note-area" data-f="note" placeholder="${t('note')}" style="min-width:90px">${esc(r.note||'')}</textarea></td>
       <td><input class="cell-in" type="number" min="0" value="${r.serie??''}" data-f="serie" style="width:48px"></td>
       <td><input class="cell-in" type="number" min="0" value="${r.rip??''}" data-f="rip" style="width:52px"></td>
-      <td><input class="cell-in" type="number" min="0" step="0.5" value="${r.peso??''}" data-f="peso" style="width:60px"></td>
+      <td><input class="cell-in" type="number" min="0" step="0.5" value="${r.peso??''}" data-f="peso" style="width:60px"${clib?` placeholder="0" title="${esc(t('Solo la zavorra: 0 = a corpo libero. Il peso del corpo lo somma l’app nei calcoli.'))}"`:''}></td>
       <td class="rir-col"><input class="cell-in" type="number" min="0" max="10" value="${r.rir??''}" data-f="rir" style="width:42px" placeholder="–" title="Reps In Reserve · RPE=10−RIR"></td>
       <td class="col-rest"><input class="cell-in" value="${esc(r.rest||'')}" data-f="rest" style="width:54px" placeholder="m:ss"></td>
       <td class="cell-calc num col-rm">${m?nf(m,1):'—'}</td>
@@ -408,10 +411,12 @@ function saveSchedaModal(){
     const code=schedaCode(anno,sett);
     const exist=DOC.storico.filter(r=>(+r.scheda)===code).length;
     if(exist && !confirm(t('Esiste già la scheda')+' '+code+' ('+exist+' '+t('righe). Le nuove righe verranno AGGIUNTE. Procedo?'))) return;
-    const preMax={}; DOC.storico.forEach(r=>{ if(r.esercizio)preMax[r.esercizio]=Math.max(preMax[r.esercizio]||0,+r.peso||0); });
+    /* record: si confronta il carico EFFETTIVO (per trazioni/dip include il corpo),
+       altrimenti una trazione a corpo libero non risulterebbe mai un primato */
+    const preMax={}; DOC.storico.forEach(r=>{ if(r.esercizio)preMax[r.esercizio]=Math.max(preMax[r.esercizio]||0,caricoEff(r)); });
     let added=0; const smap=sedutaMap(schedaRows()); const prs={};
     schedaRows().forEach(r=>{ if(!r.esercizio||!String(r.esercizio).trim())return;
-      const pe=+r.peso||0; if(pe>0 && pe>(preMax[r.esercizio]||0)) prs[r.esercizio]=Math.max(prs[r.esercizio]||0,pe);
+      const pe=caricoEff(r); if(pe>0 && pe>(preMax[r.esercizio]||0)) prs[r.esercizio]=Math.max(prs[r.esercizio]||0,pe);
       /* `set`: Training Set con cui è stata svolta la settimana — serve al selettore dei
          Progressi per analizzare un percorso alla volta (righe più vecchie: campo assente). */
       DOC.storico.push({scheda:code,esercizio:r.esercizio,seduta:rowSeduta(smap,r),test:!!r.test,

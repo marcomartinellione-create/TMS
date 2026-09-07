@@ -18,9 +18,33 @@ function fascia(p){
 function useRirActive(){ return !!(DOC && DOC.dati_utente && DOC.dati_utente.useRir); }
 function useRpeActive(){ return !!(DOC && DOC.dati_utente && DOC.dati_utente.useRpe); }
 function effRip(r){ return (+r.rip||0) + (useRirActive()? (+r.rir||0) : 0); }
-function sRM(r){ return rm1(r.peso, effRip(r)); }
-function sPct(r){ return pct1rm(r.peso, effRip(r)); }
-function sTL(r){ const p=pct1rm(r.peso, effRip(r)); return (+r.serie||0)*(+r.rip||0)*(+r.peso||0)*(p/100)*fattore(r.esercizio); }
+/* ── peso del corpo per gli esercizi a corpo libero (trazioni, dip) ───────────
+   Per una riga dello STORICO si usa il peso dell'epoca, non quello di oggi: un
+   massimale di due anni fa va valutato col corpo di allora. Si cerca la misura
+   della stessa scheda, altrimenti la più vicina (preferendo quelle precedenti),
+   e in mancanza di misure si ripiega sul peso in anagrafica. Se non c'è nulla
+   torna 0: l'app si comporta come prima, senza inventare numeri. */
+function pesoCorpoScheda(code){
+  const io=(DOC&&Array.isArray(DOC.storico_io))?DOC.storico_io.filter(r=>r&&+r.peso>0):[];
+  const c=+code||0;
+  if(io.length){
+    if(c){
+      const esatta=io.find(r=>(+r.scheda||0)===c); if(esatta) return +esatta.peso;
+      const prima=io.filter(r=>(+r.scheda||0)<=c).sort((a,b)=>(+b.scheda||0)-(+a.scheda||0))[0];
+      if(prima) return +prima.peso;                       /* misura più recente PRIMA di quella scheda */
+      const dopo=io.slice().sort((a,b)=>(+a.scheda||0)-(+b.scheda||0))[0];
+      if(dopo) return +dopo.peso;                          /* scheda anteriore a ogni misura: la prima nota */
+    }
+    const ultima=io.slice().sort((a,b)=>(+a.scheda||0)-(+b.scheda||0))[io.length-1];
+    if(ultima) return +ultima.peso;                        /* scheda in corso (senza codice): peso più recente */
+  }
+  return +((DOC&&DOC.dati_utente&&DOC.dati_utente.peso)||0);
+}
+/* carico realmente mosso: zavorra + corpo dove ha senso */
+function caricoEff(r){ return (+r.peso||0) + (isCorpoLibero(r&&r.esercizio)? pesoCorpoScheda(r&&r.scheda) : 0); }
+function sRM(r){ return rm1(caricoEff(r), effRip(r)); }
+function sPct(r){ return pct1rm(caricoEff(r), effRip(r)); }
+function sTL(r){ const w=caricoEff(r); const p=pct1rm(w, effRip(r)); return (+r.serie||0)*(+r.rip||0)*w*(p/100)*fattore(r.esercizio); }
 function isoWeek(d){
   d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
   const day=d.getUTCDay()||7; d.setUTCDate(d.getUTCDate()+4-day);

@@ -356,6 +356,20 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
   Se «RIR nei calcoli» è attivo, 1RM/%1RM/TL diventano effort-aware (le ripetizioni
   effettive considerate = fatte + RIR).
 - **%1RM**: intensità della serie rispetto al massimale stimato.
+- **Esercizi a corpo libero** (dal 2026-08-19): per trazioni e dip il carico vero non è
+  il numero scritto nella colonna Peso, ma PESO DEL CORPO + quel numero (che vale come
+  ZAVORRA: 0 = a corpo libero, 15 = con 15 kg appesi). Vale per 1RM, %1RM, TL, record,
+  tonnellaggio. Prima una serie di trazioni pulite valeva TL zero, cioè "non allenamento".
+  Il peso del corpo arriva dalle misure del tab Corpo: per una riga dello STORICO si usa
+  quello DELL EPOCA (misura della stessa settimana, o la più vicina precedente), non
+  quello di oggi; in mancanza di misure si usa il peso in anagrafica. Nello storico resta
+  salvata la sola zavorra: il corpo si somma al volo, come tutti i valori derivati.
+  L elenco degli esercizi interessati è ESPLICITO (costante CORPO_LIBERO): trazioni alla
+  sbarra/presa supina/presa mista/a un braccio/da lato a lato, scapular pull-up, dip alle
+  parallele (3 varianti) e agli anelli. NON sono inclusi cavo, macchina e assistite con
+  elastico (lì il peso non si somma, semmai l assistenza si sottrae): es. "Pull-up corda
+  al cavo basso", "Dip alla macchina", "Trazioni Assistite con Elastico". Gli altri
+  esercizi a corpo libero (piegamenti, addominali) NON sono ancora inclusi.
 - **TL (Training Load)**: volume × intensità, sommato su serie e righe, con un
   fattore per esercizio (esercizi più sistemici pesano di più). Conta soprattutto il
   trend nel tempo, non il valore assoluto.

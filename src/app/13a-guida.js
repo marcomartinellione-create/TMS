@@ -202,6 +202,7 @@ function guidaCompleta(){
 
    <div class="sec" id="gc-faq">11 · FAQ & risoluzione problemi</div>
    <p><b>Campi obbligatori?</b> Solo Esercizio, Serie, Ripetizioni, Peso. Note e recupero facoltativi.</p>
+   <p><b>Trazioni e dip: quanto scrivo nel Peso?</b> Solo la <b>zavorra</b> — <b>0</b> se le fai a corpo libero, <b>15</b> se ti appendi 15 kg. Al resto pensa l'app: al peso scritto somma il tuo <b>peso corporeo</b> (preso dal tab <b>🜂 Corpo</b>) per calcolare 1RM, %1RM, TL e record, e sulla riga te lo mostra con l'etichetta <span class="mono">🧍 +kg</span>. Per le righe già nello Storico usa il peso che avevi <b>a quel tempo</b>, non quello di oggi. Vale per trazioni e dip a pieno carico (sbarra, anelli, parallele); <b>non</b> per le versioni al cavo, alla macchina o assistite con elastico, dove il peso non si somma.</p>
    <p><b>Nuovo esercizio?</b> Tab <b>Esercizi</b> → ＋ Nuovo (nome, gruppo, target, tipo, fattore). Compare subito nei menù.</p>
    <p><b>Dato sbagliato?</b> Nella scheda corrente correggi diretto; nello storico usa «↶ Annulla ultimo» e risalva.</p>
    <p><b>Mi alleno 4 giorni invece di 5?</b> Nessun problema: aggiungi/togli giorni a piacere.</p>
@@ -433,6 +434,7 @@ function guidaCompletaEN(){
 
    <div class="sec" id="gc-faq">11 · FAQ & troubleshooting</div>
    <p><b>Required fields?</b> Only Exercise, Sets, Reps, Weight. Notes and rest optional.</p>
+   <p><b>Pull-ups and dips: what goes in Weight?</b> Only the <b>added weight</b> — <b>0</b> if you do them bodyweight, <b>15</b> if you hang 15 kg. The app does the rest: it adds your <b>body weight</b> (from the <b>🜂 Body</b> tab) to what you typed for 1RM, %1RM, TL and records, and shows it on the row with a <span class="mono">🧍 +kg</span> label. For rows already in History it uses the weight you had <b>back then</b>, not today's. It applies to full-bodyweight pull-ups and dips (bar, rings, parallel bars); <b>not</b> to cable, machine or band-assisted versions, where the weight isn't added.</p>
    <p><b>New exercise?</b> <b>Exercises</b> tab → ＋ New (name, group, target, type, factor). It appears in the menus right away.</p>
    <p><b>Wrong data?</b> In the current program fix it directly; in history use «↶ Undo last» and save again.</p>
    <p><b>I train 4 days instead of 5?</b> No problem: add/remove days as you like.</p>

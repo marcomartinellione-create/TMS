@@ -33,7 +33,7 @@ function schedeAggr(sf){
   storicoSet(sf).forEach(r=>{ if(r.test) return; const s=+r.scheda; if(!map[s])map[s]={scheda:s,tl:0,pctSum:0,pctN:0,grp:{},sets:{},band:{},tonn:0};
     const _t=sTL(r), _p=sPct(r), ser=+r.serie||0; map[s].tl+=_t; if(_p){map[s].pctSum+=_p; map[s].pctN++;}
     const g=r.macro||'Altro'; map[s].grp[g]=(map[s].grp[g]||0)+_t; map[s].sets[g]=(map[s].sets[g]||0)+ser;
-    map[s].tonn+=ser*(+r.rip||0)*(+r.peso||0);
+    map[s].tonn+=ser*(+r.rip||0)*caricoEff(r);   /* tonnellaggio: conta anche il corpo per trazioni/dip */
     if(_p){ const fb=fascia(_p)[0]; map[s].band[fb]=(map[s].band[fb]||0)+ser; }
   });
   return Object.values(map).sort((a,b)=>a.scheda-b.scheda);
@@ -52,14 +52,16 @@ function radarChart(items,opts){
   return `<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
 }
 function exerciseList(sf){ const s=new Set(); storicoSet(sf).forEach(r=>{ if(r.esercizio) s.add(r.esercizio); }); return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
-function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,sRM(r)); mm[s].peso=Math.max(mm[s].peso,+r.peso||0); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
-function realMax(nome,sf){ let best=null; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const pe=+r.peso||0; if(pe>0&&(!best||pe>best.peso)) best={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return best; }
-function prList(sf){ const m={}; storicoSet(sf).forEach(r=>{ if(!r.esercizio)return; const pe=+r.peso||0; if(pe<=0)return; if(!m[r.esercizio]||pe>m[r.esercizio].peso) m[r.esercizio]={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return Object.entries(m).map(([nome,v])=>({nome:nome,peso:v.peso,rip:v.rip,scheda:v.scheda})).sort((a,b)=>b.peso-a.peso); }
+function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,sRM(r)); mm[s].peso=Math.max(mm[s].peso,caricoEff(r)); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
+/* il record è il carico REALMENTE mosso: per trazioni e dip include il peso del corpo
+   dell'epoca (caricoEff), altrimenti una trazione a corpo libero varrebbe 0 kg */
+function realMax(nome,sf){ let best=null; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const pe=caricoEff(r); if(pe>0&&(!best||pe>best.peso)) best={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return best; }
+function prList(sf){ const m={}; storicoSet(sf).forEach(r=>{ if(!r.esercizio)return; const pe=caricoEff(r); if(pe<=0)return; if(!m[r.esercizio]||pe>m[r.esercizio].peso) m[r.esercizio]={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return Object.entries(m).map(([nome,v])=>({nome:nome,peso:v.peso,rip:v.rip,scheda:v.scheda})).sort((a,b)=>b.peso-a.peso); }
 let progEx=null;
 function plateauList(sf){
   const out=[];
   exerciseList(sf).forEach(nome=>{
-    const rows=storicoSet(sf).filter(r=>r.esercizio===nome && !r.test && (+r.peso||0)>0); if(!rows.length)return;
+    const rows=storicoSet(sf).filter(r=>r.esercizio===nome && !r.test && caricoEff(r)>0); if(!rows.length)return;
     const bySch={}; rows.forEach(r=>{ const s=+r.scheda; bySch[s]=(bySch[s]||0)+sTL(r); }); /* TL per scheda (carico+ripetizioni) */
     const schede=Object.keys(bySch).map(Number).sort((a,b)=>a-b); if(schede.length<4)return;
     const maxTL=Math.max(...schede.map(s=>bySch[s]));

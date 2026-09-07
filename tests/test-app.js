@@ -820,6 +820,53 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* Riscaldamento — vista alternativa per Training Set (giorni dalla scheda), fuori dai calcoli */
   w.eval('pesiView="scheda"; showTab("allenamento");');
   ok(d.getElementById('btn-warm') !== null && /btn--ember/.test(d.getElementById('btn-warm').className), 'Riscaldamento: pulsante 🔥 arancione (btn--ember) accanto ai selettori');
+  /* ── 2026-08-19 — ESERCIZI A CORPO LIBERO (trazioni, dip) ────────────────────
+     Il carico vero è peso del corpo + zavorra: prima una trazione pulita (peso 0)
+     valeva TL zero, cioè "non allenamento". Solo per i movimenti a pieno carico
+     corporeo: cavo, macchina e assistite con elastico restano fuori. */
+  { const pc = w.eval('pesoCorpoScheda(0)');
+    ok(pc > 0, 'corpo libero: l\'app conosce il peso corporeo attuale (' + pc + ' kg)');
+    ok(w.eval('isCorpoLibero("Trazioni alla sbarra (pull-up)")') === true && w.eval('isCorpoLibero("Dip alle parallele")') === true,
+       'corpo libero: trazioni alla sbarra e dip alle parallele riconosciute');
+    ok(w.eval('isCorpoLibero("Pull-up corda al cavo basso")') === false && w.eval('isCorpoLibero("Dip alla macchina")') === false && w.eval('isCorpoLibero("Trazioni Assistite con Elastico")') === false,
+       'corpo libero: cavo, macchina e assistite con elastico ESCLUSE (lì il peso non si somma)');
+    ok(w.eval('isCorpoLibero("Panca piana con bilanciere - presa media")') === false, 'corpo libero: i bilancieri restano come prima');
+    /* la variante di seduta (-N2) non deve far perdere il riconoscimento */
+    ok(w.eval('isCorpoLibero("Trazioni alla sbarra (pull-up) -N2")') === true, 'corpo libero: riconosciuto anche con il suffisso di seduta');
+    /* carico effettivo: zavorra + corpo */
+    const rTraz = { esercizio:'Trazioni alla sbarra (pull-up)', serie:3, rip:6, peso:10, rir:'' };
+    ok(Math.abs(w.eval('caricoEff(' + JSON.stringify(rTraz) + ')') - (pc + 10)) < 0.01, 'corpo libero: carico effettivo = zavorra + corpo (10 + ' + pc + ')');
+    const rCorpo = { esercizio:'Trazioni alla sbarra (pull-up)', serie:3, rip:8, peso:0, rir:'' };
+    ok(Math.abs(w.eval('caricoEff(' + JSON.stringify(rCorpo) + ')') - pc) < 0.01, 'corpo libero: con zavorra 0 il carico è il peso del corpo');
+    ok(w.eval('sTL(' + JSON.stringify(rCorpo) + ')') > 0, 'corpo libero: una serie a corpo libero ora produce TL (prima era zero)');
+    ok(w.eval('sRM(' + JSON.stringify(rCorpo) + ')') > pc, 'corpo libero: anche l\'1RM tiene conto del corpo');
+    /* un esercizio col bilanciere non cambia di una virgola */
+    const rPanca = { esercizio:'Panca piana con bilanciere - presa media', serie:3, rip:8, peso:70, rir:'' };
+    ok(w.eval('caricoEff(' + JSON.stringify(rPanca) + ')') === 70, 'corpo libero: gli altri esercizi restano col peso digitato');
+    /* peso corporeo DELL'EPOCA per le righe storiche, non quello di oggi */
+    { const io = w.eval('JSON.parse(JSON.stringify((DOC.storico_io||[]).map(function(x){return {scheda:+x.scheda,peso:+x.peso};})))');
+      if (io.length > 1) {
+        const vecchia = io[0];
+        ok(Math.abs(w.eval('pesoCorpoScheda(' + vecchia.scheda + ')') - vecchia.peso) < 0.01,
+           'corpo libero: per una riga vecchia si usa il peso di ALLORA (' + vecchia.peso + ' kg alla scheda ' + vecchia.scheda + ')');
+        ok(w.eval('pesoCorpoScheda(999999)') === w.eval('pesoCorpoScheda(' + io[io.length-1].scheda + ')'),
+           'corpo libero: per una scheda successiva all\'ultima misura si usa l\'ultima nota'); } }
+    /* il salvataggio nello Storico conserva la ZAVORRA digitata, non il totale */
+    ok(w.eval('(function(){var r={esercizio:"Trazioni alla sbarra (pull-up)",serie:3,rip:6,peso:10};return (+r.peso||0);})()') === 10,
+       'corpo libero: nello Storico si salva la zavorra digitata (il corpo si somma al volo, mai salvato)');
+    /* nella scheda si DEVE vedere che il corpo viene sommato: «Peso 0» con un TL alto,
+       senza spiegazione, sembrerebbe un errore dell'app */
+    w.eval('showTab("allenamento"); schedaRows()[0].esercizio="Trazioni alla sbarra (pull-up)"; schedaRows()[0].peso=0; renderAllenamento();');
+    { /* la prima riga della tabella è il separatore del giorno: serve quella con i campi */
+      const riga = [...d.querySelectorAll('#panel-allenamento tbody tr')].find(tr => tr.querySelector('[data-f="peso"]'));
+      const pill = riga.querySelector('.pill');
+      ok(pill !== null && /🧍/.test(pill.textContent) && new RegExp(String(Math.round(pc))).test(pill.textContent),
+         'corpo libero: la riga mostra quanto corpo viene sommato (' + (pill ? pill.textContent.trim() : '—') + ')');
+      const inPeso = riga.querySelector('[data-f="peso"]');
+      ok(/zavorra/i.test(inPeso.getAttribute('title') || ''), 'corpo libero: il campo Peso spiega che lì va solo la zavorra');
+      /* e il TL della riga non è più zero pur avendo Peso 0 */
+      ok(w.eval('sTL(schedaRows()[0])') > 0, 'corpo libero: in scheda una riga a corpo libero produce TL'); }
+    w.eval('renderAllenamento();'); }
   ok(/Riscaldamento/.test(d.getElementById('btn-warm').textContent), 'Riscaldamento: in vista scheda il pulsante dice «Riscaldamento»');
   d.getElementById('btn-warm').click();
   ok(w.eval('pesiView') === 'riscaldamento' && /Scheda/.test(d.getElementById('btn-warm').textContent), 'Riscaldamento: il pulsante apre la vista e diventa «Scheda» (per tornare)');
