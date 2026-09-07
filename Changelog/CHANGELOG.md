@@ -4,6 +4,39 @@
 
 ---
 
+### 2026-09-07 — TMS v1.1.10: trazioni e dip col peso del corpo nel carico
+
+**Tipo**: feature + correzione di un difetto di misura (richiesta di Marco: «vorrei che tutti gli
+esercizi a corpo libero prendessero il peso salvato in Corpo e nella colonna Peso venisse sommato
+per dare il totale… per adesso fallo per trazioni e dip»; poi, su sua indicazione, cernita per
+tenere solo gli esercizi al 100% del peso corporeo)
+**File coinvolti**: `src/app/01-costanti.js` (costante `CORPO_LIBERO`, 16 voci + `isCorpoLibero`) ·
+`src/app/02-calcoli.js` (`pesoCorpoScheda`, `caricoEff`; `sRM`/`sPct`/`sTL` usano il carico
+effettivo) · `src/app/06-allenamento.js` (etichetta 🧍 sulla riga, suggerimento sul campo Peso,
+rilevamento PR) · `src/app/08-progressi.js` (record, tonnellaggio, progressione, plateau) ·
+guide IT/EN e guida-AI · `tests/test-app.js`
+**Descrizione**: negli esercizi a corpo libero la colonna Peso vale come **zavorra** (0 = a corpo
+libero) e l'app somma il **peso corporeo** per 1RM, %1RM, TL, record, tonnellaggio e primati.
+Prima una serie di trazioni pulite produceva **TL zero**, cioè risultava «non allenamento».
+Per le righe dello Storico si usa il peso corporeo **dell'epoca** (misura della stessa settimana,
+altrimenti la più vicina precedente, poi l'ultima nota, infine l'anagrafica): un massimale di due
+anni fa va valutato col corpo di allora. Nello storico resta salvata la **sola zavorra**: il corpo
+si somma al volo, come ogni valore derivato. L'elenco è **esplicito** e non una regola sul nome —
+nei dati reali esisteva già «Pull-up corda al cavo basso» (esercizio al cavo) che una regex
+avrebbe falsato. Cernita su tutti i 111 esercizi a peso corporeo del catalogo: dentro solo i
+**16 al 100%** (11 trazioni da appeso, 4 dip, salita alla corda); fuori cavo/macchina, assistiti,
+carichi parziali (piegamenti ~65%, dip alla panca ~50%, squat ~70%) e chi sta appeso ma solleva le
+sole gambe. Sulla riga compare l'etichetta con quanto corpo viene sommato: con «Peso 0» e un TL
+alto, senza spiegazione, sembrerebbe un difetto.
+**Impatto sui dati esistenti**: i valori derivati si ricalcolano, quindi i numeri passati cambiano
+per questi esercizi — sui dati di Marco 25 righe su 896 (2,8%), record TRAZIONI **20 → 86,4 kg**,
+TL e ACWR in leggero aumento nelle settimane con trazioni.
+**Test**: `npm test` <b>448/448</b> (+20 dalla v1.1.9: riconoscimento ed esclusioni, carico
+effettivo, peso dell'epoca, TL non più nullo, etichetta in scheda, e un controllo che tutti e 16 i
+nomi esistano nel catalogo — un refuso renderebbe la regola muta). `npm run verifica` OK.
+Verificato in app: record e TL aggiornati, nessun errore nel renderer.
+**Approvato da**: Marco (elenco confermato voce per voce prima del commit; rilascio su «pubblica»).
+
 ### 2026-08-19 — TMS v1.1.9: estetica desktop più morbida, backup con foto, colonne scegliibili
 
 **Tipo**: estetica + feature (richiesta esplicita di Marco: ispirarsi a Movienaitor per forme
