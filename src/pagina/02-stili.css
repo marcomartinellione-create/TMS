@@ -126,6 +126,29 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .btn--danger{color:var(--danger); border-color:var(--danger-bd)}
 .btn--danger:hover{background:var(--danger-t); border-color:var(--danger)}
 .btn--sm{padding:4px 10px; font-size:12px; border-radius:var(--r-xs)}
+/* eliminazione: cestino BIANCO su fondo ROSSO pieno (scelta di Marco). Il .btn--danger
+   è solo contornato e su una barra scura si legge poco; qui l'azione è irreversibile e
+   deve saltare all'occhio. Il rosso resta lo stesso del tema, così non stona. */
+/* ⚖ Bilanciamento: griglia a colonne fisse. Prima era tutto flex con larghezze «a
+   occhio»: «21 serie» andava a capo, le righe cambiavano altezza e le barre non
+   stavano più incolonnate. Ora nome e numero hanno la loro colonna, la barra prende
+   il resto, e l'unità sta una volta sola nell'intestazione invece che su ogni riga. */
+.bil-wrap{display:flex; gap:18px; flex-wrap:wrap; align-items:center}
+.bil-radar{flex:1 1 320px; min-width:280px}
+.bil-lista{flex:1 1 280px; min-width:260px}
+.bil-riga{display:grid; grid-template-columns:96px 1fr 42px; align-items:center; gap:10px; padding:3px 0}
+.bil-nome{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.bil-barra{background:var(--paper-3); border-radius:var(--r-pill); height:9px; overflow:hidden}
+.bil-barra > span{display:block; height:100%}
+.bil-val{text-align:right; white-space:nowrap}
+.bil-testa{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3);
+  font-family:var(--font-mono); padding-bottom:2px}
+.bil-testa .bil-barra{background:none}
+.bil-tot{border-top:1px solid var(--border); margin-top:6px; padding-top:6px; color:var(--ink-3)}
+.bil-tot .bil-barra{background:none}
+.btn--del{background:linear-gradient(180deg,#c0392b,var(--danger)); color:#fff;
+  border-color:#7f1616; box-shadow:var(--shadow-sm); padding:4px 9px; font-size:13px; line-height:1}
+.btn--del:hover{background:linear-gradient(180deg,#d0453a,#b02020); color:#fff; border-color:#7f1616}
 .btn:disabled{opacity:.45; cursor:not-allowed}
 
 /* ── HERO ── */
@@ -374,6 +397,14 @@ div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); backgrou
   .page-break{ break-before:page; page-break-before:always }
   .rep-nota-print{ display:block }
 }
+/* riga di servizio sotto il nome dell'esercizio (video · ultima volta · peso corporeo ·
+   semaforo · frecce). Prima era una sola riga rigida: con l'etichetta del corpo libero i
+   pezzi si accavallavano e "+65,8" andava a capo staccandosi da "kg". Ora va a capo per
+   blocchi interi, e le frecce restano insieme a destra. */
+.ex-sub-row{ display:flex; align-items:center; gap:5px; margin-top:4px; flex-wrap:wrap; row-gap:4px }
+.ex-sub-row > *{ flex:0 0 auto }
+.ex-sub-row .muted{ min-width:0 }
+.ex-sub-row .btn--sm{ padding:2px 8px }
 .vidbtn{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:18px; padding:0; margin-left:5px; vertical-align:middle; border:1px solid var(--orange); color:var(--orange); background:var(--orange-t); border-radius:var(--r-xs); font-size:9px; line-height:1; cursor:pointer }
 .vidbtn:hover{ background:var(--orange); color:#fff }
 #pdf-stage{ position:fixed; left:-10000px; top:0; width:210mm; background:#fff }

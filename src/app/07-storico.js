@@ -9,7 +9,11 @@ function renderStorico(){
   const totTL=rows.reduce((a,r)=>a+sTL(r),0);
   let body='',last=null;
   rows.slice().reverse().forEach(r=>{
-    if(r.scheda!==last){last=r.scheda; body+=`<tr class="day-sep"><td colspan="11">▌ ${t('Scheda')} ${r.scheda}</td></tr>`;}
+    /* nella barra della settimana, a destra, il tasto che elimina QUELLA registrazione:
+       prende il posto del vecchio «Annulla ultimo», che sapeva togliere solo l'ultima */
+    if(r.scheda!==last){last=r.scheda; body+=`<tr class="day-sep"><td colspan="11"><div style="display:flex;align-items:center;gap:10px">
+      <span>▌ ${t('Scheda')} ${r.scheda}</span><span style="flex:1"></span>
+      <button class="btn btn--sm btn--del no-print" data-delsched="${r.scheda}" title="${esc(t('Elimina tutte le righe di questa settimana'))}" aria-label="${esc(t('Elimina tutte le righe di questa settimana'))}">🗑</button></div></td></tr>`;}
     const [fl,fc]=fascia(sPct(r));
     body+=`<tr${r.test?' style="background:rgba(122,62,168,.06)"':''}><td class="l">${esc(exName(r.esercizio))}</td><td>${esc(t(r.macro)||'')}</td><td class="num">${(+r.seduta||1)}${r.test?' ★':''}</td>
       <td class="num">${nf(r.serie,0)}</td><td class="num">${nf(r.rip,0)}</td><td class="num">${nf(r.peso,1)}</td>
@@ -29,5 +33,6 @@ function renderStorico(){
   document.getElementById('st-es').oninput=e=>{stFilt.esercizio=e.target.value; renderStorico(); document.getElementById('st-es').focus();};
   document.getElementById('st-macro').onchange=e=>{stFilt.macro=e.target.value; renderStorico();};
   document.getElementById('st-sched').onchange=e=>{stFilt.scheda=e.target.value; renderStorico();};
+  document.querySelectorAll('#panel-storico [data-delsched]').forEach(b=>{ b.onclick=()=>eliminaScheda(+b.dataset.delsched); });
 }
 

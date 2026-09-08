@@ -2,7 +2,7 @@
 // Serve renderer/ da uno scheme privilegiato e SICURO (app://tms) così che:
 //  - window.showDirectoryPicker (File System Access API) sia disponibile (secure context)
 //  - IndexedDB abbia origine stabile -> l'handle cartella persiste tra i riavvii
-const { app, BrowserWindow, protocol, net, session, dialog, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, protocol, net, session, dialog, ipcMain, shell, screen } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
@@ -33,8 +33,15 @@ protocol.registerSchemesAsPrivileged([{
 const aggiornamento = { inCorso: false, percento: 0 };
 
 function createWindow () {
+  // Finestra iniziale più larga: con 1280 i pulsanti fissi «Guida» e «Segnala» finivano
+  // sopra la scheda. Si prende quasi tutto lo schermo disponibile ma con un tetto, così
+  // su un monitor grande la finestra non diventa smisurata; su portatili piccoli
+  // (1366×768) il minimo garantisce comunque una finestra che ci sta.
+  const area = screen.getPrimaryDisplay().workAreaSize;
+  const larghezza = Math.max(1100, Math.min(1560, area.width - 80));
+  const altezza   = Math.max(700,  Math.min(980,  area.height - 80));
   const win = new BrowserWindow({
-    width: 1280, height: 860,
+    width: larghezza, height: altezza,
     title: 'Training Monitor System',
     icon: path.join(__dirname, 'build', 'icon.ico'),
     webPreferences: {

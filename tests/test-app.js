@@ -827,9 +827,62 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(w.eval('caricoLED(105,100,null,{sovraccarico:true,acwr:1.7}).level') === 'danger', 'LED soglie: aumento con ACWR>1.5 → 🔴 (meglio scaricare)');
   ok(w.eval('caricoLED(0,100,null,null)') === null && w.eval('caricoLED(105,0,null,null)') === null, 'LED: niente pallino senza peso o senza storico del set');
   w.eval('DOC.storico.pop(); DOC.storico.pop();');
-  /* riordino esercizi nel giorno (▲▼) — la scheda ha 2 Squat (105, 115) su Lunedì */
-  d.querySelector('#panel-allenamento tbody tr[data-i="0"] [data-mvdn]').click();
-  ok(w.eval('DOC.scheda.settimanale[0].peso') === 115 && w.eval('DOC.scheda.settimanale[1].peso') === 105, 'Pesi: ▼ sposta l\'esercizio giù nel giorno (riordino)');
+  /* 2026-09-08: via le frecce ▲▼ di riordino (Marco: «non servono») — la riga sotto il
+     nome era affollata e con l'etichetta del corpo libero andava a capo */
+  ok(d.querySelector('#panel-allenamento [data-mvup]') === null && d.querySelector('#panel-allenamento [data-mvdn]') === null,
+     'Pesi: via le frecce ▲▼ dalla cella esercizio');
+  /* ＋set: il nuovo set deve finire SUBITO SOTTO quello da cui nasce, non in fondo */
+  { w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:3,rip:5,peso:100},{giorno:"Lunedì",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:70},{giorno:"Martedì",esercizio:"Stacco da terra con bilanciere",serie:3,rip:5,peso:120}]; renderAllenamento();');
+    d.querySelector('#panel-allenamento tbody tr[data-i="0"] [data-set]').click();
+    const ordine = w.eval('DOC.scheda.settimanale.map(r=>r.esercizio+"|"+r.giorno).join(" / ")');
+    ok(w.eval('DOC.scheda.settimanale.length') === 4 && w.eval('DOC.scheda.settimanale[1].esercizio') === 'Squat con bilanciere',
+       'Pesi/＋set: il set nuovo si infila subito sotto il suo (' + ordine.slice(0, 90) + '…)');
+    ok(w.eval('DOC.scheda.settimanale[3].giorno') === 'Martedì', 'Pesi/＋set: non finisce in fondo alla scheda'); }
+  /* ── 2026-09-08 — ELIMINA per settimana, al posto di «Annulla ultimo» ── */
+  ok(d.getElementById('btn-undo-sched') === null && w.eval('typeof undoScheda') === 'undefined',
+     'Storico: via «Annulla ultimo» (sapeva togliere solo l\'ultima scheda)');
+  { w.eval('DOC.storico=[{scheda:202601,esercizio:"Squat con bilanciere",macro:"Gambe",serie:3,rip:5,peso:100},{scheda:202602,esercizio:"Panca piana con bilanciere - presa media",macro:"Pettorali",serie:3,rip:8,peso:70}]; stFilt={esercizio:"",macro:"",scheda:""}; showTab("storico");');
+    const bottoni = [...d.querySelectorAll('#panel-storico [data-delsched]')];
+    ok(bottoni.length === 2, 'Storico: un tasto ELIMINA nella barra nera di OGNI settimana (' + bottoni.length + ')');
+    /* la conferma è un modale DELL'APP, non più la finestra grigia di sistema */
+    bottoni.find(b => b.dataset.delsched === '202601').click();
+    ok(d.getElementById('cc-si') !== null && d.getElementById('cc-no') !== null,
+       'Storico: la conferma è un modale in stile app (non il confirm di Windows)');
+    ok(w.eval('DOC.storico.length') === 2, 'Storico: finché non confermi non viene tolto nulla');
+    d.getElementById('cc-si').click();
+    ok(w.eval('DOC.storico.length') === 1 && w.eval('DOC.storico[0].scheda') === 202602,
+       'Storico: elimina la settimana scelta, non l\'ultima (resta la 202602)');
+    /* si può togliere una settimana in mezzo: era proprio il limite del vecchio Annulla */
+    ok(w.eval('typeof eliminaScheda') === 'function', 'Storico: eliminaScheda disponibile'); }
+  /* stesso approccio per le misure */
+  { w.eval('DOC.storico_io=[{scheda:202601,peso:70},{scheda:202602,peso:71}]; showTab("storicocorpo");');
+    const bm = [...d.querySelectorAll('#panel-storicocorpo [data-delmis]')];
+    ok(bm.length === 2, 'Misure: un tasto ELIMINA per ogni rilevazione (' + bm.length + ')');
+    bm.find(b => b.dataset.delmis === '202601').click();
+    d.getElementById('cc-si').click();
+    ok(w.eval('DOC.storico_io.length') === 1 && w.eval('DOC.storico_io[0].scheda') === 202602,
+       'Misure: elimina la rilevazione scelta'); }
+  w.eval('showTab("allenamento")');
+  /* ── ⚖ Bilanciamento della settimana in costruzione (cardio escluso) ── */
+  { w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:4,rip:5,peso:100},{giorno:"Lunedì",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:70}]; renderAllenamento();');
+    ok(d.getElementById('btn-bilanc') !== null, 'Pesi: pulsante ⚖ Bilanciamento accanto a ▦ Colonne');
+    const per = w.eval('JSON.stringify(bilanciamentoSerie())');
+    const o = JSON.parse(per);
+    ok(o['Gambe'] === 4 && o['Pettorali'] === 3, 'Bilanciamento: conta le serie per gruppo muscolare (Gambe 4, Pettorali 3)');
+    ok(!('Cardio' in o), 'Bilanciamento: il Cardio è ESCLUSO da questo grafico (richiesta di Marco)');
+    d.getElementById('btn-bilanc').click();
+    ok(/Bilanciamento|Balance/.test(d.getElementById('modal').innerHTML) && d.querySelector('#modal svg') !== null,
+       'Bilanciamento: si apre col radar delle serie per gruppo');
+    w.eval('closeModal()'); }
+  /* ── ricerca esercizi: i preferiti che corrispondono vanno in cima ── */
+  { w.eval('(DOC.esercizi||[]).forEach(function(e){ e.fav=false; }); var t2=esLookup("Trazioni presa supina (chin-up)"); if(t2) t2.fav=true;');
+    w.eval('pickExercise("", function(){}, null); document.getElementById("exp-q").value="trazioni"; document.getElementById("exp-q").oninput();');
+    const primo = d.querySelector('#exp-list .exp-it');
+    ok(d.querySelector('#exp-list .exp-grp') !== null && /Preferiti|Favourites|Favorites/.test(d.querySelector('#exp-list .exp-grp').textContent),
+       'Ricerca: i preferiti corrispondenti aprono l\'elenco');
+    ok(primo && primo.dataset.nome === 'Trazioni presa supina (chin-up)',
+       'Ricerca: il preferito è il PRIMO risultato (Invio sceglie quello che usi davvero)');
+    w.eval('closeModal(); (DOC.esercizi||[]).forEach(function(e){ e.fav=false; });') }
   /* ＋ Esercizio con scelta del giorno */
   { const nPrima = w.eval('DOC.scheda.settimanale.length'); w.eval('aggiungiEsercizioModal()');
     ok(d.getElementById('m-day') !== null, 'Pesi: ＋ Esercizio apre la scelta del giorno');

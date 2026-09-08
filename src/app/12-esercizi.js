@@ -218,7 +218,14 @@ function pickExercise(current, onPick, filtro){
     q=(q||'').trim().toLowerCase();
     const all=(DOC.esercizi||[]).filter(e=>(!filtro||filtro(e)));
     if(q){ const list=all.filter(e=>exMatch(e,q));
-      return list.length? catalogo(list) : '<div class="muted" style="padding:16px;text-align:center">'+t('Nessun esercizio per «')+esc(q)+'».</div>'; }
+      if(!list.length) return '<div class="muted" style="padding:16px;text-align:center">'+t('Nessun esercizio per «')+esc(q)+'».</div>';
+      /* i PREFERITI che corrispondono vanno in cima: cercando «trazioni» il primo
+         risultato dev'essere quello che usi davvero, non il primo in ordine di gruppo */
+      const fav=list.filter(e=>e.fav).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
+      const resto=list.filter(e=>!e.fav);
+      if(!fav.length) return catalogo(list);
+      return '<div class="exp-grp">'+t('★ Preferiti')+'</div>'+fav.map(itemHtml).join('')+
+             (resto.length? catalogo(resto) : ''); }
     /* query vuota: preferiti + recenti in cima, poi tutto il catalogo */
     let html=''; const favSet=new Set();
     const fav=all.filter(e=>e.fav).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));

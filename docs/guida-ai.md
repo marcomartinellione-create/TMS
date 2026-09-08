@@ -101,6 +101,13 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, la riga dei **backup automatici**: l'app ne crea
   uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5
   copie) con link «ripristina» accanto a ciascuno.
+- **Eliminare una settimana già salvata**: nello **Storico** (link in fondo alla pagina) ogni
+  settimana ha la sua barra scura con, a destra, un pulsante **cestino rosso** che toglie tutte
+  le righe di QUELLA settimana. Stesso pulsante su ogni rilevazione dello storico **Misure**.
+  Dal 2026-09-08 sostituisce il vecchio «Annulla ultimo» del tab Pesi, che sapeva togliere solo
+  l'ULTIMA scheda salvata: se lo sbaglio era di due settimane prima bisognava cancellare anche
+  quella buona in mezzo. In entrambi i casi viene chiesta conferma e l'operazione è definitiva.
+
 - Per ogni profilo i file sono: scheda.json, storico.json, corpo.json,
   alimentazione.json. I valori derivati (1RM, TL, ACWR…) NON vengono mai salvati:
   si ricalcolano al volo dai dati grezzi.
@@ -116,6 +123,8 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   digita il nome o si scorre per gruppo muscolare; Invio sceglie il primo risultato). A
   ricerca vuota, in cima ci sono i **★ Preferiti** e i **🕐 Recenti** (gli esercizi usati di
   recente); la stellina ☆/★ accanto a ogni esercizio lo aggiunge/toglie dai preferiti.
+  Anche CERCANDO, i preferiti che corrispondono compaiono in cima: premendo Invio si sceglie
+  quindi quello che si usa davvero, non il primo in ordine di gruppo.
   Campi per riga: Serie, Ripetizioni, Peso, RIR (opzionale), Note, recupero. Obbligatori
   solo esercizio/serie/ripetizioni/peso.
   **▦ Colonne** (bottone a destra del titolo della scheda, dal 2026-08-19): apre la scelta
@@ -124,6 +133,13 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   restano calcolati, salvati e presenti nei report; la scelta si salva nel profilo attivo
   (dati_utente.colonnePesi), quindi ogni atleta ha la sua. Esercizio, Serie, Ripetizioni,
   Peso e le azioni non si possono nascondere; il RIR ha il suo interruttore nel Profilo.
+
+- **⚖ Bilanciamento** (bottone a sinistra di ▦ Colonne, dal 2026-09-08): apre un radar delle
+  SERIE per gruppo muscolare della scheda che si sta scrivendo — non dell'ultima settimana
+  salvata: serve mentre si costruisce. Accanto al disegno c'è l'elenco in chiaro, gruppo per
+  gruppo, col totale. Il **cardio è escluso** di proposito: qui si guarda come è distribuito
+  il lavoro coi pesi, e i minuti di cardio convertiti in serie equivalenti gonfierebbero un
+  asse che non c'entra. Diverso dal radar di Progressi, che invece il cardio lo include.
 
 - **Training Set** (dal v1.1.2): selettore accanto a «Scheda» per tenere più versioni
   alternative dell'intera scheda Pesi (settimanale + mensile) — es. «Palestra» e «Casa» —
