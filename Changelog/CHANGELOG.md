@@ -4,6 +4,45 @@
 
 ---
 
+### 2026-09-08 — TMS v1.1.12: eliminazione per settimana, conferme in stile app, ⚖ Bilanciamento
+
+**Tipo**: feature + correzioni d'uso (sette richieste di Marco arrivate a raffica nella stessa
+sessione, più la correzione di riferimenti obsoleti nelle guide)
+**File coinvolti**: `electron/main.js` (finestra iniziale) · `src/app/04-modal.js`
+(`chiediConferma`/`avvisa`) · `src/app/06-allenamento.js` (eliminaScheda, ⚖ Bilanciamento, cella
+esercizio, via le frecce) · `src/app/07-storico.js` · `src/app/10-storico-corpo.js`
+(`eliminaMisura`) · `src/app/12-esercizi.js` (preferiti nella ricerca) · `src/pagina/02-stili.css`
+(`.btn--del`, `.ex-sub-row`, griglia del bilanciamento) · `src/app/00-i18n.js` · guide IT/EN e
+guida-AI · `tests/test-app.js`
+**Descrizione**:
+- **Eliminazione per settimana**: nello Storico ogni settimana ha un **cestino bianco su rosso**
+  nella sua barra; lo stesso su ogni rilevazione delle Misure. Si può togliere qualunque
+  registrazione, anche una in mezzo allo storico. Sostituisce «↶ Annulla ultimo», che agiva solo
+  sull'ultima scheda salvata.
+- **Conferme in stile app**: `chiediConferma()` e `avvisa()` al posto di `confirm()`/`alert()` di
+  sistema, che arrivavano come finestre grigie di Windows. Il fuoco parte da **Annulla**: un Invio
+  distratto non cancella nulla. Nota per chi sviluppa: `confirm()` è sincrono, questi no — il
+  seguito va dentro la callback.
+- **⚖ Bilanciamento** (a sinistra di ▦ Colonne): radar delle serie per gruppo muscolare della
+  scheda **in costruzione**, con l'elenco in chiaro a colonne fisse e il totale. **Cardio escluso**
+  per scelta di Marco: i minuti convertiti in serie equivalenti gonfierebbero un asse che non
+  riguarda il lavoro coi pesi.
+- **Preferiti in cima anche nella ricerca** del selettore esercizi: premendo Invio si sceglie
+  quello che si usa davvero.
+- **Finestra iniziale** adattata allo schermo (fino a 1560×980, con minimo garantito): a 1280 i
+  pulsanti fissi Guida e Segnala finivano sopra la scheda.
+- **Cella esercizio reimpaginata** (`.ex-sub-row`): la riga sotto il nome spezzava «+65,8» da
+  «kg». Tolte le frecce ▲▼ di riordino, che l'affollavano; il peso corporeo si mostra senza
+  decimali.
+- **Guide**: corretti i riferimenti a comandi non più esistenti e aggiunte le novità. Regola
+  fissata con Marco: le guide descrivono **solo lo stato attuale** dell'app, mai cosa è cambiato.
+**Test**: `npm test` <b>486/486</b> (+14: eliminazione per settimana e per misura con conferma a
+modale, bilanciamento con cardio escluso, preferiti primi nella ricerca, assenza delle frecce).
+`npm run verifica` OK. Verificato a schermo su dati reali.
+**Nota**: verificato che `＋set` e `＋ Esercizio` inserivano già nel punto giusto (test aggiunti a
+garanzia); nessuna correzione necessaria.
+**Approvato da**: Marco (richieste puntuali; rilascio su «pubblichiamo»).
+
 ### 2026-09-08 — TMS v1.1.11: segnalazioni bug/idee, taccuino dell'autore, 1RM come zavorra
 
 **Tipo**: feature + correzione (richieste di Marco: «inseriamo un sistema di report bug come è

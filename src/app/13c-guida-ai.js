@@ -108,9 +108,9 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
 - **Eliminare una settimana già salvata**: nello **Storico** (link in fondo alla pagina) ogni
   settimana ha la sua barra scura con, a destra, un pulsante **cestino rosso** che toglie tutte
   le righe di QUELLA settimana. Stesso pulsante su ogni rilevazione dello storico **Misure**.
-  Dal 2026-09-08 sostituisce il vecchio «Annulla ultimo» del tab Pesi, che sapeva togliere solo
-  l'ULTIMA scheda salvata: se lo sbaglio era di due settimane prima bisognava cancellare anche
-  quella buona in mezzo. In entrambi i casi viene chiesta conferma e l'operazione è definitiva.
+  In entrambi i casi viene chiesta conferma con un riquadro dell'app (non la finestra di
+  sistema) e l'operazione è definitiva. Si può togliere qualunque settimana, anche una in
+  mezzo allo storico: non solo l'ultima.
 
 - Per ogni profilo i file sono: scheda.json, storico.json, corpo.json,
   alimentazione.json. I valori derivati (1RM, TL, ACWR…) NON vengono mai salvati:
@@ -128,7 +128,7 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   ricerca vuota, in cima ci sono i **★ Preferiti** e i **🕐 Recenti** (gli esercizi usati di
   recente); la stellina ☆/★ accanto a ogni esercizio lo aggiunge/toglie dai preferiti.
   Anche CERCANDO, i preferiti che corrispondono compaiono in cima: premendo Invio si sceglie
-  quindi quello che si usa davvero, non il primo in ordine di gruppo.
+  quindi quello che si usa davvero.
   Campi per riga: Serie, Ripetizioni, Peso, RIR (opzionale), Note, recupero. Obbligatori
   solo esercizio/serie/ripetizioni/peso.
   **▦ Colonne** (bottone a destra del titolo della scheda, dal 2026-08-19): apre la scelta
@@ -138,7 +138,7 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   (dati_utente.colonnePesi), quindi ogni atleta ha la sua. Esercizio, Serie, Ripetizioni,
   Peso e le azioni non si possono nascondere; il RIR ha il suo interruttore nel Profilo.
 
-- **⚖ Bilanciamento** (bottone a sinistra di ▦ Colonne, dal 2026-09-08): apre un radar delle
+- **⚖ Bilanciamento** (bottone a sinistra di ▦ Colonne): apre un radar delle
   SERIE per gruppo muscolare della scheda che si sta scrivendo — non dell'ultima settimana
   salvata: serve mentre si costruisce. Accanto al disegno c'è l'elenco in chiaro, gruppo per
   gruppo, col totale. Il **cardio è escluso** di proposito: qui si guarda come è distribuito
@@ -206,8 +206,8 @@ Due modi per registrare una seduta:
   dell'ultima registrazione; il «▶» accanto all'esercizio apre il video dimostrativo.
 - Per ogni riga l'app mostra al volo: 1RM stimato, %1RM, TL (carico della riga) e il
   «Δ TL set» (questo set vs il set di pari posizione della scorsa scheda).
-- **Co-pilota LED passivo**: un pallino verde/giallo/rosso accanto alle frecce ▲▼ della riga
-  esercizio valuta se il peso digitato è una progressione sensata, confrontandolo col set di pari posizione
+- **Co-pilota LED passivo**: un pallino verde/giallo/rosso nella riga di servizio sotto il nome
+  dell'esercizio valuta se il peso digitato è una progressione sensata, confrontandolo col set di pari posizione
   della scorsa scheda e coi segnali di affaticamento (ACWR, monotonia, RIR ultima volta).
   Soglie: 🟢 da −5% a +10%; 🟡 +10%…+20%, oppure calo oltre −5%, oppure aumento con RIR≤1
   alla scorsa, oppure monotonia alta; 🔴 oltre +20% (probabile errore/troppo) oppure aumento
@@ -215,8 +215,7 @@ Due modi per registrare una seduta:
   È SOLO un suggerimento visivo (tooltip col motivo): non modifica né scrive nulla.
 - «💾 Salva nello Storico» registra la settimana (anno + numero settimana ISO,
   proposti in automatico); se il Session-RPE è abilitato si registrano anche fatica
-  (RPE 0-10) e durata in minuti per seduta. «↶ Annulla ultimo» rimuove l'ultimo
-  salvataggio. Un pallino/banner verde o rosso (qui, in Corpo e nel footer) avvisa se
+  (RPE 0-10) e durata in minuti per seduta. Un pallino/banner verde o rosso (qui, in Corpo e nel footer) avvisa se
   la settimana corrente non è ancora registrata.
 
 ## 5 · Progressi, Storico, Corpo (tab 📈 Progressi · 🜂 Corpo; archivi dal footer)
@@ -489,8 +488,9 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - «Salvare l'allenamento della settimana» → Pesi → 💾 Salva nello Storico.
 - «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,
   durata, RPE; FC media facoltativa per il TRIMP).
-- «Correggere un dato sbagliato» → nella scheda corrente si corregge direttamente;
-  nello storico: ↶ Annulla ultimo e risalvare.
+- «Correggere un dato sbagliato» → nella scheda corrente si corregge direttamente; per una
+  settimana già salvata si apre lo Storico, si elimina quella settimana col cestino rosso
+  nella sua barra e si risalva.
 - «Vedere i progressi / il rischio di sovraccarico» → Progressi (record, TL, ACWR).
 - «Impostare la dieta» → Alimentazione (fase attiva scelta coi bottoni in cima al tab);
   per le analisi nel tempo registrare i Periodi.
