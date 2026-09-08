@@ -224,40 +224,68 @@ function colonnePesiModal(){
    ADESSO invece che sull'ultima settimana salvata: serve mentre si costruisce, non dopo.
    Il CARDIO è escluso di proposito (richiesta di Marco): qui si guarda come sono
    distribuite le serie coi pesi, e i minuti di cardio — convertiti in serie equivalenti —
-   gonfierebbero un asse che non c'entra con l'equilibrio del lavoro in sala pesi. */
+   gonfierebbero un asse che non c'entra con l'equilibrio del lavoro in sala pesi.
+   Le serie si spalmano sui gruppi con quoteGruppi(): piene ai muscoli primari, mezze ai
+   secondari — altrimenti una scheda fatta di spinte e tirate sembra scoprire braccia e
+   spalle, che invece lavorano a ogni serie. */
+/* fascia di volume settimanale per gruppo: 10-20 serie è la zona utile per crescere,
+   sotto 6 si mantiene appena, sopra 22 si accumula fatica che raramente serve. */
+const RIF_SERIE={min:10, max:20, sotto:6, sopra:22};
 function bilanciamentoSerie(){
   const per={}; GRUPPI.filter(g=>g!=='Cardio').forEach(g=>{ per[g]=0; });
+  const dir={spinta:0, trazione:0}; let tot=0;
   schedaRows().forEach(r=>{ if(!r.esercizio) return;
-    const g=gruppoOf(r.esercizio); if(!g||g==='Cardio'||!(g in per)) return;
-    per[g]+=(+r.serie||0); });
-  return per;
+    if(gruppoOf(r.esercizio)==='Cardio') return;         /* qui si guardano i pesi */
+    const ser=+r.serie||0; if(ser<=0) return;
+    tot+=ser;
+    const q=quoteGruppi(r.esercizio);
+    Object.keys(q).forEach(g=>{ if(g in per) per[g]+=ser*q[g]; });
+    const d=direzioneOf(r.esercizio); if(d) dir[d]+=ser;
+  });
+  return {per:per, dir:dir, tot:tot};
 }
+/* mezze serie in giro: 12 resta «12», 12,5 non diventa «12.5» */
+function bilNum(v){ const x=Math.round(v*10)/10; return x===Math.round(x)? String(x) : String(x).replace('.',','); }
 function bilanciamentoModal(){
-  const per=bilanciamentoSerie();
+  const bil=bilanciamentoSerie(), per=bil.per;
   const gruppi=Object.keys(per);
-  const tot=gruppi.reduce((a,g)=>a+per[g],0);
   const items=gruppi.map(g=>({label:t(g), value:per[g]}));
   const max=Math.max(...gruppi.map(g=>per[g]),0);
   /* la lettura a parole accanto al disegno: il radar dice "che forma ha", la riga
      dice "quante serie" — senza, bisogna stimare a occhio dalla ragnatela */
   /* larghezze fisse e niente a capo: con «21 serie» che si spezzava in due righe le voci
      avevano altezze diverse e le barre non si leggevano più in colonna */
+  /* barre sulla stessa scala assoluta del radar: «lunga» vuol dire tante serie,
+     non soltanto più delle altre */
+  const scala=Math.max(max, RIF_SERIE.sopra);
   const righe=gruppi.slice().sort((a,b)=>per[b]-per[a]).map(g=>{
-    const v=per[g], q=max?Math.round(v/max*100):0;
-    return `<div class="bil-riga">
+    const v=per[g], q=scala?Math.round(v/scala*100):0;
+    const fuori=(v<RIF_SERIE.sotto||v>RIF_SERIE.sopra);
+    return `<div class="bil-riga${fuori?' is-fuori':''}">
       <span class="bil-nome">${esc(t(g))}</span>
       <span class="bil-barra"><span style="width:${q}%;background:${v?'var(--orange)':'transparent'}"></span></span>
-      <span class="bil-val mono">${v}</span></div>`; }).join('');
+      <span class="bil-val mono">${bilNum(v)}</span></div>`; }).join('');
+  /* spinta contro trazione: lo squilibrio più comune, e quello che il radar per gruppi
+     non mostra (pettorali e schiena possono pareggiare mentre spalle e tricipiti no) */
+  const sp=bil.dir.spinta, tr=bil.dir.trazione;
+  const verdetto = (!sp&&!tr) ? '' : (tr<sp*0.7 ? t('poca trazione') : sp<tr*0.7 ? t('poca spinta') : t('in equilibrio'));
+  /* fuori dalla griglia dell'elenco: la colonna dei numeri è larga 42px e la barra alta 9,
+     due valori più il verdetto non ci stanno */
+  const rigaDir = (sp||tr) ? `<div class="bil-dir">
+      <span>${t('Spinta · Trazione')}</span>
+      <span><b class="mono">${bilNum(sp)} · ${bilNum(tr)}</b> <span class="muted">${esc(verdetto)}</span></span></div>` : '';
   modal(`<h3>⚖ ${t('Bilanciamento della settimana')}</h3>
-    <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Serie per gruppo muscolare nella scheda che stai scrivendo. Il <b>cardio è escluso</b>: qui si guarda come è distribuito il lavoro coi pesi.')}</div>
-    ${tot? `<div class="bil-wrap">
-        <div class="bil-radar">${radarChart(items,{w:360,h:290})}</div>
+    <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Serie per gruppo muscolare nella scheda che stai scrivendo: piene sui muscoli principali, <b>mezze su quelli coinvolti di striscio</b> (la panca allena anche spalle e tricipiti). Il <b>cardio è escluso</b>: qui si guarda il lavoro coi pesi.')}</div>
+    ${bil.tot? `<div class="bil-wrap">
+        <div class="bil-radar">${radarChart(items,{w:360,h:290,rif:RIF_SERIE})}</div>
         <div class="bil-lista">
           <div class="bil-riga bil-testa"><span class="bil-nome">${t('Gruppo')}</span><span class="bil-barra"></span><span class="bil-val">${t('serie')}</span></div>
           ${righe}
-          <div class="bil-riga bil-tot"><span class="bil-nome">${t('totale')}</span><span class="bil-barra"></span><span class="bil-val mono">${tot}</span></div>
+          ${rigaDir}
+          <div class="bil-dir"><span>${t('serie in scheda')}</span><span class="mono"><b>${bil.tot}</b></span></div>
         </div>
-      </div>`
+      </div>
+      <div class="bil-nota muted">${t('La fascia verde è la <b>zona utile</b>: 10-20 serie a settimana per gruppo. In rosso i gruppi sotto 6 (si mantiene appena) o sopra 22. Non serve un poligono regolare: gruppi diversi chiedono volumi diversi.')}</div>`
       : `<div class="empty" style="padding:26px">${t('Nessuna serie da mostrare: la scheda è vuota (o contiene solo cardio).')}</div>`}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='720px';

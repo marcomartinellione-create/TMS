@@ -141,9 +141,28 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
 - **⚖ Bilanciamento** (bottone a sinistra di ▦ Colonne): apre un radar delle
   SERIE per gruppo muscolare della scheda che si sta scrivendo — non dell'ultima settimana
   salvata: serve mentre si costruisce. Accanto al disegno c'è l'elenco in chiaro, gruppo per
-  gruppo, col totale. Il **cardio è escluso** di proposito: qui si guarda come è distribuito
+  gruppo. Il **cardio è escluso** di proposito: qui si guarda come è distribuito
   il lavoro coi pesi, e i minuti di cardio convertiti in serie equivalenti gonfierebbero un
   asse che non c'entra. Diverso dal radar di Progressi, che invece il cardio lo include.
+  Il conteggio **spalma ogni serie sui gruppi coinvolti** (quoteGruppi in 01-costanti.js):
+  quota 1 ai gruppi dei muscoli_primari dell'esercizio, quota 0,5 a quelli dei
+  muscoli_secondari, un muscolo presente in entrambe le liste vale 1 (si tiene il massimo).
+  I 17 nomi di muscolo del catalogo sono mappati sui 6 gruppi dei pesi da MUSCOLO_GRUPPO;
+  se l'esercizio non porta le liste dei muscoli si ricade sul solo campo macro, quota 1.
+  Quindi 3 serie di panca danno 3 a Pettorali e 1,5 a Spalle e a Braccia, e i totali di
+  gruppo NON sommano al numero di serie della scheda (la riga «serie in scheda» dà quello).
+  La ragnatela usa una **scala assoluta** con una fascia di riferimento (RIF_SERIE in
+  06-allenamento.js: zona utile 10-20 serie a settimana per gruppo, allarme sotto 6 e
+  sopra 22, etichette in rosso fuori da quei limiti). Un poligono regolare NON è
+  l'obiettivo: gruppi diversi richiedono volumi diversi. Il radar di Progressi resta
+  invece normalizzato sul massimo e senza fascia, e conta una serie su un solo gruppo
+  (il campo macro salvato nello storico).
+- **Spinta · Trazione**: riga sotto l'elenco del Bilanciamento, somma le serie della parte
+  alta per direzione (direzioneOf in 01-costanti.js, dedotta dal muscolo primario:
+  pettorali/tricipiti = spinta, gran dorsale/dorsali centrali/trapezi/bicipiti/avambracci =
+  trazione; per le spalle decidono i secondari, con trapezi o dorsali è trazione). Gambe e
+  core non hanno direzione e non entrano. Il verdetto è «poca trazione» se trazione minore
+  di spinta per 0,7, «poca spinta» nel caso opposto, altrimenti «in equilibrio».
 
 - **Training Set** (dal v1.1.2): selettore accanto a «Scheda» per tenere più versioni
   alternative dell'intera scheda Pesi (settimanale + mensile) — es. «Palestra» e «Casa» —

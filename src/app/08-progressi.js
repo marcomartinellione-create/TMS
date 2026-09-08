@@ -41,11 +41,20 @@ function schedeAggr(sf){
 function radarChart(items,opts){
   opts=opts||{}; const W=opts.w||380,H=opts.h||300, cx=W/2, cy=H/2+4, R=Math.min(W,H)/2-44, n=items.length;
   if(!n||!items.some(d=>d.value>0)) return `<div class="empty">${t('Nessun dato')}</div>`;
-  const mx=Math.max(...items.map(d=>d.value),1);
+  /* opts.rif = {min,max,sotto,sopra}: disegna la fascia di volume utile e passa a una
+     scala ASSOLUTA. Senza, il radar resta normalizzato sul massimo — la forma dice come
+     è distribuito il lavoro, non quante serie siano: un poligono regolare non è di per sé
+     una scheda equilibrata, perché i gruppi non chiedono tutti lo stesso volume. */
+  const rif=opts.rif||null;
+  const mx=rif? Math.max(...items.map(d=>d.value), rif.max*1.15, 1) : Math.max(...items.map(d=>d.value),1);
   const ang=i=>(-Math.PI/2)+i*2*Math.PI/n, pt=(i,r)=>[cx+r*Math.cos(ang(i)), cy+r*Math.sin(ang(i))];
   let g='';
   for(let k=1;k<=4;k++){ const rr=R*k/4; let p=''; for(let i=0;i<n;i++){const a=pt(i,rr); p+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1);} g+=`<path d="${p}Z" fill="none" stroke="var(--paper-3)"/>`; }
-  for(let i=0;i<n;i++){ const a=pt(i,R); g+=`<line x1="${cx}" y1="${cy}" x2="${a[0].toFixed(1)}" y2="${a[1].toFixed(1)}" stroke="var(--border)"/>`; const l=pt(i,R+15); g+=`<text class="lbl" x="${l[0].toFixed(1)}" y="${l[1].toFixed(1)}" text-anchor="middle">${esc(items[i].label)}</text>`; }
+  if(rif){ const anello=v=>{ let p=''; for(let i=0;i<n;i++){ const a=pt(i,R*v/mx); p+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1); } return p+'Z'; };
+    g+=`<path d="${anello(rif.max)+anello(rif.min)}" fill="var(--ok)" fill-rule="evenodd" opacity=".14"/>`; }
+  for(let i=0;i<n;i++){ const a=pt(i,R); g+=`<line x1="${cx}" y1="${cy}" x2="${a[0].toFixed(1)}" y2="${a[1].toFixed(1)}" stroke="var(--border)"/>`; const l=pt(i,R+15);
+    const fuori=rif && (items[i].value<rif.sotto || items[i].value>rif.sopra);
+    g+=`<text class="lbl${fuori?' lbl-fuori':''}" x="${l[0].toFixed(1)}" y="${l[1].toFixed(1)}" text-anchor="middle">${esc(items[i].label)}</text>`; }
   let dp=''; for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); dp+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1);} 
   g+=`<path d="${dp}Z" fill="rgba(194,80,10,.18)" stroke="var(--orange)" stroke-width="2"/>`;
   for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); g+=`<circle cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="2.6" fill="var(--orange)"/>`; }

@@ -866,13 +866,27 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* ── ⚖ Bilanciamento della settimana in costruzione (cardio escluso) ── */
   { w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:4,rip:5,peso:100},{giorno:"Lunedì",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:70}]; renderAllenamento();');
     ok(d.getElementById('btn-bilanc') !== null, 'Pesi: pulsante ⚖ Bilanciamento accanto a ▦ Colonne');
-    const per = w.eval('JSON.stringify(bilanciamentoSerie())');
-    const o = JSON.parse(per);
-    ok(o['Gambe'] === 4 && o['Pettorali'] === 3, 'Bilanciamento: conta le serie per gruppo muscolare (Gambe 4, Pettorali 3)');
+    const bil = JSON.parse(w.eval('JSON.stringify(bilanciamentoSerie())'));
+    const o = bil.per;
+    ok(o['Gambe'] === 4 && o['Pettorali'] === 3, 'Bilanciamento: serie piene sui muscoli primari (Gambe 4, Pettorali 3)');
+    ok(o['Spalle'] === 1.5 && o['Braccia'] === 1.5, 'Bilanciamento: mezza serie ai secondari (3 di panca → Spalle e Braccia 1,5)');
+    ok(o['Schiena'] === 2, 'Bilanciamento: i secondari contano anche fuori dal macro (squat → lombari → Schiena 2)');
+    ok(bil.tot === 7, 'Bilanciamento: «serie in scheda» resta il conteggio reale (7), non la somma delle quote');
     ok(!('Cardio' in o), 'Bilanciamento: il Cardio è ESCLUSO da questo grafico (richiesta di Marco)');
+    ok(w.eval('quoteGruppi("Girata e spinta (clean and press)").Spalle') === 1,
+       'quoteGruppi: un muscolo sia primario sia secondario vale 1, non 1,5');
+    ok(bil.dir.spinta === 3 && bil.dir.trazione === 0,
+       'Bilanciamento: Spinta·Trazione conta solo la parte alta (panca = spinta, squat senza direzione)');
+    ok(w.eval('direzioneOf("Trazioni presa supina (chin-up)")') === 'trazione',
+       'direzioneOf: il gran dorsale come primario dà trazione');
     d.getElementById('btn-bilanc').click();
-    ok(/Bilanciamento|Balance/.test(d.getElementById('modal').innerHTML) && d.querySelector('#modal svg') !== null,
+    const hb = d.getElementById('modal').innerHTML;
+    ok(/Bilanciamento|Balance/.test(hb) && d.querySelector('#modal svg') !== null,
        'Bilanciamento: si apre col radar delle serie per gruppo');
+    ok(/fill-rule="evenodd"/.test(hb), 'Bilanciamento: il radar disegna la fascia di riferimento 10-20 serie');
+    ok(/lbl-fuori/.test(hb), 'Bilanciamento: i gruppi fuori fascia hanno l\'etichetta in rosso');
+    ok(!/fill-rule="evenodd"/.test(w.eval('radarChart([{label:"A",value:3},{label:"B",value:9}])')),
+       'radarChart: senza opts.rif nessuna fascia, il radar di Progressi resta com\'è');
     w.eval('closeModal()'); }
   /* ── ricerca esercizi: i preferiti che corrispondono vanno in cima ── */
   { w.eval('(DOC.esercizi||[]).forEach(function(e){ e.fav=false; }); var t2=esLookup("Trazioni presa supina (chin-up)"); if(t2) t2.fav=true;');

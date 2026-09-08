@@ -63,6 +63,52 @@ function fattore(n){ const e=esLookup(n); return (e && e.fattore) || 1; }
 function gruppoOf(n){ const e=esLookup(n); return (e && (e.macro||e.gruppo)) || ''; }
 function videoOf(n){ const e=esLookup(n); return (e && e.video) ? String(e.video).trim() : ''; }
 
+/* -- VOLUME PER GRUPPO: anche il lavoro INDIRETTO ------------------------------
+   La panca sta in «Pettorali», ma allena pure spalle e tricipiti: contarla tutta su
+   un gruppo solo fa sembrare scoperte le braccia di una scheda che le allena eccome.
+   Il catalogo porta muscoli_primari/muscoli_secondari (vocabolario chiuso di 17 voci,
+   qui mappate sui gruppi dei pesi): i primari valgono una serie piena, i secondari
+   mezza — la convenzione d'uso nel conteggio del volume settimanale.
+   Cataloghi vecchi senza le liste ricadono sul solo macro, cioè sul conteggio di prima. */
+const MUSCOLO_GRUPPO = {
+  'quadricipiti':'Gambe', 'ischiocrurali':'Gambe', 'glutei':'Gambe', 'polpacci':'Gambe',
+  'adduttori':'Gambe', 'abduttori':'Gambe',
+  'pettorali':'Pettorali',
+  'gran dorsale':'Schiena', 'dorsali centrali':'Schiena', 'trapezi':'Schiena', 'lombari':'Schiena',
+  'spalle':'Spalle', 'collo':'Spalle',
+  'bicipiti':'Braccia', 'tricipiti':'Braccia', 'avambracci':'Braccia',
+  'addominali':'Core'
+};
+const QUOTA_SECONDARI = 0.5;
+function normMuscolo(m){ return String(m==null?'':m).toLowerCase().trim(); }
+/* {gruppo: quota} per UNA serie dell'esercizio. Un muscolo elencato sia fra i primari
+   sia fra i secondari (capita nei gesti olimpici) vale 1, non 1,5: si tiene il massimo. */
+function quoteGruppi(nome){
+  const e=esLookup(nome), out={};
+  const add=(m,q)=>{ const g=MUSCOLO_GRUPPO[normMuscolo(m)]; if(g) out[g]=Math.max(out[g]||0,q); };
+  if(e){ (e.muscoli_primari||[]).forEach(m=>add(m,1));
+         (e.muscoli_secondari||[]).forEach(m=>add(m,QUOTA_SECONDARI)); }
+  if(!Object.keys(out).length){ const g=gruppoOf(nome); if(g) out[g]=1; }
+  return out;
+}
+
+/* -- SPINTA / TRAZIONE (parte alta) --------------------------------------------
+   Lo squilibrio che conta di più e che le schede sbagliano più spesso: quanto si
+   spinge contro quanto si tira. Si deduce dal muscolo primario; per le spalle decide
+   la compagnia (con trapezi o dorsali è lavoro posteriore, quindi trazione). Gambe e
+   core non hanno una direzione utile in questa lettura e restano fuori dal conto. */
+const SPINTA_PRIM   = {'pettorali':1, 'tricipiti':1};
+const TRAZIONE_PRIM = {'gran dorsale':1, 'dorsali centrali':1, 'trapezi':1, 'bicipiti':1, 'avambracci':1};
+const MUSCOLI_POST  = {'trapezi':1, 'dorsali centrali':1, 'gran dorsale':1};
+function direzioneOf(nome){
+  const e=esLookup(nome); if(!e) return '';
+  const p=normMuscolo((e.muscoli_primari||[])[0]);
+  if(SPINTA_PRIM[p]) return 'spinta';
+  if(TRAZIONE_PRIM[p]) return 'trazione';
+  if(p==='spalle') return (e.muscoli_secondari||[]).some(m=>MUSCOLI_POST[normMuscolo(m)]) ? 'trazione' : 'spinta';
+  return '';
+}
+
 /* -- VARIANTI / SEDUTE (sostituiscono i suffissi +1/+2/-N2/-MAX) -- */
 const VAR_RE=/(?:\s*-\s*MAX|\s*-\s*N\s*\d+|\s*\+\s*\d+)\s*$/i;
 function parseVariante(name){

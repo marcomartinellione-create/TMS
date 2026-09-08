@@ -144,8 +144,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .bil-testa{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3);
   font-family:var(--font-mono); padding-bottom:2px}
 .bil-testa .bil-barra{background:none}
-.bil-tot{border-top:1px solid var(--border); margin-top:6px; padding-top:6px; color:var(--ink-3)}
-.bil-tot .bil-barra{background:none}
+.bil-riga.is-fuori .bil-val{color:var(--danger); font-weight:700}
+.bil-riga.is-fuori .bil-nome{color:var(--danger)}
+.bil-dir{display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  border-top:1px solid var(--border); margin-top:6px; padding-top:6px; font-size:12px}
+.bil-nota{font-size:11.5px; line-height:1.5; margin-top:12px; padding-top:10px; border-top:1px solid var(--border)}
 .btn--del{background:linear-gradient(180deg,#c0392b,var(--danger)); color:#fff;
   border-color:#7f1616; box-shadow:var(--shadow-sm); padding:4px 9px; font-size:13px; line-height:1}
 .btn--del:hover{background:linear-gradient(180deg,#d0453a,#b02020); color:#fff; border-color:#7f1616}
@@ -293,6 +296,7 @@ input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange)
 svg .axis{stroke:var(--border); stroke-width:1}
 svg .grid{stroke:var(--paper-3); stroke-width:1}
 svg .lbl{fill:var(--ink-3); font-size:9px; font-family:var(--font-mono)}
+svg .lbl-fuori{fill:var(--danger); font-weight:700}
 svg .ln{fill:none; stroke-width:2}
 
 /* overlay connessione — gate a tutto schermo */
