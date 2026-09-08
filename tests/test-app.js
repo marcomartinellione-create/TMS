@@ -526,7 +526,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(w.eval('schedeAggr("Palestra").length') === 1 && w.eval('schedeAggr("Palestra")[0].scheda') === 202701, 'Progressi/filtro: scegliendo «Palestra» resta solo la sua settimana');
     ok(w.eval('schedeAggr("Casa").length') === 1 && w.eval('schedeAggr("Casa")[0].scheda') === 202702, 'Progressi/filtro: scegliendo «Casa» resta solo la sua settimana');
     ok(w.eval('senzaEtichetta()') === true, 'Progressi/filtro: rileva le settimane vecchie senza etichetta (avviso all\'utente)');
-    w.eval('progSet="Palestra"; showTab("progressi");');
+    w.eval('progSetSet("Palestra"); showTab("progressi");');
     ok(d.getElementById('prog-set') !== null && d.getElementById('prog-set').value === 'Palestra', 'Progressi/filtro: selettore in pagina con il set attivo selezionato');
     ok(d.getElementById('panel-progressi').textContent.includes('Tutto il percorso'), 'Progressi/filtro: tra le opzioni c\'è «Tutto il percorso»');
     /* i MASSIMALI non seguono il filtro: un record è un record (richiesta di Marco) */
@@ -537,8 +537,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       /* confronto diretto: card = massimo di TUTTO lo storico, non del solo set filtrato */
       const attesoPrimo=w.eval('(function(){var r=realMax(MAINLIFTS[0].nome);return r?nf(r.peso,0):"—";})()');
       ok(valori[0].indexOf(attesoPrimo)===0, 'Progressi/record: il valore mostrato è il massimo di tutto lo storico ('+attesoPrimo+')'); }
-    w.eval('progSet="__tutti__"; showTab("progressi");');
-    w.eval('progSet="__tutti__"; DOC.storico.length=' + stoPre + '; showTab("progressi");'); }
+    /* il filtro scelto si ricorda: vive nel profilo, non solo in memoria */
+    w.eval('progSetSet("Casa");');
+    ok(w.eval('DOC.dati_utente.progSet') === 'Casa', 'Progressi/filtro: la scelta finisce nel profilo (dati_utente)');
+    w.eval('_progSet=null;');
+    ok(w.eval('progSetGet()') === 'Casa', 'Progressi/filtro: al rientro riparte dall\'ultimo scelto, non da «Tutto il percorso»');
+    w.eval('DOC.dati_utente.progSet="SetSparito"; _progSet=null;');
+    ok(w.eval('progSetGet()') === '__tutti__', 'Progressi/filtro: se il Training Set salvato non esiste più si torna a «Tutto il percorso»');
+    w.eval('progSetSet("__tutti__"); showTab("progressi");');
+    w.eval('progSetSet("__tutti__"); DOC.storico.length=' + stoPre + '; showTab("progressi");'); }
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');
@@ -863,6 +870,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(w.eval('DOC.storico_io.length') === 1 && w.eval('DOC.storico_io[0].scheda') === 202602,
        'Misure: elimina la rilevazione scelta'); }
   w.eval('showTab("allenamento")');
+  /* ── manici di trascinamento al posto delle frecce ▲▼ ── */
+  { w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:3,rip:5,peso:100},{giorno:"Lunedì",esercizio:"Curl con bilanciere",serie:3,rip:10,peso:30}]; renderAllenamento();');
+    const manici = d.querySelectorAll('#panel-allenamento tr[data-i] .drag-h');
+    ok(manici.length === 2, 'Riordino: un manico di trascinamento per ogni riga della scheda (' + manici.length + ')');
+    ok(d.querySelector('#panel-allenamento tr[data-i]').ondragstart !== null &&
+       d.querySelector('#panel-allenamento tr[data-i]').ondrop !== null,
+       'Riordino: le righe rispondono a trascinamento e rilascio');
+    ok(d.querySelectorAll('#panel-allenamento [data-up],#panel-allenamento [data-down]').length === 0,
+       'Riordino: nessuna freccia ▲▼ rimasta in giro'); }
   /* ── ⚖ Bilanciamento della settimana in costruzione (cardio escluso) ── */
   { w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:4,rip:5,peso:100},{giorno:"Lunedì",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:70}]; renderAllenamento();');
     ok(d.getElementById('btn-bilanc') !== null, 'Pesi: pulsante ⚖ Bilanciamento accanto a ▦ Colonne');
@@ -879,6 +895,21 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
        'Bilanciamento: Spinta·Trazione conta solo la parte alta (panca = spinta, squat senza direzione)');
     ok(w.eval('direzioneOf("Trazioni presa supina (chin-up)")') === 'trazione',
        'direzioneOf: il gran dorsale come primario dà trazione');
+    ok(w.eval('direzioneOf("Curl con bilanciere")') === '' && w.eval('direzioneOf("Alzate laterali")') === '',
+       'direzioneOf: gli ISOLAMENTI restano fuori (un curl non è una trazione, le alzate laterali non una spinta)');
+    ok(w.eval('RIF_GRUPPO.Braccia.max > RIF_GRUPPO.Pettorali.max') && w.eval('RIF_GRUPPO.Core.sotto') === 0,
+       'Fasce: una per gruppo (Braccia più larga dei Pettorali), e il Core non viene mai segnalato come scarso');
+    /* riordino per trascinamento: il gesto non è provabile in jsdom, l'aritmetica sì */
+    { const abc = () => w.eval('JSON.stringify(spostaRiga([{n:"a",giorno:"Lun"},{n:"b",giorno:"Lun"},{n:"c",giorno:"Lun"}],0,2,true).map(function(x){return x.n;}))');
+      ok(abc() === '["b","c","a"]', 'spostaRiga: trascinata in fondo (rilascio sotto) → a va per ultima');
+      ok(w.eval('JSON.stringify(spostaRiga([{n:"a"},{n:"b"},{n:"c"}],2,0,false).map(function(x){return x.n;}))') === '["c","a","b"]',
+         'spostaRiga: trascinata in cima (rilascio sopra) → c va per prima');
+      ok(w.eval('JSON.stringify(spostaRiga([{n:"a"},{n:"b"},{n:"c"}],0,1,false).map(function(x){return x.n;}))') === '["a","b","c"]',
+         'spostaRiga: rilascio sopra la riga seguente non cambia nulla (niente scarti di indice)');
+      ok(w.eval('spostaRiga([{n:"a",giorno:"Lunedì"},{n:"b",giorno:"Venerdì"}],0,1,true)[1].giorno') === 'Venerdì',
+         'spostaRiga: portando una riga in un altro giorno le cambia anche il giorno');
+      ok(w.eval('JSON.stringify(spostaRiga([{n:"a"},{n:"b"}],0,5,true).map(function(x){return x.n;}))') === '["a","b"]',
+         'spostaRiga: indice fuori portata → array intatto'); }
     d.getElementById('btn-bilanc').click();
     const hb = d.getElementById('modal').innerHTML;
     ok(/Bilanciamento|Balance/.test(hb) && d.querySelector('#modal svg') !== null,
@@ -1066,6 +1097,22 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     /* persistenza: viaggia nel profilo e nel backup */
     ok(w.eval('Object.keys(docProfileData()).indexOf("storico_risc")>=0'), 'Radar/riscaldamento: storico_risc incluso nei dati del profilo (persistenza)');
     w.eval('DOC.storico_risc=[];');
+  }
+  /* ── Progressi: stesso conteggio del ⚖ Bilanciamento (unificato) ── */
+  { const code = 202698;
+    const pre = w.eval('DOC.storico.length');
+    w.eval('DOC.storico.push({scheda:' + code + ',giorno:"Lunedì",esercizio:"Panca piana con bilanciere - presa media",macro:"Pettorali",serie:4,rip:6,peso:80,set:"Base"});');
+    const a = JSON.parse(w.eval('JSON.stringify(schedeAggr().filter(function(x){return x.scheda===' + code + ';})[0].sets)'));
+    ok(a['Pettorali'] === 4 && a['Spalle'] === 2 && a['Braccia'] === 2,
+       'Progressi: le serie salvate si spalmano come nel Bilanciamento (panca → Spalle e Braccia a metà)');
+    const tlPre = w.eval('schedeAggr().filter(function(x){return x.scheda===' + code + ';})[0].tl');
+    ok(typeof tlPre === 'number' && tlPre > 0, 'Progressi: il TL resta il suo (il nuovo conteggio tocca solo le serie)');
+    w.eval('showTab("progressi")');
+    const hp = d.getElementById('panel-progressi').innerHTML;
+    ok(/fill-rule="evenodd"/.test(hp), 'Progressi: il radar mostra la fascia di riferimento come il Bilanciamento');
+    ok(!/>10<\/text>/.test(hp) || !/>20<\/text>/.test(hp),
+       'Progressi: via le vecchie soglie fisse 10/20 dal grafico a barre (ogni gruppo ha la sua zona)');
+    w.eval('DOC.storico.length=' + pre + '; showTab("allenamento");');
   }
   w.eval('creaTrainingSet("Vuota2","__vuota__");');
   ok(w.eval('riscaldaRows().length') === 0, 'Riscaldamento: un nuovo set (vuoto) parte senza riscaldamenti');

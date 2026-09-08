@@ -151,18 +151,38 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   se l'esercizio non porta le liste dei muscoli si ricade sul solo campo macro, quota 1.
   Quindi 3 serie di panca danno 3 a Pettorali e 1,5 a Spalle e a Braccia, e i totali di
   gruppo NON sommano al numero di serie della scheda (la riga «serie in scheda» dà quello).
-  La ragnatela usa una **scala assoluta** con una fascia di riferimento (RIF_SERIE in
-  06-allenamento.js: zona utile 10-20 serie a settimana per gruppo, allarme sotto 6 e
-  sopra 22, etichette in rosso fuori da quei limiti). Un poligono regolare NON è
-  l'obiettivo: gruppi diversi richiedono volumi diversi. Il radar di Progressi resta
-  invece normalizzato sul massimo e senza fascia, e conta una serie su un solo gruppo
-  (il campo macro salvato nello storico).
+  La ragnatela usa una **scala assoluta** con una fascia di riferimento PER GRUPPO
+  (RIF_GRUPPO in 01-costanti.js: min/max delimitano la zona utile, sotto/sopra sono le
+  soglie che accendono il rosso sull'etichetta). Le fasce non sono uguali fra loro perché
+  ogni asse somma lavoro diretto e indiretto e i gruppi raccolgono un numero diverso di
+  muscoli: i valori sono ricavati passando questo stesso conteggio su circa 930 schede
+  pubblicate (strengthlog.com, muscleandstrength.com), tenendo le 109 settimane intere con
+  almeno l'85% degli esercizi riconosciuti e, di quelle, le 60 equilibrate secondo un
+  criterio esterno (linee guida sulla spalla: spinta/trazione fra 1:1 e 1:2). Min = 25esimo
+  percentile di quella distribuzione, max = 90esimo. Il filtro conta: sulle schede scartate
+  la mediana spinta/trazione e' 1,50 con novantesimo percentile 3,50, cioe' si tarerebbe
+  l'app sulla scheda media di internet; sulle 60 tenute la mediana e' 1,00. Core ha sotto = 0 e non viene mai segnalato come scarso, perché quei
+  programmi quasi non prevedono addominali diretti; Cardio segue le linee guida OMS,
+  150-300 min a settimana = 15-30 sull'asse. Un poligono regolare NON è l'obiettivo: la
+  forma da avvicinare è la fascia.
+  **Lo stesso conteggio e le stesse fasce valgono anche per il radar di Progressi e del
+  Report**: schedeAggr riempie map[s].sets con quoteGruppi sull'esercizio della riga, e
+  ricade sul macro salvato se l'esercizio non è più a catalogo. Il TL per gruppo
+  (map[s].grp) resta invece attribuito al solo macro dello storico: è un'altra metrica.
+  Il grafico a barre «Serie per gruppo» non ha più le soglie fisse 10/20 — la barra
+  diventa rossa quando quel gruppo esce dalla propria fascia.
 - **Spinta · Trazione**: riga sotto l'elenco del Bilanciamento, somma le serie della parte
-  alta per direzione (direzioneOf in 01-costanti.js, dedotta dal muscolo primario:
-  pettorali/tricipiti = spinta, gran dorsale/dorsali centrali/trapezi/bicipiti/avambracci =
-  trazione; per le spalle decidono i secondari, con trapezi o dorsali è trazione). Gambe e
-  core non hanno direzione e non entrano. Il verdetto è «poca trazione» se trazione minore
-  di spinta per 0,7, «poca spinta» nel caso opposto, altrimenti «in equilibrio».
+  alta per direzione contando SOLO i multiarticolari (direzioneOf in 01-costanti.js scarta
+  gli isolamenti: qui si misura l'equilibrio fra schemi di movimento, e un curl o delle
+  alzate laterali non dicono nulla su come si tira o si spinge). La direzione si deduce dal
+  muscolo primario: pettorali/tricipiti = spinta, gran dorsale/dorsali centrali/trapezi/
+  bicipiti/avambracci = trazione; per le spalle decidono i secondari, con trapezi o dorsali
+  è trazione. Gambe e core non hanno direzione e non entrano. Soglie asimmetriche: «poca
+  trazione» se trazione minore di spinta per 0,8, «poca spinta» solo se spinta minore di
+  trazione per 0,6, altrimenti «in equilibrio». L'asimmetria è voluta: sulle 60 schede
+  equilibrate di riferimento la mediana di spinta su trazione e' 1,00 (dal 10 al 90
+  percentile: 0,80-1,32), e le linee guida per la spalla consigliano semmai di tirare più
+  di quanto si spinge.
 
 - **Training Set** (dal v1.1.2): selettore accanto a «Scheda» per tenere più versioni
   alternative dell'intera scheda Pesi (settimanale + mensile) — es. «Palestra» e «Casa» —

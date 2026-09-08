@@ -4,7 +4,20 @@
       Le righe salvate portano il campo `set` (dal v1.1.4); quelle più vecchie no e
       compaiono solo in «Tutto il percorso». Il filtro è un PARAMETRO opzionale: i
       chiamanti esistenti (Report, Cruscotto, Analisi, LED) restano invariati. ── */
-let progSet='__tutti__';   /* selettore del tab Progressi (in memoria, non persistito) */
+/* selettore del tab Progressi. Vive nel profilo (dati_utente) come le colonne dei Pesi:
+   chi lavora su un Training Set alla volta se lo ritrovava su «Tutto il percorso» a ogni
+   riavvio. Si legge pigramente perche' DOC non e' ancora popolato quando il file viene
+   valutato; se il set salvato non esiste piu' si torna a «tutto». */
+let _progSet=null;
+function progSetGet(){
+  if(_progSet==null){ const u=(DOC.dati_utente&&DOC.dati_utente.progSet); _progSet=u||'__tutti__'; }
+  if(_progSet!=='__tutti__' && setDiStorico().indexOf(_progSet)<0) _progSet='__tutti__';
+  return _progSet;
+}
+function progSetSet(v){
+  _progSet=v||'__tutti__';
+  const u=(DOC.dati_utente=DOC.dati_utente||{}); u.progSet=_progSet; persist('corpo');
+}
 function setDiStorico(){ const s=new Set();
   (DOC.storico||[]).forEach(r=>{ const n=String((r&&r.set)||'').trim(); if(n) s.add(n); });
   const sc=DOC.scheda; if(sc&&Array.isArray(sc.setsOrdine)) sc.setsOrdine.forEach(n=>{ if(n) s.add(n); });
@@ -32,7 +45,12 @@ function schedeAggr(sf){
   const map={};
   storicoSet(sf).forEach(r=>{ if(r.test) return; const s=+r.scheda; if(!map[s])map[s]={scheda:s,tl:0,pctSum:0,pctN:0,grp:{},sets:{},band:{},tonn:0};
     const _t=sTL(r), _p=sPct(r), ser=+r.serie||0; map[s].tl+=_t; if(_p){map[s].pctSum+=_p; map[s].pctN++;}
-    const g=r.macro||'Altro'; map[s].grp[g]=(map[s].grp[g]||0)+_t; map[s].sets[g]=(map[s].sets[g]||0)+ser;
+    const g=r.macro||'Altro'; map[s].grp[g]=(map[s].grp[g]||0)+_t;
+    /* le SERIE si contano come nel ⚖ Bilanciamento: piene sui muscoli primari, mezze sui
+       secondari. Il TL sopra resta invece sul solo gruppo dello storico — è un'altra cosa.
+       Se l'esercizio non è più a catalogo si ricade sul macro salvato nella riga. */
+    const q=quoteGruppi(r.esercizio); const qq=Object.keys(q).length? q : (g?{[g]:1}:{});
+    Object.keys(qq).forEach(k=>{ map[s].sets[k]=(map[s].sets[k]||0)+ser*qq[k]; });
     map[s].tonn+=ser*(+r.rip||0)*caricoEff(r);   /* tonnellaggio: conta anche il corpo per trazioni/dip */
     if(_p){ const fb=fascia(_p)[0]; map[s].band[fb]=(map[s].band[fb]||0)+ser; }
   });
@@ -41,19 +59,22 @@ function schedeAggr(sf){
 function radarChart(items,opts){
   opts=opts||{}; const W=opts.w||380,H=opts.h||300, cx=W/2, cy=H/2+4, R=Math.min(W,H)/2-44, n=items.length;
   if(!n||!items.some(d=>d.value>0)) return `<div class="empty">${t('Nessun dato')}</div>`;
-  /* opts.rif = {min,max,sotto,sopra}: disegna la fascia di volume utile e passa a una
-     scala ASSOLUTA. Senza, il radar resta normalizzato sul massimo — la forma dice come
-     è distribuito il lavoro, non quante serie siano: un poligono regolare non è di per sé
-     una scheda equilibrata, perché i gruppi non chiedono tutti lo stesso volume. */
-  const rif=opts.rif||null;
-  const mx=rif? Math.max(...items.map(d=>d.value), rif.max*1.15, 1) : Math.max(...items.map(d=>d.value),1);
+  /* items[i].rif = {min,max,sotto,sopra}: quando OGNI voce ne ha uno, il radar passa a
+     scala ASSOLUTA e disegna la fascia di volume utile. La fascia è per asse, non unica:
+     gruppi diversi chiedono volumi diversi, quindi l'anello verde è irregolare ed è quella
+     la forma da avvicinare — non un poligono regolare. Senza rif il radar resta
+     normalizzato sul massimo e dice solo come è distribuito il lavoro. */
+  const conRif=items.every(d=>d.rif);
+  const mx=conRif? Math.max(...items.map(d=>Math.max(d.value, d.rif.max*1.15)),1) : Math.max(...items.map(d=>d.value),1);
   const ang=i=>(-Math.PI/2)+i*2*Math.PI/n, pt=(i,r)=>[cx+r*Math.cos(ang(i)), cy+r*Math.sin(ang(i))];
   let g='';
   for(let k=1;k<=4;k++){ const rr=R*k/4; let p=''; for(let i=0;i<n;i++){const a=pt(i,rr); p+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1);} g+=`<path d="${p}Z" fill="none" stroke="var(--paper-3)"/>`; }
-  if(rif){ const anello=v=>{ let p=''; for(let i=0;i<n;i++){ const a=pt(i,R*v/mx); p+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1); } return p+'Z'; };
-    g+=`<path d="${anello(rif.max)+anello(rif.min)}" fill="var(--ok)" fill-rule="evenodd" opacity=".14"/>`; }
+  if(conRif){ const anello=k=>{ let p=''; for(let i=0;i<n;i++){ const a=pt(i,R*items[i].rif[k]/mx); p+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1); } return p+'Z'; };
+    /* il contorno serve: il poligono arancione ci passa sopra e il solo riempimento
+       tenue sparirebbe proprio dove interessa guardare */
+    g+=`<path d="${anello('max')+anello('min')}" fill="var(--ok)" fill-rule="evenodd" fill-opacity=".16" stroke="var(--ok)" stroke-opacity=".55" stroke-width="1"/>`; }
   for(let i=0;i<n;i++){ const a=pt(i,R); g+=`<line x1="${cx}" y1="${cy}" x2="${a[0].toFixed(1)}" y2="${a[1].toFixed(1)}" stroke="var(--border)"/>`; const l=pt(i,R+15);
-    const fuori=rif && (items[i].value<rif.sotto || items[i].value>rif.sopra);
+    const rf=items[i].rif, fuori=conRif && (items[i].value<rf.sotto || items[i].value>rf.sopra);
     g+=`<text class="lbl${fuori?' lbl-fuori':''}" x="${l[0].toFixed(1)}" y="${l[1].toFixed(1)}" text-anchor="middle">${esc(items[i].label)}</text>`; }
   let dp=''; for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); dp+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1);} 
   g+=`<path d="${dp}Z" fill="rgba(194,80,10,.18)" stroke="var(--orange)" stroke-width="2"/>`;
@@ -84,23 +105,23 @@ function plateauList(sf){
 function barraSetProgressi(){
   const sets=setDiStorico();
   if(!sets.length) return '';
-  const opts=`<option value="__tutti__"${progSet==='__tutti__'?' selected':''}>${t('Tutto il percorso')}</option>`+
-    sets.map(n=>`<option value="${esc(n)}"${n===progSet?' selected':''}>${esc(n)}</option>`).join('');
-  const nota=(progSet!=='__tutti__'&&senzaEtichetta())
+  const opts=`<option value="__tutti__"${progSetGet()==='__tutti__'?' selected':''}>${t('Tutto il percorso')}</option>`+
+    sets.map(n=>`<option value="${esc(n)}"${n===progSetGet()?' selected':''}>${esc(n)}</option>`).join('');
+  const nota=(progSetGet()!=='__tutti__'&&senzaEtichetta())
     ? `<div class="muted" style="font-size:11.5px;margin:-6px 0 10px">${t('Le settimane salvate prima di questa versione non hanno l\'etichetta del Training Set: si vedono solo in «Tutto il percorso».')}</div>` : '';
   return `<div class="bar no-print"><div class="field"><label>${t('Dati da analizzare')}</label>
       <select id="prog-set" title="${t('Analizza tutto il percorso oppure un singolo Training Set (es. solo Palestra): utile quando le schede sono molto diverse tra loro')}">${opts}</select></div>
     <div class="spacer"></div></div>${nota}`;
 }
 function renderProgressi(){
-  const sf=progSet;
+  const sf=progSetGet();
   const ag=schedeAggr(sf);
   if(!ag.length){ document.getElementById('panel-progressi').innerHTML=barraSetProgressi()+
       `<div class="empty"><span class="empty__ico">📈</span>${sf==='__tutti__'
         ?t('<b>Ancora nessun progresso da mostrare.</b><br>I grafici si accendono quando salvi la prima scheda nello Storico: compila la scheda in <b>🏋 Pesi</b> e premi «💾 Salva nello Storico».')+
          `<br><button class="btn btn--ember" onclick="showTab('allenamento')">${t('🏋 Vai alla scheda Pesi')}</button>`
         :t('<b>Nessuna scheda salvata con questo Training Set.</b><br>Cambia Training Set qui sopra, oppure salva una scheda mentre questo è attivo.')}</div>`;
-    { const s=document.getElementById('prog-set'); if(s) s.onchange=e=>{ progSet=e.target.value; renderProgressi(); }; } return; }
+    { const s=document.getElementById('prog-set'); if(s) s.onchange=e=>{ progSetSet(e.target.value); renderProgressi(); }; } return; }
   const labels=ag.map(a=>schedaLabel(a.scheda));
   const last=ag[ag.length-1];
   const grpColors={Gambe:'#c2500a',Pettorali:'#d4a017',Schiena:'#2f7d4f',Spalle:'#7a3ea8',Braccia:'#b8860b',Core:'#991b1b',Altro:'#7a6a50'};
@@ -114,8 +135,11 @@ function renderProgressi(){
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
   const tonnSeries=[{name:t('Tonnellaggio'),color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:a.tonn||null}))}];
-  const radarItems=GRUPPI.map(g=>({label:t(g),value:(last.sets[g]||0)+(g==='Cardio'?(cardioEquivSets(last.scheda)+riscEquivSets(last.scheda,sf)):0)}));
-  const setsData=GRUPPI.map(g=>({x:t(g),y:last.sets[g]||0,color:grpColors[g]}));
+  const radarItems=GRUPPI.map(g=>({label:t(g),value:(last.sets[g]||0)+(g==='Cardio'?(cardioEquivSets(last.scheda)+riscEquivSets(last.scheda,sf)):0),rif:RIF_GRUPPO[g]}));
+  /* stessa lettura del radar: la barra è rossa quando il gruppo è nettamente fuori dalla
+     sua fascia, non quando supera una soglia unica valida per tutti */
+  const setsData=GRUPPI.filter(g=>g!=='Cardio').map(g=>{ const v=last.sets[g]||0, rf=RIF_GRUPPO[g];
+    return {x:t(g), y:v, color:(rf&&(v<rf.sotto||v>rf.sopra))?'var(--danger)':grpColors[g]}; });
   const grpSeries=GRUPPI.map(g=>({name:t(g),color:grpColors[g],data:ag.map((a,i)=>({x:labels[i],y:a.grp[g]||null}))}));
   const BANDS=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
   const bcol={'Forza':'#991b1b','Forza+Iper':'#c2500a','Ipertrofia':'#d4a017','Resistenza':'#2f7d4f','Metabolico':'#7a3ea8'};
@@ -165,8 +189,8 @@ function renderProgressi(){
    </div>`:''}
    <div class="sec">${t('Volume & equilibrio per gruppo muscolare')}</div>
    <div class="chart-grid">
-     <div class="chart-box"><h4>${t('🕸 Equilibrio volume · serie per gruppo')} <span class="muted" style="font-size:11px">${t('(Cardio: min÷10 dal tab Cardio e dal riscaldamento · 2 h/sett ≈ 12)')}</span></h4>${radarChart(radarItems)}</div>
-     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(zona ipertrofia 10–20)')}</span></h4>${barChart(setsData,{refs:[{y:10,label:'10',color:'var(--ok)'},{y:20,label:'20',color:'var(--danger-b)'}]})}</div>
+     <div class="chart-box"><h4>${t('🕸 Equilibrio volume · serie per gruppo')} <span class="muted" style="font-size:11px">${t('(fascia verde = zona utile del gruppo · Cardio: min÷10, anche dal riscaldamento)')}</span></h4>${radarChart(radarItems)}</div>
+     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile)')}</span></h4>${barChart(setsData)}</div>
    </div>
    <div class="chart-grid">
      <div class="chart-box"><h4>${t('Andamento TL per gruppo')}</h4>${lineChart(grpSeries,{labels,fmt:nfk})}</div>
@@ -180,6 +204,6 @@ function renderProgressi(){
    ${cardioProgressBlock()}
 `;
   const sel=document.getElementById('prog-ex'); if(sel) sel.onchange=e=>{ progEx=e.target.value; renderProgressi(); };
-  const selS=document.getElementById('prog-set'); if(selS) selS.onchange=e=>{ progSet=e.target.value; progEx=null; renderProgressi(); };
+  const selS=document.getElementById('prog-set'); if(selS) selS.onchange=e=>{ progSetSet(e.target.value); progEx=null; renderProgressi(); };
   bindCardioProgress();
 }

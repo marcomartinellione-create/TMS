@@ -87,14 +87,14 @@ async function cruscottoDati(){
   return out.sort((a,b)=> (peso[a.level]-peso[b.level]) || ((b.stale||0)-(a.stale||0)) || String(a.nome).localeCompare(String(b.nome)));
 }
 
-const CR_COL={danger:'var(--danger)', warn:'#c9961f', ok:'var(--ok)', none:'var(--ink-3)'};
+const CR_COL={danger:'var(--danger)', warn:'var(--warn)', ok:'var(--ok)', none:'var(--ink-3)'};
 const CR_LED={danger:'🔴', warn:'🟡', ok:'🟢', none:'⚪'};
 /* riga di sintesi (grigia) sotto il nome del profilo: ACWR · aggiornamento · monotonia · PR */
 function semaforoSummaryHTML(tg){
   if(!tg.hasData) return `<span style="color:var(--ink-3)">${t('nessun dato registrato')}</span>`;
-  const acwrCol=tg.acwr==null?'var(--ink-3)':(tg.acwr>1.5?'var(--danger)':((tg.acwr<0.8||tg.acwr>1.3)?'#c9961f':'var(--ok)'));
+  const acwrCol=tg.acwr==null?'var(--ink-3)':(tg.acwr>1.5?'var(--danger)':((tg.acwr<0.8||tg.acwr>1.3)?'var(--warn)':'var(--ok)'));
   const acwrTxt=tg.acwr==null?'—':nf(tg.acwr,2);
-  const stTxt=tg.stale==null?`<span style="color:var(--danger)">${t('mai aggiornata')}</span>`:(tg.stale<=0?`<span style="color:var(--ok)">${t('questa sett.')}</span>`:(tg.stale>=3?`<span style="color:var(--danger)">${tg.stale} ${t('sett. fa')}</span>`:(tg.stale===2?`<span style="color:#c9961f">2 ${t('sett. fa')}</span>`:`1 ${t('sett. fa')}`)));
+  const stTxt=tg.stale==null?`<span style="color:var(--danger)">${t('mai aggiornata')}</span>`:(tg.stale<=0?`<span style="color:var(--ok)">${t('questa sett.')}</span>`:(tg.stale>=3?`<span style="color:var(--danger)">${tg.stale} ${t('sett. fa')}</span>`:(tg.stale===2?`<span style="color:var(--warn)">2 ${t('sett. fa')}</span>`:`1 ${t('sett. fa')}`)));
   const monoTxt=tg.hasRpe?` · 📊 mono <b style="color:${tg.monoHigh?'var(--danger)':'inherit'}">${tg.mono==null?'—':nf(tg.mono,2)}</b>`:'';
   const prTxt=tg.prs&&tg.prs.length?` · <span style="color:var(--ok)" title="${esc(tg.prs.slice(0,5).map(p=>exName(p.nome)+' '+nf(p.peso,0)+' kg').join(' · '))}">🎉 ${tg.prs.length} PR</span>`:'';
   return `⚖ ACWR <b style="color:${acwrCol}">${acwrTxt}</b> · 🏋 ${stTxt}${monoTxt}${prTxt}`;

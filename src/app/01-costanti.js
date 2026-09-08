@@ -92,16 +92,50 @@ function quoteGruppi(nome){
   return out;
 }
 
+/* -- FASCE DI VOLUME per gruppo ------------------------------------------------
+   La letteratura ragiona per MUSCOLO (10-20 serie a settimana è la zona che fa crescere),
+   ma qui gli assi sono i sei gruppi dei pesi e ogni asse somma lavoro diretto E indiretto:
+   «Braccia» tiene bicipiti e tricipiti più mezza serie da ogni spinta e ogni tirata,
+   «Gambe» quadricipiti, femorali/glutei e polpacci. Su quegli assi la fascia del singolo
+   muscolo segnala come eccessivo ciò che sono due o tre muscoli messi insieme, ciascuno
+   nella norma: quindi ogni gruppo ha la sua fascia.
+   I valori NON sono stimati a occhio. Sono ricavati passando questo stesso conteggio su
+   circa 930 schede pubblicate (strengthlog.com e muscleandstrength.com): 308 avevano
+   tabelle esercizio/serie leggibili, 109 erano settimane intere con almeno l'85% degli
+   esercizi riconosciuti, e di quelle 60 risultano equilibrate secondo un criterio ESTERNO
+   — le linee guida sulla spalla, che raccomandano da 1:1 a 1:2 fra spinta e trazione.
+   Il filtro serve: sulle schede non selezionate la mediana spinta/trazione è 1,50 e il
+   novantesimo percentile 3,50, cioè si finirebbe per tarare l'app sulla scheda media di
+   internet invece che su una equilibrata. Sulle 60 rimaste la mediana è esattamente 1,00.
+   Da quella distribuzione: min = 25° percentile, max = 90°, «sotto» e «sopra» stanno più
+   fuori ancora e sono le uniche soglie che accendono il rosso.
+   Core: quelle schede quasi non programmano addominali diretti (mediana 1,5 serie), quindi
+   la fascia è volutamente larga e «sotto» è 0 — l'asse non viene mai segnalato come scarso.
+   Cardio: linee guida OMS, 150-300 min a settimana, cioè 15-30 sull'asse (10 min = 1). */
+const RIF_GRUPPO = {
+  'Gambe':     {min:20, max:40, sotto:12, sopra:50},
+  'Pettorali': {min:7,  max:16, sotto:4,  sopra:20},
+  'Schiena':   {min:17, max:32, sotto:9,  sopra:40},
+  'Spalle':    {min:14, max:30, sotto:8,  sopra:38},
+  'Braccia':   {min:17, max:40, sotto:9,  sopra:50},
+  'Core':      {min:3,  max:12, sotto:0,  sopra:16},
+  'Cardio':    {min:15, max:30, sotto:8,  sopra:45}
+};
+
 /* -- SPINTA / TRAZIONE (parte alta) --------------------------------------------
    Lo squilibrio che conta di più e che le schede sbagliano più spesso: quanto si
    spinge contro quanto si tira. Si deduce dal muscolo primario; per le spalle decide
    la compagnia (con trapezi o dorsali è lavoro posteriore, quindi trazione). Gambe e
-   core non hanno una direzione utile in questa lettura e restano fuori dal conto. */
+   core non hanno una direzione utile in questa lettura e restano fuori dal conto.
+   Contano SOLO i multiarticolari: qui si misura l'equilibrio fra schemi di movimento,
+   e gli isolamenti lo sporcano senza dire nulla su come tiri o spingi — le alzate
+   laterali non sono una spinta, e un curl è flessione del gomito, non una trazione. */
 const SPINTA_PRIM   = {'pettorali':1, 'tricipiti':1};
 const TRAZIONE_PRIM = {'gran dorsale':1, 'dorsali centrali':1, 'trapezi':1, 'bicipiti':1, 'avambracci':1};
 const MUSCOLI_POST  = {'trapezi':1, 'dorsali centrali':1, 'gran dorsale':1};
+function isMultiarticolare(e){ return /^multi/i.test(String((e&&e.tipo)||'')); }
 function direzioneOf(nome){
-  const e=esLookup(nome); if(!e) return '';
+  const e=esLookup(nome); if(!e||!isMultiarticolare(e)) return '';
   const p=normMuscolo((e.muscoli_primari||[])[0]);
   if(SPINTA_PRIM[p]) return 'spinta';
   if(TRAZIONE_PRIM[p]) return 'trazione';

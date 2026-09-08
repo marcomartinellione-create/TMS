@@ -2,6 +2,49 @@
 let schedaMode='settimanale';
 let pesiView='scheda';  /* 'scheda' | 'riscaldamento' — vista del tab Pesi (toggle col pulsante arancione) */
 function schedaRows(){ return DOC.scheda[schedaMode] || (DOC.scheda[schedaMode]=[]); }
+
+/* ── RIORDINO PER TRASCINAMENTO (sostituisce le frecce ▲▼, tolte in v1.1.12) ──
+   spostaRiga è pura apposta: il trascinamento vero non si può provare in jsdom, la
+   matematica degli indici sì — ed è lì che si sbaglia. `sotto` dice se il rilascio è
+   avvenuto nella metà bassa della riga di arrivo, cioè «dopo» invece che «prima».
+   Cambiare giorno è voluto: trascinando una riga sotto un altro giorno, quello diventa
+   il suo giorno, altrimenti al ridisegno riapparirebbe sotto la vecchia intestazione. */
+function spostaRiga(arr, from, to, sotto){
+  if(!Array.isArray(arr)) return arr;
+  if(from<0||from>=arr.length||to<0||to>=arr.length||from===to) return arr;
+  const el=arr[from], dest=arr[to];
+  if(el && dest && dest.giorno) el.giorno=dest.giorno;
+  arr.splice(from,1);
+  let ins=to+(sotto?1:0); if(from<ins) ins--;
+  arr.splice(Math.max(0,Math.min(arr.length,ins)),0,el);
+  return arr;
+}
+let _dragFrom=null;
+function abilitaRiordino(chiave, getRows, ridisegna){
+  const root=document.getElementById('panel-allenamento'); if(!root) return;
+  const idxDi=tr=>{ const v=tr.dataset[chiave]; return v==null? null : +v; };
+  root.querySelectorAll('tr['+(chiave==='i'?'data-i':'data-wi')+']').forEach(tr=>{
+    const h=tr.querySelector('.drag-h'); if(!h) return;
+    /* si trascina SOLO dal manico: altrimenti selezionare il testo di una nota
+       farebbe partire un trascinamento a ogni gesto */
+    h.onmousedown=()=>{ tr.draggable=true; };
+    h.onmouseup=()=>{ tr.draggable=false; };
+    tr.ondragstart=e=>{ _dragFrom=idxDi(tr); tr.classList.add('is-drag');
+      try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',String(_dragFrom)); }catch(_){} };
+    tr.ondragend=()=>{ tr.draggable=false; _dragFrom=null;
+      root.querySelectorAll('.drop-t,.drop-b').forEach(x=>x.classList.remove('drop-t','drop-b'));
+      root.querySelectorAll('.is-drag').forEach(x=>x.classList.remove('is-drag')); };
+    tr.ondragover=e=>{ if(_dragFrom==null) return; e.preventDefault();
+      const rc=tr.getBoundingClientRect(), sotto=(e.clientY-rc.top)>rc.height/2;
+      tr.classList.toggle('drop-b',sotto); tr.classList.toggle('drop-t',!sotto); };
+    tr.ondragleave=()=>{ tr.classList.remove('drop-t','drop-b'); };
+    tr.ondrop=e=>{ e.preventDefault(); if(_dragFrom==null) return;
+      const rc=tr.getBoundingClientRect(), sotto=(e.clientY-rc.top)>rc.height/2;
+      const from=_dragFrom; _dragFrom=null;
+      spostaRiga(getRows(), from, idxDi(tr), sotto);
+      persist('scheda'); ridisegna(); };
+  });
+}
 /* righe di RISCALDAMENTO del Training Set attivo, per modalità (settimanale/mensile).
    Solo {giorno,esercizio,serie,rip,note}: NON entrano in TL, Storico o alcun calcolo —
    vivono in un array separato (DOC.scheda.riscaldamento), che nessun calcolo legge. */
@@ -79,7 +122,7 @@ function prefillFromLast(){ const rows=schedaRows(); let n=0;
    affaticamento (ACWR, monotonia, RIR). SOLO visivo: nessuna scrittura automatica.
    Soglie (concordate con Marco): 🟢 −5%…+10% · 🟡 +10%…+20% / calo oltre −5% / aumento con
    RIR≤1 / monotonia alta · 🔴 oltre +20% o aumento con ACWR>1.5 (meglio scaricare). */
-const CARICO_COL={ok:'var(--ok)',warn:'#c9961f',danger:'var(--danger)'};
+const CARICO_COL={ok:'var(--ok)',warn:'var(--warn)',danger:'var(--danger)'};
 function caricoSignals(){
   const ag=schedeAggr(); let acwr=null;
   if(ag.length){ const w=ag.slice(-4); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; acwr=c?ag[ag.length-1].tl/c:null; }
@@ -152,8 +195,10 @@ function renderRiscaldamento(S){
          ripetizioni: si misurano col TEMPO. Per quelle righe serie/rip non si compilano. */
       const aTempo=isCardio(esLookup(r.esercizio));
       body+=`<tr data-wi="${i}">`+
-        `<td class="l"><button type="button" class="cell-in txt warm-pick" style="min-width:150px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>`+
-          (videoOf(r.esercizio)?`<div style="margin-top:3px"><button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button></div>`:'')+`</td>`+
+        /* il ▶ sta ACCANTO al nome, non sotto: su una riga di riscaldamento la seconda
+           riga faceva crescere la tabella per un solo bottoncino */
+        `<td class="l"><div class="warm-cell"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span><button type="button" class="cell-in txt warm-pick" style="min-width:130px;flex:1;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>`+
+          (videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button>`:'')+`</div></td>`+
         `<td>${aTempo?`<span class="muted">—</span>`:`<input class="cell-in" data-wf="serie" type="number" min="0" step="1" value="${r.serie??''}" style="width:52px">`}</td>`+
         `<td>${aTempo?`<span class="muted">—</span>`:`<input class="cell-in" data-wf="rip" type="number" min="0" step="1" value="${r.rip??''}" style="width:56px">`}</td>`+
         `<td><input class="cell-in" data-wf="min" type="number" min="0" step="1" value="${r.min??''}" style="width:58px" placeholder="–" title="${t('Durata in minuti (per cardio e per gli esercizi a tempo)')}"></td>`+
@@ -185,6 +230,7 @@ function renderRiscaldamento(S){
     const f=inp.dataset.wf; w[i][f]=(f==='serie'||f==='rip'||f==='min')?(+inp.value||0):inp.value; persist('scheda'); });
   document.querySelectorAll('#panel-allenamento [data-wdel]').forEach(b=>b.onclick=()=>{ riscaldaRows().splice(+b.dataset.wdel,1); persist('scheda'); renderRiscaldamento(ensureSets()); });
   document.querySelectorAll('#panel-allenamento [data-waddday]').forEach(b=>b.onclick=()=>{ riscaldaRows().push({giorno:b.dataset.waddday,esercizio:'',serie:1,rip:10,min:0,note:''}); persist('scheda'); renderRiscaldamento(ensureSets()); });
+  abilitaRiordino('wi', riscaldaRows, ()=>renderRiscaldamento(ensureSets()));
 }
 /* ── COLONNE della scheda Pesi (2026-08-19) ──────────────────────────────────
    La tabella ha 12 colonne e su schermi piccoli si scorre in orizzontale. Qui si
@@ -228,9 +274,6 @@ function colonnePesiModal(){
    Le serie si spalmano sui gruppi con quoteGruppi(): piene ai muscoli primari, mezze ai
    secondari — altrimenti una scheda fatta di spinte e tirate sembra scoprire braccia e
    spalle, che invece lavorano a ogni serie. */
-/* fascia di volume settimanale per gruppo: 10-20 serie è la zona utile per crescere,
-   sotto 6 si mantiene appena, sopra 22 si accumula fatica che raramente serve. */
-const RIF_SERIE={min:10, max:20, sotto:6, sopra:22};
 function bilanciamentoSerie(){
   const per={}; GRUPPI.filter(g=>g!=='Cardio').forEach(g=>{ per[g]=0; });
   const dir={spinta:0, trazione:0}; let tot=0;
@@ -249,26 +292,30 @@ function bilNum(v){ const x=Math.round(v*10)/10; return x===Math.round(x)? Strin
 function bilanciamentoModal(){
   const bil=bilanciamentoSerie(), per=bil.per;
   const gruppi=Object.keys(per);
-  const items=gruppi.map(g=>({label:t(g), value:per[g]}));
-  const max=Math.max(...gruppi.map(g=>per[g]),0);
+  const items=gruppi.map(g=>({label:t(g), value:per[g], rif:RIF_GRUPPO[g]}));
   /* la lettura a parole accanto al disegno: il radar dice "che forma ha", la riga
      dice "quante serie" — senza, bisogna stimare a occhio dalla ragnatela */
   /* larghezze fisse e niente a capo: con «21 serie» che si spezzava in due righe le voci
      avevano altezze diverse e le barre non si leggevano più in colonna */
-  /* barre sulla stessa scala assoluta del radar: «lunga» vuol dire tante serie,
-     non soltanto più delle altre */
-  const scala=Math.max(max, RIF_SERIE.sopra);
+  /* la barra si legge sulla fascia DEL SUO gruppo, non su una scala comune: piena a metà
+     vuol dire «a metà della zona utile per questo gruppo», che è la domanda vera. Il
+     tratto verde segna dove comincia la fascia. */
   const righe=gruppi.slice().sort((a,b)=>per[b]-per[a]).map(g=>{
-    const v=per[g], q=scala?Math.round(v/scala*100):0;
-    const fuori=(v<RIF_SERIE.sotto||v>RIF_SERIE.sopra);
-    return `<div class="bil-riga${fuori?' is-fuori':''}">
+    const v=per[g], rf=RIF_GRUPPO[g], scala=Math.max(v, rf.max)||1;
+    const q=Math.round(v/scala*100), qmin=Math.round(rf.min/scala*100), qmax=Math.round(rf.max/scala*100);
+    const fuori=(v<rf.sotto||v>rf.sopra);
+    return `<div class="bil-riga${fuori?' is-fuori':''}" title="${esc(t('zona utile')+' '+rf.min+'-'+rf.max)}">
       <span class="bil-nome">${esc(t(g))}</span>
-      <span class="bil-barra"><span style="width:${q}%;background:${v?'var(--orange)':'transparent'}"></span></span>
+      <span class="bil-barra"><span class="bil-zona" style="left:${qmin}%;width:${Math.max(qmax-qmin,1)}%"></span><span class="bil-fill" style="width:${q}%;background:${v?'var(--orange)':'transparent'}"></span></span>
       <span class="bil-val mono">${bilNum(v)}</span></div>`; }).join('');
   /* spinta contro trazione: lo squilibrio più comune, e quello che il radar per gruppi
      non mostra (pettorali e schiena possono pareggiare mentre spalle e tricipiti no) */
+  /* soglie asimmetriche: sulle 60 schede equilibrate di riferimento la mediana di spinta
+     su trazione è 1,00 (dal 10° al 90° percentile: 0,80-1,32), e le linee guida per la
+     spalla consigliano semmai di tirare PIÙ di quanto si spinge. Quindi si segnala presto
+     chi spinge troppo, tardi il contrario. */
   const sp=bil.dir.spinta, tr=bil.dir.trazione;
-  const verdetto = (!sp&&!tr) ? '' : (tr<sp*0.7 ? t('poca trazione') : sp<tr*0.7 ? t('poca spinta') : t('in equilibrio'));
+  const verdetto = (!sp&&!tr) ? '' : (tr<sp*0.8 ? t('poca trazione') : sp<tr*0.6 ? t('poca spinta') : t('in equilibrio'));
   /* fuori dalla griglia dell'elenco: la colonna dei numeri è larga 42px e la barra alta 9,
      due valori più il verdetto non ci stanno */
   const rigaDir = (sp||tr) ? `<div class="bil-dir">
@@ -277,7 +324,7 @@ function bilanciamentoModal(){
   modal(`<h3>⚖ ${t('Bilanciamento della settimana')}</h3>
     <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Serie per gruppo muscolare nella scheda che stai scrivendo: piene sui muscoli principali, <b>mezze su quelli coinvolti di striscio</b> (la panca allena anche spalle e tricipiti). Il <b>cardio è escluso</b>: qui si guarda il lavoro coi pesi.')}</div>
     ${bil.tot? `<div class="bil-wrap">
-        <div class="bil-radar">${radarChart(items,{w:360,h:290,rif:RIF_SERIE})}</div>
+        <div class="bil-radar">${radarChart(items,{w:360,h:290})}</div>
         <div class="bil-lista">
           <div class="bil-riga bil-testa"><span class="bil-nome">${t('Gruppo')}</span><span class="bil-barra"></span><span class="bil-val">${t('serie')}</span></div>
           ${righe}
@@ -285,7 +332,7 @@ function bilanciamentoModal(){
           <div class="bil-dir"><span>${t('serie in scheda')}</span><span class="mono"><b>${bil.tot}</b></span></div>
         </div>
       </div>
-      <div class="bil-nota muted">${t('La fascia verde è la <b>zona utile</b>: 10-20 serie a settimana per gruppo. In rosso i gruppi sotto 6 (si mantiene appena) o sopra 22. Non serve un poligono regolare: gruppi diversi chiedono volumi diversi.')}</div>`
+      <div class="bil-nota muted">${t('Il verde è la <b>zona utile</b>, diversa per ogni gruppo: sono i valori dei programmi equilibrati pubblicati, misurati con questo stesso conteggio. Braccia e Gambe ne chiedono di più perché raccolgono più muscoli e tutto il lavoro indiretto. Non serve un poligono regolare: la forma da avvicinare è la fascia verde. In rosso solo chi ne sta nettamente fuori.')}</div>`
       : `<div class="empty" style="padding:26px">${t('Nessuna serie da mostrare: la scheda è vuota (o contiene solo cardio).')}</div>`}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='720px';
@@ -320,7 +367,7 @@ function renderAllenamento(){
        l'app nei calcoli — va detto, altrimenti «Peso 0» con un TL alto sembra un errore */
     const clib=isCorpoLibero(r.esercizio), clibKg=clib?pesoCorpoScheda(0):0;
     body+=`<tr data-i="${i}"${r.test?' style="background:rgba(122,62,168,.07)"':''}>
-      <td class="l"><button type="button" class="cell-in txt ex-pick" style="min-width:170px;width:100%;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>${sdBadge}
+      <td class="l"><div class="ex-cell"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span><button type="button" class="cell-in txt ex-pick" style="min-width:150px;flex:1;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>${sdBadge}</div>
         <div class="ex-sub-row">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="${t('ultima registrazione (scheda')} ${lp.scheda})">${t('ult:')} ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}${clib?`<span class="pill" style="font-size:9.5px;padding:1px 7px;white-space:nowrap" title="${esc(t('A corpo libero: al peso scritto (la zavorra) si somma il tuo peso corporeo per 1RM, TL e record. Lo aggiorni dal tab Corpo.'))}">🧍 +${nf(clibKg,0)} kg</span>`:''}<span style="flex:1"></span>${caricoLedHTML(ledCarico)}</div></td>
       <td class="l col-note"><textarea class="cell-in txt note-area" data-f="note" placeholder="${t('note')}" style="min-width:90px">${esc(r.note||'')}</textarea></td>
       <td><input class="cell-in" type="number" min="0" value="${r.serie??''}" data-f="serie" style="width:48px"></td>
@@ -352,7 +399,7 @@ function renderAllenamento(){
      <thead><tr><th class="l">${t('Esercizio')}</th><th class="l col-note">${t('Note')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th class="col-rest">${t('Rest')}</th><th class="col-rm">1RM</th><th class="col-rm">%1RM</th><th class="col-tl">TL</th><th class="col-dtl" title="${t('Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda')}">Δ TL set</th><th>${t('Fascia / azioni')}</th></tr></thead>
      <tbody>${body||`<tr><td colspan="12" class="empty"><span class="empty__ico">🏋</span>${t('<b>La scheda è vuota.</b><br>Aggiungi il primo esercizio: scegli il giorno e poi l\'esercizio dal catalogo.')}<br><button class="btn btn--ember" onclick="aggiungiEsercizioModal()">${t('＋ Aggiungi il primo esercizio')}</button></td></tr>`}</tbody>
    </table></div>
-   <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto alle frecce ▲▼ dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:#c9961f">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
+   <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto alle frecce ▲▼ dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:var(--warn)">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
   wireBarSelettori();
   // auto-resize note textareas
   document.getElementById('panel-allenamento').addEventListener('input', e=>{
@@ -390,6 +437,7 @@ function renderAllenamento(){
     schedaRows().splice(i+1,0,{giorno:r.giorno,esercizio:r.esercizio,note:'',serie:r.serie,rip:r.rip,peso:r.peso,rest:r.rest}); persist('scheda'); renderAllenamento(); });
   document.querySelectorAll('#panel-allenamento [data-test]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.test; schedaRows()[i].test=!schedaRows()[i].test; persist('scheda'); renderAllenamento(); });
   document.querySelectorAll('#panel-allenamento [data-del]').forEach(b=>b.onclick=()=>{ schedaRows().splice(+b.dataset.del,1); persist('scheda'); renderAllenamento(); });
+  abilitaRiordino('i', schedaRows, renderAllenamento);
   updateStatusDots();
   document.querySelectorAll('.note-area').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
 }

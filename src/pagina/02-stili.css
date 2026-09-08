@@ -13,6 +13,7 @@
   --danger:#991b1b; --danger-b:#e0524f; --danger-t:#fdecec; --danger-bd:#d9a8a8;
   --violet:#7a3ea8;
   --grace:#e8c45a;
+  --warn:#c9961f;   /* ambra "attenzione": semafori, LED del carico */
   --font-disp:'Cinzel','Trajan Pro',Georgia,'Times New Roman',serif;
   --font-body:'Iowan Old Style','Palatino Linotype','Book Antiqua',Georgia,serif;
   --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,'Courier New',monospace;
@@ -35,16 +36,20 @@
   --shadow-lg:0 8px 20px rgba(28,14,4,.09),0 24px 56px rgba(28,14,4,.10);
   --rapida:.12s; --media:.2s;   /* durate transizioni */
 }
+/* Palette notte. Gli accenti sono meno carichi delle controparti chiare: su fondo scuro
+   un colore molto saturo e molto chiaro sembra acceso da dietro, e qui ce ne sono a
+   centinaia in pagina (un bordo per ogni campo della scheda). Meno saturazione, non meno
+   contrasto: i testi restano ampiamente sopra le soglie di leggibilità. */
 [data-theme="notte"]{
   --paper:#1b160f; --paper-2:#15110b; --paper-3:#262019; --paper-4:#2e2619;
   --border:#3a3024; --border-2:#4a3d2c;
-  --ink:#ece3d2; --ink-2:#cdbfa6; --ink-3:#9a8c72; --ink-4:#6e6353;
-  --ember:#0e0703; --ember-2:#efe6d4;
-  --orange:#e0700f; --orange-b:#f6852a; --orange-t:#2a1707;
-  --gold:#e3b53c; --gold-2:#c79a2a; --gold-t:#2c2410;
-  --ok:#54b07a; --ok-b:#5fd089; --ok-t:#10241a;
-  --danger:#e0524f; --danger-b:#ef6a67; --danger-t:#2c1210; --danger-bd:rgba(224,82,79,.45);
-  --violet:#b07ed8; --grace:#f0d676;
+  --ink:#e4dac7; --ink-2:#c5b8a0; --ink-3:#9a8c72; --ink-4:#6e6353;
+  --ember:#0e0703; --ember-2:#ded2ba;
+  --orange:#d4741f; --orange-b:#e08a3c; --orange-t:#2a1707;
+  --gold:#d2a948; --gold-2:#a98a3f; --gold-t:#2c2410;
+  --ok:#5aa47a; --ok-b:#6fbf92; --ok-t:#10241a;
+  --danger:#d3625f; --danger-b:#dd7f7c; --danger-t:#2c1210; --danger-bd:rgba(211,98,95,.45);
+  --violet:#a98fc9; --grace:#d9c483; --warn:#c2a052;
   --shadow:0 2px 6px rgba(0,0,0,.40),0 12px 28px rgba(0,0,0,.34);
   --sup:linear-gradient(180deg,var(--paper),var(--paper-2));
   --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.25);
@@ -54,15 +59,24 @@
 [data-theme="notte"] body{ background-image:radial-gradient(circle at 20% -10%, rgba(227,181,60,.05), transparent 40%),radial-gradient(circle at 100% 0%, rgba(224,112,15,.05), transparent 35%); }
 [data-theme="notte"] .hero{ background:linear-gradient(180deg,#1d1810,#14100a); }
 [data-theme="notte"] .tab.is-active{ border-bottom-color:var(--paper); }
-[data-theme="notte"] .topbar{ color:#f1e7d5 }
-[data-theme="notte"] .btn--ghost{ color:#f1e7d5 }
-[data-theme="notte"] thead th{ color:#f0d676 }
+[data-theme="notte"] .topbar{ color:#e0d5c1 }
+[data-theme="notte"] .btn--ghost{ color:#e0d5c1 }
+[data-theme="notte"] thead th{ color:#c9b478 }
 [data-theme="notte"] .fascia{ filter:none }
-[data-theme="notte"] .f-forza{ background:rgba(224,82,79,.16); color:#ef8a87; border-color:rgba(224,82,79,.42) }
-[data-theme="notte"] .f-ipf{ background:rgba(224,112,15,.16); color:#f6a050; border-color:rgba(224,112,15,.42) }
-[data-theme="notte"] .f-iper{ background:rgba(227,181,60,.16); color:#e3b53c; border-color:rgba(227,181,60,.42) }
-[data-theme="notte"] .f-res{ background:rgba(84,176,122,.16); color:#7fd3a0; border-color:rgba(84,176,122,.42) }
-[data-theme="notte"] .f-met{ background:rgba(176,126,216,.16); color:#c9a3e6; border-color:rgba(176,126,216,.42) }
+/* i campi della scheda sono centinaia: col bordo oro pieno la tabella sembrava
+   illuminata al neon. Bordo neutro, il colore resta per il fuoco e gli accenti. */
+[data-theme="notte"] .cell-in{ border-color:var(--border-2) }
+[data-theme="notte"] .cell-in:hover{ border-color:var(--gold-2) }
+[data-theme="notte"] .cell-out{ background:rgba(169,138,63,.09) }
+/* l'alone dietro al titolo, di notte, e' proprio l'effetto "fosforescente" */
+[data-theme="notte"] .topbar__mark{ text-shadow:none }
+[data-theme="notte"] .topbar{ border-bottom-color:#6b5827 }
+
+[data-theme="notte"] .f-forza{ background:rgba(211,98,95,.14); color:#d99290; border-color:rgba(211,98,95,.36) }
+[data-theme="notte"] .f-ipf{ background:rgba(212,116,31,.14); color:#dda169; border-color:rgba(212,116,31,.36) }
+[data-theme="notte"] .f-iper{ background:rgba(210,169,72,.14); color:#cdb069; border-color:rgba(210,169,72,.36) }
+[data-theme="notte"] .f-res{ background:rgba(90,164,122,.14); color:#84bd9c; border-color:rgba(90,164,122,.36) }
+[data-theme="notte"] .f-met{ background:rgba(169,143,201,.14); color:#b6a3cd; border-color:rgba(169,143,201,.36) }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 /* ── barra di scorrimento in tinta col tema (invece di quella di sistema) ── */
@@ -138,8 +152,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .bil-lista{flex:1 1 280px; min-width:260px}
 .bil-riga{display:grid; grid-template-columns:96px 1fr 42px; align-items:center; gap:10px; padding:3px 0}
 .bil-nome{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.bil-barra{background:var(--paper-3); border-radius:var(--r-pill); height:9px; overflow:hidden}
+.bil-barra{position:relative; background:var(--paper-3); border-radius:var(--r-pill); height:9px; overflow:hidden}
 .bil-barra > span{display:block; height:100%}
+/* i due estremi della zona utile: tacche, non un riempimento — restano leggibili
+   anche quando la barra arancione ci passa sopra */
+.bil-zona{position:absolute; top:0; height:100%; z-index:2; box-sizing:border-box;
+  border-left:2px solid var(--ok); border-right:2px solid var(--ok)}
+.bil-fill{position:relative}
 .bil-val{text-align:right; white-space:nowrap}
 .bil-testa{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3);
   font-family:var(--font-mono); padding-bottom:2px}
@@ -242,7 +261,7 @@ tbody td.l{text-align:left}
 tbody tr:nth-child(even){background:var(--paper-2)}
 tbody tr{transition:background var(--rapida)}
 tbody tr:hover{background:var(--gold-t)}
-tbody tr.day-sep td{background:#241606; color:#fbf3d8; font-family:var(--font-disp);
+tbody tr.day-sep td{background:#241606; color:var(--grace); font-family:var(--font-disp);
   font-size:12px; text-align:left; letter-spacing:.06em; padding:5px 12px}
 td .num{font-family:var(--font-mono)}
 .muted{color:var(--ink-4)}
@@ -409,6 +428,18 @@ div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); backgrou
 .ex-sub-row > *{ flex:0 0 auto }
 .ex-sub-row .muted{ min-width:0 }
 .ex-sub-row .btn--sm{ padding:2px 8px }
+/* riscaldamento: nome ed eventuale ▶ sulla STESSA riga */
+.warm-cell{ display:flex; align-items:center; gap:5px }
+.warm-cell .vidbtn{ margin-left:0; flex:0 0 auto }
+.ex-cell{ display:flex; align-items:center; gap:4px }
+/* manico di trascinamento: discreto finché non ci passi sopra */
+.drag-h{ flex:0 0 auto; cursor:grab; color:var(--ink-4); font-size:13px; line-height:1;
+  padding:0 1px; user-select:none; opacity:.55; transition:opacity var(--rapida),color var(--rapida) }
+.drag-h:hover{ opacity:1; color:var(--orange) }
+.drag-h:active{ cursor:grabbing }
+tr.is-drag{ opacity:.45 }
+tr.drop-t > td{ box-shadow:inset 0 2px 0 var(--orange) }
+tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 .vidbtn{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:18px; padding:0; margin-left:5px; vertical-align:middle; border:1px solid var(--orange); color:var(--orange); background:var(--orange-t); border-radius:var(--r-xs); font-size:9px; line-height:1; cursor:pointer }
 .vidbtn:hover{ background:var(--orange); color:#fff }
 #pdf-stage{ position:fixed; left:-10000px; top:0; width:210mm; background:#fff }
