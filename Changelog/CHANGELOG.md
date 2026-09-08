@@ -4,6 +4,72 @@
 
 ---
 
+### 2026-09-08 — TMS v1.1.13: volume indiretto, fasce tarate su schede pubblicate, riordino a trascinamento
+
+**Tipo**: correzione di metrica (il conteggio del volume era distorto) + feature + rifiniture d'uso
+**File coinvolti**: `src/app/01-costanti.js` (`MUSCOLO_GRUPPO`, `quoteGruppi`, `direzioneOf`,
+`RIF_GRUPPO`) · `src/app/06-allenamento.js` (bilanciamento, `spostaRiga`/`abilitaRiordino`, cella
+riscaldamento) · `src/app/08-progressi.js` (`radarChart` con fasce per asse, `schedeAggr`,
+`progSetGet`/`progSetSet`) · `src/app/13-report.js` · `src/pagina/02-stili.css` (palette notte,
+manici, zona utile nelle barre) · `src/app/00-i18n.js` · guide IT/EN e guida-AI ·
+`tests/test-app.js` · dati: `database/CUSTOM_*.json` + `TMS_Dati/esercizi.json`
+
+**Descrizione**:
+- **Il volume conta anche il lavoro indiretto.** Ogni serie vale piena sui gruppi dei
+  `muscoli_primari` dell'esercizio e **mezza** su quelli dei `muscoli_secondari` (`quoteGruppi()`,
+  con i 17 nomi di muscolo del catalogo mappati sui 6 gruppi dei pesi). Prima la panca contava
+  100% Pettorali e nulla su spalle e braccia, che lavorano a ogni serie: una scheda di spinte e
+  tirate sembrava scoprire le braccia. Un muscolo presente in entrambe le liste vale 1, non 1,5.
+  Conseguenza voluta: i totali di gruppo **non sommano** alle serie della scheda — per quello c'è
+  la riga «serie in scheda».
+- **Fasce di riferimento per gruppo, tarate sui dati.** La zona utile non è più unica: Braccia e
+  Gambe ne chiedono di più perché raccolgono più muscoli e tutto l'indiretto. I valori vengono da
+  ~930 schede pubblicate (strengthlog, muscleandstrength): 308 con tabelle leggibili → 109
+  settimane intere con ≥85% degli esercizi riconosciuti → **60 equilibrate** secondo un criterio
+  **esterno** (linee guida sulla spalla: spinta/trazione fra 1:1 e 1:2). Il filtro è decisivo:
+  sulle scartate la mediana spinta/trazione è 1,50 col 90° percentile a 3,50 — senza, si tarerebbe
+  l'app sulla scheda media di internet. Sulle 60 tenute è 1,00. Fasce = 25° e 90° percentile.
+  Le stime a occhio precedenti sbagliavano soprattutto su Spalle e Braccia, troppo strette:
+  segnalavano come eccessivo ciò che è normale.
+- **Spinta · Trazione** sotto l'elenco del Bilanciamento, con verdetto in chiaro. Contano **solo i
+  multiarticolari**: un curl è flessione del gomito e le alzate laterali non sono una spinta, e
+  come isolamenti sporcavano il rapporto. Soglie asimmetriche (0,8 / 0,6) perché le linee guida
+  raccomandano semmai di tirare più di quanto si spinge.
+- **Progressi e Report allineati**: stesso conteggio (`schedeAggr` usa `quoteGruppi`, col ritorno
+  al macro salvato se l'esercizio non è più a catalogo) e stesse fasce. Il TL per gruppo resta
+  attribuito al solo macro dello storico: è un'altra metrica. Via le soglie fisse 10/20 dal
+  grafico a barre — la barra diventa rossa quando quel gruppo esce dalla propria fascia.
+- **Progressi ricorda il Training Set scelto** (`dati_utente.progSet`, in corpo.json); se il set
+  salvato non esiste più si torna da soli a «Tutto il percorso».
+- **Riordino per trascinamento** di esercizi e riscaldamenti, dal manico ⠿ a sinistra del nome
+  (solo dal manico: trascinando da tutta la riga non si potrebbe più selezionare il testo di una
+  nota). Portare una riga sotto un altro giorno le cambia anche il giorno. L'aritmetica sta in
+  `spostaRiga()`, pura apposta: il gesto non è riproducibile in jsdom, gli scarti di indice sì.
+- **Riscaldamento**: il ▶ del video accanto al nome invece che sulla riga sotto.
+- **Modalità notte meno accesa.** Misurato sul DOM: oltre mille elementi con colore molto saturo e
+  chiaro, di cui **305 bordi oro pieni** (`.cell-in` usava `--gold-2`: uno per ogni campo della
+  scheda). Ora bordo neutro con l'oro al passaggio del mouse, palette notte desaturata, via l'alone
+  dietro al titolo, pillole delle fasce più tenui, nuovo token `--warn` al posto dell'esadecimale
+  fisso `#c9961f` (in chiaro nulla cambia). Elementi vividi: oltre mille → 296.
+- **Catalogo**: riempiti `muscoli_primari`/`muscoli_secondari` sui 10 esercizi CUSTOM che ne erano
+  privi (contavano solo sul loro macro e non entravano mai in Spinta/Trazione). I valori vengono
+  dal campo `target` già scritto in prosa, tradotto nel vocabolario chiuso; dove taceva si è
+  seguita la convenzione del catalogo. Ora 883/883 hanno i muscoli. I 272 esercizi con primari ma
+  senza secondari **non** sono stati toccati: vengono da free-exercise-db, dove il campo è vuoto
+  all'origine e per gli isolamenti è spesso corretto che lo sia.
+
+**Test**: 512 OK (da 495), `npm run verifica` OK. Nuovi: quote piene/dimezzate e muscolo in
+entrambe le liste, isolamenti fuori da Spinta/Trazione, fasce diverse per gruppo, Core mai
+segnalato come scarso, `spostaRiga` (in fondo, in cima, cambio giorno, indice fuori portata),
+presenza dei manici e assenza delle frecce, radar di Progressi con la fascia e senza le soglie
+fisse, memoria del filtro Training Set col ritorno a «Tutto il percorso».
+**Verifica in app**: modale ⚖ Bilanciamento e schermata Pesi generati dall'app vera e ispezionati
+in chiaro e in notte (due difetti di impaginazione trovati e corretti così: la riga Spinta·Trazione
+finiva nella colonna da 42 px con barra alta 9, e «serie in scheda» veniva troncato).
+**Approvato da**: Marco (2026-09-08)
+
+---
+
 ### 2026-09-08 — TMS v1.1.12: eliminazione per settimana, conferme in stile app, ⚖ Bilanciamento
 
 **Tipo**: feature + correzioni d'uso (sette richieste di Marco arrivate a raffica nella stessa

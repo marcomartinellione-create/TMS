@@ -144,7 +144,7 @@ function caricoLED(pesoNuovo, pvPeso, lastRir, sig){
   else if(level==='ok' && sig && sig.monoHigh && d>0.05){ level='warn'; msg=t('Settimana poco variata (monotonia alta): aumento ok, ma varia i carichi'); }
   return {level, msg};
 }
-/* pallino reso accanto alle frecce ▲▼ nella cella esercizio (flex con gap): niente margine */
+/* pallino reso in fondo alla cella esercizio (flex con gap): niente margine */
 function caricoLedHTML(led){
   if(!led) return '<span class="carico-led no-print" style="display:none"></span>';
   return '<span class="carico-led no-print" title="'+esc(led.msg)+'" style="display:inline-block;width:10px;height:10px;flex:0 0 auto;border-radius:50%;background:'+CARICO_COL[led.level]+'"></span>';
@@ -399,7 +399,7 @@ function renderAllenamento(){
      <thead><tr><th class="l">${t('Esercizio')}</th><th class="l col-note">${t('Note')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th class="col-rest">${t('Rest')}</th><th class="col-rm">1RM</th><th class="col-rm">%1RM</th><th class="col-tl">TL</th><th class="col-dtl" title="${t('Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda')}">Δ TL set</th><th>${t('Fascia / azioni')}</th></tr></thead>
      <tbody>${body||`<tr><td colspan="12" class="empty"><span class="empty__ico">🏋</span>${t('<b>La scheda è vuota.</b><br>Aggiungi il primo esercizio: scegli il giorno e poi l\'esercizio dal catalogo.')}<br><button class="btn btn--ember" onclick="aggiungiEsercizioModal()">${t('＋ Aggiungi il primo esercizio')}</button></td></tr>`}</tbody>
    </table></div>
-   <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> accanto alle frecce ▲▼ dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:var(--warn)">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
+   <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> nella cella dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:var(--warn)">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
   wireBarSelettori();
   // auto-resize note textareas
   document.getElementById('panel-allenamento').addEventListener('input', e=>{

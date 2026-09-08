@@ -239,8 +239,12 @@ Due modi per registrare una seduta:
   piena zona di volume equilibrato, per vedere a colpo d'occhio se il cardio è bilanciato
   rispetto al lavoro coi pesi.
 - «＋ Esercizio» chiede in quale giorno aggiungerlo (lo inserisce in quel giorno);
-  «＋ Giorno» crea un nuovo giorno. Le frecce «▲▼» nella riga riordinano l'esercizio
-  dentro il suo giorno.
+  «＋ Giorno» crea un nuovo giorno. Per riordinare si **trascina la riga dal manico ⠿**
+  a sinistra del nome (solo dal manico: trascinando da tutta la riga non si potrebbe piu'
+  selezionare il testo di una nota). Vale anche per il riscaldamento. Trascinare una riga
+  sotto l'intestazione di un altro giorno le cambia anche il giorno: e' voluto, altrimenti
+  al ridisegno riapparirebbe sotto la vecchia intestazione. La matematica degli indici sta
+  in spostaRiga() in 06-allenamento.js, funzione pura e coperta dai test.
 - «＋set» aggiunge set extra alla riga; «↧ Dalla scorsa» ricompila coi valori
   dell'ultima registrazione; il «▶» accanto all'esercizio apre il video dimostrativo.
 - Per ogni riga l'app mostra al volo: 1RM stimato, %1RM, TL (carico della riga) e il
@@ -268,7 +272,9 @@ Due modi per registrare una seduta:
   I grafici hanno senso da 2-3 settimane salvate in poi. Dal v1.1.4 in cima c'è il
   selettore **«Dati da analizzare»**: «Tutto il percorso» oppure un singolo **Training Set**
   (patch al limite noto della confrontabilità del TL tra schede molto diverse — es. Palestra
-  vs Casa). Ogni settimana salvata porta il campo 'set' col Training Set attivo; le settimane
+  vs Casa). La scelta **si ricorda**: vive nel profilo (dati_utente.progSet, quindi in
+  corpo.json) e viene riproposta al rientro; se il Training Set salvato non esiste piu' si
+  torna da soli a «Tutto il percorso». Ogni settimana salvata porta il campo 'set' col Training Set attivo; le settimane
   salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso». **Eccezione
   (dal v1.1.6)**: i «Record personali · carico massimo» NON seguono questo filtro — un record
   è un record, sempre calcolato su TUTTO lo storico indipendentemente dal Training Set attivo;
