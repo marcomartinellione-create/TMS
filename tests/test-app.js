@@ -410,6 +410,22 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* ricerca «a parole»: tutte le parole presenti, anche non contigue */
   w.eval('exFilt="panca piana bilanciere"; renderEsercizi();');
   ok(d.getElementById('panel-esercizi').innerHTML.includes('Panca piana con bilanciere'), 'ricerca Esercizi: match a parole (panca piana bilanciere → Panca piana con bilanciere)');
+  /* ricerca anche col nome INGLESE: capita di ricordare un esercizio in inglese.
+     I risultati restano in italiano — l'inglese serve solo a trovarli. */
+  { const trovaPanca = q => w.eval('DOC.esercizi.some(function(e){return e.nome==="Panca piana con bilanciere - presa media" && exMatch(e,' + JSON.stringify(q) + ');})');
+    ok(trovaPanca('bench press'), 'ricerca EN: «bench press» trova la panca piana col bilanciere');
+    ok(trovaPanca('barbell bench'), 'ricerca EN: «barbell bench» la trova (nome inglese del catalogo)');
+    ok(trovaPanca('flat bench'), 'ricerca EN: «flat bench» la trova via sinonimo flat→piana (il catalogo inglese non dice «flat»)');
+    ok(w.eval('DOC.esercizi.some(function(e){return e.nome==="Stacco rumeno" && exMatch(e,"romanian deadlift");})'),
+       'ricerca EN: «romanian deadlift» trova «Stacco rumeno»');
+    ok(!trovaPanca('bench squat'), 'ricerca EN: servono TUTTE le parole (bench squat non la trova)');
+    /* nessuna regressione sull\'italiano: stesso numero di risultati di prima */
+    ok(w.eval('DOC.esercizi.filter(function(e){return exMatch(e,"panca piana bilanciere");}).length') === 3,
+       'ricerca IT: «panca piana bilanciere» resta sui suoi 3 risultati (i sinonimi non allargano l\'italiano)');
+    w.eval('exFilt="bench press"; renderEsercizi();');
+    const h = d.getElementById('panel-esercizi').innerHTML;
+    ok(h.includes('Panca piana con bilanciere') && !h.includes('Barbell Bench Press'),
+       'ricerca EN: in elenco compare il nome ITALIANO, non quello inglese'); }
   w.eval('exFilt=""; renderEsercizi();');
   /* enhancement: selettore esercizio in Allenamento = barra di ricerca + lista (niente più <select>) */
   w.eval('showTab("allenamento")');

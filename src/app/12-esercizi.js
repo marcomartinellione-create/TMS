@@ -143,12 +143,41 @@ async function playVideo(nome){
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='760px';
 }
 /* ricerca «a parole»: trova se TUTTE le parole digitate compaiono (in qualunque ordine)
-   in nome+target+gruppo+sottocategoria. Es. «panca piana bilanciere» trova «Panca piana
-   con bilanciere - presa media». Usata sia qui sia nel picker di Allenamento. */
+   in nome+target+gruppo+sottocategoria, PIÙ il nome inglese originale del catalogo.
+   Es. «panca piana bilanciere» trova «Panca piana con bilanciere - presa media», e così
+   anche «bench press»: capita di ricordare un esercizio in inglese e non in italiano.
+   I RISULTATI restano nella lingua dell'interfaccia: l'inglese serve solo a trovarli.
+   Usata sia nel tab Esercizi sia nel picker di Allenamento. */
+/* Aggettivi da palestra che in inglese e in italiano non si somigliano: senza questi
+   «flat bench» non troverebbe la panca piana, perché il catalogo originale la chiama
+   «Barbell Bench Press - Medium Grip» — «flat» non compare da nessuna parte. Ogni parola
+   digitata vale se trova sé stessa OPPURE il suo equivalente. Solo termini in cui le due
+   lingue divergono: dove la parola è già uguale (squat, curl, press, plank…) non serve. */
+const SIN_RICERCA={
+  flat:'piana', incline:'inclinat', declined:'declinat', decline:'declinat',
+  bench:'panca', barbell:'bilanciere', dumbbell:'manubri', cable:'cav', machine:'macchina',
+  seated:'sedut', standing:'in piedi', lying:'sdraiat', kneeling:'ginocchio',
+  grip:'presa', close:'stretta', narrow:'stretta', wide:'larga', reverse:'invers',
+  overhead:'sopra la testa', behind:'dietro', arm:'braccio', arms:'braccia',
+  leg:'gamb', legs:'gamb', chest:'pettoral', back:'schiena', shoulder:'spall',
+  shoulders:'spalle', biceps:'bicipiti', triceps:'tricipiti', abs:'addominali',
+  calf:'polpacc', calves:'polpacc', glute:'glute', glutes:'glutei',
+  hamstring:'ischiocrural', hamstrings:'ischiocrural', quad:'quadricipit', quads:'quadricipit',
+  lat:'dorsal', lats:'dorsal', trap:'trapez', traps:'trapez', forearm:'avambracc',
+  pull:'trazion', pullup:'trazioni', chinup:'trazioni', deadlift:'stacco', row:'rematore',
+  raise:'alzat', raises:'alzat', fly:'croci', flyes:'croci', flies:'croci',
+  extension:'estension', shrug:'scrollate', shrugs:'scrollate', lunge:'affond', lunges:'affond',
+  hip:'anca'
+};
 function exMatch(e,q){
   q=String(q||'').trim().toLowerCase(); if(!q) return true;
-  const hay=(e.nome+' '+(e.target||'')+' '+(e.macro||e.gruppo||'')+' '+sottoOf(e)).toLowerCase();
-  return q.split(/\s+/).every(tok=>hay.includes(tok));
+  const hay=(e.nome+' '+(e.target||'')+' '+(e.macro||e.gruppo||'')+' '+sottoOf(e)+' '+
+             (ESEN[e.nome]||'')).toLowerCase();
+  return q.split(/\s+/).every(tok=>{
+    if(hay.includes(tok)) return true;
+    const s=SIN_RICERCA[tok];
+    return !!s && hay.includes(s);
+  });
 }
 /* un esercizio è "cardio" se sta nel gruppo Cardio o ha categoria cardio (database):
    serve a tenerlo FUORI dal selettore dei Pesi (le attività cardio vivono nel tab Cardio). */

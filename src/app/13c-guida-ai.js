@@ -129,6 +129,16 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   recente); la stellina ☆/★ accanto a ogni esercizio lo aggiunge/toglie dai preferiti.
   Anche CERCANDO, i preferiti che corrispondono compaiono in cima: premendo Invio si sceglie
   quindi quello che si usa davvero.
+  La ricerca (exMatch in 12-esercizi.js, condivisa col tab Esercizi) e' **a parole**: servono
+  tutte le parole digitate, in qualunque ordine, cercate in nome + target + gruppo +
+  sottocategoria + **nome inglese originale** del catalogo (mappa ESEN). Quindi «bench press»
+  o «romanian deadlift» trovano la panca piana e lo stacco rumeno; i risultati restano
+  scritti nella lingua dell'interfaccia, l'inglese serve solo a trovarli. C'e' anche una
+  piccola tabella di sinonimi (SIN_RICERCA) per gli aggettivi in cui le due lingue divergono:
+  ogni parola vale se trova se' stessa OPPURE il suo equivalente, cosi' «flat bench» arriva
+  alla panca piana anche se il catalogo inglese la chiama «Barbell Bench Press - Medium
+  Grip», dove «flat» non compare. Non allarga le ricerche italiane: il sinonimo si prova
+  solo quando la parola digitata non si trova cosi' com'e'.
   Campi per riga: Serie, Ripetizioni, Peso, RIR (opzionale), Note, recupero. Obbligatori
   solo esercizio/serie/ripetizioni/peso.
   **▦ Colonne** (bottone a destra del titolo della scheda, dal 2026-08-19): apre la scelta
