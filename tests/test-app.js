@@ -427,6 +427,79 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(h.includes('Panca piana con bilanciere') && !h.includes('Barbell Bench Press'),
        'ricerca EN: in elenco compare il nome ITALIANO, non quello inglese'); }
   w.eval('exFilt=""; renderEsercizi();');
+  /* ── editor esercizio: aggiorna invece di sostituire, muscoli a chip, tipo da elenco,
+        fattore con limiti, duplica ── */
+  { const N = 'Panca piana con bilanciere - presa media';
+    const prima = JSON.parse(w.eval('JSON.stringify(esLookup(' + JSON.stringify(N) + '))'));
+    w.eval('exEdit(' + JSON.stringify(N) + ')');
+    ok(d.getElementById('ex-tipo') && d.getElementById('ex-tipo').tagName === 'SELECT' &&
+       [...d.querySelectorAll('#ex-tipo option')].some(o => o.value === 'Multi-articolare') && d.getElementById('ex-tipo').value === 'Multi-articolare',
+       'editor: Tipo è un elenco, con il valore attuale selezionato');
+    ok(d.querySelectorAll('#ex-muscoli .mchip').length === 17 && d.querySelector('#ex-muscoli .mchip.is-p[data-m="pettorali"]') !== null &&
+       d.querySelector('#ex-muscoli .mchip.is-s[data-m="tricipiti"]') !== null,
+       'editor: 17 chip dei muscoli, con primari e secondari dell\'esercizio già segnati');
+    ok(d.getElementById('ex-target') === null && d.getElementById('ex-target-anteprima').textContent.includes('Pettorali'),
+       'editor: via il target a testo libero, al suo posto l\'anteprima derivata dai muscoli');
+    ok(d.getElementById('ex-sotto').getAttribute('list') === 'ex-sotto-list' && d.querySelectorAll('#ex-sotto-list option').length > 5,
+       'editor: la sottocategoria propone quelle esistenti mentre si digita');
+    ok(d.getElementById('ex-dup') !== null, 'editor: c\'è il pulsante ⧉ Duplica');
+    /* Salva senza toccare nulla: NON deve perdere i campi che il form non mostra */
+    d.getElementById('ex-ok').click();
+    const dopo = JSON.parse(w.eval('JSON.stringify(esLookup(' + JSON.stringify(N) + '))'));
+    const persi = Object.keys(prima).filter(k => !(k in dopo));
+    ok(persi.length === 0, 'editor: Salva senza modifiche NON perde nessun campo (prima si perdevano: ' + ['istruzioni', 'livello', 'categoria', 'muscoli…'].join(', ') + ')');
+    ok(JSON.stringify(dopo.muscoli_primari) === JSON.stringify(prima.muscoli_primari) && JSON.stringify(dopo.muscoli_secondari) === JSON.stringify(prima.muscoli_secondari) &&
+       JSON.stringify(dopo.istruzioni) === JSON.stringify(prima.istruzioni),
+       'editor: muscoli e istruzioni identici a prima del salvataggio');
+    ok(w.eval('JSON.stringify(quoteGruppi(' + JSON.stringify(N) + '))') === '{"Pettorali":1,"Spalle":0.5,"Braccia":0.5}',
+       'editor: il conteggio del Bilanciamento resta intatto dopo un salvataggio');
+    /* chip a tre stati: primario → secondario → nessuno */
+    w.eval('exEdit(' + JSON.stringify(N) + ')');
+    const chip = d.querySelector('#ex-muscoli .mchip[data-m="pettorali"]');
+    chip.click(); ok(chip.classList.contains('is-s') && !chip.classList.contains('is-p'), 'chip muscolo: primario → secondario');
+    chip.click(); ok(!chip.classList.contains('is-s') && !chip.classList.contains('is-p'), 'chip muscolo: secondario → nessuno');
+    chip.click(); ok(chip.classList.contains('is-p'), 'chip muscolo: nessuno → primario');
+    w.eval('closeModal()');
+    /* validazioni: niente primario, fattore fuori limite */
+    w.eval('exEdit("")');
+    d.getElementById('ex-nome').value = 'Prova senza muscoli';
+    d.getElementById('ex-ok').click();
+    ok(!d.getElementById('ex-err').hidden && d.getElementById('ex-err').textContent.includes('primario') &&
+       !w.eval('DOC.esercizi.some(function(e){return e.nome==="Prova senza muscoli";})'),
+       'editor: senza un muscolo primario NON salva e lo dice nel form (niente alert)');
+    d.querySelector('#ex-muscoli .mchip[data-m="bicipiti"]').click();
+    d.getElementById('ex-fatt').value = '15';
+    d.getElementById('ex-ok').click();
+    ok(!d.getElementById('ex-err').hidden && d.getElementById('ex-err').textContent.includes('Fattore') &&
+       !w.eval('DOC.esercizi.some(function(e){return e.nome==="Prova senza muscoli";})'),
+       'editor: fattore 15 rifiutato (limite 0–2): un errore di battitura non gonfia il TL per sempre');
+    d.getElementById('ex-fatt').value = '0.7';
+    d.getElementById('ex-ok').click();
+    const nuovo = JSON.parse(w.eval('JSON.stringify(esLookup("Prova senza muscoli")||null)'));
+    ok(nuovo && nuovo.custom === true && JSON.stringify(nuovo.muscoli_primari) === '["bicipiti"]' && nuovo.target === 'Bicipiti' && nuovo.fattore === 0.7,
+       'editor: esercizio nuovo salvato con muscoli, target derivato, fattore e custom:true');
+    /* duplica: copia integrale, originale intatto */
+    const nPrima = w.eval('DOC.esercizi.length');
+    w.eval('exEdit(' + JSON.stringify(N) + ',{duplica:true})');
+    ok(d.querySelector('#modal h3').textContent.includes('Duplica') && d.getElementById('ex-nome').value === N + ' (copia)' &&
+       d.querySelector('#ex-muscoli .mchip.is-p[data-m="pettorali"]') !== null,
+       'duplica: editor in modalità nuovo, nome «… (copia)», muscoli già copiati');
+    d.getElementById('ex-nome').value = 'Panca piana con bilanciere - presa mediissima';
+    d.getElementById('ex-ok').click();
+    const copia = JSON.parse(w.eval('JSON.stringify(esLookup("Panca piana con bilanciere - presa mediissima")||null)'));
+    ok(copia && copia.custom === true && JSON.stringify(copia.muscoli_secondari) === JSON.stringify(prima.muscoli_secondari) &&
+       JSON.stringify(copia.istruzioni) === JSON.stringify(prima.istruzioni) && w.eval('DOC.esercizi.length') === nPrima + 1,
+       'duplica: la copia porta con sé muscoli e istruzioni ed è un esercizio in più');
+    ok(JSON.stringify(w.eval('JSON.stringify(esLookup(' + JSON.stringify(N) + '))')) === JSON.stringify(JSON.stringify(dopo)),
+       'duplica: l\'originale è rimasto identico');
+    /* eliminazione con conferma in stile app */
+    w.eval('exEdit("Prova senza muscoli")');
+    d.getElementById('ex-del').click();
+    ok(d.getElementById('cc-si') !== null && d.getElementById('cc-no') !== null, 'editor: Elimina chiede conferma in stile app (niente confirm() di sistema)');
+    d.getElementById('cc-si').click();
+    ok(!w.eval('DOC.esercizi.some(function(e){return e.nome==="Prova senza muscoli";})'), 'editor: dopo la conferma l\'esercizio è eliminato');
+    w.eval('DOC.esercizi=DOC.esercizi.filter(function(e){return e.nome!=="Panca piana con bilanciere - presa mediissima";}); rebuildEs(); renderEsercizi();');
+  }
   /* enhancement: selettore esercizio in Allenamento = barra di ricerca + lista (niente più <select>) */
   w.eval('showTab("allenamento")');
   ok(d.querySelector('#panel-allenamento .ex-pick') !== null && d.querySelector('#panel-allenamento select.ex-sel') === null, 'Allenamento: cella esercizio è un pulsante picker (via il menù a tendina)');

@@ -415,8 +415,25 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 ## 9 · Esercizi e video (tab 📖 Esercizi)
 
 - Catalogo di 883 esercizi per gruppo muscolare e sottocategoria (tendine chiuse di
-  default, click per aprirle). «＋ Nuovo» aggiunge un esercizio personalizzato (nome,
-  gruppo, target, tipo, fattore TL); «✎» modifica.
+  default, click per aprirle). «＋ Nuovo» aggiunge un esercizio personalizzato; «✎»
+  modifica. L'editor (exEdit in 12-esercizi.js) ha questi vincoli:
+  - **Gruppo** e **Tipo** da elenco (Tipo: Multi-articolare, Isolamento, Stretching,
+    Pliometria, Cardio, Accessorio; un valore non standard già presente resta selezionabile).
+    Il tipo conta: Spinta/Trazione include solo chi inizia per «multi».
+  - **Muscoli** dai 17 nomi del catalogo con chip a tre stati (clic: primario -> secondario
+    -> nessuno). Serve almeno un primario, altrimenti non salva e lo dice nel modulo.
+    Il campo target NON si scrive più a mano: è derivato dai muscoli («Pettorali, Spalle,
+    Tricipiti», primari poi secondari).
+  - **Fattore TL** fra 0 e 2 (il catalogo va da 0 a 1,05); fuori limite non salva.
+  - **Sottocategoria** libera ma con le esistenti proposte mentre si digita (datalist).
+  - **Il salvataggio AGGIORNA l'oggetto invece di sostituirlo**: i campi che il modulo non
+    mostra (istruzioni, livello, attrezzatura, categoria, id) restano com'erano. Fino alla
+    v1.1.13 compresa, aprire un esercizio e premere Salva senza toccare nulla li cancellava
+    tutti e sette — muscoli inclusi, quindi l'esercizio spariva dal conteggio del volume.
+  - **⧉ Duplica** (nel pannello ✎): apre l'editor in modalità nuovo su una copia integrale
+    dell'esercizio (muscoli, istruzioni, video), col nome «… (copia)»; l'originale resta
+    intatto. Per creare un esercizio quasi uguale a uno esistente si parte da qui.
+  - Gli esercizi creati dall'app portano il campo custom = true. Elimina chiede conferma in stile app.
 - **Video**: ogni esercizio ha un video dimostrativo integrato. ATTENZIONE, limite
   noto: nelle versioni attuali la maggior parte dei video integrati è un segnaposto
   identico (882 su 883) — verranno sostituiti progressivamente con le registrazioni

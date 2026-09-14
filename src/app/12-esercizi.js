@@ -39,21 +39,53 @@ function sottoOf(e){
   if(cat==='cardio') return 'Cardio';
   return 'Varie';
 }
-function exEdit(name){
+/* ── EDITOR ESERCIZIO (nuovo / modifica / duplica) ─────────────────────────────
+   Vincoli del 2026-09-14, dopo che i 10 esercizi CUSTOM erano nati senza muscoli:
+   - il SALVATAGGIO AGGIORNA l'oggetto invece di sostituirlo. Prima «Modifica» + Salva
+     senza toccare nulla cancellava sette campi che il form non mostra (muscoli,
+     istruzioni, livello, attrezzatura, categoria, id): da v1.1.13 i muscoli governano il
+     conteggio del volume, quindi bastava aprire e salvare per mutilare un esercizio.
+   - i MUSCOLI si scelgono dai 17 nomi del catalogo (chip a tre stati: primario →
+     secondario → nessuno); `target` è derivato da lì, non più scritto a mano.
+   - `tipo` da elenco: decide chi entra in Spinta·Trazione (cerca «multi» in testa).
+   - `fattore` fra 0 e 2: un 15 al posto di 1,5 gonfierebbe il TL per sempre.
+   - sottocategoria libera ma con le esistenti proposte mentre si digita.
+   - DUPLICA: copia integrale (muscoli e istruzioni compresi) col nome «… (copia)». */
+const TIPI_ESERCIZIO=['Multi-articolare','Isolamento','Stretching','Pliometria','Cardio','Accessorio'];
+const MUSCOLI_CATALOGO=Object.keys(MUSCOLO_GRUPPO);   /* i 17 nomi, nell'ordine della mappa */
+const FATTORE_MIN=0, FATTORE_MAX=2;
+function capitalizza(m){ m=String(m||''); return m? m.charAt(0).toUpperCase()+m.slice(1) : m; }
+/* target leggibile a partire dai muscoli: «Pettorali, Spalle, Tricipiti», come nel catalogo */
+function targetDaMuscoli(prim, sec){ return [].concat(prim||[], sec||[]).map(capitalizza).join(', '); }
+function exEdit(name, opt){
+  opt=opt||{};
   name = name? String(name).trim() : '';
-  const ex = name? (DOC.esercizi.find(e=>String(e.nome).trim()===name)||{}) : {};
-  const isNew=!name;
+  const sorgente = name? (DOC.esercizi.find(e=>String(e.nome).trim()===name)||{}) : {};
+  const duplica=!!opt.duplica && !!name;
+  /* in duplica si lavora su una COPIA completa: l'originale non si tocca */
+  const ex = duplica? Object.assign(JSON.parse(JSON.stringify(sorgente)), {nome:sorgente.nome+' '+t('(copia)'), id:undefined}) : sorgente;
+  const isNew=!name || duplica;
   const opts=GRUPPI.map(g=>`<option value="${g}"${(ex.macro||ex.gruppo)===g?' selected':''}>${t(g)}</option>`).join('')
     + ((ex.macro&&!GRUPPI.includes(ex.macro))?`<option selected>${esc(ex.macro)}</option>`:'');
-  modal(`<h3>${isNew?t('Nuovo esercizio'):t('Modifica esercizio')}</h3>
+  const tipoAttuale=String(ex.tipo||'').trim();
+  const tipiOpts=TIPI_ESERCIZIO.map(x=>`<option value="${x}"${tipoAttuale===x?' selected':''}>${t(x)}</option>`).join('')
+    + ((tipoAttuale&&!TIPI_ESERCIZIO.includes(tipoAttuale))?`<option value="${esc(tipoAttuale)}" selected>${esc(tipoAttuale)}</option>`:'');
+  /* sottocategorie già esistenti, per il suggerimento mentre si digita */
+  const sottoEsist=[...new Set((DOC.esercizi||[]).map(e=>sottoOf(e)).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const stato={}; (ex.muscoli_primari||[]).forEach(m=>{ stato[normMuscolo(m)]='p'; }); (ex.muscoli_secondari||[]).forEach(m=>{ if(!stato[normMuscolo(m)]) stato[normMuscolo(m)]='s'; });
+  const chips=MUSCOLI_CATALOGO.map(m=>`<button type="button" class="mchip${stato[m]==='p'?' is-p':(stato[m]==='s'?' is-s':'')}" data-m="${esc(m)}">${esc(t(capitalizza(m)))}</button>`).join('');
+  modal(`<h3>${duplica?t('Duplica esercizio'):(isNew?t('Nuovo esercizio'):t('Modifica esercizio'))}</h3>
+    ${duplica?`<div class="muted" style="font-size:12px;margin-bottom:8px">${t('Copia integrale di')} <b>${esc(exName(name))}</b> ${t('— muscoli, istruzioni e video compresi. Cambia quello che serve e salva.')}</div>`:''}
     <div class="field"><label>${t('Nome')}</label><input id="ex-nome" value="${esc(ex.nome||'')}"></div>
     <div class="row">
       <div class="field"><label>${t('Gruppo muscolare')}</label><select id="ex-macro">${opts}</select></div>
-      <div class="field"><label>${t('Fattore TL')}</label><input id="ex-fatt" type="number" step="0.05" value="${ex.fattore??1}"></div>
+      <div class="field"><label>${t('Tipo')}</label><select id="ex-tipo">${tipiOpts}</select></div>
+      <div class="field"><label>${t('Fattore TL')} <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('(0–2; il catalogo va da 0 a 1,05)')}</span></label><input id="ex-fatt" type="number" step="0.05" min="${FATTORE_MIN}" max="${FATTORE_MAX}" value="${ex.fattore??1}"></div>
     </div>
-    <div class="field"><label>${t('Target muscolare')}</label><input id="ex-target" value="${esc(ex.target||'')}"></div>
-    <div class="field"><label>${t('Tipo')}</label><input id="ex-tipo" value="${esc(ex.tipo||'')}"></div>
-    <div class="field"><label>${t('Sottocategoria')} <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— raggruppa nel catalogo (es. Panca, Affondi); vuota = automatica dal nome')}${isNew?'':(': «'+esc(t(sottoOf(Object.assign({},ex,{sotto:''}))))+'»')}</span></label><input id="ex-sotto" value="${esc(ex.sotto||'')}" placeholder="${t('automatica')}"></div>
+    <div class="field"><label>${t('Muscoli')} <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— clicca: primario → secondario → nessuno. I primari valgono una serie piena nel Bilanciamento, i secondari mezza.')}</span></label>
+      <div class="mchips" id="ex-muscoli">${chips}</div>
+      <div class="muted" id="ex-target-anteprima" style="font-size:11.5px;margin-top:4px"></div></div>
+    <div class="field"><label>${t('Sottocategoria')} <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— raggruppa nel catalogo (es. Panca, Affondi); vuota = automatica dal nome')}${isNew?'':(': «'+esc(t(sottoOf(Object.assign({},ex,{sotto:''}))))+'»')}</span></label><input id="ex-sotto" list="ex-sotto-list" value="${esc(ex.sotto||'')}" placeholder="${t('automatica')}"><datalist id="ex-sotto-list">${sottoEsist.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>
     <div class="field"><label>Video <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— nome file in')} <span class="mono">TMS/database/video/</span> ${t('(es. squat.mp4)')}</span></label><input id="ex-video" value="${esc(ex.video||'')}" placeholder="${t('es. squat.mp4')}"></div>
     ${isNew?'':`<div class="field"><label>${t('Video personale')} <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— un tuo file al posto del predefinito (in')} <span class="mono">TMS_Dati/video/</span>${t('); si attiva col toggle "Video personali" del tab Esercizi')}</span></label>
       <div class="bar" style="margin:0;align-items:center">
@@ -61,27 +93,56 @@ function exEdit(name){
         <label class="btn btn--sm" style="cursor:pointer">${t('⭱ Carica video personale…')}<input type="file" id="exv-file" accept="video/mp4,video/webm,video/*" style="display:none"></label>
         <button class="btn btn--sm btn--danger" id="exv-del" style="display:none">${t('✕ Rimuovi personale')}</button>
       </div></div>`}
+    <div class="ex-err" id="ex-err" hidden></div>
     <div class="modal__actions">
-      ${isNew?'':`<button class="btn btn--danger" id="ex-del" style="margin-right:auto">${t('Elimina')}</button>`}
+      ${isNew?'':`<button class="btn btn--danger" id="ex-del">${t('Elimina')}</button><button class="btn" id="ex-dup" title="${t('Crea un nuovo esercizio partendo da questo')}">⧉ ${t('Duplica')}</button><span style="flex:1"></span>`}
       <button class="btn" onclick="closeModal()">${t('Annulla')}</button>
       <button class="btn btn--ember" id="ex-ok">${t('Salva')}</button></div>`);
+  const m0=document.getElementById('modal'); if(m0) m0.style.maxWidth='680px';
+  /* chip a tre stati + anteprima del target derivato */
+  const muscoliScelti=()=>{ const p=[],s=[];
+    document.querySelectorAll('#ex-muscoli .mchip').forEach(c=>{ if(c.classList.contains('is-p')) p.push(c.dataset.m); else if(c.classList.contains('is-s')) s.push(c.dataset.m); });
+    return {p:p,s:s}; };
+  const anteprima=()=>{ const {p,s}=muscoliScelti(); const el=document.getElementById('ex-target-anteprima'); if(!el) return;
+    el.innerHTML= (p.length||s.length)? `${t('Target')}: <b>${esc(targetDaMuscoli(p,s))}</b>` : t('Nessun muscolo scelto: serve almeno un primario.'); };
+  document.querySelectorAll('#ex-muscoli .mchip').forEach(c=>{ c.onclick=()=>{
+    if(c.classList.contains('is-p')){ c.classList.remove('is-p'); c.classList.add('is-s'); }
+    else if(c.classList.contains('is-s')){ c.classList.remove('is-s'); }
+    else c.classList.add('is-p');
+    anteprima(); }; });
+  anteprima();
+  const errore=msg=>{ const e=document.getElementById('ex-err'); if(!e) return; e.textContent=msg; e.hidden=false; };
   document.getElementById('ex-ok').onclick=()=>{
     const nome=document.getElementById('ex-nome').value.trim();
-    if(!nome){alert(t('Il nome è obbligatorio.'));return;}
+    if(!nome){ errore(t('Il nome è obbligatorio.')); return; }
+    const fatt=parseFloat(document.getElementById('ex-fatt').value);
+    if(!isFinite(fatt)||fatt<FATTORE_MIN||fatt>FATTORE_MAX){ errore(t('Fattore TL fuori dai limiti: deve stare fra 0 e 2 (nel catalogo va da 0 a 1,05).')); return; }
+    const {p,s}=muscoliScelti();
+    if(!p.length){ errore(t('Scegli almeno un muscolo primario: senza, l’esercizio non entra nel Bilanciamento né in Spinta·Trazione.')); return; }
     const macro=document.getElementById('ex-macro').value;
-    const obj={nome:nome,macro:macro,gruppo:macro,target:document.getElementById('ex-target').value.trim(),
-      tipo:document.getElementById('ex-tipo').value.trim(),fattore:+document.getElementById('ex-fatt').value||1,
+    const campi={nome:nome,macro:macro,gruppo:macro,
+      muscoli_primari:p, muscoli_secondari:s, target:targetDaMuscoli(p,s),
+      tipo:document.getElementById('ex-tipo').value.trim(), fattore:fatt,
       video:document.getElementById('ex-video').value.trim(),
       sotto:document.getElementById('ex-sotto').value.trim()};
-    if(isNew){ if(DOC.esercizi.some(e=>String(e.nome).trim()===nome)){alert(t('Esiste già un esercizio con questo nome.'));return;} DOC.esercizi.push(obj); }
-    else { const idx=DOC.esercizi.findIndex(e=>String(e.nome).trim()===name);
-      if(nome!==name && DOC.esercizi.some(e=>String(e.nome).trim()===nome)){alert(t('Nome già in uso.'));return;}
-      if(idx>=0) DOC.esercizi[idx]=obj; }
+    if(isNew){
+      if(DOC.esercizi.some(e=>String(e.nome).trim()===nome)){ errore(t('Esiste già un esercizio con questo nome.')); return; }
+      /* in duplica si parte dalla copia (istruzioni, livello, attrezzatura…), altrimenti da zero */
+      DOC.esercizi.push(Object.assign(duplica?ex:{}, campi, {custom:true}));
+    } else {
+      const idx=DOC.esercizi.findIndex(e=>String(e.nome).trim()===name);
+      if(nome!==name && DOC.esercizi.some(e=>String(e.nome).trim()===nome)){ errore(t('Nome già in uso.')); return; }
+      /* AGGIORNA, non sostituire: i campi che il form non mostra restano com'erano */
+      if(idx>=0) DOC.esercizi[idx]=Object.assign({}, DOC.esercizi[idx], campi);
+    }
     rebuildEs(); persist('esercizi'); closeModal(); renderEsercizi();
   };
+  const dup=document.getElementById('ex-dup');
+  if(dup) dup.onclick=()=>{ exEdit(name,{duplica:true}); };
   const del=document.getElementById('ex-del');
-  if(del) del.onclick=()=>{ if(!confirm(t('Eliminare «')+exName(name)+t('» dal catalogo?\nLo storico resta invariato.')))return;
-    DOC.esercizi=DOC.esercizi.filter(e=>String(e.nome).trim()!==name); rebuildEs(); persist('esercizi'); closeModal(); renderEsercizi(); };
+  if(del) del.onclick=()=>{ chiediConferma(t('Elimino l’esercizio'), `<b>${esc(exName(name))}</b><br>${t('Sparisce dal catalogo; lo storico resta invariato.')}`,
+    ()=>{ DOC.esercizi=DOC.esercizi.filter(e=>String(e.nome).trim()!==name); rebuildEs(); persist('esercizi'); renderEsercizi(); }, {testoOk:t('Elimina')});
+    const no=document.getElementById('cc-no'); if(no) no.onclick=()=>exEdit(name); };
   if(!isNew){
     const stato=document.getElementById('exv-stato'), fIn=document.getElementById('exv-file'), bDel=document.getElementById('exv-del');
     const nomeFile=()=>document.getElementById('ex-video').value.trim();
