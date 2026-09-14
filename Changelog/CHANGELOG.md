@@ -4,6 +4,53 @@
 
 ---
 
+### 2026-09-14 — TMS v1.1.14: ricerca in inglese, editor esercizi rifatto, quota corpo per i leg raise
+
+**Tipo**: feature + correzione di un bug di perdita dati + estensione di metrica
+**File coinvolti**: `src/app/12-esercizi.js` (`exMatch` + `SIN_RICERCA`, `exEdit` riscritto) ·
+`src/app/01-costanti.js` (`CORPO_LIBERO_PARZIALE`, `quotaCorpo`) · `src/app/02-calcoli.js`
+(`corpoNelCarico`, `caricoEff`, `rmMostrato`) · `src/app/06-allenamento.js` (pillola 🧍) ·
+`src/pagina/02-stili.css` (chip dei muscoli, errore inline) · `src/app/00-i18n.js` · guide IT/EN e
+guida-AI · `tests/test-app.js`
+
+**Descrizione**:
+- **Ricerca esercizi anche per nome inglese.** `exMatch` cerca pure nel nome inglese originale del
+  catalogo (mappa `ESEN`); i risultati restano nella lingua dell'interfaccia. Serviva anche una piccola
+  tabella di sinonimi (`SIN_RICERCA`) per gli aggettivi da palestra in cui le due lingue divergono:
+  senza, «flat bench» non arrivava alla panca piana, che il catalogo chiama «Barbell Bench Press -
+  Medium Grip». Il sinonimo si prova solo quando la parola non si trova così com'è: le ricerche
+  italiane non si allargano (test: «panca piana bilanciere» resta sui suoi 3 risultati).
+- **Editor esercizio rifatto** (sei richieste di Marco):
+  1. **Il salvataggio aggiorna invece di sostituire.** Bug pre-esistente: aprire un esercizio del
+     catalogo in «Modifica» e premere Salva senza toccare nulla cancellava sette campi che il
+     form non mostra (muscoli primari e secondari, istruzioni, livello, attrezzatura, categoria, id).
+     Verificato in jsdom sulla panca piana: da {Pettorali:1, Spalle:0.5, Braccia:0.5} a {Pettorali:1}.
+     Dalla v1.1.13 i muscoli governano il conteggio del volume, quindi un salvataggio bastava a far
+     sparire un esercizio da Spinta·Trazione in silenzio.
+  2. **Muscoli a chip** sui 17 nomi del catalogo, tre stati (primario → secondario → nessuno);
+     serve almeno un primario, altrimenti non salva e lo dice nel modulo. `target` è derivato.
+  3. **Tipo da elenco** (Multi-articolare, Isolamento, Stretching, Pliometria, Cardio, Accessorio).
+  4. **Fattore TL fra 0 e 2**. 5. **Sottocategoria** con le esistenti proposte mentre si digita.
+  6. **⧉ Duplica**: editor in modalità nuovo su una copia integrale, nome «… (copia)»,
+     originale intatto. Elimina chiede conferma in stile app. Esercizi creati dall'app: `custom:true`.
+- **Leg raise: quota parziale del peso corporeo.** `quotaCorpo(nome)`: 1 per trazioni e dip, 0 per
+  il resto, e per i leg raise la massa delle due gambe secondo le tabelle di segmentazione di
+  de Leva (1996): **0,40 uomo / 0,42 donna**, letto dal profilo. Non è metà corpo — Marco lo
+  proponeva — è meno. A **ginocchia piegate 0,25**: stessa massa, leva a circa il 60%, e il modello
+  ragiona in kg. Classificazione fatta leggendo le istruzioni, non il nome (il «Sollevamento
+  ginocchia/anche alle parallele» è a gambe tese; i tre «Leg pull-in» a ginocchia piegate).
+  Dragon Flag fuori. Pillola nella scheda: «🧍 +28 kg (40%)». Approssimazione dichiarata.
+- Dati (fuori dal repo, dentro l'installer): riempiti `muscoli_primari`/`muscoli_secondari` sui 10
+  esercizi CUSTOM che ne erano privi, dal campo `target` già scritto in prosa. Ora 883/883.
+
+**Test**: 549 OK (da 512), `npm run verifica` OK. Nuovi: ricerca EN e non-regressione IT; editor
+(Salva senza modifiche non perde campi, validazioni, chip, duplica, conferma eliminazione); quote
+per sesso e per gesto, carico, 1RM, TL, pillola, esistenza dei nomi a catalogo.
+**Verifica in app**: editor controllato a video in chiaro e in notte.
+**Approvato da**: Marco (2026-09-14)
+
+---
+
 ### 2026-09-08 — TMS v1.1.13: volume indiretto, fasce tarate su schede pubblicate, riordino a trascinamento
 
 **Tipo**: correzione di metrica (il conteggio del volume era distorto) + feature + rifiniture d'uso
