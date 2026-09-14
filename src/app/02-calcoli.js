@@ -41,7 +41,10 @@ function pesoCorpoScheda(code){
   return +((DOC&&DOC.dati_utente&&DOC.dati_utente.peso)||0);
 }
 /* carico realmente mosso: zavorra + corpo dove ha senso */
-function caricoEff(r){ return (+r.peso||0) + (isCorpoLibero(r&&r.esercizio)? pesoCorpoScheda(r&&r.scheda) : 0); }
+/* corpo che entra nel carico: intero per trazioni e dip, una frazione per i leg raise
+   (quotaCorpo), niente per il resto. La zavorra scritta nella colonna Peso si somma. */
+function corpoNelCarico(r){ const q=quotaCorpo(r&&r.esercizio); return q>0? pesoCorpoScheda(r&&r.scheda)*q : 0; }
+function caricoEff(r){ return (+r.peso||0) + corpoNelCarico(r); }
 /* massimale stimato: sempre sul carico REALE (corpo + zavorra). Resta il numero onesto
    su cui ragionano gli altri calcoli e i confronti. */
 function sRM(r){ return rm1(caricoEff(r), effRip(r)); }
@@ -51,7 +54,7 @@ function sRM(r){ return rm1(caricoEff(r), effRip(r)); }
    calcolo sotto non cambia, cambia ciò che si legge nella cella. Non può venire negativa:
    con almeno una ripetizione il massimale stimato è sempre ≥ del carico mosso. */
 function rmMostrato(r){ const m=sRM(r);
-  return isCorpoLibero(r&&r.esercizio)? Math.max(0, m-pesoCorpoScheda(r&&r.scheda)) : m; }
+  return isCorpoLibero(r&&r.esercizio)? Math.max(0, m-corpoNelCarico(r)) : m; }
 /* %1RM invece resta sul carico TOTALE: è l'intensità della serie, e serve a dire in che
    fascia stai allenando (forza/ipertrofia/…). Calcolarla sulla sola zavorra falserebbe la
    fascia — 6 ripetizioni risulterebbero «metabolico» invece che «forza+ipertrofia». */

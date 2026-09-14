@@ -37,8 +37,8 @@ const MAINLIFTS=[{label:'Squat',nome:'Squat con bilanciere'},{label:'Stacco',nom
    · assistiti — «Trazioni Assistite con Elastico» (lì semmai l'aiuto va sottratto)
    · a carico parziale — «Dip alla panca», «Bench dip con peso», «Rematore a corpo
      libero alla sbarra», «Tricipiti al corpo libero alla sbarra», piegamenti, squat
-   · da appeso ma che sollevano le sole gambe, non il corpo — «Leg raise da appeso»,
-     «Pike da appeso», «Sollevamento ginocchia/anche alle parallele», «Wind sprint» */
+   · da appeso ma che sollevano le sole gambe, non il corpo — «Pike da appeso»,
+     «Wind sprint» (i leg raise hanno invece la loro quota parziale, vedi sotto) */
 const CORPO_LIBERO=[
   /* trazioni: corpo appeso alla sbarra/anelli e tirato su per intero */
   'Trazioni alla sbarra (pull-up)','Trazioni alla sbarra con peso','Trazioni presa supina (chin-up)',
@@ -52,10 +52,38 @@ const CORPO_LIBERO=[
   'Salita alla corda'
 ];
 const CORPO_LIBERO_SET={}; CORPO_LIBERO.forEach(n=>{ CORPO_LIBERO_SET[n.trim().toLowerCase()]=true; });
-/* il nome può portare i suffissi di variante/seduta (-N2, -MAX): si confronta la base */
-function isCorpoLibero(nome){ if(!nome) return false;
+/* ── QUOTE PARZIALI (2026-09-14): chi solleva una FRAZIONE del corpo ──────────
+   I leg raise muovono le sole gambe. La massa delle due gambe viene dalle tabelle di
+   segmentazione di de Leva (1996), le stesse usate in biomeccanica: coscia 14,2 % +
+   gamba 4,3 % + piede 1,4 % per lato nell'uomo, un po' di più nella donna — in tutto
+   39,7 % (M) e 41,8 % (F) del peso corporeo. NON è metà corpo: è meno.
+   A ginocchia piegate la massa è la stessa ma il braccio di leva scende a circa il 60 %:
+   il modello del TMS ragiona in kg, non in momento, quindi per distinguere i due gesti
+   la quota del ginocchia-piegate è ridotta a 0,25. È un'APPROSSIMAZIONE dichiarata
+   (gambe medie, leva media), accettata da Marco.
+   Classificati leggendo le ISTRUZIONI, non il nome: «Sollevamento ginocchia/anche alle
+   parallele» dice «solleva le gambe tenendole distese» ed è a gambe tese; i tre
+   «Leg pull-in» dicono «piega le ginocchia» e sono a ginocchia piegate.
+   Dragon Flag resta fuori: ruota sulle spalle anche il tronco, è un altro discorso. */
+const QUOTA_GAMBE_TESE={M:0.40, F:0.42}, QUOTA_GINOCCHIA=0.25;
+const CORPO_LIBERO_PARZIALE={
+  'Leg raise da appeso':'gambe', 'Leg raise da sdraiato su panca piana':'gambe',
+  'Sollevamento ginocchia/anche alle parallele':'gambe',
+  'Leg pull-in':'ginocchia', 'Leg pull-in da seduto su panca piana':'ginocchia',
+  'Leg pull-in su panca piana':'ginocchia', 'Sollevamento delle anche a ginocchia piegate':'ginocchia'
+};
+const CORPO_LIBERO_PARZ_SET={}; Object.keys(CORPO_LIBERO_PARZIALE).forEach(n=>{ CORPO_LIBERO_PARZ_SET[n.trim().toLowerCase()]=CORPO_LIBERO_PARZIALE[n]; });
+/* quota del peso corporeo che l'esercizio fa sollevare: 1 per trazioni e dip, una frazione
+   per i leg raise, 0 per tutto il resto. Il sesso lo legge dal profilo attivo (M se manca).
+   Il nome può portare i suffissi di variante/seduta (-N2, -MAX): si confronta la base. */
+function quotaCorpo(nome){ if(!nome) return 0;
   const base=parseVariante(nome).nome.trim().toLowerCase();
-  return !!CORPO_LIBERO_SET[base]; }
+  if(CORPO_LIBERO_SET[base]) return 1;
+  const k=CORPO_LIBERO_PARZ_SET[base]; if(!k) return 0;
+  if(k==='ginocchia') return QUOTA_GINOCCHIA;
+  const sesso=(typeof DOC!=='undefined'&&DOC&&DOC.dati_utente&&DOC.dati_utente.sesso)==='F'?'F':'M';
+  return QUOTA_GAMBE_TESE[sesso]; }
+function isCorpoLibero(nome){ return quotaCorpo(nome)>0; }
 let ESBYNAME = {};
 const FOODBYNAME = {}; FOOD.forEach(f=>FOODBYNAME[String(f.nome).trim()]=f);
 function esLookup(n){ return ESBYNAME[String(n==null?'':n).trim()]; }

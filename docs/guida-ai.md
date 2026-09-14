@@ -498,10 +498,30 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
   · a carico PARZIALE: "Dip alla panca" e "Bench dip con peso" (~50%), piegamenti (~65%),
     squat a corpo libero (~70%), "Rematore a corpo libero alla sbarra", "Tricipiti al
     corpo libero alla sbarra";
-  · da appeso ma che sollevano le sole gambe, non il corpo: "Leg raise da appeso",
-    "Pike da appeso", "Sollevamento ginocchia/anche alle parallele", "Wind sprint".
-  Gli esercizi a carico parziale entreranno quando si gestiranno le percentuali di peso
-  corporeo: se l utente lo chiede, spiega che per ora vanno compilati come prima.
+  · da appeso ma che sollevano le sole gambe senza quota assegnata: "Pike da appeso",
+    "Wind sprint".
+  Dip alla panca, piegamenti e squat a corpo libero restano SENZA quota: se l utente lo
+  chiede, spiega che vanno compilati come prima.
+- **Quote parziali: i leg raise** (dal 2026-09-14). La funzione quotaCorpo(nome) in
+  01-costanti.js restituisce la frazione di peso corporeo che l esercizio fa sollevare:
+  1 per i 16 dell elenco CORPO_LIBERO, 0 per tutto il resto, e per i leg raise la MASSA
+  DELLE DUE GAMBE secondo le tabelle di segmentazione di de Leva (1996): 0,40 se il
+  profilo e' uomo, 0,42 se donna (coscia 14,2 % + gamba 4,3 % + piede 1,4 % per lato
+  nell uomo, un po' di piu' nella donna). NON e' meta' corpo: e' meno. A ginocchia
+  piegate la massa e' la stessa ma il braccio di leva scende a circa il 60 %, e siccome
+  il modello ragiona in kg e non in momento la quota e' ridotta a 0,25.
+  Classificazione fatta leggendo le istruzioni, non il nome:
+  · gambe TESE (0,40 / 0,42): "Leg raise da appeso", "Leg raise da sdraiato su panca
+    piana", "Sollevamento ginocchia/anche alle parallele" (nonostante il nome, le
+    istruzioni dicono "solleva le gambe tenendole distese");
+  · ginocchia PIEGATE (0,25): i tre "Leg pull-in" (le istruzioni dicono "piega le
+    ginocchia"), "Sollevamento delle anche a ginocchia piegate".
+  "Dragon Flag" resta fuori: ruota sulle spalle anche il tronco, non sono solo gambe.
+  Il carico effettivo e' zavorra + peso corporeo x quota (caricoEff, tramite corpoNelCarico);
+  vale per %1RM, TL e record; il 1RM mostrato toglie solo la quota di corpo (rmMostrato),
+  cosi' si legge la zavorra massima alle caviglie. Nella scheda la pillola dice
+  "🧍 +28 kg (40%)": quanto corpo entra davvero e in che proporzione. E' un
+  APPROSSIMAZIONE dichiarata (gambe medie, leva media), accettata da Marco.
 - **TL (Training Load)**: volume × intensità, sommato su serie e righe, con un
   fattore per esercizio (esercizi più sistemici pesano di più). Conta soprattutto il
   trend nel tempo, non il valore assoluto.

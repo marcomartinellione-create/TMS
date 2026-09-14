@@ -1081,9 +1081,41 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
        && w.eval('isCorpoLibero("Piegamenti sulle braccia")') === false && w.eval('isCorpoLibero("Squat a corpo libero")') === false
        && w.eval('isCorpoLibero("Rematore a corpo libero alla sbarra")') === false && w.eval('isCorpoLibero("Tricipiti al corpo libero alla sbarra")') === false,
        'corpo libero: FUORI chi carica solo una frazione del peso (panca, piegamenti, squat, rematore)');
-    ok(w.eval('isCorpoLibero("Leg raise da appeso")') === false && w.eval('isCorpoLibero("Pike da appeso")') === false
-       && w.eval('isCorpoLibero("Sollevamento ginocchia/anche alle parallele")') === false && w.eval('isCorpoLibero("Wind sprint (alla sbarra)")') === false,
-       'corpo libero: FUORI chi sta appeso ma solleva le sole gambe (leg raise, pike, ginocchia)');
+    ok(w.eval('isCorpoLibero("Pike da appeso")') === false && w.eval('isCorpoLibero("Wind sprint (alla sbarra)")') === false,
+       'corpo libero: FUORI pike e wind sprint (nessuna quota assegnata)');
+    /* quote PARZIALI (2026-09-14): i leg raise sollevano le sole gambe — massa delle due
+       gambe secondo de Leva 1996 (M 0,40 / F 0,42), a ginocchia piegate 0,25 per la leva */
+    w.eval('DOC.dati_utente=DOC.dati_utente||{}; DOC.dati_utente.sesso="M";');
+    ok(w.eval('quotaCorpo("Trazioni alla sbarra (pull-up)")') === 1 && w.eval('quotaCorpo("Panca piana con bilanciere - presa media")') === 0,
+       'quotaCorpo: 1 per le trazioni, 0 per un bilanciere');
+    ok(w.eval('quotaCorpo("Leg raise da appeso")') === 0.40 && w.eval('quotaCorpo("Sollevamento ginocchia/anche alle parallele")') === 0.40,
+       'quotaCorpo: leg raise a gambe TESE = 0,40 (uomo) — anche il «sollevamento ginocchia» alle parallele, che per istruzioni è a gambe distese');
+    ok(w.eval('quotaCorpo("Leg pull-in")') === 0.25 && w.eval('quotaCorpo("Sollevamento delle anche a ginocchia piegate")') === 0.25,
+       'quotaCorpo: a ginocchia PIEGATE = 0,25 (stessa massa, leva ridotta)');
+    w.eval('DOC.dati_utente.sesso="F";');
+    ok(w.eval('quotaCorpo("Leg raise da appeso")') === 0.42 && w.eval('quotaCorpo("Leg pull-in")') === 0.25,
+       'quotaCorpo: donna → gambe tese 0,42 (de Leva), ginocchia piegate invariate');
+    w.eval('DOC.dati_utente.sesso="M";');
+    ok(w.eval('isCorpoLibero("Leg raise da appeso")') === true && w.eval('isCorpoLibero("Leg raise da appeso -N2")') === true,
+       'corpo libero: i leg raise ora contano (anche col suffisso di seduta)');
+    { const rLeg = { esercizio:'Leg raise da appeso', serie:3, rip:10, peso:0, rir:'' };
+      ok(Math.abs(w.eval('caricoEff(' + JSON.stringify(rLeg) + ')') - pc * 0.40) < 0.01,
+         'leg raise: carico effettivo = 40% del corpo (' + Math.round(pc * 0.4) + ' kg su ' + pc + ')');
+      const rLegZ = { esercizio:'Leg raise da appeso', serie:3, rip:10, peso:5, rir:'' };
+      ok(Math.abs(w.eval('caricoEff(' + JSON.stringify(rLegZ) + ')') - (pc * 0.40 + 5)) < 0.01, 'leg raise: la zavorra alle caviglie si somma alla quota');
+      ok(w.eval('rmMostrato(' + JSON.stringify(rLegZ) + ')') < w.eval('sRM(' + JSON.stringify(rLegZ) + ')'),
+         'leg raise: il 1RM mostrato toglie solo la quota di corpo, non tutto il peso');
+      ok(w.eval('sTL(' + JSON.stringify(rLeg) + ')') > 0 && w.eval('sTL(' + JSON.stringify(rLeg) + ')') < w.eval('sTL(' + JSON.stringify({ esercizio:'Trazioni alla sbarra (pull-up)', serie:3, rip:10, peso:0, rir:'' }) + ')'),
+         'leg raise: produce TL, ma meno di una trazione a pari serie e ripetizioni'); }
+    /* ogni nome delle quote parziali deve esistere nel catalogo, come per l'elenco al 100% */
+    ok(w.eval('Object.keys(CORPO_LIBERO_PARZIALE).filter(function(n){ return !esLookup(n); }).length') === 0,
+       'quote parziali: tutti i ' + w.eval('Object.keys(CORPO_LIBERO_PARZIALE).length') + ' nomi esistono nel catalogo');
+    /* la pillola nella scheda dice quanto corpo entra davvero e in che proporzione */
+    const schedaPre = w.eval('JSON.stringify(DOC.scheda.settimanale)');
+    w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Leg raise da appeso",serie:3,rip:10,peso:0}]; renderAllenamento();');
+    { const pill = [...d.querySelectorAll('#panel-allenamento .pill')].map(e => e.textContent).find(x => x.includes('kg') && x.includes('40%'));
+      ok(!!pill && pill.includes('+' + Math.round(pc * 0.4)), 'leg raise: la pillola mostra «+' + Math.round(pc * 0.4) + ' kg (40%)», non il corpo intero'); }
+    w.eval('DOC.scheda.settimanale=' + schedaPre + '; renderAllenamento();');   /* la scheda torna com’era: i test dopo ci contano */
     /* ogni nome dell'elenco deve esistere davvero nel catalogo: un refuso lo renderebbe muto */
     ok(w.eval('CORPO_LIBERO.filter(function(n){ return !esLookup(n); }).length') === 0,
        'corpo libero: tutti i ' + w.eval('CORPO_LIBERO.length') + ' nomi dell\'elenco esistono nel catalogo');

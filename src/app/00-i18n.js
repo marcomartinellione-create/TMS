@@ -535,6 +535,8 @@ const EN={
   'Lento avanti / Military':'Overhead / Military','Alzate':'Raises','Rematore':'Row',
   'Shrug / Trapezi':'Shrug / Traps','Core / Addome':'Core / Abs','Olimpici / Esplosivi':'Olympic / Explosive','Varie':'Various',
   /* ══════════ tab ESERCIZI ══════════ */
+  'Solleva solo una parte del corpo: al peso scritto si somma il':'Lifts only part of the body: the weight you write gets added to',
+  'del tuo peso corporeo (massa delle gambe, tabelle di de Leva; a ginocchia piegate la leva conta meno). Lo aggiorni dal tab Corpo.':'of your body weight (leg mass, de Leva tables; with bent knees the lever counts less). Update it from the Body tab.',
   'Nuovo esercizio':'New exercise',
   'Duplica esercizio':'Duplicate exercise',
   'Duplica':'Duplicate',
