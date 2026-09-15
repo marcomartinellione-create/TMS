@@ -365,7 +365,14 @@ nei dispositivi.
    il cliente non ha la banca alimenti). Un popup chiede il TIPO di scheda: FISSA
    (sola compilazione, come le versioni precedenti) o MODIFICABILE (il cliente può
    anche aggiungere/eliminare/modificare esercizi e segnare i test del massimale 1RM);
-   la scelta è nel campo 'modificabile' del file (default false = fissa). Alla domanda
+   la scelta è nel campo 'modificabile' del file (default false = fissa). Con la scheda
+   modificabile il file porta anche il **catalogo del coach** (campo 'catalogo': nome +
+   gruppo dei soli esercizi da pesi, ~750 voci, circa 38 KB): nell app del telefono
+   (dalla v2.5) il nome di un esercizio aggiunto si cerca in quell elenco e al salvataggio
+   viene RIFIUTATO se non c e' — nel TMS del coach si possono importare solo quelli,
+   altrimenti arriverebbero senza muscoli né fattore. Si salva il nome esatto del catalogo
+   (maiuscole comprese), perché è la chiave dei dati. Senza catalogo nel file (export
+   di versioni precedenti) l app lascia il testo libero come prima. Alla domanda
    sui video: includendoli il cliente vede le esecuzioni offline nell'app ma il file pesa di più.
 2. **Il cliente compila nell'app** — salva il file sul telefono e lo carica in TMS
    Scheda con «📂 Carica la scheda»: la scheda resta memorizzata nell'app (la ritrova

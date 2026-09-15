@@ -70,10 +70,16 @@ function costruisciSchedaJSON(videoMap, modificabile){
     serie:+r.serie||0, rip:+r.rip||0, min:+r.min||0, note:r.note||'', video:videoOf(r.esercizio)||''}));
   /* `rpe`: il profilo usa il Session-RPE? Se no, l'app del cliente non mostra fatica e
      durata — resta solo una casella per spuntare il giorno come completato. */
+  /* scheda MODIFICABILE: il cliente può aggiungere esercizi dal telefono, e devono essere
+     quelli che il coach ha davvero a catalogo, altrimenti all'import il TMS li carica senza
+     muscoli né fattore (safe check 2). Quindi si allega l'elenco: nome + gruppo, solo gli
+     esercizi da pesi (cardio e stretching non vanno nella scheda). ~30 KB, meno dei video. */
+  const catalogo = modificabile ? (DOC.esercizi||[]).filter(e=>e&&e.nome&&!isCardio(e)&&!isStretching(e))
+    .map(e=>({n:String(e.nome).trim(), g:String(e.macro||e.gruppo||'')})) : undefined;
   return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile, rpe:useRpeActive(),
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
     appCliente:APP_CLIENTE_URL, righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),
-    video:videoMap, dieta:costruisciDietaJSON()};
+    video:videoMap, dieta:costruisciDietaJSON(), catalogo:catalogo};
 }
 
 /* popup all'export: scheda FISSA (sola compilazione, come prima) o MODIFICABILE (il

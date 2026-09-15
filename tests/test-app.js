@@ -865,6 +865,37 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     sd.getElementById('ename-' + newRid).value = 'Plank';
     sd.getElementById('savedit-' + newRid).click();
     ok(sw.eval('WROWS.find(r=>r.rid===' + newRid + ').esercizio') === 'Plank', 'app cliente/esercizi: la Modifica salva il nome del nuovo esercizio');
+    /* ── validazione sul catalogo del coach (v2.5): gli esercizi aggiunti devono esistere nel suo TMS ── */
+    ok(Array.isArray(schedaCli.catalogo) && schedaCli.catalogo.length > 500 && schedaCli.catalogo.every(e => e.n && 'g' in e),
+       'export modificabile: il file porta il catalogo del coach (' + (schedaCli.catalogo || []).length + ' esercizi, nome + gruppo)');
+    ok(!schedaCli.catalogo.some(e => /^(Corsa|Cyclette|Ellittica)/.test(e.n)) && !schedaCli.catalogo.some(e => /^Allungamento/.test(e.n)),
+       'export modificabile: nel catalogo allegato niente cardio né stretching (non vanno nella scheda)');
+    ok(w.eval('costruisciSchedaJSON({}).catalogo') === undefined, 'export FISSA: nessun catalogo allegato (il cliente non può aggiungere esercizi)');
+    { sd.querySelector('[data-add="0"]').click();
+      const rid2 = sw.eval('WROWS[WROWS.length-1].rid');
+      const inp = sd.getElementById('ename-' + rid2);
+      ok(sd.getElementById('sugg-' + rid2) !== null && /catalogo del coach/.test(sd.getElementById('sugg-' + rid2).textContent),
+         'app cliente/catalogo: sotto il nome c\'è la ricerca sul catalogo del coach');
+      inp.value = 'panca pia'; inp.dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+      const picks = [...sd.querySelectorAll('#sugg-' + rid2 + ' [data-pick]')].map(b => b.getAttribute('data-pick'));
+      ok(picks.includes('Panca piana con bilanciere - presa media') && picks.length <= 14,
+         'app cliente/catalogo: «panca pia» propone la panca piana col bilanciere (max 14 voci)');
+      /* nome inventato → rifiutato, con messaggio, e la riga non cambia */
+      inp.value = 'Esercizio inventato'; inp.dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+      sd.getElementById('savedit-' + rid2).click();
+      ok(sw.eval('WROWS.find(r=>r.rid===' + rid2 + ').esercizio') === '' && sd.getElementById('eerr-' + rid2) !== null && sd.getElementById('eerr-' + rid2).hidden === false,
+         'app cliente/catalogo: un nome che il coach NON ha viene rifiutato, con avviso nel pannello');
+      /* tocco su un suggerimento → il nome entra esatto */
+      inp.value = 'stacco rume'; inp.dispatchEvent(new sub.window.Event('input', { bubbles: true }));
+      const b = sd.querySelector('#sugg-' + rid2 + ' [data-pick="Stacco rumeno"]');
+      ok(b !== null, 'app cliente/catalogo: «stacco rume» propone «Stacco rumeno»');
+      b.click();
+      ok(inp.value === 'Stacco rumeno', 'app cliente/catalogo: il tocco sul suggerimento compila il nome');
+      /* maiuscole diverse → si salva il nome ESATTO del catalogo (è la chiave dei dati del coach) */
+      inp.value = 'stacco RUMENO';
+      sd.getElementById('savedit-' + rid2).click();
+      ok(sw.eval('WROWS.find(r=>r.rid===' + rid2 + ').esercizio') === 'Stacco rumeno', 'app cliente/catalogo: salvato col nome esatto del catalogo anche se scritto diverso');
+      sw.confirm = () => true; sd.querySelector('[data-del="' + rid2 + '"]').click(); }
     sd.getElementById('s-' + newRid).value = '3';
     sd.getElementById('s-' + newRid).dispatchEvent(new sub.window.Event('input', { bubbles: true }));
     const rientro2 = sw.eval('costruisciRientro()');

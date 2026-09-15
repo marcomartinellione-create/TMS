@@ -133,6 +133,13 @@
  /* bottone «aggiungi esercizio» */
  .add-ex{display:block;width:100%;margin:2px 0 10px;padding:10px;font:inherit;font-size:14px;font-weight:bold;background:#fbf4e6;color:#9a5b1f;border:1.5px dashed #b97a39;border-radius:var(--r-sm);cursor:pointer;text-align:center}
  .add-ex:active{background:#f1e6cd}
+ .sugg{margin:4px 0 2px;border:1px solid #cdb889;border-radius:var(--r-xs);background:#fff;max-height:210px;overflow:auto}
+ .sugg button{display:block;width:100%;text-align:left;font:inherit;font-size:14px;padding:8px 10px;border:0;border-bottom:1px solid #f0e6cf;background:#fff;color:#2c1e0c;cursor:pointer}
+ .sugg button:last-child{border-bottom:0}
+ .sugg button:active{background:#fbf4e6}
+ .sugg .g{color:#9a5b1f;font-size:11.5px;margin-left:6px}
+ .sugg-hint{color:#8a7455;font-size:12px;padding:2px 2px 4px}
+ .ex-err{margin:6px 0 2px;padding:7px 10px;border-radius:var(--r-xs);background:#fdecec;color:#991b1b;border:1px solid #d9a8a8;font-size:13px}
  /* fine seduta */
  .seduta{background:#f6ecd6;border:1px solid #cdb889;border-radius:var(--r-sm);padding:10px 13px;margin:0 0 10px}
  .seduta-t{font-size:11.5px;color:#9a5b1f;font-weight:bold;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
@@ -298,7 +305,7 @@
    coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.4';
+const CVER='2.5';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -361,6 +368,11 @@ const TT={en:{
   '📲 <b>Aggiungi l’app alla schermata Home</b>: menu del browser (⋮) → <b>«Installa app»</b> o <b>«Aggiungi a schermata Home»</b>. Da lì funziona anche offline.':'📲 <b>Add the app to the Home screen</b>: browser menu (⋮) → <b>«Install app»</b> or <b>«Add to Home Screen»</b>. From there it works offline too.',
   /* v1.5 — aggiungere/eliminare/modificare esercizi + test massimale (1RM) + timer di recupero */
   '➕ Aggiungi esercizio':'➕ Add exercise',
+  'Cerca fra i':'Search among the',
+  'esercizi del catalogo del coach':'exercises in your coach’s catalog',
+  'Scegli un esercizio dall’elenco del coach: nel suo TMS può importare solo quelli.':'Pick an exercise from your coach’s list: their TMS can only import those.',
+  'Nessun esercizio corrisponde: prova con meno parole.':'No exercise matches: try fewer words.',
+  'scrivi almeno 2 lettere':'type at least 2 letters',
   'Nuovo esercizio':'New exercise',
   'aggiunto':'added',
   'Test':'Test',
@@ -827,10 +839,34 @@ function toggleStar(rid){
   const b=document.querySelector('[data-star="'+rid+'"]'); if(b) b.classList.toggle('on', r.test);
   salvaBozza();
 }
+/* ── catalogo del coach: arriva nel file (scheda modificabile, dal TMS v1.1.15). Se c'è, il
+   nome di un esercizio aggiunto DEVE stare lì dentro: nel suo TMS il coach può importare
+   solo quelli, tutto il resto arriverebbe senza muscoli né fattore. Senza elenco (file
+   vecchi) resta il testo libero di prima. ── */
+function catalogoCoach(){ const c=SCHEDA&&SCHEDA.catalogo; return Array.isArray(c)&&c.length? c : null; }
+function nelCatalogo(nome){ const c=catalogoCoach(); if(!c) return true;
+  const n=String(nome||'').trim().toLowerCase(); return c.some(e=>String(e.n||'').trim().toLowerCase()===n); }
+/* ricerca a parole, come nel TMS: tutte le parole digitate, in qualunque ordine, nel nome o nel gruppo */
+function cercaCatalogo(q){ const c=catalogoCoach(); if(!c) return [];
+  const toks=String(q||'').trim().toLowerCase().split(/\s+/).filter(Boolean); if(!toks.length) return [];
+  return c.filter(e=>{ const h=(String(e.n||'')+' '+String(e.g||'')).toLowerCase(); return toks.every(t=>h.includes(t)); }).slice(0,14); }
+function suggerisci(rid){
+  const inp=$('ename-'+rid), box=$('sugg-'+rid); if(!inp||!box) return;
+  const q=inp.value.trim();
+  if(q.length<2){ box.innerHTML='<div class="sugg-hint">'+tt('Cerca fra i')+' '+catalogoCoach().length+' '+tt('esercizi del catalogo del coach')+' — '+tt('scrivi almeno 2 lettere')+'</div>'; return; }
+  if(nelCatalogo(q)){ box.innerHTML=''; return; }   /* già scelto: niente da suggerire */
+  const hit=cercaCatalogo(q);
+  box.innerHTML= hit.length? hit.map(e=>'<button type="button" data-pick="'+esc(e.n)+'">'+esc(e.n)+(e.g?'<span class="g">'+esc(e.g)+'</span>':'')+'</button>').join('')
+    : '<div class="sugg-hint">'+tt('Nessun esercizio corrisponde: prova con meno parole.')+'</div>';
+  box.querySelectorAll('[data-pick]').forEach(b=>{ b.onclick=()=>{ inp.value=b.getAttribute('data-pick'); box.innerHTML=''; const er=$('eerr-'+rid); if(er) er.hidden=true; }; });
+}
 function openEdit(rid){
   const r=rowById(rid), box=$('edit-'+rid); if(!r||!box) return;
   const opts=GIORNI.map(g=>'<option value="'+esc(g)+'"'+(g===r.giorno?' selected':'')+'>'+esc(g)+'</option>').join('');
-  box.innerHTML='<div class="f note"><label>'+tt('Nome dell’esercizio')+'</label><input class="nome" id="ename-'+rid+'" type="text" value="'+esc(r.esercizio)+'"></div>'+
+  const conCat=!!catalogoCoach();
+  box.innerHTML='<div class="f note"><label>'+tt('Nome dell’esercizio')+'</label><input class="nome" id="ename-'+rid+'" type="text" value="'+esc(r.esercizio)+'"'+(conCat?' autocomplete="off" placeholder="'+esc(tt('scrivi almeno 2 lettere'))+'"':'')+'></div>'+
+    (conCat?'<div class="sugg" id="sugg-'+rid+'"></div>':'')+
+    '<div class="ex-err" id="eerr-'+rid+'" hidden></div>'+
     '<div class="f note"><label>'+tt('Giorno')+'</label><select class="giorno" id="eday-'+rid+'">'+opts+'</select></div>'+
     '<div class="f"><label>'+tt('Serie')+'</label><input id="eser-'+rid+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.serie||'')+'"></div>'+
     '<div class="f"><label>'+tt('Ripetizioni')+'</label><input id="erip-'+rid+'" type="number" inputmode="numeric" min="0" step="1" value="'+(+r.rip||'')+'"></div>'+
@@ -840,13 +876,19 @@ function openEdit(rid){
     '<div class="ex-actions"><button type="button" class="mini rec" id="savedit-'+rid+'">'+tt('💾 Salva')+'</button>'+
       '<button type="button" class="mini" id="canceledit-'+rid+'">'+tt('Annulla')+'</button></div>';
   box.hidden=false;
+  if(conCat){ const inp=$('ename-'+rid); inp.oninput=()=>suggerisci(rid); suggerisci(rid); }
   $('savedit-'+rid).onclick=()=>saveEdit(rid);
   $('canceledit-'+rid).onclick=()=>{ box.hidden=true; box.innerHTML=''; };
 }
 function saveEdit(rid){
   const r=rowById(rid); if(!r) return;
   const gv=id=>{ const el=$(id); return el?el.value:''; };
-  r.esercizio=String(gv('ename-'+rid)||'').trim();
+  const nome=String(gv('ename-'+rid)||'').trim();
+  if(nome && !nelCatalogo(nome)){
+    const er=$('eerr-'+rid); if(er){ er.textContent=tt('Scegli un esercizio dall’elenco del coach: nel suo TMS può importare solo quelli.'); er.hidden=false; }
+    suggerisci(rid); return; }
+  /* si salva il nome ESATTO del catalogo (maiuscole comprese): è la chiave dei dati del coach */
+  { const c=catalogoCoach(); const hit=c&&c.find(e=>String(e.n||'').trim().toLowerCase()===nome.toLowerCase()); r.esercizio=hit?hit.n:nome; }
   const nd=String(gv('eday-'+rid)||r.giorno); if(GIORNI.indexOf(nd)>=0) r.giorno=nd;
   r.serie=+gv('eser-'+rid)||0; r.rip=+gv('erip-'+rid)||0; r.peso=+gv('epeso-'+rid)||0;
   const rr=gv('erir-'+rid); r.rir=(rr===''?null:+rr);
