@@ -4,6 +4,46 @@
 
 ---
 
+### 2026-09-29 — TMS v1.1.15: ragnatela a distribuzione, record in zavorra, catalogo del coach nella scheda cliente
+
+**Tipo**: cambio di metrica (ragnatela) + correzione di due bug + feature
+**File coinvolti**: `src/app/01-costanti.js` (`RIF_QUOTA`, `distribuzione`, `vociDistribuzione`) ·
+`src/app/02-calcoli.js` (`pesoMostrato`) · `src/app/06-allenamento.js` (Bilanciamento, avviso record) ·
+`src/app/08-progressi.js` (ragnatela, barre col cardio, `progSetGet`/`progSetSet` senza cache, record) ·
+`src/app/13-report.js` · `src/app/15-scambio.js` (catalogo nel file) · `docs/app/index.html` + `sw.js`
+(PWA 2.5 e 2.6) · `src/app/00-i18n.js` · guide IT/EN e guida-AI · `tests/test-app.js`
+
+**Descrizione**:
+- **Ragnatela «Equilibrio» = distribuzione, non quantità** (Marco: «è un discorso di forma e proporzione»).
+  Nelle tre ragnatele (⚖ Bilanciamento, Progressi, Report) ogni asse è la quota % del gruppo sul lavoro coi
+  pesi, con la percentuale sull'etichetta. Settimana leggera e pesante distribuite allo stesso modo → stesso
+  disegno. Fascia verde `RIF_QUOTA`: 10°–90° percentile della quota nelle schede equilibrate, simmetrica
+  perché le quote fanno cento. Le quantità restano nell'elenco del Bilanciamento e nelle barre «Serie per
+  gruppo» (fasce assolute `RIF_GRUPPO`). Il Cardio esce dalla ragnatela (cambierebbe la quota di tutti) e
+  torna nelle barre, min÷10 col riscaldamento.
+- **Meta-analisi ripristinata.** Le 932 pagine dell'8/9 erano rimaste nella cartella temporanea di sessione e
+  sono andate perse. Riscaricate in `Doc/meta-analisi/` (fuori dal repo) con script e README: 61 schede
+  equilibrate su ~930, spinta/trazione mediana 1,00, fasce assolute entro mezzo punto dalle precedenti.
+- **Record in zavorra** (bug). La colonna 1RM mostrava la zavorra ma la card dei Record il totale (86,4 kg
+  invece di 12, e un altro evento perché classificato sul totale), il grafico di progressione mescolava «1RM
+  27,6» e «Peso max 77,8», e l'avviso 🎉 Nuovo record scattava prendendo peso corporeo. Ora `pesoMostrato`
+  (il peso scritto) governa tutti i kg mostrati; record = zavorra massima, a parità più ripetizioni, e per
+  il corpo libero conta anche lo 0. Bilancieri invariati.
+- **Filtro di Progressi per profilo** (bug). Su disco si salvava, ma una copia in memoria non si azzerava
+  cambiando profilo: ogni cliente vedeva il filtro dell'ultimo aperto. Ora si legge sempre dal profilo attivo.
+- **Scheda cliente: esercizi dal catalogo del coach.** Esportando una scheda modificabile il file porta il
+  catalogo (nome + gruppo dei soli esercizi da pesi, 746 voci, +38 KB). Nell'app del telefono (2.5) il nome di
+  un esercizio aggiunto si sceglie da quell'elenco e un nome sconosciuto viene rifiutato; si salva il nome
+  esatto, che è la chiave dei dati. Senza catalogo (file vecchi) resta il testo libero.
+- **Rientro: il cliente sceglie dove salvarlo** (app del telefono 2.6): condividi, scegli la cartella, Download
+  — solo le strade che quel dispositivo supporta.
+
+**Test**: 583 OK (da 549), `npm run verifica` OK. **Verifica in app**: ragnatela con i dati veri; menu del
+rientro e ricerca sul catalogo su schermo da telefono.
+**Approvato da**: Marco (2026-09-29)
+
+---
+
 ### 2026-09-14 — TMS v1.1.14: ricerca in inglese, editor esercizi rifatto, quota corpo per i leg raise
 
 **Tipo**: feature + correzione di un bug di perdita dati + estensione di metrica
