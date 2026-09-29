@@ -279,8 +279,9 @@ Due modi per registrare una seduta:
   selettore **«Dati da analizzare»**: «Tutto il percorso» oppure un singolo **Training Set**
   (patch al limite noto della confrontabilità del TL tra schede molto diverse — es. Palestra
   vs Casa). La scelta **si ricorda**: vive nel profilo (dati_utente.progSet, quindi in
-  corpo.json) e viene riproposta al rientro; se il Training Set salvato non esiste piu' si
-  torna da soli a «Tutto il percorso». Ogni settimana salvata porta il campo 'set' col Training Set attivo; le settimane
+  corpo.json) e viene riproposta al rientro; ogni profilo ha la SUA (cambiando profilo non
+  si trascina quella del precedente); se il Training Set salvato non esiste piu' si torna
+  da soli a «Tutto il percorso». Ogni settimana salvata porta il campo 'set' col Training Set attivo; le settimane
   salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso». **Eccezione
   (dal v1.1.6)**: i «Record personali · carico massimo» NON seguono questo filtro — un record
   è un record, sempre calcolato su TUTTO lo storico indipendentemente dal Training Set attivo;
@@ -401,8 +402,12 @@ nei dispositivi.
    dopo l'allenamento; il previsto resta indicato sopra i campi). Guarda i ▶ video, e
    preme «📩 Crea il file per il coach» (prima vede un **riepilogo** di quanto ha
    segnato): nasce «Rientro_profilo_data.json» (formato 'tms-rientro', con in più il
-   campo opzionale 'foto': [{tag,data,img}] se ha scattato foto) da rimandare al coach,
-   dove possibile con la condivisione diretta (WhatsApp ecc.).
+   campo opzionale 'foto': [{tag,data,img}] se ha scattato foto) da rimandare al coach.
+   Dalla v2.6 un menu **«Dove salvo il rientro?»** lascia scegliere, mostrando solo le
+   strade che quel dispositivo supporta davvero: «Invia o salva con…» (condivisione del
+   telefono: WhatsApp, email, Drive, «Salva in File» su iPhone), «Scegli la cartella…»
+   (dove il browser lo permette, di solito Chrome su PC: si decidono cartella e nome) e
+   «Salva nei Download» (sempre presente). Il tasto indietro del telefono chiude il menu.
    Il **riscaldamento** viaggia nella scheda (campo 'riscaldamento') ma è solo informativo:
    NON entra nel rientro e non conta in alcun calcolo.
 3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e l'allenamento
@@ -476,8 +481,13 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - **%1RM**: intensità della serie rispetto al massimale stimato.
 - **Esercizi a corpo libero** (dal 2026-08-19): per trazioni e dip il carico vero non è
   il numero scritto nella colonna Peso, ma PESO DEL CORPO + quel numero (che vale come
-  ZAVORRA: 0 = a corpo libero, 15 = con 15 kg appesi). Vale per %1RM, TL, record e
-  tonnellaggio.
+  ZAVORRA: 0 = a corpo libero, 15 = con 15 kg appesi). Vale per %1RM, TL e tonnellaggio.
+  I kg MOSTRATI invece sono sempre la zavorra, mai il totale (regola di Marco, 2026-09-29;
+  funzione pesoMostrato = il peso scritto): colonna 1RM, card dei Record personali, elenco
+  record del Report, serie «Peso max» del grafico di progressione e avviso «Nuovo record»
+  al salvataggio. Il record è la zavorra massima; a parità vince chi ha più ripetizioni;
+  per il corpo libero conta anche la zavorra 0 («0 kg ×11»). Classificare sul totale faceva
+  cambiare il record col peso corporeo: prendere 2 kg produceva un «primato» senza sollevare di più.
   ATTENZIONE al 1RM, che si comporta diversamente (scelta di Marco): per questi esercizi
   la colonna 1RM mostra la ZAVORRA MASSIMA stimata, non il carico totale — cioè quanto
   potresti appenderti per una singola ripetizione («trazioni con +25 kg»), che è il modo

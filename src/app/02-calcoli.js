@@ -53,6 +53,10 @@ function sRM(r){ return rm1(caricoEff(r), effRip(r)); }
    cui si programma. È una trasformazione di sola PRESENTAZIONE (scelta di Marco): il
    calcolo sotto non cambia, cambia ciò che si legge nella cella. Non può venire negativa:
    con almeno una ripetizione il massimale stimato è sempre ≥ del carico mosso. */
+/* kg da MOSTRARE per una riga: quelli scritti nella colonna Peso. Per trazioni, dip e leg
+   raise è la zavorra (il corpo entra nei calcoli, non nel numero che leggi); per tutto il
+   resto coincide col carico. Regola di Marco: per il corpo libero mai il totale. */
+function pesoMostrato(r){ return +(r&&r.peso)||0; }
 function rmMostrato(r){ const m=sRM(r);
   return isCorpoLibero(r&&r.esercizio)? Math.max(0, m-corpoNelCarico(r)) : m; }
 /* %1RM invece resta sul carico TOTALE: è l'intensità della serie, e serve a dire in che

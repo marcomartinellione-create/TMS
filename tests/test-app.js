@@ -629,9 +629,15 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     /* il filtro scelto si ricorda: vive nel profilo, non solo in memoria */
     w.eval('progSetSet("Casa");');
     ok(w.eval('DOC.dati_utente.progSet') === 'Casa', 'Progressi/filtro: la scelta finisce nel profilo (dati_utente)');
-    w.eval('_progSet=null;');
     ok(w.eval('progSetGet()') === 'Casa', 'Progressi/filtro: al rientro riparte dall\'ultimo scelto, non da «Tutto il percorso»');
-    w.eval('DOC.dati_utente.progSet="SetSparito"; _progSet=null;');
+    ok(w.eval('typeof _progSet') === 'undefined', 'Progressi/filtro: nessuna copia in memoria (si legge sempre dal profilo attivo)');
+    /* bug 2026-09-29: cambiando profilo si vedeva il filtro dell'ULTIMO profilo aperto */
+    { const salvato = w.eval('JSON.stringify(DOC.dati_utente)');
+      w.eval('DOC.dati_utente=JSON.parse(JSON.stringify(DOC.dati_utente)); DOC.dati_utente.progSet=undefined;');   /* simula un altro profilo, senza scelta */
+      ok(w.eval('progSetGet()') === '__tutti__', 'Progressi/filtro: un profilo che non ha scelto nulla parte da «Tutto il percorso», non dal filtro del profilo precedente');
+      w.eval('DOC.dati_utente=' + salvato + ';');
+      ok(w.eval('progSetGet()') === 'Casa', 'Progressi/filtro: tornando al profilo di prima ritrova la SUA scelta'); }
+    w.eval('DOC.dati_utente.progSet="SetSparito";');
     ok(w.eval('progSetGet()') === '__tutti__', 'Progressi/filtro: se il Training Set salvato non esiste più si torna a «Tutto il percorso»');
     w.eval('progSetSet("__tutti__"); showTab("progressi");');
     w.eval('progSetSet("__tutti__"); DOC.storico.length=' + stoPre + '; showTab("progressi");'); }
@@ -911,6 +917,33 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     const firstRid = sw.eval('WROWS[0].rid');
     sd.querySelector('[data-del="' + firstRid + '"]').click();
     ok(sw.eval('WROWS.some(r=>r.rid===' + firstRid + ')') === false && sw.eval('WROWS.length') === before, 'app cliente/esercizi: 🗑 elimina la riga (dopo +1/−1 il totale torna all\'originale)');
+    /* ── rientro: un menu chiede DOVE salvarlo (v2.6) ── */
+    { sw.navigator.share = () => Promise.resolve(); sw.navigator.canShare = () => true;   /* telefono che sa condividere */
+      delete sw.showSaveFilePicker;
+      await sw.eval('inviaRientro()');
+      const vie = [...sd.querySelectorAll('#dove-lista [data-via]')].map(b => b.getAttribute('data-via'));
+      ok(sd.getElementById('doveov').style.display === 'flex', 'app cliente/rientro: si apre il menu «Dove salvo il rientro?» invece di salvare subito');
+      ok(JSON.stringify(vie) === '["condividi","download"]', 'app cliente/rientro: su un telefono che sa condividere offre condividi + Download (' + vie.join(', ') + ')');
+      ok(/^Rientro_.*\.json$/.test(sd.getElementById('dove-nome').textContent), 'app cliente/rientro: il menu mostra il nome del file');
+      /* tasto indietro del telefono: chiude il menu, non la schermata */
+      ok(sw.eval('risali()') === true && sd.getElementById('doveov').style.display === 'none', 'app cliente/rientro: il tasto indietro chiude il menu');
+      /* PC con Chrome: c'è anche «scegli la cartella» */
+      let salvato = null;
+      sw.showSaveFilePicker = async o => ({ name: o.suggestedName, createWritable: async () => ({ write: async x => { salvato = x; }, close: async () => {} }) });
+      sw.alert = () => {};
+      await sw.eval('inviaRientro()');
+      const vie2 = [...sd.querySelectorAll('#dove-lista [data-via]')].map(b => b.getAttribute('data-via'));
+      ok(vie2.includes('cartella'), 'app cliente/rientro: dove il browser lo permette c\'è anche «Scegli la cartella…»');
+      sd.querySelector('#dove-lista [data-via="cartella"]').click();
+      await settle(50);
+      ok(salvato && JSON.parse(salvato).tipo === 'tms-rientro' && sd.getElementById('doveov').style.display === 'none',
+         'app cliente/rientro: scegliendo la cartella il rientro vero finisce lì e il menu si chiude');
+      /* dispositivo senza condivisione né cartelle: resta solo Download, ma si chiede comunque */
+      delete sw.navigator.share; delete sw.navigator.canShare; delete sw.showSaveFilePicker;
+      await sw.eval('inviaRientro()');
+      const vie3 = [...sd.querySelectorAll('#dove-lista [data-via]')].map(b => b.getAttribute('data-via'));
+      ok(JSON.stringify(vie3) === '["download"]', 'app cliente/rientro: senza altre strade resta «Salva nei Download»');
+      sw.eval('chiudiDove()'); }
     sub.window.close();
   }
   /* v1.5: scheda FISSA (modificabile:false) → niente aggiungi/modifica/elimina/★, ma il timer resta */
@@ -1147,6 +1180,29 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     { const pill = [...d.querySelectorAll('#panel-allenamento .pill')].map(e => e.textContent).find(x => x.includes('kg') && x.includes('40%'));
       ok(!!pill && pill.includes('+' + Math.round(pc * 0.4)), 'leg raise: la pillola mostra «+' + Math.round(pc * 0.4) + ' kg (40%)», non il corpo intero'); }
     w.eval('DOC.scheda.settimanale=' + schedaPre + '; renderAllenamento();');   /* la scheda torna com’era: i test dopo ci contano */
+    /* ── kg MOSTRATI per il corpo libero: sempre la zavorra, mai il totale (2026-09-29) ──
+       Prima la card dei Record e il grafico di progressione davano il totale (corpo +
+       zavorra), mentre la colonna 1RM dava la zavorra: due numeri diversi per la stessa cosa. */
+    { const T = 'Trazioni alla sbarra (pull-up)', pre = w.eval('DOC.storico.length');
+      w.eval('DOC.storico.push({scheda:209801,esercizio:' + JSON.stringify(T) + ',serie:3,rip:6,peso:12,set:""},' +
+             '{scheda:209802,esercizio:' + JSON.stringify(T) + ',serie:3,rip:9,peso:12,set:""},' +
+             '{scheda:209803,esercizio:' + JSON.stringify(T) + ',serie:3,rip:15,peso:10,set:""});');
+      const rec = JSON.parse(w.eval('JSON.stringify(realMax(' + JSON.stringify(T) + '))'));
+      ok(rec.peso === 12, 'record trazioni: la card mostra la ZAVORRA massima (12), non il totale (' + Math.round(12 + pc) + ')');
+      ok(rec.rip === 9, 'record trazioni: a parità di zavorra vince chi ha fatto più ripetizioni (12 kg ×9 batte 12 kg ×6)');
+      const pl = JSON.parse(w.eval('JSON.stringify(prList().find(function(p){return p.nome===' + JSON.stringify(T) + ';}))'));
+      ok(pl && pl.peso === 12, 'record trazioni: anche l\'elenco record del Report usa la zavorra');
+      const pg = JSON.parse(w.eval('JSON.stringify(exProgression(' + JSON.stringify(T) + ').find(function(p){return p.scheda===209802;}))'));
+      ok(pg.peso === 12 && pg.rm < 12 + pc, 'progressione trazioni: «Peso max» e «1RM» sono entrambi in zavorra, coerenti nello stesso grafico');
+      /* solo a corpo libero (zavorra 0) è comunque un record, non «nessun dato» */
+      w.eval('DOC.storico=DOC.storico.filter(function(r){return r.esercizio!==' + JSON.stringify(T) + ';});');
+      w.eval('DOC.storico.push({scheda:209804,esercizio:' + JSON.stringify(T) + ',serie:3,rip:11,peso:0,set:""});');
+      const solo = JSON.parse(w.eval('JSON.stringify(realMax(' + JSON.stringify(T) + '))'));
+      ok(solo && solo.peso === 0 && solo.rip === 11, 'record trazioni: con sole serie a corpo libero il record è «0 kg ×11», non vuoto');
+      /* i bilancieri non cambiano: lì peso scritto e carico coincidono */
+      ok(w.eval('pesoMostrato({esercizio:"Squat con bilanciere",peso:120})') === w.eval('caricoEff({esercizio:"Squat con bilanciere",peso:120})'),
+         'record bilanciere: kg mostrati = carico, invariati');
+      w.eval('DOC.storico.length=' + pre + ';'); }
     /* ogni nome dell'elenco deve esistere davvero nel catalogo: un refuso lo renderebbe muto */
     ok(w.eval('CORPO_LIBERO.filter(function(n){ return !esLookup(n); }).length') === 0,
        'corpo libero: tutti i ' + w.eval('CORPO_LIBERO.length') + ' nomi dell\'elenco esistono nel catalogo');

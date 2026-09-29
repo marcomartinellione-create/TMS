@@ -529,12 +529,12 @@ function saveSchedaModal(){
     const code=schedaCode(anno,sett);
     const exist=DOC.storico.filter(r=>(+r.scheda)===code).length;
     if(exist && !confirm(t('Esiste già la scheda')+' '+code+' ('+exist+' '+t('righe). Le nuove righe verranno AGGIUNTE. Procedo?'))) return;
-    /* record: si confronta il carico EFFETTIVO (per trazioni/dip include il corpo),
-       altrimenti una trazione a corpo libero non risulterebbe mai un primato */
-    const preMax={}; DOC.storico.forEach(r=>{ if(r.esercizio)preMax[r.esercizio]=Math.max(preMax[r.esercizio]||0,caricoEff(r)); });
+    /* record: si confronta il peso SCRITTO — per trazioni, dip e leg raise la zavorra.
+       Sul totale, prendere peso corporeo produceva «record» senza aver sollevato di più. */
+    const preMax={}; DOC.storico.forEach(r=>{ if(r.esercizio)preMax[r.esercizio]=Math.max(preMax[r.esercizio]||0,pesoMostrato(r)); });
     let added=0; const smap=sedutaMap(schedaRows()); const prs={};
     schedaRows().forEach(r=>{ if(!r.esercizio||!String(r.esercizio).trim())return;
-      const pe=caricoEff(r); if(pe>0 && pe>(preMax[r.esercizio]||0)) prs[r.esercizio]=Math.max(prs[r.esercizio]||0,pe);
+      const pe=pesoMostrato(r); if(pe>0 && pe>(preMax[r.esercizio]||0)) prs[r.esercizio]=Math.max(prs[r.esercizio]||0,pe);
       /* `set`: Training Set con cui è stata svolta la settimana — serve al selettore dei
          Progressi per analizzare un percorso alla volta (righe più vecchie: campo assente). */
       DOC.storico.push({scheda:code,esercizio:r.esercizio,seduta:rowSeduta(smap,r),test:!!r.test,

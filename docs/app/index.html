@@ -189,6 +189,12 @@
  .qr-item img{width:150px;height:150px;max-width:38vw;border-radius:var(--r-sm);border:1px solid #cdb889;background:#fff}
  .qr-item a{display:inline-block;margin-top:7px;background:#c89b3c;color:#2b1d10;text-decoration:none;font-weight:bold;font-size:13px;padding:6px 14px;border-radius:var(--r-sm)}
  #qrclose{position:absolute;top:8px;right:12px;font-size:26px;color:#7a6648;background:none;border:0;cursor:pointer;line-height:1}
+ #doveov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:17;padding:16px}
+ .dove-btn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:0 0 9px;padding:12px 14px;font:inherit;font-size:15px;background:#fff;color:#2c1e0c;border:1px solid #cdb889;border-radius:var(--r-sm);cursor:pointer}
+ .dove-btn:active{background:#fbf4e6}
+ .dove-btn .ic{font-size:22px;flex:0 0 auto}
+ .dove-btn small{display:block;color:#8a7455;font-size:12px;margin-top:2px}
+ .dove-nome{font-family:monospace;font-size:12px;color:#7a6648;text-align:center;margin:-4px 0 12px;word-break:break-all}
 </style>
 </head>
 <body>
@@ -207,6 +213,13 @@
     <div class="qr-item"><div class="qr-lab">Tutorial · YouTube</div><img src="qr-yt.png" alt="QR YouTube"><br><a href="https://www.youtube.com/@TrainingMonitorSystem" target="_blank" rel="noopener" data-i18n>Apri ↗</a></div>
     <div class="qr-item"><div class="qr-lab">TMS · GitHub</div><img src="qr-gh.png" alt="QR GitHub"><br><a href="https://github.com/marcomartinellione-create/TMS" target="_blank" rel="noopener" data-i18n>Apri ↗</a></div>
   </div>
+</div></div>
+
+<div id="doveov"><div class="qr-panel">
+  <button type="button" id="doveclose" style="position:absolute;top:8px;right:12px;font-size:26px;color:#7a6648;background:none;border:0;cursor:pointer;line-height:1">✕</button>
+  <h3 data-i18n>Dove salvo il rientro?</h3>
+  <div class="dove-nome" id="dove-nome"></div>
+  <div id="dove-lista"></div>
 </div></div>
 
 <!-- ── schermata BENVENUTO: nessuna scheda caricata ── -->
@@ -249,7 +262,7 @@
   <div class="days" id="days"></div>
   <div id="bozza-stato"></div>
   <button type="button" class="btn-big" id="invia" data-i18n>📩 Crea il file per il coach</button>
-  <div class="fine" data-i18n-html>Quando hai finito premi il bottone: vedrai un riepilogo e poi nasce un file <b>Rientro_….json</b> da rimandare al coach. Quello che scrivi <b>si salva da solo</b> su questo telefono.</div>
+  <div class="fine" data-i18n-html>Quando hai finito premi il bottone: vedrai un riepilogo e poi nasce un file <b>Rientro_….json</b> da rimandare al coach, e scegli tu <b>dove salvarlo</b>. Quello che scrivi <b>si salva da solo</b> su questo telefono.</div>
 </div>
 
 <!-- ── schermata RIEPILOGO: controllo prima di creare il file ── -->
@@ -305,7 +318,7 @@
    coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.5';
+const CVER='2.6';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -327,7 +340,7 @@ const TT={en:{
   '‹ Torna al menu':'‹ Back to menu',
   '📋 Seleziona il giorno da compilare':'📋 Select the day to fill in',
   '📩 Crea il file per il coach':'📩 Create the file for the coach',
-  'Quando hai finito premi il bottone: vedrai un riepilogo e poi nasce un file <b>Rientro_….json</b> da rimandare al coach. Quello che scrivi <b>si salva da solo</b> su questo telefono.':'When you\'re done press the button: you\'ll see a summary and then a <b>Rientro_….json</b> file is created to send back to the coach. What you write <b>saves itself</b> on this phone.',
+  'Quando hai finito premi il bottone: vedrai un riepilogo e poi nasce un file <b>Rientro_….json</b> da rimandare al coach, e scegli tu <b>dove salvarlo</b>. Quello che scrivi <b>si salva da solo</b> su questo telefono.':'When you\'re done press the button: you\'ll see a summary and then a <b>Rientro_….json</b> file is created to send back to the coach, and you choose <b>where to save it</b>. What you write <b>saves itself</b> on this phone.',
   '▌ Alimentazione':'▌ Nutrition',
   'app del':'app of the',
   'Apri ↗':'Open ↗',
@@ -368,6 +381,15 @@ const TT={en:{
   '📲 <b>Aggiungi l’app alla schermata Home</b>: menu del browser (⋮) → <b>«Installa app»</b> o <b>«Aggiungi a schermata Home»</b>. Da lì funziona anche offline.':'📲 <b>Add the app to the Home screen</b>: browser menu (⋮) → <b>«Install app»</b> or <b>«Add to Home Screen»</b>. From there it works offline too.',
   /* v1.5 — aggiungere/eliminare/modificare esercizi + test massimale (1RM) + timer di recupero */
   '➕ Aggiungi esercizio':'➕ Add exercise',
+  'Dove salvo il rientro?':'Where do I save the log?',
+  'Invia o salva con…':'Send or save with…',
+  'WhatsApp, email, Drive, File… — scegli tu nella schermata che si apre':'WhatsApp, email, Drive, Files… — you pick on the screen that opens',
+  'Scegli la cartella…':'Choose the folder…',
+  'decidi tu cartella e nome del file':'you decide folder and file name',
+  'Salva nei Download':'Save to Downloads',
+  'la cartella predefinita del telefono':'the phone’s default folder',
+  'File salvato:':'File saved:',
+  'Salvataggio non riuscito:':'Saving failed:',
   'Cerca fra i':'Search among the',
   'esercizi del catalogo del coach':'exercises in your coach’s catalog',
   'Scegli un esercizio dall’elenco del coach: nel suo TMS può importare solo quelli.':'Pick an exercise from your coach’s list: their TMS can only import those.',
@@ -734,6 +756,7 @@ function navIndietro(){ if(navLivelli>0){ try{ history.back(); return; }catch(e)
 function risali(){
   const vov=$('vov'); if(vov && vov.style.display==='flex'){ chiudiVideo(); return true; }
   const qrov=$('qrov'); if(qrov && qrov.style.display==='flex'){ qrov.style.display='none'; return true; }
+  const dov=$('doveov'); if(dov && dov.style.display==='flex'){ chiudiDove(); return true; }
   if(!$('riepilogo').hidden){ aggiornaStato(); mostra('home'); return true; }
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
   if(giorno){ aggiornaStato(); mostra('home'); return true; }
@@ -779,22 +802,67 @@ function costruisciRientro(){
   return {tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
     esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:righe, sedute:sedute, foto:foto};
 }
-async function inviaRientro(){
+/* ── RIENTRO: dove salvarlo lo decide il cliente (richiesta di Marco 2026-09-29) ──
+   Prima: se il telefono sapeva condividere si apriva DIRETTAMENTE il pannello di
+   condivisione, altrimenti il file finiva nei Download senza chiedere. Ora un menu offre
+   solo le strade che quel dispositivo supporta davvero:
+   · 📤 condividi (navigator.share con file: WhatsApp, email, Drive, «Salva in File» su iPhone)
+   · 📁 scegli la cartella (showSaveFilePicker: Chrome su PC; sui telefoni di solito manca)
+   · ⬇ Download (sempre disponibile, ripiego universale) */
+function rientroPronto(){
   const out=costruisciRientro();
   const nome='Rientro_'+(((SCHEDA.profilo||{}).slug)||'cliente')+'_'+out.compilata+'.json';
-  const testo=JSON.stringify(out,null,1);
-  /* prova la condivisione nativa (WhatsApp ecc.), altrimenti scarica il file */
+  return {nome:nome, testo:JSON.stringify(out,null,1)};
+}
+function stradeSalvataggio(nome, testo){
+  const vie=[];
   try{
     if(navigator.share && navigator.canShare){
       const f=new File([testo],nome,{type:'application/json'});
-      if(navigator.canShare({files:[f]})){ await navigator.share({files:[f],title:nome}); return; }
+      if(navigator.canShare({files:[f]})) vie.push('condividi');
     }
-  }catch(e){ if(e && e.name==='AbortError') return; }
-  const blob=new Blob([testo],{type:'application/json'});
-  const u=URL.createObjectURL(blob); const a=document.createElement('a');
-  a.href=u; a.download=nome; document.body.appendChild(a); a.click();
-  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },800);
-  alert(tt('File creato:')+' '+nome+'\n'+tt('Lo trovi nei Download — rimandalo al tuo coach.'));
+  }catch(e){}
+  if(typeof window.showSaveFilePicker==='function') vie.push('cartella');
+  vie.push('download');
+  return vie;
+}
+function chiudiDove(){ const o=$('doveov'); if(o) o.style.display='none'; }
+async function salvaRientroCome(via, nome, testo){
+  chiudiDove();
+  try{
+    if(via==='condividi'){
+      const f=new File([testo],nome,{type:'application/json'});
+      await navigator.share({files:[f],title:nome}); return true;
+    }
+    if(via==='cartella'){
+      const h=await window.showSaveFilePicker({suggestedName:nome,
+        types:[{description:'Rientro TMS',accept:{'application/json':['.json']}}]});
+      const wr=await h.createWritable(); await wr.write(testo); await wr.close();
+      alert(tt('File salvato:')+' '+(h.name||nome)); return true;
+    }
+    const blob=new Blob([testo],{type:'application/json'});
+    const u=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=u; a.download=nome; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },800);
+    alert(tt('File creato:')+' '+nome+'\n'+tt('Lo trovi nei Download — rimandalo al tuo coach.'));
+    return true;
+  }catch(e){
+    if(e && e.name==='AbortError') return false;   /* annullato dal cliente: nessun messaggio */
+    alert(tt('Salvataggio non riuscito:')+' '+((e&&e.message)||e)); return false;
+  }
+}
+async function inviaRientro(){
+  const {nome, testo}=rientroPronto();
+  const vie=stradeSalvataggio(nome, testo);
+  const voci={
+    condividi:['📤', tt('Invia o salva con…'), tt('WhatsApp, email, Drive, File… — scegli tu nella schermata che si apre')],
+    cartella: ['📁', tt('Scegli la cartella…'), tt('decidi tu cartella e nome del file')],
+    download: ['⬇', tt('Salva nei Download'), tt('la cartella predefinita del telefono')]
+  };
+  $('dove-nome').textContent=nome;
+  $('dove-lista').innerHTML=vie.map(v=>'<button type="button" class="dove-btn" data-via="'+v+'"><span class="ic">'+voci[v][0]+'</span><span>'+esc(voci[v][1])+'<small>'+esc(voci[v][2])+'</small></span></button>').join('');
+  $('dove-lista').querySelectorAll('[data-via]').forEach(b=>{ b.onclick=()=>salvaRientroCome(b.getAttribute('data-via'), nome, testo); });
+  $('doveov').style.display='flex';
 }
 
 /* ── eventi (data URI video incorporati nel file scheda) ── */
@@ -938,6 +1006,8 @@ $('vclose').onclick=chiudiVideo;
 /* pannello QR «By Wander» (Instagram / YouTube / GitHub), come nel TMS desktop */
 $('qr-btn').onclick=()=>{ $('qrov').style.display='flex'; };
 $('qrclose').onclick=()=>{ $('qrov').style.display='none'; };
+$('doveclose').onclick=chiudiDove;
+$('doveov').onclick=e=>{ if(e.target===$('doveov')) chiudiDove(); };
 $('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; };
 /* invio: prima il riepilogo, poi il file */
 $('invia').onclick=()=>{ renderRiepilogo(); navEntra(); mostra('riepilogo'); };

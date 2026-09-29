@@ -6,17 +6,15 @@
       chiamanti esistenti (Report, Cruscotto, Analisi, LED) restano invariati. ── */
 /* selettore del tab Progressi. Vive nel profilo (dati_utente) come le colonne dei Pesi:
    chi lavora su un Training Set alla volta se lo ritrovava su «Tutto il percorso» a ogni
-   riavvio. Si legge pigramente perche' DOC non e' ancora popolato quando il file viene
-   valutato; se il set salvato non esiste piu' si torna a «tutto». */
-let _progSet=null;
+   riavvio. Si legge SEMPRE dal profilo attivo, senza copie in memoria: una copia non si
+   azzerava cambiando profilo, e ogni cliente vedeva il filtro dell'ultimo aperto (bug
+   trovato il 2026-09-29). Se il set salvato non esiste più si torna a «tutto». */
 function progSetGet(){
-  if(_progSet==null){ const u=(DOC.dati_utente&&DOC.dati_utente.progSet); _progSet=u||'__tutti__'; }
-  if(_progSet!=='__tutti__' && setDiStorico().indexOf(_progSet)<0) _progSet='__tutti__';
-  return _progSet;
+  const v=(DOC&&DOC.dati_utente&&DOC.dati_utente.progSet)||'__tutti__';
+  return (v!=='__tutti__' && setDiStorico().indexOf(v)<0)? '__tutti__' : v;
 }
 function progSetSet(v){
-  _progSet=v||'__tutti__';
-  const u=(DOC.dati_utente=DOC.dati_utente||{}); u.progSet=_progSet; persist('corpo');
+  const u=(DOC.dati_utente=DOC.dati_utente||{}); u.progSet=v||'__tutti__'; persist('corpo');
 }
 function setDiStorico(){ const s=new Set();
   (DOC.storico||[]).forEach(r=>{ const n=String((r&&r.set)||'').trim(); if(n) s.add(n); });
@@ -82,11 +80,17 @@ function radarChart(items,opts){
   return `<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
 }
 function exerciseList(sf){ const s=new Set(); storicoSet(sf).forEach(r=>{ if(r.esercizio) s.add(r.esercizio); }); return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
-function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,rmMostrato(r)); mm[s].peso=Math.max(mm[s].peso,caricoEff(r)); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
-/* il record è il carico REALMENTE mosso: per trazioni e dip include il peso del corpo
-   dell'epoca (caricoEff), altrimenti una trazione a corpo libero varrebbe 0 kg */
-function realMax(nome,sf){ let best=null; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const pe=caricoEff(r); if(pe>0&&(!best||pe>best.peso)) best={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return best; }
-function prList(sf){ const m={}; storicoSet(sf).forEach(r=>{ if(!r.esercizio)return; const pe=caricoEff(r); if(pe<=0)return; if(!m[r.esercizio]||pe>m[r.esercizio].peso) m[r.esercizio]={peso:pe,rip:+r.rip||0,scheda:+r.scheda}; }); return Object.entries(m).map(([nome,v])=>({nome:nome,peso:v.peso,rip:v.rip,scheda:v.scheda})).sort((a,b)=>b.peso-a.peso); }
+function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,rmMostrato(r)); mm[s].peso=Math.max(mm[s].peso,pesoMostrato(r)); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
+/* RECORD: per trazioni, dip e leg raise il kg è la ZAVORRA, mai il totale (regola di Marco,
+   2026-09-29) — come già la colonna 1RM. Classificare sul totale dava due storture: il
+   record cambiava col peso del corpo (prendere 2 kg valeva un «primato» senza sollevare di
+   più) e la card mostrava un altro evento rispetto alla zavorra massima vera.
+   Per il corpo libero conta anche la zavorra 0: una serie solo a corpo è comunque un
+   risultato, e a parità di zavorra vince chi ha fatto più ripetizioni. */
+function candidatoRecord(r){ const pe=pesoMostrato(r); return isCorpoLibero(r.esercizio)? pe>=0 : pe>0; }
+function batte(pe,rip,best){ return !best || pe>best.peso || (pe===best.peso && rip>best.rip); }
+function realMax(nome,sf){ let best=null; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome||!candidatoRecord(r))return; const pe=pesoMostrato(r), rp=+r.rip||0; if(batte(pe,rp,best)) best={peso:pe,rip:rp,scheda:+r.scheda}; }); return best; }
+function prList(sf){ const m={}; storicoSet(sf).forEach(r=>{ if(!r.esercizio||!candidatoRecord(r))return; const pe=pesoMostrato(r), rp=+r.rip||0; if(batte(pe,rp,m[r.esercizio])) m[r.esercizio]={peso:pe,rip:rp,scheda:+r.scheda}; }); return Object.entries(m).map(([nome,v])=>({nome:nome,peso:v.peso,rip:v.rip,scheda:v.scheda})).sort((a,b)=>b.peso-a.peso); }
 let progEx=null;
 function plateauList(sf){
   const out=[];
