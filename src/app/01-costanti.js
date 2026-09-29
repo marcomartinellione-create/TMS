@@ -150,6 +150,38 @@ const RIF_GRUPPO = {
   'Cardio':    {min:15, max:30, sotto:8,  sopra:45}
 };
 
+/* -- FASCE DI DISTRIBUZIONE (2026-09-29) ---------------------------------------
+   La ragnatela «Equilibrio» dice COME è distribuito il lavoro fra i gruppi, non quanto
+   (Marco: «è un discorso di forma e proporzione, non di valore totale»). Ogni asse è la
+   QUOTA % del gruppo sul totale delle serie coi pesi: una settimana leggera e una pesante
+   con la stessa distribuzione hanno lo stesso disegno. Le QUANTITÀ restano dove servono a
+   dire se il volume basta — elenco del ⚖ Bilanciamento e barre «Serie per gruppo» — con le
+   fasce assolute RIF_GRUPPO.
+   Fasce ricavate dalle stesse schede equilibrate (Doc/meta-analisi, 61 schede, 2026-09-29):
+   dal 10° al 90° percentile della quota di ogni gruppo (arrotondate verso l'esterno).
+   Simmetriche, a differenza di quelle assolute: le quote fanno cento, quindi se un gruppo
+   sale gli altri scendono — troppo e troppo poco sono lo stesso squilibrio. «sotto» e
+   «sopra» (il rosso) stanno a 3/4 del 10° e a 5/4 del 90°.
+   Il Cardio non c'è: non compare nelle schede di riferimento e, entrando nel totale,
+   cambierebbe la quota di tutti gli altri gruppi. */
+const RIF_QUOTA = {
+  'Gambe':     {min:19, max:33, sotto:14, sopra:41},
+  'Pettorali': {min:6,  max:13, sotto:5,  sopra:16},
+  'Schiena':   {min:17, max:26, sotto:13, sopra:32},
+  'Spalle':    {min:14, max:23, sotto:10, sopra:29},
+  'Braccia':   {min:17, max:27, sotto:12, sopra:33},
+  'Core':      {min:0,  max:8,  sotto:0,  sopra:10}
+};
+const GRUPPI_PESI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core'];
+/* {gruppo: quota %} sui soli gruppi dei pesi; tutto a zero se non c'è lavoro */
+function distribuzione(per){ per=per||{};
+  const tot=GRUPPI_PESI.reduce((a,g)=>a+(+per[g]||0),0), out={};
+  GRUPPI_PESI.forEach(g=>{ out[g]= tot>0? 100*(+per[g]||0)/tot : 0; });
+  return out; }
+/* voci pronte per radarChart: etichetta col «%», valore = quota, fascia di distribuzione */
+function vociDistribuzione(per){ const q=distribuzione(per);
+  return GRUPPI_PESI.map(g=>({label:t(g)+' '+Math.round(q[g])+'%', value:q[g], rif:RIF_QUOTA[g]})); }
+
 /* -- SPINTA / TRAZIONE (parte alta) --------------------------------------------
    Lo squilibrio che conta di più e che le schede sbagliano più spesso: quanto si
    spinge contro quanto si tira. Si deduce dal muscolo primario; per le spalle decide

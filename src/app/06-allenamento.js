@@ -292,7 +292,8 @@ function bilNum(v){ const x=Math.round(v*10)/10; return x===Math.round(x)? Strin
 function bilanciamentoModal(){
   const bil=bilanciamentoSerie(), per=bil.per;
   const gruppi=Object.keys(per);
-  const items=gruppi.map(g=>({label:t(g), value:per[g], rif:RIF_GRUPPO[g]}));
+  /* la ragnatela dice la DISTRIBUZIONE (quote %), l'elenco accanto la QUANTITÀ */
+  const items=vociDistribuzione(per);
   /* la lettura a parole accanto al disegno: il radar dice "che forma ha", la riga
      dice "quante serie" — senza, bisogna stimare a occhio dalla ragnatela */
   /* larghezze fisse e niente a capo: con «21 serie» che si spezzava in due righe le voci
@@ -332,7 +333,7 @@ function bilanciamentoModal(){
           <div class="bil-dir"><span>${t('serie in scheda')}</span><span class="mono"><b>${bil.tot}</b></span></div>
         </div>
       </div>
-      <div class="bil-nota muted">${t('Il verde è la <b>zona utile</b>, diversa per ogni gruppo: sono i valori dei programmi equilibrati pubblicati, misurati con questo stesso conteggio. Braccia e Gambe ne chiedono di più perché raccolgono più muscoli e tutto il lavoro indiretto. Non serve un poligono regolare: la forma da avvicinare è la fascia verde. In rosso solo chi ne sta nettamente fuori.')}</div>`
+      <div class="bil-nota muted">${t('La <b>ragnatela</b> mostra la <b>distribuzione</b>: quanta parte del lavoro va a ogni gruppo, in percentuale. La fascia verde è quella delle schede equilibrate pubblicate e non dipende da quante serie fai: una settimana leggera e una pesante distribuite allo stesso modo hanno lo stesso disegno. L\u2019<b>elenco</b> accanto dice invece la <b>quantità</b>, con le tacche verdi della zona utile di ogni gruppo. In rosso chi ne sta nettamente fuori.')}</div>`
       : `<div class="empty" style="padding:26px">${t('Nessuna serie da mostrare: la scheda è vuota (o contiene solo cardio).')}</div>`}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='720px';

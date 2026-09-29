@@ -161,26 +161,38 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   se l'esercizio non porta le liste dei muscoli si ricade sul solo campo macro, quota 1.
   Quindi 3 serie di panca danno 3 a Pettorali e 1,5 a Spalle e a Braccia, e i totali di
   gruppo NON sommano al numero di serie della scheda (la riga «serie in scheda» dà quello).
-  La ragnatela usa una **scala assoluta** con una fascia di riferimento PER GRUPPO
-  (RIF_GRUPPO in 01-costanti.js: min/max delimitano la zona utile, sotto/sopra sono le
-  soglie che accendono il rosso sull'etichetta). Le fasce non sono uguali fra loro perché
-  ogni asse somma lavoro diretto e indiretto e i gruppi raccolgono un numero diverso di
-  muscoli: i valori sono ricavati passando questo stesso conteggio su circa 930 schede
-  pubblicate (strengthlog.com, muscleandstrength.com), tenendo le 109 settimane intere con
-  almeno l'85% degli esercizi riconosciuti e, di quelle, le 60 equilibrate secondo un
-  criterio esterno (linee guida sulla spalla: spinta/trazione fra 1:1 e 1:2). Min = 25esimo
-  percentile di quella distribuzione, max = 90esimo. Il filtro conta: sulle schede scartate
-  la mediana spinta/trazione e' 1,50 con novantesimo percentile 3,50, cioe' si tarerebbe
-  l'app sulla scheda media di internet; sulle 60 tenute la mediana e' 1,00. Core ha sotto = 0 e non viene mai segnalato come scarso, perché quei
-  programmi quasi non prevedono addominali diretti; Cardio segue le linee guida OMS,
-  150-300 min a settimana = 15-30 sull'asse. Un poligono regolare NON è l'obiettivo: la
-  forma da avvicinare è la fascia.
-  **Lo stesso conteggio e le stesse fasce valgono anche per il radar di Progressi e del
-  Report**: schedeAggr riempie map[s].sets con quoteGruppi sull'esercizio della riga, e
-  ricade sul macro salvato se l'esercizio non è più a catalogo. Il TL per gruppo
-  (map[s].grp) resta invece attribuito al solo macro dello storico: è un'altra metrica.
-  Il grafico a barre «Serie per gruppo» non ha più le soglie fisse 10/20 — la barra
-  diventa rossa quando quel gruppo esce dalla propria fascia.
+  **Due letture diverse** (dal 2026-09-29, richiesta di Marco: «e' un discorso di forma e
+  proporzione, non di valore totale»):
+  · la RAGNATELA dice la DISTRIBUZIONE: ogni asse e' la QUOTA % del gruppo sul totale delle
+    serie coi pesi (distribuzione() e vociDistribuzione() in 01-costanti.js), etichettata
+    «Gambe 13%». Una settimana leggera e una pesante distribuite allo stesso modo danno lo
+    STESSO disegno. La fascia verde (RIF_QUOTA) e' la forma delle schede equilibrate: dal 10°
+    al 90° percentile della quota di ogni gruppo, simmetrica perche' le quote fanno cento
+    (se un gruppo sale gli altri scendono: troppo e troppo poco sono lo stesso squilibrio).
+    Valori: Gambe 19-33 %, Pettorali 6-13, Schiena 17-26, Spalle 14-23, Braccia 17-27,
+    Core 0-8. Il rosso scatta sotto 3/4 del 10° o sopra 5/4 del 90° percentile. Il Cardio
+    NON e' sulla ragnatela: non compare nelle schede di riferimento e, entrando nel totale,
+    cambierebbe la quota di tutti gli altri.
+  · l'ELENCO accanto (e le barre «Serie per gruppo» in Progressi) dice la QUANTITA': serie
+    per gruppo con le fasce ASSOLUTE (RIF_GRUPPO: min/max = zona utile, sotto/sopra = rosso).
+    Sono diverse fra gruppi perche' ogni asse somma lavoro diretto e indiretto e i gruppi
+    raccolgono un numero diverso di muscoli.
+  Entrambe le serie di fasce vengono dalla stessa meta-analisi: circa 930 schede pubblicate
+  (strengthlog.com, muscleandstrength.com), tenute le settimane intere con almeno l'85% degli
+  esercizi riconosciuti (110) e di quelle le equilibrate secondo un criterio esterno (linee
+  guida sulla spalla: spinta/trazione fra 1:1 e 1:2) — 61 schede. Il filtro conta: sulle
+  scartate la mediana spinta/trazione e' 1,50 (90° percentile 3,50), cioe' si tarerebbe l'app
+  sulla scheda media di internet; sulle tenute e' 1,00. Materiale e script in
+  Doc/meta-analisi (fuori dal repo). Fasce assolute: min = 25° percentile, max = 90°; Core ha
+  sotto = 0 e non viene mai segnalato come scarso (quelle schede quasi non prevedono
+  addominali diretti); Cardio (solo nelle barre) segue le linee guida OMS, 150-300 min a
+  settimana = 15-30 (10 min = 1 serie equivalente, riscaldamento compreso).
+  **Stesso conteggio in Progressi e nel Report**: schedeAggr riempie map[s].sets con
+  quoteGruppi sull'esercizio della riga, e ricade sul macro salvato se l'esercizio non e'
+  piu' a catalogo. La ragnatela «Equilibrio · distribuzione» usa le quote; le barre «Serie
+  per gruppo» le quantita', cardio compreso, e diventano rosse quando un gruppo esce dalla
+  propria fascia. Il TL per gruppo (map[s].grp) resta attribuito al solo macro dello
+  storico: e' un'altra metrica.
 - **Spinta · Trazione**: riga sotto l'elenco del Bilanciamento, somma le serie della parte
   alta per direzione contando SOLO i multiarticolari (direzioneOf in 01-costanti.js scarta
   gli isolamenti: qui si misura l'equilibrio fra schemi di movimento, e un curl o delle

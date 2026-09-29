@@ -1071,6 +1071,23 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(/lbl-fuori/.test(hb), 'Bilanciamento: i gruppi fuori fascia hanno l\'etichetta in rosso');
     ok(!/fill-rule="evenodd"/.test(w.eval('radarChart([{label:"A",value:3},{label:"B",value:9}])')),
        'radarChart: senza opts.rif nessuna fascia, il radar di Progressi resta com\'è');
+    /* ── ragnatela = DISTRIBUZIONE, non quantità (Marco 2026-09-29: «forma e proporzione») ── */
+    { const q = JSON.parse(w.eval('JSON.stringify(distribuzione(bilanciamentoSerie().per))'));
+      const somma = Object.values(q).reduce((a, b) => a + b, 0);
+      ok(Math.abs(somma - 100) < 1e-9, 'distribuzione: le quote dei gruppi dei pesi fanno 100%');
+      ok(!('Cardio' in q), 'distribuzione: il Cardio non entra (cambierebbe la quota di tutti gli altri)');
+      const per = '{"Gambe":20,"Pettorali":9,"Schiena":22,"Spalle":18,"Braccia":22,"Core":3}';
+      const doppio = '{"Gambe":40,"Pettorali":18,"Schiena":44,"Spalle":36,"Braccia":44,"Core":6}';
+      ok(w.eval('radarChart(vociDistribuzione(' + per + '))') === w.eval('radarChart(vociDistribuzione(' + doppio + '))'),
+         'distribuzione: stessa distribuzione con volume DOPPIO → identico disegno (conta la forma, non il totale)');
+      ok(w.eval('JSON.stringify(distribuzione({}))') === '{"Gambe":0,"Pettorali":0,"Schiena":0,"Spalle":0,"Braccia":0,"Core":0}',
+         'distribuzione: senza lavoro tutto a zero (niente divisioni per zero)');
+      /* scheda sbilanciata come quella di Marco: poche gambe → etichetta rossa sulle Gambe */
+      const marco = '{"Gambe":19.5,"Pettorali":19,"Schiena":28.5,"Spalle":33.5,"Braccia":40,"Core":10}';
+      const svg = w.eval('radarChart(vociDistribuzione(' + marco + '))');
+      ok(/class="lbl lbl-fuori"[^>]*>Gambe 13%</.test(svg), 'distribuzione: gambe al 13% (fascia 19–33) → etichetta «Gambe 13%» in rosso');
+      ok(/>Schiena 19%</.test(svg) && !/lbl-fuori[^>]*>Schiena/.test(svg), 'distribuzione: schiena al 19%, dentro fascia → etichetta normale'); }
+    ok(/>Gambe \d+%</.test(hb), 'Bilanciamento: la ragnatela etichetta ogni gruppo con la sua quota in %');
     w.eval('closeModal()'); }
   /* ── ricerca esercizi: i preferiti che corrispondono vanno in cima ── */
   { w.eval('(DOC.esercizi||[]).forEach(function(e){ e.fav=false; }); var t2=esLookup("Trazioni presa supina (chin-up)"); if(t2) t2.fav=true;');
@@ -1318,6 +1335,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     w.eval('showTab("progressi")');
     const hp = d.getElementById('panel-progressi').innerHTML;
     ok(/fill-rule="evenodd"/.test(hp), 'Progressi: il radar mostra la fascia di riferimento come il Bilanciamento');
+    { const box = [...d.querySelectorAll('#panel-progressi .chart-box')].find(b => /Equilibrio · distribuzione/.test(b.textContent));
+      ok(!!box && box.querySelectorAll('svg text.lbl').length === 6 && !/Cardio/.test(box.querySelector('svg').textContent),
+         'Progressi: la ragnatela «Equilibrio · distribuzione» ha i 6 gruppi dei pesi, senza Cardio');
+      const barre = [...d.querySelectorAll('#panel-progressi .chart-box')].find(b => /Serie per gruppo/.test(b.textContent));
+      ok(!!barre && /Cardio/.test(barre.textContent), 'Progressi: il Cardio resta visibile nelle barre «Serie per gruppo» (quantità)'); }
     ok(!/>10<\/text>/.test(hp) || !/>20<\/text>/.test(hp),
        'Progressi: via le vecchie soglie fisse 10/20 dal grafico a barre (ogni gruppo ha la sua zona)');
     w.eval('DOC.storico.length=' + pre + '; showTab("allenamento");');

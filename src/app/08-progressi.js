@@ -139,10 +139,12 @@ function renderProgressi(){
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
   const tonnSeries=[{name:t('Tonnellaggio'),color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:a.tonn||null}))}];
-  const radarItems=GRUPPI.map(g=>({label:t(g),value:(last.sets[g]||0)+(g==='Cardio'?(cardioEquivSets(last.scheda)+riscEquivSets(last.scheda,sf)):0),rif:RIF_GRUPPO[g]}));
+  /* ragnatela = DISTRIBUZIONE fra i gruppi dei pesi (quote %); il cardio sta nelle barre */
+  const radarItems=vociDistribuzione(last.sets);
+  const cardioSett=(last.sets.Cardio||0)+cardioEquivSets(last.scheda)+riscEquivSets(last.scheda,sf);
   /* stessa lettura del radar: la barra è rossa quando il gruppo è nettamente fuori dalla
      sua fascia, non quando supera una soglia unica valida per tutti */
-  const setsData=GRUPPI.filter(g=>g!=='Cardio').map(g=>{ const v=last.sets[g]||0, rf=RIF_GRUPPO[g];
+  const setsData=GRUPPI.map(g=>{ const v=g==='Cardio'? cardioSett : (last.sets[g]||0), rf=RIF_GRUPPO[g];
     return {x:t(g), y:v, color:(rf&&(v<rf.sotto||v>rf.sopra))?'var(--danger)':grpColors[g]}; });
   const grpSeries=GRUPPI.map(g=>({name:t(g),color:grpColors[g],data:ag.map((a,i)=>({x:labels[i],y:a.grp[g]||null}))}));
   const BANDS=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
@@ -193,8 +195,8 @@ function renderProgressi(){
    </div>`:''}
    <div class="sec">${t('Volume & equilibrio per gruppo muscolare')}</div>
    <div class="chart-grid">
-     <div class="chart-box"><h4>${t('🕸 Equilibrio volume · serie per gruppo')} <span class="muted" style="font-size:11px">${t('(fascia verde = zona utile del gruppo · Cardio: min÷10, anche dal riscaldamento)')}</span></h4>${radarChart(radarItems)}</div>
-     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile)')}</span></h4>${barChart(setsData)}</div>
+     <div class="chart-box"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = schede equilibrate)')}</span></h4>${radarChart(radarItems)}</div>
+     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span></h4>${barChart(setsData)}</div>
    </div>
    <div class="chart-grid">
      <div class="chart-box"><h4>${t('Andamento TL per gruppo')}</h4>${lineChart(grpSeries,{labels,fmt:nfk})}</div>
