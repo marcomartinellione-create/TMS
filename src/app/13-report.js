@@ -7,7 +7,7 @@ function renderReport(){
   const labels=ag.map(a=>schedaLabel(a.scheda));
   const dTL=(last&&prev&&prev.tl)?(last.tl/prev.tl-1)*100:0;
   const lastPct=last&&last.pctN?last.pctSum/last.pctN:0;
-  const acwr=(()=>{ if(!ag.length)return null; const w=ag.slice(-4); const cc=w.reduce((s,x)=>s+x.tl,0)/w.length; return cc? last.tl/cc:null; })();
+  const acwr=acwrUltimo(ag);
   const prog=DOC.scheda.settimanale||[]; const smap=sedutaMap(prog);
   let progTL=0; prog.forEach(r=>{ if(r.esercizio) progTL+=sTL(r); });
   let progBody='',lastDay=null; prog.forEach(r=>{ if(!r.esercizio)return; if(r.giorno&&r.giorno!==lastDay){lastDay=r.giorno; progBody+=`<tr class="day-sep"><td colspan="6">▌ ${esc(t(r.giorno))}</td></tr>`;} const p=sPct(r),fa=fascia(p),sd=rowSeduta(smap,r),tgt=(esLookup(r.esercizio)||{}).target||''; progBody+=`<tr><td class="l">${esc(exName(r.esercizio))}${sd>1?` <span class="pill">S${sd}</span>`:''}</td><td class="l muted" style="font-size:11px">${esc(tgt)}</td><td class="num">${nf(r.serie,0)}×${nf(r.rip,0)}</td><td class="num">${nf(r.peso,1)}</td><td class="num">${esc(r.rest||'')}</td><td><span class="fascia ${fa[1]}">${t(fa[0])}</span></td></tr>`; });

@@ -61,8 +61,7 @@ function cruscottoLivello(t){
 function triageCorrente(slug){
   const p=profili.find(x=>x.slug===slug)||{};
   const ag=schedeAggr();
-  let acwr=null;
-  if(ag.length){ const w=ag.slice(-4); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; acwr=c? ag[ag.length-1].tl/c : null; }
+  const acwr=acwrUltimo(ag);
   let mono=null, internal=0;
   if(ag.length){ const rpw=rpeByWeek(); const lc=ag[ag.length-1].scheda; const f=fosterWeek(rpw[lc]&&rpw[lc].day); mono=f.monotony; internal=f.load; }
   const hasRpe=useRpeActive() && internal>0;

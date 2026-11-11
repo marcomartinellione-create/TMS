@@ -38,9 +38,24 @@ function srpeCardio(s){ return Math.round((+s.rpe||0)*(+s.durata||0)); }
 function fcMaxStimata(){ const u=DOC.dati_utente||{}; if(+u.fcMax>0) return +u.fcMax; const e=etaOf(u); return e? Math.round(208-0.7*e) : null; }
 function fcMaxImpostata(){ return +((DOC.dati_utente||{}).fcMax)>0; }
 function fcRiposoUtente(){ return +((DOC.dati_utente||{}).fcRiposo)||60; }
+/* FC max per il TRIMP. Il campo della seduta (s.fcMax) è la FC MASSIMA DELL'ATLETA, per chi
+   la conosce meglio della stima; il PICCO toccato in quella seduta (s.fcPicco, dal file
+   dell'orologio) è un'altra cosa — quasi sempre più basso. Usare il picco come massimo
+   schiaccia la riserva cardiaca e gonfia il TRIMP (una corsa lenta con picco 150 sembrava
+   corsa al limite). Il picco conta solo come pavimento: se supera la FC max nota o stimata,
+   vuol dire che la massima vera è almeno quella. */
+function fcMaxPerSeduta(s){ return Math.max(+s.fcMax||fcMaxStimata()||0, +s.fcPicco||0)||null; }
+/* una tantum: nelle attività importate prima di questa distinzione il picco era finito
+   nel campo FC max. Si riconoscono dalla nota automatica dell'importazione. */
+function migrateCardio(){
+  let ch=false;
+  (Array.isArray(DOC.cardio)?DOC.cardio:[]).forEach(s=>{ if(!s||s.fcPicco!=null) return;
+    if(+s.fcMax>0 && /^(importata da file|imported from)/i.test(String(s.note||''))){ s.fcPicco=+s.fcMax; s.fcMax=''; ch=true; } });
+  return ch;
+}
 function trimpCardio(s){
   const fcm=+s.fcMedia||0; if(!fcm) return null;
-  const fcMax=+s.fcMax||fcMaxStimata(); const fcRest=fcRiposoUtente();
+  const fcMax=fcMaxPerSeduta(s); const fcRest=fcRiposoUtente();
   if(!fcMax||fcMax<=fcRest) return null;
   let hrr=(fcm-fcRest)/(fcMax-fcRest); if(hrr<0)hrr=0; if(hrr>1)hrr=1;
   const donna=String((DOC.dati_utente||{}).sesso||'').toUpperCase()==='F';
@@ -98,7 +113,7 @@ function renderCardio(){
     cardioList().splice(i,1); persist('corpo'); renderCardio(); });
 }
 function cardioModal(idx, preset){
-  const s= idx>=0? cardioList()[idx] : Object.assign({data:new Date().toISOString().slice(0,10),tipo:'',durata:'',rpe:'',distanza:'',quota:'',fcMedia:'',fcMax:'',note:''}, preset||{});
+  const s= idx>=0? cardioList()[idx] : Object.assign({data:new Date().toISOString().slice(0,10),tipo:'',durata:'',rpe:'',distanza:'',quota:'',fcMedia:'',fcMax:'',fcPicco:'',note:''}, preset||{});
   const opts=cardioSportDisponibili().map(sp=>`<option value="${esc(sp)}"${String(s.tipo||'').toLowerCase()===sp.toLowerCase()?' selected':''}>${esc(t(sp))}</option>`).join('');
   modal(`<h3>${idx>=0?t('Modifica attività'):t('Nuova attività cardio')}</h3>
     ${preset?`<div class="callout callout--info" style="margin:0 0 10px"><div>${t('📥 Dati letti dal file. Controlla, aggiungi la <b>fatica RPE</b> e salva.')}</div></div>`:''}
@@ -110,7 +125,7 @@ function cardioModal(idx, preset){
     <div class="row"><div class="field" id="c-dist-wrap"><label>${t('Distanza (km)')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-dist" type="number" min="0" step="0.1" value="${s.distanza??''}"></div>
       <div class="field" id="c-quota-wrap"><label>${t('Dislivello D+ (m)')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-quota" type="number" min="0" value="${s.quota??''}"></div></div>
     <div class="row"><div class="field"><label>${t('FC media (bpm)')} <span class="muted" style="text-transform:none">${t('per il TRIMP')}</span></label><input id="c-fc" type="number" min="0" value="${s.fcMedia??''}" placeholder="–"></div>
-      <div class="field"><label>${t('FC max')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-fcmax" type="number" min="0" value="${s.fcMax??''}" placeholder="${t('da età')}"></div></div>
+      <div class="field"><label>${t('FC max')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-fcmax" type="number" min="0" value="${s.fcMax??''}" placeholder="${t('da età')}" title="${t('La tua frequenza cardiaca massima, se la conosci. Vuota = quella del Profilo o stimata dall\'età.')}">${+s.fcPicco>0?`<div class="muted" style="font-size:11px;margin-top:3px">${t('picco in questa seduta:')} ${nf(s.fcPicco,0)} bpm</div>`:''}</div></div>
     <div class="field"><label>${t('Note')}</label><input id="c-note" value="${esc(s.note||'')}"></div>
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="c-ok">${t('Salva')}</button></div>`);
   const sel=document.getElementById('c-tipo'), altro=document.getElementById('c-tipo-altro');
@@ -132,6 +147,7 @@ function cardioModal(idx, preset){
       quota:(inf.quota&&document.getElementById('c-quota').value!=='')?+document.getElementById('c-quota').value:'',
       fcMedia:document.getElementById('c-fc').value===''?'':+document.getElementById('c-fc').value,
       fcMax:document.getElementById('c-fcmax').value===''?'':+document.getElementById('c-fcmax').value,
+      fcPicco:(+s.fcPicco>0)?+s.fcPicco:'',
       note:document.getElementById('c-note').value.trim()};
     if(!obj.tipo){ alert(t('Scegli o indica lo sport.')); return; }
     if(!obj.durata){ alert(t('Indica la durata in minuti.')); return; }
@@ -173,7 +189,7 @@ function parseAttivitaCardio(text){
   if(!hrs.length && !durata) return null;  /* niente di utile: non è un'attività valida */
   const fcMedia= hrs.length? Math.round(hrs.reduce((a,b)=>a+b,0)/hrs.length):'';
   const fcMax= hrs.length? hrs.reduce((a,b)=>Math.max(a,b),0):'';
-  return {data:data, tipo:tipo||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:fcMax, note:t('importata da file')};
+  return {data:data, tipo:tipo||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:'', fcPicco:fcMax, note:t('importata da file')};
 }
 /* ── Parser minimale del formato binario .FIT (Garmin), senza dipendenze. Estrae il messaggio
    «session» (durata, distanza, FC media/max, dislivello, sport, data); fallback sui «record».
@@ -229,7 +245,7 @@ function parseFIT(buf){
     if(!fcMedia && !durata) return null;
     let data=new Date().toISOString().slice(0,10);
     if(S.start!=null){ const t=(S.start+631065600)*1000; if(isFinite(t)) data=new Date(t).toISOString().slice(0,10); }
-    return {data:data, tipo:_FIT_SPORT[S.sport]||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:fcMax, note:t('importata da file FIT')};
+    return {data:data, tipo:_FIT_SPORT[S.sport]||'', durata:durata||'', rpe:'', distanza:distanza||'', quota:quota||'', fcMedia:fcMedia, fcMax:'', fcPicco:fcMax, note:t('importata da file FIT')};
   }catch(e){ logErrore('parseFIT', e); return null; }
 }
 

@@ -108,6 +108,23 @@ app.whenReady().then(() => {
   ipcMain.handle('tmsfs:remove', async (e, rel) => {  // mai sul seed: solo userData
     try { await fs.rm(safeJoin(WRITE_ROOT(), rel)); } catch (err) {}
   });
+  // Cestino interno: sposta una cartella (es. un profilo eliminato) in
+  // <cartella-madre>/_eliminati/<nome>-<data-ora>. Non distrugge nulla — i dati dei
+  // clienti si recuperano a mano da lì — e libera il nome: senza, un profilo nuovo con
+  // lo stesso nome ereditava i file di quello eliminato (fs.rm non toglie cartelle piene).
+  // Solo dentro userData, mai la radice, mai il seed.
+  ipcMain.handle('tmsfs:cestina', async (e, rel) => {
+    const root = WRITE_ROOT();
+    const da = safeJoin(root, rel);
+    if (da === root) throw new Error('percorso non consentito: radice');
+    if (!(await fileExists(da))) return null;   // esisteva solo nel seed: niente da spostare
+    const cestino = path.join(path.dirname(da), '_eliminati');
+    await fs.mkdir(cestino, { recursive: true });
+    const marca = new Date().toISOString().replace(/[:.]/g, '-');
+    const a = safeJoin(root, path.relative(root, path.join(cestino, path.basename(da) + '-' + marca)));
+    await fs.rename(da, a);
+    return path.relative(root, a).split(path.sep).join('/');
+  });
   ipcMain.handle('tmsfs:dataRoot', () => WRITE_ROOT());
 
   // Permessi File System Access: Electron non ha la UI permessi di Chrome, quindi

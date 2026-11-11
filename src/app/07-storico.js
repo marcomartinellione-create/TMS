@@ -12,7 +12,7 @@ function renderStorico(){
     /* nella barra della settimana, a destra, il tasto che elimina QUELLA registrazione:
        prende il posto del vecchio «Annulla ultimo», che sapeva togliere solo l'ultima */
     if(r.scheda!==last){last=r.scheda; body+=`<tr class="day-sep"><td colspan="11"><div style="display:flex;align-items:center;gap:10px">
-      <span>▌ ${t('Scheda')} ${r.scheda}</span><span style="flex:1"></span>
+      <span>▌ ${t('Scheda')} ${r.scheda} <span style="opacity:.7;font-weight:400">· ${esc(schedaLabel(r.scheda))}</span></span><span style="flex:1"></span>
       <button class="btn btn--sm btn--del no-print" data-delsched="${r.scheda}" title="${esc(t('Elimina tutte le righe di questa settimana'))}" aria-label="${esc(t('Elimina tutte le righe di questa settimana'))}">🗑</button></div></td></tr>`;}
     const [fl,fc]=fascia(sPct(r));
     body+=`<tr${r.test?' style="background:rgba(122,62,168,.06)"':''}><td class="l">${esc(exName(r.esercizio))}</td><td>${esc(t(r.macro)||'')}</td><td class="num">${(+r.seduta||1)}${r.test?' ★':''}</td>

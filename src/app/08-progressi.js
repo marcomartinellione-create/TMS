@@ -54,6 +54,38 @@ function schedeAggr(sf){
   });
   return Object.values(map).sort((a,b)=>a.scheda-b.scheda);
 }
+/* ── CARICO CRONICO e ACWR (2026-11-11) ──────────────────────────────────────────
+   ACWR = carico della settimana ÷ media delle ultime 4 settimane (lei compresa). Prima le
+   «ultime 4» erano le ultime 4 settimane SALVATE, qualunque distanza avessero: dopo tre
+   settimane di stop il carico cronico restava quello di un mese prima e il rientro a
+   pieno regime risultava «in zona», cioè l'esatto contrario di ciò che l'indice serve a
+   segnalare (Gabbett 2016: il rischio sta nel salto rispetto a ciò a cui si è abituati).
+   Ora le settimane sono di CALENDARIO: una settimana senza registrazioni vale zero.
+   Vale solo per chi salva di norma ogni settimana (distanza mediana fra due salvataggi
+   = 1): chi registra ogni due settimane o una volta al mese non ha «buchi», ha un altro
+   ritmo, e per lui resta il conteggio sulle ultime 4 registrazioni. Lo stesso quando si
+   guarda un solo Training Set: le settimane fatte con un altro set non sono riposo. */
+function settimaneFra(c1,c2){
+  return Math.round((isoWeekMonday(Math.floor(c2/100),c2%100)-isoWeekMonday(Math.floor(c1/100),c1%100))/(7*86400000)); }
+function ritmoSettimanale(ag){
+  if(!ag||ag.length<2) return true;
+  const gap=[]; for(let i=1;i<ag.length;i++){ const d=settimaneFra(ag[i-1].scheda,ag[i].scheda); if(!isFinite(d)||d<1) return false; gap.push(d); }
+  gap.sort((a,b)=>a-b); return gap[Math.floor((gap.length-1)/2)]===1;
+}
+/* per ogni voce di `ag`: {media: carico cronico, acwr}. `calendario` false = sulle ultime
+   4 registrazioni (vista filtrata per Training Set). */
+function caricoCronico(ag, calendario){
+  ag=ag||[]; const cal=calendario!==false && ritmoSettimanale(ag);
+  return ag.map((a,i)=>{
+    let somma=0, n=0;
+    if(cal){
+      for(let j=i;j>=0;j--){ if(settimaneFra(ag[j].scheda,a.scheda)>=4) break; somma+=ag[j].tl; }
+      n=Math.max(1,Math.min(4, settimaneFra(ag[0].scheda,a.scheda)+1));   /* prima della prima registrazione non c'è storia: non conta come zero */
+    } else { const w=ag.slice(Math.max(0,i-3),i+1); somma=w.reduce((s,x)=>s+x.tl,0); n=w.length; }
+    const media=somma/n; return {media:media, acwr: media? a.tl/media : null};
+  });
+}
+function acwrUltimo(ag, calendario){ const c=caricoCronico(ag,calendario); return c.length? c[c.length-1].acwr : null; }
 function radarChart(items,opts){
   opts=opts||{}; const W=opts.w||380,H=opts.h||300, cx=W/2, cy=H/2+4, R=Math.min(W,H)/2-44, n=items.length;
   if(!n||!items.some(d=>d.value>0)) return `<div class="empty">${t('Nessun dato')}</div>`;
@@ -129,12 +161,12 @@ function renderProgressi(){
   const labels=ag.map(a=>schedaLabel(a.scheda));
   const last=ag[ag.length-1];
   const grpColors={Gambe:'#c2500a',Pettorali:'#d4a017',Schiena:'#2f7d4f',Spalle:'#7a3ea8',Braccia:'#b8860b',Core:'#991b1b',Altro:'#7a6a50'};
-  const mavg=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); return w.reduce((s,x)=>s+x.tl,0)/w.length; });
-  const acwr=ag.map((a,i)=>{ const w=ag.slice(Math.max(0,i-3),i+1); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; return c? a.tl/c:null; });
+  const cron=caricoCronico(ag, sf==='__tutti__');
+  const mavg=cron.map(c=>c.media), acwr=cron.map(c=>c.acwr);
   const lastAcwr=acwr[acwr.length-1];
   /* i RECORD non seguono il filtro: un massimale è un massimale, in qualunque Training Set
      sia stato fatto (richiesta di Marco). Quando un filtro è attivo lo si dice, per chiarezza. */
-  const cards=`<div class="sec">${t('Record personali · carico massimo')}${sf!=='__tutti__'?`<span class="pill muted" style="margin-left:auto;text-transform:none">${t('su tutto il percorso')}</span>`:''}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(L.nome); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
+  const cards=`<div class="sec">${t('Record personali · carico massimo')}${sf!=='__tutti__'?`<span class="pill muted" style="margin-left:auto;text-transform:none">${t('su tutto il percorso')}</span>`:''}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(nomeAttuale(L.nome)); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
   const tlSeries=[{name:'TL',color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:a.tl||null}))},{name:t('Media mobile 4'),color:'var(--ink-3)',data:ag.map((a,i)=>({x:labels[i],y:mavg[i]}))}];
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];

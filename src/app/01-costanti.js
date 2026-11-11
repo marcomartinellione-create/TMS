@@ -77,9 +77,12 @@ const CORPO_LIBERO_PARZ_SET={}; Object.keys(CORPO_LIBERO_PARZIALE).forEach(n=>{ 
    per i leg raise, 0 per tutto il resto. Il sesso lo legge dal profilo attivo (M se manca).
    Il nome può portare i suffissi di variante/seduta (-N2, -MAX): si confronta la base. */
 function quotaCorpo(nome){ if(!nome) return 0;
-  const base=parseVariante(nome).nome.trim().toLowerCase();
-  if(CORPO_LIBERO_SET[base]) return 1;
-  const k=CORPO_LIBERO_PARZ_SET[base]; if(!k) return 0;
+  /* un esercizio rinominato dall'utente resta ciò che era: si prova anche coi suoi vecchi nomi */
+  const pv=parseVariante(nome).nome.trim(), e=esLookup(pv);
+  const nomi=[pv].concat((e&&Array.isArray(e.alias))? e.alias : []).map(n=>String(n).trim().toLowerCase());
+  if(nomi.some(n=>CORPO_LIBERO_SET[n])) return 1;
+  const base=nomi.find(n=>CORPO_LIBERO_PARZ_SET[n]);
+  const k=base? CORPO_LIBERO_PARZ_SET[base] : null; if(!k) return 0;
   if(k==='ginocchia') return QUOTA_GINOCCHIA;
   const sesso=(typeof DOC!=='undefined'&&DOC&&DOC.dati_utente&&DOC.dati_utente.sesso)==='F'?'F':'M';
   return QUOTA_GAMBE_TESE[sesso]; }
@@ -214,7 +217,31 @@ function parseVariante(name){
 }
 function isVariante(name){ return VAR_RE.test(String(name||'')); }
 let EX_BASE=[];
-function rebuildEs(){ ESBYNAME={}; (DOC.esercizi||[]).forEach(e=>{ if(e&&e.nome) ESBYNAME[String(e.nome).trim()]=e; }); EX_BASE=DOC.esercizi||[]; }
+/* ── ALIAS (2026-11-11): il nome dell'esercizio è la chiave dei dati ──────────────
+   Rinominando un esercizio dal catalogo, storico e schede restavano col nome vecchio e
+   si staccavano: niente muscoli, fattore 1, progressione spezzata in due. Ora la voce di
+   catalogo ricorda i suoi vecchi nomi (`alias`): esLookup li riconosce, e le righe dei
+   profili vengono portate al nome nuovo — subito per il profilo aperto, al caricamento
+   per gli altri (il catalogo è condiviso, i dati no). Un nome vero vince sempre su un
+   alias: se poi si crea un esercizio col vecchio nome, quello è un esercizio nuovo. */
+let ALIAS_NOME={};
+function rebuildEs(){ ESBYNAME={}; ALIAS_NOME={};
+  (DOC.esercizi||[]).forEach(e=>{ if(e&&e.nome) ESBYNAME[String(e.nome).trim()]=e; });
+  (DOC.esercizi||[]).forEach(e=>{ if(!e||!e.nome||!Array.isArray(e.alias)) return;
+    e.alias.forEach(a=>{ a=String(a||'').trim(); if(a && !ESBYNAME[a]){ ALIAS_NOME[a]=String(e.nome).trim(); } }); });
+  Object.keys(ALIAS_NOME).forEach(a=>{ ESBYNAME[a]=ESBYNAME[ALIAS_NOME[a]]; });
+  EX_BASE=DOC.esercizi||[]; }
+/* nome attuale di un esercizio (segue gli alias); invariato se non è stato rinominato */
+function nomeAttuale(n){ n=String(n==null?'':n).trim(); return ALIAS_NOME[n]||n; }
+/* tutti gli elenchi di righe della scheda del profilo aperto: i due piani attivi, i
+   riscaldamenti e tutto ciò che sta nei Training Set salvati */
+function elenchiScheda(){
+  const out=[], s=DOC.scheda||{};
+  const piano=p=>{ if(!p) return; ['settimanale','mensile'].forEach(md=>{ if(Array.isArray(p[md])) out.push(p[md]); });
+    const w=p.riscaldamento; if(w&&typeof w==='object'&&!Array.isArray(w)) Object.keys(w).forEach(md=>{ if(Array.isArray(w[md])) out.push(w[md]); }); };
+  piano(s); if(s.setsSalvati&&typeof s.setsSalvati==='object') Object.keys(s.setsSalvati).forEach(n=>piano(s.setsSalvati[n]));
+  return out;
+}
 function sedutaMap(rows){
   const byEx={};
   rows.forEach(r=>{ if(!r.esercizio)return; const g=r.giorno||'·'; (byEx[r.esercizio]=byEx[r.esercizio]||new Set()).add(g); });
@@ -268,25 +295,34 @@ const EX_RENAME={
   "Crunch Cavo Alto":"Crunch ai cavi",
   "Pulley basso presa stretta":"Rematore seduto ai cavi"
 };
-function _renameRows(rows){ let ch=false; (rows||[]).forEach(r=>{ if(r&&r.esercizio&&EX_RENAME[r.esercizio]){ r.esercizio=EX_RENAME[r.esercizio]; const g=gruppoOf(r.esercizio); if(g) r.macro=g; ch=true; } }); return ch; }
+function _renameRows(rows){ let ch=false; (rows||[]).forEach(r=>{ if(!r||!r.esercizio) return;
+    /* prima la tabella storica (vecchio catalogo → database), poi gli alias dell'utente;
+       un nome che esiste davvero a catalogo non si tocca */
+    let n=EX_RENAME[r.esercizio]||r.esercizio; n=ALIAS_NOME[String(n).trim()]||n;
+    if(n!==r.esercizio){ r.esercizio=n; const g=gruppoOf(n); if(g && ('macro' in r)) r.macro=g; ch=true; } }); return ch; }
 function migrateExNames(){
   let ch=false;
   ch = _renameRows(DOC.storico) || ch;
-  if(DOC.scheda){ ['settimanale','mensile'].forEach(md=>{ ch=_renameRows(DOC.scheda[md])||ch; }); }
+  if(DOC.scheda){ elenchiScheda().forEach(el=>{ ch=_renameRows(el)||ch; }); }
   return ch;
 }
 /* TL dei singoli set (in ordine) di un esercizio+seduta nell'ultima scheda salvata,
    per il confronto Δ TL set-per-set (set 1 vs set 1, set 2 vs set 2…). Esclude i test (★). */
+/* «Ultima scheda» = l'ultima settimana in cui QUELL'esercizio è stato fatto in quella
+   seduta, non l'ultima settimana salvata in assoluto: con due Training Set alternati, o
+   saltando un esercizio per una settimana, il confronto spariva proprio quando serviva. */
+function ultimaSchedaCon(nome,seduta){
+  let mx=0; DOC.storico.forEach(r=>{ if(r.esercizio===nome && !r.test && (+(r.seduta||1))===seduta){ const s=+r.scheda||0; if(s>mx) mx=s; } });
+  return mx;
+}
 function lastBlockSets(nome,seduta){
-  if(!DOC.storico.length) return [];
-  const maxS=Math.max(...DOC.storico.map(r=>+r.scheda||0));
+  const maxS=ultimaSchedaCon(nome,seduta); if(!maxS) return [];
   return DOC.storico.filter(r=>r.esercizio===nome && (+r.scheda)===maxS && (+(r.seduta||1))===seduta && !r.test).map(r=>sTL(r));
 }
 /* pesi dei singoli set (in ordine) dell'ultima scheda salvata: per il LED del co-pilota
    (confronto del peso digitato col set di pari posizione). Esclude i test (★). */
 function lastBlockPesi(nome,seduta){
-  if(!DOC.storico.length) return [];
-  const maxS=Math.max(...DOC.storico.map(r=>+r.scheda||0));
+  const maxS=ultimaSchedaCon(nome,seduta); if(!maxS) return [];
   return DOC.storico.filter(r=>r.esercizio===nome && (+r.scheda)===maxS && (+(r.seduta||1))===seduta && !r.test).map(r=>+r.peso||0);
 }
 

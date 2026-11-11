@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('tmsFS', {
   writeFile: (rel, text) => ipcRenderer.invoke('tmsfs:writeFile', rel, text),
   mkdir:     (rel)       => ipcRenderer.invoke('tmsfs:mkdir', rel),
   remove:    (rel)       => ipcRenderer.invoke('tmsfs:remove', rel),
+  cestina:   (rel)       => ipcRenderer.invoke('tmsfs:cestina', rel),
   dataRoot:  ()          => ipcRenderer.invoke('tmsfs:dataRoot')
 });
 

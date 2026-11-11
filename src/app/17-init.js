@@ -102,5 +102,5 @@ async function init(){
   }
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&dataDir){ clearTimeout(saveTimer); persistAll().catch(()=>{}); }});
-window.addEventListener('beforeunload',()=>{ saveCache(); });
+window.addEventListener('beforeunload',()=>{ if(!scrittureBloccate) saveCache(); scaricaSubito(); });
 init();

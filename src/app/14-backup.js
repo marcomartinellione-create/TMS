@@ -105,6 +105,34 @@ async function backupAutomaticoSeServe(){
     return true;
   }catch(e){ logErrore('backupAutomatico', e); return false; }
 }
+/* ── COPIA DI SICUREZZA prima di un ripristino (2026-11-11) ───────────────────────
+   Il ripristino sostituisce TUTTI i profili con quelli del file: scegliendo il file
+   sbagliato (o uno vecchio) non c'era modo di tornare indietro. Ora, un attimo prima,
+   l'app fotografa lo stato attuale in backup_automatici/ e lo elenca fra i backup
+   ripristinabili. Si tengono le ultime SICUR_MAX, a parte dalle copie settimanali. */
+const SICUR_MAX=3;
+async function salvaCopiaDiSicurezza(){
+  if(!dataDir||scrittureBloccate) return null;
+  const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:true});
+  let indice=null; try{ indice=await readJson(dir,'indice.json'); }catch(e){}
+  if(!indice||!Array.isArray(indice.list)) indice={list:[]};
+  if(!Array.isArray(indice.sicurezza)) indice.sicurezza=[];
+  const snap=await costruisciSnapshot();
+  const ora=new Date().toISOString();
+  const nomeFile='TMS-prima-del-ripristino-'+ora.slice(0,19).replace(/[:T]/g,'-')+'.json';
+  await writeJson(dir,nomeFile,snap);
+  indice.sicurezza.push({file:nomeFile,data:ora.slice(0,10),ora:ora.slice(11,16)});
+  while(indice.sicurezza.length>SICUR_MAX){ const v=indice.sicurezza.shift(); try{ await dir.removeEntry(v.file); }catch(e){} }
+  await writeJson(dir,'indice.json',indice);
+  return nomeFile;
+}
+async function listaCopieDiSicurezza(){
+  try{ if(!dataDir) return [];
+    const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:false});
+    const ind=await readJson(dir,'indice.json');
+    return (ind&&Array.isArray(ind.sicurezza))? ind.sicurezza.slice().reverse() : [];
+  }catch(e){ return []; }
+}
 async function listaBackupAutomatici(){
   try{
     if(!dataDir) return [];
@@ -157,6 +185,10 @@ async function restoreData(file){
   if(!snap||snap._tms!=='backup'||!snap.profiles){ alert(t('Questo non è un backup TMS valido.')); return; }
   const np=Object.keys(snap.profiles).length;
   if(!confirm(t('Ripristinare il backup del')+' '+String(snap.date||'').slice(0,10)+'?\n'+t('Sostituirà i dati attuali (')+np+' '+t('profili).'))) return;
+  /* prima di sostituire: fotografia dello stato attuale (se è leggibile) */
+  try{ await salvaCopiaDiSicurezza(); }catch(e){ logErrore('copiaDiSicurezza', e); }
+  clearTimeout(saveTimer); pendingSaves.clear();
+  sbloccaScritture();   /* un ripristino è il modo per uscire dal blocco «dati illeggibili» */
   profili=(snap.profili&&snap.profili.length)?snap.profili:Object.keys(snap.profiles).map(s=>({slug:s,nome:s,creato:''}));
   if(snap.esercizi&&snap.esercizi.length) DOC.esercizi=snap.esercizi; rebuildEs();
   activeProfile=(profili[0]&&profili[0].slug)||'wander';

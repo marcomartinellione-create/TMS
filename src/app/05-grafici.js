@@ -13,6 +13,7 @@ function lineChart(series,opts){
        `<text class="lbl" x="${P.l-5}" y="${(y+3).toFixed(1)}" text-anchor="end">${(opts.fmt||(x=>nf(x,Math.abs(mx)<10?1:0)))(v)}</text>`;}
   if(opts.band){ const yl=Y(opts.band[0]), yh=Y(opts.band[1]); g+=`<rect x="${P.l}" y="${Math.min(yl,yh).toFixed(1)}" width="${(W-P.l-P.r).toFixed(1)}" height="${Math.abs(yl-yh).toFixed(1)}" fill="${opts.band[2]||'rgba(47,125,79,.12)'}"/>`; }
   const labels=opts.labels||series[0].data.map(d=>d.x);
+  const fmtV=opts.fmt||(x=>nf(x,Math.abs(x)<10?2:(Math.abs(x)<100?1:0)));
   const step=Math.ceil(n/8), ult=n-1;
   /* si mostra 1 etichetta ogni `step` più SEMPRE l'ultima (la più recente); se però
      l'ultima cadrebbe addosso alla precedente, quella precedente si salta: senza questo
@@ -26,7 +27,10 @@ function lineChart(series,opts){
     let dpath='',pts='';
     s.data.forEach((d,i)=>{ if(d.y==null||isNaN(d.y))return; const x=X(i),y=Y(d.y);
       dpath+=(dpath?' L':'M')+x.toFixed(1)+' '+y.toFixed(1);
-      pts+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${s.color}"/>`;});
+      /* cerchio largo e trasparente sopra il punto: passandoci col mouse si legge il valore
+         esatto (prima il grafico diceva l'andamento ma non il numero) */
+      const tip=esc((labels[i]!=null?labels[i]:d.x)+' · '+(series.length>1?s.name+' ':'')+fmtV(d.y));
+      pts+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${s.color}"/><circle class="pt-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="transparent"><title>${tip}</title></circle>`;});
     g+=`<path class="ln" d="${dpath}" stroke="${s.color}"/>${pts}`;
   });
   const leg=series.length>1? `<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;margin-top:6px">`+
@@ -104,7 +108,7 @@ function barChart(data,opts){
     g+=`<line class="grid" x1="${P.l}" y1="${y.toFixed(1)}" x2="${W-P.r}" y2="${y.toFixed(1)}"/><text class="lbl" x="${P.l-5}" y="${(y+3).toFixed(1)}" text-anchor="end">${(opts.fmt||(x=>nf(x,0)))(v)}</text>`;}
   (opts.refs||[]).forEach(rf=>{ const yy=Y(rf.y); g+=`<line x1="${P.l}" y1="${yy.toFixed(1)}" x2="${W-P.r}" y2="${yy.toFixed(1)}" stroke="${rf.color||'var(--ok)'}" stroke-width="1.3" stroke-dasharray="4 3"/><text class="lbl" x="${W-P.r}" y="${(yy-2).toFixed(1)}" text-anchor="end" style="fill:${rf.color||'var(--ok)'}">${esc(rf.label!=null?rf.label:rf.y)}</text>`; });
   data.forEach((d,i)=>{ const x=P.l+gap*i+gap*.19, y0=Y(0), y=Y(d.y);
-    g+=`<rect x="${x.toFixed(1)}" y="${Math.min(y,y0).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.abs(y-y0).toFixed(1)}" fill="${d.color||'var(--orange)'}" rx="2"/>`+
+    g+=`<rect x="${x.toFixed(1)}" y="${Math.min(y,y0).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.abs(y-y0).toFixed(1)}" fill="${d.color||'var(--orange)'}" rx="2"><title>${esc(d.x+' · '+(opts.fmt||(x=>nf(x,1)))(d.y))}</title></rect>`+
        `<text class="lbl" x="${(x+bw/2).toFixed(1)}" y="${H-20}" text-anchor="middle">${esc(d.x)}</text>`+
        `<text class="lbl" x="${(x+bw/2).toFixed(1)}" y="${(Math.min(y,y0)-3).toFixed(1)}" text-anchor="middle" style="font-size:9px">${(opts.fmt||(x=>nf(x,0)))(d.y)}</text>`;});
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"><line class="axis" x1="${P.l}" y1="${Y(0).toFixed(1)}" x2="${W-P.r}" y2="${Y(0).toFixed(1)}"/>${g}</svg>`;

@@ -127,15 +127,28 @@ function exEdit(name, opt){
       sotto:document.getElementById('ex-sotto').value.trim()};
     if(isNew){
       if(DOC.esercizi.some(e=>String(e.nome).trim()===nome)){ errore(t('Esiste già un esercizio con questo nome.')); return; }
+      /* un esercizio NUOVO che prende un nome lasciato libero da una rinomina è un altro
+         esercizio: quel nome smette di essere un alias del vecchio */
+      DOC.esercizi.forEach(e=>{ if(e&&Array.isArray(e.alias)) e.alias=e.alias.filter(a=>String(a).trim()!==nome); });
       /* in duplica si parte dalla copia (istruzioni, livello, attrezzatura…), altrimenti da zero */
       DOC.esercizi.push(Object.assign(duplica?ex:{}, campi, {custom:true}));
     } else {
       const idx=DOC.esercizi.findIndex(e=>String(e.nome).trim()===name);
       if(nome!==name && DOC.esercizi.some(e=>String(e.nome).trim()===nome)){ errore(t('Nome già in uso.')); return; }
       /* AGGIORNA, non sostituire: i campi che il form non mostra restano com'erano */
-      if(idx>=0) DOC.esercizi[idx]=Object.assign({}, DOC.esercizi[idx], campi);
+      if(idx>=0){
+        if(nome!==name){
+          /* RINOMINA: il vecchio nome diventa un alias e le righe del profilo aperto passano
+             subito al nome nuovo (gli altri profili si allineano quando vengono caricati) */
+          const vecchi=(DOC.esercizi[idx].alias||[]).concat([name]);
+          campi.alias=[...new Set(vecchi.map(a=>String(a).trim()))].filter(a=>a&&a!==nome);
+        }
+        DOC.esercizi[idx]=Object.assign({}, DOC.esercizi[idx], campi);
+      }
     }
-    rebuildEs(); persist('esercizi'); closeModal(); renderEsercizi();
+    rebuildEs();
+    if(!isNew && nome!==name && migrateExNames()){ persist('storico'); persist('scheda'); cruscottoInvalida(); }
+    persist('esercizi'); closeModal(); renderEsercizi();
   };
   const dup=document.getElementById('ex-dup');
   if(dup) dup.onclick=()=>{ exEdit(name,{duplica:true}); };

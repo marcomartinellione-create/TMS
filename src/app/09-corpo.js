@@ -21,7 +21,7 @@ function renderCorpo(){
    ${statusBanner(DOC.storico_io,'Storico misure')}
    <div class="cards">
      <div class="card k--ember"><div class="card__k">${t('Peso')}</div><div class="card__v">${nf(u.peso,1)}<small> kg</small></div></div>
-     <div class="card"><div class="card__k">BMI</div><div class="card__v">${nf(c.bmi,1)}</div><div class="card__sub">${c.bmi<18.5?t('sottopeso'):c.bmi<25?t('normopeso'):c.bmi<30?t('sovrappeso'):t('obesità')}</div></div>
+     <div class="card"><div class="card__k">BMI</div><div class="card__v">${nf(c.bmi,1)}</div><div class="card__sub">${!c.bmi?'':c.bmi<18.5?t('sottopeso'):c.bmi<25?t('normopeso'):c.bmi<30?t('sovrappeso'):t('obesità')}</div></div>
      <div class="card k--ok"><div class="card__k">${t('Massa magra')}</div><div class="card__v">${nf(c.magraKg,1)}<small> kg</small></div></div>
      <div class="card k--danger"><div class="card__k">${t('Massa grassa')}</div><div class="card__v">${nf(c.grassaKg,1)}<small> kg</small></div><div class="card__sub">${nf((u.massa_grassa||0)*100,1)}%</div></div>
      <div class="card k--violet"><div class="card__k">${t('Fabbisogno')}</div><div class="card__v">${nf(c.metab,0)}<small> kcal</small></div><div class="card__sub">${t('basale·PAL')}</div></div>
@@ -48,7 +48,10 @@ function renderCorpo(){
    <div class="callout callout--info no-print"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», raggiungibile dal link nel footer.')}</div></div>
    <div id="foto-box"></div>`;
   document.querySelectorAll('#panel-corpo [data-u]').forEach(inp=>inp.addEventListener('input',e=>{
-    DOC.dati_utente[e.target.dataset.u]=e.target.value===''?'':+e.target.value; persist('corpo');
+    let v=e.target.value===''?'':+e.target.value;
+    /* la massa grassa si salva come frazione (0,145): chi scrive «14.5» intende il 14,5 % */
+    if(e.target.dataset.u==='massa_grassa' && v!=='' && v>1) v=v/100;
+    DOC.dati_utente[e.target.dataset.u]=v; persist('corpo');
     clearTimeout(rerenderT); rerenderT=setTimeout(renderCorpo,600);
   }));
   document.getElementById('btn-save-io').onclick=saveIoModal;
@@ -66,11 +69,17 @@ function saveIoModal(){
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="m-ok">${t('Salva')}</button></div>`);
   document.getElementById('m-ok').onclick=()=>{
     const anno=+document.getElementById('m-anno').value, sett=+document.getElementById('m-sett').value;
+    if(!anno||sett<1||sett>53){ alert(t('Anno/settimana non validi')); return; }
     const code=schedaCode(anno,sett);
-    if(DOC.storico_io.some(r=>(+r.scheda)===code) && !confirm(t('Esiste già la misura')+' '+code+t('. Aggiungo comunque?')))return;
+    /* una misura per settimana: due rilevazioni con lo stesso codice non hanno senso per
+       nessun calcolo (chi leggeva la prima, chi l'ultima). Quella nuova prende il posto. */
+    if(DOC.storico_io.some(r=>(+r.scheda)===code)){
+      if(!confirm(t('Esiste già la misura')+' '+code+t('. La sostituisco con i valori attuali?'))) return;
+      DOC.storico_io=DOC.storico_io.filter(r=>(+r.scheda)!==code); }
     DOC.storico_io.push({scheda:code,eta:etaOf(u),livello:+u.livello_attivita||'',peso:+u.peso||0,
       metabolismo:c.metab,bmi:c.bmi,massa_grassa:+u.massa_grassa||0,massa_magra:c.magraKg,
       massa_muscolare:+u.massa_muscolare||0,massa_ossea:+u.massa_ossea||0,metab_basale:+u.metab_basale||0,grasso_viscerale:+u.grasso_viscerale||0});
+    DOC.storico_io.sort((a,b)=>(+a.scheda||0)-(+b.scheda||0));   /* sempre in ordine di tempo: i grafici seguono l'elenco */
     persist('corpo'); closeModal(); renderCorpo();
   };
 }

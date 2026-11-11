@@ -67,7 +67,16 @@ function makeTmsFS(){
     readFile: async p => { if(!files.has(p)) throw new Error('ENOENT '+p); return files.get(p); },
     writeFile: async (p,data)=>{ files.set(p, data); const parts = p.split('/'); parts.pop(); let acc=''; for(const part of parts){ acc = acc ? acc+'/'+part : part; dirs.add(acc); } },
     mkdir: async p => { dirs.add(p); },
-    remove: async p => { files.delete(p); dirs.delete(p); }
+    remove: async p => { files.delete(p); },   /* come fs.rm senza recursive: una cartella resta dov'è */
+    cestina: async p => {
+      const parti = p.split('/'), nome = parti.pop(), madre = parti.join('/');
+      const dest = (madre ? madre + '/' : '') + '_eliminati/' + nome + '-' + Date.now();
+      let n = 0;
+      for (const k of [...files.keys()]) if (k.startsWith(p + '/')) { files.set(dest + k.slice(p.length), files.get(k)); files.delete(k); n++; }
+      for (const k of [...dirs]) if (k === p || k.startsWith(p + '/')) dirs.delete(k);
+      dirs.add((madre ? madre + '/' : '') + '_eliminati'); dirs.add(dest);
+      return n || true ? dest : null;
+    }
   };
 }
 
@@ -563,10 +572,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* import «avanzato»: file attività .TCX (namespaced) e .GPX → modale precompilato */
   const tcx='<?xml version="1.0"?><TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"><Activities><Activity Sport="Running"><Id>2026-06-13T08:00:00Z</Id><Lap><TotalTimeSeconds>1800</TotalTimeSeconds><DistanceMeters>5000</DistanceMeters><Track><Trackpoint><Time>2026-06-13T08:00:00Z</Time><AltitudeMeters>100</AltitudeMeters><HeartRateBpm><Value>150</Value></HeartRateBpm></Trackpoint><Trackpoint><Time>2026-06-13T08:30:00Z</Time><AltitudeMeters>160</AltitudeMeters><HeartRateBpm><Value>170</Value></HeartRateBpm></Trackpoint></Track></Lap></Activity></Activities></TrainingCenterDatabase>';
   w.eval('window.__tcx='+JSON.stringify(tcx));
-  { const p=w.eval('parseAttivitaCardio(window.__tcx)'); ok(p&&p.tipo==='Corsa'&&p.durata===30&&p.fcMedia===160&&p.fcMax===170&&p.distanza===5&&p.quota===60, 'import TCX: tipo/durata/FC media/FC max/distanza/D+ estratti'); }
+  { const p=w.eval('parseAttivitaCardio(window.__tcx)'); ok(p&&p.tipo==='Corsa'&&p.durata===30&&p.fcMedia===160&&p.fcPicco===170&&p.fcMax===''&&p.distanza===5&&p.quota===60, 'import TCX: tipo/durata/FC media/FC max/distanza/D+ estratti'); }
   const gpx='<?xml version="1.0"?><gpx><trk><type>cycling</type><trkseg><trkpt lat="45.00" lon="9.00"><time>2026-06-13T08:00:00Z</time><extensions><gpxtpx:hr xmlns:gpxtpx="u">120</gpxtpx:hr></extensions></trkpt><trkpt lat="45.00" lon="9.00"><time>2026-06-13T08:20:00Z</time><extensions><gpxtpx:hr xmlns:gpxtpx="u">140</gpxtpx:hr></extensions></trkpt></trkseg></trk></gpx>';
   w.eval('window.__gpx='+JSON.stringify(gpx));
-  { const g=w.eval('parseAttivitaCardio(window.__gpx)'); ok(g&&g.tipo==='Bici'&&g.durata===20&&g.fcMedia===130&&g.fcMax===140, 'import GPX: tipo/durata/FC dalla traccia hr'); }
+  { const g=w.eval('parseAttivitaCardio(window.__gpx)'); ok(g&&g.tipo==='Bici'&&g.durata===20&&g.fcMedia===130&&g.fcPicco===140&&g.fcMax==='', 'import GPX: tipo/durata/FC dalla traccia hr'); }
   ok(w.eval('parseAttivitaCardio("<x>non valido</x>")')===null, 'import: file non-attività → null (errore chiaro all\'utente)');
   /* import .FIT (binario Garmin): costruisco un mini file FIT con un messaggio «session» */
   {
@@ -578,13 +587,13 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     const header=[12,0x10,0,0].concat(u32(body.length)).concat([0x2E,0x46,0x49,0x54]);
     dom.window.__fit=new Uint8Array(header.concat(body).concat([0,0]));
     const p=w.eval('parseFIT(window.__fit)');
-    ok(p && p.tipo==='Corsa' && p.durata===40 && p.distanza===8 && p.fcMedia===150 && p.fcMax===170 && p.quota===60 && p.data==='2026-06-12', 'import FIT: messaggio session estratto (durata/distanza/FC/D+/sport/data)');
+    ok(p && p.tipo==='Corsa' && p.durata===40 && p.distanza===8 && p.fcMedia===150 && p.fcPicco===170 && p.fcMax==='' && p.quota===60 && p.data==='2026-06-12', 'import FIT: messaggio session estratto (durata/distanza/FC/D+/sport/data)');
   }
   ok(w.eval('parseFIT(new Uint8Array([1,2,3]))')===null, 'import FIT: file non valido → null');
   w.eval('showTab("cardio")');
   ok(d.getElementById('cardio-imp')!==null, 'tab Cardio: input per importare .tcx/.gpx');
   w.eval('cardioModal(-1, parseAttivitaCardio(window.__tcx))');
-  ok(d.getElementById('c-tipo').value==='Corsa' && +d.getElementById('c-min').value===30 && +d.getElementById('c-fc').value===160 && +d.getElementById('c-fcmax').value===170, 'import: modale precompilato coi dati del file (RPE da aggiungere)');
+  ok(d.getElementById('c-tipo').value==='Corsa' && +d.getElementById('c-min').value===30 && +d.getElementById('c-fc').value===160 && d.getElementById('c-fcmax').value==='' && d.getElementById('modal').textContent.includes('170'), 'import: modale precompilato coi dati del file (RPE da aggiungere; il picco è mostrato, non usato come FC max)');
   w.eval('closeModal()');
   /* sport con metadati: guidano campi del modale e ritmo (passo/velocità) */
   ok(w.eval('sportInfo("Corsa").dist')===true && w.eval('sportInfo("Corsa").ritmo')==='passo' && w.eval('sportInfo("Corsa").quota')===true, 'sport Corsa: distanza + passo + dislivello');
@@ -1659,7 +1668,184 @@ console.log('--- T6: bilingue IT/EN (interruttore lingua, traduzione markup stat
   ok(wEn.eval("renderAllenamento(); document.getElementById('btn-save-sched').textContent") === '💾 Save to History', 'EN: tab Pesi «Salva nello Storico» tradotto');
   ok(wEn.eval("exName('Squat con bilanciere')") === 'Barbell Squat', 'EN: nome esercizio dall\'inglese originale (ESEN per nome)');
   ok(wEn.eval("exName('Panca piana con bilanciere - presa media')") === 'Barbell Bench Press - Medium Grip', 'EN: nome esercizio composto tradotto');
+  await settle(400);   /* lascia finire il semaforo del tab Profilo (asincrono) prima di chiudere la finestra */
   domEn.window.close();
+}
+
+console.log('--- T7: revisione 2026-11 — protezione dei dati ---');
+{
+  /* profilo esistente su disco con lo STORICO illeggibile: l'app non deve riscriverlo */
+  const fsmem = makeTmsFS();
+  const J = o => JSON.stringify(o);
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list:[{slug:'anna',nome:'Anna',creato:'2026-01-01'},{slug:'bruno',nome:'Bruno',creato:'2026-01-02'}], active:'anna' }));
+  await fsmem.writeFile('TMS_Dati/anna/scheda.json', J({ settimanale:[{giorno:'Lunedì',esercizio:'Squat con bilanciere',serie:3,rip:5,peso:100}], mensile:[] }));
+  await fsmem.writeFile('TMS_Dati/anna/storico.json', '[{"scheda":202640,"esercizio":"Squat con bil');   /* troncato */
+  await fsmem.writeFile('TMS_Dati/anna/corpo.json', J({ dati_utente:{sesso:'F'}, storico_io:[] }));
+  await fsmem.writeFile('TMS_Dati/anna/alimentazione.json', J({ bulk:[], mant:[], cut:[] }));
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem); await settle(400);
+  const w = dom.window, d = w.document;
+  w.alert = () => {}; w.confirm = () => true;
+  ok(errors.length === 0, 'storico rotto: nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  ok(!!w.eval('scrittureBloccate') && /storico\.json/.test(w.eval('scrittureBloccate.file')), 'storico illeggibile → salvataggio sospeso, col nome del file');
+  ok(fsmem._files.get('TMS_Dati/anna/storico.json').startsWith('[{"scheda":202640,"esercizio":"Squat con bil') && fsmem._files.get('TMS_Dati/anna/storico.json').length < 60, 'il file rotto NON viene riscritto all\'avvio');
+  ok(d.getElementById('conn').className.includes('is-err'), 'indicatore di connessione in errore (visibile)');
+  ok(!d.getElementById('modal-bk').classList.contains('hidden') && d.getElementById('modal').textContent.includes('storico.json'), 'modale che spiega quale file non si legge');
+  w.eval('closeModal(); DOC.storico.push({scheda:202641,esercizio:"X",serie:1,rip:1,peso:1}); persist("storico"); persist("*");');
+  await settle(700);
+  ok(fsmem._files.get('TMS_Dati/anna/storico.json').length < 60, 'col blocco attivo persist() non scrive (lo storico rotto resta intatto)');
+  ok(w.eval('scaricaSubito()') === 0, 'col blocco attivo nemmeno lo scarico in chiusura scrive');
+  dom.window.close();
+}
+{
+  /* cambio profilo verso un profilo con un file rotto: si resta dove si è */
+  const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list:[{slug:'anna',nome:'Anna',creato:'2026-01-01'},{slug:'bruno',nome:'Bruno',creato:'2026-01-02'}], active:'anna' }));
+  for (const f of ['scheda','storico','corpo','alimentazione']) await fsmem.writeFile('TMS_Dati/anna/'+f+'.json', J(f==='scheda'?{settimanale:[],mensile:[]}:f==='storico'?[{scheda:202640,esercizio:'Squat con bilanciere',seduta:1,macro:'Gambe',serie:3,rip:5,peso:100}]:f==='corpo'?{dati_utente:{}}:{bulk:[],mant:[],cut:[]}));
+  await fsmem.writeFile('TMS_Dati/bruno/scheda.json', J({ settimanale:[], mensile:[] }));
+  await fsmem.writeFile('TMS_Dati/bruno/storico.json', '');                    /* file vuoto = illeggibile, non «assente» */
+  await fsmem.writeFile('TMS_Dati/bruno/corpo.json', J({ dati_utente:{}, storico_io:[{scheda:202640,peso:80}] }));
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem); await settle(300);
+  const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+  ok(w.eval('activeProfile') === 'anna' && !w.eval('scrittureBloccate') && w.eval('DOC.storico.length') === 1, 'profilo sano: caricato regolarmente');
+  await w.eval('switchProfile("bruno")'); await settle(300);
+  ok(w.eval('activeProfile') === 'anna' && w.eval('DOC.storico.length') === 1, 'cambio verso un profilo con file rotto: si resta sul profilo attuale');
+  ok(fsmem._files.get('TMS_Dati/bruno/storico.json') === '' && JSON.parse(fsmem._files.get('TMS_Dati/bruno/corpo.json')).storico_io.length === 1, 'i file del profilo rotto non vengono toccati');
+  ok(d.getElementById('modal').textContent.includes('bruno/storico.json'), 'avviso col file che non si legge');
+  w.eval('closeModal()');
+
+  /* salvataggio in attesa + cambio profilo: i dati del vecchio non finiscono nel nuovo */
+  await fsmem.writeFile('TMS_Dati/bruno/storico.json', '[]');
+  w.eval('DOC.scheda.settimanale.push({giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:9,rip:9,peso:99}); persist("scheda");');
+  await w.eval('switchProfile("bruno")'); await settle(700);
+  ok(w.eval('activeProfile') === 'bruno', 'cambio profilo riuscito dopo aver sistemato il file');
+  ok(JSON.parse(fsmem._files.get('TMS_Dati/anna/scheda.json')).settimanale.length === 1, 'la modifica in attesa è stata scritta nel profilo GIUSTO prima del cambio');
+  ok(JSON.parse(fsmem._files.get('TMS_Dati/bruno/scheda.json')).settimanale.length === 0, 'la scheda del profilo di arrivo non riceve i dati del precedente');
+
+  /* eliminare un profilo: la cartella va nel cestino interno, un omonimo nasce vuoto */
+  await w.eval('deleteProfile("anna")'); await settle(400);
+  ok(!fsmem._files.has('TMS_Dati/anna/storico.json'), 'profilo eliminato: la sua cartella non resta al suo posto');
+  ok([...fsmem._files.keys()].some(k => /^TMS_Dati\/_eliminati\/anna-[^/]+\/storico\.json$/.test(k)), 'profilo eliminato: i dati passano in TMS_Dati/_eliminati/ (recuperabili)');
+  await w.eval('createProfile("Anna")'); await settle(500);
+  ok(w.eval('activeProfile') === 'anna' && w.eval('DOC.storico.length') === 0, 'profilo nuovo con lo stesso nome: parte VUOTO, non eredita i dati dell\'eliminato');
+
+  /* scarico immediato alla chiusura */
+  w.eval('DOC.scheda.settimanale.push({giorno:"Martedì",esercizio:"Squat con bilanciere",note:"ULTIMO TASTO",serie:1,rip:1,peso:1}); persist("scheda");');
+  ok(w.eval('scaricaSubito()') >= 1 && fsmem._files.get('TMS_Dati/anna/scheda.json').includes('ULTIMO TASTO'), 'chiusura: la modifica in attesa parte subito, senza aspettare i 350 ms');
+  ok(w.eval('pendingSaves.size') === 0, 'chiusura: coda dei salvataggi svuotata');
+
+  /* copia di sicurezza prima del ripristino */
+  const snap = await w.eval('costruisciSnapshot().then(s=>JSON.stringify(s))');
+  w.eval('DOC.storico.push({scheda:202644,esercizio:"Squat con bilanciere",seduta:1,macro:"Gambe",serie:1,rip:1,peso:150}); persist("storico");'); await settle(500);
+  w.eval('window.__snap=' + JSON.stringify(snap) + ';');
+  await w.eval('restoreData({text:async()=>window.__snap})'); await settle(400);
+  let ind = null; try { ind = JSON.parse(fsmem._files.get('TMS_Dati/backup_automatici/indice.json')); } catch (e) {}
+  ok(ind && Array.isArray(ind.sicurezza) && ind.sicurezza.length === 1 && fsmem._files.has('TMS_Dati/backup_automatici/' + ind.sicurezza[0].file), 'ripristino: prima viene salvata una copia di sicurezza dello stato attuale');
+  { const cs = JSON.parse(fsmem._files.get('TMS_Dati/backup_automatici/' + ind.sicurezza[0].file));
+    ok(cs.profiles.anna.storico.some(r => +r.peso === 150), 'la copia di sicurezza contiene i dati di PRIMA del ripristino'); }
+  ok(w.eval('DOC.storico.length') === 0, 'ripristino applicato (lo storico torna quello del backup)');
+  ok((await w.eval('listaCopieDiSicurezza()')).length === 1, 'la copia di sicurezza compare fra quelle ripristinabili');
+  ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  dom.window.close();
+}
+
+console.log('--- T8: revisione 2026-11 — calcoli e scheda ---');
+{
+  /* scenario autosufficiente (gira anche in CI, senza TMS_Dati): catalogo minimo + un profilo */
+  const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+  const ES = (nome, macro, prim, sec) => ({ nome, macro, gruppo: macro, tipo: 'Multi-articolare', fattore: 1, muscoli_primari: prim, muscoli_secondari: sec, target: prim.concat(sec).join(', ') });
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'wander', nome: 'Wander', creato: '2026-01-01' }], active: 'wander' }));
+  await fsmem.writeFile('TMS_Dati/esercizi.json', J([
+    ES('Squat con bilanciere', 'Gambe', ['quadricipiti'], ['glutei']),
+    ES('Trazioni alla sbarra (pull-up)', 'Schiena', ['gran dorsale'], ['bicipiti']),
+    ES('Panca piana con bilanciere - presa media', 'Pettorali', ['pettorali'], ['tricipiti', 'spalle'])]));
+  await fsmem.writeFile('TMS_Dati/wander/scheda.json', J({ settimanale: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', note: '', serie: 3, rip: 5, peso: 100, rest: '2:00' }], mensile: [], setAttivo: 'Base',
+    setsSalvati: { Casa: { settimanale: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', note: '', serie: 3, rip: 10, peso: 40 }], mensile: [], riscaldamento: {} } }, setsOrdine: ['Base', 'Casa'] }));
+  await fsmem.writeFile('TMS_Dati/wander/storico.json', J([202640, 202641].map(s => ({ scheda: s, esercizio: 'Squat con bilanciere', seduta: 1, test: false, macro: 'Gambe', serie: 3, rip: 5, peso: 100, rest: '2:00', rir: null, set: 'Base' }))));
+  await fsmem.writeFile('TMS_Dati/wander/corpo.json', J({ dati_utente: { sesso: 'M', nascita: '1990-01-01', peso: 70, altezza: 175 }, storico_io: [] }));
+  await fsmem.writeFile('TMS_Dati/wander/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem);
+  const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+
+  /* note della scheda Pesi */
+  w.eval('showTab("allenamento")');
+  { const ta = d.querySelector('#panel-allenamento textarea.note-area'); const i = +ta.closest('tr').dataset.i;
+    ta.value = 'gomiti stretti'; ta.dispatchEvent(new w.Event('input', { bubbles: true }));
+    ok(w.eval('schedaRows()[' + i + '].note') === 'gomiti stretti', 'scheda Pesi: la nota digitata arriva ai dati (la textarea non era ascoltata)');
+    await settle(600);
+    ok(fsmem._files.get('TMS_Dati/wander/scheda.json').includes('gomiti stretti'), 'scheda Pesi: la nota finisce su disco'); }
+  { w.eval('renderAllenamento(); renderAllenamento(); renderAllenamento(); window.__n=0; var _p=document.getElementById("panel-allenamento"); var _o=_p.oninput; _p.oninput=function(e){ window.__n++; return _o&&_o(e); };');
+    const ta = d.querySelector('#panel-allenamento textarea.note-area'); ta.dispatchEvent(new w.Event('input', { bubbles: true }));
+    ok(w.eval('window.__n') === 1, 'scheda Pesi: un solo ascoltatore sul pannello anche dopo più ridisegni'); }
+
+  /* settimana precedente con anni ISO da 53 settimane */
+  ok(w.eval('weekPrev(202701)') === 202653, 'weekPrev: prima della 2027-01 c\'è la 2026-53 (anno ISO da 53 settimane)');
+  ok(w.eval('weekPrev(202601)') === 202552 && w.eval('weekPrev(202610)') === 202609, 'weekPrev: cambio d\'anno normale e settimana qualsiasi');
+
+  /* ACWR su settimane di calendario */
+  const ag = a => 'caricoCronico(' + JSON.stringify(a.map(([s, tl]) => ({ scheda: s, tl }))) + ')';
+  { const c = w.eval(ag([[202601,100],[202602,100],[202603,100],[202604,100]]));
+    ok(Math.abs(c[3].acwr - 1) < 1e-9 && Math.abs(c[0].acwr - 1) < 1e-9, 'ACWR: settimane consecutive a carico costante = 1 (anche la prima)'); }
+  { const c = w.eval(ag([[202601,100],[202602,100],[202603,100],[202604,100],[202608,100]]));
+    ok(c[4].acwr > 3.9, 'ACWR: dopo tre settimane di stop il rientro a pieno carico risulta alto (prima: 1,00)'); }
+  { const c = w.eval(ag([[202601,100],[202603,100],[202605,100],[202607,100]]));
+    ok(Math.abs(c[3].acwr - 1) < 1e-9, 'ACWR: chi salva ogni due settimane non ha «buchi» (ritmo diverso, conteggio sulle registrazioni)'); }
+  { const c = w.eval('caricoCronico(' + JSON.stringify([[202601,100],[202602,100],[202606,100]].map(([s, tl]) => ({ scheda: s, tl }))) + ', false)');
+    ok(Math.abs(c[2].acwr - 1) < 1e-9, 'ACWR: vista filtrata per Training Set → sulle ultime registrazioni'); }
+  ok(w.eval('settimaneFra(202652,202701)') === 2 && w.eval('settimaneFra(202653,202701)') === 1, 'settimaneFra: attraversa il cambio d\'anno con la settimana 53');
+
+  /* «ultima volta» per esercizio */
+  w.eval('DOC.storico.push({scheda:209901,esercizio:"Esercizio Raro",seduta:1,macro:"Gambe",serie:3,rip:8,peso:50},{scheda:209902,esercizio:"Altro",seduta:1,macro:"Gambe",serie:3,rip:8,peso:50});');
+  ok(w.eval('lastBlockPesi("Esercizio Raro",1).length') === 1 && w.eval('lastBlockSets("Esercizio Raro",1).length') === 1, 'Δ TL / pallino: confronto con l\'ultima settimana in cui l\'esercizio è stato fatto, non con l\'ultima salvata');
+
+  /* eliminare una settimana toglie anche RPE e riscaldamento salvati con lei */
+  w.eval('DOC.storico_rpe=(DOC.storico_rpe||[]).concat([{scheda:209902,giorno:"Lunedì",rpe:7,min:60}]); DOC.storico_risc=(DOC.storico_risc||[]).concat([{scheda:209902,giorno:"Lunedì",esercizio:"Cyclette",min:10}]); eliminaScheda(209902);');
+  d.getElementById('cc-si').click();
+  ok(w.eval('DOC.storico.filter(r=>+r.scheda===209902).length') === 0 && w.eval('DOC.storico_rpe.filter(r=>+r.scheda===209902).length') === 0 && w.eval('DOC.storico_risc.filter(r=>+r.scheda===209902).length') === 0, 'elimina settimana: via anche il suo carico interno (RPE) e il cardio del riscaldamento');
+  w.eval('DOC.storico=DOC.storico.filter(r=>+r.scheda<209900);');
+
+  /* rinomina di un esercizio: i dati lo seguono */
+  { const nome = w.eval('DOC.storico.find(r=>esLookup(r.esercizio)).esercizio'); const n0 = w.eval('DOC.storico.filter(r=>r.esercizio===' + JSON.stringify(nome) + ').length');
+    w.eval('showTab("esercizi"); exEdit(' + JSON.stringify(nome) + ')');
+    d.getElementById('ex-nome').value = 'Nome Nuovo di Prova'; d.getElementById('ex-ok').click();
+    ok(n0 > 0 && w.eval('DOC.storico.filter(r=>r.esercizio==="Nome Nuovo di Prova").length') === n0 && w.eval('DOC.storico.filter(r=>r.esercizio===' + JSON.stringify(nome) + ').length') === 0, 'rinomina esercizio: lo storico passa al nome nuovo (' + n0 + ' righe)');
+    ok(w.eval('esLookup(' + JSON.stringify(nome) + ').nome') === 'Nome Nuovo di Prova' && w.eval('nomeAttuale(' + JSON.stringify(nome) + ')') === 'Nome Nuovo di Prova', 'rinomina esercizio: il vecchio nome resta riconosciuto (alias)');
+    ok(w.eval('elenchiScheda().every(el=>el.every(r=>r.esercizio!==' + JSON.stringify(nome) + '))'), 'rinomina esercizio: aggiornate anche le schede e i Training Set salvati');
+    await settle(600);
+    ok(fsmem._files.get('TMS_Dati/wander/storico.json').includes('Nome Nuovo di Prova') && JSON.parse(fsmem._files.get('TMS_Dati/esercizi.json')).some(e => e.nome === 'Nome Nuovo di Prova' && (e.alias || []).includes(nome)), 'rinomina esercizio: storico e catalogo (con alias) scritti su disco'); }
+  { w.eval('exEdit("Trazioni alla sbarra (pull-up)")'); d.getElementById('ex-nome').value = 'Pull-up'; d.getElementById('ex-ok').click();
+    ok(w.eval('quotaCorpo("Pull-up")') === 1 && w.eval('isCorpoLibero("Pull-up")') === true, 'rinomina di un esercizio a corpo libero: resta a corpo libero');
+    ok(w.eval('nomeAttuale(MAINLIFTS[4].nome)') === 'Pull-up', 'rinomina di un fondamentale: la card dei record lo segue'); }
+
+  /* misure: una per settimana, massa grassa in percento */
+  w.eval('showTab("corpo")');
+  { const inp = d.querySelector('#panel-corpo [data-u="massa_grassa"]'); inp.value = '14.5'; inp.dispatchEvent(new w.Event('input', { bubbles: true }));
+    ok(Math.abs(w.eval('DOC.dati_utente.massa_grassa') - 0.145) < 1e-9, 'Corpo: massa grassa scritta in percento (14.5) salvata come frazione (0,145)'); }
+  { const n0 = w.eval('DOC.storico_io.length');
+    w.eval('saveIoModal()'); d.getElementById('m-anno').value = '2031'; d.getElementById('m-sett').value = '7'; d.getElementById('m-ok').click();
+    w.eval('DOC.dati_utente.peso=71.2; saveIoModal()'); d.getElementById('m-anno').value = '2031'; d.getElementById('m-sett').value = '7'; d.getElementById('m-ok').click();
+    ok(w.eval('DOC.storico_io.length') === n0 + 1 && w.eval('DOC.storico_io.filter(r=>+r.scheda===203107)[0].peso') === 71.2, 'Corpo: salvare due volte la stessa settimana sostituisce la misura (non la duplica)');
+    w.eval('saveIoModal()'); d.getElementById('m-sett').value = '0'; d.getElementById('m-ok').click();
+    ok(w.eval('DOC.storico_io.length') === n0 + 1, 'Corpo: settimana non valida rifiutata');
+    w.eval('closeModal()'); }
+
+  /* TRIMP: il picco della seduta non è la FC max dell'atleta */
+  { const s = 'var u=DOC.dati_utente; u.fcMax=190; u.fcRiposo=60; u.sesso="M";';
+    const a = w.eval('(function(){' + s + ' return trimpCardio({durata:60,fcMedia:140,fcPicco:150}); })()');
+    const b = w.eval('(function(){' + s + ' return trimpCardio({durata:60,fcMedia:140,fcMax:150}); })()');
+    const c = w.eval('(function(){' + s + ' return trimpCardio({durata:60,fcMedia:140}); })()');
+    ok(a === c && b > a, 'TRIMP: il picco della seduta (150) non sostituisce la FC max del profilo (190)');
+    ok(w.eval('(function(){' + s + ' return fcMaxPerSeduta({fcPicco:197}); })()') === 197, 'TRIMP: un picco oltre la FC max nota la alza (la massima vera è almeno quella)');
+    ok(w.eval('(function(){ DOC.cardio=[{data:"2026-01-01",tipo:"Corsa",durata:30,fcMedia:150,fcMax:171,note:"importata da file"},{data:"2026-01-02",tipo:"Corsa",durata:30,fcMedia:150,fcMax:185,note:"mia"}]; var ch=migrateCardio(); return ch && DOC.cardio[0].fcPicco===171 && DOC.cardio[0].fcMax==="" && DOC.cardio[1].fcMax===185 && !migrateCardio(); })()'), 'cardio importato in passato: il picco esce dal campo FC max (una volta sola), le sedute scritte a mano no');
+    w.eval('DOC.cardio=[]; DOC.dati_utente.fcMax=""; DOC.dati_utente.fcRiposo="";'); }
+
+  /* grafici: valore al passaggio del mouse */
+  ok(w.eval('lineChart([{name:"TL",color:"red",data:[{x:"a",y:1200},{x:"b",y:1500}]}],{labels:["01/01/26","08/01/26"],fmt:nfk})').includes('<title>08/01/26 · 1,5k</title>'), 'grafico a linee: ogni punto dice data e valore al passaggio del mouse');
+  ok(w.eval('showTab("storico"); document.querySelector("#panel-storico .day-sep").textContent').match(/\d{2}\/\d{2}\/\d{2}/) !== null, 'Storico: la settimana è indicata anche come data');
+  ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  dom.window.close();
 }
 
 console.log('');

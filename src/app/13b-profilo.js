@@ -62,6 +62,13 @@ function renderProfilo(){
       ab.innerHTML=t('🛟 <b>Backup automatici</b> (uno a settimana, ultime')+' '+AUTOBK_MAX+' '+t('copie):')+' '+
         l.map(x=>`<span class="pill">${esc(x.data||'?')} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">${t('ripristina')}</a></span>`).join(' ');
       ab.querySelectorAll('[data-autobk]').forEach(a=>a.onclick=ev=>{ ev.preventDefault(); ripristinaBackupAutomatico(a.dataset.autobk); });
+    }).catch(()=>{}).then(()=>listaCopieDiSicurezza()).then(ls=>{
+      if(!ab.isConnected||!ls||!ls.length) return;
+      const box=document.createElement('div'); box.style.marginTop='5px';
+      box.innerHTML=t('↩ <b>Prima dell\'ultimo ripristino</b> (per tornare indietro):')+' '+
+        ls.map(x=>`<span class="pill">${esc(x.data||'?')}${x.ora?' '+esc(x.ora):''} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">${t('ripristina')}</a></span>`).join(' ');
+      ab.appendChild(box);
+      box.querySelectorAll('[data-autobk]').forEach(a=>a.onclick=ev=>{ ev.preventDefault(); ripristinaBackupAutomatico(a.dataset.autobk); });
     }).catch(()=>{}); }
   document.querySelectorAll('#panel-profilo [data-popen]').forEach(h=>h.onclick=()=>{
     const slug=h.dataset.popen; profOpen = profOpen===slug ? null : slug; renderProfilo();

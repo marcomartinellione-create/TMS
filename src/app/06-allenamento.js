@@ -124,8 +124,7 @@ function prefillFromLast(){ const rows=schedaRows(); let n=0;
    RIR≤1 / monotonia alta · 🔴 oltre +20% o aumento con ACWR>1.5 (meglio scaricare). */
 const CARICO_COL={ok:'var(--ok)',warn:'var(--warn)',danger:'var(--danger)'};
 function caricoSignals(){
-  const ag=schedeAggr(); let acwr=null;
-  if(ag.length){ const w=ag.slice(-4); const c=w.reduce((s,x)=>s+x.tl,0)/w.length; acwr=c?ag[ag.length-1].tl/c:null; }
+  const ag=schedeAggr(); const acwr=acwrUltimo(ag);
   let monoHigh=false;
   if(useRpeActive() && ag.length){ const rpw=rpeByWeek(); const lc=ag[ag.length-1].scheda; const f=fosterWeek(rpw[lc]&&rpw[lc].day); monoHigh=(f.monotony!=null && f.monotony>2 && f.load>0); }
   return {acwr, monoHigh, sovraccarico:(acwr!=null&&acwr>1.5)};
@@ -343,9 +342,11 @@ function renderAllenamento(){
   if(pesiView==='riscaldamento'){ renderRiscaldamento(S); return; }
   const rows=schedaRows();
   const smap=sedutaMap(rows);
-  let totTL=0; rows.forEach(r=>{ totTL+=sTL(r); });
-  let prevTotal=0; if(DOC.storico.length){ const mx=Math.max(...DOC.storico.map(r=>+r.scheda||0)); prevTotal=DOC.storico.filter(r=>(+r.scheda)===mx&&!r.test).reduce((a,r)=>a+sTL(r),0); }
-  const deltaW=prevTotal>0? (totTL/prevTotal-1):null;
+  /* il TL totale conta tutto; il Δ confronta lo STESSO perimetro sui due lati: i test ★
+     sono esclusi dalla settimana salvata, quindi anche da quella in scrittura */
+  let totTL=0, totTLnoTest=0; rows.forEach(r=>{ const x=sTL(r); totTL+=x; if(!r.test) totTLnoTest+=x; });
+  const prevTotal=tlUltimaScheda();
+  const deltaW=prevTotal>0? (totTLnoTest/prevTotal-1):null;
   let body='', lastDay=null; const blockSeen={}, setIdx={}, lastSetsCache={}, lastPesiCache={}, lpCache={};
   const sigCarico=caricoSignals();
   rows.forEach((r,i)=>{
@@ -407,12 +408,14 @@ function renderAllenamento(){
    <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> nella cella dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:var(--warn)">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
   wireBarSelettori();
   // auto-resize note textareas
-  document.getElementById('panel-allenamento').addEventListener('input', e=>{
+  /* oninput (non addEventListener): il pannello resta lo stesso a ogni ridisegno, e con
+     addEventListener si accumulava un ascoltatore in più a ogni render */
+  document.getElementById('panel-allenamento').oninput=e=>{
     if(e.target.classList.contains('note-area')){
       e.target.style.height='auto';
       e.target.style.height=e.target.scrollHeight+'px';
     }
-  });
+  };
   // init height on existing note textareas
   document.querySelectorAll('.note-area').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
   { const b=document.getElementById('btn-colonne'); if(b) b.onclick=colonnePesiModal; }
@@ -421,9 +424,12 @@ function renderAllenamento(){
   document.getElementById('btn-addday').onclick=addDay;
   { const pf=document.getElementById('btn-prefill'); if(pf) pf.onclick=()=>{ if(confirm(t('Precompilo peso/rip/RIR dalla scorsa registrazione di ogni esercizio? Sovrascrive i valori attuali della scheda.'))) prefillFromLast(); }; }
   document.getElementById('btn-save-sched').onclick=saveSchedaModal;
-  document.querySelectorAll('#panel-allenamento input').forEach(inp=>{
+  /* anche le textarea: la Nota è una <textarea>, e con il solo selettore «input» ciò che
+     si digitava lì non arrivava mai ai dati (restava a video fino al ridisegno successivo) */
+  document.querySelectorAll('#panel-allenamento input, #panel-allenamento textarea').forEach(inp=>{
     inp.addEventListener('input',e=>{
       const tr=e.target.closest('tr'); if(!tr||tr.dataset.i==null)return; const i=+tr.dataset.i; const f=e.target.dataset.f;
+      if(!f||!schedaRows()[i]) return;
       let v=e.target.value; if(['serie','rip','peso','rir'].includes(f)) v=v===''?'':+v;
       schedaRows()[i][f]=v; persist('scheda');
       if(['serie','rip','peso','rir'].includes(f)) refreshSchedaCalc();  /* aggiornamento dal vivo, mantiene il focus */
@@ -447,7 +453,17 @@ function renderAllenamento(){
   document.querySelectorAll('.note-area').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
 }
 let rerenderT=null; /* timer condiviso del re-render ritardato (usato da Pesi e Alimentazione) */
-function weekPrev(code){ let a=Math.floor(code/100), s=code%100; return s>1? a*100+(s-1) : (a-1)*100+52; }
+/* TL (senza test ★) dell'ultima settimana salvata: il termine di confronto del Δ settimana */
+function tlUltimaScheda(){ let mx=0; DOC.storico.forEach(r=>{ const s=+r.scheda||0; if(s>mx) mx=s; });
+  return mx? DOC.storico.filter(r=>(+r.scheda)===mx&&!r.test).reduce((a,r)=>a+sTL(r),0) : 0; }
+/* settimana ISO precedente. Passa dalle date: l'anno ISO può avere 53 settimane (il 2026
+   le ha), e «anno prima, settimana 52» saltava la 53 — a gennaio l'avviso «manca la
+   settimana precedente» guardava quella sbagliata. */
+function weekPrev(code){ code=+code||0; const a=Math.floor(code/100), s=code%100;
+  if(!a||s<1||s>53) return code;
+  const d=isoWeekMonday(a,s); d.setUTCDate(d.getUTCDate()-7);
+  const w=isoWeek(new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  return schedaCode(w.anno,w.sett); }
 function aggStatus(arr){ const codes=(arr||[]).map(r=>+r.scheda||0).filter(x=>x>0);
   const last=codes.length?Math.max(...codes):0; const w=isoWeek(new Date()); const cur=schedaCode(w.anno,w.sett); const prev=weekPrev(cur);
   return {ok:last>=prev, last, cur, prev}; }
@@ -463,12 +479,12 @@ function updateStatusDots(){ const so=aggStatus(DOC.storico), bo=aggStatus(DOC.s
 }
 function refreshSchedaCalc(){
   const rows=schedaRows(), smap=sedutaMap(rows);
-  let totTL=0; const setIdx={}, lastSetsCache={}, lastPesiCache={}, lpCache={};
+  let totTL=0, totTLnoTest=0; const setIdx={}, lastSetsCache={}, lastPesiCache={}, lpCache={};
   const sigCarico=caricoSignals();
   document.querySelectorAll('#panel-allenamento tbody tr[data-i]').forEach(tr=>{
     const i=+tr.dataset.i, r=rows[i]; if(!r)return; const c=tr.children;
     const m=rmMostrato(r), p=sPct(r), tl=sTL(r), fa=fascia(p);
-    totTL+=tl;
+    totTL+=tl; if(!r.test) totTLnoTest+=tl;
     if(c[7])c[7].textContent=m?nf(m,1):'—';
     if(c[8])c[8].textContent=p?nf(p,1):'—';
     if(c[9])c[9].textContent=tl?nfk(tl):'—';
@@ -484,8 +500,8 @@ function refreshSchedaCalc(){
     if(c[10]){ c[10].className='num '+(dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'); c[10].textContent=dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'; }
     caricoLedApply(tr.querySelector('.carico-led'), ledCarico);
   });
-  let prevTotal=0; if(DOC.storico.length){ const mx=Math.max(...DOC.storico.map(r=>+r.scheda||0)); prevTotal=DOC.storico.filter(r=>(+r.scheda)===mx&&!r.test).reduce((a,r)=>a+sTL(r),0); }
-  const deltaW=prevTotal>0?(totTL/prevTotal-1):null;
+  const prevTotal=tlUltimaScheda();
+  const deltaW=prevTotal>0?(totTLnoTest/prevTotal-1):null;
   const ht=document.getElementById('hdr-tottl'); if(ht)ht.textContent=t('TL totale')+' '+nfk(totTL);
   const hd=document.getElementById('hdr-delta'); if(hd)hd.innerHTML=deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px">${t('ultima')} ${nfk(prevTotal)}</span>`;
 }
@@ -578,6 +594,14 @@ function eliminaScheda(code){
     t('Vengono tolte tutte le sue righe')+' (<b>'+n+'</b> '+t('righe')+'). '+t('L\'operazione non si può annullare.'),
     ()=>{
       DOC.storico=DOC.storico.filter(r=>(+r.scheda)!==code); persist('storico');
+      /* con la settimana se ne vanno anche il carico interno (RPE×min) e i minuti di
+         cardio del riscaldamento salvati insieme a lei: restando, la settimana eliminata
+         continuava a contare in sRPE, monotonia e nell'asse Cardio */
+      const nR=(DOC.storico_rpe||[]).length, nW=(DOC.storico_risc||[]).length;
+      DOC.storico_rpe=(DOC.storico_rpe||[]).filter(x=>(+x.scheda)!==code);
+      DOC.storico_risc=(DOC.storico_risc||[]).filter(x=>(+x.scheda)!==code);
+      if(DOC.storico_rpe.length!==nR||DOC.storico_risc.length!==nW) persist('corpo');
+      cruscottoInvalida();
       if(curTab==='storico') renderStorico(); else renderAllenamento(); updateStatusDots();
     }, {testoOk:t('Elimina')});
 }

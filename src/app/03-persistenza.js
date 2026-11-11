@@ -44,6 +44,57 @@ function loadCache(){ try{
 }catch(e){ return false; } }
 
 async function readJson(dh,f){try{const fh=await dh.getFileHandle(f);return JSON.parse(await(await fh.getFile()).text());}catch(e){return null;}}
+/* ── LETTURA RIGOROSA (2026-11-11) ───────────────────────────────────────────────
+   readJson risponde null sia quando il file NON C'È sia quando c'è ma non si legge
+   (JSON rovinato, file vuoto, disco o antivirus che lo tengono bloccato). Per i file
+   che contano la differenza è tutto: «non c'è» vuol dire profilo nuovo, «non si legge»
+   vuol dire che i dati ESISTONO e vanno lasciati stare. Prima i due casi finivano nello
+   stesso ramo, e al primo salvataggio uno storico illeggibile veniva riscritto vuoto.
+   Qui si distingue: stato 'ok' | 'assente' | 'illeggibile'. */
+async function leggiJson(dh,f){
+  let fh; try{ fh=await dh.getFileHandle(f); }
+  catch(e){ return {dati:null, stato:(e&&e.name==='NotFoundError')?'assente':'illeggibile', errore:e}; }
+  let testo=''; try{ testo=await(await fh.getFile()).text(); }
+  catch(e){ return {dati:null, stato:'illeggibile', errore:e}; }
+  try{ return {dati:JSON.parse(testo), stato:'ok'}; }
+  catch(e){ return {dati:null, stato:'illeggibile', errore:e}; }
+}
+/* errore «dati illeggibili»: chi lo riceve NON deve scrivere nulla */
+function erroreIlleggibile(dove, r){
+  const e=new Error((r&&r.errore&&r.errore.message)||'illeggibile'); e.name='DatiIlleggibili'; e.file=dove; return e; }
+/* i dati di un profilo letti in modo rigoroso; lancia DatiIlleggibili al primo file rotto */
+async function leggiProfiloRigoroso(pd, etichetta){
+  const out={}; let assenti=0;
+  for(const k of ['scheda','storico','corpo','alimentazione']){
+    const r=await leggiJson(pd,FILES[k]);
+    if(r.stato==='illeggibile') throw erroreIlleggibile((etichetta?etichetta+'/':'')+FILES[k], r);
+    if(r.stato==='assente') assenti++;
+    out[k]=r.dati;
+  }
+  out.assenti=assenti; return out;
+}
+/* ── BLOCCO DELLE SCRITTURE ──────────────────────────────────────────────────────
+   Quando un file dei dati non si legge l'app smette di salvare finché la cosa non è
+   risolta: qualunque scrittura partirebbe da uno stato incompleto e lo renderebbe
+   definitivo. Si esce dal blocco riavviando (se il file torna leggibile) o ripristinando
+   un backup. Il file rotto non viene mai toccato. */
+let scrittureBloccate=null;   /* null = tutto regolare; altrimenti {file, msg} */
+function bloccaScritture(e){
+  scrittureBloccate={file:(e&&e.file)||'?', msg:(e&&e.message)||''};
+  clearTimeout(saveTimer); pendingSaves.clear();
+  setConn('err', t('dati illeggibili — salvataggio sospeso'));
+  logErrore('datiIlleggibili:'+scrittureBloccate.file, e);
+  try{ mostraBloccoScritture(); }catch(_){}
+}
+function sbloccaScritture(){ scrittureBloccate=null; }
+function mostraBloccoScritture(){
+  if(!scrittureBloccate) return;
+  modal(`<h3>⚠ ${t('Un file dei dati non si legge')}</h3>
+   <div class="callout callout--ember" style="margin-top:6px"><div>${t('Non riesco a leggere')} <b class="mono">${esc(scrittureBloccate.file)}</b>. ${t('Per non rovinare nulla ho <b>sospeso il salvataggio</b>: quello che vedi ora può essere incompleto e le modifiche di questa sessione non vengono scritte.')}</div></div>
+   <div style="font-size:13px;line-height:1.55;margin-top:8px">${t('Cosa fare, in ordine:')}<br>1. ${t('<b>Chiudi e riapri</b> l’app: se il file era solo occupato da un altro programma (antivirus, sincronizzazione) torna tutto a posto da solo.')}<br>2. ${t('Se succede di nuovo, dal tab <b>Profilo</b> ripristina un <b>backup automatico</b>: il file rotto resta dov’è, non viene cancellato.')}</div>
+   <div class="modal__actions"><button class="btn btn--ember" onclick="closeModal()">${t('Ho capito')}</button></div>`);
+  const m=document.getElementById('modal'); if(m) m.style.maxWidth='560px';
+}
 async function writeJson(dh,f,obj){const fh=await dh.getFileHandle(f,{create:true});const w=await fh.createWritable();await w.write(JSON.stringify(obj,null,2));await w.close();}
 
 /* ── Desktop (Electron): dati locali via ponte window.tmsFS ──
@@ -92,7 +143,9 @@ function localDirHandle(rel){
             let off=0; for(const b of parts){ buf.set(b,off); off+=b.length; }
             await window.tmsFS.writeFile(p,buf);
           } }; } }; },
-    removeEntry:async(nm)=>{ await window.tmsFS.remove(P(nm)); }
+    removeEntry:async(nm)=>{ await window.tmsFS.remove(P(nm)); },
+    /* sposta una sottocartella dentro _eliminati/ (solo desktop): niente viene distrutto */
+    cestina:async(nm)=>{ if(typeof window.tmsFS.cestina!=='function') throw new Error('cestino non disponibile'); return await window.tmsFS.cestina(P(nm)); }
   };
 }
 
@@ -106,12 +159,14 @@ async function pickDirectory(){
   }catch(e){ if(e.name==='AbortError'){ if(window.tmsFS && dirHandle) gateHide(); } else gateErr('Errore: '+e.message); }
 }
 async function loadProfile(){
-  const sc=await readJson(profileDir,FILES.scheda), st=await readJson(profileDir,FILES.storico),
-        co=await readJson(profileDir,FILES.corpo), al=await readJson(profileDir,FILES.alimentazione);
+  /* lettura rigorosa: un file illeggibile interrompe il caricamento PRIMA di qualunque
+     scrittura (l'errore risale a connectFlow/switchProfile, che bloccano il salvataggio) */
+  const L=await leggiProfiloRigoroso(profileDir, activeProfile);
+  const sc=L.scheda, st=L.storico, co=L.corpo, al=L.alimentazione;
   applyProfileData({scheda:sc, storico:st, storico_io:co&&co.storico_io, storico_rpe:co&&co.storico_rpe, storico_risc:co&&co.storico_risc, cardio:co&&co.cardio, foto:co&&co.foto, dati_utente:co&&co.dati_utente, alimentazione:al});
   const preMig=JSON.stringify(DOC.storico);
   const preMigScheda=JSON.stringify(DOC.scheda);
-  const migged=!!(migrateStorico()|migrateScheda()|migrateExNames()); normalizeAlim();
+  const migged=!!(migrateStorico()|migrateScheda()|migrateExNames()|migrateCardio()); normalizeAlim();
   if(migged){ try{ await writeJson(profileDir,'storico.backup.json',{_backup:new Date().toISOString(),storico:JSON.parse(preMig),scheda:JSON.parse(preMigScheda)}); }catch(e){} }
   if(!sc||!st||!co||!al||migged) await persistAll();
 }
@@ -123,13 +178,18 @@ async function connectFlow(){
     if(perm!=='granted'){ setConn('err',t('permesso negato')); return; }
     dataDir=await dirHandle.getDirectoryHandle(SUBDIR,{create:true});
     /* catalogo esercizi (condiviso tra i profili) */
-    const ex=await readJson(dataDir,FILES.esercizi);
+    sbloccaScritture();
+    const exR=await leggiJson(dataDir,FILES.esercizi);
+    if(exR.stato==='illeggibile') throw erroreIlleggibile(FILES.esercizi, exR);
+    const ex=exR.dati;
     if(ex&&ex.length) DOC.esercizi=ex;
     if(!Array.isArray(DOC.esercizi)||!DOC.esercizi.length)
       DOC.esercizi=REF.esercizi.filter(e=>!isVariante(e.nome)).map(e=>Object.assign({},e,{nome:String(e.nome).trim()}));
     rebuildEs();
     /* profili */
-    const pj=await readJson(dataDir,FILES.profili);
+    const pjR=await leggiJson(dataDir,FILES.profili);
+    if(pjR.stato==='illeggibile') throw erroreIlleggibile(FILES.profili, pjR);
+    const pj=pjR.dati;
     if(pj&&pj.list&&pj.list.length){
       profili=pj.list; activeProfile=pj.active||pj.list[0].slug;
       profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});
@@ -140,12 +200,16 @@ async function connectFlow(){
       /* nessun profili.json: crea/usa Wander e migra i file flat legacy (o il seed corrente) */
       if(!profili.length){ profili=[{slug:'wander',nome:'Wander',creato:new Date().toISOString().slice(0,10)}]; }
       activeProfile=(profili[0]&&profili[0].slug)||'wander';
-      const lsc=await readJson(dataDir,FILES.scheda), lst=await readJson(dataDir,FILES.storico),
-            lco=await readJson(dataDir,FILES.corpo), lal=await readJson(dataDir,FILES.alimentazione);
+      const LL=await leggiProfiloRigoroso(dataDir, '');
+      const lsc=LL.scheda, lst=LL.storico, lco=LL.corpo, lal=LL.alimentazione;
       if(lsc||lst||lco||lal){ applyProfileData({scheda:lsc,storico:lst,storico_io:lco&&lco.storico_io,storico_rpe:lco&&lco.storico_rpe,storico_risc:lco&&lco.storico_risc,cardio:lco&&lco.cardio,foto:lco&&lco.foto,dati_utente:lco&&lco.dati_utente,alimentazione:lal}); }
       migrateStorico(); migrateScheda(); migrateExNames(); normalizeAlim();
       profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});
-      await persistAll();
+      /* manca solo l'elenco dei profili ma la cartella del profilo ha già i suoi file:
+         si CARICANO quelli, non ci si scrive sopra con ciò che c'è in memoria */
+      const giaLi=await leggiProfiloRigoroso(profileDir, activeProfile);
+      if(giaLi.assenti<4 && !(lsc||lst||lco||lal)){ await loadProfile(); await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile}); }
+      else await persistAll();
       for(const fn of [FILES.scheda,FILES.storico,FILES.corpo,FILES.alimentazione]){ try{ await dataDir.removeEntry(fn); }catch(e){} }
     }
     saveCache();
@@ -154,11 +218,13 @@ async function connectFlow(){
     aggiornaTabProfilo();
     renderAll();
     backupAutomaticoSeServe();  /* fire-and-forget: uno snapshot a settimana, non blocca l'avvio */
-  }catch(e){ setConn('err',t('errore: ')+e.message); logErrore('connectFlow', e); }
+  }catch(e){
+    if(e&&e.name==='DatiIlleggibili'){ bloccaScritture(e); aggiornaTabProfilo(); try{ renderAll(); }catch(_){} return; }
+    setConn('err',t('errore: ')+e.message); logErrore('connectFlow', e); }
 }
 
 async function persistAll(){
-  if(!dataDir)return;
+  if(!dataDir||scrittureBloccate)return;
   if(profileDir){
     await writeJson(profileDir,FILES.scheda,DOC.scheda);
     await writeJson(profileDir,FILES.storico,DOC.storico);
@@ -170,6 +236,7 @@ async function persistAll(){
 }
 async function flushSaves(){
   const keys=[...pendingSaves]; pendingSaves.clear();
+  if(scrittureBloccate) return;
   if(keys.includes('*')) { await persistAll(); return; }
   for(const which of keys){
     if(which==='scheda'&&profileDir) await writeJson(profileDir,FILES.scheda,DOC.scheda);
@@ -181,7 +248,33 @@ async function flushSaves(){
     else await persistAll();
   }
 }
+/* ── CHIUSURA DELLA FINESTRA (desktop) ───────────────────────────────────────────
+   Il salvataggio aspetta 350 ms dall'ultimo tasto: chiudendo l'app in quell'istante
+   l'ultima modifica restava solo nella cache e al riavvio veniva coperta dal disco.
+   Qui le scritture in attesa partono SUBITO, senza await: il messaggio al processo
+   principale viene spedito prima che la pagina muoia, ed è lui a completare la scrittura
+   (atomica). Solo desktop: nel browser una scrittura su cartella non parte in chiusura. */
+function scaricaSubito(){
+  try{
+    if(!window.tmsFS||!dataDir||!dataDir._local||scrittureBloccate||!pendingSaves.size) return 0;
+    clearTimeout(saveTimer); const keys=[...pendingSaves]; pendingSaves.clear();
+    const tutto=keys.some(k=>['scheda','storico','corpo','alimentazione','esercizi','profili'].indexOf(k)<0);
+    const vuole=k=>tutto||keys.indexOf(k)>=0;
+    const W=(rel,obj)=>{ try{ const p=window.tmsFS.writeFile(rel, JSON.stringify(obj,null,2)); if(p&&p.catch) p.catch(()=>{}); n++; }catch(e){} };
+    let n=0; const base=SUBDIR+'/', pb=base+activeProfile+'/';
+    if(profileDir&&activeProfile){
+      if(vuole('scheda')) W(pb+FILES.scheda, DOC.scheda);
+      if(vuole('storico')) W(pb+FILES.storico, DOC.storico);
+      if(vuole('corpo')) W(pb+FILES.corpo, {dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto});
+      if(vuole('alimentazione')) W(pb+FILES.alimentazione, DOC.alimentazione);
+    }
+    if(vuole('esercizi')) W(base+FILES.esercizi, DOC.esercizi);
+    if(vuole('profili')) W(base+FILES.profili, {list:profili,active:activeProfile});
+    return n;
+  }catch(e){ return 0; }
+}
 function persist(which){
+  if(scrittureBloccate) return;   /* niente cache né disco: lo stato in memoria può essere incompleto */
   saveCache();
   if(suppressSave) return;
   if(!dataDir) return;
@@ -198,15 +291,28 @@ async function switchProfile(slug){
   if(!profili.some(p=>p.slug===slug)) return;
   cruscottoInvalida();  /* il set di dati per-profilo è cambiato: il cruscotto va ricalcolato */
   if(slug!==activeProfile){
-    if(dataDir&&profileDir){ try{ await persistAll(); }catch(e){} }
+    if(scrittureBloccate){ mostraBloccoScritture(); return; }
+    /* un salvataggio ancora in attesa (debounce) scatterebbe DURANTE il cambio, quando la
+       cartella è già quella nuova ma i dati in memoria sono ancora del profilo vecchio:
+       si chiude tutto prima, con una scrittura completa, e si azzera la coda */
+    clearTimeout(saveTimer); pendingSaves.clear();
+    if(dataDir&&profileDir){ try{ await persistAll(); }catch(e){ logErrore('switchProfile/salva', e); } }
     saveCache();
-    activeProfile=slug;
     if(dataDir){
-      profileDir=await dataDir.getDirectoryHandle(slug,{create:true});
-      const sc=await readJson(profileDir,FILES.scheda);
-      if(sc){ await loadProfile(); } else { applyProfileData(blankDOC()); await persistAll(); }
+      /* si legge il profilo di arrivo PRIMA di toccare lo stato: se un suo file non si
+         legge si resta sul profilo corrente, senza scrivere nulla */
+      const nuovaDir=await dataDir.getDirectoryHandle(slug,{create:true});
+      let L; try{ L=await leggiProfiloRigoroso(nuovaDir, slug); }
+      catch(e){ if(e&&e.name==='DatiIlleggibili'){
+          logErrore('switchProfile:'+e.file, e);
+          avvisa(t('Profilo non apribile'), t('Non riesco a leggere')+' <b class="mono">'+esc(e.file)+'</b>. '+t('Resto sul profilo attuale e non tocco nulla. Riprova fra poco; se continua, ripristina un backup automatico dal tab Profilo.'));
+          return; }
+        throw e; }
+      activeProfile=slug; profileDir=nuovaDir;
+      if(L.assenti<4){ await loadProfile(); } else { applyProfileData(blankDOC()); await persistAll(); }
       try{ await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile}); }catch(e){}
     } else {
+      activeProfile=slug;
       const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); applyProfileData((all.data&&all.data[slug])||blankDOC());
     }
     saveCache();
@@ -226,8 +332,18 @@ async function deleteProfile(slug){
   if(profili.length<=1){ alert(t('Deve restare almeno un profilo.')); return; }
   const p=profili.find(x=>x.slug===slug); if(!p) return;
   if(!confirm(t('Eliminare il profilo «')+p.nome+t('» e TUTTI i suoi dati? Operazione irreversibile.'))) return;
+  if(scrittureBloccate){ mostraBloccoScritture(); return; }
   profili=profili.filter(x=>x.slug!==slug);
-  if(dataDir){ try{ await dataDir.removeEntry(slug,{recursive:true}); }catch(e){} try{ await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile}); }catch(e){} }
+  if(dataDir){
+    /* La cartella del profilo deve sparire davvero: se resta, un profilo nuovo con lo
+       stesso nome ne eredita i dati (succedeva su desktop, dove la rimozione di una
+       cartella non vuota falliva in silenzio). Su desktop non si distrugge nulla: la
+       cartella passa in TMS_Dati/_eliminati/, da dove si può recuperare a mano. Nel
+       browser, dove lo spostamento non esiste, si elimina come prima. */
+    let tolta=false;
+    if(typeof dataDir.cestina==='function'){ try{ await dataDir.cestina(slug); tolta=true; }catch(e){ logErrore('eliminaProfilo/cestino', e); } }
+    if(!tolta){ try{ await dataDir.removeEntry(slug,{recursive:true}); }catch(e){ logErrore('eliminaProfilo', e); } }
+    try{ await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile}); }catch(e){} }
   try{ const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); if(all.data){ delete all.data[slug]; localStorage.setItem(CACHE_KEY,JSON.stringify(all)); } }catch(e){}
   if(activeProfile===slug){ await switchProfile(profili[0].slug); } else { saveCache(); renderProfilo(); }
 }
