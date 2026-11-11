@@ -88,18 +88,18 @@ function nuovoTrainingSetModal(){ const s=ensureSets();
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="ts-ok">${t('Crea')}</button></div>`);
   const src=document.getElementById('ts-src'); if(src) src.value=s.setAttivo;
   document.getElementById('ts-ok').onclick=()=>{ const nome=(document.getElementById('ts-nome').value||'').trim();
-    if(!nome){ alert(t('Dai un nome al Training Set.')); return; }
-    if(nome===s.setAttivo||s.setsSalvati[nome]){ alert(t('Esiste già un Training Set con questo nome.')); return; }
+    if(!nome){ avviso(t('Dai un nome al Training Set.')); return; }
+    if(nome===s.setAttivo||s.setsSalvati[nome]){ avviso(t('Esiste già un Training Set con questo nome.')); return; }
     const sorgente=document.getElementById('ts-src').value; closeModal(); creaTrainingSet(nome, sorgente); };
   setTimeout(()=>{ try{ document.getElementById('ts-nome').focus(); }catch(e){} },0); }
 function rinominaTrainingSet(){ const s=ensureSets(); const old=s.setAttivo;
   chiediTesto(t('Rinomina Training Set'), old, nome=>{ nome=(nome||'').trim(); if(!nome||nome===old) return;
-    if(s.setsSalvati[nome]){ alert(t('Esiste già un Training Set con questo nome.')); return; }
+    if(s.setsSalvati[nome]){ avviso(t('Esiste già un Training Set con questo nome.')); return; }
     s.setAttivo=nome; s.setsOrdine=s.setsOrdine.map(n=>n===old?nome:n); persist('scheda'); renderAllenamento(); }); }
-function eliminaTrainingSet(){ const s=ensureSets(); const nomi=s.setsOrdine;
-  if(nomi.length<=1){ alert(t('Deve restare almeno un Training Set.')); return; }
+async function eliminaTrainingSet(){ const s=ensureSets(); const nomi=s.setsOrdine;
+  if(nomi.length<=1){ avviso(t('Deve restare almeno un Training Set.')); return; }
   const vitt=s.setAttivo;
-  if(!confirm(t('Eliminare il Training Set «')+vitt+t('» e la sua scheda? Operazione irreversibile.'))) return;
+  if(!await conferma(t('Eliminare il Training Set «')+vitt+t('» e la sua scheda? Operazione irreversibile.'))) return;
   const altro=nomi.find(n=>n!==vitt); const tgt=s.setsSalvati[altro]||{};
   s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]); s.riscaldamento=tsCopy(tgt.riscaldamento||{});
   delete s.setsSalvati[altro]; delete s.setsSalvati[vitt];
@@ -115,7 +115,7 @@ function lastPerf(nome){ if(!nome)return null; const rows=DOC.storico.filter(r=>
   return {peso:+best.peso||0, rip:+best.rip||0, rir:(best.rir==null?'':best.rir), scheda:maxS}; }
 function prefillFromLast(){ const rows=schedaRows(); let n=0;
   rows.forEach(r=>{ if(!r.esercizio)return; const lp=lastPerf(r.esercizio); if(lp){ r.peso=lp.peso; r.rip=lp.rip; if(lp.rir!==''&&lp.rir!=null) r.rir=lp.rir; n++; } });
-  if(!n){ alert(t('Nessuno storico da cui precompilare.')); return; }
+  if(!n){ avviso(t('Nessuno storico da cui precompilare.')); return; }
   persist('scheda'); renderAllenamento(); }
 /* ── Co-pilota LED passivo: pallino 🟢/🟡/🔴 accanto al Peso digitato. Confronta il peso
    col set di pari posizione della scorsa scheda (come ΔTL set) e pesa i segnali di
@@ -422,7 +422,7 @@ function renderAllenamento(){
   { const b=document.getElementById('btn-bilanc'); if(b) b.onclick=bilanciamentoModal; }
   document.getElementById('btn-addrow').onclick=aggiungiEsercizioModal;
   document.getElementById('btn-addday').onclick=addDay;
-  { const pf=document.getElementById('btn-prefill'); if(pf) pf.onclick=()=>{ if(confirm(t('Precompilo peso/rip/RIR dalla scorsa registrazione di ogni esercizio? Sovrascrive i valori attuali della scheda.'))) prefillFromLast(); }; }
+  { const pf=document.getElementById('btn-prefill'); if(pf) pf.onclick=async()=>{ if(await conferma(t('Precompilo peso/rip/RIR dalla scorsa registrazione di ogni esercizio? Sovrascrive i valori attuali della scheda.'))) prefillFromLast(); }; }
   document.getElementById('btn-save-sched').onclick=saveSchedaModal;
   /* anche le textarea: la Nota è una <textarea>, e con il solo selettore «input» ciò che
      si digitava lì non arrivava mai ai dati (restava a video fino al ridisegno successivo) */
@@ -542,12 +542,12 @@ function saveSchedaModal(){
   const _upd=()=>{ const a=+document.getElementById('m-anno').value, st=+document.getElementById('m-sett').value; const cp=document.getElementById('m-codeprev'); if(cp&&a&&st>=1&&st<=53) cp.textContent=schedaCode(a,st); };
   { const wkEl=document.getElementById('m-week'); if(wkEl) wkEl.onchange=()=>{ const m=/^(\d{4})-W(\d{1,2})$/.exec(wkEl.value||''); if(m){ document.getElementById('m-anno').value=+m[1]; document.getElementById('m-sett').value=+m[2]; _upd(); } }; }
   ['m-anno','m-sett'].forEach(id=>{ const el=document.getElementById(id); if(el) el.oninput=()=>{ const a=+document.getElementById('m-anno').value, st=+document.getElementById('m-sett').value; const wkEl=document.getElementById('m-week'); if(wkEl&&a&&st>=1&&st<=53) wkEl.value=a+'-W'+_pad(st); _upd(); }; });
-  document.getElementById('m-ok').onclick=()=>{
+  document.getElementById('m-ok').onclick=async()=>{
     const anno=+document.getElementById('m-anno').value, sett=+document.getElementById('m-sett').value;
-    if(!anno||sett<1||sett>53){alert(t('Anno/settimana non validi'));return;}
+    if(!anno||sett<1||sett>53){avviso(t('Anno/settimana non validi'));return;}
     const code=schedaCode(anno,sett);
     const exist=DOC.storico.filter(r=>(+r.scheda)===code).length;
-    if(exist && !confirm(t('Esiste già la scheda')+' '+code+' ('+exist+' '+t('righe). Le nuove righe verranno AGGIUNTE. Procedo?'))) return;
+    if(exist && !await conferma(t('Esiste già la scheda')+' '+code+' ('+exist+' '+t('righe). Le nuove righe verranno AGGIUNTE. Procedo?'))) return;
     /* record: si confronta il peso SCRITTO — per trazioni, dip e leg raise la zavorra.
        Sul totale, prendere peso corporeo produceva «record» senza aver sollevato di più. */
     const preMax={}; DOC.storico.forEach(r=>{ if(r.esercizio)preMax[r.esercizio]=Math.max(preMax[r.esercizio]||0,pesoMostrato(r)); });
@@ -580,7 +580,7 @@ function saveSchedaModal(){
     const prk=Object.keys(prs);
     let _msg=t('✔ Scheda')+' '+code+' '+t('salvata —')+' '+added+' '+t('esercizi aggiunti allo Storico.');
     if(prk.length) _msg+='\n\n'+t('🎉 Nuovo record:')+' '+prk.map(k=>exName(k)+' '+nf(prs[k],1)+' kg').join(', ');
-    alert(_msg);
+    avviso(_msg);
     if(curTab==='storico')renderStorico(); else renderAllenamento(); updateStatusDots();
   };
 }

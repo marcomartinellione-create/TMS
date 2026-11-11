@@ -128,15 +128,13 @@ function renderAlimentazione(){
     meals.forEach((meal,mi)=>{
       const idxs=rows.map((r,i)=>i).filter(i=>((((rows[i].pasto||'').trim())||'Senza pasto')===meal));
       let mk=0; idxs.forEach(i=>mk+=foodVal(rows[i].alimento,rows[i].grammi,'kcal'));
-      body+=`<tr class="day-sep"><td colspan="7">▌ ${esc(t(meal))} <span style="opacity:.85;font-family:var(--font-mono);font-size:11px">· ${nf(mk,0)} kcal</span>
-        <button class="btn btn--sm no-print" data-mealup data-fase="${fase}" data-meal="${esc(meal)}" title="${t('sposta pasto su')}"${mi===0?' disabled':''} style="margin-left:8px">▲</button>
-        <button class="btn btn--sm no-print" data-mealdn data-fase="${fase}" data-meal="${esc(meal)}" title="${t('sposta pasto giù')}"${mi===meals.length-1?' disabled':''}>▼</button>
-        <button class="btn btn--sm no-print" data-mealedit data-fase="${fase}" data-meal="${esc(meal)}" title="${t('rinomina pasto')}">✎</button>
+      body+=`<tr class="day-sep" data-mealrow="${esc(meal)}" data-fase="${fase}"><td colspan="7"><span class="drag-h no-print" title="${t('trascina per spostare il pasto')}">⠿</span> ▌ ${esc(t(meal))} <span style="opacity:.85;font-family:var(--font-mono);font-size:11px">· ${nf(mk,0)} kcal</span>
+        <button class="btn btn--sm no-print" data-mealedit data-fase="${fase}" data-meal="${esc(meal)}" title="${t('rinomina pasto')}" style="margin-left:8px">✎</button>
         <button class="btn btn--sm no-print" data-mealadd data-fase="${fase}" data-meal="${esc(meal)}" title="${t('aggiungi alimento a questo pasto')}">＋</button>
         <button class="btn btn--sm btn--danger no-print" data-mealdel data-fase="${fase}" data-meal="${esc(meal)}" title="${t('elimina pasto')}">🗑</button></td></tr>`;
       idxs.forEach(i=>{ const r=rows[i]; const known=!!FOODBYNAME[String(r.alimento||'').trim()];
         body+=`<tr data-fase="${fase}" data-i="${i}">
-          <td class="l"><button class="btn btn--sm no-print food-pick" data-fase="${fase}" data-i="${i}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${r.alimento?'':'color:var(--ink-4)'}">${r.alimento?esc(r.alimento):t('＋ scegli alimento…')}</button>${r.alimento&&!known?` <span class="pill" title="${t('non nella banca dati')}">?</span>`:''}</td>
+          <td class="l"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span> <button class="btn btn--sm no-print food-pick" data-fase="${fase}" data-i="${i}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${r.alimento?'':'color:var(--ink-4)'}">${r.alimento?esc(r.alimento):t('＋ scegli alimento…')}</button>${r.alimento&&!known?` <span class="pill" title="${t('non nella banca dati')}">?</span>`:''}</td>
           <td><input class="cell-in" type="number" min="0" data-f="grammi" value="${r.grammi??''}" style="width:62px"></td>
           <td class="num cell-out">${nf(foodVal(r.alimento,r.grammi,'kcal'),0)}</td>
           <td class="num cell-calc">${nf(foodVal(r.alimento,r.grammi,'proteine'),1)}</td>
@@ -183,8 +181,7 @@ function renderAlimentazione(){
     clearTimeout(rerenderT); rerenderT=setTimeout(()=>{ if(document.getElementById('modal-bk').classList.contains('hidden')) ridisegnaConFuoco('panel-alimentazione', renderAlimentazione); },500);
   }));
   document.querySelectorAll('#panel-alimentazione [data-fasesel]').forEach(b=>b.onclick=()=>{ if(!DOC.dati_utente)DOC.dati_utente={}; DOC.dati_utente.faseAlim=b.dataset.fasesel; persist('corpo'); renderAlimentazione(); });
-  document.querySelectorAll('#panel-alimentazione [data-mealup]').forEach(b=>b.onclick=()=>spostaPasto(b.dataset.fase,b.dataset.meal,-1));
-  document.querySelectorAll('#panel-alimentazione [data-mealdn]').forEach(b=>b.onclick=()=>spostaPasto(b.dataset.fase,b.dataset.meal,1));
+  abilitaRiordinoPasti();
   document.querySelectorAll('#panel-alimentazione .food-pick').forEach(b=>b.onclick=()=>openFoodPicker(b.dataset.fase,+b.dataset.i));
   document.querySelectorAll('#panel-alimentazione .food-det').forEach(b=>b.onclick=()=>{ const k=b.dataset.fase+':'+b.dataset.i; alimDet=(alimDet===k?null:k); renderAlimentazione(); });
   document.querySelectorAll('#panel-alimentazione [data-add]').forEach(b=>b.onclick=()=>chiediTesto(t('Nome del pasto (es. Colazione, Pranzo, Spuntino)'),'',v=>{
@@ -199,30 +196,74 @@ function renderAlimentazione(){
       const nn=String(raw==null?'':raw).trim();
       DOC.alimentazione[fase].forEach(r=>{ const cur=((r.pasto||'').trim())||'Senza pasto'; if(cur===old) r.pasto=nn; });
       persist('alimentazione'); renderAlimentazione(); }); });
-  document.querySelectorAll('#panel-alimentazione [data-mealdel]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#panel-alimentazione [data-mealdel]').forEach(b=>b.onclick=async()=>{
     const fase=b.dataset.fase, meal=b.dataset.meal;
-    if(!confirm(t('Eliminare il pasto «')+t(meal)+t('» e tutti i suoi alimenti?')))return;
+    if(!await conferma(t('Eliminare il pasto «')+t(meal)+t('» e tutti i suoi alimenti?')))return;
     DOC.alimentazione[fase]=DOC.alimentazione[fase].filter(r=>((((r.pasto||'').trim())||'Senza pasto')!==meal)); persist('alimentazione'); renderAlimentazione(); });
   { const pa=document.getElementById('per-add'); if(pa) pa.onclick=registraPeriodo; }
-  document.querySelectorAll('#panel-alimentazione [data-perdel]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#panel-alimentazione [data-perdel]').forEach(b=>b.onclick=async()=>{
     const i=+b.dataset.perdel; const p=(DOC.alimentazione.periodi||[])[i]; if(!p) return;
-    if(!confirm(t('Eliminare il periodo')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+p.al+'?')) return;
+    if(!await conferma(t('Eliminare il periodo')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+p.al+'?')) return;
     DOC.alimentazione.periodi.splice(i,1); persist('alimentazione'); renderAlimentazione(); });
   document.querySelectorAll('#panel-alimentazione [data-del]').forEach(b=>b.onclick=()=>{
     const [fase,i]=b.dataset.del.split(':'); DOC.alimentazione[fase].splice(+i,1); persist('alimentazione'); renderAlimentazione(); });
 }
 
 
-/* riordina un pasto su/giù nella fase: sposta in blocco tutte le sue righe (mantenendo
-   l'ordine interno), scambiando la sua posizione con quella del pasto adiacente. */
-function spostaPasto(fase, meal, dir){
-  const rows=DOC.alimentazione[fase]||[]; const mealOf=r=>((((r.pasto||'').trim())||'Senza pasto'));
-  const order=[]; rows.forEach(r=>{ const m=mealOf(r); if(!order.includes(m)) order.push(m); });
-  const idx=order.indexOf(meal), j=idx+dir; if(idx<0||j<0||j>=order.length) return;
-  const newOrder=order.slice(); const t=newOrder[idx]; newOrder[idx]=newOrder[j]; newOrder[j]=t;
-  const byMeal={}; order.forEach(m=>byMeal[m]=[]); rows.forEach(r=>byMeal[mealOf(r)].push(r));
-  const out=[]; newOrder.forEach(m=>byMeal[m].forEach(r=>out.push(r)));
-  DOC.alimentazione[fase]=out; persist('alimentazione'); renderAlimentazione();
+/* ── RIORDINO PER TRASCINAMENTO (2026-11-11, al posto delle frecce ▲▼) ────────────
+   Come nella scheda Pesi: si trascina dal manico ⠿. Un PASTO (la sua barra) si rilascia
+   su un altro pasto e ne prende il posto, portandosi dietro tutti i suoi alimenti; un
+   ALIMENTO si rilascia su un altro alimento (anche di un altro pasto, e allora cambia
+   pasto) oppure sulla barra di un pasto (e va in fondo a quel pasto). Le due funzioni
+   che fanno i conti sono pure, per poterle provare senza un trascinamento vero. */
+function _pastoDi(r){ return ((((r&&r.pasto)||'').trim())||'Senza pasto'); }
+function trascinaPasto(fase, da, a, sotto){
+  const rows=DOC.alimentazione[fase]||[]; if(da===a) return false;
+  const ord=[]; rows.forEach(r=>{ const m=_pastoDi(r); if(!ord.includes(m)) ord.push(m); });
+  if(!ord.includes(da)||!ord.includes(a)) return false;
+  const senza=ord.filter(m=>m!==da); senza.splice(senza.indexOf(a)+(sotto?1:0),0,da);
+  if(senza.join('\u0001')===ord.join('\u0001')) return false;
+  const out=[]; senza.forEach(m=>rows.forEach(r=>{ if(_pastoDi(r)===m) out.push(r); }));
+  DOC.alimentazione[fase]=out; return true;
+}
+/* `a` è l'indice dell'alimento di arrivo, oppure il nome di un pasto (rilascio sulla sua barra) */
+function trascinaAlimento(fase, da, a, sotto){
+  const rows=DOC.alimentazione[fase]||[]; const el=rows[da]; if(!el) return false;
+  if(typeof a==='string'){
+    if(_pastoDi(el)===a) return false;
+    el.pasto= a==='Senza pasto'? '' : a;
+    rows.splice(da,1); let ult=-1; rows.forEach((r,i)=>{ if(r!==el && _pastoDi(r)===a) ult=i; });
+    rows.splice(ult+1,0,el); return true;
+  }
+  const dest=rows[a]; if(!dest||da===a) return false;
+  el.pasto=dest.pasto||'';
+  rows.splice(da,1); let ins=rows.indexOf(dest)+(sotto?1:0);
+  rows.splice(ins,0,el); return true;
+}
+let _dragAlim=null;   /* {tipo:'pasto'|'alimento', fase, chi} */
+function abilitaRiordinoPasti(){
+  const root=document.getElementById('panel-alimentazione'); if(!root) return;
+  const pulisci=()=>{ root.querySelectorAll('.drop-t,.drop-b').forEach(x=>x.classList.remove('drop-t','drop-b')); root.querySelectorAll('.is-drag').forEach(x=>x.classList.remove('is-drag')); };
+  root.querySelectorAll('tr[data-mealrow], tr[data-i][data-fase]').forEach(tr=>{
+    const pasto=tr.dataset.mealrow!=null, h=tr.querySelector('.drag-h');
+    if(h){ h.onmousedown=()=>{ tr.draggable=true; }; h.onmouseup=()=>{ tr.draggable=false; }; }
+    tr.ondragstart=e=>{ _dragAlim= pasto? {tipo:'pasto',fase:tr.dataset.fase,chi:tr.dataset.mealrow} : {tipo:'alimento',fase:tr.dataset.fase,chi:+tr.dataset.i};
+      tr.classList.add('is-drag'); try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','tms'); }catch(_){} };
+    tr.ondragend=()=>{ tr.draggable=false; _dragAlim=null; pulisci(); };
+    const accetta=()=> _dragAlim && _dragAlim.fase===tr.dataset.fase && !(_dragAlim.tipo==='pasto' && !pasto);
+    tr.ondragover=e=>{ if(!accetta()) return; e.preventDefault();
+      const rc=tr.getBoundingClientRect(), sotto=(e.clientY-rc.top)>rc.height/2;
+      /* un alimento rilasciato su una barra va DENTRO quel pasto: lo si mostra sempre sotto */
+      const giu= (_dragAlim.tipo==='alimento' && pasto)? true : sotto;
+      tr.classList.toggle('drop-b',giu); tr.classList.toggle('drop-t',!giu); };
+    tr.ondragleave=()=>{ tr.classList.remove('drop-t','drop-b'); };
+    tr.ondrop=e=>{ if(!accetta()) return; e.preventDefault();
+      const rc=tr.getBoundingClientRect(), sotto=(e.clientY-rc.top)>rc.height/2, d=_dragAlim; _dragAlim=null;
+      const fatto= d.tipo==='pasto'? trascinaPasto(d.fase, d.chi, tr.dataset.mealrow, sotto)
+                 : trascinaAlimento(d.fase, d.chi, pasto? tr.dataset.mealrow : +tr.dataset.i, sotto);
+      if(fatto){ alimDet=null; persist('alimentazione'); }
+      renderAlimentazione(); };
+  });
 }
 /* ── Stampa della dieta in PDF A4 ORIZZONTALE (landscape) ──────────────────────────────
    Riusa il generatore PDF del Report (buildReportUnits + splitTable + html2canvas +
@@ -256,8 +297,8 @@ function dietaPrintHTML(){
 }
 async function printDieta(){
   const fase=faseAlimActive(); const rows=(DOC.alimentazione&&DOC.alimentazione[fase])||[];
-  if(!rows.some(r=>r&&r.alimento&&String(r.alimento).trim())){ alert(t('Il piano della fase attiva è vuoto: niente da stampare.')); return; }
-  if(typeof html2canvas!=='function'){ alert(t('Generatore PDF non disponibile in questa copia.')); return; }
+  if(!rows.some(r=>r&&r.alimento&&String(r.alimento).trim())){ avviso(t('Il piano della fase attiva è vuoto: niente da stampare.')); return; }
+  if(typeof html2canvas!=='function'){ avviso(t('Generatore PDF non disponibile in questa copia.')); return; }
   const btn=document.getElementById('dieta-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero PDF…'); btn.disabled=true; }
   const stage=document.createElement('div'); stage.id='pdf-stage'; stage.className='land';
   try{
@@ -287,7 +328,7 @@ async function printDieta(){
     const blob=new Blob([pdf],{type:'application/pdf'}); const u=URL.createObjectURL(blob);
     const a=document.createElement('a'); a.href=u; a.download='Dieta_'+nome+'.pdf'; document.body.appendChild(a); a.click();
     setTimeout(()=>{ try{ URL.revokeObjectURL(u); }catch(e){} a.remove(); }, 1500);
-  }catch(e){ alert(t('Errore nella generazione del PDF:')+' '+e.message); }
+  }catch(e){ avviso(t('Errore nella generazione del PDF:')+' '+e.message); }
   finally{ try{ if(stage.parentNode) document.body.removeChild(stage); }catch(e){} if(btn){ btn.innerHTML=blab; btn.disabled=false; } }
 }
 /* registra il piano della fase scelta come PERIODO datato (fotografia per il tab Analisi) */
@@ -302,21 +343,21 @@ function registraPeriodo(){
     <div class="field"><label>${t('Dal')}</label><input type="date" id="per-dal" value="${fmt(fa)}"></div>
     <div class="field"><label>${t('Al')}</label><input type="date" id="per-al" value="${fmt(oggi)}"></div></div>
    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="per-ok">${t('Registra')}</button></div>`);
-  document.getElementById('per-ok').onclick=()=>{
+  document.getElementById('per-ok').onclick=async()=>{
     const fase=document.getElementById('per-fase').value;
     const dal=document.getElementById('per-dal').value, al=document.getElementById('per-al').value;
-    if(!dal||!al){ alert(t('Servono entrambe le date.')); return; }
-    if(dal>al){ alert(t('La data di inizio è dopo quella di fine.')); return; }
+    if(!dal||!al){ avviso(t('Servono entrambe le date.')); return; }
+    if(dal>al){ avviso(t('La data di inizio è dopo quella di fine.')); return; }
     const righe=((DOC.alimentazione||{})[fase]||[]).filter(r=>r&&r.alimento&&String(r.alimento).trim())
       .map(r=>({alimento:String(r.alimento).trim(), grammi:+r.grammi||0}));
-    if(!righe.length){ alert(t('Il piano della fase')+' '+t(FASE_LAB[fase]||fase)+' '+t('è vuoto: niente da registrare.')); return; }
+    if(!righe.length){ avviso(t('Il piano della fase')+' '+t(FASE_LAB[fase]||fase)+' '+t('è vuoto: niente da registrare.')); return; }
     if(!Array.isArray(DOC.alimentazione.periodi)) DOC.alimentazione.periodi=[];
     /* safe check: sovrapposizione date con periodi già registrati */
     const overlap=DOC.alimentazione.periodi.filter(p=>!(al<p.dal || dal>p.al));
-    if(overlap.length && !confirm(t('⚠ Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
+    if(overlap.length && !await conferma(t('⚠ Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
     DOC.alimentazione.periodi.push({id:Date.now().toString(36), fase:fase, dal:dal, al:al, righe:righe});
     DOC.alimentazione.periodi.sort((a,b)=>a.dal<b.dal?-1:1);
     persist('alimentazione'); closeModal(); renderAlimentazione();
-    alert(t('✔ Periodo registrato:')+' '+t(FASE_LAB[fase]||fase)+' '+dal+' → '+al+' ('+righe.length+' '+t('alimenti,')+' '+nf(kcalPiano(righe),0)+' '+t('kcal/giorno).'));
+    avviso(t('✔ Periodo registrato:')+' '+t(FASE_LAB[fase]||fase)+' '+dal+' → '+al+' ('+righe.length+' '+t('alimenti,')+' '+nf(kcalPiano(righe),0)+' '+t('kcal/giorno).'));
   };
 }

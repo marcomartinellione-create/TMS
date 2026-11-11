@@ -476,6 +476,7 @@ const EN={
   '. Aggiungo comunque?':'. Add anyway?',
   '. La sostituisco con i valori attuali?':'. Replace it with the current values?',
   /* ══════════ Storico: correzione di una riga (2026-11) ══════════ */
+  'trascina per spostare il pasto':'drag to move the meal',
   'correggi questa riga':'fix this row',
   'zavorra':'added weight',
   'Correggi una riga dello Storico':'Fix a History row',

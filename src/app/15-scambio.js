@@ -105,7 +105,7 @@ function chiediModalitaScheda(){
 
 async function esportaSchedaCliente(){
   const righe=righeSchedaCliente();
-  if(!righe.length){ alert(t('La scheda settimanale è vuota: niente da esportare.')); return; }
+  if(!righe.length){ avviso(t('La scheda settimanale è vuota: niente da esportare.')); return; }
   const modo=await chiediModalitaScheda();
   if(modo==null) return;  /* Annulla: nessun export */
   const modificabile=(modo==='modificabile');
@@ -113,7 +113,7 @@ async function esportaSchedaCliente(){
   /* video di allenamento + riscaldamento (il cliente li guarda offline nell'app) */
   const vids=collectSchedaVideos(), vidsW=collectRiscaldamentoVideos();
   const files=[...new Set(vids.concat(vidsW).map(v=>v.file))];
-  if(files.length && dirHandle && confirm(t('Includere i')+' '+files.length+' '+t('video degli esercizi nel file? (più pesante, ma il cliente li vede offline nell\'app)'))){
+  if(files.length && dirHandle && await conferma(t('Includere i')+' '+files.length+' '+t('video degli esercizi nel file? (più pesante, ma il cliente li vede offline nell\'app)'))){
     map=await embedVideoFiles(files);
   }
   const dati=costruisciSchedaJSON(map, modificabile);
@@ -123,7 +123,7 @@ async function esportaSchedaCliente(){
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },800);
   const kb=blob.size/1024;
-  alert(t('✔ Scheda esportata (')+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+')'+
+  avviso(t('✔ Scheda esportata (')+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+')'+
     ' · '+(modificabile?t('scheda modificabile'):t('scheda fissa'))+(dati.dieta?' '+t('— incluso il piano alimentare della fase')+' '+t(dati.dieta.label||'')+'.':'.')+'\n'+
     t('Inviala al cliente: la apre nell\'app «TMS Scheda», compila e ti rimanda il file di rientro (da importare qui nel Profilo).')+'\n\n'+
     t('Prima volta? Il cliente apre questo link sul telefono e aggiunge l\'app alla schermata Home (poi funziona anche offline):')+'\n'+APP_CLIENTE_URL);
@@ -189,16 +189,16 @@ async function importaRientroFile(file){
   let dati=null;
   try{ dati=JSON.parse(await file.text()); }catch(e){ logErrore('importRientro', e); }
   if(!dati || dati.tipo!=='tms-rientro' || !Array.isArray(dati.righe) || !dati.righe.length){
-    alert(t('File non valido: non è un "rientro scheda" del TMS (o non contiene esercizi).')); return; }
+    avviso(t('File non valido: non è un "rientro scheda" del TMS (o non contiene esercizi).')); return; }
   /* safe check 1: il profilo del file corrisponde a quello attivo? */
   const pn=(dati.profilo&&dati.profilo.nome)||'?', ps=(dati.profilo&&dati.profilo.slug)||'';
-  if(ps!==activeProfile && !confirm(t('⚠ Il file è della scheda di «')+pn+t('» ma il profilo attivo è «')+profNome()+'».\n'+t('Importare comunque in questo profilo?'))) return;
+  if(ps!==activeProfile && !await conferma(t('⚠ Il file è della scheda di «')+pn+t('» ma il profilo attivo è «')+profNome()+'».\n'+t('Importare comunque in questo profilo?'))) return;
   /* safe check 2: esercizi fuori catalogo */
   const sconosciuti=[]; dati.righe.forEach(r=>{ const n=String((r&&r.esercizio)||'').trim(); if(n && !esLookup(n) && !sconosciuti.includes(n)) sconosciuti.push(n); });
-  if(sconosciuti.length && !confirm(t('⚠ Esercizi non presenti nel catalogo:')+'\n• '+sconosciuti.join('\n• ')+'\n\n'+t('Verranno caricati lo stesso (senza fattore TL dedicato). Continuo?'))) return;
+  if(sconosciuti.length && !await conferma(t('⚠ Esercizi non presenti nel catalogo:')+'\n• '+sconosciuti.join('\n• ')+'\n\n'+t('Verranno caricati lo stesso (senza fattore TL dedicato). Continuo?'))) return;
   /* safe check 3: la scheda Pesi corrente ha contenuto e verrà sostituita per la revisione */
   const piena=((DOC.scheda&&DOC.scheda.settimanale)||[]).some(r=>r&&r.esercizio&&String(r.esercizio).trim());
-  if(piena && !confirm(t('La scheda Pesi corrente verrà sostituita con l\'allenamento del cliente, per controllarlo prima di salvarlo nello Storico. Procedo?'))) return;
+  if(piena && !await conferma(t('La scheda Pesi corrente verrà sostituita con l\'allenamento del cliente, per controllarlo prima di salvarlo nello Storico. Procedo?'))) return;
   /* nuovo flusso (richiesta Marco): NON si scrive subito nello Storico — l'allenamento del
      cliente entra nella scheda Pesi, il coach lo rivede e poi salva a mano (💾 Salva nello Storico). */
   const ris=caricaRientroInScheda(dati);
@@ -206,7 +206,7 @@ async function importaRientroFile(file){
   /* foto progressi scattate dal cliente col telefono: entrano nel tab Corpo */
   let nFoto=0; try{ nFoto=await importaFotoRientro(dati.foto); }catch(e){ logErrore('importFoto', e); }
   showTab('allenamento');
-  alert(t('📥 Allenamento di «')+pn+t('» caricato nella scheda Pesi:')+' '+ris.righe+' '+t('esercizi')+
+  avviso(t('📥 Allenamento di «')+pn+t('» caricato nella scheda Pesi:')+' '+ris.righe+' '+t('esercizi')+
     (ris.sedute?(' · '+ris.sedute+' '+t('sedute con RPE')):'')+
     (ris.fatti?(' · '+ris.fatti+' '+t('giorni segnati come completati')):'')+
     (nFoto?(' · '+nFoto+' '+t('foto salvate nel tab Corpo')):'')+'.\n\n'+

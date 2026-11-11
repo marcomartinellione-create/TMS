@@ -60,12 +60,12 @@ function aggiungiFotoModal(file){
     closeModal(); salvaFoto(file, data, tag); };
 }
 async function salvaFoto(file, dataStr, tag){
-  if(!profileDir){ alert(t('Connetti i dati prima di aggiungere foto.')); return; }
+  if(!profileDir){ avviso(t('Connetti i dati prima di aggiungere foto.')); return; }
   const m=String(file.name||'').match(/\.(jpe?g|png|webp|gif)$/i);
   const ext=m? m[1].toLowerCase().replace('jpeg','jpg') : 'jpg';
   const fname='f'+Date.now()+'-'+Math.random().toString(36).slice(2,6)+'.'+ext;
   try{ const fh=await fotoHandle(fname,true); const wr=await fh.createWritable(); await wr.write(file); await wr.close(); }
-  catch(e){ alert(t('Errore nel salvataggio della foto:')+' '+e.message); logErrore('foto', e); return; }
+  catch(e){ avviso(t('Errore nel salvataggio della foto:')+' '+e.message); logErrore('foto', e); return; }
   (DOC.foto=DOC.foto||[]).push({file:fname, data:dataStr||new Date().toISOString().slice(0,10), tag:tag||''});
   fotoIdx=Math.max(0,fotoSteps().length-1);  /* salta all'ultimo passo (foto più recente) */
   persist('corpo'); renderCorpo();
@@ -81,13 +81,13 @@ function modificaFotoModal(file){ const f=(DOC.foto||[]).find(x=>x.file===file);
 }
 async function eliminaFoto(file){
   const f=(DOC.foto||[]).find(x=>x.file===file); if(!f) return;
-  if(!confirm(t('Eliminare questa foto del')+' '+fotoDataLabel(f)+t('? Operazione irreversibile.'))) return;
+  if(!await conferma(t('Eliminare questa foto del')+' '+fotoDataLabel(f)+t('? Operazione irreversibile.'))) return;
   try{ const fd=await fotoDir(false); await fd.removeEntry(String(file)); }catch(e){}
   if(fotoUrlCache[file]){ try{ URL.revokeObjectURL(fotoUrlCache[file]); }catch(e){} delete fotoUrlCache[file]; }
   DOC.foto=(DOC.foto||[]).filter(x=>x.file!==file); persist('corpo'); renderCorpo();
 }
 async function vediFoto(file){ const f=(DOC.foto||[]).find(x=>x.file===file);
-  let url; try{ url=await fotoObjUrl(file); }catch(e){ alert(t('Foto non trovata sul disco.')); return; }
+  let url; try{ url=await fotoObjUrl(file); }catch(e){ avviso(t('Foto non trovata sul disco.')); return; }
   modal(`<h3 style="margin-bottom:8px">📸 ${esc(fotoDataLabel(f))}</h3>
     <img src="${url}" alt="foto" style="width:100%;max-height:74vh;object-fit:contain;border-radius:var(--r-sm);background:var(--paper-3)">
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);

@@ -112,7 +112,13 @@ function load(opts){
       window.tmsUpdate = { onEvento: cb => { window.__upd.cb = cb; }, rispondi: a => { window.__upd.risposte.push(a); } };
       window.addEventListener('error', ev => errors.push(String(ev.message)));
     }
-  }).then(dom => ({ dom, errors }));
+  }).then(dom => {
+    /* avvisi e conferme sono riquadri dell'app (asincroni). Per gli scenari che non li
+       stanno provando, li si riporta a window.alert / window.confirm, che ogni test
+       sostituisce a piacere; opts.dialoghiVeri lascia quelli veri. */
+    if (!opts.dialoghiVeri) dom.window.eval('avviso=function(x){ try{ window.alert(x); }catch(e){} return Promise.resolve(); }; conferma=function(x){ var r=false; try{ r=!!window.confirm(x); }catch(e){} return Promise.resolve(r); };');
+    return { dom, errors };
+  });
 }
 const settle = ms => new Promise(r => setTimeout(r, ms||600));
 /* attende che l'avvio desktop completi davvero (connessione shim + prima scrittura),
@@ -330,10 +336,19 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(w.eval('foodMatch({nome:"Riso integrale, secco",categoria:"Cereali"},"riso secco")')===true && w.eval('foodMatch({nome:"Riso integrale, secco",categoria:"Cereali"},"riso pollo")')===false, 'alimenti: ricerca «a parole» (tutte le parole presenti)');
   { const ord=w.eval('(function(){var s=[];(DOC.alimentazione.bulk||[]).forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s;})()');
     ok(ord.length>=2, 'alimentazione: la fase bulk ha più pasti');
-    w.eval('spostaPasto("bulk", '+JSON.stringify(ord[0])+', 1);');
+    ok(d.querySelector('#panel-alimentazione [data-mealup]')===null && d.querySelectorAll('#panel-alimentazione tr[data-mealrow] .drag-h').length===ord.length, 'alimentazione: niente frecce ▲▼, ogni pasto ha il manico per trascinarlo');
+    ok(w.eval('trascinaPasto("bulk", '+JSON.stringify(ord[0])+', '+JSON.stringify(ord[1])+', true)')===true, 'alimentazione: trascina il primo pasto sotto il secondo');
     const ord2=w.eval('(function(){var s=[];(DOC.alimentazione.bulk||[]).forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s;})()');
-    ok(ord2[0]===ord[1] && ord2[1]===ord[0], 'alimentazione: riordino pasti (sposta giù il primo)');
-    w.eval('spostaPasto("bulk", '+JSON.stringify(ord[0])+', -1);'); }
+    ok(ord2[0]===ord[1] && ord2[1]===ord[0], 'alimentazione: riordino pasti per trascinamento (il primo va sotto il secondo, coi suoi alimenti)');
+    ok(w.eval('trascinaPasto("bulk", '+JSON.stringify(ord[0])+', '+JSON.stringify(ord[0])+', true)')===false, 'alimentazione: rilasciare un pasto su sé stesso non cambia nulla');
+    w.eval('trascinaPasto("bulk", '+JSON.stringify(ord[0])+', '+JSON.stringify(ord[1])+', false);');
+    const ordine = () => w.eval('(function(){var s=[];DOC.alimentazione.bulk.forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s.join("|");})()');
+    ok(ordine()===ord.join('|'), 'alimentazione: riportato sopra, l\'ordine torna quello di partenza');
+    { const n=w.eval('DOC.alimentazione.bulk.length');
+      w.eval('window.__P0='+JSON.stringify(ord[0])+'; window.__P1='+JSON.stringify(ord[1])+'; window.__i0=DOC.alimentazione.bulk.findIndex(function(r){return (r.pasto||"")===window.__P0;}); window.__el=DOC.alimentazione.bulk[window.__i0];');
+      ok(w.eval('trascinaAlimento("bulk", window.__i0, window.__P1, true)')===true && w.eval('DOC.alimentazione.bulk.length')===n && w.eval('window.__el.pasto===window.__P1'), 'alimentazione: un alimento trascinato sulla barra di un altro pasto cambia pasto (nessuna riga persa)');
+      w.eval('trascinaAlimento("bulk", DOC.alimentazione.bulk.indexOf(window.__el), DOC.alimentazione.bulk.findIndex(function(r){return (r.pasto||"")===window.__P0;}), false)');
+      ok(w.eval('window.__el.pasto===window.__P0 && DOC.alimentazione.bulk.find(function(r){return (r.pasto||"")===window.__P0;})===window.__el') && w.eval('DOC.alimentazione.bulk.length')===n && ordine()===ord.join('|'), 'alimentazione: trascinato sopra un alimento del pasto di partenza torna al suo posto'); } }
   { const nome=w.eval('(DOC.alimentazione.bulk.find(function(r){return r.alimento;})||{}).alimento');
     ok(typeof nome==='string' && nome.length>0, 'alimentazione: un alimento del piano per testare i preferiti');
     w.eval('foodToggleFav('+JSON.stringify(nome)+');');
@@ -1129,7 +1144,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('chiediTesto=window.__ct;');
   ok(w.eval('DOC.scheda.setAttivo') === 'Palestra' && w.eval('DOC.scheda.setsOrdine.indexOf("Base")<0') && w.eval('DOC.scheda.setsOrdine.indexOf("Palestra")>=0'), 'Training Set: rinomina il set attivo (Base → Palestra)');
   w.eval('window.__oc3=window.confirm; window.confirm=function(){return true;};');
-  w.eval('eliminaTrainingSet()');
+  await w.eval('eliminaTrainingSet()');
   w.eval('window.confirm=window.__oc3;');
   ok(w.eval('DOC.scheda.setAttivo') === 'Casa' && w.eval('DOC.scheda.setsOrdine.indexOf("Palestra")<0'), 'Training Set: elimina il set attivo → ne attiva un altro (Casa)');
   ok(w.eval('DOC.scheda.settimanale.length') === 2 && w.eval('DOC.scheda.settimanale[0].peso') === 50, 'Training Set: dopo l\'eliminazione la scheda attiva è quella di Casa (2 esercizi, peso 50)');
@@ -1833,10 +1848,10 @@ console.log('--- T8: revisione 2026-11 — calcoli e scheda ---');
   { const inp = d.querySelector('#panel-corpo [data-u="massa_grassa"]'); inp.value = '14.5'; inp.dispatchEvent(new w.Event('input', { bubbles: true }));
     ok(Math.abs(w.eval('DOC.dati_utente.massa_grassa') - 0.145) < 1e-9, 'Corpo: massa grassa scritta in percento (14.5) salvata come frazione (0,145)'); }
   { const n0 = w.eval('DOC.storico_io.length');
-    w.eval('saveIoModal()'); d.getElementById('m-anno').value = '2031'; d.getElementById('m-sett').value = '7'; d.getElementById('m-ok').click();
-    w.eval('DOC.dati_utente.peso=71.2; saveIoModal()'); d.getElementById('m-anno').value = '2031'; d.getElementById('m-sett').value = '7'; d.getElementById('m-ok').click();
+    w.eval('saveIoModal()'); d.getElementById('m-anno').value = '2031'; d.getElementById('m-sett').value = '7'; d.getElementById('m-ok').click(); await settle(30);
+    w.eval('DOC.dati_utente.peso=71.2; saveIoModal()'); d.getElementById('m-anno').value = '2031'; d.getElementById('m-sett').value = '7'; d.getElementById('m-ok').click(); await settle(30);
     ok(w.eval('DOC.storico_io.length') === n0 + 1 && w.eval('DOC.storico_io.filter(r=>+r.scheda===203107)[0].peso') === 71.2, 'Corpo: salvare due volte la stessa settimana sostituisce la misura (non la duplica)');
-    w.eval('saveIoModal()'); d.getElementById('m-sett').value = '0'; d.getElementById('m-ok').click();
+    w.eval('saveIoModal()'); d.getElementById('m-sett').value = '0'; d.getElementById('m-ok').click(); await settle(30);
     ok(w.eval('DOC.storico_io.length') === n0 + 1, 'Corpo: settimana non valida rifiutata');
     w.eval('closeModal()'); }
 

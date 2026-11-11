@@ -5,6 +5,7 @@
 const { app, BrowserWindow, protocol, net, session, dialog, ipcMain, shell, screen } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const fsSync = require('node:fs');
 const { pathToFileURL } = require('node:url');
 const { autoUpdater } = require('electron-updater');
 
@@ -37,6 +38,38 @@ protocol.registerSchemesAsPrivileged([{
 // chiude a download a metà e "non si aggiorna mai" (segnalato da Marco, v1.0.62→63)
 const aggiornamento = { inCorso: false, percento: 0 };
 
+// ── Stato della finestra (2026-11): posizione, dimensione, massimizzata / schermo intero.
+// L'app si riapre com'era stata chiusa. Vive in userData/finestra.json, fuori dai dati
+// dell'utente (non è un dato da backup). Lettura sincrona: serve PRIMA di creare la finestra.
+const FILE_FINESTRA = () => path.join(app.getPath('userData'), 'finestra.json');
+function leggiStatoFinestra () {
+  try {
+    const s = JSON.parse(fsSync.readFileSync(FILE_FINESTRA(), 'utf8'));
+    if (!s || typeof s !== 'object') return null;
+    const b = s.bounds;
+    if (b && [b.x, b.y, b.width, b.height].every(Number.isFinite) && b.width >= 600 && b.height >= 400) {
+      // la finestra deve cadere su uno schermo che esiste ancora (monitor staccato, risoluzione cambiata)
+      const visibile = screen.getAllDisplays().some(d => {
+        const a = d.workArea;
+        return b.x < a.x + a.width - 80 && b.x + b.width > a.x + 80 && b.y < a.y + a.height - 80 && b.y + 40 > a.y;
+      });
+      if (!visibile) s.bounds = null;
+    } else s.bounds = null;
+    return s;
+  } catch (e) { return null; }
+}
+function salvaStatoFinestra (win) {
+  try {
+    if (!win || win.isDestroyed()) return;
+    const stato = {
+      bounds: win.getNormalBounds(),            // dimensione «normale», anche se ora è massimizzata
+      massimizzata: win.isMaximized(),
+      schermoIntero: win.isFullScreen()
+    };
+    fsSync.writeFileSync(FILE_FINESTRA(), JSON.stringify(stato));
+  } catch (e) {}
+}
+
 function createWindow () {
   // Finestra iniziale più larga: con 1280 i pulsanti fissi «Guida» e «Segnala» finivano
   // sopra la scheda. Si prende quasi tutto lo schermo disponibile ma con un tetto, così
@@ -45,8 +78,10 @@ function createWindow () {
   const area = screen.getPrimaryDisplay().workAreaSize;
   const larghezza = Math.max(1100, Math.min(1560, area.width - 80));
   const altezza   = Math.max(700,  Math.min(980,  area.height - 80));
+  const stato = leggiStatoFinestra();
+  const dove = (stato && stato.bounds) ? stato.bounds : { width: larghezza, height: altezza };
   const win = new BrowserWindow({
-    width: larghezza, height: altezza,
+    ...dove, minWidth: 900, minHeight: 600, show: false,
     title: 'Training Monitor System',
     icon: path.join(__dirname, 'build', 'icon.ico'),
     webPreferences: {
@@ -55,6 +90,19 @@ function createWindow () {
     }
   });
   win.removeMenu(); // niente menu Electron (app pulita)
+  // si riapre com'era: massimizzata o a schermo intero. La finestra compare solo dopo,
+  // così non si vede il salto da «normale» a «grande».
+  if (stato && stato.massimizzata) win.maximize();
+  if (stato && stato.schermoIntero) win.setFullScreen(true);
+  win.once('ready-to-show', () => win.show());
+  setTimeout(() => { try { if (!win.isDestroyed() && !win.isVisible()) win.show(); } catch (e) {} }, 4000); // rete di sicurezza
+  // F11 = schermo intero (il menu è stato tolto, quindi la scorciatoia va rimessa a mano)
+  win.webContents.on('before-input-event', (e, input) => {
+    if (input.type === 'keyDown' && input.key === 'F11') { win.setFullScreen(!win.isFullScreen()); e.preventDefault(); }
+  });
+  let tStato = null;
+  const ricorda = () => { clearTimeout(tStato); tStato = setTimeout(() => salvaStatoFinestra(win), 400); };
+  ['resize', 'move', 'maximize', 'unmaximize', 'enter-full-screen', 'leave-full-screen'].forEach(ev => win.on(ev, ricorda));
   // Link esterni (GitHub, Instagram, YouTube, segnalazioni) → browser di SISTEMA.
   // Senza questo Electron apriva una sua finestra spoglia, senza barra indirizzi né
   // pulsante indietro: l'utente ci restava dentro. Si aprono solo http/https.
@@ -70,6 +118,7 @@ function createWindow () {
     }
   });
   win.on('close', (e) => {
+    clearTimeout(tStato); salvaStatoFinestra(win);
     if (!aggiornamento.inCorso) return;
     e.preventDefault();
     const r = dialog.showMessageBoxSync(win, {

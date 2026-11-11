@@ -232,13 +232,13 @@ async function embedVideoFiles(files){
 async function exportDigitalReport(){
   if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
-  if(!src){ alert(t('Apri prima il Report.')); return; }
+  if(!src){ avviso(t('Apri prima il Report.')); return; }
   const btn=document.getElementById('rep-html-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero…'); btn.disabled=true; }
   try{
     const inclEl=document.getElementById('rep-incl-vid'); const incl=inclEl?inclEl.checked:true;
     const vids=collectSchedaVideos();
     let map={};
-    if(incl && vids.length){ if(!dirHandle){ alert(t('Per includere i video collega la cartella TMS (i video stanno in TMS/database/video/). Genero il report senza video.')); } else { map=await embedVideoFiles(vids.map(v=>v.file)); } }
+    if(incl && vids.length){ if(!dirHandle){ avviso(t('Per includere i video collega la cartella TMS (i video stanno in TMS/database/video/). Genero il report senza video.')); } else { map=await embedVideoFiles(vids.map(v=>v.file)); } }
     const items=vids.filter(v=>map[v.file]).map(v=>({nome:v.nome, dataUri:map[v.file]}));
     const vidSec=buildVideoSection(items);
     const styleCSS=(document.querySelector('style')||{}).textContent||'';
@@ -260,8 +260,8 @@ async function exportDigitalReport(){
     const a=document.createElement('a'); a.href=u; a.download='Report_'+nome+'.html'; document.body.appendChild(a); a.click();
     setTimeout(()=>{ try{ URL.revokeObjectURL(u); }catch(e){} a.remove(); },1500);
     const mb=(blob.size/1048576);
-    if(mb>20) setTimeout(()=>alert(t('Report digitale generato (')+mb.toFixed(0)+t(' MB). È pesante per via dei video: per inviarlo via chat potresti volerne meno o più corti.')),300);
-  }catch(e){ alert(t('Errore nel report digitale:')+' '+e.message); }
+    if(mb>20) setTimeout(()=>avviso(t('Report digitale generato (')+mb.toFixed(0)+t(' MB). È pesante per via dei video: per inviarlo via chat potresti volerne meno o più corti.')),300);
+  }catch(e){ avviso(t('Errore nel report digitale:')+' '+e.message); }
   finally{ if(btn){ btn.innerHTML=blab; btn.disabled=false; } }
 }
 async function printReport(){
@@ -270,7 +270,7 @@ async function printReport(){
   if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ try{ window.print(); }catch(e){} return; }
-  if(typeof html2canvas!=='function'){ alert(t('Generatore PDF non disponibile in questa copia: uso la stampa del browser.')); try{ window.print(); }catch(e){} return; }
+  if(typeof html2canvas!=='function'){ avviso(t('Generatore PDF non disponibile in questa copia: uso la stampa del browser.')); try{ window.print(); }catch(e){} return; }
   const btn=document.getElementById('rep-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero PDF…'); btn.disabled=true; }
   const stage=document.createElement('div'); stage.id='pdf-stage';
   try{
@@ -299,6 +299,6 @@ async function printReport(){
     const blob=new Blob([pdf],{type:'application/pdf'}); const u=URL.createObjectURL(blob);
     const a=document.createElement('a'); a.href=u; a.download='Report_'+nome+'.pdf'; document.body.appendChild(a); a.click();
     setTimeout(()=>{ try{ URL.revokeObjectURL(u); }catch(e){} a.remove(); }, 1500);
-  }catch(e){ alert(t('Errore nella generazione del PDF:')+' '+e.message); }
+  }catch(e){ avviso(t('Errore nella generazione del PDF:')+' '+e.message); }
   finally{ try{ if(stage.parentNode) document.body.removeChild(stage); }catch(e){} if(btn){ btn.innerHTML=blab; btn.disabled=false; } }
 }

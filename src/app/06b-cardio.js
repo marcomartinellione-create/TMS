@@ -105,11 +105,11 @@ function renderCardio(){
         if(/\.fit$/i.test(f.name)){ const ab=await f.arrayBuffer(); p=parseFIT(new Uint8Array(ab)); }
         else { p=parseAttivitaCardio(await f.text()); }
       }catch(err){ logErrore('importCardio', err); }
-      if(!p){ alert(t('Non riconosco questo file. Esporta l\'attività come .FIT, .TCX o .GPX dal tuo dispositivo o app (Garmin Connect, Polar Flow, Strava…) e riprova.')); return; }
+      if(!p){ avviso(t('Non riconosco questo file. Esporta l\'attività come .FIT, .TCX o .GPX dal tuo dispositivo o app (Garmin Connect, Polar Flow, Strava…) e riprova.')); return; }
       cardioModal(-1, p); }; }
   document.querySelectorAll('#panel-cardio [data-ced]').forEach(b=>b.onclick=()=>cardioModal(+b.dataset.ced));
-  document.querySelectorAll('#panel-cardio [data-cdel]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.cdel, s=cardioList()[i];
-    if(!confirm(t('Eliminare l\'attività «')+t((s&&s.tipo)||'')+t('» del')+' '+((s&&s.data)||'')+'?')) return;
+  document.querySelectorAll('#panel-cardio [data-cdel]').forEach(b=>b.onclick=async()=>{ const i=+b.dataset.cdel, s=cardioList()[i];
+    if(!await conferma(t('Eliminare l\'attività «')+t((s&&s.tipo)||'')+t('» del')+' '+((s&&s.data)||'')+'?')) return;
     cardioList().splice(i,1); persist('corpo'); renderCardio(); });
 }
 function cardioModal(idx, preset){
@@ -149,8 +149,8 @@ function cardioModal(idx, preset){
       fcMax:document.getElementById('c-fcmax').value===''?'':+document.getElementById('c-fcmax').value,
       fcPicco:(+s.fcPicco>0)?+s.fcPicco:'',
       note:document.getElementById('c-note').value.trim()};
-    if(!obj.tipo){ alert(t('Scegli o indica lo sport.')); return; }
-    if(!obj.durata){ alert(t('Indica la durata in minuti.')); return; }
+    if(!obj.tipo){ avviso(t('Scegli o indica lo sport.')); return; }
+    if(!obj.durata){ avviso(t('Indica la durata in minuti.')); return; }
     if(idx>=0) cardioList()[idx]=obj; else cardioList().push(obj);
     persist('corpo'); closeModal(); renderCardio();
   };

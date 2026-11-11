@@ -55,8 +55,8 @@ function renderCorpo(){
     clearTimeout(rerenderT); rerenderT=setTimeout(()=>ridisegnaConFuoco('panel-corpo', renderCorpo),600);
   }));
   document.getElementById('btn-save-io').onclick=saveIoModal;
-  document.getElementById('btn-undo-io').onclick=()=>{ if(!io.length){alert(t('Vuoto.'));return;}
-    if(!confirm(t('Elimino l\'ultima misura salvata?')))return; DOC.storico_io.pop(); persist('corpo'); renderCorpo(); };
+  document.getElementById('btn-undo-io').onclick=async()=>{ if(!io.length){avviso(t('Vuoto.'));return;}
+    if(!await conferma(t('Elimino l\'ultima misura salvata?')))return; DOC.storico_io.pop(); persist('corpo'); renderCorpo(); };
   renderFotoSezione();  /* sezione 📸 Foto progressi (async per le immagini; sola lettura del disco) */
   updateStatusDots();
 }
@@ -67,14 +67,14 @@ function saveIoModal(){
       <div class="field"><label>${t('Settimana')}</label><input id="m-sett" type="number" min="1" max="53" value="${w.sett}"></div></div>
     <p class="muted" style="font-size:12.5px">${t('Verranno salvati: Peso')} ${nf(u.peso,1)} kg · BMI ${nf(c.bmi,1)} · ${t('Massa magra')} ${nf(c.magraKg,1)} kg.</p>
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="m-ok">${t('Salva')}</button></div>`);
-  document.getElementById('m-ok').onclick=()=>{
+  document.getElementById('m-ok').onclick=async()=>{
     const anno=+document.getElementById('m-anno').value, sett=+document.getElementById('m-sett').value;
-    if(!anno||sett<1||sett>53){ alert(t('Anno/settimana non validi')); return; }
+    if(!anno||sett<1||sett>53){ avviso(t('Anno/settimana non validi')); return; }
     const code=schedaCode(anno,sett);
     /* una misura per settimana: due rilevazioni con lo stesso codice non hanno senso per
        nessun calcolo (chi leggeva la prima, chi l'ultima). Quella nuova prende il posto. */
     if(DOC.storico_io.some(r=>(+r.scheda)===code)){
-      if(!confirm(t('Esiste già la misura')+' '+code+t('. La sostituisco con i valori attuali?'))) return;
+      if(!await conferma(t('Esiste già la misura')+' '+code+t('. La sostituisco con i valori attuali?'))) return;
       DOC.storico_io=DOC.storico_io.filter(r=>(+r.scheda)!==code); }
     DOC.storico_io.push({scheda:code,eta:etaOf(u),livello:+u.livello_attivita||'',peso:+u.peso||0,
       metabolismo:c.metab,bmi:c.bmi,massa_grassa:+u.massa_grassa||0,massa_magra:c.magraKg,

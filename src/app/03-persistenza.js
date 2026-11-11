@@ -346,9 +346,9 @@ async function createProfile(nome){
   await switchProfile(s);
 }
 async function deleteProfile(slug){
-  if(profili.length<=1){ alert(t('Deve restare almeno un profilo.')); return; }
+  if(profili.length<=1){ avviso(t('Deve restare almeno un profilo.')); return; }
   const p=profili.find(x=>x.slug===slug); if(!p) return;
-  if(!confirm(t('Eliminare il profilo «')+p.nome+t('» e TUTTI i suoi dati? Operazione irreversibile.'))) return;
+  if(!await conferma(t('Eliminare il profilo «')+p.nome+t('» e TUTTI i suoi dati? Operazione irreversibile.'))) return;
   if(scrittureBloccate){ mostraBloccoScritture(); return; }
   const elencoPrima=profili.slice();
   profili=profili.filter(x=>x.slug!==slug);

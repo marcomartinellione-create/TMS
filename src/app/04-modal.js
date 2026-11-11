@@ -50,6 +50,48 @@ function ridisegnaConFuoco(pannello, render){
     else if(n.tagName==='INPUT' && n.type==='number'){ n.type='text'; const L=n.value.length; n.setSelectionRange(L,L); n.type='number'; }
   }catch(e){ try{ if(n.type==='text'&&a.type==='number') n.type='number'; }catch(_){} }
 }
+/* ── AVVISI E CONFERME IN STILE APP (2026-11-11, richiesta di Marco) ──────────────
+   Sostituiscono alert() e confirm() di sistema (le finestre grigie di Windows) in TUTTA
+   l'app. Vivono in uno strato a parte, sopra il riquadro eventualmente aperto: così una
+   conferma chiesta da dentro un riquadro (editor esercizio, salvataggio scheda) non lo
+   sostituisce. Restituiscono una Promise, quindi si usano con await:
+       if(!await conferma('Elimino?')) return;
+       avviso('Fatto.');                 // senza await: il codice prosegue, come prima
+   Il testo è testo semplice (viene protetto e gli a capo diventano righe). Più richieste
+   ravvicinate si mettono in fila. Invio conferma l'avviso; nelle conferme il fuoco parte
+   da Annulla ed Esc annulla: un Invio distratto non elimina nulla. */
+let _dlgFila=Promise.resolve();
+function _dlgTesto(s){ return esc(String(s==null?'':s)).replace(/\n/g,'<br>'); }
+function _dlgApri(html, pronto){
+  const turno=_dlgFila.then(()=>new Promise(res=>{
+    const bk=document.getElementById('dlg-bk'), box=document.getElementById('dlg');
+    if(!bk||!box){ res(undefined); return; }
+    const prima=document.activeElement;
+    box.innerHTML=html; bk.classList.remove('hidden');
+    const chiudi=v=>{ bk.classList.add('hidden'); box.innerHTML=''; bk.onkeydown=null;
+      try{ if(prima&&prima.focus&&document.contains(prima)) prima.focus({preventScroll:true}); }catch(e){}
+      res(v); };
+    pronto(box, chiudi, bk);
+  }));
+  _dlgFila=turno.then(()=>{},()=>{});
+  return turno;
+}
+function avviso(testo, titolo){
+  return _dlgApri(`${titolo?`<h3>${esc(titolo)}</h3>`:''}<div class="dlg-testo">${_dlgTesto(testo)}</div>
+    <div class="modal__actions"><button class="btn btn--ember" id="dlg-ok">${t('Ho capito')}</button></div>`,
+    (box,chiudi,bk)=>{ const ok=box.querySelector('#dlg-ok'); ok.onclick=()=>chiudi(undefined);
+      bk.onkeydown=e=>{ if(e.key==='Escape'){ e.preventDefault(); chiudi(undefined); } };
+      setTimeout(()=>{ try{ ok.focus(); }catch(e){} },0); });
+}
+function conferma(testo, opt){
+  opt=opt||{};
+  return _dlgApri(`<h3>${esc(opt.titolo||t('Conferma'))}</h3><div class="dlg-testo">${_dlgTesto(testo)}</div>
+    <div class="modal__actions"><button class="btn" id="dlg-no">${esc(opt.testoNo||t('Annulla'))}</button><button class="btn ${opt.pericolo?'btn--del':'btn--ember'}" id="dlg-si">${esc(opt.testoOk||t('Conferma'))}</button></div>`,
+    (box,chiudi,bk)=>{ const no=box.querySelector('#dlg-no'), si=box.querySelector('#dlg-si');
+      no.onclick=()=>chiudi(false); si.onclick=()=>chiudi(true);
+      bk.onkeydown=e=>{ if(e.key==='Escape'){ e.preventDefault(); chiudi(false); } };
+      setTimeout(()=>{ try{ no.focus(); }catch(e){} },0); });
+}
 /* input testuale via modale — sostituisce window.prompt(), che Electron NON supporta
    (i bottoni che lo usavano risultavano "morti" nell'app desktop). Annulla = nessuna azione. */
 function chiediTesto(titolo, valore, cb){

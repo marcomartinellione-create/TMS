@@ -169,17 +169,17 @@ function exEdit(name, opt){
     if(fIn) fIn.onchange=async()=>{
       const file=fIn.files&&fIn.files[0]; if(!file) return;
       const f=nomeFile();
-      if(!f){ alert(t('Imposta prima il campo Video (nome file, es. squat.mp4): il personale usa lo stesso nome.')); fIn.value=''; return; }
-      if(!dataDir){ alert(t('Connetti i dati prima di caricare un video.')); fIn.value=''; return; }
+      if(!f){ avviso(t('Imposta prima il campo Video (nome file, es. squat.mp4): il personale usa lo stesso nome.')); fIn.value=''; return; }
+      if(!dataDir){ avviso(t('Connetti i dati prima di caricare un video.')); fIn.value=''; return; }
       try{
         const fh=await videoCustomHandle(f,true);
         const wr=await fh.createWritable(); await wr.write(file); await wr.close();
-        if(!videoPersonaliOn() && confirm(t('Video personale salvato. Vuoi attivare ora i "Video personali"? (Si cambia anche dal tab Esercizi.)'))) setVideoPersonali(true);
-      }catch(e){ alert(t('Errore nel salvataggio del video:')+' '+e.message); logErrore('videoPersonale', e); }
+        if(!videoPersonaliOn() && await conferma(t('Video personale salvato. Vuoi attivare ora i "Video personali"? (Si cambia anche dal tab Esercizi.)'))) setVideoPersonali(true);
+      }catch(e){ avviso(t('Errore nel salvataggio del video:')+' '+e.message); logErrore('videoPersonale', e); }
       fIn.value=''; aggiorna(); };
     if(bDel) bDel.onclick=async()=>{
       const f=nomeFile(); if(!f) return;
-      if(!confirm(t('Rimuovere il tuo video personale per questo esercizio? (Il predefinito resta.)'))) return;
+      if(!await conferma(t('Rimuovere il tuo video personale per questo esercizio? (Il predefinito resta.)'))) return;
       try{ const vd=await videoCustomDir(false); await vd.removeEntry(String(f).replace(/^video\//,'')); }catch(e){}
       aggiorna(); };
   }
@@ -204,12 +204,12 @@ async function videoSorgente(file){
 let lastVideoUrl=null;
 async function playVideo(nome){
   const file=videoOf(nome); if(!file) return;
-  if(!dirHandle){ alert(t('Per vedere i video collega la cartella TMS (i video vanno in TMS/database/video/).')); return; }
+  if(!dirHandle){ avviso(t('Per vedere i video collega la cartella TMS (i video vanno in TMS/database/video/).')); return; }
   let url=null, fonte='predefinito';
   try{
     const s=await videoSorgente(file); fonte=s.fonte;
     url=URL.createObjectURL(await s.fh.getFile());
-  }catch(e){ alert(t('Video non trovato: TMS/database/video/')+file); return; }
+  }catch(e){ avviso(t('Video non trovato: TMS/database/video/')+file); return; }
   if(lastVideoUrl){ try{ URL.revokeObjectURL(lastVideoUrl); }catch(e){} } lastVideoUrl=url;
   modal(`<h3 style="margin-bottom:8px">▶ ${esc(exName(nome))}${fonte==='personale'?` <span class="pill">${t('video personale')}</span>`:''}</h3>`+
     `<video src="${url}" controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:var(--r-sm);background:#000"></video>`+

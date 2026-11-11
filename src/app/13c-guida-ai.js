@@ -642,6 +642,6 @@ function scaricaGuidaAI(){
     a.href=u; a.download='TMS-guida-AI-v'+APP_VERSION+'.md';
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ try{URL.revokeObjectURL(u);}catch(e){} a.remove(); },800);
-    alert(t('✔ Scaricato')+' '+a.download+'.\n'+t('Caricalo nella chat di un assistente AI (ChatGPT, Claude, Gemini…) e fagli le tue domande sul TMS.'));
-  }catch(e){ alert(t('Errore nel download:')+' '+e.message); logErrore('guidaAI', e); }
+    avviso(t('✔ Scaricato')+' '+a.download+'.\n'+t('Caricalo nella chat di un assistente AI (ChatGPT, Claude, Gemini…) e fagli le tue domande sul TMS.'));
+  }catch(e){ avviso(t('Errore nel download:')+' '+e.message); logErrore('guidaAI', e); }
 }

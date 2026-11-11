@@ -71,15 +71,15 @@ async function backupData(conFoto){
     if(conFoto){
       const nFoto=Object.keys(snap.profiles).reduce((n,s)=>n+Object.keys((snap.profiles[s]||{}).fotoFiles||{}).length,0);
       const mb=blob.size/1048576;
-      if(!nFoto){ alert(t('Nessuna foto da includere: uso il backup normale.')); }
-      else if(!confirm(t('Backup completo:')+' '+nFoto+' '+t('foto incluse, circa')+' '+mb.toFixed(1)+' MB.\n\n'+
+      if(!nFoto){ avviso(t('Nessuna foto da includere: uso il backup normale.')); }
+      else if(!await conferma(t('Backup completo:')+' '+nFoto+' '+t('foto incluse, circa')+' '+mb.toFixed(1)+' MB.\n\n'+
         t('I file grandi sono più lenti da salvare e da ripristinare. Procedo?'))) return;
     }
     const url=URL.createObjectURL(blob); const a=document.createElement('a');
     a.download='TMS-backup'+(conFoto?'-completo':'')+'-'+(pslug(profNome())||activeProfile||'profilo')+'-'+new Date().toISOString().slice(0,10)+'.json';  /* nome del profilo attivo nel file: si capisce di chi è (il contenuto resta TUTTI i profili) */
     a.href=url;
     document.body.appendChild(a); a.click(); setTimeout(()=>{ try{URL.revokeObjectURL(url);}catch(e){} a.remove(); },600);
-  }catch(e){ alert(t('Errore backup:')+' '+e.message); logErrore('backupData', e); }
+  }catch(e){ avviso(t('Errore backup:')+' '+e.message); logErrore('backupData', e); }
 }
 
 /* ── backup AUTOMATICO (P-backup, v1.0.72): uno snapshot a settimana in
@@ -146,7 +146,7 @@ async function ripristinaBackupAutomatico(nomeFile){
     const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:false});
     const fh=await dir.getFileHandle(String(nomeFile),{create:false});
     await restoreData(await fh.getFile());
-  }catch(e){ alert(t('Backup automatico non leggibile:')+' '+e.message); logErrore('ripristinoAuto', e); }
+  }catch(e){ avviso(t('Backup automatico non leggibile:')+' '+e.message); logErrore('ripristinoAuto', e); }
 }
 
 /* ── aggiornamenti con l'interfaccia dell'app (v1.0.73): il wrapper manda gli eventi
@@ -181,10 +181,10 @@ function mostraLogErrori(){
   if(c) c.onclick=()=>{ try{ navigator.clipboard.writeText(righe); c.textContent=t('✔ Copiato'); }catch(e){} };
 }
 async function restoreData(file){
-  let snap; try{ snap=JSON.parse(await file.text()); }catch(e){ alert(t('File non leggibile.')); logErrore('ripristino', e); return; }
-  if(!snap||snap._tms!=='backup'||!snap.profiles){ alert(t('Questo non è un backup TMS valido.')); return; }
+  let snap; try{ snap=JSON.parse(await file.text()); }catch(e){ avviso(t('File non leggibile.')); logErrore('ripristino', e); return; }
+  if(!snap||snap._tms!=='backup'||!snap.profiles){ avviso(t('Questo non è un backup TMS valido.')); return; }
   const np=Object.keys(snap.profiles).length;
-  if(!confirm(t('Ripristinare il backup del')+' '+String(snap.date||'').slice(0,10)+'?\n'+t('Sostituirà i dati attuali (')+np+' '+t('profili).'))) return;
+  if(!await conferma(t('Ripristinare il backup del')+' '+String(snap.date||'').slice(0,10)+'?\n'+t('Sostituirà i dati attuali (')+np+' '+t('profili).'))) return;
   /* prima di sostituire: fotografia dello stato attuale (se è leggibile) */
   try{ await salvaCopiaDiSicurezza(); }catch(e){ logErrore('copiaDiSicurezza', e); }
   clearTimeout(saveTimer); pendingSaves.clear();
@@ -215,6 +215,6 @@ async function restoreData(file){
     const data={}; Object.keys(snap.profiles).forEach(s=>data[s]=snap.profiles[s]);
     try{ localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,profili:profili,active:activeProfile,data:data})); }catch(e){}
   }
-  saveCache(); alert(t('✔ Backup ripristinato (')+np+' '+t('profili).')+(fotoRipristinate?' '+fotoRipristinate+' '+t('foto rimesse al loro posto.'):'')); renderAll(); showTab('profilo');
+  saveCache(); avviso(t('✔ Backup ripristinato (')+np+' '+t('profili).')+(fotoRipristinate?' '+fotoRipristinate+' '+t('foto rimesse al loro posto.'):'')); renderAll(); showTab('profilo');
 }
 
