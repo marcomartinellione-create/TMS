@@ -2,7 +2,11 @@
 function e1rmFormula(){ return (DOC&&DOC.dati_utente&&DOC.dati_utente.e1rm)||'epley'; }
 function rm1(peso,rip){ peso=+peso||0; rip=+rip||0; if(peso<=0||rip<=0) return 0;
   const ep=peso*(1+rip/30);
-  const br=(rip<37)? peso*36/(37-rip) : ep;
+  /* Brzycki è costruita sulle basse ripetizioni e ha un asintoto a 37: a 20 rip. stima già
+     2,1 volte il peso, a 30 più di 5, a 36 trentasei. Si usa fino a 10 ripetizioni, dove
+     coincide ESATTAMENTE con Epley (36/27 = 1+10/30 = 1,333): oltre si prosegue con Epley,
+     senza gradini. Vale anche per la «Media delle 3», che se la portava dentro. */
+  const br=(rip<=10)? peso*36/(37-rip) : ep;
   const lo=peso*Math.pow(rip,0.10);
   const f=e1rmFormula();
   if(f==='brzycki') return br; if(f==='lombardi') return lo; if(f==='media') return (ep+br+lo)/3; return ep; }

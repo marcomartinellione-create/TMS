@@ -7,6 +7,15 @@ const CACHE_KEY='tms-doc';
 const HAS_FSA=typeof window.showDirectoryPicker==='function';
 let dirHandle=null, dataDir=null, profileDir=null, saveTimer=null, suppressSave=false, pendingSaves=new Set();
 let profili=[], activeProfile='';
+/* Profilo creato quando non ne esiste nessuno (primo avvio su una cartella vuota): è il
+   profilo DIMOSTRATIVO, coi dati di esempio incorporati nell'app (SEED = «Atleta Template»,
+   lo stesso dell'installer). Fino alla v1.1.15 si chiamava «Wander» e portava lo storico
+   personale dell'autore. */
+const PROFILO_DEMO={slug:'template', nome:'Atleta Template'};
+/* vero finché l'elenco profili è solo il ripiego messo all'avvio (nessun profilo vero
+   letto da cache o disco): in quel caso connectFlow può ancora decidere chi è il primo profilo */
+let profiliDiRipiego=false;
+function profiloDemo(){ return {slug:PROFILO_DEMO.slug, nome:PROFILO_DEMO.nome, creato:new Date().toISOString().slice(0,10)}; }
 function pslug(n){ return String(n||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,32)||'profilo'; }
 function profNome(){ const p=profili.find(x=>x.slug===activeProfile); return p?p.nome:''; }
 /* il tab "Profilo" mostra il nome del profilo attivo (richiesta Marco, v1.0.66) */
@@ -191,17 +200,25 @@ async function connectFlow(){
     if(pjR.stato==='illeggibile') throw erroreIlleggibile(FILES.profili, pjR);
     const pj=pjR.dati;
     if(pj&&pj.list&&pj.list.length){
-      profili=pj.list; activeProfile=pj.active||pj.list[0].slug;
+      profili=pj.list; activeProfile=pj.active||pj.list[0].slug; profiliDiRipiego=false;
       profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});
       await loadProfile();
       /* cleanup: rimuovi eventuali file flat legacy rimasti nella root TMS_Dati */
       for(const fn of [FILES.scheda,FILES.storico,FILES.corpo,FILES.alimentazione]){ try{ await dataDir.removeEntry(fn); }catch(e){} }
     } else {
-      /* nessun profili.json: crea/usa Wander e migra i file flat legacy (o il seed corrente) */
-      if(!profili.length){ profili=[{slug:'wander',nome:'Wander',creato:new Date().toISOString().slice(0,10)}]; }
-      activeProfile=(profili[0]&&profili[0].slug)||'wander';
+      /* nessun profili.json: profilo dimostrativo (dati di esempio incorporati), oppure —
+         cartelle di versioni molto vecchie — i file «piatti» nella radice, che sono dati
+         VERI di qualcuno: quelli diventano un profilo col nome della loro anagrafica, non
+         il dimostrativo */
       const LL=await leggiProfiloRigoroso(dataDir, '');
       const lsc=LL.scheda, lst=LL.storico, lco=LL.corpo, lal=LL.alimentazione;
+      if(!profili.length||profiliDiRipiego){
+        if(lsc||lst||lco||lal){ const nm=String((lco&&lco.dati_utente&&lco.dati_utente.nome)||'').trim()||'Profilo';
+          profili=[{slug:pslug(nm), nome:nm, creato:new Date().toISOString().slice(0,10)}]; }
+        else profili=[profiloDemo()];
+      }
+      profiliDiRipiego=false;
+      activeProfile=(profili[0]&&profili[0].slug)||PROFILO_DEMO.slug;
       if(lsc||lst||lco||lal){ applyProfileData({scheda:lsc,storico:lst,storico_io:lco&&lco.storico_io,storico_rpe:lco&&lco.storico_rpe,storico_risc:lco&&lco.storico_risc,cardio:lco&&lco.cardio,foto:lco&&lco.foto,dati_utente:lco&&lco.dati_utente,alimentazione:lal}); }
       migrateStorico(); migrateScheda(); migrateExNames(); normalizeAlim();
       profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});

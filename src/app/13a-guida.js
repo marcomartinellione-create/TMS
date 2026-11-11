@@ -132,7 +132,7 @@ function guidaCompleta(){
      <tr><td class="l">Lombardi</td><td class="l mono">w · r^0.10</td><td class="l">Curva di potenza.</td></tr>
      <tr><td class="l">Media</td><td class="l mono">(Epley + Brzycki + Lombardi)/3</td><td class="l">Compromesso fra le tre.</td></tr>
    </tbody></table></div>
-   <p class="muted" style="font-size:13px">Esempio: 100 kg × 8 rip → Epley 126,7 · Brzycki 124,1 · Lombardi 125,9. Sono stime: oltre le ~10–12 reps l'errore cresce. Per questo nei <b>Record</b> mostriamo il <b>carico reale</b> più alto sollevato, non il 1RM stimato.</p>
+   <p class="muted" style="font-size:13px">Esempio: 100 kg × 8 rip → Epley 126,7 · Brzycki 124,1 · Lombardi 125,9. Sono stime: oltre le ~10–12 reps l'errore cresce (Brzycki vale fino a 10 ripetizioni, dove coincide con Epley: oltre, l'app prosegue con Epley). Per questo nei <b>Record</b> mostriamo il <b>carico reale</b> più alto sollevato, non il 1RM stimato.</p>
 
    <p><b>6.2 · Intensità relativa (%1RM)</b></p>
    <p class="mono">%1RM = w / 1RM · 100 = 100 / (1 + r/30)   (con Epley)</p>
@@ -370,7 +370,7 @@ function guidaCompletaEN(){
      <tr><td class="l">Lombardi</td><td class="l mono">w · r^0.10</td><td class="l">Power curve.</td></tr>
      <tr><td class="l">Average</td><td class="l mono">(Epley + Brzycki + Lombardi)/3</td><td class="l">Compromise of the three.</td></tr>
    </tbody></table></div>
-   <p class="muted" style="font-size:13px">Example: 100 kg × 8 reps → Epley 126.7 · Brzycki 124.1 · Lombardi 125.9. They are estimates: beyond ~10–12 reps the error grows. That's why in <b>Records</b> we show the <b>highest actual load</b> lifted, not the estimated 1RM.</p>
+   <p class="muted" style="font-size:13px">Example: 100 kg × 8 reps → Epley 126.7 · Brzycki 124.1 · Lombardi 125.9. They are estimates: beyond ~10–12 reps the error grows (Brzycki holds up to 10 reps, where it matches Epley: beyond that the app continues with Epley). That's why in <b>Records</b> we show the <b>highest actual load</b> lifted, not the estimated 1RM.</p>
 
    <p><b>6.2 · Relative intensity (%1RM)</b></p>
    <p class="mono">%1RM = w / 1RM · 100 = 100 / (1 + r/30)   (with Epley)</p>

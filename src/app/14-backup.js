@@ -191,7 +191,7 @@ async function restoreData(file){
   sbloccaScritture();   /* un ripristino è il modo per uscire dal blocco «dati illeggibili» */
   profili=(snap.profili&&snap.profili.length)?snap.profili:Object.keys(snap.profiles).map(s=>({slug:s,nome:s,creato:''}));
   if(snap.esercizi&&snap.esercizi.length) DOC.esercizi=snap.esercizi; rebuildEs();
-  activeProfile=(profili[0]&&profili[0].slug)||'wander';
+  activeProfile=(profili[0]&&profili[0].slug)||PROFILO_DEMO.slug;
   applyProfileData(snap.profiles[activeProfile]||blankDOC());
   let fotoRipristinate=0;
   if(dataDir){

@@ -1858,6 +1858,78 @@ console.log('--- T8: revisione 2026-11 — calcoli e scheda ---');
   dom.window.close();
 }
 
+console.log('--- T9: dati incorporati dimostrativi, correzione di una riga, Brzycki ---');
+{
+  /* l'artefatto non porta più i dati personali dell'autore */
+  const html = fs.readFileSync(ARTEFATTO, 'utf8');
+  const iSeed = html.indexOf('/*__SEED_JSON__*/'), seedTxt = html.slice(iSeed, html.indexOf('\n', iSeed));
+  ok(iSeed > 0 && !/2000-11-18/.test(seedTxt) && !/"nome":"Wander"/.test(seedTxt) && !/H 80 - S 50/.test(seedTxt), 'dati incorporati: nessuna traccia dei dati personali (nascita, nome, note di setup)');
+  ok(/"nome":"Atleta","cognome":"Template"/.test(seedTxt), 'dati incorporati: sono quelli del profilo dimostrativo «Atleta Template»');
+
+  /* primo avvio su una cartella vuota → profilo dimostrativo */
+  const fsmem = makeTmsFS();
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem);
+  const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+  ok(w.eval('activeProfile') === 'template' && w.eval('profNome()') === 'Atleta Template', 'primo avvio: il profilo creato è «Atleta Template» (non più «Wander»)');
+  ok(fsmem._files.has('TMS_Dati/template/storico.json') && ![...fsmem._files.keys()].some(k => /wander/i.test(k)), 'primo avvio: dati scritti in TMS_Dati/template/, nessuna cartella «wander»');
+  ok(w.eval('DOC.dati_utente.nome') === 'Atleta' && w.eval('DOC.storico.length') > 100 && w.eval('cardioList().length') > 0, 'primo avvio: storico, anagrafica e cardio dimostrativi caricati');
+
+  /* correzione di una riga dello Storico */
+  w.eval('showTab("storico")');
+  const n0 = w.eval('DOC.storico.length');
+  const btn = d.querySelector('#panel-storico [data-edrow]'); const i = +btn.dataset.edrow;
+  ok(d.querySelectorAll('#panel-storico [data-edrow]').length === n0, 'Storico: ogni riga ha la sua matita ✎');
+  const prima = JSON.parse(w.eval('JSON.stringify(DOC.storico[' + i + '])'));
+  btn.click();
+  ok(+d.getElementById('rs-peso').value === +prima.peso && +d.getElementById('rs-rip').value === +prima.rip && d.getElementById('modal').textContent.includes(String(prima.scheda)), 'correzione: il riquadro si apre coi valori della riga e la sua settimana');
+  d.getElementById('rs-peso').value = '-5'; d.getElementById('rs-ok').click();
+  ok(w.eval('DOC.storico[' + i + '].peso') === prima.peso && !d.getElementById('rs-err').hidden, 'correzione: un valore negativo viene rifiutato (riga invariata)');
+  d.getElementById('rs-peso').value = '123.5'; d.getElementById('rs-rip').value = '4'; d.getElementById('rs-rir').value = ''; d.getElementById('rs-test').checked = true;
+  d.getElementById('rs-ok').click();
+  { const r = JSON.parse(w.eval('JSON.stringify(DOC.storico[' + i + '])'));
+    ok(r.peso === 123.5 && r.rip === 4 && r.rir === null && r.test === true && r.esercizio === prima.esercizio && r.scheda === prima.scheda && w.eval('DOC.storico.length') === n0, 'correzione: cambiano solo serie/rip/peso/RIR/★ di QUELLA riga');
+    ok(!('rm1' in r) && !('tl' in r), 'correzione: nessun valore calcolato viene salvato nella riga'); }
+  await settle(600);
+  ok(JSON.parse(fsmem._files.get('TMS_Dati/template/storico.json'))[i].peso === 123.5, 'correzione: scritta su disco');
+  /* eliminare una riga sola; se era l'ultima della settimana se ne va anche il suo carico interno */
+  w.eval('DOC.storico.push({scheda:209950,esercizio:' + JSON.stringify(prima.esercizio) + ',seduta:1,test:false,macro:"Gambe",serie:1,rip:1,peso:1}); DOC.storico_rpe.push({scheda:209950,giorno:"Lunedì",rpe:5,min:30}); renderStorico();');
+  const iNuova = w.eval('DOC.storico.length-1');
+  d.querySelector('#panel-storico [data-edrow="' + iNuova + '"]').click();
+  d.getElementById('rs-del').click();
+  ok(w.eval('DOC.storico.length') === n0 + 1, 'elimina riga: finché non confermi non viene tolto nulla');
+  d.getElementById('cc-si').click();
+  ok(w.eval('DOC.storico.length') === n0 && w.eval('DOC.storico.filter(r=>+r.scheda===209950).length') === 0, 'elimina riga: tolta solo quella');
+  ok(w.eval('DOC.storico_rpe.filter(r=>+r.scheda===209950).length') === 0, 'elimina riga: se era l\'ultima della settimana se ne va anche l\'RPE di quella settimana');
+  { const rpePrima = w.eval('DOC.storico_rpe.length'); const cod = w.eval('DOC.storico[0].scheda');
+    d.querySelector('#panel-storico [data-edrow="0"]').click(); d.getElementById('rs-del').click(); d.getElementById('cc-si').click();
+    ok(w.eval('DOC.storico.filter(r=>+r.scheda===' + cod + ').length') > 0 && w.eval('DOC.storico_rpe.length') === rpePrima, 'elimina riga: se la settimana ha altre righe il suo RPE resta'); }
+
+  /* Brzycki: fino a 10 ripetizioni, poi Epley (coincidono a 10) */
+  const rm = (f, p, r) => w.eval('(function(){ var u=DOC.dati_utente, o=u.e1rm; u.e1rm=' + JSON.stringify(f) + '; var v=rm1(' + p + ',' + r + '); u.e1rm=o; return v; })()');
+  ok(Math.abs(rm('brzycki', 100, 5) - 112.5) < 1e-9 && Math.abs(rm('brzycki', 100, 8) - 100 * 36 / 29) < 1e-9, 'Brzycki: invariata sulle basse ripetizioni (100×5 → 112,5)');
+  ok(Math.abs(rm('brzycki', 100, 10) - rm('epley', 100, 10)) < 1e-9 && Math.abs(rm('brzycki', 100, 11) - rm('epley', 100, 11)) < 1e-9, 'Brzycki: a 10 ripetizioni coincide con Epley e da lì la segue (nessun gradino)');
+  ok(rm('brzycki', 100, 30) === 200 && rm('brzycki', 100, 36) < 230, 'Brzycki: a 30 ripetizioni stima 200, non più 514 (a 36 non esplode)');
+  ok(rm('media', 100, 30) < 185, 'Media delle 3: non più trascinata in alto da Brzycki sulle alte ripetizioni');
+  ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  dom.window.close();
+}
+{
+  /* cartella di una versione molto vecchia: file «piatti» nella radice = dati veri di qualcuno */
+  const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+  await fsmem.writeFile('TMS_Dati/scheda.json', J({ settimanale: [], mensile: [] }));
+  await fsmem.writeFile('TMS_Dati/storico.json', J([{ scheda: 202501, esercizio: 'Squat con bilanciere', seduta: 1, macro: 'Gambe', serie: 3, rip: 5, peso: 90 }]));
+  await fsmem.writeFile('TMS_Dati/corpo.json', J({ dati_utente: { nome: 'Luca', sesso: 'M' }, storico_io: [] }));
+  await fsmem.writeFile('TMS_Dati/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem); await settle(300);
+  const w = dom.window;
+  ok(w.eval('activeProfile') === 'luca' && w.eval('profNome()') === 'Luca' && w.eval('DOC.storico.length') === 1 && w.eval('DOC.storico[0].peso') === 90, 'file piatti di una versione vecchia: diventano un profilo col nome della loro anagrafica, coi LORO dati');
+  ok(fsmem._files.has('TMS_Dati/luca/storico.json') && !fsmem._files.has('TMS_Dati/storico.json'), 'file piatti: spostati nella cartella del profilo');
+  ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  dom.window.close();
+}
+
 console.log('');
 console.log('RISULTATO: ' + pass + ' OK, ' + fail + ' FAIL');
 process.exit(fail ? 1 : 0);

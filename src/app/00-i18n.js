@@ -475,6 +475,15 @@ const EN={
   'Esiste già la misura':'Measurement already exists:',
   '. Aggiungo comunque?':'. Add anyway?',
   '. La sostituisco con i valori attuali?':'. Replace it with the current values?',
+  /* ══════════ Storico: correzione di una riga (2026-11) ══════════ */
+  'correggi questa riga':'fix this row',
+  'zavorra':'added weight',
+  'Correggi una riga dello Storico':'Fix a History row',
+  '★ Test del massimale (escluso dalla progressione)':'★ Max test (excluded from progression)',
+  '🗑 Elimina riga':'🗑 Delete row',
+  'Elimino questa riga?':'Delete this row?',
+  'Viene tolta solo questa riga; il resto della settimana resta.':'Only this row is removed; the rest of the week stays.',
+  'Serie, ripetizioni e peso devono essere numeri da zero in su.':'Sets, reps and weight must be numbers, zero or more.',
   /* ══════════ protezione dei dati (2026-11) ══════════ */
   'dati illeggibili — salvataggio sospeso':'unreadable data — saving paused',
   'Un file dei dati non si legge':'A data file cannot be read',

@@ -101,6 +101,10 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, la riga dei **backup automatici**: l'app ne crea
   uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5
   copie) con link «ripristina» accanto a ciascuno.
+- **Correggere una riga già salvata**: nello **Storico** (link in fondo alla pagina) ogni riga
+  ha a destra una **matita ✎**: apre un riquadro dove si cambiano serie, ripetizioni, peso,
+  RIR e il segno ★ di test, oppure si elimina quella riga soltanto. Esercizio e settimana non
+  si cambiano da lì. 1RM, %1RM e TL si ricalcolano da soli.
 - **Eliminare una settimana già salvata**: nello **Storico** (link in fondo alla pagina) ogni
   settimana ha la sua barra scura con, a destra, un pulsante **cestino rosso** che toglie tutte
   le righe di QUELLA settimana. Stesso pulsante su ogni rilevazione dello storico **Misure**.
@@ -606,8 +610,9 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,
   durata, RPE; FC media facoltativa per il TRIMP).
 - «Correggere un dato sbagliato» → nella scheda corrente si corregge direttamente; per una
-  settimana già salvata si apre lo Storico, si elimina quella settimana col cestino rosso
-  nella sua barra e si risalva.
+  settimana già salvata si apre lo Storico e si usa la matita ✎ sulla riga sbagliata (serie,
+  ripetizioni, peso, RIR, ★). Per rifare tutta la settimana: cestino rosso nella sua barra,
+  poi si risalva.
 - «Vedere i progressi / il rischio di sovraccarico» → Progressi (record, TL, ACWR).
 - «Impostare la dieta» → Alimentazione (fase attiva scelta coi bottoni in cima al tab);
   per le analisi nel tempo registrare i Periodi.

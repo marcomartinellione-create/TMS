@@ -31,7 +31,7 @@ async function migrateLegacyStore(){
 async function init(){
   await migrateLegacyStore();
   loadCache();
-  if(!profili.length){ profili=[{slug:'wander',nome:'Wander',creato:new Date().toISOString().slice(0,10)}]; activeProfile='wander'; }
+  if(!profili.length){ profili=[profiloDemo()]; activeProfile=PROFILO_DEMO.slug; profiliDiRipiego=true; }
   if(!Array.isArray(DOC.esercizi)||!DOC.esercizi.length)
     DOC.esercizi=REF.esercizi.filter(e=>!isVariante(e.nome)).map(e=>Object.assign({},e,{nome:String(e.nome).trim()}));
   rebuildEs();

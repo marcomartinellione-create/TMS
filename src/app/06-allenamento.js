@@ -588,6 +588,17 @@ function saveSchedaModal(){
    «Annulla ultimo», che sapeva togliere solo l'ULTIMA scheda: se lo sbaglio era due
    settimane fa bisognava cancellare anche quella buona in mezzo. Ora si sceglie
    direttamente dalla riga della settimana nello Storico. */
+/* toglie RPE×min e minuti di cardio del riscaldamento salvati per una settimana (quando
+   la settimana non ha più righe nello Storico non devono restare a contare da soli) */
+function togliCaricoInterno(code){
+  code=+code||0; if(!code) return false;
+  const nR=(DOC.storico_rpe||[]).length, nW=(DOC.storico_risc||[]).length;
+  DOC.storico_rpe=(DOC.storico_rpe||[]).filter(x=>(+x.scheda)!==code);
+  DOC.storico_risc=(DOC.storico_risc||[]).filter(x=>(+x.scheda)!==code);
+  const cambiato=DOC.storico_rpe.length!==nR||DOC.storico_risc.length!==nW;
+  if(cambiato) persist('corpo');
+  return cambiato;
+}
 function eliminaScheda(code){
   code=+code||0; if(!code) return;
   const n=DOC.storico.filter(r=>(+r.scheda)===code).length;
@@ -599,10 +610,7 @@ function eliminaScheda(code){
       /* con la settimana se ne vanno anche il carico interno (RPE×min) e i minuti di
          cardio del riscaldamento salvati insieme a lei: restando, la settimana eliminata
          continuava a contare in sRPE, monotonia e nell'asse Cardio */
-      const nR=(DOC.storico_rpe||[]).length, nW=(DOC.storico_risc||[]).length;
-      DOC.storico_rpe=(DOC.storico_rpe||[]).filter(x=>(+x.scheda)!==code);
-      DOC.storico_risc=(DOC.storico_risc||[]).filter(x=>(+x.scheda)!==code);
-      if(DOC.storico_rpe.length!==nR||DOC.storico_risc.length!==nW) persist('corpo');
+      togliCaricoInterno(code);
       cruscottoInvalida();
       if(curTab==='storico') renderStorico(); else renderAllenamento(); updateStatusDots();
     }, {testoOk:t('Elimina')});
