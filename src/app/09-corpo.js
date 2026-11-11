@@ -52,7 +52,7 @@ function renderCorpo(){
     /* la massa grassa si salva come frazione (0,145): chi scrive «14.5» intende il 14,5 % */
     if(e.target.dataset.u==='massa_grassa' && v!=='' && v>1) v=v/100;
     DOC.dati_utente[e.target.dataset.u]=v; persist('corpo');
-    clearTimeout(rerenderT); rerenderT=setTimeout(renderCorpo,600);
+    clearTimeout(rerenderT); rerenderT=setTimeout(()=>ridisegnaConFuoco('panel-corpo', renderCorpo),600);
   }));
   document.getElementById('btn-save-io').onclick=saveIoModal;
   document.getElementById('btn-undo-io').onclick=()=>{ if(!io.length){alert(t('Vuoto.'));return;}

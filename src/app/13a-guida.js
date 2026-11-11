@@ -120,7 +120,7 @@ function guidaCompleta(){
      <tr><td class="num">60–70%</td><td class="l">Resistenza</td><td>${bd(65)}</td></tr>
      <tr><td class="num">50–60%</td><td class="l">Metabolico</td><td>${bd(55)}</td></tr>
    </tbody></table></div>
-   <div class="callout callout--info"><div>⚖️ <b>ACWR</b> (acuto:cronico): carico dell'ultima settimana ÷ media delle ultime 4. Zona produttiva e sicura ≈ <b>0.8–1.3</b>; sopra 1.5 cresce il rischio di sovraccarico/infortunio.</div></div>
+   <div class="callout callout--info"><div>⚖️ <b>ACWR</b> (acuto:cronico): carico dell'ultima settimana ÷ media delle ultime 4 settimane di calendario (una settimana senza registrazioni vale zero, per chi salva ogni settimana). Zona produttiva e sicura ≈ <b>0.8–1.3</b>; sopra 1.5 cresce il rischio di sovraccarico/infortunio.</div></div>
 
    <div class="sec" id="gc-calc">6 · Logica dei calcoli (in dettaglio)</div>
    <p>Tutti i numeri derivati (1RM, %1RM, TL, Δ, ACWR, fasce) sono <b>ricalcolati dai dati grezzi</b> a ogni apertura: nello storico salviamo solo Serie/Rip/Peso/RIR e il Fattore dell'esercizio. Così, se cambi una formula o il Fattore, anche lo storico si allinea da solo.</p>
@@ -358,7 +358,7 @@ function guidaCompletaEN(){
      <tr><td class="num">60–70%</td><td class="l">Endurance</td><td>${bd(65)}</td></tr>
      <tr><td class="num">50–60%</td><td class="l">Metabolic</td><td>${bd(55)}</td></tr>
    </tbody></table></div>
-   <div class="callout callout--info"><div>⚖️ <b>ACWR</b> (acute:chronic): last week's load ÷ average of the last 4. Productive and safe zone ≈ <b>0.8–1.3</b>; above 1.5 the risk of overload/injury grows.</div></div>
+   <div class="callout callout--info"><div>⚖️ <b>ACWR</b> (acute:chronic): last week's load ÷ average of the last 4 calendar weeks (a week with nothing logged counts as zero, for those who log every week). Productive and safe zone ≈ <b>0.8–1.3</b>; above 1.5 the risk of overload/injury grows.</div></div>
 
    <div class="sec" id="gc-calc">6 · Calculation logic (in detail)</div>
    <p>All derived numbers (1RM, %1RM, TL, Δ, ACWR, zones) are <b>recomputed from raw data</b> at every opening: in history we save only Sets/Reps/Weight/RIR and the exercise's Factor. So if you change a formula or the Factor, history realigns by itself.</p>

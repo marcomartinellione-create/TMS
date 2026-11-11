@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TMS — anteprima di collaudo</title>
+<script>
+/* Anteprima di collaudo a video. Uso: servi la cartella del progetto (python -m http.server
+   4174) e apri /tools/anteprima.html. Carica l'app vera (l'artefatto di npm run build) con un ponte
+   tmsFS finto. LEGGE dal server (TMS_Dati/, database/), SCRIVE solo in memoria:
+   i dati veri non vengono mai toccati. */
+(async () => {
+  const mem = new Map(), tolti = new Set(), dirs = new Set();
+  const enc = new TextEncoder();
+  const url = rel => '/' + rel.split('/').map(encodeURIComponent).join('/');
+  window.__mem = mem;
+  window.tmsFS = {
+    exists: async rel => { if (mem.has(rel) || dirs.has(rel)) return true; if ([...tolti].some(t => rel === t || rel.startsWith(t + '/'))) return false;
+      try { const r = await fetch(url(rel), { method: 'HEAD' }); return r.ok; } catch (e) { return false; } },
+    readFile: async rel => { if (mem.has(rel)) { const v = mem.get(rel); return typeof v === 'string' ? enc.encode(v) : v; }
+      const r = await fetch(url(rel)); if (!r.ok) throw new Error('ENOENT ' + rel); return new Uint8Array(await r.arrayBuffer()); },
+    writeFile: async (rel, data) => { mem.set(rel, data); },
+    mkdir: async rel => { dirs.add(rel); },
+    remove: async rel => { mem.delete(rel); tolti.add(rel); },
+    cestina: async rel => { tolti.add(rel); for (const k of [...mem.keys()]) if (k.startsWith(rel + '/')) mem.delete(k); return '_eliminati/' + rel; },
+    dataRoot: async () => '(anteprima: memoria)'
+  };
+  const html = await (await fetch('/Training%20Monitor%20System.html?' + Date.now())).text();
+  document.open(); document.write(html); document.close();
+})();
+</script>

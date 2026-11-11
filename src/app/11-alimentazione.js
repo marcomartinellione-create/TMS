@@ -180,7 +180,7 @@ function renderAlimentazione(){
     DOC.alimentazione[fase][i][f]=v; persist('alimentazione');
     /* non re-renderizzare mentre un modale è aperto (es. nome nuovo pasto): eviterebbe di
        ricostruire il pannello sotto la digitazione */
-    clearTimeout(rerenderT); rerenderT=setTimeout(()=>{ if(document.getElementById('modal-bk').classList.contains('hidden')) renderAlimentazione(); },500);
+    clearTimeout(rerenderT); rerenderT=setTimeout(()=>{ if(document.getElementById('modal-bk').classList.contains('hidden')) ridisegnaConFuoco('panel-alimentazione', renderAlimentazione); },500);
   }));
   document.querySelectorAll('#panel-alimentazione [data-fasesel]').forEach(b=>b.onclick=()=>{ if(!DOC.dati_utente)DOC.dati_utente={}; DOC.dati_utente.faseAlim=b.dataset.fasesel; persist('corpo'); renderAlimentazione(); });
   document.querySelectorAll('#panel-alimentazione [data-mealup]').forEach(b=>b.onclick=()=>spostaPasto(b.dataset.fase,b.dataset.meal,-1));

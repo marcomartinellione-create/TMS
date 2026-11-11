@@ -30,7 +30,7 @@ function renderStorico(){
    <div class="tbl-wrap"><table>
      <thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Gruppo')}</th><th>${t('Sed.')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th>RIR</th><th>1RM</th><th>%1RM</th><th>TL</th><th>${t('Fascia')}</th></tr></thead>
      <tbody>${body||`<tr><td colspan="11" class="empty">${t('Nessun record.')}</td></tr>`}</tbody></table></div>`;
-  document.getElementById('st-es').oninput=e=>{stFilt.esercizio=e.target.value; renderStorico(); document.getElementById('st-es').focus();};
+  document.getElementById('st-es').oninput=e=>{stFilt.esercizio=e.target.value; ridisegnaConFuoco('panel-storico', renderStorico);};
   document.getElementById('st-macro').onchange=e=>{stFilt.macro=e.target.value; renderStorico();};
   document.getElementById('st-sched').onchange=e=>{stFilt.scheda=e.target.value; renderStorico();};
   document.querySelectorAll('#panel-storico [data-delsched]').forEach(b=>{ b.onclick=()=>eliminaScheda(+b.dataset.delsched); });

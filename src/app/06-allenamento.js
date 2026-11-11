@@ -467,10 +467,12 @@ function weekPrev(code){ code=+code||0; const a=Math.floor(code/100), s=code%100
 function aggStatus(arr){ const codes=(arr||[]).map(r=>+r.scheda||0).filter(x=>x>0);
   const last=codes.length?Math.max(...codes):0; const w=isoWeek(new Date()); const cur=schedaCode(w.anno,w.sett); const prev=weekPrev(cur);
   return {ok:last>=prev, last, cur, prev}; }
+/* «202619» da solo non dice quando: accanto al codice va la data del lunedì di quella settimana */
+function settConData(code){ return code+' <span style="font-weight:400;opacity:.8">· '+esc(schedaLabel(code))+'</span>'; }
 function statusBanner(arr,label){ const s=aggStatus(arr);
-  if(s.ok) return `<div class="callout no-print" style="margin:0 0 12px;background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ <b>${t(label)} ${t('aggiornato')}</b> · ${t('ultima registrazione: settimana')} <b>${s.last}</b> (${t('corrente')} ${s.cur}).</div></div>`;
-  const what=s.last?`${t('l\'ultima è la settimana')} <b>${s.last}</b>`:t('non ci sono ancora registrazioni');
-  return `<div class="callout no-print" style="margin:0 0 12px;background:var(--danger-t);border-color:#e6b8b8;border-left-color:var(--danger)"><div>⚠ <b>${t(label)} ${t('da aggiornare')}</b> · ${what}; ${t('manca almeno la settimana precedente')} (<b>${s.prev}</b>). ${t('Ricordati di salvare.')}</div></div>`;
+  if(s.ok) return `<div class="callout no-print" style="margin:0 0 12px;background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ <b>${t(label)} ${t('aggiornato')}</b> · ${t('ultima registrazione: settimana')} <b>${settConData(s.last)}</b> (${t('corrente')} ${s.cur}).</div></div>`;
+  const what=s.last?`${t('l\'ultima è la settimana')} <b>${settConData(s.last)}</b>`:t('non ci sono ancora registrazioni');
+  return `<div class="callout no-print" style="margin:0 0 12px;background:var(--danger-t);border-color:#e6b8b8;border-left-color:var(--danger)"><div>⚠ <b>${t(label)} ${t('da aggiornare')}</b> · ${what}; ${t('manca almeno la settimana precedente')} (<b>${settConData(s.prev)}</b>). ${t('Ricordati di salvare.')}</div></div>`;
 }
 function updateStatusDots(){ const so=aggStatus(DOC.storico), bo=aggStatus(DOC.storico_io);
   const ds=document.getElementById('dot-storico'), dm=document.getElementById('dot-misure');

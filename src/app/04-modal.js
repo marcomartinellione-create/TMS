@@ -25,6 +25,31 @@ function avvisa(titolo, testo){
    <div class="modal__actions"><button class="btn btn--ember" onclick="closeModal()">${t('Ho capito')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='480px';
 }
+/* ── RIDISEGNO SENZA PERDERE IL PUNTO DI SCRITTURA (2026-11-11) ───────────────────
+   Diversi pannelli si ridisegnano mentre si digita (per aggiornare totali e grafici) e
+   ricreano anche la casella in cui si sta scrivendo: il cursore spariva (Corpo,
+   Alimentazione: bastava una pausa di mezzo secondo) o tornava all'inizio (ricerca nello
+   Storico: «squat» diventava «tauqs»). Qui si ricorda quale casella aveva il fuoco e dove
+   stava il cursore, si ridisegna, e li si rimette. Le caselle numeriche non espongono la
+   posizione del cursore: lì lo si porta in fondo, che è dove si scrive. */
+function ridisegnaConFuoco(pannello, render){
+  const p=typeof pannello==='string'? document.getElementById(pannello) : pannello;
+  const SEL='input,textarea,select';
+  const a=document.activeElement; let idx=-1, pos=null;
+  if(p && a && p.contains(a) && a.matches && a.matches(SEL)){
+    idx=[...p.querySelectorAll(SEL)].indexOf(a);
+    try{ if(a.selectionStart!=null) pos=[a.selectionStart,a.selectionEnd]; }catch(e){}
+  }
+  render();
+  if(idx<0) return;
+  const n=p.querySelectorAll(SEL)[idx];
+  if(!n || n.tagName!==a.tagName || n.type!==a.type) return;   /* la struttura è cambiata: meglio non indovinare */
+  try{ n.focus({preventScroll:true}); }catch(e){ try{ n.focus(); }catch(_){} }
+  try{
+    if(pos) n.setSelectionRange(pos[0],pos[1]);
+    else if(n.tagName==='INPUT' && n.type==='number'){ n.type='text'; const L=n.value.length; n.setSelectionRange(L,L); n.type='number'; }
+  }catch(e){ try{ if(n.type==='text'&&a.type==='number') n.type='number'; }catch(_){} }
+}
 /* input testuale via modale — sostituisce window.prompt(), che Electron NON supporta
    (i bottoni che lo usavano risultavano "morti" nell'app desktop). Annulla = nessuna azione. */
 function chiediTesto(titolo, valore, cb){

@@ -1844,6 +1844,16 @@ console.log('--- T8: revisione 2026-11 — calcoli e scheda ---');
   /* grafici: valore al passaggio del mouse */
   ok(w.eval('lineChart([{name:"TL",color:"red",data:[{x:"a",y:1200},{x:"b",y:1500}]}],{labels:["01/01/26","08/01/26"],fmt:nfk})').includes('<title>08/01/26 · 1,5k</title>'), 'grafico a linee: ogni punto dice data e valore al passaggio del mouse');
   ok(w.eval('showTab("storico"); document.querySelector("#panel-storico .day-sep").textContent').match(/\d{2}\/\d{2}\/\d{2}/) !== null, 'Storico: la settimana è indicata anche come data');
+  /* ridisegno senza perdere il punto di scrittura */
+  { const s = d.getElementById('st-es'); s.focus(); s.value = 'sq'; s.setSelectionRange(2, 2); s.dispatchEvent(new w.Event('input', { bubbles: true }));
+    const s2 = d.getElementById('st-es');
+    ok(s2 !== s && d.activeElement === s2 && s2.selectionStart === 2 && s2.value === 'sq', 'Storico: cercando, il cursore resta dove si stava scrivendo (prima tornava all\'inizio: «squat» → «tauqs»)');
+    w.eval('stFilt.esercizio=""; renderStorico(); showTab("corpo")'); }
+  { const p = d.querySelector('#panel-corpo [data-u="peso"]'); p.focus(); p.value = '70.5'; p.dispatchEvent(new w.Event('input', { bubbles: true }));
+    await settle(800);
+    const a = d.activeElement;
+    ok(a && a !== p && a.dataset && a.dataset.u === 'peso' && a.type === 'number' && a.value === '70.5', 'Corpo: dopo il ridisegno automatico la casella in cui si scriveva ha ancora il fuoco'); }
+  ok(w.eval('showTab("allenamento"); document.querySelector("#panel-allenamento .callout").textContent').match(/\d{6} · \d{2}\/\d{2}\/\d{2}/) !== null, 'avviso «storico aggiornato/da aggiornare»: la settimana ha anche la data');
   ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   dom.window.close();
 }
