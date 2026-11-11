@@ -4,6 +4,61 @@
 
 ---
 
+### 2026-11-11 — TMS v1.1.16: revisione completa — protezione dei dati, calcoli, Storico correggibile, più spazio in alto
+
+**Tipo**: revisione dell'intera app (correzioni di integrità dei dati e di calcolo) + due feature + pulizia dei dati incorporati
+**File coinvolti**: `electron/main.js` e `electron/preload.js` (canale `tmsfs:cestina`, attesa delle scritture
+in chiusura) · `src/app/03-persistenza.js` (`leggiJson`, `bloccaScritture`, `scaricaSubito`, cambio ed eliminazione
+profilo, `PROFILO_DEMO`) · `src/app/14-backup.js` (copia di sicurezza) · `src/app/01-costanti.js` (alias dei nomi,
+`ultimaSchedaCon`) · `src/app/02-calcoli.js` (Brzycki) · `src/app/08-progressi.js` (`caricoCronico`) ·
+`src/app/06-allenamento.js` · `src/app/06b-cardio.js` (`fcPicco`) · `src/app/07-storico.js` (`modificaRigaStorico`) ·
+`src/app/04-modal.js` (`ridisegnaConFuoco`) · `src/app/05-grafici.js` · `src/app/09-corpo.js` · `src/app/12-esercizi.js` ·
+`src/dati/03-seed.js` + `tools/genera-seed-incorporato.js` · `src/pagina/03-corpo.html` e `02-stili.css` ·
+`tools/collaudo-electron.js`, `tools/anteprima.html` · `src/app/00-i18n.js`, guide IT/EN e guida-AI · `tests/test-app.js`
+
+**Descrizione**:
+Marco ha chiesto un controllo completo (logiche, codice, estetica) con piena autonomia. Letto tutto il desktop,
+verificato ogni sospetto sull'app vera prima di toccare il codice.
+- **File illeggibile ≠ file assente.** `readJson` rispondeva `null` in entrambi i casi: uno storico troncato, vuoto
+  o tenuto bloccato da un altro programma veniva riscritto vuoto al primo salvataggio. Ora `leggiJson` distingue
+  ok / assente / illeggibile; con un file illeggibile l'app sospende le scritture (`scrittureBloccate`), dice quale
+  file è e non tocca nulla. Lo stesso controllo vale nel cambio profilo (si resta sul profilo corrente).
+- **Eliminazione di un profilo.** Su desktop la cartella non veniva tolta (`fs.rm` senza `recursive` fallisce in
+  silenzio) e un profilo nuovo con lo stesso nome ne ereditava i dati. Ora passa in `TMS_Dati/_eliminati/`. Inoltre,
+  eliminando il profilo APERTO, il cambio profilo riscriveva la cartella appena tolta: ora ci si sposta prima.
+- **Copia di sicurezza prima di un ripristino** (ultime 3, ripristinabili dal tab Profilo).
+- **Chiusura della finestra**: le scritture in attesa (350 ms) partono subito e `main.js` le aspetta prima di uscire.
+- **Cambio profilo**: la coda dei salvataggi viene chiusa prima, non poteva più scrivere i dati del vecchio nel nuovo.
+- **Note della scheda Pesi**: non venivano salvate (la `<textarea>` non era fra gli elementi ascoltati).
+- **Rinomina di un esercizio**: il vecchio nome diventa un alias; storico, schede e Training Set lo seguono.
+- **Elimina settimana**: toglie anche RPE×min e cardio del riscaldamento. **Misure**: una per settimana.
+- **Storico: correzione di una riga** (richiesta di Marco). Matita ✎ su ogni riga: serie, ripetizioni, peso, RIR, ★,
+  oppure elimina solo quella riga.
+- **ACWR e media mobile su 4 settimane di calendario** (`caricoCronico`): una settimana saltata vale zero, quindi il
+  rientro dopo uno stop non risulta più «in zona». Solo per chi salva di norma ogni settimana; una sola funzione per
+  Progressi, pallino del co-pilota, cruscotto clienti e Report.
+- **Settimana precedente** corretta negli anni ISO da 53 settimane (il 2026 lo è). **Δ TL set e pallino**: confronto
+  con l'ultima settimana in cui l'esercizio è stato fatto. **Δ settimana**: test ★ fuori da entrambi i lati.
+- **TRIMP**: il picco di FC letto dal file dell'orologio non è più usato come FC max dell'atleta (`fcPicco`,
+  con migrazione delle attività già importate).
+- **Brzycki** fino a 10 ripetizioni (dove coincide con Epley), oltre prosegue con Epley: a 30 ripetizioni stimava 5×.
+- **Interfaccia**: `ridisegnaConFuoco` (il cursore non si perde più in Corpo/Alimentazione; la ricerca nello Storico
+  non scrive più al contrario), valore al passaggio del mouse nei grafici, date accanto ai codici settimana, massa
+  grassa accettata anche in percento. **Tolta la fascia del titolo** (richiesta di Marco): ✦ e QR stanno nella barra
+  in alto accanto a «TMS».
+- **Dati incorporati** (richiesta di Marco: «elimina i miei dati»). `src/dati/03-seed.js` conteneva ancora lo storico
+  personale dell'autore; ora è il profilo dimostrativo «Atleta Template», generato da
+  `tools/genera-seed-incorporato.js` e controllato da `npm run verifica`. Il profilo creato su una cartella vuota è
+  «Atleta Template». La cronologia git e gli installer precedenti non cambiano.
+- Lasciati come sono, per scelta di Marco: avvisi e conferme di sistema; l'app del telefono (in vista di un APK).
+
+**Test**: suite jsdom 665 verifiche (82 nuove: scenari T7, T8, T9), lint e `npm run verifica` puliti. Collaudo
+sull'app Electron vera con `tools/collaudo-electron.js` (12 controlli: ponte dati, cestino, chiusura immediata);
+è lui che ha trovato il difetto dell'eliminazione del profilo aperto. Collaudo a video con `tools/anteprima.html`.
+**Approvato da**: Marco («hai piena autonomia decisionale», poi «pubblichiamo» — 2026-11-11)
+
+---
+
 ### 2026-09-29 — TMS v1.1.15: ragnatela a distribuzione, record in zavorra, catalogo del coach nella scheda cliente
 
 **Tipo**: cambio di metrica (ragnatela) + correzione di due bug + feature
