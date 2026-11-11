@@ -47,7 +47,8 @@ const json = JSON.stringify(seed).replace(/<\/(script)/gi, '<\\/$1');
 const testo = 'const SEED = /*__SEED_JSON__*/' + json + ';\n';
 
 if (verifica) {
-  const attuale = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
+  /* git su Windows può restituire il file coi fine riga CRLF: non è una differenza di contenuto */
+  const attuale = (fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '').replace(/\r\n/g, '\n');
   if (attuale === testo) { console.log('Seed incorporato: OK (allineato a TMS_Dati/template, ' + seed.storico.length + ' righe di storico)'); process.exit(0); }
   console.error('Seed incorporato: NON allineato a TMS_Dati/template — esegui `node tools/genera-seed-incorporato.js` e poi `npm run build`.');
   process.exit(1);
