@@ -223,8 +223,9 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
     w.eval('closeModal()'); }
   /* ── TACCUINO dell'autore: 5 click sul ✦ del titolo (gesto gemello del log errori,
      che sta invece sulla versione nel footer). Note locali + specchio delle issue. ── */
-  { const sigil = d.querySelector('.hero h1 .sigil');
-    ok(sigil !== null, 'taccuino: il ✦ del titolo è il punto del gesto');
+  { const sigil = d.querySelector('.topbar__mark .sigil');
+    ok(sigil !== null, 'taccuino: il ✦ accanto a «TMS» è il punto del gesto');
+    ok(d.querySelector('.hero') === null && d.querySelector('.topbar #qr-ig') !== null && d.querySelector('.topbar #qr-ig').previousElementSibling.classList.contains('topbar__mark'), 'intestazione: niente fascia del titolo, il QR sta nella barra in alto accanto a «TMS»');
     for (let i = 0; i < 5; i++) sigil.click();
     await settle(120);
     ok(d.getElementById('tacc-testo') !== null, 'taccuino: 5 click sul ✦ lo aprono');
@@ -1729,6 +1730,14 @@ console.log('--- T7: revisione 2026-11 — protezione dei dati ---');
   ok([...fsmem._files.keys()].some(k => /^TMS_Dati\/_eliminati\/anna-[^/]+\/storico\.json$/.test(k)), 'profilo eliminato: i dati passano in TMS_Dati/_eliminati/ (recuperabili)');
   await w.eval('createProfile("Anna")'); await settle(500);
   ok(w.eval('activeProfile') === 'anna' && w.eval('DOC.storico.length') === 0, 'profilo nuovo con lo stesso nome: parte VUOTO, non eredita i dati dell\'eliminato');
+  /* eliminare il profilo ATTIVO: il cambio profilo non deve riscrivere la cartella appena tolta */
+  w.eval('DOC.storico.push({scheda:202650,esercizio:"Squat con bilanciere",seduta:1,macro:"Gambe",serie:1,rip:1,peso:77}); persist("storico");'); await settle(500);
+  await w.eval('deleteProfile("anna")'); await settle(500);
+  ok(w.eval('activeProfile') === 'bruno' && !w.eval('profili.some(p=>p.slug==="anna")'), 'elimina il profilo ATTIVO: si passa a un altro profilo');
+  ok(![...fsmem._files.keys()].some(k => k.startsWith('TMS_Dati/anna/')), 'elimina il profilo ATTIVO: la sua cartella non viene riscritta dal cambio profilo');
+  ok([...fsmem._files.keys()].filter(k => /^TMS_Dati\/_eliminati\/anna-[^/]+\/storico\.json$/.test(k)).some(k => fsmem._files.get(k).includes('77')), 'elimina il profilo ATTIVO: i suoi ultimi dati sono nel cestino');
+  await w.eval('createProfile("Anna")'); await settle(500);
+  ok(w.eval('activeProfile') === 'anna' && w.eval('DOC.storico.length') === 0, 'profilo attivo eliminato e ricreato: parte vuoto');
 
   /* scarico immediato alla chiusura */
   w.eval('DOC.scheda.settimanale.push({giorno:"Martedì",esercizio:"Squat con bilanciere",note:"ULTIMO TASTO",serie:1,rip:1,peso:1}); persist("scheda");');

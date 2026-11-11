@@ -350,7 +350,17 @@ async function deleteProfile(slug){
   const p=profili.find(x=>x.slug===slug); if(!p) return;
   if(!confirm(t('Eliminare il profilo «')+p.nome+t('» e TUTTI i suoi dati? Operazione irreversibile.'))) return;
   if(scrittureBloccate){ mostraBloccoScritture(); return; }
+  const elencoPrima=profili.slice();
   profili=profili.filter(x=>x.slug!==slug);
+  /* Se si elimina il profilo APERTO ci si sposta PRIMA su un altro: il cambio profilo
+     salva quello che lascia, e fatto dopo riscriveva nella sua cartella i file appena
+     tolti (la cartella «eliminata» rinasceva — trovato col collaudo su Electron vero,
+     2026-11-11). Se il cambio non riesce (profilo di arrivo illeggibile) non si elimina nulla. */
+  const eraAttivo=(activeProfile===slug);
+  if(eraAttivo){
+    await switchProfile(profili[0].slug);
+    if(activeProfile===slug){ profili=elencoPrima; renderProfilo(); return; }
+  }
   if(dataDir){
     /* La cartella del profilo deve sparire davvero: se resta, un profilo nuovo con lo
        stesso nome ne eredita i dati (succedeva su desktop, dove la rimozione di una
@@ -362,7 +372,7 @@ async function deleteProfile(slug){
     if(!tolta){ try{ await dataDir.removeEntry(slug,{recursive:true}); }catch(e){ logErrore('eliminaProfilo', e); } }
     try{ await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile}); }catch(e){} }
   try{ const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); if(all.data){ delete all.data[slug]; localStorage.setItem(CACHE_KEY,JSON.stringify(all)); } }catch(e){}
-  if(activeProfile===slug){ await switchProfile(profili[0].slug); } else { saveCache(); renderProfilo(); }
+  cruscottoInvalida(); saveCache(); renderProfilo();
 }
 /* dati_utente di un profilo qualsiasi (per il pannello Profilo): mancava — bug trovato
    dal lint v1.0.72, espandere un profilo non attivo restava su "Caricamento parametri…" */

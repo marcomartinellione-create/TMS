@@ -57,7 +57,6 @@
   color-scheme:dark;
 }
 [data-theme="notte"] body{ background-image:radial-gradient(circle at 20% -10%, rgba(227,181,60,.05), transparent 40%),radial-gradient(circle at 100% 0%, rgba(224,112,15,.05), transparent 35%); }
-[data-theme="notte"] .hero{ background:linear-gradient(180deg,#1d1810,#14100a); }
 [data-theme="notte"] .tab.is-active{ border-bottom-color:var(--paper); }
 [data-theme="notte"] .topbar{ color:#e0d5c1 }
 [data-theme="notte"] .btn--ghost{ color:#e0d5c1 }
@@ -116,6 +115,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
   font-family:var(--font-disp); font-size:18px; font-weight:700; letter-spacing:.06em;
   color:var(--grace); text-shadow:0 0 12px rgba(232,196,90,.4); white-space:nowrap;
 }
+/* ✦ e QR stanno qui dal 2026-11: la fascia col titolo per esteso è stata tolta per dare
+   più altezza al contenuto (il nome intero resta nel titolo della finestra e nel footer) */
+.topbar__mark .sigil{color:var(--gold-2); font-size:15px; margin-right:2px}
+.topbar__qr{width:34px; height:34px; border-radius:6px; border:1px solid var(--gold-2); background:#fff;
+  cursor:pointer; flex-shrink:0; transition:transform .12s ease}
+.topbar__qr:hover{transform:scale(1.08)}
 .topbar__spacer{flex:1}
 .conn{display:flex; align-items:center; gap:8px; font-size:12.5px; font-family:var(--font-mono)}
 .conn__dot{width:9px; height:9px; border-radius:50%; background:var(--ink-4); box-shadow:0 0 0 3px rgba(168,150,122,.2)}
@@ -172,15 +177,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
   border-color:#7f1616; box-shadow:var(--shadow-sm); padding:4px 9px; font-size:13px; line-height:1}
 .btn--del:hover{background:linear-gradient(180deg,#d0453a,#b02020); color:#fff; border-color:#7f1616}
 .btn:disabled{opacity:.45; cursor:not-allowed}
-
-/* ── HERO ── */
-.hero{
-  padding:20px 24px 16px; background:linear-gradient(180deg,#f9f3e6,#f2ead9);
-  border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-}
-.hero h1{font-size:25px; color:var(--ember-2); display:flex; align-items:center; gap:12px}
-.hero h1 .sigil{color:var(--gold-2); font-size:22px}
 
 /* ── TABS ── */
 .tabs{display:flex; flex-wrap:wrap; gap:4px; padding:0 18px; background:var(--paper-2);
@@ -362,12 +358,10 @@ div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); backgrou
 @media (max-width:760px){
   :root{ --topbar-h:70px }   /* qui la topbar va a capo: i tab si agganciano più in basso */
   .chart-grid{grid-template-columns:1fr}
-  .hero h1{font-size:21px}
   .wrap{padding:16px 12px 70px}
   .topbar{flex-wrap:wrap; gap:8px; padding:8px 12px}
   .topbar__mark{font-size:16px}
   .conn{order:3}
-  .hero{padding:14px 14px 12px}
   .tabs{padding:0 6px; gap:2px}
   .tab{padding:8px 9px 7px; font-size:12.5px}
   .tab .ico{font-size:14px}

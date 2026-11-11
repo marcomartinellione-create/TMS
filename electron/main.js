@@ -21,6 +21,11 @@ function safeJoin(root, rel){
   return p;
 }
 const fileExists = (p) => fs.access(p).then(() => true, () => false);
+// Scritture ancora in corso: alla chiusura dell'ultima finestra si aspettano PRIMA di
+// uscire. Il renderer, chiudendosi, spedisce le modifiche non ancora salvate; senza
+// questa attesa il processo poteva terminare con la scrittura a metà strada.
+const scrittureInCorso = new Set();
+let contaTmp = 0;
 
 protocol.registerSchemesAsPrivileged([{
   scheme: 'app',
@@ -89,13 +94,21 @@ app.whenReady().then(() => {
     if (await fileExists(w)) return fs.readFile(w);
     return fs.readFile(safeJoin(SEED_ROOT(), rel));
   });
-  ipcMain.handle('tmsfs:writeFile', async (e, rel, text) => {
+  ipcMain.handle('tmsfs:writeFile', (e, rel, text) => {
+    const lavoro = scriviFile(rel, text);
+    scrittureInCorso.add(lavoro);
+    const fine = () => scrittureInCorso.delete(lavoro);
+    lavoro.then(fine, fine);
+    return lavoro;
+  });
+  const scriviFile = async (rel, text) => {
     const p = safeJoin(WRITE_ROOT(), rel);
     await fs.mkdir(path.dirname(p), { recursive: true });
     // Scrittura atomica (temp + rename): un crash a metà scrittura non corrompe il
     // file esistente — gli storici sono insostituibili. Se il rename fallisce
     // (file momentaneamente bloccato da antivirus/sync) fallback alla scrittura diretta.
-    const tmp = p + '.tmp-' + process.pid + '-' + Date.now();
+    // il contatore distingue due scritture dello stesso file partite nello stesso millisecondo
+    const tmp = p + '.tmp-' + process.pid + '-' + Date.now() + '-' + (contaTmp++);
     try {
       await fs.writeFile(tmp, text, 'utf8');
       await fs.rename(tmp, p);
@@ -103,7 +116,7 @@ app.whenReady().then(() => {
       try { await fs.rm(tmp, { force: true }); } catch (e2) {}
       await fs.writeFile(p, text, 'utf8');
     }
-  });
+  };
   ipcMain.handle('tmsfs:mkdir', (e, rel) => fs.mkdir(safeJoin(WRITE_ROOT(), rel), { recursive: true }));
   ipcMain.handle('tmsfs:remove', async (e, rel) => {  // mai sul seed: solo userData
     try { await fs.rm(safeJoin(WRITE_ROOT(), rel)); } catch (err) {}
@@ -263,4 +276,9 @@ app.whenReady().then(() => {
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });
 
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('window-all-closed', async () => {
+  if (process.platform === 'darwin') return;
+  // un giro di attesa perché arrivino gli ultimi messaggi del renderer, poi le scritture
+  try { await new Promise(r => setTimeout(r, 50)); await Promise.allSettled([...scrittureInCorso]); } catch (e) {}
+  app.quit();
+});
