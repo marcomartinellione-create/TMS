@@ -22,6 +22,10 @@ function foodDetail(nome,grammi){
   return html+`</div>`;
 }
 let fpFilter='';
+/* le due macro categorie della banca alimenti (2026-11): '' = tutte, 'S' = alimenti semplici
+   (come si comprano o crudi), 'R' = ricette (cucinato, condito o composto — anche «pollo cotto») */
+let fpTipo='';
+function foodTipo(fo){ return (fo&&fo.tipo==='R')?'R':'S'; }
 /* preferiti alimenti (nomi) per profilo, in DOC.alimentazione.fav */
 function foodFavList(){ const A=DOC.alimentazione||{}; if(!Array.isArray(A.fav)) A.fav=[]; return A.fav; }
 function foodIsFav(nome){ return foodFavList().indexOf(String(nome||'').trim())>=0; }
@@ -30,29 +34,33 @@ function foodToggleFav(nome){ nome=String(nome||'').trim(); if(!nome)return; con
 function foodRecenti(){ const seen=new Set(), out=[]; ['bulk','mant','cut'].forEach(fa=>((DOC.alimentazione||{})[fa]||[]).forEach(r=>{ const n=String((r&&r.alimento)||'').trim(); if(n&&!seen.has(n)){ seen.add(n); out.push(n); } })); return out; }
 /* ricerca «a parole»: tutte le parole digitate presenti in nome+categoria (in qualunque ordine) */
 function foodMatch(fo,q){ q=String(q||'').trim().toLowerCase(); if(!q) return true; const hay=(fo.nome+' '+(fo.categoria||'')).toLowerCase(); return q.split(/\s+/).every(t=>hay.includes(t)); }
-function openFoodPicker(fase,i){ fpFilter=''; renderFoodPicker(fase,i); }
+function openFoodPicker(fase,i){ fpFilter=''; renderFoodPicker(fase,i); setTimeout(()=>{ try{ document.getElementById('fp-q').focus(); }catch(e){} },0); }
 function renderFoodPicker(fase,i){
   const q=fpFilter, cap=400;
   const rowHtml=fo=>{ const fav=foodIsFav(fo.nome);
     return `<tr class="fp-row" data-nome="${esc(fo.nome)}" style="cursor:pointer">
       <td class="no-print" style="text-align:center;padding:2px;width:24px"><button class="exp-star${fav?' on':''}" data-fav="${esc(fo.nome)}" title="${fav?t('togli dai preferiti'):t('aggiungi ai preferiti')}">${fav?'★':'☆'}</button></td>
-      <td class="l">${esc(fo.nome)}</td><td class="l muted" style="font-size:11px">${esc((fo.categoria||'').split('/')[0])}</td>
+      <td class="l">${esc(fo.nome)}${foodTipo(fo)==='R'?` <span class="pill fp-ric" title="${t('Ricetta: cucinato, condito o composto')}">${t('ricetta')}</span>`:''}</td><td class="l muted" style="font-size:11px">${esc((fo.categoria||'').split('/')[0])}</td>
       <td class="num">${nf(fo.per100.kcal,0)}</td><td class="num">${nf(fo.per100.proteine,1)}</td>
       <td class="num">${nf(fo.per100.grassi,1)}</td><td class="num">${nf(fo.per100.zuccheri,1)}</td><td class="num">${nf(fo.per100.fibre,1)}</td></tr>`; };
   const grp=t=>`<tr class="fp-grp"><td colspan="8" style="background:var(--paper-3);color:var(--ember-2);font-family:var(--font-disp);font-size:12px;padding:5px 10px">${t}</td></tr>`;
   let body='', count;
-  if(q){ const list=FOOD.filter(fo=>foodMatch(fo,q)); count=list.length; body=list.slice(0,cap).map(rowHtml).join(''); }
+  const delTipo=fo=>!fpTipo||foodTipo(fo)===fpTipo;
+  const TUTTI=fpTipo? FOOD.filter(delTipo) : FOOD;
+  if(q){ const list=TUTTI.filter(fo=>foodMatch(fo,q)); count=list.length; body=list.slice(0,cap).map(rowHtml).join(''); }
   else {
     const favSet=new Set(foodFavList());
-    const favFoods=foodFavList().map(n=>FOODBYNAME[n]).filter(Boolean);
-    const rec=[]; foodRecenti().forEach(n=>{ if(rec.length>=12)return; if(!favSet.has(n)){ const fo=FOODBYNAME[n]; if(fo) rec.push(fo); } });
+    const favFoods=foodFavList().map(n=>FOODBYNAME[n]).filter(Boolean).filter(delTipo);
+    const rec=[]; foodRecenti().forEach(n=>{ if(rec.length>=12)return; if(!favSet.has(n)){ const fo=FOODBYNAME[n]; if(fo&&delTipo(fo)) rec.push(fo); } });
     if(favFoods.length){ body+=grp(t('★ Preferiti'))+favFoods.map(rowHtml).join(''); }
     if(rec.length){ body+=grp(t('🕐 Recenti'))+rec.map(rowHtml).join(''); }
     if(favFoods.length||rec.length) body+=grp(t('Tutti gli alimenti'));
-    body+=FOOD.slice(0,cap).map(rowHtml).join(''); count=FOOD.length;
+    body+=TUTTI.slice(0,cap).map(rowHtml).join(''); count=TUTTI.length;
   }
   const m=document.getElementById('modal'); m.style.maxWidth='820px';
   m.innerHTML=`<h3>${t('Scegli un alimento')} <span class="pill" style="font-weight:400">${count} ${t('risultati')}${count>cap?' · '+t('primi')+' '+cap:''}</span></h3>
+    <div class="fp-tipi no-print">${[['',t('Tutti')],['S',t('🥕 Alimenti semplici')],['R',t('🍲 Ricette')]].map(([k,l])=>`<button type="button" class="btn btn--sm${fpTipo===k?' btn--ember':''}" data-fptipo="${k}">${l}</button>`).join('')}
+      <span class="muted" style="font-size:11px;margin-left:6px">${t('semplici = come si comprano o crudi · ricette = cucinati, conditi o composti')}</span></div>
     <input id="fp-q" class="search" style="width:100%;margin-bottom:8px" placeholder="${t('cerca a parole: nome o categoria…')}" value="${esc(fpFilter)}">
     <div style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:var(--r-sm)">
     <table><thead><tr><th class="no-print"></th><th class="l">${t('Alimento')}</th><th class="l">${t('Categoria')}</th><th>Kcal</th><th>Prot</th><th>${t('Grassi')}</th><th>Carbo</th><th>${t('Fibre')}</th></tr></thead>
@@ -60,6 +68,7 @@ function renderFoodPicker(fase,i){
     <div class="muted" style="font-size:11px;margin-top:6px">${t('Valori per 100 g · clicca una riga per selezionare · ☆/★ per i preferiti')}</div>
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`;
   document.getElementById('modal-bk').classList.remove('hidden');
+  m.querySelectorAll('[data-fptipo]').forEach(b=>b.onclick=()=>{ fpTipo=b.dataset.fptipo; renderFoodPicker(fase,i); try{ document.getElementById('fp-q').focus(); }catch(e){} });
   const qi=document.getElementById('fp-q');
   qi.oninput=e=>{ fpFilter=e.target.value; const pos=qi.selectionStart; renderFoodPicker(fase,i); const ni=document.getElementById('fp-q'); ni.focus(); try{ni.setSelectionRange(pos,pos);}catch(_){} };
   m.querySelectorAll('.exp-star').forEach(s=>s.onclick=ev=>{ ev.stopPropagation(); const sc=m.querySelector('div[style*="overflow:auto"]'); const y=sc?sc.scrollTop:0; foodToggleFav(s.dataset.fav); renderFoodPicker(fase,i); const sc2=document.getElementById('modal').querySelector('div[style*="overflow:auto"]'); if(sc2)sc2.scrollTop=y; });

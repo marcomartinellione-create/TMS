@@ -328,11 +328,15 @@ Due modi per registrare una seduta:
 - Tre **fasi**: Bulk, Mantenimento, Cut. La fase attiva si sceglie con i **bottoni in
   cima al tab** (Bulk / Mantenimento / Cut): si vede SOLO quella, le altre restano
   salvate ma nascoste. (Prima la fase stava nel Profilo: ora è qui.)
-- Pasti personalizzabili e **riordinabili**: le frecce «▲▼» accanto al nome del pasto
-  lo spostano su/giù nella fase (insieme a tutti i suoi alimenti); «✎» rinomina, «🗑»
-  elimina. In ogni pasto «＋ scegli alimento…» apre la banca dati svizzera USAV
-  (1190 alimenti generici, valori per 100 g scalati sui grammi inseriti). Col «▸» si
-  vedono tutti i micro e macro nutrienti.
+- Pasti personalizzabili e **riordinabili per trascinamento**: si prende il manico «⠿»
+  accanto al nome del pasto e lo si rilascia su un altro pasto (si porta dietro tutti i
+  suoi alimenti); allo stesso modo si trascina un singolo alimento, anche in un altro
+  pasto. «✎» rinomina, «🗑» elimina. In ogni pasto «＋ scegli alimento…» apre la banca
+  dati: oltre 4500 alimenti dalla banca svizzera USAV e dalla tabella francese Ciqual
+  2025 (ANSES), coi nomi in italiano, divisi in due categorie selezionabili in cima al
+  riquadro — **alimenti semplici** (come si comprano o crudi) e **ricette** (cucinati,
+  conditi o composti: anche il semplice «pollo cotto»). Valori per 100 g scalati sui
+  grammi inseriti. Col «▸» si vedono tutti i micro e macro nutrienti.
 - Nel selettore alimenti: la **ricerca è «a parole»** (digitando più parole le trova
   anche non contigue, in qualsiasi ordine). A ricerca vuota, in cima ci sono i
   **★ Preferiti** e i **🕐 Recenti** (alimenti già usati nel piano); la stellina ☆/★

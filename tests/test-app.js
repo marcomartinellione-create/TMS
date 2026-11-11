@@ -336,6 +336,18 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(w.eval('foodMatch({nome:"Riso integrale, secco",categoria:"Cereali"},"riso secco")')===true && w.eval('foodMatch({nome:"Riso integrale, secco",categoria:"Cereali"},"riso pollo")')===false, 'alimenti: ricerca «a parole» (tutte le parole presenti)');
   { const ord=w.eval('(function(){var s=[];(DOC.alimentazione.bulk||[]).forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s;})()');
     ok(ord.length>=2, 'alimentazione: la fase bulk ha più pasti');
+    /* nuova banca alimenti: due fonti, due macro categorie, nomi storici intatti */
+    ok(w.eval('FOOD.length')>4000 && w.eval('FOOD.every(function(f){return (f.tipo==="S"||f.tipo==="R")&&(f.fonte==="CH"||f.fonte==="FR")&&f.nome&&f.per100&&f.per100.kcal!=null;})'), 'banca alimenti: oltre 4000 voci, ognuna con tipo (semplice/ricetta), fonte ed energia');
+    ok(w.eval('new Set(FOOD.map(function(f){return f.nome;})).size===FOOD.length'), 'banca alimenti: nessun nome doppio (il nome è la chiave dei piani salvati)');
+    ok(['Yogurt Greco 0%','Fiocchi di avena','Banana, cruda','Acciuga sott\'olio, sgocciolata'].every(n=>w.eval('!!FOODBYNAME['+JSON.stringify(n)+']')) && w.eval('(DOC.alimentazione.bulk||[]).filter(function(r){return r.alimento;}).every(function(r){return !!FOODBYNAME[String(r.alimento).trim()];})'), 'banca alimenti: i nomi usati nei piani già salvati ci sono ancora, identici');
+    ok(w.eval('FOODBYNAME["Banana, cruda"].tipo')==='S' && w.eval('FOOD.filter(function(f){return /cott[oa]\\b/.test(f.nome)&&f.fonte==="CH";}).every(function(f){return f.tipo==="R";})'), 'banca alimenti: il crudo è «semplice», tutto ciò che è cotto è «ricetta»');
+    { w.eval('openFoodPicker("bulk",0)');
+      const nTutti=d.querySelector('#modal h3 .pill').textContent;
+      d.querySelector('#modal [data-fptipo="R"]').click();
+      ok(d.querySelector('#modal h3 .pill').textContent!==nTutti && w.eval('fpTipo')==='R' && [...d.querySelectorAll('#modal .fp-row')].every(tr=>w.eval('FOODBYNAME['+JSON.stringify(tr.dataset.nome)+'].tipo')==='R'), 'selettore alimenti: il filtro «Ricette» mostra solo ricette');
+      d.querySelector('#modal [data-fptipo="S"]').click();
+      ok([...d.querySelectorAll('#modal .fp-row')].length>0 && [...d.querySelectorAll('#modal .fp-row')].every(tr=>w.eval('FOODBYNAME['+JSON.stringify(tr.dataset.nome)+'].tipo')==='S'), 'selettore alimenti: il filtro «Alimenti semplici» mostra solo quelli');
+      w.eval('fpTipo=""; closeModal(); renderAlimentazione();'); }
     ok(d.querySelector('#panel-alimentazione [data-mealup]')===null && d.querySelectorAll('#panel-alimentazione tr[data-mealrow] .drag-h').length===ord.length, 'alimentazione: niente frecce ▲▼, ogni pasto ha il manico per trascinarlo');
     ok(w.eval('trascinaPasto("bulk", '+JSON.stringify(ord[0])+', '+JSON.stringify(ord[1])+', true)')===true, 'alimentazione: trascina il primo pasto sotto il secondo');
     const ord2=w.eval('(function(){var s=[];(DOC.alimentazione.bulk||[]).forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s;})()');

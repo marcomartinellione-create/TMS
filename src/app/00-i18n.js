@@ -477,6 +477,12 @@ const EN={
   '. La sostituisco con i valori attuali?':'. Replace it with the current values?',
   /* ══════════ Storico: correzione di una riga (2026-11) ══════════ */
   'trascina per spostare il pasto':'drag to move the meal',
+  '🥕 Alimenti semplici':'🥕 Simple foods',
+  '🍲 Ricette':'🍲 Recipes',
+  'Tutti':'All',
+  'ricetta':'recipe',
+  'Ricetta: cucinato, condito o composto':'Recipe: cooked, seasoned or made of several ingredients',
+  'semplici = come si comprano o crudi · ricette = cucinati, conditi o composti':'simple = as bought or raw · recipes = cooked, seasoned or composed',
   'correggi questa riga':'fix this row',
   'zavorra':'added weight',
   'Correggi una riga dello Storico':'Fix a History row',

@@ -335,6 +335,8 @@ svg .ln{fill:none; stroke-width:2}
 .overlay__note{font-size:11px; color:var(--ink-4); font-family:var(--font-mono); margin-top:14px}
 .modal-bk{position:fixed; inset:0; z-index:95; background:rgba(22,11,3,.55); display:flex; align-items:center; justify-content:center}
 .modal-bk.hidden{display:none}
+.fp-tipi{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:0 0 8px}
+.fp-ric{font-size:9.5px; padding:0 6px; margin-left:4px; opacity:.8}
 /* avvisi e conferme: uno strato SOPRA il riquadro aperto (che resta com'è sotto) */
 .dlg-bk{z-index:130; background:rgba(22,11,3,.45)}
 .dlg{max-width:470px}
