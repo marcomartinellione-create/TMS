@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-11-12 — TMS v1.1.19: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.18
+**Descrizione**:
+- Alimentazione su tre colonne: piano alimentare, sintesi del piano e indice dei nutrienti OMS/FAO, ognuna col suo titolo e il suo scorrimento
+- Scorrimento che non si blocca più in fondo, titoli fissi in cima alle colonne con le intestazioni delle tabelle sempre visibili, Integratori come terza macro categoria degli alimenti
+- PUBBLICA.bat: la pubblicazione nella cartella release la lancia Marco quando vuole
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-12)
+
+---
+
 ### 2026-11-12 — TMS v1.1.18: Ctrl+Z, Storico e Misure nel Profilo, integratori, aggiornamento dalla cartella release
 
 **Tipo**: tre feature + riordino dell'interfaccia + cambio del canale di aggiornamento (niente più GitHub)
