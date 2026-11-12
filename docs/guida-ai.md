@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.16 (2026-11-11). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.17 (2026-11-12). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 

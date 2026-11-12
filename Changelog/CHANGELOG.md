@@ -4,6 +4,46 @@
 
 ---
 
+### 2026-11-12 — TMS v1.1.17: tutto schermo con pannelli laterali, avvisi in stile app, nuova banca alimenti
+
+**Tipo**: ridisegno dell'impaginazione + quattro feature + nuova banca dati alimenti
+**File coinvolti**: `src/pagina/02-stili.css` e `03-corpo.html` (`.pag`, `.lat`, strato `#dlg-bk`) · `src/app/04-modal.js`
+(`avviso`, `conferma`, `adattaPag`, `conColonne`) · `src/app/17-init.js` · `src/app/06-allenamento.js` (`pannelloCostruzione`,
+`bilRigheHTML`) · `src/app/11-alimentazione.js` (`pannelloPiano`, `trascinaPasto`, `trascinaAlimento`, filtri del selettore) ·
+`src/app/07-storico.js`, `06b-cardio.js`, `09-corpo.js`, `12-esercizi.js`, `13b-profilo.js`, `11b-analisi.js`, `08-progressi.js`
+(pannelli laterali, griglie fluide) · tutti i file con `alert`/`confirm` · `electron/main.js` (stato della finestra) ·
+`tools/genera-alimenti.py`, `src/dati/02-alimenti-usav.js`, `src/dati/alimenti-usav.json` · `tools/collaudo-electron.js` ·
+`src/app/00-i18n.js`, guide IT/EN e guida-AI · `tests/test-app.js`
+
+**Descrizione** (cinque richieste di Marco, più due precisazioni in corso d'opera):
+- **Tutto schermo, ripensato pagina per pagina.** Via il tetto di 1180 px. Su schermo largo (≥1320 px) ogni pagina ha due
+  colonne che **scorrono ognuna per conto suo** (`adattaPag` dà l'altezza alla coppia, `conColonne` avvolge i render e
+  conserva lo scorrimento); sotto quella larghezza il pannello scende sotto il contenuto. La **barra di scorrimento non viene
+  mostrata**. Pannelli: Pesi (ragnatela della distribuzione, serie per gruppo sulla zona utile, spinta·trazione, carico per
+  giorno, fasce di intensità — aggiornato a ogni tasto), Alimentazione (energia contro fabbisogno, macro con g/kg, kcal per
+  pasto, nutrienti fuori riferimento), Corpo (composizione + grafici), Storico (carico per settimana, serie medie per gruppo,
+  esercizi più pesanti sulle righe filtrate), Cardio (settimana contro i 150–300 min OMS, carico, sport), Esercizi (scheda
+  dell'esercizio cliccato: muscoli, istruzioni, ultima volta, record, progressione), Profilo (riepilogo del profilo aperto e
+  backup), Analisi (periodi e guida alla lettura). Progressi e Cardio affiancano fino a tre grafici. Guida e Report restano a
+  larghezza di lettura.
+- **Finestra che si ricorda**: posizione, dimensione, massimizzata o schermo intero (`userData/finestra.json`); F11.
+- **Avvisi e conferme in stile app**: `avviso()` e `conferma()` (Promise, strato sopra il riquadro aperto, fuoco su Annulla,
+  Esc annulla) al posto di 46 `alert` e 19 `confirm`. Un test controlla che nel sorgente non ne restino.
+- **Pasti trascinabili** dal manico ⠿ (via le frecce ▲▼); si trascina anche un singolo alimento, pure in un altro pasto.
+- **Nuova banca alimenti**: 4565 voci (1224 dalla banca svizzera aggiornata, 3341 dalla tabella Ciqual 2025 dell'ANSES), nomi
+  in italiano, due macro categorie — **alimenti semplici** (come si comprano o crudi) e **ricette** (cucinati, conditi o
+  composti, anche il semplice «pollo cotto») — con filtro nel selettore. I nomi della banca precedente sono rimasti identici
+  (abbinati per ID): i piani già salvati non si staccano. Traduzione e classificazione fatte in dieci lotti da agenti Sonnet
+  (`Doc/alimenti-2026-11/`), poi verificate: un lotto consegnato con le traduzioni di un altro è stato scoperto e rifatto. Le
+  traduzioni Ciqual non sono ufficiali e sono state rilette a campione. L'HTML passa da 1,7 a circa 3,5 MB.
+
+**Test**: suite jsdom 710 verifiche (45 nuove: banca alimenti, trascinamento, scenario T10 coi riquadri veri, colonne, scheda
+dell'esercizio), lint e `npm run verifica` puliti. Collaudo sull'app Electron vera: 16 controlli (finestra che si riapre
+com'era stata chiusa compresa). Collaudo a video a 1920 e 1280 px con `tools/anteprima.html`.
+**Approvato da**: Marco («si pubblica» — 2026-11-12)
+
+---
+
 ### 2026-11-11 — TMS v1.1.16: revisione completa — protezione dei dati, calcoli, Storico correggibile, più spazio in alto
 
 **Tipo**: revisione dell'intera app (correzioni di integrità dei dati e di calcolo) + due feature + pulizia dei dati incorporati
