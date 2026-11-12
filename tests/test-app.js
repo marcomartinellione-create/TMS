@@ -2097,7 +2097,9 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
   w.innerWidth = 1100; w.eval('adattaPag()');
   ok(d.querySelector('#panel-allenamento .pag').style.height === '', 'schermo stretto: nessuna altezza forzata, il pannello sta sotto e scorre la pagina');
   const css = fs.readFileSync(ARTEFATTO, 'utf8');
-  ok(/html\{scrollbar-width:none\}/.test(css) && /\.pag__main::-webkit-scrollbar, \.pag__side::-webkit-scrollbar\{display:none\}/.test(css), 'la barra di scorrimento non viene mostrata, né sulla pagina né sulle colonne');
+  ok(/html\{scrollbar-width:none\}/.test(css) && /\.pag__main::-webkit-scrollbar, \.pag__side::-webkit-scrollbar, \.pag__terza::-webkit-scrollbar\{display:none\}/.test(css), 'la barra di scorrimento non viene mostrata, né sulla pagina né sulle colonne');
+  ok(/\.pag\.pag--tre\{grid-template-columns:minmax\(0,1fr\) [^}]+\) [^}]+\)\}/.test(css) && (w.eval('showTab("alimentazione")'), d.querySelector('#panel-alimentazione .pag--tre > .pag__terza .tbl-wrap')) !== null,
+    'Alimentazione su tre colonne: piano, sintesi, indice nutrienti OMS/FAO');
   /* scheda dell'esercizio nel catalogo */
   w.eval('DOC.esercizi.push({nome:"Esercizio di prova",macro:"Gambe",gruppo:"Gambe",tipo:"Multi-articolare",fattore:1,muscoli_primari:["quadricipiti"],muscoli_secondari:["glutei"],istruzioni:["Primo passo.","Secondo passo."]}); rebuildEs(); DOC.storico.push({scheda:202640,esercizio:"Esercizio di prova",seduta:1,macro:"Gambe",serie:3,rip:5,peso:80},{scheda:202641,esercizio:"Esercizio di prova",seduta:1,macro:"Gambe",serie:3,rip:5,peso:85}); exFilt="prova"; showTab("esercizi");');
   { const tr = d.querySelector('#panel-esercizi tr[data-exrow="Esercizio di prova"]'); tr.click();

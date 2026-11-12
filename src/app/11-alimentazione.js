@@ -123,7 +123,7 @@ function omsRenderSection(){
     body+=`<tr><td class="l">${t(lab)} ${type==='limit'?`<span class="muted" title="${t('limite massimo da non superare')}">${t('(max)')}</span>`:''}</td>
       <td class="num">${nf(week,dec)} ${unit}</td><td class="num muted">${nf(refw,dec)} ${unit}</td>
       <td class="num" style="color:${col};font-weight:600">${nf(pct,0)}%</td>
-      <td style="width:130px"><div style="background:var(--paper-3);border-radius:var(--r-pill);height:9px;overflow:hidden"><div style="width:${barw}%;height:100%;background:${col}"></div></div></td></tr>`;
+      <td style="width:80px;min-width:60px"><div style="background:var(--paper-3);border-radius:var(--r-pill);height:9px;overflow:hidden"><div style="width:${barw}%;height:100%;background:${col}"></div></div></td></tr>`;
   });
   return `<div class="sec">${t('Indice nutrienti settimanale · riferimenti OMS/FAO')} <span class="pill no-print" style="margin-left:auto">${t('fase')} ${t(FASE_LAB[fase]||fase)}</span></div>
     <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Nutriente')}</th><th>${t('Settimana')}</th><th>${t('Riferimento')}</th><th>${t('Indice')}</th><th>—</th></tr></thead><tbody>${body}</tbody></table></div>
@@ -217,8 +217,9 @@ function renderAlimentazione(){
    <div class="callout"><div>${t('🍖 Banca dati')} <b>${FOOD.length}</b> ${t('alimenti. Clicca <b>＋ scegli alimento…</b> per selezionare dalla tabella completa (con macro). Usa <b>▸</b> per i micro/macro. Scegli qui sotto la <b>fase</b> del piano: le fasi non attive restano salvate ma non mostrate.')}</div></div>
    <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="printDieta()" style="margin-left:auto" title="${t('Stampa il piano della fase attiva in PDF A4 orizzontale (da dare al cliente)')}">${t('⬇ Stampa dieta (PDF A4)')}</button></div>
    <div class="sec">${t('Fase')} ${t(FASE_LAB[fase])} <span class="pill">${nf(tF.kcal,0)} kcal · P ${nf(tF.proteine,0)} · G ${nf(tF.grassi,0)} · C ${nf(tF.zuccheri,0)}</span></div>
-   <div class="pag"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}${omsSection}</div>
-   <aside class="pag__side no-print" id="alim-side">${pannelloPiano(fase)}</aside></div>`;
+   <div class="pag pag--tre"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}</div>
+   <aside class="pag__side no-print" id="alim-side">${pannelloPiano(fase)}</aside>
+   <div class="pag__terza" id="alim-oms">${omsSection}</div></div>`;
   document.querySelectorAll('#panel-alimentazione input').forEach(inp=>inp.addEventListener('input',e=>{
     const tr=e.target.closest('tr'); const fase=tr.dataset.fase, i=+tr.dataset.i, f=e.target.dataset.f;
     let v=e.target.value; if(f==='grammi')v=v===''?'':+v;

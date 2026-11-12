@@ -218,7 +218,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
    sotto il contenuto, com'era prima. Le pagine di solo testo restano a larghezza di lettura. */
 .pag{display:grid; grid-template-columns:minmax(0,1fr); gap:18px; align-items:start}
 .pag__main{min-width:0}
-.pag__side{min-width:0}
+.pag__side, .pag__terza{min-width:0}
 /* Schermo largo: le due colonne scorrono OGNUNA PER CONTO SUO (richiesta di Marco, 2026-11-12):
    si può scendere nella scheda tenendo fermo il pannello, o viceversa. L'altezza della
    coppia la calcola adattaPag() (dallo spazio che resta sotto), qui c'è solo il comportamento.
@@ -226,19 +226,22 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
    rotella, trackpad e tastiera come sempre. */
 @media (min-width:1320px){
   .pag{grid-template-columns:minmax(0,1fr) clamp(330px,25vw,470px)}
-  .pag__main, .pag__side{height:100%; min-height:0; overflow-y:auto; overflow-x:hidden; scrollbar-width:none}
-  .pag__main::-webkit-scrollbar, .pag__side::-webkit-scrollbar{display:none}
+  .pag__main, .pag__side, .pag__terza{height:100%; min-height:0; overflow-y:auto; overflow-x:hidden; scrollbar-width:none}
+  .pag__main::-webkit-scrollbar, .pag__side::-webkit-scrollbar, .pag__terza::-webkit-scrollbar{display:none}
+  /* Alimentazione: tre colonne — piano, sintesi, indice dei nutrienti OMS/FAO */
+  .pag.pag--tre{grid-template-columns:minmax(0,1fr) clamp(300px,21vw,400px) clamp(380px,27vw,500px)}
   .pag__main{padding-right:2px}
   /* titolo della colonna: resta fermo in cima, con una riga e un'ombra che lo separano dal
      contenuto che ci scorre sotto (adattaPag scrive il testo in data-titolo) */
-  .pag__main[data-titolo]::before, .pag__side[data-titolo]::before{
+  .pag__main[data-titolo]::before, .pag__side[data-titolo]::before, .pag__terza[data-titolo]::before{
     content:attr(data-titolo); display:block; position:sticky; top:0; z-index:6; box-sizing:border-box;
     height:32px; line-height:30px; margin:0 0 10px; padding:0 4px; background:var(--paper-2);
     font-family:var(--font-disp); font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
     color:var(--ember-2); border-bottom:2px solid var(--gold-2); box-shadow:0 9px 10px -9px rgba(28,14,4,.45)}
   /* intestazioni delle tabelle ferme subito sotto il titolo della colonna */
   .tbl-wrap.tbl-wrap--ferma{overflow:visible}
-  .pag__main[data-titolo] .tbl-wrap--ferma thead th, .pag__side[data-titolo] .tbl-wrap--ferma thead th{top:32px; z-index:4}
+  .pag__main[data-titolo] .tbl-wrap--ferma thead th, .pag__side[data-titolo] .tbl-wrap--ferma thead th,
+  .pag__terza[data-titolo] .tbl-wrap--ferma thead th{top:32px; z-index:4}
 }
 html{scrollbar-width:none}
 html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
@@ -259,7 +262,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .lat .bil-riga{grid-template-columns:84px 1fr 38px; font-size:12.5px}
 .chart-grid.chart-grid--fluida{grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))}
 #panel-guida, #panel-report{max-width:1240px; margin-left:auto; margin-right:auto}
-@media print{ .pag{display:block; height:auto !important} .pag__main{overflow:visible; height:auto} .pag__side{display:none !important} }
+@media print{ .pag{display:block; height:auto !important} .pag__main, .pag__terza{overflow:visible; height:auto} .pag__side{display:none !important} }
 tr.is-sel > td{background:var(--gold-t)}
 tr[data-exrow]{cursor:pointer}
 .lat .mchip{cursor:default}

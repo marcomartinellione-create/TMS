@@ -102,7 +102,7 @@ const PAG_LARGO=1320;
 const TITOLI_PAG={
   profilo:['Profili','Profilo aperto e backup'], allenamento:['Scheda della settimana','Come sta venendo la scheda'],
   cardio:['Attività cardio','Settimana e carico'], storico:['Registrazioni salvate','Sintesi delle righe mostrate'],
-  corpo:['Dati corporei e foto','Composizione e andamento'], alimentazione:['Piano alimentare','Sintesi del piano'],
+  corpo:['Dati corporei e foto','Composizione e andamento'], alimentazione:['Piano alimentare','Sintesi del piano','Indice nutrienti OMS/FAO'],
   analisi:['Periodi, carico e peso','Periodi e lettura'], esercizi:['Catalogo esercizi','Scheda dell’esercizio'],
 };
 function adattaPag(){
@@ -110,8 +110,7 @@ function adattaPag(){
     const largo=window.innerWidth>=PAG_LARGO;
     document.querySelectorAll('.panel.is-active .pag').forEach(p=>{
       const tab=(p.closest('.panel')||{id:''}).id.replace('panel-',''), tit=TITOLI_PAG[tab];
-      if(tit){ const mm=p.querySelector(':scope > .pag__main'), ss=p.querySelector(':scope > .pag__side');
-        if(mm) mm.setAttribute('data-titolo', t(tit[0])); if(ss) ss.setAttribute('data-titolo', t(tit[1])); }
+      if(tit){ ['.pag__main','.pag__side','.pag__terza'].forEach((c,i)=>{ const el=p.querySelector(':scope > '+c); if(el&&tit[i]) el.setAttribute('data-titolo', t(tit[i])); }); }
       /* le intestazioni delle tabelle restano ferme sotto il titolo: serve che il riquadro della
          tabella non scorra di lato per conto suo, quindi lo si «apre» solo se la tabella ci sta */
       p.querySelectorAll('.tbl-wrap').forEach(w=>{ const tb=w.querySelector('table');
@@ -133,7 +132,7 @@ function adattaPag(){
    aggiungere una riga in fondo alla scheda riportava la colonna in cima) e l'altezza si riadatta */
 function conColonne(tab, render){
   return function(){
-    const p=document.getElementById('panel-'+tab), SEL='.pag__main,.pag__side';
+    const p=document.getElementById('panel-'+tab), SEL='.pag__main,.pag__side,.pag__terza';
     const sc=p? [...p.querySelectorAll(SEL)].map(e=>e.scrollTop) : [];
     const r=render.apply(this, arguments);
     if(p){ const el=p.querySelectorAll(SEL); sc.forEach((v,i)=>{ if(el[i]&&v) el[i].scrollTop=v; }); }
