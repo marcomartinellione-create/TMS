@@ -22,10 +22,11 @@ function foodDetail(nome,grammi){
   return html+`</div>`;
 }
 let fpFilter='';
-/* le due macro categorie della banca alimenti (2026-11): '' = tutte, 'S' = alimenti semplici
-   (come si comprano o crudi), 'R' = ricette (cucinato, condito o composto — anche «pollo cotto») */
+/* le macro categorie della banca alimenti (2026-11): '' = tutte, 'S' = alimenti semplici
+   (come si comprano o crudi), 'R' = ricette (cucinato, condito o composto — anche «pollo cotto»),
+   'I' = integratori (proteine in polvere e simili, valori dall'etichetta) */
 let fpTipo='';
-function foodTipo(fo){ return (fo&&fo.tipo==='R')?'R':'S'; }
+function foodTipo(fo){ const k=fo&&fo.tipo; return k==='R'||k==='I'? k : 'S'; }
 /* preferiti alimenti (nomi) per profilo, in DOC.alimentazione.fav */
 function foodFavList(){ const A=DOC.alimentazione||{}; if(!Array.isArray(A.fav)) A.fav=[]; return A.fav; }
 function foodIsFav(nome){ return foodFavList().indexOf(String(nome||'').trim())>=0; }
@@ -40,7 +41,7 @@ function renderFoodPicker(fase,i){
   const rowHtml=fo=>{ const fav=foodIsFav(fo.nome);
     return `<tr class="fp-row" data-nome="${esc(fo.nome)}" style="cursor:pointer">
       <td class="no-print" style="text-align:center;padding:2px;width:24px"><button class="exp-star${fav?' on':''}" data-fav="${esc(fo.nome)}" title="${fav?t('togli dai preferiti'):t('aggiungi ai preferiti')}">${fav?'★':'☆'}</button></td>
-      <td class="l">${esc(fo.nome)}${foodTipo(fo)==='R'?` <span class="pill fp-ric" title="${t('Ricetta: cucinato, condito o composto')}">${t('ricetta')}</span>`:''}</td><td class="l muted" style="font-size:11px">${esc((fo.categoria||'').split('/')[0])}</td>
+      <td class="l">${esc(fo.nome)}${foodTipo(fo)==='R'?` <span class="pill fp-ric" title="${t('Ricetta: cucinato, condito o composto')}">${t('ricetta')}</span>`:foodTipo(fo)==='I'?` <span class="pill fp-ric" title="${t('Integratore: valori dall’etichetta del prodotto')}">${t('integratore')}</span>`:''}</td><td class="l muted" style="font-size:11px">${esc((fo.categoria||'').split('/')[0])}</td>
       <td class="num">${nf(fo.per100.kcal,0)}</td><td class="num">${nf(fo.per100.proteine,1)}</td>
       <td class="num">${nf(fo.per100.grassi,1)}</td><td class="num">${nf(fo.per100.zuccheri,1)}</td><td class="num">${nf(fo.per100.fibre,1)}</td></tr>`; };
   const grp=t=>`<tr class="fp-grp"><td colspan="8" style="background:var(--paper-3);color:var(--ember-2);font-family:var(--font-disp);font-size:12px;padding:5px 10px">${t}</td></tr>`;
@@ -59,8 +60,8 @@ function renderFoodPicker(fase,i){
   }
   const m=document.getElementById('modal'); m.style.maxWidth='820px';
   m.innerHTML=`<h3>${t('Scegli un alimento')} <span class="pill" style="font-weight:400">${count} ${t('risultati')}${count>cap?' · '+t('primi')+' '+cap:''}</span></h3>
-    <div class="fp-tipi no-print">${[['',t('Tutti')],['S',t('🥕 Alimenti semplici')],['R',t('🍲 Ricette')]].map(([k,l])=>`<button type="button" class="btn btn--sm${fpTipo===k?' btn--ember':''}" data-fptipo="${k}">${l}</button>`).join('')}
-      <span class="muted" style="font-size:11px;margin-left:6px">${t('semplici = come si comprano o crudi · ricette = cucinati, conditi o composti')}</span></div>
+    <div class="fp-tipi no-print">${[['',t('Tutti')],['S',t('🥕 Alimenti semplici')],['R',t('🍲 Ricette')],['I',t('💊 Integratori')]].map(([k,l])=>`<button type="button" class="btn btn--sm${fpTipo===k?' btn--ember':''}" data-fptipo="${k}">${l}</button>`).join('')}
+      <span class="muted" style="font-size:11px;margin-left:6px">${t('semplici = come si comprano o crudi · ricette = cucinati, conditi o composti · integratori = valori dall’etichetta')}</span></div>
     <input id="fp-q" class="search" style="width:100%;margin-bottom:8px" placeholder="${t('cerca a parole: nome o categoria…')}" value="${esc(fpFilter)}">
     <div style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:var(--r-sm)">
     <table><thead><tr><th class="no-print"></th><th class="l">${t('Alimento')}</th><th class="l">${t('Categoria')}</th><th>Kcal</th><th>Prot</th><th>${t('Grassi')}</th><th>Carbo</th><th>${t('Fibre')}</th></tr></thead>

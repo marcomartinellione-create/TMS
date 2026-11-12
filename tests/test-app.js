@@ -384,14 +384,14 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const ord=w.eval('(function(){var s=[];(DOC.alimentazione.bulk||[]).forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s;})()');
     ok(ord.length>=2, 'alimentazione: la fase bulk ha più pasti');
     /* nuova banca alimenti: due fonti, due macro categorie, nomi storici intatti */
-    ok(w.eval('FOOD.length')>4000 && w.eval('FOOD.every(function(f){return (f.tipo==="S"||f.tipo==="R")&&(f.fonte==="CH"||f.fonte==="FR"||f.fonte==="IN")&&f.nome&&f.per100&&f.per100.kcal!=null;})'), 'banca alimenti: oltre 4000 voci, ognuna con tipo (semplice/ricetta), fonte ed energia');
+    ok(w.eval('FOOD.length')>4000 && w.eval('FOOD.every(function(f){return (f.tipo==="S"||f.tipo==="R"||f.tipo==="I")&&(f.fonte==="CH"||f.fonte==="FR"||f.fonte==="IN")&&f.nome&&f.per100&&f.per100.kcal!=null;})'), 'banca alimenti: oltre 4000 voci, ognuna con tipo (semplice/ricetta), fonte ed energia');
     ok(w.eval('new Set(FOOD.map(function(f){return f.nome;})).size===FOOD.length'), 'banca alimenti: nessun nome doppio (il nome è la chiave dei piani salvati)');
     ok(['Fiocchi di avena','Banana, cruda','Acciuga sott\'olio, sgocciolata','Tacchino, petto, scaloppina o sminuzzato, crudo','Burro di arachidi'].every(n=>w.eval('!!FOODBYNAME['+JSON.stringify(n)+'] && FOODBYNAME['+JSON.stringify(n)+'].fonte==="CH"')), 'banca alimenti: i nomi della banca precedente ci sono ancora, identici (sono le chiavi dei piani salvati)');
     ok(w.eval('FOODBYNAME["Banana, cruda"].tipo')==='S' && w.eval('FOODBYNAME["Pollo, petto senza pelle, crudo"].tipo')==='S' && w.eval('FOODBYNAME["Lenticchie, intere, secche"].tipo')==='S'
        && w.eval('FOOD.filter(function(f){return /^(Pollo|Lenticchie|Riso|Patat).*\\bcott[oae]\\b/.test(f.nome);}).length')>5 && w.eval('FOOD.filter(function(f){return /^(Pollo|Lenticchie|Riso|Patat).*\\bcott[oae]\\b/.test(f.nome);}).every(function(f){return f.tipo==="R";})'), 'banca alimenti: il crudo è «semplice»; pollo, riso, patate e lenticchie cotti sono «ricette»');
     ok(w.eval('FOODBYNAME["Prosciutto cotto di coscia"].tipo')==='S', 'banca alimenti: un salume che si compra già cotto resta «semplice»');
     { const wp=w.eval('(function(){var f=FOODBYNAME["Whey Protein PBN"];return f?{c:f.categoria,t:f.tipo,k:f.per100.kcal,p:f.per100.proteine,g:f.per100.grassi,s:f.per100.saturi,z:f.per100.zuccheri,zz:f.per100.zucch,fi:f.per100.fibre,na:f.per100.sodio}:null;})()');
-      ok(wp && wp.c==='Integratori/Proteine in polvere' && wp.t==='S' && wp.k===396 && wp.p===78 && wp.g===5.9 && wp.s===3.6 && wp.z===7.3 && wp.zz===6 && wp.fi===1 && wp.na===160,
+      ok(wp && wp.c==='Integratori/Proteine in polvere' && wp.t==='I' && wp.k===396 && wp.p===78 && wp.g===5.9 && wp.s===3.6 && wp.z===7.3 && wp.zz===6 && wp.fi===1 && wp.na===160,
         'banca alimenti: Whey Protein PBN nella categoria Integratori, valori per 100 g dall\'etichetta (sale 0,4 g = sodio 160 mg)');
       ok(w.eval('FOOD.filter(function(f){return foodMatch(f,"integratori");}).some(function(f){return f.nome==="Whey Protein PBN";})'), 'banca alimenti: cercando «integratori» si trova la whey'); }
     { w.eval('openFoodPicker("bulk",0)');
@@ -400,6 +400,12 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       ok(d.querySelector('#modal h3 .pill').textContent!==nTutti && w.eval('fpTipo')==='R' && [...d.querySelectorAll('#modal .fp-row')].every(tr=>w.eval('FOODBYNAME['+JSON.stringify(tr.dataset.nome)+'].tipo')==='R'), 'selettore alimenti: il filtro «Ricette» mostra solo ricette');
       d.querySelector('#modal [data-fptipo="S"]').click();
       ok([...d.querySelectorAll('#modal .fp-row')].length>0 && [...d.querySelectorAll('#modal .fp-row')].every(tr=>w.eval('FOODBYNAME['+JSON.stringify(tr.dataset.nome)+'].tipo')==='S'), 'selettore alimenti: il filtro «Alimenti semplici» mostra solo quelli');
+      d.querySelector('#modal [data-fptipo="I"]').click();
+      ok([...d.querySelectorAll('#modal .fp-row')].map(tr=>tr.dataset.nome).join('|')==='Whey Protein PBN' && d.querySelector('#modal .fp-row .fp-ric') && w.eval('foodTipo(FOODBYNAME["Whey Protein PBN"])')==='I', 'selettore alimenti: terza macro categoria «Integratori» con la whey (e il bollino «integratore»)');
+      w.eval('fpTipo=""; closeModal(); showTab("alimentazione")');
+      ok(d.querySelector('#panel-alimentazione .pag__main').getAttribute('data-titolo') === 'Piano alimentare' && d.querySelector('#panel-alimentazione .pag__side').getAttribute('data-titolo') === 'Sintesi del piano',
+        'colonne: ogni colonna ha il suo titolo fisso in cima');
+      ok(w.eval('Object.keys(TITOLI_PAG).every(function(k){ return RENDERERS[k]; })'), 'colonne: titoli definiti solo per tab che esistono');
       w.eval('fpTipo=""; closeModal(); renderAlimentazione();'); }
     ok(d.querySelector('#panel-alimentazione [data-mealup]')===null && d.querySelectorAll('#panel-alimentazione tr[data-mealrow] .drag-h').length===ord.length, 'alimentazione: niente frecce ▲▼, ogni pasto ha il manico per trascinarlo');
     ok(w.eval('trascinaPasto("bulk", '+JSON.stringify(ord[0])+', '+JSON.stringify(ord[1])+', true)')===true, 'alimentazione: trascina il primo pasto sotto il secondo');

@@ -215,7 +215,8 @@ def main():
         assert a['nome'] not in nomi, 'nome di integratore già usato: ' + a['nome']
         assert a['categoria'].startswith('Integratori'), 'categoria di integratore: ' + a['categoria']
         nomi[a['nome']] = 1
-        alimenti.append({'id': a['id'], 'nome': a['nome'], 'categoria': a['categoria'], 'densita': None, 'tipo': 'S',
+        # tipo 'I' = terza macro categoria del selettore, accanto a semplici (S) e ricette (R)
+        alimenti.append({'id': a['id'], 'nome': a['nome'], 'categoria': a['categoria'], 'densita': None, 'tipo': 'I',
                          'fonte': 'IN', 'per100': {k: a['per100'].get(k) for k in CHIAVI}})
 
     def tofloat(o):
@@ -223,9 +224,9 @@ def main():
         if isinstance(o, (int, float)) and not isinstance(o, bool): return float(o)
         return o
     alimenti = [tofloat(a) for a in alimenti]
-    n_s = sum(1 for a in alimenti if a['tipo'] == 'S')
-    print('alimenti: %d (Svizzera %d, Ciqual %d; scartati senza energia %d) — semplici %d, ricette %d'
-          % (len(alimenti), n_ch, len(alimenti) - n_ch, scartati, n_s, len(alimenti) - n_s))
+    n_s = sum(1 for a in alimenti if a['tipo'] == 'S'); n_r = sum(1 for a in alimenti if a['tipo'] == 'R')
+    print('alimenti: %d (Svizzera %d, Ciqual %d, integratori %d; scartati senza energia %d) — semplici %d, ricette %d, integratori %d'
+          % (len(alimenti), n_ch, len(alimenti) - n_ch - len(integ), len(integ), scartati, n_s, n_r, len(alimenti) - n_s - n_r))
     # i nomi storici devono esserci TUTTI, identici
     mancanti = [a['nome'] for a in vecchi if a['nome'] not in nomi]
     assert not mancanti, 'nomi storici persi: %s' % mancanti[:5]

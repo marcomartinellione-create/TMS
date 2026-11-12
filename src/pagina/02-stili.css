@@ -209,7 +209,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .tab .ico{font-size:15px}
 
 /* ── MAIN ── */
-.wrap{max-width:none; margin:0 auto; padding:22px clamp(14px,2vw,40px) 80px}
+.wrap{max-width:none; margin:0 auto; padding:22px clamp(14px,2vw,40px) 14px}
 /* ── TUTTO SCHERMO (2026-11) ──────────────────────────────────────────────────────
    Il contenuto non sta più in una colonna da 1180 px al centro: usa la larghezza che c'è.
    Non si «stira» la pagina: lo spazio in più va a un PANNELLO LATERALE che spiega ciò che
@@ -229,6 +229,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
   .pag__main, .pag__side{height:100%; min-height:0; overflow-y:auto; overflow-x:hidden; scrollbar-width:none}
   .pag__main::-webkit-scrollbar, .pag__side::-webkit-scrollbar{display:none}
   .pag__main{padding-right:2px}
+  /* titolo della colonna: resta fermo in cima, con una riga e un'ombra che lo separano dal
+     contenuto che ci scorre sotto (adattaPag scrive il testo in data-titolo) */
+  .pag__main[data-titolo]::before, .pag__side[data-titolo]::before{
+    content:attr(data-titolo); display:block; position:sticky; top:0; z-index:6; box-sizing:border-box;
+    height:32px; line-height:30px; margin:0 0 10px; padding:0 4px; background:var(--paper-2);
+    font-family:var(--font-disp); font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ember-2); border-bottom:2px solid var(--gold-2); box-shadow:0 9px 10px -9px rgba(28,14,4,.45)}
+  /* intestazioni delle tabelle ferme subito sotto il titolo della colonna */
+  .tbl-wrap.tbl-wrap--ferma{overflow:visible}
+  .pag__main[data-titolo] .tbl-wrap--ferma thead th, .pag__side[data-titolo] .tbl-wrap--ferma thead th{top:32px; z-index:4}
 }
 html{scrollbar-width:none}
 html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
@@ -421,7 +431,7 @@ div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); backgrou
 @media (max-width:760px){
   :root{ --topbar-h:70px }   /* qui la topbar va a capo: i tab si agganciano più in basso */
   .chart-grid{grid-template-columns:1fr}
-  .wrap{padding:16px 12px 70px}
+  .wrap{padding:16px 12px 14px}
   .topbar{flex-wrap:wrap; gap:8px; padding:8px 12px}
   .topbar__mark{font-size:16px}
   .conn{order:3}

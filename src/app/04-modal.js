@@ -97,13 +97,35 @@ function conferma(testo, opt){
    Perché succeda la coppia deve avere un'altezza: quella che resta dalla sua posizione al
    fondo della finestra. Si ricalcola a ogni ridisegno, cambio di scheda e ridimensionamento. */
 const PAG_LARGO=1320;
+/* titolo di ogni colonna (resta fermo in cima mentre la colonna scorre, con una riga che la
+   separa dal contenuto): [colonna principale, pannello laterale] per tab */
+const TITOLI_PAG={
+  profilo:['Profili','Profilo aperto e backup'], allenamento:['Scheda della settimana','Come sta venendo la scheda'],
+  cardio:['Attività cardio','Settimana e carico'], storico:['Registrazioni salvate','Sintesi delle righe mostrate'],
+  corpo:['Dati corporei e foto','Composizione e andamento'], alimentazione:['Piano alimentare','Sintesi del piano'],
+  analisi:['Periodi, carico e peso','Periodi e lettura'], esercizi:['Catalogo esercizi','Scheda dell’esercizio'],
+};
 function adattaPag(){
   try{
     const largo=window.innerWidth>=PAG_LARGO;
     document.querySelectorAll('.panel.is-active .pag').forEach(p=>{
+      const tab=(p.closest('.panel')||{id:''}).id.replace('panel-',''), tit=TITOLI_PAG[tab];
+      if(tit){ const mm=p.querySelector(':scope > .pag__main'), ss=p.querySelector(':scope > .pag__side');
+        if(mm) mm.setAttribute('data-titolo', t(tit[0])); if(ss) ss.setAttribute('data-titolo', t(tit[1])); }
+      /* le intestazioni delle tabelle restano ferme sotto il titolo: serve che il riquadro della
+         tabella non scorra di lato per conto suo, quindi lo si «apre» solo se la tabella ci sta */
+      p.querySelectorAll('.tbl-wrap').forEach(w=>{ const tb=w.querySelector('table');
+        w.classList.toggle('tbl-wrap--ferma', largo && !!tb && tb.scrollWidth<=w.clientWidth+1); });
       if(!largo){ p.style.height=''; return; }
       const top=p.getBoundingClientRect().top+(window.scrollY||0);
-      p.style.height=Math.max(320, window.innerHeight-top-12)+'px';
+      const wrap=p.closest('.wrap'), sotto=wrap? parseFloat(getComputedStyle(wrap).paddingBottom)||0 : 0;
+      let h=Math.max(320, window.innerHeight-top-sotto);
+      p.style.height=h+'px';
+      /* la pagina intorno non deve scorrere: se avanza qualcosa sotto, la coppia si accorcia
+         (prima la rotella, a fine colonna, faceva scendere tutta la pagina di un tratto e il
+         fondo della colonna restava nascosto) */
+      const avanzo=document.documentElement.scrollHeight-window.innerHeight;
+      if(avanzo>0 && h-avanzo>=320){ h-=avanzo; p.style.height=h+'px'; }
     });
   }catch(e){}
 }
