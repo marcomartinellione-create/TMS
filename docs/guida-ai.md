@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.17 (2026-11-12). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.18 (2026-11-12). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -14,8 +14,9 @@ ufficiale e completa dell'app: basa le risposte su quanto scritto qui.
   i nomi di tab e bottoni sono in italiano; se l'utente ha scelto l'inglese, cita l'equivalente.
 - Se la domanda non trova risposta in questo documento, dillo chiaramente e suggerisci
   la Guida interna dell'app (tab «📕 Guida», versioni Rapida e Completa) o una
-  segnalazione col pulsante 🐞 Segnala in basso a sinistra (vedi sotto).
-- **Pulsante 🐞 Segnala** (in basso a sinistra, accanto al 📕 Guida): apre un modulo per
+  segnalazione col pulsante 🐞 nella barra in alto (vedi sotto).
+- **Pulsante 🐞 Segnala** (nella barra in alto, accanto a 📕 Guida e a sinistra del pulsante della lingua;
+  solo l'icona, il nome compare passandoci sopra): apre un modulo per
   bug e idee. Si sceglie il tipo (qualcosa non funziona / proposta), si racconta cosa
   succede e come rifarlo accadere, e per i bug quanto pesa (blocca / dà fastidio /
   dettaglio). L app allega DA SOLA una scheda tecnica: versione, modalità dati, sistema,
@@ -59,10 +60,10 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
 - Si scarica «TMS-Setup-versione.exe» dalle Release GitHub (~90 MB, catalogo e video
   inclusi). L'eseguibile non è firmato: al primo avvio Windows SmartScreen può
   avvisare — «Ulteriori informazioni → Esegui comunque». È normale e atteso.
-- **Auto-update**: all'avvio l'app controlla le release; se ce n'è una nuova CHIEDE
-  prima di scaricare mostrando le novità. Durante il download la percentuale appare
-  nel titolo della finestra e sulla taskbar; chiudere la finestra a download in corso
-  fa comparire un avviso. A fine download propone il riavvio.
+- **Aggiornamenti**: all'avvio l'app guarda nella cartella delle versioni preparate sul PC
+  (la cartella «release» del progetto); se ce n'è una più nuova CHIEDE, mostrando le novità.
+  Confermando, controlla che l'installatore sia integro, salva, si chiude, installa la nuova
+  versione e si riapre da sola.
 - **Dati**: in locale, nella cartella utente di Windows (percorso tipico
   «%APPDATA%\\Training Monitor System\\TMS»). Sopravvivono ad aggiornamenti e
   reinstallazioni. Niente account, niente telemetria.
@@ -101,11 +102,15 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, la riga dei **backup automatici**: l'app ne crea
   uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5
   copie) con link «ripristina» accanto a ciascuno.
-- **Correggere una riga già salvata**: nello **Storico** (link in fondo alla pagina) ogni riga
+- **Correggere una riga già salvata**: nello **Storico** (tab 👤 Profilo, in cima alla pagina) ogni riga
   ha a destra una **matita ✎**: apre un riquadro dove si cambiano serie, ripetizioni, peso,
   RIR e il segno ★ di test, oppure si elimina quella riga soltanto. Esercizio e settimana non
   si cambiano da lì. 1RM, %1RM e TL si ricalcolano da soli.
-- **Eliminare una settimana già salvata**: nello **Storico** (link in fondo alla pagina) ogni
+- **Annulla / rifai**: Ctrl+Z annulla l'ultima modifica ai dati del profilo aperto (scheda, Storico,
+  misure, cardio, alimentazione, catalogo esercizi) e Ctrl+Y (o Ctrl+Maiusc+Z) la rifà; un avviso in
+  basso dice cosa è tornato indietro. Vale finché non si cambia profilo; le foto ne restano fuori.
+  Dentro una finestra aperta o in un campo di ricerca Ctrl+Z annulla solo il testo scritto.
+- **Eliminare una settimana già salvata**: nello **Storico** (tab 👤 Profilo, in cima alla pagina) ogni
   settimana ha la sua barra scura con, a destra, un pulsante **cestino rosso** che toglie tutte
   le righe di QUELLA settimana. Stesso pulsante su ogni rilevazione dello storico **Misure**.
   In entrambi i casi viene chiesta conferma con un riquadro dell'app (non la finestra di
@@ -280,10 +285,10 @@ Due modi per registrare una seduta:
   È SOLO un suggerimento visivo (tooltip col motivo): non modifica né scrive nulla.
 - «💾 Salva nello Storico» registra la settimana (anno + numero settimana ISO,
   proposti in automatico); se il Session-RPE è abilitato si registrano anche fatica
-  (RPE 0-10) e durata in minuti per seduta. Un pallino/banner verde o rosso (qui, in Corpo e nel footer) avvisa se
+  (RPE 0-10) e durata in minuti per seduta. Un pallino/banner verde o rosso (qui, in Corpo e in cima al tab Profilo) avvisa se
   la settimana corrente non è ancora registrata.
 
-## 5 · Progressi, Storico, Corpo (tab 📈 Progressi · 🜂 Corpo; archivi dal footer)
+## 5 · Progressi, Storico, Corpo (tab 📈 Progressi · 🜂 Corpo; archivi dal tab 👤 Profilo)
 
 - **Progressi**: record personali per esercizio (carico massimo), «Segnali»
   automatici (🎉 record al salvataggio, ⏸ esercizi in stallo con TL fermo da 3+
@@ -305,10 +310,10 @@ Due modi per registrare una seduta:
   spiegarlo. Il radar «Volume ed equilibrio · serie per gruppo» somma sull'asse Cardio anche i
   minuti di cardio registrati nel Riscaldamento (oltre a quelli del tab Cardio), min÷10 —
   vedi §4 per i dettagli su cosa NON tocca (TL/ACWR/monotonia restano intatti).
-- **Storico** (link «📜» nel footer): archivio completo delle registrazioni, in codici
+- **Storico** (pulsante «📜 Storico» in cima al tab Profilo): archivio completo delle registrazioni, in codici
   settimana ISO formato AAAASS (es. 202624 = settimana 24 del 2026).
 - **Corpo**: peso e misure corporee con BMI e stime masse; lo storico misure è in un
-  archivio dedicato (link nel footer).
+  archivio dedicato (pulsante «📏 Misure» in cima al tab Profilo).
 - **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
@@ -329,7 +334,7 @@ Due modi per registrare una seduta:
   suoi alimenti); allo stesso modo si trascina un singolo alimento, anche in un altro
   pasto. «✎» rinomina, «🗑» elimina. In ogni pasto «＋ scegli alimento…» apre la banca
   dati: oltre 4500 alimenti dalla banca svizzera USAV e dalla tabella francese Ciqual
-  2025 (ANSES), coi nomi in italiano, divisi in due categorie selezionabili in cima al
+  2025 (ANSES), più la categoria **Integratori** (proteine in polvere, valori dall'etichetta), coi nomi in italiano, divisi in due categorie selezionabili in cima al
   riquadro — **alimenti semplici** (come si comprano o crudi) e **ricette** (cucinati,
   conditi o composti: anche il semplice «pollo cotto»). Valori per 100 g scalati sui
   grammi inseriti. Col «▸» si vedono tutti i micro e macro nutrienti.
@@ -595,7 +600,7 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - **Browser**: solo Chrome/Edge per la modalità HTML; Firefox/Safari mostrano un
   avviso «browser non supportato».
 - **Lingua**: solo italiano.
-- **Diagnostica**: 5 click ravvicinati sulla versione (in fondo alla pagina) aprono
+- **Diagnostica**: 5 click ravvicinati sulla scritta «TMS» in alto a sinistra aprono
   il log errori interno, utile da copiare in una segnalazione.
 
 ## 13 · Domande tipiche → dove si fa

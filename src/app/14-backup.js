@@ -154,10 +154,10 @@ async function ripristinaBackupAutomatico(nomeFile){
 function modalAggiornamento(d){
   const nota=String((d&&d.note)||'').trim();
   modal(`<h3>${d&&d.maggiore?t('⚠ Aggiornamento MAGGIORE'):t('✦ Aggiornamento disponibile')}</h3>
-   <div class="callout ${d&&d.maggiore?'callout--ember':'callout--info'}"><div>${t('È pronta la versione')} <b>v${esc(d.versione)}</b> <span class="muted">(${t('hai la v')}${esc(d.attuale)})</span>. ${t('Confermando, il download prosegue in background: vedrai la <b>percentuale nel titolo</b> della finestra e sulla taskbar.')}</div></div>
+   <div class="callout ${d&&d.maggiore?'callout--ember':'callout--info'}"><div>${t('È pronta la versione')} <b>v${esc(d.versione)}</b> <span class="muted">(${t('hai la v')}${esc(d.attuale)})</span>. ${d&&d.locale? t('L’installatore è nella cartella <b>release</b> del progetto. Confermando, l’app salva, si chiude, installa la nuova versione e si riapre da sola (serve qualche secondo).') : t('Confermando, il download prosegue in background: vedrai la <b>percentuale nel titolo</b> della finestra e sulla taskbar.')}</div></div>
    ${nota?`<div class="sec">${t('Novità di questa versione')}</div>
    <div style="max-height:240px;overflow:auto;white-space:pre-wrap;font-size:12.5px;line-height:1.55;color:var(--ink-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;background:var(--paper-2)">${esc(nota)}</div>`:''}
-   <div class="modal__actions"><button class="btn" id="upd-dopo">${t('Più tardi')}</button><button class="btn btn--ember" id="upd-vai">${t('⭳ Scarica e installa')}</button></div>`);
+   <div class="modal__actions"><button class="btn" id="upd-dopo">${t('Più tardi')}</button><button class="btn btn--ember" id="upd-vai">${d&&d.locale? t('↻ Installa e riavvia') : t('⭳ Scarica e installa')}</button></div>`);
   { const b=document.getElementById('upd-vai'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('scarica'); }catch(e){} }; }
   { const b=document.getElementById('upd-dopo'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('dopo'); }catch(e){} }; }
   { const m=document.getElementById('modal'); if(m) m.style.maxWidth='620px'; }
@@ -170,7 +170,7 @@ function modalRiavvio(d){
   { const b=document.getElementById('upd-rdopo'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('dopo'); }catch(e){} }; }
 }
 
-/* log errori interni: modale di consultazione (5 click sulla versione nel footer) */
+/* log errori interni: modale di consultazione (5 click sulla scritta «TMS» in alto) */
 function mostraLogErrori(){
   const righe=LOG_ERRORI.slice().reverse().map(v=>v.t+'  ['+v.dove+']  '+v.msg).join('\n');
   modal(`<h3>🩺 ${t('Log errori interni')} <span class="pill">${LOG_ERRORI.length} ${t('voci')}</span></h3>

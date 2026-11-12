@@ -116,12 +116,26 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
   color:var(--grace); text-shadow:0 0 12px rgba(232,196,90,.4); white-space:nowrap;
 }
 /* ✦ e QR stanno qui dal 2026-11: la fascia col titolo per esteso è stata tolta per dare
-   più altezza al contenuto (il nome intero resta nel titolo della finestra e nel footer) */
+   più altezza al contenuto (il nome intero e la versione restano nel titolo della finestra e nel suggerimento su «TMS») */
 .topbar__mark .sigil{color:var(--gold-2); font-size:15px; margin-right:2px}
 .topbar__qr{width:34px; height:34px; border-radius:6px; border:1px solid var(--gold-2); background:#fff;
   cursor:pointer; flex-shrink:0; transition:transform .12s ease}
 .topbar__qr:hover{transform:scale(1.08)}
 .topbar__spacer{flex:1}
+/* 📕 Guida e 🐞 Segnala: solo l'icona, accanto alla lingua (il nome è nel suggerimento) */
+.topbar__ico{font-size:16px; line-height:1; padding:5px 8px; margin-right:-8px}
+/* Storico e misure del profilo aperto, in cima alla pagina Profilo */
+.prof-archivio{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 13px; margin-bottom:10px;
+  border:1px solid var(--border); border-left:3px solid var(--gold-2); border-radius:var(--r-sm); background:var(--paper-2)}
+.prof-archivio__tit{flex:1; min-width:180px; font-family:var(--font-disp); font-size:15px; color:var(--ink-2)}
+.prof-archivio__btn{display:flex; gap:8px; flex-wrap:wrap}
+.prof-archivio__dot{color:var(--ink-4); font-size:12px}
+/* avviso di Ctrl+Z / Ctrl+Y: compare in basso al centro e sparisce da solo */
+.undo-avviso{position:fixed; left:50%; bottom:18px; transform:translate(-50%,12px); z-index:60; opacity:0; pointer-events:none;
+  background:#241405; color:var(--paper); border:1px solid var(--gold-2); border-radius:22px; padding:8px 16px; font-size:13px;
+  box-shadow:0 4px 16px rgba(28,14,4,.28); transition:opacity .18s ease, transform .18s ease}
+.undo-avviso.on{opacity:1; transform:translate(-50%,0)}
+.undo-avviso .muted{color:#c9b98f}
 .conn{display:flex; align-items:center; gap:8px; font-size:12.5px; font-family:var(--font-mono)}
 .conn__dot{width:9px; height:9px; border-radius:50%; background:var(--ink-4); box-shadow:0 0 0 3px rgba(168,150,122,.2)}
 .conn.is-on .conn__dot{background:var(--ok-b); box-shadow:0 0 0 3px rgba(67,196,99,.25)}
@@ -393,8 +407,6 @@ svg .ln{fill:none; stroke-width:2}
 .modal input,.modal select{width:100%}
 .modal__actions{display:flex; gap:9px; justify-content:flex-end; margin-top:18px}
 
-.footer{text-align:center; color:var(--ink-4); font-size:11.5px; font-family:var(--font-mono);
-  padding:18px; border-top:1px solid var(--border); margin-top:20px; letter-spacing:.04em}
 .empty{padding:40px; text-align:center; color:var(--ink-4); font-style:italic}
 /* quando lo stato vuoto è un riquadro a sé (non una cella di tabella) diventa un
    pannello tratteggiato: si legge come «qui non c'è ancora niente», non come un errore */
@@ -437,7 +449,7 @@ div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); backgrou
 /* PRINT (report) A4 multipagina */
 @page{ size:A4; margin:12mm; }
 @media print{
-  .topbar,.tabs,.bar,.no-print,.footer,#fab-guida,#fab-segnala,#qr-ig,.overlay,.modal-bk{ display:none !important }
+  .topbar,.tabs,.bar,.no-print,#fab-guida,#fab-segnala,#qr-ig,.overlay,.modal-bk{ display:none !important }
   html,body{ background:#fff !important; background-image:none !important }
   body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; color-adjust:exact; font-size:11px }
   .wrap{ max-width:none; padding:0; margin:0 }

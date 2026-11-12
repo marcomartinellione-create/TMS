@@ -19,6 +19,7 @@
     "app/01-costanti.js",
     "app/02-calcoli.js",
     "app/03-persistenza.js",
+    "app/03b-annulla.js",
     "app/04-modal.js",
     "app/05-grafici.js",
     "app/06-allenamento.js",

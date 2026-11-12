@@ -207,7 +207,54 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(d.getElementById('modal').innerHTML.includes('boom di prova'), 'modale log errori (5 click sulla versione) con la voce');
   /* ── 2026-09-07 — SEGNALAZIONI (🐞): modulo bug/idee con scheda tecnica allegata ── */
   w.eval('closeModal()');
-  ok(d.getElementById('fab-segnala') !== null, 'segnalazioni: pulsante 🐞 fisso in basso a sinistra');
+  ok(d.getElementById('fab-segnala') !== null, 'segnalazioni: pulsante 🐞 presente');
+  { const bar = d.querySelector('.topbar'), ids = [...bar.querySelectorAll('button')].map(b => b.id);
+    ok(bar.contains(d.getElementById('fab-guida')) && bar.contains(d.getElementById('fab-segnala')) && ids.indexOf('fab-guida') < ids.indexOf('btn-lang') && ids.indexOf('fab-segnala') === ids.indexOf('btn-lang') - 1,
+      'barra in alto: 📕 e 🐞 subito a sinistra della lingua');
+    ok(d.getElementById('fab-guida').textContent.trim() === '📕' && d.getElementById('fab-segnala').textContent.trim() === '🐞' && /guida/i.test(d.getElementById('fab-guida').title),
+      'barra in alto: 📕 e 🐞 solo icona, il nome sta nel suggerimento');
+    ok(!d.querySelector('.footer') && !/dati locali, nessun cloud/.test(d.body.textContent), 'niente fascia in fondo alle pagine');
+    ok(d.getElementById('app-ver').closest('.topbar__mark') && d.querySelector('.topbar__mark').title.includes('v' + w.eval('APP_VERSION')), 'la versione si legge passando su «TMS» in alto');
+    for (let k = 0; k < 5; k++) d.getElementById('app-ver').click();
+    ok(d.getElementById('modal').innerHTML.includes('boom di prova'), '5 click su «TMS» aprono il log errori');
+    w.eval('closeModal()');
+    w.eval('showTab("profilo")');
+    ok(d.querySelector('#panel-profilo .prof-archivio #lnk-storico') && d.querySelector('#panel-profilo .prof-archivio #lnk-misure') && d.getElementById('dot-storico') && d.getElementById('dot-storico').title !== '',
+      'Profilo: sezione Storico e misure in cima, coi pallini di stato');
+    d.getElementById('lnk-storico').click();
+    ok(w.eval('curTab') === 'storico' && d.querySelector('.tab[data-tab="profilo"]').classList.contains('is-active'), 'Profilo → 📜 Storico apre lo Storico (resta acceso il tab Profilo)');
+    w.eval('showTab("profilo")'); d.getElementById('lnk-misure').click();
+    ok(w.eval('curTab') === 'storicocorpo', 'Profilo → 📏 Misure apre le Misure');
+    w.eval('showTab("profilo")'); }
+  /* ── Ctrl+Z / Ctrl+Y: annulla e rifà le modifiche ai dati ── */
+  { const tasto = (k, o) => d.dispatchEvent(new w.KeyboardEvent('keydown', Object.assign({ key: k, ctrlKey: true, bubbles: true, cancelable: true }, o || {})));
+    const schedaOrig = w.eval('JSON.stringify(DOC.scheda)');
+    w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:3,rip:5,peso:100}]; undoAzzera(); showTab("allenamento")');
+    const prima = w.eval('JSON.stringify(DOC.scheda)');
+    w.eval('DOC.scheda.settimanale[0].serie=99; persist("scheda")');
+    ok(w.eval('undoPila.length') === 1, 'annulla: una modifica salvata finisce nella pila');
+    w.eval('DOC.scheda.settimanale[0].serie=98; persist("scheda")');
+    ok(w.eval('undoPila.length') === 1, 'annulla: due modifiche ravvicinate alla stessa parte sono un passo solo');
+    tasto('z');
+    ok(w.eval('JSON.stringify(DOC.scheda)') === prima, 'Ctrl+Z: la scheda torna com\'era');
+    ok(d.getElementById('undo-avviso') && d.getElementById('undo-avviso').classList.contains('on') && /Annullata/.test(d.getElementById('undo-avviso').textContent), 'Ctrl+Z: avviso in basso con cosa è stato annullato');
+    tasto('y');
+    ok(w.eval('DOC.scheda.settimanale[0].serie') === 98, 'Ctrl+Y: la modifica torna');
+    tasto('z', { shiftKey: false }); tasto('z', { shiftKey: true });
+    ok(w.eval('DOC.scheda.settimanale[0].serie') === 98, 'Ctrl+Maiusc+Z rifà come Ctrl+Y');
+    tasto('z');
+    w.eval('DOC.storico_io.push({scheda:202601,peso:80}); persist("corpo")');
+    w.eval('undoUltimo.ora=0; DOC.dati_utente.altezza=181; persist("corpo")');
+    ok(w.eval('undoPila.length') === 2 && w.eval('redoPila.length') === 0, 'annulla: una modifica nuova svuota il «rifai»');
+    tasto('z'); tasto('z');
+    ok(w.eval('DOC.storico_io.some(function(r){return r.scheda===202601&&r.peso===80;})') === false, 'Ctrl+Z due volte: tolte anche le misure aggiunte');
+    w.eval('modal("<input id=x>")'); w.eval('DOC.scheda.settimanale[0].serie=77; persist("scheda")'); tasto('z');
+    ok(w.eval('DOC.scheda.settimanale[0].serie') === 77, 'Ctrl+Z non tocca i dati mentre è aperta una finestra');
+    w.eval('closeModal()'); tasto('z');
+    ok(w.eval('JSON.stringify(DOC.scheda)') === prima, 'Ctrl+Z dopo aver chiuso la finestra annulla');
+    w.eval('applyProfileData(docProfileData())');
+    ok(w.eval('undoPila.length') === 0, 'annulla: caricando i dati di un profilo la pila si svuota');
+    w.eval('DOC.scheda=' + schedaOrig + '; persist("scheda"); undoAzzera(); showTab("profilo")'); await settle(400); }
   { const st = w.eval('segnSchedaTecnica()');
     ok(st.includes('TMS v') && /Modalità|Mode/.test(st) && /Tab/.test(st), 'segnalazioni: la scheda tecnica porta versione, modalità e tab aperto');
     ok(st.includes('boom di prova'), 'segnalazioni: allega gli ULTIMI ERRORI interni — è ciò che rende la segnalazione diagnosticabile');
@@ -337,12 +384,16 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const ord=w.eval('(function(){var s=[];(DOC.alimentazione.bulk||[]).forEach(function(r){var m=((r.pasto||"").trim())||"Senza pasto";if(s.indexOf(m)<0)s.push(m);});return s;})()');
     ok(ord.length>=2, 'alimentazione: la fase bulk ha più pasti');
     /* nuova banca alimenti: due fonti, due macro categorie, nomi storici intatti */
-    ok(w.eval('FOOD.length')>4000 && w.eval('FOOD.every(function(f){return (f.tipo==="S"||f.tipo==="R")&&(f.fonte==="CH"||f.fonte==="FR")&&f.nome&&f.per100&&f.per100.kcal!=null;})'), 'banca alimenti: oltre 4000 voci, ognuna con tipo (semplice/ricetta), fonte ed energia');
+    ok(w.eval('FOOD.length')>4000 && w.eval('FOOD.every(function(f){return (f.tipo==="S"||f.tipo==="R")&&(f.fonte==="CH"||f.fonte==="FR"||f.fonte==="IN")&&f.nome&&f.per100&&f.per100.kcal!=null;})'), 'banca alimenti: oltre 4000 voci, ognuna con tipo (semplice/ricetta), fonte ed energia');
     ok(w.eval('new Set(FOOD.map(function(f){return f.nome;})).size===FOOD.length'), 'banca alimenti: nessun nome doppio (il nome è la chiave dei piani salvati)');
     ok(['Fiocchi di avena','Banana, cruda','Acciuga sott\'olio, sgocciolata','Tacchino, petto, scaloppina o sminuzzato, crudo','Burro di arachidi'].every(n=>w.eval('!!FOODBYNAME['+JSON.stringify(n)+'] && FOODBYNAME['+JSON.stringify(n)+'].fonte==="CH"')), 'banca alimenti: i nomi della banca precedente ci sono ancora, identici (sono le chiavi dei piani salvati)');
     ok(w.eval('FOODBYNAME["Banana, cruda"].tipo')==='S' && w.eval('FOODBYNAME["Pollo, petto senza pelle, crudo"].tipo')==='S' && w.eval('FOODBYNAME["Lenticchie, intere, secche"].tipo')==='S'
        && w.eval('FOOD.filter(function(f){return /^(Pollo|Lenticchie|Riso|Patat).*\\bcott[oae]\\b/.test(f.nome);}).length')>5 && w.eval('FOOD.filter(function(f){return /^(Pollo|Lenticchie|Riso|Patat).*\\bcott[oae]\\b/.test(f.nome);}).every(function(f){return f.tipo==="R";})'), 'banca alimenti: il crudo è «semplice»; pollo, riso, patate e lenticchie cotti sono «ricette»');
     ok(w.eval('FOODBYNAME["Prosciutto cotto di coscia"].tipo')==='S', 'banca alimenti: un salume che si compra già cotto resta «semplice»');
+    { const wp=w.eval('(function(){var f=FOODBYNAME["Whey Protein PBN"];return f?{c:f.categoria,t:f.tipo,k:f.per100.kcal,p:f.per100.proteine,g:f.per100.grassi,s:f.per100.saturi,z:f.per100.zuccheri,zz:f.per100.zucch,fi:f.per100.fibre,na:f.per100.sodio}:null;})()');
+      ok(wp && wp.c==='Integratori/Proteine in polvere' && wp.t==='S' && wp.k===396 && wp.p===78 && wp.g===5.9 && wp.s===3.6 && wp.z===7.3 && wp.zz===6 && wp.fi===1 && wp.na===160,
+        'banca alimenti: Whey Protein PBN nella categoria Integratori, valori per 100 g dall\'etichetta (sale 0,4 g = sodio 160 mg)');
+      ok(w.eval('FOOD.filter(function(f){return foodMatch(f,"integratori");}).some(function(f){return f.nome==="Whey Protein PBN";})'), 'banca alimenti: cercando «integratori» si trova la whey'); }
     { w.eval('openFoodPicker("bulk",0)');
       const nTutti=d.querySelector('#modal h3 .pill').textContent;
       d.querySelector('#modal [data-fptipo="R"]').click();
@@ -1690,7 +1741,8 @@ console.log('--- T6: bilingue IT/EN (interruttore lingua, traduzione markup stat
   ok(dEn.querySelector('[data-tab="allenamento"] [data-i18n]').textContent === 'Weights', 'EN: tab «Pesi» → «Weights»');
   ok(dEn.querySelector('[data-tab="alimentazione"] [data-i18n]').textContent === 'Nutrition', 'EN: tab «Alimentazione» → «Nutrition»');
   ok(dEn.getElementById('disc-ok').textContent === 'Got it', 'EN: disclaimer «Ho capito» → «Got it»');
-  ok(dEn.getElementById('lnk-storico').textContent === 'History', 'EN: footer «Storico» → «History»');
+  ok(wEn.eval("renderProfilo(); document.getElementById('lnk-storico').textContent").includes('History') && dEn.querySelector('.prof-archivio__tit').textContent.includes('History and measurements'), 'EN: Profilo «Storico e misure» → «History and measurements»');
+  ok(dEn.getElementById('fab-guida').title === 'Open the guide', 'EN: suggerimento di 📕 tradotto');
   ok(/select the <strong>TMS<\/strong> folder/i.test(dEn.getElementById('overlay-sub').innerHTML), 'EN: overlay-sub (data-i18n-html) tradotto');
   ok(dEn.getElementById('btn-lang').textContent === 'IT', 'EN: il pulsante lingua propone «IT»');
   ok(wEn.eval("renderProfilo(); document.getElementById('prof-new').textContent") === '＋ New profile', 'EN: tab Profilo «＋ Nuovo profilo» → «＋ New profile»');

@@ -149,7 +149,7 @@ function segnalaModal(){
 }
 /* ════════════════ TACCUINO (solo per l'autore) ════════════════
    Si apre con 5 click sul ✦ accanto al titolo — il log errori usa lo stesso idioma ma
-   sulla versione nel footer, così i due gesti non si pestano. Non è una funzione per
+   sulla scritta «TMS» lì accanto, così i due gesti non si pestano. Non è una funzione per
    l'utente finale: è il quaderno di Marco mentre usa l'app.
 
    Due elenchi, tenuti separati apposta:

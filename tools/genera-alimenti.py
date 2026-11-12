@@ -209,6 +209,15 @@ def main():
         nomi[nome] = 1
         alimenti.append({'id': cid, 'nome': nome, 'categoria': cat, 'densita': None, 'tipo': tipo, 'fonte': 'FR', 'per100': p})
 
+    # ── 3) Integratori aggiunti a mano (tools/alimenti-integratori.json): categoria «Integratori/…»
+    integ = json.load(io.open(os.path.join(ROOT, 'tools', 'alimenti-integratori.json'), encoding='utf-8'))['alimenti']
+    for a in integ:
+        assert a['nome'] not in nomi, 'nome di integratore già usato: ' + a['nome']
+        assert a['categoria'].startswith('Integratori'), 'categoria di integratore: ' + a['categoria']
+        nomi[a['nome']] = 1
+        alimenti.append({'id': a['id'], 'nome': a['nome'], 'categoria': a['categoria'], 'densita': None, 'tipo': 'S',
+                         'fonte': 'IN', 'per100': {k: a['per100'].get(k) for k in CHIAVI}})
+
     def tofloat(o):
         if isinstance(o, dict): return {k: tofloat(v) for k, v in o.items()}
         if isinstance(o, (int, float)) and not isinstance(o, bool): return float(o)

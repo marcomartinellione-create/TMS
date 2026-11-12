@@ -4,6 +4,40 @@
 
 ---
 
+### 2026-11-12 — TMS v1.1.18: Ctrl+Z, Storico e Misure nel Profilo, integratori, aggiornamento dalla cartella release
+
+**Tipo**: tre feature + riordino dell'interfaccia + cambio del canale di aggiornamento (niente più GitHub)
+**File coinvolti**: `src/app/03b-annulla.js` (nuovo) · `src/app/03-persistenza.js` (`persist` registra l'annulla, pila
+azzerata al caricamento e al cambio di profilo) · `src/manifest.json` · `src/pagina/03-corpo.html` e `02-stili.css` (icone
+nella barra, footer tolto, riquadro `.prof-archivio`, avviso `.undo-avviso`) · `src/app/13b-profilo.js` · `src/app/17-init.js`
+· `src/app/14-backup.js` (modale di aggiornamento locale) · `src/app/09-corpo.js` · `tools/genera-alimenti.py` +
+`tools/alimenti-integratori.json` (nuovo) · `src/dati/02-alimenti-usav.js`, `src/dati/alimenti-usav.json` · `electron/main.js`
+(blocco di aggiornamento riscritto) · `tools/release.js` · `src/app/00-i18n.js`, guide IT/EN e guida-AI · `tests/test-app.js`
+
+**Descrizione** (richieste di Marco del 12/11):
+- **Integratori**: nuova categoria «Integratori/Proteine in polvere» con **Whey Protein PBN** (valori per 100 g dall'etichetta:
+  396 kcal, 78 g proteine, 5,9 g grassi di cui 3,6 saturi, 7,3 g carboidrati di cui 6 zuccheri, 1 g fibre, sale 0,4 g = sodio
+  160 mg). Gli integratori stanno in `tools/alimenti-integratori.json` e la pipeline li accoda (fonte `IN`): rigenerando la
+  banca restano. Gli amminoacidi dell'etichetta sono conservati lì, la banca non ha campi per loro.
+- **Ctrl+Z / Ctrl+Y** (anche Ctrl+Maiusc+Z): ogni `persist()` mette da parte com'era la parte toccata (scheda, storico, corpo
+  senza foto, alimentazione, esercizi); le modifiche ravvicinate alla stessa parte sono un passo solo; avviso in basso. Vale
+  per il profilo aperto. Con un riquadro aperto o in un campo di ricerca/testo lungo resta l'annulla del campo.
+- **📕 e 🐞** sono icone nella barra in alto, subito a sinistra della lingua (il nome nel suggerimento).
+- **Storico e Misure** si aprono da un riquadro in cima al tab Profilo, coi pallini di stato; mentre li guardi resta acceso
+  il tab Profilo. **Footer tolto** del tutto: la versione si legge passando su «TMS» in alto, e 5 click lì aprono il log errori.
+- **Aggiornamento dalla cartella release**: l'app è per ora solo sul PC di Marco, niente release su GitHub. All'avvio l'app
+  installata guarda in `release\v<x.y.z>\`, prende la versione più alta con il suo exe, chiede, verifica lo sha512 contro
+  `latest.yml`, copia l'exe nella temp, si chiude salvando e lo lancia con `--updated /S --force-run`. `electron-updater` non
+  si usa più. Questa versione va installata **a mano** la prima volta (la v1.1.17 cerca ancora su GitHub).
+
+**Test**: suite jsdom 732 verifiche (22 nuove: integratore, annulla/rifai coi tasti veri, icone in alto, footer assente,
+versione e log su «TMS», Storico e Misure dal Profilo, traduzioni), lint e `npm run verifica` puliti. Collaudo Electron: 16
+controlli. Ricerca nella cartella release e controllo dell'impronta provati sui file veri (v1.1.17 riconosciuta, file
+sbagliato rifiutato). Ctrl+Z provato a video con la tastiera nell'anteprima coi dati veri.
+**Approvato da**: Marco («Sì, prepara 1.1.18» — 2026-11-12)
+
+---
+
 ### 2026-11-12 — TMS v1.1.17: tutto schermo con pannelli laterali, avvisi in stile app, nuova banca alimenti
 
 **Tipo**: ridisegno dell'impaginazione + quattro feature + nuova banca dati alimenti

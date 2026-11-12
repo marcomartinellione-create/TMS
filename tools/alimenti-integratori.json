@@ -1,0 +1,13 @@
+{
+"_nota": "Integratori aggiunti a mano da Marco (valori per 100 g, dall'etichetta). tools/genera-alimenti.py li accoda alla banca. sodio = sale / 2,5 × 1000 (mg). Gli amminoacidi dell'etichetta non hanno un campo nella banca e restano qui solo per memoria.",
+"alimenti": [
+{
+"id": "IN0001",
+"nome": "Whey Protein PBN",
+"categoria": "Integratori/Proteine in polvere",
+"per100": {"kcal": 396, "proteine": 78, "grassi": 5.9, "saturi": 3.6, "zuccheri": 7.3, "zucch": 6, "fibre": 1, "sodio": 160},
+"_sale_g": 0.4,
+"_aminoacidi_g": {"isoleucina": 4.3, "leucina": 9.1, "lisina": 7.8, "metionina": 1.8, "fenilalanina": 2.9, "treonina": 3.9, "triptofano": 1.6, "valina": 3.8, "alanina": 3.6, "arginina": 2.1, "acido aspartico": 8.6, "cisteina": 2.3, "acido glutammico": 13.3, "glicina": 1.4, "istidina": 1.7, "prolina": 3.9, "serina": 3.4, "tirosina": 2.6}
+}
+]
+}

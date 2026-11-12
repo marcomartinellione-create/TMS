@@ -1,6 +1,6 @@
 {
 "_fonte": "Banca dati svizzera dei valori nutritivi (USAV), alimenti generici + Tabella Ciqual 2025 (ANSES, Francia). File sorgente fuori dal repo.",
-"_generato": "2026-11-11 da tools/genera-alimenti.py",
+"_generato": "2026-11-12 da tools/genera-alimenti.py",
 "_note": "valori per 100 g; 'zuccheri' = carboidrati disponibili, 'zucch' = di cui zuccheri; tracce -> 0, '<X' -> X; tipo S = alimento semplice, R = ricetta; fonte CH/FR; i nomi Ciqual sono traduzioni non ufficiali",
 "alimenti": [
 {
@@ -168906,6 +168906,43 @@
 "sodio": 17.6,
 "iodio": 20.0,
 "fosforo": 120.0
+}
+},
+{
+"id": "IN0001",
+"nome": "Whey Protein PBN",
+"categoria": "Integratori/Proteine in polvere",
+"densita": null,
+"tipo": "S",
+"fonte": "IN",
+"per100": {
+"kcal": 396.0,
+"proteine": 78.0,
+"grassi": 5.9,
+"saturi": 3.6,
+"monoinsaturi": null,
+"polinsaturi": null,
+"zuccheri": 7.3,
+"zucch": 6.0,
+"fibre": 1.0,
+"colesterolo": null,
+"vitA": null,
+"vitB1": null,
+"vitB2": null,
+"vitB6": null,
+"vitB12": null,
+"vitC": null,
+"vitD": null,
+"vitE": null,
+"folati": null,
+"calcio": null,
+"ferro": null,
+"magnesio": null,
+"potassio": null,
+"zinco": null,
+"sodio": 160.0,
+"iodio": null,
+"fosforo": null
 }
 }
 ]

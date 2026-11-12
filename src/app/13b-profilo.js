@@ -57,6 +57,13 @@ function renderProfilo(){
      <button class="btn btn--ember no-print" id="prof-new">${t('＋ Nuovo profilo')}</button></div>
    <div class="callout callout--info"><div>${t('Il <b>pallino</b> accanto al nome è un <b>semaforo</b> dello stato del cliente (sola lettura): <b style="color:var(--ok)">🟢 ok</b> · <b style="color:var(--warn)">🟡 attenzione</b> · <b style="color:var(--danger)">🔴 a rischio</b> (carico alto, monotonia o scheda ferma) · ⚪ senza dati — sotto al nome trovi ACWR, da quanto non aggiorna e i PR. Clicca un profilo per i <b>parametri</b> (✎ per cambiarli). I bottoni nella riga sono lo <b>scambio scheda ↔ cliente</b>: <b>📤 Esporta scheda</b> crea il file da mandargli (lo apre e compila nell\'app')} <a href="${esc(APP_CLIENTE_URL)}" target="_blank" rel="noopener" style="color:var(--ember-2)"><b>TMS Scheda</b></a>${t(' sul telefono), <b>📥 Importa rientro</b> registra il file che ti rimanda.')} ${dataDir?`${t('Dati in')} <span class="mono">${esc(SUBDIR)}/&lt;profilo&gt;/</span>.`:t('Connetti una cartella (in alto) per salvarli su disco.')}</div></div>
    <div class="pag"><div class="pag__main">
+   <div class="prof-archivio no-print">
+     <div class="prof-archivio__tit">${t('Storico e misure di')} <b>${esc(profNome()||'—')}</b></div>
+     <div class="prof-archivio__btn">
+       <button class="btn" id="lnk-storico" title="${t('Tutte le settimane di allenamento salvate')}"><span id="dot-storico" class="prof-archivio__dot">●</span> 📜 ${t('Storico')}</button>
+       <button class="btn" id="lnk-misure" title="${t('Tutte le misure corporee salvate')}"><span id="dot-misure" class="prof-archivio__dot">●</span> 📏 ${t('Misure')}</button>
+     </div>
+   </div>
    ${items||`<div class="empty">${t('Nessun profilo.')}</div>`}
    </div><aside class="pag__side no-print">${riepilogoProfiloAperto()}
    <div class="sec no-print" style="margin-top:4px">${t('Backup (tutti i profili insieme)')}</div>
@@ -64,6 +71,9 @@ function renderProfilo(){
    <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('Il <b>Backup dati</b> contiene schede, storico, misure e alimentazione, ma delle foto progressi porta solo i riferimenti: ripristinandolo su un altro PC le immagini mancherebbero. Usa il <b>Backup completo</b> per portarti dietro anche le foto (file più grande). I <b>video</b> non entrano in nessuno dei due: si riscaricano con l\'app.')}</div></div>
    <div class="muted no-print" id="prof-autobk" style="font-size:12px;margin-top:6px">🛟 …</div>
    </aside></div>`;
+  { const ls=document.getElementById('lnk-storico'); if(ls) ls.onclick=()=>showTab('storico'); }
+  { const lm=document.getElementById('lnk-misure'); if(lm) lm.onclick=()=>showTab('storicocorpo'); }
+  updateStatusDots();   /* i pallini verde/rosso accanto a Storico e Misure */
   { const pn=document.getElementById('prof-new'); if(pn) pn.onclick=()=>chiediTesto(t('Nuovo profilo (atleta/cliente)'),'',v=>{ const n=(v||'').trim(); if(!n)return; createProfile(n); }); }
   { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=()=>backupData(false); }
   { const bf=document.getElementById('prof-backup-full'); if(bf) bf.onclick=()=>backupData(true); }

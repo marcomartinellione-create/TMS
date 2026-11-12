@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /*
- * release.js — prepara una release COMPLETA del TMS pronta per GitHub.
+ * release.js — prepara una release COMPLETA del TMS nella cartella release/.
  *
  * Uso:
  *   npm run release                pipeline completa (build + test + note + installer)
@@ -14,10 +14,11 @@
  *   4. genera release/v<versione>/RELEASE_NOTES.md dal CHANGELOG (voci della versione)
  *      e vi copia README.md + CHANGELOG.md
  *   5. electron-builder (NSIS) e copia TMS-Setup-<versione>.exe + latest.yml
- *   6. stampa la checklist per pubblicare su GitHub (tag v<versione>, exe + latest.yml)
+ *   6. stampa come arriva all'app installata
  *
- * La pubblicazione su GitHub resta un gesto manuale (o `gh release create`, comando
- * suggerito a fine corsa): lo script prepara tutto ma non pubblica nulla da solo.
+ * Dal 2026-11-12 (indicazione di Marco, fino a nuovo ordine) NIENTE release su GitHub:
+ * l'app installata, all'avvio, guarda in questa cartella release/ e propone di installare
+ * l'installer più nuovo (electron/main.js). latest.yml serve a lei per verificare l'exe.
  */
 const fs = require('fs');
 const path = require('path');
@@ -101,18 +102,11 @@ if (senzaExe) {
   }
 }
 
-/* 6 ── checklist */
+/* 6 ── come arriva all'app (niente GitHub dal 2026-11-12) */
 console.log(`
 ═══ Release pronta in release/v${VER}/ ═══
 
-Per pubblicare su GitHub (repo marcomartinellione-create/TMS):
-  1. Releases → "Draft a new release" → tag  v${VER}
-  2. Titolo:  TMS v${VER}
-  3. Descrizione: incolla il contenuto di RELEASE_NOTES.md
-  4. Allega TUTTI E TRE i file: TMS-Setup-${VER}.exe, TMS-Setup-${VER}.exe.blockmap, latest.yml
-     (senza latest.yml niente auto-update; senza blockmap niente download differenziali)
-  5. Publish.
-
-Oppure, con GitHub CLI:
-  gh release create v${VER} "release/v${VER}/TMS-Setup-${VER}.exe" "release/v${VER}/TMS-Setup-${VER}.exe.blockmap" "release/v${VER}/latest.yml" --title "TMS v${VER}" --notes-file "release/v${VER}/RELEASE_NOTES.md" -R marcomartinellione-create/TMS
+L'app installata su questo PC la trova da sola: al prossimo avvio propone
+«↻ Installa e riavvia» (controlla l'exe contro latest.yml, poi installa e si riapre).
+Niente pubblicazione su GitHub finché Marco non lo richiede.
 `);

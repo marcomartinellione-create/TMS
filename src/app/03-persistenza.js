@@ -34,7 +34,7 @@ function setConn(state,txt){
 
 /* dati del profilo attivo (scheda/storico/corpo/alimentazione); esercizi è condiviso */
 function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
-function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; }
+function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; undoAzzera(); }
 function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],storico_risc:[],cardio:[],foto:[],dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
 
 function saveCache(){ try{
@@ -233,6 +233,7 @@ async function connectFlow(){
     setConn('on', '');
     document.getElementById('btn-connect').style.display='none';
     aggiornaTabProfilo();
+    undoAzzera();   /* i dati vengono dal disco: da qui parte l'annulla */
     renderAll();
     backupAutomaticoSeServe();  /* fire-and-forget: uno snapshot a settimana, non blocca l'avvio */
   }catch(e){
@@ -292,6 +293,7 @@ function scaricaSubito(){
 }
 function persist(which){
   if(scrittureBloccate) return;   /* niente cache né disco: lo stato in memoria può essere incompleto */
+  undoRegistra(which);   /* Ctrl+Z: mette da parte com'era prima questa parte dei dati */
   saveCache();
   if(suppressSave) return;
   if(!dataDir) return;
@@ -336,6 +338,7 @@ async function switchProfile(slug){
     setConn(dataDir?'on':'', dataDir?'':t('non connesso'));
   }
   aggiornaTabProfilo();
+  undoAzzera();   /* l'annulla vale per il profilo aperto: si riparte da qui */
   renderAll(); showTab('profilo');
 }
 async function createProfile(nome){

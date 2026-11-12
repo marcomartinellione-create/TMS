@@ -50,7 +50,7 @@ function renderCorpo(){
          ${F('grasso_viscerale','Grasso viscerale','0.1','indice')}
          <tr><td colspan="3" class="muted" style="font-size:11px">${t('Altezza, data di nascita, sesso e nome sono nel tab <b>Profilo</b> (dati invariati).')}</td></tr>
        </tbody></table></div>
-   <div class="callout callout--info no-print"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», raggiungibile dal link nel footer.')}</div></div>
+   <div class="callout callout--info no-print"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», che si apre dal tab Profilo.')}</div></div>
    <div id="foto-box"></div>
      </div>
      <aside class="pag__side">

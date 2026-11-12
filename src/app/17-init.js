@@ -3,7 +3,8 @@ let curTab='allenamento';
 const RENDERERS={profilo:renderProfilo,allenamento:renderAllenamento,cardio:renderCardio,storico:renderStorico,progressi:renderProgressi,corpo:renderCorpo,storicocorpo:renderStoricoCorpo,alimentazione:renderAlimentazione,analisi:renderAnalisi,esercizi:renderEsercizi,report:renderReport,guida:renderGuida};
 function showTab(t){
   curTab=t;
-  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('is-active',b.dataset.tab===t));
+  /* Storico e Misure si aprono dal Profilo: mentre li guardi resta acceso quel tab */
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('is-active',b.dataset.tab===t||(b.dataset.tab==='profilo'&&(t==='storico'||t==='storicocorpo'))));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('is-active',p.id==='panel-'+t));
   RENDERERS[t](); updateStatusDots();
 }
@@ -43,22 +44,21 @@ async function init(){
   fillDatalists();
   migrateStorico(); migrateScheda(); migrateExNames();  /* normalizza dati embedded/cache (idempotente) */
   normalizeAlim();
+  undoAzzera(); document.addEventListener('keydown', undoTasti);   /* Ctrl+Z / Ctrl+Y */
   document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
   document.getElementById('btn-connect').onclick=()=>gateShow('first');
   document.getElementById('overlay-btn').onclick=pickDirectory;
-  document.getElementById('lnk-storico').onclick=e=>{e.preventDefault(); showTab('storico');};
-  document.getElementById('lnk-misure').onclick=e=>{e.preventDefault(); showTab('storicocorpo');};
   { const av=document.getElementById('app-ver');
-    if(av){ av.textContent='v'+APP_VERSION;
-      let nClick=0, tClick=0;  /* 5 click ravvicinati sulla versione = log errori interni */
+    if(av){ av.parentNode.title='Training Monitor System · v'+APP_VERSION;   /* la versione si legge passando su «TMS» */
+      let nClick=0, tClick=0;  /* 5 click ravvicinati sulla scritta «TMS» = log errori interni */
       av.onclick=()=>{ const ora=Date.now(); if(ora-tClick>3000) nClick=0; tClick=ora; if(++nClick>=5){ nClick=0; mostraLogErrori(); } }; } }
   /* 5 click ravvicinati sul ✦ accanto a «TMS» (barra in alto) = TACCUINO dell'autore.
-     Gesto gemello di quello sulla versione, ma su un elemento diverso: così non si pestano. */
+     Gesto gemello di quello sulla scritta «TMS», ma su un elemento diverso: così non si pestano. */
   { const sg=document.querySelector('.topbar__mark .sigil');
     if(sg){ sg.style.cursor='default'; let n=0, tt=0;
       sg.onclick=async()=>{ const ora=Date.now(); if(ora-tt>3000) n=0; tt=ora;
         if(++n>=5){ n=0; await taccLeggi(); taccModal(); } }; } }
-  translateStatic();  /* traduce il markup statico (barra, tab, footer, overlay, disclaimer) in EN */
+  translateStatic();  /* traduce il markup statico (barra, tab, overlay, disclaimer) in EN */
   { const bl=document.getElementById('btn-lang');
     if(bl){ bl.textContent=LANG==='it'?'EN':'IT'; bl.title=LANG==='it'?'Switch to English':'Torna all\'italiano';
       bl.onclick=()=>setLang(LANG==='it'?'en':'it'); } }
