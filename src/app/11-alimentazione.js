@@ -128,6 +128,42 @@ function omsRenderSection(){
     <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Nutriente')}</th><th>${t('Settimana')}</th><th>${t('Riferimento')}</th><th>${t('Indice')}</th><th>—</th></tr></thead><tbody>${body}</tbody></table></div>
     <div class="callout callout--info"><div>${t('📐 Valori settimanali = piano giornaliero × 7, confrontati con i riferimenti <b>OMS/FAO</b> per adulto (energia e proteine personalizzati su fabbisogno e peso). I nutrienti <b>(max)</b> sono limiti da non superare. Riferimenti indicativi: non sostituiscono un parere medico/nutrizionale.')}</div></div>`;
 }
+/* ── PANNELLO LATERALE DEL PIANO (2026-11, schermo intero) ────────────────────────
+   Accanto alla tabella dei pasti: quanta energia porta il piano rispetto al fabbisogno,
+   com'è ripartita fra i macronutrienti, quanto pesa ogni pasto e quali nutrienti sono
+   fuori dai riferimenti. Tutto calcolato al volo dal piano della fase attiva. */
+function pannelloPiano(fase){
+  const rows=((DOC.alimentazione||{})[fase]||[]).filter(r=>r&&r.alimento);
+  if(!rows.length) return `<div class="lat"><h4>🧭 ${t('Il piano in sintesi')}</h4><div class="empty">${t('Aggiungi un pasto e i suoi alimenti: qui vedrai energia, macronutrienti e ripartizione fra i pasti.')}</div></div>`;
+  const u=DOC.dati_utente||{}, tot=faseTot(rows), fabb=bodyCalc(u).metab||0, peso=+u.peso||0;
+  const kP=tot.proteine*4, kC=tot.zuccheri*4, kG=tot.grassi*9, kM=(kP+kC+kG)||1;
+  const pct=x=>Math.round(x/kM*100);
+  const d=fabb? tot.kcal-fabb : 0, scala=Math.max(tot.kcal,fabb)||1;
+  const pasti=[]; rows.forEach(r=>{ const p=_pastoDi(r); let o=pasti.find(x=>x.p===p); if(!o){ o={p:p,k:0}; pasti.push(o); } o.k+=foodVal(r.alimento,r.grammi,'kcal'); });
+  const maxP=Math.max(1,...pasti.map(x=>x.k));
+  const fuori=omsRef(u).map(([lab,key,type,val,unit])=>{ const day=rows.reduce((a,r)=>a+foodVal(r.alimento,r.grammi,key),0), q=val>0? day/val*100 : 0;
+      return {lab:lab,type:type,q:q,ok: type==='limit'? q<=100 : q>=90}; }).filter(x=>!x.ok).sort((a,b)=>(a.type==='limit'?-a.q:a.q)-(b.type==='limit'?-b.q:b.q));
+  const nRic=rows.filter(r=>{ const f=FOODBYNAME[String(r.alimento).trim()]; return f&&f.tipo==='R'; }).length;
+  return `<div class="lat"><h4>🔥 ${t('Energia')} <span class="muted">${t('piano contro fabbisogno')}</span></h4>
+      <div class="lat-num"><span>${t('Piano')}</span><b>${nf(tot.kcal,0)} kcal</b></div>
+      <div class="lat-barra"><span style="width:${(tot.kcal/scala*100).toFixed(1)}%;background:var(--orange)"></span></div>
+      ${fabb?`<div class="lat-num"><span>${t('Fabbisogno')}</span><b>${nf(fabb,0)} kcal</b></div>
+      <div class="lat-barra"><span style="width:${(fabb/scala*100).toFixed(1)}%;background:var(--ink-4)"></span></div>
+      <div class="lat-num" style="margin-top:4px"><span>${d>=0?t('Surplus'):t('Deficit')}</span><b style="color:${Math.abs(d)<50?'var(--ok)':(d>0?'var(--orange)':'var(--violet)')}">${d>=0?'+':'−'}${nf(Math.abs(d),0)} kcal/${t('giorno')}</b></div>`
+      :`<div class="lat-nota">${t('Per il confronto col fabbisogno inserisci metabolismo basale e livello di attività nel tab Corpo.')}</div>`}</div>
+    <div class="lat"><h4>🥩 ${t('Macronutrienti')} <span class="muted">${t('quota dell’energia')}</span></h4>
+      <div class="lat-barra"><span style="width:${pct(kP)}%;background:var(--danger)"></span><span style="width:${pct(kC)}%;background:var(--gold-2)"></span><span style="width:${pct(kG)}%;background:var(--violet)"></span></div>
+      <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--danger);margin-right:5px"></i>${t('Proteine')}</span><span><b>${nf(tot.proteine,0)} g</b> · ${pct(kP)}%${peso?` · ${nf(tot.proteine/peso,1)} g/kg`:''}</span></div>
+      <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--gold-2);margin-right:5px"></i>${t('Carboidrati')}</span><span><b>${nf(tot.zuccheri,0)} g</b> · ${pct(kC)}%${peso?` · ${nf(tot.zuccheri/peso,1)} g/kg`:''}</span></div>
+      <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--violet);margin-right:5px"></i>${t('Grassi')}</span><span><b>${nf(tot.grassi,0)} g</b> · ${pct(kG)}%${peso?` · ${nf(tot.grassi/peso,1)} g/kg`:''}</span></div>
+      <div class="lat-num"><span>${t('Fibre')}</span><span><b>${nf(tot.fibre,0)} g</b></span></div></div>
+    <div class="lat"><h4>🍽 ${t('Energia per pasto')}</h4>
+      <div class="lat-giorni">${pasti.map(x=>`<span>${esc(t(x.p))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.k/maxP*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${nf(x.k,0)} kcal · ${tot.kcal?Math.round(x.k/tot.kcal*100):0}%</span>`).join('')}</div>
+      <div class="lat-nota">${rows.length} ${t('alimenti')}${nRic?` · ${nRic} ${t('ricette')}`:''}</div></div>
+    <div class="lat"><h4>📐 ${t('Fuori dai riferimenti')} <span class="muted">OMS/FAO</span></h4>
+      ${fuori.length? fuori.slice(0,8).map(x=>`<div class="lat-num"><span>${esc(t(x.lab))}${x.type==='limit'?` <span class="muted">${t('(max)')}</span>`:''}</span><b style="color:${x.type==='limit'||x.q<60?'var(--danger)':'var(--gold-2)'}">${nf(x.q,0)}%</b></div>`).join('')+(fuori.length>8?`<div class="lat-nota">+ ${fuori.length-8} ${t('altri nella tabella qui sotto')}</div>`:'')
+        : `<div class="lat-num"><span style="color:var(--ok)">✓ ${t('Tutti i nutrienti nei riferimenti')}</span></div>`}</div>`;
+}
 function renderAlimentazione(){
   const A=DOC.alimentazione; A.bulk=A.bulk||[]; A.mant=A.mant||[]; A.cut=A.cut||[];
   const fase=faseAlimActive(); omsFase=fase; const tF=faseTot(A[fase]);
@@ -180,7 +216,8 @@ function renderAlimentazione(){
    <div class="callout"><div>${t('🍖 Banca dati')} <b>${FOOD.length}</b> ${t('alimenti. Clicca <b>＋ scegli alimento…</b> per selezionare dalla tabella completa (con macro). Usa <b>▸</b> per i micro/macro. Scegli qui sotto la <b>fase</b> del piano: le fasi non attive restano salvate ma non mostrate.')}</div></div>
    <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="printDieta()" style="margin-left:auto" title="${t('Stampa il piano della fase attiva in PDF A4 orizzontale (da dare al cliente)')}">${t('⬇ Stampa dieta (PDF A4)')}</button></div>
    <div class="sec">${t('Fase')} ${t(FASE_LAB[fase])} <span class="pill">${nf(tF.kcal,0)} kcal · P ${nf(tF.proteine,0)} · G ${nf(tF.grassi,0)} · C ${nf(tF.zuccheri,0)}</span></div>
-   ${faseTable(fase,A[fase])}${perSection}${omsSection}`;
+   <div class="pag"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}${omsSection}</div>
+   <aside class="pag__side no-print" id="alim-side">${pannelloPiano(fase)}</aside></div>`;
   document.querySelectorAll('#panel-alimentazione input').forEach(inp=>inp.addEventListener('input',e=>{
     const tr=e.target.closest('tr'); const fase=tr.dataset.fase, i=+tr.dataset.i, f=e.target.dataset.f;
     let v=e.target.value; if(f==='grammi')v=v===''?'':+v;

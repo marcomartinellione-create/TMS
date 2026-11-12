@@ -195,7 +195,38 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .tab .ico{font-size:15px}
 
 /* ── MAIN ── */
-.wrap{max-width:1180px; margin:0 auto; padding:22px 22px 80px}
+.wrap{max-width:none; margin:0 auto; padding:22px clamp(14px,2vw,40px) 80px}
+/* ── TUTTO SCHERMO (2026-11) ──────────────────────────────────────────────────────
+   Il contenuto non sta più in una colonna da 1180 px al centro: usa la larghezza che c'è.
+   Non si «stira» la pagina: lo spazio in più va a un PANNELLO LATERALE che spiega ciò che
+   si sta facendo nella colonna principale (la costruzione della scheda, la sintesi del
+   piano alimentare…), oppure a più grafici affiancati. Sotto i 1320 px il pannello scende
+   sotto il contenuto, com'era prima. Le pagine di solo testo restano a larghezza di lettura. */
+.pag{display:grid; grid-template-columns:minmax(0,1fr); gap:18px; align-items:start}
+.pag__main{min-width:0}
+.pag__side{min-width:0}
+@media (min-width:1320px){
+  .pag{grid-template-columns:minmax(0,1fr) clamp(330px,25vw,470px)}
+  .pag__side{position:sticky; top:66px; max-height:calc(100vh - 84px); overflow:auto; padding-right:2px}
+}
+@media (min-width:1320px) and (max-width:1500px){ .pag--stretta{grid-template-columns:minmax(0,1fr) 330px} }
+.lat{background:var(--sup); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow); padding:13px 15px 12px; margin-bottom:12px}
+.lat h4{font-size:12.5px; color:var(--ember-2); margin:0 0 8px; display:flex; align-items:center; gap:8px}
+.lat h4 .muted{font-weight:400; font-size:11px}
+.lat .empty{padding:14px 6px; font-size:12.5px}
+.lat-num{display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:12.5px; padding:3px 0}
+.lat-num b{font-family:var(--font-mono)}
+.lat-barra{position:relative; background:var(--paper-3); border-radius:var(--r-pill); height:10px; overflow:hidden; margin:5px 0 3px; display:flex}
+.lat-barra > span{display:block; height:100%}
+.lat-leg{display:flex; flex-wrap:wrap; gap:4px 12px; font-size:11px; color:var(--ink-3); margin-top:4px}
+.lat-leg i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:-1px}
+.lat-giorni{display:grid; grid-template-columns:minmax(64px,auto) 1fr auto; gap:4px 9px; align-items:center; font-size:12px}
+.lat-giorni .mono{font-size:11px; color:var(--ink-3); white-space:nowrap}
+.lat-nota{font-size:11px; line-height:1.45; color:var(--ink-3); margin-top:8px}
+.lat .bil-riga{grid-template-columns:84px 1fr 38px; font-size:12.5px}
+.chart-grid.chart-grid--fluida{grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))}
+#panel-guida, #panel-report{max-width:1240px; margin-left:auto; margin-right:auto}
+@media print{ .pag{display:block} .pag__side{display:none !important} }
 .panel{display:none}
 .panel.is-active{display:block; animation:fade .2s}
 @keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1}}

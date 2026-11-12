@@ -20,6 +20,9 @@ app.setPath('userData', tmpData);            // PRIMA di caricare il main: scrit
 const DATI = path.join(tmpData, 'TMS', 'TMS_Dati');
 const RAPPORTO = process.env.TMS_COLLAUDO_OUT || '';
 
+/* stato della finestra salvato «da una sessione precedente»: massimizzata */
+fs.writeFileSync(path.join(tmpData, 'finestra.json'), JSON.stringify({ bounds: { x: 60, y: 40, width: 1100, height: 720 }, massimizzata: true, schermoIntero: false }));
+
 require(path.join(__dirname, '..', 'electron', 'main.js'));
 
 const esiti = [];
@@ -46,6 +49,8 @@ app.on('quit', () => {
     let valido = false; try { JSON.parse(s); valido = true; } catch (e) {}
     ok(valido, 'chiusura immediata: il file scritto è JSON integro (scrittura atomica completata)');
     ok(!fs.readdirSync(path.join(DATI, 'prova-collaudo')).some(n => n.includes('.tmp-')), 'chiusura immediata: nessun file temporaneo lasciato a metà');
+    { let s = null; try { s = JSON.parse(fs.readFileSync(path.join(tmpData, 'finestra.json'), 'utf8')); } catch (e) {}
+      ok(s && s.massimizzata === true && s.bounds && s.bounds.width > 0, 'finestra: alla chiusura lo stato (massimizzata) è su disco'); }
   }
   chiudi();
 });
@@ -64,8 +69,15 @@ app.whenReady().then(async () => {
       pronto = await js('typeof dataDir!=="undefined" && !!dataDir && !!profileDir && typeof scrittureBloccate!=="undefined" && !scrittureBloccate').catch(() => false);
     }
     ok(pronto, 'app avviata e collegata ai dati locali');
+    /* ── finestra che si ricorda ── */
+    ok(win.isMaximized(), 'finestra: si riapre massimizzata, come era stata chiusa');
+    { const nb = win.getNormalBounds(); ok(Math.abs(nb.width - 1100) <= 2 && Math.abs(nb.height - 720) <= 2, 'finestra: ricorda anche la dimensione «normale» (1100×720)'); }
+    win.unmaximize(); await attendi(900);
+    { let s = null; try { s = JSON.parse(fs.readFileSync(path.join(tmpData, 'finestra.json'), 'utf8')); } catch (e) {}
+      ok(s && s.massimizzata === false, 'finestra: tolta la massimizzazione, lo stato viene salvato'); }
+    win.maximize(); await attendi(300);
     if (!pronto) throw new Error('avvio non riuscito');
-    await js('window.confirm=function(){return true;}; window.alert=function(){}; var _d=document.getElementById("disc-ok"); if(_d) _d.click(); true');
+    await js('conferma=function(){return Promise.resolve(true);}; avviso=function(){return Promise.resolve();}; var _d=document.getElementById("disc-ok"); if(_d) _d.click(); true');
     ok(await js('typeof window.tmsFS.cestina==="function"'), 'ponte dati: canale «cestina» esposto al renderer');
 
     /* ── profilo di prova: creato, scritto, eliminato, ricreato ── */

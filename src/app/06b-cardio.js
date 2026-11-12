@@ -268,7 +268,7 @@ function cardioProgressBlock(){
   if(inf.ritmo==='passo' && ses.some(s=>passoMinKm(s)!=null)) charts.push(`<div class="chart-box"><h4>${t('⏱ Passo (min/km)')} <span class="muted" style="font-size:11px">${t('più basso = meglio')}</span></h4>${lineChart([{name:t('passo'),color:'var(--violet)',data:ses.map(s=>({x:s.data,y:passoMinKm(s)}))}],{labels:lab,fmt:fmtPasso})}</div>`);
   else if(inf.ritmo==='velocita' && ses.some(s=>velocitaKmh(s)!=null)) charts.push(`<div class="chart-box"><h4>${t('🚀 Velocità media (km/h)')}</h4>${lineChart([{name:'km/h',color:'var(--violet)',data:ses.map(s=>({x:s.data,y:velocitaKmh(s)}))}],{labels:lab})}</div>`);
   if(inf.quota && ses.some(s=>+s.quota>0)) charts.push(`<div class="chart-box"><h4>${t('⛰ Dislivello D+ (m)')}</h4>${lineChart([{name:'D+',color:'var(--ink-3)',data:ses.map(s=>({x:s.data,y:+s.quota||null}))}],{labels:lab})}</div>`);
-  let grid=''; for(let i=0;i<charts.length;i+=2){ grid+=`<div class="chart-grid">${charts[i]}${charts[i+1]||''}</div>`; }
+  const grid= charts.length? `<div class="chart-grid chart-grid--fluida">${charts.join('')}</div>` : '';
   const selHtml=`<select id="prog-cardio-sport" style="margin-left:auto;font-size:13px">${sports.map(sp=>`<option value="${esc(sp)}"${sp.toLowerCase()===sel.toLowerCase()?' selected':''}>${esc(t(sp))}</option>`).join('')}</select>`;
   return `<div class="sec">${t('Cardio · progressione per sport')} ${selHtml}</div>
     ${ses.length<2?`<div class="callout callout--info"><div>${t('Servono almeno 2 sedute di')} <b>${esc(t(sel))}</b> ${t('per vedere un andamento.')}</div></div>`:''}

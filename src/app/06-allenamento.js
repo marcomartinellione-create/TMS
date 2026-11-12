@@ -288,9 +288,55 @@ function bilanciamentoSerie(){
 }
 /* mezze serie in giro: 12 resta «12», 12,5 non diventa «12.5» */
 function bilNum(v){ const x=Math.round(v*10)/10; return x===Math.round(x)? String(x) : String(x).replace('.',','); }
+/* righe «gruppo · barra sulla sua zona utile · serie», dalla più alla meno allenata (usate
+   dal riquadro ⚖ e dal pannello laterale della scheda) */
+function bilRigheHTML(per){
+  return Object.keys(per).sort((a,b)=>per[b]-per[a]).map(g=>{
+    const v=per[g], rf=RIF_GRUPPO[g], scala=Math.max(v, rf.max)||1;
+    const q=Math.round(v/scala*100), qmin=Math.round(rf.min/scala*100), qmax=Math.round(rf.max/scala*100);
+    const fuori=(v<rf.sotto||v>rf.sopra);
+    return `<div class="bil-riga${fuori?' is-fuori':''}" title="${esc(t('zona utile')+' '+rf.min+'-'+rf.max)}">
+      <span class="bil-nome">${esc(t(g))}</span>
+      <span class="bil-barra"><span class="bil-zona" style="left:${qmin}%;width:${Math.max(qmax-qmin,1)}%"></span><span class="bil-fill" style="width:${q}%;background:${v?'var(--orange)':'transparent'}"></span></span>
+      <span class="bil-val mono">${bilNum(v)}</span></div>`; }).join('');
+}
+function verdettoDir(sp,tr){ return (!sp&&!tr) ? '' : (tr<sp*0.8 ? t('poca trazione') : sp<tr*0.6 ? t('poca spinta') : t('in equilibrio')); }
+/* ── PANNELLO LATERALE DELLA SCHEDA (2026-11, schermo intero) ─────────────────────
+   Mentre si scrive la scheda, a fianco si vede COME sta venendo: la forma (ragnatela della
+   distribuzione fra i gruppi), la quantità (serie per gruppo sulla loro zona utile), spinta
+   contro trazione, com'è ripartito il lavoro fra i giorni e in che fasce di intensità cade.
+   Sono gli stessi calcoli del riquadro ⚖ Bilanciamento e dei Progressi, ma sulla scheda in
+   scrittura e aggiornati a ogni tasto. Sola lettura: non salva e non cambia nulla. */
+const FASCE_ORD=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
+const FASCE_COL={'Forza':'#991b1b','Forza+Iper':'#c2500a','Ipertrofia':'#d4a017','Resistenza':'#2f7d4f','Metabolico':'#7a3ea8'};
+function pannelloCostruzione(){
+  const bil=bilanciamentoSerie(), rows=schedaRows();
+  if(!bil.tot) return `<div class="lat"><h4>🧭 ${t('Come sta venendo la scheda')}</h4><div class="empty">${t('Aggiungi qualche esercizio: qui vedrai in tempo reale com’è distribuito il lavoro fra gruppi muscolari, giorni e intensità.')}</div></div>`;
+  const sp=bil.dir.spinta, tr=bil.dir.trazione, totDir=sp+tr;
+  /* per giorno: serie, esercizi diversi, TL */
+  const gg=schedaDays(rows).map(g=>{ let s=0,tl=0; const n=new Set();
+    rows.forEach(r=>{ if(r.giorno!==g||!r.esercizio) return; s+=+r.serie||0; tl+=sTL(r); n.add(r.esercizio); });
+    return {g:g,s:s,tl:tl,n:n.size}; });
+  const maxTL=Math.max(1,...gg.map(x=>x.tl)), totTL=gg.reduce((a,x)=>a+x.tl,0);
+  /* per fascia di intensità: serie */
+  const band={}; let conPct=0;
+  rows.forEach(r=>{ if(!r.esercizio) return; const p=sPct(r), s=+r.serie||0; if(p&&s){ const fb=fascia(p)[0]; if(fb!=='—'){ band[fb]=(band[fb]||0)+s; conPct+=s; } } });
+  const fasceBarra=FASCE_ORD.filter(b=>band[b]).map(b=>`<span style="width:${(band[b]/conPct*100).toFixed(1)}%;background:${FASCE_COL[b]}" title="${esc(t(b))}: ${bilNum(band[b])} ${t('serie')}"></span>`).join('');
+  const fasceLeg=FASCE_ORD.filter(b=>band[b]).map(b=>`<span><i style="background:${FASCE_COL[b]}"></i>${esc(t(b))} ${Math.round(band[b]/conPct*100)}%</span>`).join('');
+  return `<div class="lat"><h4>🕸 ${t('Distribuzione fra i gruppi')} <span class="muted">${t('verde = schede equilibrate')}</span></h4>
+      ${radarChart(vociDistribuzione(bil.per),{w:360,h:270})}</div>
+    <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${bil.tot} ${t('serie in scheda')}</span></h4>
+      ${bilRigheHTML(bil.per)}
+      ${totDir?`<div class="lat-num" style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px"><span>${t('Spinta · Trazione')}</span><span><b>${bilNum(sp)} · ${bilNum(tr)}</b> <span class="muted">${esc(verdettoDir(sp,tr))}</span></span></div>
+      <div class="lat-barra"><span style="width:${(sp/totDir*100).toFixed(1)}%;background:var(--orange)"></span><span style="width:${(tr/totDir*100).toFixed(1)}%;background:var(--violet)"></span></div>`:''}
+      <div class="lat-nota">${t('Serie piene sui muscoli principali, mezze su quelli coinvolti di striscio. La tacca verde è la zona utile del gruppo; in rosso chi ne è nettamente fuori.')}</div></div>
+    <div class="lat"><h4>📅 ${t('Carico per giorno')} <span class="muted">TL ${nfk(totTL)}</span></h4>
+      <div class="lat-giorni">${gg.map(x=>`<span>${esc(t(x.g))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.tl/maxTL*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${bilNum(x.s)} ${t('serie')} · ${x.n} ${t('es.')} · ${nfk(x.tl)}</span>`).join('')}</div></div>
+    ${conPct?`<div class="lat"><h4>🎯 ${t('Intensità')} <span class="muted">${t('serie per fascia di %1RM')}</span></h4>
+      <div class="lat-barra">${fasceBarra}</div><div class="lat-leg">${fasceLeg}</div></div>`:''}`;
+}
 function bilanciamentoModal(){
   const bil=bilanciamentoSerie(), per=bil.per;
-  const gruppi=Object.keys(per);
   /* la ragnatela dice la DISTRIBUZIONE (quote %), l'elenco accanto la QUANTITÀ */
   const items=vociDistribuzione(per);
   /* la lettura a parole accanto al disegno: il radar dice "che forma ha", la riga
@@ -300,14 +346,7 @@ function bilanciamentoModal(){
   /* la barra si legge sulla fascia DEL SUO gruppo, non su una scala comune: piena a metà
      vuol dire «a metà della zona utile per questo gruppo», che è la domanda vera. Il
      tratto verde segna dove comincia la fascia. */
-  const righe=gruppi.slice().sort((a,b)=>per[b]-per[a]).map(g=>{
-    const v=per[g], rf=RIF_GRUPPO[g], scala=Math.max(v, rf.max)||1;
-    const q=Math.round(v/scala*100), qmin=Math.round(rf.min/scala*100), qmax=Math.round(rf.max/scala*100);
-    const fuori=(v<rf.sotto||v>rf.sopra);
-    return `<div class="bil-riga${fuori?' is-fuori':''}" title="${esc(t('zona utile')+' '+rf.min+'-'+rf.max)}">
-      <span class="bil-nome">${esc(t(g))}</span>
-      <span class="bil-barra"><span class="bil-zona" style="left:${qmin}%;width:${Math.max(qmax-qmin,1)}%"></span><span class="bil-fill" style="width:${q}%;background:${v?'var(--orange)':'transparent'}"></span></span>
-      <span class="bil-val mono">${bilNum(v)}</span></div>`; }).join('');
+  const righe=bilRigheHTML(per);
   /* spinta contro trazione: lo squilibrio più comune, e quello che il radar per gruppi
      non mostra (pettorali e schiena possono pareggiare mentre spalle e tricipiti no) */
   /* soglie asimmetriche: sulle 60 schede equilibrate di riferimento la mediana di spinta
@@ -315,7 +354,7 @@ function bilanciamentoModal(){
      spalla consigliano semmai di tirare PIÙ di quanto si spinge. Quindi si segnala presto
      chi spinge troppo, tardi il contrario. */
   const sp=bil.dir.spinta, tr=bil.dir.trazione;
-  const verdetto = (!sp&&!tr) ? '' : (tr<sp*0.8 ? t('poca trazione') : sp<tr*0.6 ? t('poca spinta') : t('in equilibrio'));
+  const verdetto = verdettoDir(sp,tr);
   /* fuori dalla griglia dell'elenco: la colonna dei numeri è larga 42px e la barra alta 9,
      due valori più il verdetto non ci stanno */
   const rigaDir = (sp||tr) ? `<div class="bil-dir">
@@ -399,13 +438,15 @@ function renderAllenamento(){
      <button class="btn" id="btn-prefill" title="${t('Riprendi peso/rip/RIR dalla scorsa registrazione')}">${t('↧ Dalla scorsa')}</button>
      <button class="btn btn--ember" id="btn-save-sched">${t('💾 Salva nello Storico')}</button>
    </div>
+   <div class="pag"><div class="pag__main">
    ${statusBanner(DOC.storico,'Storico allenamento')}
    <div class="sec">${t('Scheda '+schedaMode)} <span class="pill">${rows.length} ${t('righe-set')}</span><span class="pill" id="hdr-tottl" style="margin-left:6px">${t('TL totale')} ${nfk(totTL)}</span><span id="hdr-delta">${deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px" title="${t('TL totale ultima scheda salvata')}">${t('ultima')} ${nfk(prevTotal)}</span>`}</span><button class="btn btn--sm no-print" id="btn-bilanc" style="margin-left:auto" title="${t('Come è bilanciata la settimana fra i gruppi muscolari')}">${t('⚖ Bilanciamento')}</button><button class="btn btn--sm no-print" id="btn-colonne" style="margin-left:6px" title="${t('Scegli quali colonne mostrare')}">${t('▦ Colonne')}</button></div>
    <div class="tbl-wrap"><table class="${useRirActive()?'':'hide-rir'} ${classiColonnePesi()}">
      <thead><tr><th class="l">${t('Esercizio')}</th><th class="l col-note">${t('Note')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th class="col-rest">${t('Rest')}</th><th class="col-rm">1RM</th><th class="col-rm">%1RM</th><th class="col-tl">TL</th><th class="col-dtl" title="${t('Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda')}">Δ TL set</th><th>${t('Fascia / azioni')}</th></tr></thead>
      <tbody>${body||`<tr><td colspan="12" class="empty"><span class="empty__ico">🏋</span>${t('<b>La scheda è vuota.</b><br>Aggiungi il primo esercizio: scegli il giorno e poi l\'esercizio dal catalogo.')}<br><button class="btn btn--ember" onclick="aggiungiEsercizioModal()">${t('＋ Aggiungi il primo esercizio')}</button></td></tr>`}</tbody>
    </table></div>
-   <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> nella cella dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:var(--warn)">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>`;
+   <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> nella cella dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:var(--warn)">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>
+   </div><aside class="pag__side no-print" id="pesi-side">${pannelloCostruzione()}</aside></div>`;
   wireBarSelettori();
   // auto-resize note textareas
   /* oninput (non addEventListener): il pannello resta lo stesso a ogni ridisegno, e con
@@ -505,6 +546,7 @@ function refreshSchedaCalc(){
   const prevTotal=tlUltimaScheda();
   const deltaW=prevTotal>0?(totTLnoTest/prevTotal-1):null;
   const ht=document.getElementById('hdr-tottl'); if(ht)ht.textContent=t('TL totale')+' '+nfk(totTL);
+  { const ps=document.getElementById('pesi-side'); if(ps) ps.innerHTML=pannelloCostruzione(); }   /* il pannello laterale segue ciò che si digita */
   const hd=document.getElementById('hdr-delta'); if(hd)hd.innerHTML=deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px">${t('ultima')} ${nfk(prevTotal)}</span>`;
 }
 /* ＋ Esercizio: chiede in quale giorno aggiungerlo e lo inserisce in fondo a quel giorno

@@ -1968,6 +1968,67 @@ console.log('--- T9: dati incorporati dimostrativi, correzione di una riga, Brzy
   dom.window.close();
 }
 
+console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
+{
+  const src = fs.readdirSync(path.join(ROOT, 'src', 'app')).filter(f => f.endsWith('.js') && !/^(13a-guida|00-i18n|04-modal)/.test(f))
+    .map(f => fs.readFileSync(path.join(ROOT, 'src', 'app', f), 'utf8')).join('\n');
+  ok(!/(?<![\w.])(alert|confirm)\(/.test(src), 'nel sorgente non restano alert() o confirm() di sistema');
+
+  const fsmem = makeTmsFS();
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true, dialoghiVeri: true });
+  await settleConnect(dom, fsmem);
+  const w = dom.window, d = w.document;
+  let nativi = 0; w.alert = () => { nativi++; }; w.confirm = () => { nativi++; return true; };
+  const bk = () => d.getElementById('dlg-bk'), aperto = () => !bk().classList.contains('hidden');
+
+  /* conferma: Promise, fuoco su Annulla, Esc annulla */
+  w.eval('window.__r1="?"; conferma("Riga uno\\nRiga <b>due</b>").then(function(v){ window.__r1=v; });'); await settle(30);
+  ok(aperto() && d.getElementById('dlg').innerHTML.includes('Riga uno<br>Riga &lt;b&gt;due&lt;/b&gt;'), 'conferma: riquadro dell\'app, testo protetto e a capo rispettati');
+  ok(d.activeElement === d.getElementById('dlg-no'), 'conferma: il fuoco parte da Annulla (un Invio distratto non conferma)');
+  d.getElementById('dlg-si').click(); await settle(10);
+  ok(w.eval('window.__r1') === true && !aperto(), 'conferma: «Conferma» risolve true e chiude');
+  w.eval('window.__r2="?"; conferma("x").then(function(v){ window.__r2=v; });'); await settle(30);
+  bk().dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await settle(10);
+  ok(w.eval('window.__r2') === false && !aperto(), 'conferma: Esc annulla');
+
+  /* due avvisi ravvicinati si mettono in fila; il riquadro sotto resta com'è */
+  w.eval('modal("<h3>Riquadro sotto</h3><input id=\\"sotto\\" value=\\"abc\\">"); avviso("primo"); avviso("secondo");'); await settle(30);
+  ok(aperto() && d.getElementById('dlg').textContent.includes('primo') && !d.getElementById('dlg').textContent.includes('secondo'), 'avvisi: uno alla volta, in fila');
+  ok(!d.getElementById('modal-bk').classList.contains('hidden') && d.getElementById('sotto').value === 'abc', 'avviso sopra un riquadro aperto: quello sotto resta intatto');
+  d.getElementById('dlg-ok').click(); await settle(30);
+  ok(aperto() && d.getElementById('dlg').textContent.includes('secondo'), 'avvisi: chiuso il primo compare il secondo');
+  d.getElementById('dlg-ok').click(); await settle(10);
+  ok(!aperto() && d.getElementById('sotto') !== null, 'avvisi: chiusi tutti, il riquadro sotto è ancora lì');
+  w.eval('closeModal()');
+
+  /* un flusso vero: eliminare un Training Set chiede conferma con il riquadro dell'app */
+  w.eval('showTab("allenamento"); creaTrainingSet("Di prova","__vuota__");');
+  const nSet = w.eval('DOC.scheda.setsOrdine.length');
+  w.eval('eliminaTrainingSet()'); await settle(30);
+  ok(aperto() && d.getElementById('dlg').textContent.includes('Di prova'), 'elimina Training Set: la conferma è il riquadro dell\'app');
+  d.getElementById('dlg-no').click(); await settle(20);
+  ok(w.eval('DOC.scheda.setsOrdine.length') === nSet && w.eval('DOC.scheda.setAttivo') === 'Di prova', 'elimina Training Set: Annulla non elimina nulla');
+  w.eval('eliminaTrainingSet()'); await settle(30); d.getElementById('dlg-si').click(); await settle(30);
+  ok(w.eval('DOC.scheda.setsOrdine.length') === nSet - 1 && w.eval('DOC.scheda.setAttivo') !== 'Di prova', 'elimina Training Set: confermando viene eliminato');
+  ok(nativi === 0, 'nessuna finestra di sistema è stata aperta');
+
+  /* pannelli laterali */
+  w.eval('renderAllenamento()');
+  { const side = d.getElementById('pesi-side'); const prima = side.textContent;
+    ok(side !== null && side.closest('.pag') !== null && side.querySelectorAll('.lat').length >= 3 && side.querySelectorAll('.bil-riga').length === 6, 'Pesi: pannello laterale accanto alla scheda, con le serie dei sei gruppi');
+    const inp = d.querySelector('#panel-allenamento tr[data-i] input[data-f="serie"]'); inp.value = String((+inp.value || 0) + 7); inp.dispatchEvent(new w.Event('input', { bubbles: true }));
+    ok(d.getElementById('pesi-side').textContent !== prima, 'Pesi: il pannello laterale si aggiorna mentre si digita');
+    ok(d.activeElement === inp || d.contains(inp), 'Pesi: aggiornando il pannello la casella in cui si scrive non viene ricreata'); }
+  w.eval('showTab("alimentazione")');
+  { const side = d.getElementById('alim-side');
+    ok(side !== null && /kcal/.test(side.textContent) && side.querySelectorAll('.lat').length === 4, 'Alimentazione: pannello laterale con energia, macronutrienti, pasti e riferimenti'); }
+  w.eval('showTab("progressi")');
+  ok(d.querySelectorAll('#panel-progressi .chart-grid--fluida').length >= 3 && d.querySelector('#panel-progressi .chart-grid--fluida').children.length === 4, 'Progressi: i grafici di una sezione stanno in un\'unica griglia che si adatta alla larghezza');
+  ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  await settle(300);
+  dom.window.close();
+}
+
 console.log('');
 console.log('RISULTATO: ' + pass + ' OK, ' + fail + ' FAIL');
 process.exit(fail ? 1 : 0);
