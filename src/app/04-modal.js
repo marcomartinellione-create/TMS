@@ -92,6 +92,33 @@ function conferma(testo, opt){
       bk.onkeydown=e=>{ if(e.key==='Escape'){ e.preventDefault(); chiudi(false); } };
       setTimeout(()=>{ try{ no.focus(); }catch(e){} },0); });
 }
+/* ── COLONNE A SCORRIMENTO INDIPENDENTE (2026-11-12) ──────────────────────────────
+   Nelle pagine a due colonne (.pag) su schermo largo ogni colonna scorre per conto suo.
+   Perché succeda la coppia deve avere un'altezza: quella che resta dalla sua posizione al
+   fondo della finestra. Si ricalcola a ogni ridisegno, cambio di scheda e ridimensionamento. */
+const PAG_LARGO=1320;
+function adattaPag(){
+  try{
+    const largo=window.innerWidth>=PAG_LARGO;
+    document.querySelectorAll('.panel.is-active .pag').forEach(p=>{
+      if(!largo){ p.style.height=''; return; }
+      const top=p.getBoundingClientRect().top+(window.scrollY||0);
+      p.style.height=Math.max(320, window.innerHeight-top-12)+'px';
+    });
+  }catch(e){}
+}
+/* avvolge un render di pagina: dopo il ridisegno le due colonne tornano dov'erano (senza,
+   aggiungere una riga in fondo alla scheda riportava la colonna in cima) e l'altezza si riadatta */
+function conColonne(tab, render){
+  return function(){
+    const p=document.getElementById('panel-'+tab), SEL='.pag__main,.pag__side';
+    const sc=p? [...p.querySelectorAll(SEL)].map(e=>e.scrollTop) : [];
+    const r=render.apply(this, arguments);
+    if(p){ const el=p.querySelectorAll(SEL); sc.forEach((v,i)=>{ if(el[i]&&v) el[i].scrollTop=v; }); }
+    adattaPag();
+    return r;
+  };
+}
 /* input testuale via modale — sostituisce window.prompt(), che Electron NON supporta
    (i bottoni che lo usavano risultavano "morti" nell'app desktop). Annulla = nessuna azione. */
 function chiediTesto(titolo, valore, cb){

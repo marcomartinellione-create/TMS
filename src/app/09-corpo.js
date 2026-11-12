@@ -7,6 +7,19 @@ function bodyCalc(u){
   return {bmi,metab,grassaKg,magraKg};
 }
 function etaOf(u){ if(u&&u.nascita){ const d=new Date(u.nascita); if(!isNaN(d)){ const t=new Date(); let a=t.getFullYear()-d.getFullYear(); const m=t.getMonth()-d.getMonth(); if(m<0||(m===0&&t.getDate()<d.getDate()))a--; return a>=0?a:0; } } return +(u&&u.eta)||0; }
+/* composizione corporea in una barra: quanta parte del peso è massa grassa, muscolare, ossea, altro */
+function composizioneLat(u,c){
+  const peso=+u.peso||0; if(!peso) return '';
+  const gr=c.grassaKg||0, mu=+u.massa_muscolare||0, os=+u.massa_ossea||0, al=Math.max(0,peso-gr-mu-os);
+  const P=x=>(x/peso*100).toFixed(1);
+  return `<div class="lat"><h4>🧬 ${t('Composizione')} <span class="muted">${nf(peso,1)} kg</span></h4>
+    <div class="lat-barra"><span style="width:${P(mu)}%;background:var(--orange)"></span><span style="width:${P(gr)}%;background:var(--danger)"></span><span style="width:${P(os)}%;background:var(--ink-4)"></span><span style="width:${P(al)}%;background:var(--paper-3)"></span></div>
+    <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--orange);margin-right:5px"></i>${t('Massa muscolare')}</span><span><b>${nf(mu,1)} kg</b> · ${nf(mu/peso*100,0)}%</span></div>
+    <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--danger);margin-right:5px"></i>${t('Massa grassa')}</span><span><b>${nf(gr,1)} kg</b> · ${nf(gr/peso*100,1)}%</span></div>
+    <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--ink-4);margin-right:5px"></i>${t('Massa ossea')}</span><span><b>${nf(os,1)} kg</b></span></div>
+    ${(DOC.storico_io||[]).length>1?(()=>{ const io=DOC.storico_io, a=io[0], b=io[io.length-1], d=(+b.peso||0)-(+a.peso||0);
+      return `<div class="lat-num" style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px"><span>${t('Dalla prima misura')} <span class="muted">(${esc(schedaLabel(a.scheda))})</span></span><b>${d>=0?'+':'−'}${nf(Math.abs(d),1)} kg</b></div>`; })():''}</div>`;
+}
 function renderCorpo(){
   const u=DOC.dati_utente; const c=bodyCalc(u);
   const io=DOC.storico_io;
@@ -27,8 +40,7 @@ function renderCorpo(){
      <div class="card k--violet"><div class="card__k">${t('Fabbisogno')}</div><div class="card__v">${nf(c.metab,0)}<small> kcal</small></div><div class="card__sub">${t('basale·PAL')}</div></div>
    </div>
    <div class="bar no-print"><div class="spacer"></div><button class="btn btn--ember" id="btn-save-io">${t('💾 Salva misure nello Storico')}</button><button class="btn btn--danger" id="btn-undo-io">${t('↶ Annulla ultimo')}</button></div>
-   <div class="chart-grid">
-     <div>
+   <div class="pag"><div class="pag__main">
        <div class="sec">${t('Dati corporei')}</div>
        <div class="tbl-wrap"><table><tbody>
          ${F('peso','Peso','0.1','kg')}
@@ -38,15 +50,16 @@ function renderCorpo(){
          ${F('grasso_viscerale','Grasso viscerale','0.1','indice')}
          <tr><td colspan="3" class="muted" style="font-size:11px">${t('Altezza, data di nascita, sesso e nome sono nel tab <b>Profilo</b> (dati invariati).')}</td></tr>
        </tbody></table></div>
+   <div class="callout callout--info no-print"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», raggiungibile dal link nel footer.')}</div></div>
+   <div id="foto-box"></div>
      </div>
-     <div>
+     <aside class="pag__side">
+       ${composizioneLat(u,c)}
        <div class="chart-box"><h4>${t('⚖ Peso')}</h4>${lineChart(wSeries,{labels:lbl,h:150})}</div>
        <div class="chart-box"><h4>BMI</h4>${lineChart(bmiSeries,{labels:lbl,h:150})}</div>
        <div class="chart-box"><h4>${t('Massa magra / muscolare')}</h4>${lineChart(massSeries,{labels:lbl,h:150})}</div>
-     </div>
-   </div>
-   <div class="callout callout--info no-print"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», raggiungibile dal link nel footer.')}</div></div>
-   <div id="foto-box"></div>`;
+     </aside>
+   </div>`;
   document.querySelectorAll('#panel-corpo [data-u]').forEach(inp=>inp.addEventListener('input',e=>{
     let v=e.target.value===''?'':+e.target.value;
     /* la massa grassa si salva come frazione (0,145): chi scrive «14.5» intende il 14,5 % */

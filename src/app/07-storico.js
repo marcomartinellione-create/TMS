@@ -1,5 +1,25 @@
 /* ════════════════ RENDER: STORICO ════════════════ */
 let stFilt={esercizio:'',macro:'',scheda:''};
+/* ── pannello laterale dello Storico: ciò che la tabella non dice a colpo d'occhio, sulle
+      righe ATTUALMENTE filtrate — carico per settimana, serie medie per gruppo, esercizi più pesanti */
+function pannelloStorico(rows){
+  rows=(rows||[]).filter(r=>!r.test);
+  if(!rows.length) return `<div class="lat"><h4>🧭 ${t('In sintesi')}</h4><div class="empty">${t('Nessuna riga con questi filtri.')}</div></div>`;
+  const sett={}, perEx={}, per={}; GRUPPI_PESI.forEach(g=>per[g]=0);
+  rows.forEach(r=>{ const s=+r.scheda||0, x=sTL(r); sett[s]=(sett[s]||0)+x; perEx[r.esercizio]=(perEx[r.esercizio]||0)+x;
+    const q=quoteGruppi(r.esercizio), qq=Object.keys(q).length? q : (r.macro?{[r.macro]:1}:{});
+    Object.keys(qq).forEach(g=>{ if(g in per) per[g]+=(+r.serie||0)*qq[g]; }); });
+  const codici=Object.keys(sett).map(Number).sort((a,b)=>a-b), ult=codici.slice(-12), nS=codici.length||1;
+  const maxS=Math.max(1,...ult.map(c=>sett[c])), totTL=codici.reduce((a,c)=>a+sett[c],0);
+  GRUPPI_PESI.forEach(g=>per[g]=per[g]/nS);
+  const top=Object.keys(perEx).sort((a,b)=>perEx[b]-perEx[a]).slice(0,7), maxE=Math.max(1,...top.map(n=>perEx[n]));
+  return `<div class="lat"><h4>📈 ${t('Carico per settimana')} <span class="muted">${nS} ${t('settimane')} · ${t('media')} ${nfk(totTL/nS)}</span></h4>
+      <div class="lat-giorni">${ult.slice().reverse().map(c=>`<span class="mono">${esc(schedaLabel(c))}</span><span class="lat-barra" style="margin:0"><span style="width:${(sett[c]/maxS*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${nfk(sett[c])}</span>`).join('')}</div>
+      ${codici.length>12?`<div class="lat-nota">${t('le ultime 12 di')} ${codici.length}</div>`:''}</div>
+    <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${t('media a settimana')}</span></h4>${bilRigheHTML(per)}</div>
+    <div class="lat"><h4>🏋 ${t('Esercizi che pesano di più')} <span class="muted">${t('quota del TL')}</span></h4>
+      <div class="lat-giorni">${top.map(n=>`<span title="${esc(exName(n))}" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(exName(n))}</span><span class="lat-barra" style="margin:0"><span style="width:${(perEx[n]/maxE*100).toFixed(1)}%;background:var(--gold-2)"></span></span><span class="mono">${Math.round(perEx[n]/totTL*100)}%</span>`).join('')}</div></div>`;
+}
 function renderStorico(){
   const schede=[...new Set(DOC.storico.map(r=>+r.scheda))].sort((a,b)=>b-a);
   let rows=DOC.storico.filter(r=>
@@ -29,9 +49,11 @@ function renderStorico(){
      <div class="field"><label>${t('Scheda')}</label><select id="st-sched"><option value="">${t('tutte')}</option>${schede.map(s=>`<option${(+stFilt.scheda)===s?' selected':''}>${s}</option>`).join('')}</select></div>
      <div class="spacer"></div><span class="pill">${rows.length} ${t('righe · TL')} ${nfk(totTL)}</span>
    </div>
+   <div class="pag"><div class="pag__main">
    <div class="tbl-wrap"><table>
      <thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Gruppo')}</th><th>${t('Sed.')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th>RIR</th><th>1RM</th><th>%1RM</th><th>TL</th><th>${t('Fascia')}</th><th class="no-print"></th></tr></thead>
-     <tbody>${body||`<tr><td colspan="12" class="empty">${t('Nessun record.')}</td></tr>`}</tbody></table></div>`;
+     <tbody>${body||`<tr><td colspan="12" class="empty">${t('Nessun record.')}</td></tr>`}</tbody></table></div>
+   </div><aside class="pag__side no-print">${pannelloStorico(rows)}</aside></div>`;
   document.getElementById('st-es').oninput=e=>{stFilt.esercizio=e.target.value; ridisegnaConFuoco('panel-storico', renderStorico);};
   document.getElementById('st-macro').onchange=e=>{stFilt.macro=e.target.value; renderStorico();};
   document.getElementById('st-sched').onchange=e=>{stFilt.scheda=e.target.value; renderStorico();};

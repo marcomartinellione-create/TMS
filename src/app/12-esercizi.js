@@ -261,6 +261,42 @@ function isCardio(e){ if(!e) return false;
    stretching nel Riscaldamento e a tenerlo FUORI dalla scheda Pesi (dove vanno gli esercizi
    di allenamento). Gli esercizi personalizzati (senza categoria) restano nella scheda. */
 function isStretching(e){ if(!e) return false; return String(e.categoria||'').toLowerCase()==='stretching'; }
+let exSel='';   /* esercizio mostrato nel pannello a lato del catalogo */
+/* ── scheda dell'esercizio (pannello laterale del catalogo): muscoli, dati, come si fa, e
+      che cosa ne dice lo storico del profilo aperto (ultima volta, record, progressione) */
+function pannelloEsercizio(nome){
+  const e=nome? esLookup(nome) : null;
+  if(!e){
+    const uso={}; (DOC.storico||[]).forEach(r=>{ if(r.esercizio&&esLookup(r.esercizio)) uso[r.esercizio]=(uso[r.esercizio]||0)+1; });
+    const top=Object.keys(uso).sort((a,b)=>uso[b]-uso[a]).slice(0,10);
+    return `<div class="lat"><h4>🧭 ${t('Scheda dell’esercizio')}</h4><div class="lat-nota" style="margin:0 0 8px">${t('Clicca una riga del catalogo: qui compaiono muscoli, istruzioni e ciò che dice il tuo storico (ultima volta, record, progressione).')}</div>
+      ${top.length?`<div class="lat-num"><span class="muted">${t('I più usati in questo profilo')}</span></div>`+top.map(n=>`<div class="lat-num"><a href="#" data-exvai="${esc(n)}" style="color:var(--ember-2)">${esc(exName(n))}</a><span class="mono muted">${uso[n]}</span></div>`).join(''):''}</div>`;
+  }
+  const chip=(m,c)=>`<span class="mchip ${c}">${esc(t(capitalizza(normMuscolo(m))))}</span>`;
+  const lp=lastPerf(e.nome), rec=realMax(e.nome), prog=exProgression(e.nome);
+  const nSett=new Set((DOC.storico||[]).filter(r=>r.esercizio===e.nome).map(r=>+r.scheda)).size;
+  const inScheda=elenchiScheda().reduce((a,el)=>a+el.filter(r=>r&&r.esercizio===e.nome).length,0);
+  const q=quotaCorpo(e.nome), istr=Array.isArray(e.istruzioni)? e.istruzioni : [];
+  return `<div class="lat"><h4 style="font-size:15px">${esc(exName(e.nome))}</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px"><span class="pill">${esc(t(e.macro||e.gruppo||'—'))}</span>${e.tipo?`<span class="pill">${esc(t(e.tipo))}</span>`:''}<span class="pill">${t('Fattore')} ${nf(e.fattore??1,2)}</span>${e.attrezzatura?`<span class="pill">${esc(e.attrezzatura)}</span>`:''}${e.livello?`<span class="pill">${esc(e.livello)}</span>`:''}${q?`<span class="pill">🧍 ${Math.round(q*100)}% ${t('del peso corporeo')}</span>`:''}${e.custom?`<span class="pill">${t('personalizzato')}</span>`:''}</div>
+      <div class="mchips">${(e.muscoli_primari||[]).map(m=>chip(m,'is-p')).join('')}${(e.muscoli_secondari||[]).map(m=>chip(m,'is-s')).join('')}</div>
+      <div class="lat-nota">${t('pieno = muscolo primario (una serie intera nel Bilanciamento) · tenue = secondario (mezza)')}</div>
+      <div class="bar" style="margin:10px 0 0">${videoOf(e.nome)?`<button class="btn btn--sm" data-exvid="${esc(e.nome)}">▶ ${t('Video')}</button>`:''}<button class="btn btn--sm" data-exmod="${esc(e.nome)}">✎ ${t('Modifica')}</button></div></div>
+    <div class="lat"><h4>📒 ${t('Nel tuo storico')}</h4>
+      ${nSett? `<div class="lat-num"><span>${t('Settimane in cui l’hai fatto')}</span><b>${nSett}</b></div>
+        ${lp?`<div class="lat-num"><span>${t('Ultima volta')} <span class="muted">(${esc(schedaLabel(lp.scheda))})</span></span><b>${nf(lp.peso,1)} kg × ${nf(lp.rip,0)}</b></div>`:''}
+        ${rec?`<div class="lat-num"><span>${t('Record')} <span class="muted">(${esc(schedaLabel(rec.scheda))})</span></span><b>${nf(rec.peso,1)} kg × ${nf(rec.rip,0)}</b></div>`:''}
+        ${prog.length>1? lineChart([{name:t('1RM stimato'),color:'var(--orange-b)',data:prog.map(p=>({x:schedaLabel(p.scheda),y:p.rm||null}))}],{labels:prog.map(p=>schedaLabel(p.scheda)),h:150,w:400}) : ''}`
+        : `<div class="lat-nota" style="margin:0">${t('Mai registrato in questo profilo.')}</div>`}
+      <div class="lat-num"><span>${t('Righe nelle schede e nei Training Set')}</span><b>${inScheda}</b></div></div>
+    ${istr.length?`<div class="lat"><h4>📖 ${t('Come si esegue')}</h4><ol class="lat-istr">${istr.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`:''}`;
+}
+function wireExSide(){
+  const s=document.getElementById('ex-side'); if(!s) return;
+  s.querySelectorAll('[data-exvid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.exvid));
+  s.querySelectorAll('[data-exmod]').forEach(b=>b.onclick=()=>exEdit(b.dataset.exmod));
+  s.querySelectorAll('[data-exvai]').forEach(a=>a.onclick=ev=>{ ev.preventDefault(); exSel=a.dataset.exvai; s.innerHTML=pannelloEsercizio(exSel); s.scrollTop=0; wireExSide(); });
+}
 let exSottoAperte={};  /* "macro::sotto" -> true se il menù a tendina è aperto */
 function renderEsercizi(){
   const list=EX_BASE.filter(e=>exMatch(e,exFilt));
@@ -274,18 +310,25 @@ function renderEsercizi(){
     const s=sottoOf(e), key=g+'::'+s, aperta=!!exFilt||!!exSottoAperte[key];  /* la ricerca apre tutto */
     if(s!==lastS){lastS=s; body+=`<tr data-sub="${esc(key)}" style="cursor:pointer" title="${aperta?t('Chiudi'):t('Apri')} ${esc(t(s))}"><td colspan="6" class="l" style="background:var(--paper-2);color:var(--ink-3);font-size:11px;letter-spacing:.4px;text-transform:uppercase;padding:5px 12px;user-select:none">${aperta?'▾':'▸'} ${esc(t(s))} <span style="opacity:.65;text-transform:none;letter-spacing:0">(${conta[key]})</span></td></tr>`;}
     if(!aperta) return;
-    body+=`<tr><td class="l">${esc(exName(e.nome))}${videoOf(e.nome)?`<button class="vidbtn no-print" data-vid="${esc(e.nome)}" title="${t('Guarda il video')}">▶</button>`:''}</td><td class="l">${esc(e.target||'')}</td><td>${esc(t(g))}</td><td class="l">${esc(e.tipo||'')}</td><td class="num cell-out">${nf(e.fattore,2)}</td>
+    body+=`<tr data-exrow="${esc(e.nome)}"${exSel===e.nome?' class="is-sel"':''}><td class="l">${esc(exName(e.nome))}${videoOf(e.nome)?`<button class="vidbtn no-print" data-vid="${esc(e.nome)}" title="${t('Guarda il video')}">▶</button>`:''}</td><td class="l">${esc(e.target||'')}</td><td>${esc(t(g))}</td><td class="l">${esc(e.tipo||'')}</td><td class="num cell-out">${nf(e.fattore,2)}</td>
       <td class="no-print"><button class="btn btn--sm" data-edit="${esc(e.nome)}" title="${t('modifica')}">✎</button></td></tr>`;});
   document.getElementById('panel-esercizi').innerHTML=`
    <div class="bar"><div class="field"><label>${t('Cerca')}</label><input class="search" id="ex-s" value="${esc(exFilt)}" placeholder="${t('nome, muscolo, gruppo…')}"></div>
      <div class="spacer"></div><label class="pill no-print" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px" title="${t('Se attivo, dove hai caricato un tuo video (TMS_Dati/video/) si usa quello al posto del predefinito; dove non c\'è, resta il predefinito')}"><input type="checkbox" id="ex-vid-pers" style="width:auto;flex:0 0 auto"${videoPersonaliOn()?' checked':''}> ${t('Video personali')}</label><button class="btn btn--ember no-print" id="ex-add">${t('＋ Nuovo esercizio')}</button><span class="pill">${list.length} / ${EX_BASE.length}</span></div>
    <div class="callout callout--info"><div>${t('📖 Catalogo esercizi <b>modificabile</b>, raggruppato per macro gruppo e <b>sottocategoria</b> (famiglia di movimento: Panca, Affondi, Squat… — automatica dal nome, personalizzabile da ✎ → Sottocategoria). Il <b>Fattore</b> pesa il contributo al Training Load. I video integrati si possono <b>sostituire coi tuoi</b>: carica il file da ✎ → "Video personale" e attiva il toggle <b>Video personali</b>.')}</div></div>
-   <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Esercizio')}</th><th class="l">${t('Target muscolare')}</th><th>${t('Gruppo')}</th><th class="l">${t('Tipo')}</th><th>${t('Fattore')}</th><th class="no-print"></th></tr></thead><tbody>${body||`<tr><td colspan="6" class="empty">${t('Catalogo vuoto. Collega la cartella TMS: gli esercizi vengono caricati dal database (esercizi.json).')}</td></tr>`}</tbody></table></div>`;
+   <div class="pag"><div class="pag__main">
+   <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Esercizio')}</th><th class="l">${t('Target muscolare')}</th><th>${t('Gruppo')}</th><th class="l">${t('Tipo')}</th><th>${t('Fattore')}</th><th class="no-print"></th></tr></thead><tbody>${body||`<tr><td colspan="6" class="empty">${t('Catalogo vuoto. Collega la cartella TMS: gli esercizi vengono caricati dal database (esercizi.json).')}</td></tr>`}</tbody></table></div>
+   </div><aside class="pag__side no-print" id="ex-side">${pannelloEsercizio(exSel)}</aside></div>`;
   document.getElementById('ex-s').oninput=e=>{ const pos=e.target.selectionStart; exFilt=e.target.value; renderEsercizi();
     const n=document.getElementById('ex-s'); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} } };
   { const tv=document.getElementById('ex-vid-pers'); if(tv) tv.onchange=e=>setVideoPersonali(e.target.checked); }
   document.querySelectorAll('#panel-esercizi [data-sub]').forEach(h=>h.onclick=()=>{ if(exFilt)return; const k=h.dataset.sub; exSottoAperte[k]=!exSottoAperte[k]; renderEsercizi(); });
   document.getElementById('ex-add').onclick=()=>exEdit('');
+  /* un click sulla riga (non sui suoi bottoni) apre la scheda dell'esercizio nel pannello a lato */
+  document.querySelectorAll('#panel-esercizi tr[data-exrow]').forEach(tr=>tr.onclick=ev=>{ if(ev.target.closest('button')) return;
+    exSel=tr.dataset.exrow; document.querySelectorAll('#panel-esercizi tr.is-sel').forEach(x=>x.classList.remove('is-sel')); tr.classList.add('is-sel');
+    const s=document.getElementById('ex-side'); if(s){ s.innerHTML=pannelloEsercizio(exSel); s.scrollTop=0; wireExSide(); } });
+  wireExSide();
   document.querySelectorAll('#panel-esercizi [data-vid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.vid));
   document.querySelectorAll('#panel-esercizi [data-edit]').forEach(b=>b.onclick=()=>exEdit(b.dataset.edit));
 }

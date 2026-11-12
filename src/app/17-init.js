@@ -29,6 +29,11 @@ async function migrateLegacyStore(){
   }catch(e){}
 }
 async function init(){
+  /* ogni render di pagina passa da conColonne (scorrimento delle colonne conservato, altezza
+     riadattata). Si sostituisce anche il nome globale, perché i render si chiamano fra loro per nome. */
+  Object.keys(RENDERERS).forEach(k=>{ const orig=RENDERERS[k], nome=orig.name, avv=conColonne(k, orig);
+    RENDERERS[k]=avv; try{ if(nome && window[nome]===orig) window[nome]=avv; }catch(e){} });
+  window.addEventListener('resize', adattaPag);
   await migrateLegacyStore();
   loadCache();
   if(!profili.length){ profili=[profiloDemo()]; activeProfile=PROFILO_DEMO.slug; profiliDiRipiego=true; }

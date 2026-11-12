@@ -438,7 +438,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('showTab("esercizi")');
   ok(d.getElementById('panel-esercizi').innerHTML.indexOf('▸') >= 0, 'catalogo raggruppato con intestazioni di sottocategoria');
   /* v1.0.66: sottocategorie a tendina (chiuse di default, click apre) */
-  ok(d.getElementById('panel-esercizi').innerHTML.indexOf('Panca piana con bilanciere - presa media') < 0, 'tendine chiuse di default (esercizi nascosti)');
+  ok(d.querySelector('#panel-esercizi .pag__main').innerHTML.indexOf('Panca piana con bilanciere - presa media') < 0, 'tendine chiuse di default (esercizi nascosti nella tabella del catalogo)');
   w.eval('(function(){ const e=esLookup("Panca piana con bilanciere - presa media"); exSottoAperte[(e.macro||e.gruppo)+"::"+sottoOf(e)]=true; renderEsercizi(); })()');
   ok(d.getElementById('panel-esercizi').innerHTML.indexOf('Panca piana con bilanciere - presa media') >= 0, 'click sulla tendina mostra gli esercizi della famiglia');
   /* fix ricerca Esercizi: la ricostruzione ad ogni tasto ripristina il cursore (niente testo «al contrario») */
@@ -2024,6 +2024,30 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
     ok(side !== null && /kcal/.test(side.textContent) && side.querySelectorAll('.lat').length === 4, 'Alimentazione: pannello laterale con energia, macronutrienti, pasti e riferimenti'); }
   w.eval('showTab("progressi")');
   ok(d.querySelectorAll('#panel-progressi .chart-grid--fluida').length >= 3 && d.querySelector('#panel-progressi .chart-grid--fluida').children.length === 4, 'Progressi: i grafici di una sezione stanno in un\'unica griglia che si adatta alla larghezza');
+  /* due colonne a scorrimento indipendente in tutte le pagine che le hanno */
+  for (const tab of ['allenamento', 'cardio', 'storico', 'corpo', 'alimentazione', 'esercizi', 'profilo']) {
+    w.eval('showTab(' + JSON.stringify(tab) + ')');
+    const p = d.querySelector('#panel-' + tab + ' .pag');
+    ok(p !== null && p.querySelector('.pag__main') !== null && p.querySelector('.pag__side') !== null && p.querySelector('.pag__side').children.length > 0, 'due colonne: ' + tab + ' ha colonna principale e pannello laterale');
+  }
+  w.innerWidth = 1920; w.innerHeight = 1040; w.eval('showTab("allenamento")');
+  ok(d.querySelector('#panel-allenamento .pag').style.height !== '', 'schermo largo: la coppia di colonne riceve un\'altezza (ogni colonna scorre per conto suo)');
+  { d.querySelector('#panel-allenamento .pag__main').scrollTop = 137; d.querySelector('#panel-allenamento .pag__side').scrollTop = 41;
+    w.eval('schedaRows().push({giorno:"Lunedì",esercizio:"",note:"",serie:3,rip:10,peso:0,rest:"1:30"}); renderAllenamento();');
+    ok(d.querySelector('#panel-allenamento .pag__main').scrollTop === 137 && d.querySelector('#panel-allenamento .pag__side').scrollTop === 41, 'ridisegnando la pagina le due colonne restano dov\'erano (non tornano in cima)');
+    w.eval('schedaRows().pop(); renderAllenamento();'); }
+  w.innerWidth = 1100; w.eval('adattaPag()');
+  ok(d.querySelector('#panel-allenamento .pag').style.height === '', 'schermo stretto: nessuna altezza forzata, il pannello sta sotto e scorre la pagina');
+  const css = fs.readFileSync(ARTEFATTO, 'utf8');
+  ok(/html\{scrollbar-width:none\}/.test(css) && /\.pag__main::-webkit-scrollbar, \.pag__side::-webkit-scrollbar\{display:none\}/.test(css), 'la barra di scorrimento non viene mostrata, né sulla pagina né sulle colonne');
+  /* scheda dell'esercizio nel catalogo */
+  w.eval('DOC.esercizi.push({nome:"Esercizio di prova",macro:"Gambe",gruppo:"Gambe",tipo:"Multi-articolare",fattore:1,muscoli_primari:["quadricipiti"],muscoli_secondari:["glutei"],istruzioni:["Primo passo.","Secondo passo."]}); rebuildEs(); DOC.storico.push({scheda:202640,esercizio:"Esercizio di prova",seduta:1,macro:"Gambe",serie:3,rip:5,peso:80},{scheda:202641,esercizio:"Esercizio di prova",seduta:1,macro:"Gambe",serie:3,rip:5,peso:85}); exFilt="prova"; showTab("esercizi");');
+  { const tr = d.querySelector('#panel-esercizi tr[data-exrow="Esercizio di prova"]'); tr.click();
+    const s = d.getElementById('ex-side').textContent;
+    ok(tr.classList.contains('is-sel') && s.includes('Esercizio di prova') && s.includes('Primo passo.') && s.includes('85') && d.querySelectorAll('#ex-side .mchip').length === 2 && d.querySelector('#ex-side svg') !== null, 'catalogo: cliccando una riga il pannello mostra muscoli, istruzioni, ultima volta, record e progressione');
+    d.querySelector('#ex-side [data-exmod]').click();
+    ok(d.getElementById('ex-nome') !== null && d.getElementById('ex-nome').value === 'Esercizio di prova', 'catalogo: dal pannello si apre la modifica dell\'esercizio');
+    w.eval('closeModal(); exFilt=""; exSel=""; DOC.storico=DOC.storico.filter(function(r){return r.esercizio!=="Esercizio di prova";}); DOC.esercizi=DOC.esercizi.filter(function(e){return e.nome!=="Esercizio di prova";}); rebuildEs();'); }
   ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   await settle(300);
   dom.window.close();

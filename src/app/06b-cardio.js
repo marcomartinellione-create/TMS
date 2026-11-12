@@ -73,6 +73,28 @@ function cardioMinByWeek(){ const m={}; cardioList().forEach(s=>{ if(!s.data)ret
    ~2 h/settimana (120 min) ≈ 12, in piena zona di volume equilibrato (10–20). Min÷10. */
 const CARDIO_RADAR_PER_MIN=1/10;
 function cardioEquivSets(code){ return Math.round(((cardioMinByWeek()[code]||0)*CARDIO_RADAR_PER_MIN)*10)/10; }
+/* ── pannello laterale del Cardio: la settimana contro le linee guida OMS (150–300 min),
+      il carico delle ultime settimane e come si dividono i minuti fra gli sport */
+function pannelloCardio(){
+  const list=cardioList().filter(s=>s&&s.data);
+  if(!list.length) return `<div class="lat"><h4>🧭 ${t('In sintesi')}</h4><div class="empty">${t('Registra la prima attività: qui vedrai la settimana contro le linee guida, il carico nel tempo e gli sport.')}</div></div>`;
+  const sett={}, sport={};
+  list.forEach(s=>{ const w=isoWeek(new Date(s.data+'T12:00:00')), c=schedaCode(w.anno,w.sett);
+    (sett[c]=sett[c]||{au:0,min:0}); sett[c].au+=srpeCardio(s); sett[c].min+=(+s.durata||0);
+    const tp=String(s.tipo||'—'); sport[tp]=(sport[tp]||0)+(+s.durata||0); });
+  const ow=isoWeek(new Date()), oggi=schedaCode(ow.anno,ow.sett), mOggi=(sett[oggi]||{min:0}).min;
+  const ult=Object.keys(sett).map(Number).sort((a,b)=>b-a).slice(0,8), maxA=Math.max(1,...ult.map(c=>sett[c].au||sett[c].min));
+  const nomi=Object.keys(sport).sort((a,b)=>sport[b]-sport[a]), totM=nomi.reduce((a,n)=>a+sport[n],0)||1;
+  const stato= mOggi>=150? (mOggi<=300? t('nella zona consigliata') : t('oltre la zona consigliata')) : t('sotto la zona consigliata');
+  return `<div class="lat"><h4>🎯 ${t('Questa settimana')} <span class="muted">${t('OMS: 150–300 min')}</span></h4>
+      <div class="lat-num"><span>${t('Minuti')}</span><b>${nf(mOggi,0)}</b></div>
+      <div class="lat-barra" style="position:relative"><span style="width:${Math.min(100,mOggi/300*100).toFixed(1)}%;background:${mOggi>=150?'var(--ok)':'var(--orange)'}"></span><span style="position:absolute;left:50%;top:0;width:2px;height:100%;background:var(--ink-3)"></span></div>
+      <div class="lat-nota">${esc(stato)} · ${t('la tacca è a 150 minuti')}</div></div>
+    <div class="lat"><h4>🔥 ${t('Carico per settimana')} <span class="muted">sRPE (AU)</span></h4>
+      <div class="lat-giorni">${ult.map(c=>`<span class="mono">${esc(schedaLabel(c))}</span><span class="lat-barra" style="margin:0"><span style="width:${((sett[c].au||sett[c].min)/maxA*100).toFixed(1)}%;background:var(--gold-2)"></span></span><span class="mono">${nfk(sett[c].au)} · ${nf(sett[c].min,0)}′</span>`).join('')}</div></div>
+    <div class="lat"><h4>🏃 ${t('Sport')} <span class="muted">${t('quota dei minuti')}</span></h4>
+      <div class="lat-giorni">${nomi.slice(0,8).map(n=>`<span>${esc(t(n))}</span><span class="lat-barra" style="margin:0"><span style="width:${(sport[n]/totM*100).toFixed(1)}%;background:var(--violet)"></span></span><span class="mono">${nf(sport[n]/60,1)} h · ${Math.round(sport[n]/totM*100)}%</span>`).join('')}</div></div>`;
+}
 function renderCardio(){
   const list=cardioList().slice().sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')));
   const rows=list.map(s=>{ const idx=cardioList().indexOf(s); const au=srpeCardio(s), tr=trimpCardio(s);
@@ -95,9 +117,11 @@ function renderCardio(){
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">🏃 ${list.length} ${t('attività · settimana')} ${nfk(cardioWeekAU())} AU</div></div>
      <label class="btn no-print" style="cursor:pointer" title="${t('Importa un file dall\'orologio/fascia — consigliato .FIT (nativo, più completo); ok anche .TCX e .GPX (Garmin Connect, Polar Flow, Strava…)')}">${t('📥 Importa attività')}<input type="file" id="cardio-imp" accept=".fit,.tcx,.gpx,.xml,application/xml,application/gpx+xml,application/fit" style="display:none"></label>
      <button class="btn btn--ember" id="cardio-add">${t('＋ Aggiungi attività')}</button></div>
+   <div class="pag"><div class="pag__main">
    <div class="callout callout--info"><div>${t('🫀 Le attività cardio si misurano col <b>carico interno</b>, non con serie/peso. <b>sRPE</b> (Foster) = RPE × minuti. <b>TRIMP</b> (Banister) usa la <b>frequenza cardiaca</b> media e compare quando la inserisci')} ${fcMaxStimata()?`${t('(FC max')} ${fcMaxImpostata()?`<b>${fcMaxStimata()}</b> bpm`:`${t('stimata ≈')} <b>${fcMaxStimata()}</b> ${t('bpm dall\'età')}`}, ${t('FC riposo')} ${fcRiposoUtente()} ${t('bpm — impostabili nel Profilo)')}`:t('(imposta età o FC max nel Profilo per il calcolo)')}${t('. Con <b>📥 Importa attività</b> carichi un file dall\'orologio o dalla fascia (durata, FC, distanza e dislivello si compilano da soli): <b>meglio il .FIT</b> — è il formato nativo, più completo e preciso; vanno bene anche <b>.TCX</b> e <b>.GPX</b>.')}</div></div>
    <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Data')}</th><th class="l">${t('Attività')}</th><th>${t('Min')}</th><th>RPE</th><th>sRPE (AU)</th><th>km</th><th>${t('Ritmo')}</th><th>${t('FC media')}</th><th>TRIMP</th><th title="${t('Dislivello positivo')}">D+ (m)</th><th class="l">${t('Note')}</th><th class="no-print"></th></tr></thead>
-     <tbody>${rows||`<tr><td colspan="12" class="empty">${t('Nessuna attività cardio registrata. Aggiungine una col bottone ＋.')}</td></tr>`}</tbody></table></div>`;
+     <tbody>${rows||`<tr><td colspan="12" class="empty">${t('Nessuna attività cardio registrata. Aggiungine una col bottone ＋.')}</td></tr>`}</tbody></table></div>
+   </div><aside class="pag__side no-print">${pannelloCardio()}</aside></div>`;
   document.getElementById('cardio-add').onclick=()=>cardioModal(-1);
   { const imp=document.getElementById('cardio-imp'); if(imp) imp.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; e.target.value='';
       let p=null;

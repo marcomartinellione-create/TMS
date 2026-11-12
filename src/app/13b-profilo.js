@@ -1,4 +1,19 @@
 let profOpen=null, profParamCache={};
+/* quanto c'è nel profilo aperto, a colpo d'occhio (pannello laterale del tab Profilo) */
+function riepilogoProfiloAperto(){
+  const st=DOC.storico||[], sett=new Set(st.map(r=>+r.scheda).filter(Boolean));
+  const ult=sett.size? Math.max(...sett) : 0, io=DOC.storico_io||[], S=(DOC.scheda&&DOC.scheda.setsOrdine)||[];
+  const R=(a,b)=>`<div class="lat-num"><span>${a}</span><b>${b}</b></div>`;
+  return `<div class="lat"><h4>👤 ${esc(profNome()||'—')} <span class="muted">${t('profilo aperto')}</span></h4>
+    ${R(t('Settimane di allenamento salvate'), sett.size)}
+    ${ult? R(t('Ultima settimana salvata'), esc(schedaLabel(ult))) : ''}
+    ${R(t('Righe nello Storico'), st.length)}
+    ${R(t('Misure corporee'), io.length+(io.length? ' <span class="muted" style="font-weight:400">· '+esc(schedaLabel(io[io.length-1].scheda))+'</span>' : ''))}
+    ${R(t('Attività cardio'), (DOC.cardio||[]).length)}
+    ${R(t('Foto progressi'), (DOC.foto||[]).length)}
+    ${R('Training Set', S.length? esc(S.join(', ')) : '—')}
+    ${R(t('Periodi alimentari'), (((DOC.alimentazione||{}).periodi)||[]).length)}</div>`;
+}
 function renderProfilo(){
   profParamCache[activeProfile]=DOC.dati_utente;
   const FL={epley:'Epley',brzycki:'Brzycki',lombardi:'Lombardi',media:t('Media')};
@@ -41,11 +56,14 @@ function renderProfilo(){
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">👤 ${profili.length} ${t(profili.length===1?'profilo':'profili')}</div></div>
      <button class="btn btn--ember no-print" id="prof-new">${t('＋ Nuovo profilo')}</button></div>
    <div class="callout callout--info"><div>${t('Il <b>pallino</b> accanto al nome è un <b>semaforo</b> dello stato del cliente (sola lettura): <b style="color:var(--ok)">🟢 ok</b> · <b style="color:var(--warn)">🟡 attenzione</b> · <b style="color:var(--danger)">🔴 a rischio</b> (carico alto, monotonia o scheda ferma) · ⚪ senza dati — sotto al nome trovi ACWR, da quanto non aggiorna e i PR. Clicca un profilo per i <b>parametri</b> (✎ per cambiarli). I bottoni nella riga sono lo <b>scambio scheda ↔ cliente</b>: <b>📤 Esporta scheda</b> crea il file da mandargli (lo apre e compila nell\'app')} <a href="${esc(APP_CLIENTE_URL)}" target="_blank" rel="noopener" style="color:var(--ember-2)"><b>TMS Scheda</b></a>${t(' sul telefono), <b>📥 Importa rientro</b> registra il file che ti rimanda.')} ${dataDir?`${t('Dati in')} <span class="mono">${esc(SUBDIR)}/&lt;profilo&gt;/</span>.`:t('Connetti una cartella (in alto) per salvarli su disco.')}</div></div>
+   <div class="pag"><div class="pag__main">
    ${items||`<div class="empty">${t('Nessun profilo.')}</div>`}
-   <div class="sec no-print" style="margin-top:14px">${t('Backup (tutti i profili insieme)')}</div>
+   </div><aside class="pag__side no-print">${riepilogoProfiloAperto()}
+   <div class="sec no-print" style="margin-top:4px">${t('Backup (tutti i profili insieme)')}</div>
    <div class="bar no-print"><button class="btn" id="prof-backup" title="${t('Esporta i dati di TUTTI i profili in un file')}">${t('⭳ Backup dati')}</button> <button class="btn" id="prof-backup-full" title="${t('Come il backup dati, ma con dentro anche le immagini delle foto progressi')}">${t('⭳ Backup completo (con foto)')}</button> <label class="btn" style="cursor:pointer" title="${t('Importa un backup')}">${t('⭱ Ripristina')}<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>
    <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('Il <b>Backup dati</b> contiene schede, storico, misure e alimentazione, ma delle foto progressi porta solo i riferimenti: ripristinandolo su un altro PC le immagini mancherebbero. Usa il <b>Backup completo</b> per portarti dietro anche le foto (file più grande). I <b>video</b> non entrano in nessuno dei due: si riscaricano con l\'app.')}</div></div>
-   <div class="muted no-print" id="prof-autobk" style="font-size:12px;margin-top:6px">🛟 …</div>`;
+   <div class="muted no-print" id="prof-autobk" style="font-size:12px;margin-top:6px">🛟 …</div>
+   </aside></div>`;
   { const pn=document.getElementById('prof-new'); if(pn) pn.onclick=()=>chiediTesto(t('Nuovo profilo (atleta/cliente)'),'',v=>{ const n=(v||'').trim(); if(!n)return; createProfile(n); }); }
   { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=()=>backupData(false); }
   { const bf=document.getElementById('prof-backup-full'); if(bf) bf.onclick=()=>backupData(true); }
