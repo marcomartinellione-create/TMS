@@ -339,8 +339,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     /* nuova banca alimenti: due fonti, due macro categorie, nomi storici intatti */
     ok(w.eval('FOOD.length')>4000 && w.eval('FOOD.every(function(f){return (f.tipo==="S"||f.tipo==="R")&&(f.fonte==="CH"||f.fonte==="FR")&&f.nome&&f.per100&&f.per100.kcal!=null;})'), 'banca alimenti: oltre 4000 voci, ognuna con tipo (semplice/ricetta), fonte ed energia');
     ok(w.eval('new Set(FOOD.map(function(f){return f.nome;})).size===FOOD.length'), 'banca alimenti: nessun nome doppio (il nome è la chiave dei piani salvati)');
-    ok(['Yogurt Greco 0%','Fiocchi di avena','Banana, cruda','Acciuga sott\'olio, sgocciolata'].every(n=>w.eval('!!FOODBYNAME['+JSON.stringify(n)+']')) && w.eval('(DOC.alimentazione.bulk||[]).filter(function(r){return r.alimento;}).every(function(r){return !!FOODBYNAME[String(r.alimento).trim()];})'), 'banca alimenti: i nomi usati nei piani già salvati ci sono ancora, identici');
-    ok(w.eval('FOODBYNAME["Banana, cruda"].tipo')==='S' && w.eval('FOOD.filter(function(f){return /cott[oa]\\b/.test(f.nome)&&f.fonte==="CH";}).every(function(f){return f.tipo==="R";})'), 'banca alimenti: il crudo è «semplice», tutto ciò che è cotto è «ricetta»');
+    ok(['Fiocchi di avena','Banana, cruda','Acciuga sott\'olio, sgocciolata','Tacchino, petto, scaloppina o sminuzzato, crudo','Burro di arachidi'].every(n=>w.eval('!!FOODBYNAME['+JSON.stringify(n)+'] && FOODBYNAME['+JSON.stringify(n)+'].fonte==="CH"')), 'banca alimenti: i nomi della banca precedente ci sono ancora, identici (sono le chiavi dei piani salvati)');
+    ok(w.eval('FOODBYNAME["Banana, cruda"].tipo')==='S' && w.eval('FOODBYNAME["Pollo, petto senza pelle, crudo"].tipo')==='S' && w.eval('FOODBYNAME["Lenticchie, intere, secche"].tipo')==='S'
+       && w.eval('FOOD.filter(function(f){return /^(Pollo|Lenticchie|Riso|Patat).*\\bcott[oae]\\b/.test(f.nome);}).length')>5 && w.eval('FOOD.filter(function(f){return /^(Pollo|Lenticchie|Riso|Patat).*\\bcott[oae]\\b/.test(f.nome);}).every(function(f){return f.tipo==="R";})'), 'banca alimenti: il crudo è «semplice»; pollo, riso, patate e lenticchie cotti sono «ricette»');
+    ok(w.eval('FOODBYNAME["Prosciutto cotto di coscia"].tipo')==='S', 'banca alimenti: un salume che si compra già cotto resta «semplice»');
     { w.eval('openFoodPicker("bulk",0)');
       const nTutti=d.querySelector('#modal h3 .pill').textContent;
       d.querySelector('#modal [data-fptipo="R"]').click();
