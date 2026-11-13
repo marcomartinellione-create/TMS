@@ -7,7 +7,7 @@
 const FASE_COL={bulk:'rgba(47,125,79,.16)', mant:'rgba(201,154,52,.18)', cut:'rgba(193,70,56,.16)'};
 const FASE_DOT={bulk:'var(--ok)', mant:'var(--gold-2)', cut:'var(--danger)'};
 
-function kcalPiano(righe){ let k=0; (righe||[]).forEach(r=>{ k+=foodVal(r.alimento,r.grammi,'kcal'); }); return k; }
+function kcalPiano(righe,ricette){ let k=0; (righe||[]).forEach(r=>{ k+=foodVal(r.alimento,r.grammi,'kcal',ricette); }); return k; }   /* ricette = copia salvata nel periodo */
 
 /* vero se c2 è esattamente la settimana dopo c1 (gestisce il cambio anno: 202552→202601) */
 function settConsecutive(c1,c2){
@@ -29,7 +29,7 @@ function settimaneTra(dal,al){
 function periodiPerSettimana(){
   const m={};
   (((DOC.alimentazione||{}).periodi)||[]).forEach(p=>{
-    const kc=kcalPiano(p.righe);
+    const kc=kcalPiano(p.righe,p.ricette);
     settimaneTra(p.dal,p.al).forEach(c=>{ m[c]={fase:p.fase, kcal:kc}; });
   });
   return m;

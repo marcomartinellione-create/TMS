@@ -389,6 +389,20 @@ Due modi per registrare una seduta:
   conditi o composti: anche il semplice «pollo cotto») e **💊 integratori** (proteine in
   polvere, coi valori dell'etichetta del prodotto). Valori per 100 g scalati sui
   grammi inseriti. Col «▸» si vedono tutti i micro e macro nutrienti.
+- **👨‍🍳 Le mie ricette** (11c-ricette.js): quarta categoria del selettore (pulsante «👨‍🍳 Ricette»
+  nella barra). Una ricetta ha nome, porzioni, tempi di preparazione e cottura, descrizione,
+  procedimento, note e ingredienti (solo alimenti della banca dati, niente ricette dentro
+  ricette). Sta nel profilo, in alimentazione.json (DOC.alimentazione.ricette). I valori NON
+  sono salvati: foodLookup li ricalcola a ogni lettura, per100 = somma(ingrediente per100 x
+  grammi / 100) / peso finale x 100, col peso finale da cotto se indicato, altrimenti la somma
+  dei grammi; un nutriente che nessun ingrediente riporta resta vuoto. Nel piano si usa per
+  nome come un alimento; rinominandola, righe del piano e preferiti seguono; i periodi
+  registrati ne tengono una copia (p.ricette) e restano una fotografia.
+- **💡 Suggerimenti**: accanto ai nutrienti «obiettivo» sotto il riferimento (non ai limiti
+  ne' all'energia), nel pannello «Fuori dai riferimenti» e nell'indice OMS/FAO. Apre i 20
+  alimenti piu' ricchi per 100 g o per 100 kcal (con almeno 20 kcal); esclusi spezie, erbe e
+  alghe secche, condimenti, lievito, te' in foglie, gomme, alimenti per l'infanzia; piatti e
+  integratori su richiesta. «＋» aggiunge 100 g al pasto scelto della fase attiva.
 - Nel selettore alimenti: la **ricerca è «a parole»** (digitando più parole le trova
   anche non contigue, in qualsiasi ordine). A ricerca vuota, in cima ci sono i
   **★ Preferiti** e i **🕐 Recenti** (alimenti già usati nel piano); la stellina ☆/★

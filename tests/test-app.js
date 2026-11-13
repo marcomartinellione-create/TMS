@@ -1437,6 +1437,63 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     w.eval('closeModal()');
     ok(w.eval('typeof SPIEG_EN==="object" && Object.keys(SPIEG_EN).every(function(k){ return SPIEG[k] && SPIEG_EN[k].s.length===SPIEG[k].s.length && SPIEG_EN[k].b.length===SPIEG[k].b.length; })'),
        'Note dei grafici: la versione inglese ha le stesse voci e la stessa struttura'); }
+  /* ── Alimentazione (2026-11-13): ricette personali e suggerimenti di alimenti ── */
+  { const J = s => JSON.parse(w.eval('JSON.stringify(' + s + ')'));
+    const avena = 'Fiocchi di avena', banana = 'Banana, cruda';
+    ok(w.eval('!!FOODBYNAME[' + JSON.stringify(avena) + '] && !!FOODBYNAME[' + JSON.stringify(banana) + ']'), 'Ricette: gli ingredienti di prova esistono nella banca dati');
+    w.eval('var _alimPrima=JSON.stringify(DOC.alimentazione); DOC.alimentazione.ricette=[{id:"r1",nome:"Porridge di prova",porzioni:2,pesoFinale:"",ingredienti:[{alimento:' + JSON.stringify(avena) + ',grammi:80},{alimento:' + JSON.stringify(banana) + ',grammi:120}]}];');
+    const atteso = J('(function(){ var a=FOODBYNAME[' + JSON.stringify(avena) + '].per100, b=FOODBYNAME[' + JSON.stringify(banana) + '].per100; return {kcal:(a.kcal*0.8+b.kcal*1.2)/200*100, prot:(a.proteine*0.8+b.proteine*1.2)/200*100}; })()');
+    const fo = J('foodLookup("Porridge di prova")');
+    ok(fo && fo.tipo === 'M' && Math.abs(fo.per100.kcal - atteso.kcal) < 1e-9 && Math.abs(fo.per100.proteine - atteso.prot) < 1e-9,
+       'Ricette: i valori per 100 g sono la somma degli ingredienti divisa per il peso (' + Math.round(fo.per100.kcal) + ' kcal/100 g)');
+    ok(Math.abs(w.eval('foodVal("Porridge di prova",200,"kcal")') - atteso.kcal * 2) < 1e-9, 'Ricette: nel piano la ricetta si conta come un alimento (200 g = ricetta intera)');
+    w.eval('DOC.alimentazione.ricette[0].pesoFinale=100');
+    ok(Math.abs(J('foodLookup("Porridge di prova")').per100.kcal - atteso.kcal * 2) < 1e-9, 'Ricette: col peso finale da cotto (100 g su 200 crudi) i valori per 100 g raddoppiano');
+    w.eval('DOC.alimentazione.ricette[0].pesoFinale=""; DOC.alimentazione.ricette[0].ingredienti.push({alimento:"Ingrediente inventato",grammi:50});');
+    ok(Math.abs(J('ricettaTotali(DOC.alimentazione.ricette[0])').kcal - atteso.kcal * 2) < 1e-9, 'Ricette: un ingrediente fuori banca dati non aggiunge valori (e non rompe la somma)');
+    w.eval('DOC.alimentazione.ricette[0].ingredienti.pop()');
+    /* rinomina: il piano e i preferiti seguono il nome */
+    w.eval('DOC.alimentazione.bulk=[{pasto:"Colazione",alimento:"Porridge di prova",grammi:150}]; DOC.alimentazione.fav=["Porridge di prova"]; DOC.dati_utente.faseAlim="bulk";');
+    w.eval('apriRicetta("Porridge di prova")');
+    ok(d.getElementById('ric-nome') && d.querySelectorAll('#modal [data-ring]').length === 2 && /Totale ricetta|Whole recipe/.test(d.getElementById('modal').textContent),
+       'Ricette: l\'editor mostra ingredienti e totale della ricetta');
+    d.getElementById('ric-nome').value = 'Porridge rinominato'; d.getElementById('ric-ok').click();
+    ok(w.eval('DOC.alimentazione.bulk[0].alimento') === 'Porridge rinominato' && w.eval('DOC.alimentazione.fav[0]') === 'Porridge rinominato',
+       'Ricette: rinominando, le righe del piano e i preferiti seguono il nuovo nome');
+    w.eval('apriRicetta("Porridge rinominato")'); d.getElementById('ric-nome').value = avena;
+    let msg = ''; w.alert = x => { msg = String(x); }; d.getElementById('ric-ok').click();
+    ok(/banca dati|database/.test(msg) && w.eval('DOC.alimentazione.ricette[0].nome') === 'Porridge rinominato', 'Ricette: non si può dare a una ricetta il nome di un alimento della banca dati');
+    w.eval('closeModal()');
+    /* selettore: la categoria «Le mie ricette» c'è nel piano, non fra gli ingredienti */
+    w.eval('openFoodPicker("bulk",0)');
+    ok(d.querySelector('#modal [data-fptipo="M"]') !== null, 'Selettore: c\'è la categoria «👨‍🍳 Le mie ricette»');
+    w.eval('apriSelettoreAlimenti({senzaMie:true, scegli:function(){}, chiudi:closeModal})');
+    ok(d.querySelector('#modal [data-fptipo="M"]') === null && !/Porridge rinominato/.test(d.getElementById('modal').textContent),
+       'Selettore degli ingredienti: niente ricette personali (niente ricette dentro ricette)');
+    w.eval('closeModal()');
+    /* periodi: fotografia anche della ricetta */
+    w.eval('registraPeriodo()'); d.getElementById('per-fase').value = 'bulk'; d.getElementById('per-ok').click();
+    await new Promise(r => setTimeout(r, 30));
+    const kPer = w.eval('kcalPiano(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].righe, DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette)');
+    w.eval('DOC.alimentazione.ricette[0].ingredienti[0].grammi=300');
+    ok(w.eval('(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette||[]).length') === 1 &&
+       Math.abs(w.eval('kcalPiano(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].righe, DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette)') - kPer) < 1e-9,
+       'Periodi: conservano la ricetta di allora, cambiarla dopo non cambia le kcal del periodo');
+    w.eval('closeModal()');
+    /* suggerimenti */
+    const sf = J('suggerimenti("ferro",{ordine:"g"}).map(function(x){ return {n:x.f.nome,c:x.f.categoria||"",v:x.v}; })');
+    ok(sf.length === 20 && sf.every((x, i) => i === 0 || sf[i - 1].v >= x.v), 'Suggerimenti: i 20 alimenti più ricchi, in ordine decrescente');
+    ok(!sf.some(x => /Erbe aromatiche|Ingredienti e aiuti|Spezie|Diversi/.test(x.c) || /rosmarino|timo|alghe|nori/i.test(x.n)),
+       'Suggerimenti: niente spezie, erbe o alghe secche (si mangiano in quantità minime)');
+    ok(J('suggerimenti("vitC",{ordine:"kcal"}).every(function(x){ return x.f.per100.kcal>=20; })'), 'Suggerimenti: «per 100 kcal» ignora gli alimenti quasi senza calorie');
+    w.eval('DOC.alimentazione.bulk=[{pasto:"Colazione",alimento:' + JSON.stringify(banana) + ',grammi:100}]; showTab("alimentazione");');
+    const sugg = [...d.querySelectorAll('#alim-side [data-sugg]')].map(b => b.dataset.sugg);
+    ok(sugg.length > 0 && !sugg.includes('kcal') && !sugg.includes('sodio') && !sugg.includes('grassi'), 'Suggerimenti: il 💡 compare solo sugli obiettivi sotto il riferimento, non sui limiti né sull\'energia');
+    d.querySelector('#alim-side [data-sugg]').click();
+    ok(/Alimenti ricchi di|Foods rich in/.test(d.getElementById('modal').textContent) && d.querySelectorAll('#modal [data-sadd]').length > 0, 'Suggerimenti: il 💡 apre l\'elenco con il pulsante per aggiungerli al pasto');
+    const nPrima = w.eval('DOC.alimentazione.bulk.length'); d.querySelector('#modal [data-sadd]').click();
+    ok(w.eval('DOC.alimentazione.bulk.length') === nPrima + 1 && w.eval('DOC.alimentazione.bulk[DOC.alimentazione.bulk.length-1].grammi') === 100, 'Suggerimenti: «＋» aggiunge 100 g dell\'alimento al pasto scelto');
+    w.eval('DOC.alimentazione=JSON.parse(_alimPrima); closeModal(); showTab("allenamento");'); }
   /* ── ricerca esercizi: i preferiti che corrispondono vanno in cima ── */
   { w.eval('(DOC.esercizi||[]).forEach(function(e){ e.fav=false; }); var t2=esLookup("Trazioni presa supina (chin-up)"); if(t2) t2.fav=true;');
     w.eval('pickExercise("", function(){}, null); document.getElementById("exp-q").value="trazioni"; document.getElementById("exp-q").oninput();');

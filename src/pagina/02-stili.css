@@ -461,6 +461,19 @@ input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange)
 @media print{ .spieg-btn{display:none !important} }
 /* la nota: impaginata come un breve articolo scientifico */
 .modal:has(.spieg-doc){max-height:92vh; overflow-y:auto}   /* la nota è lunga: scorre dentro il riquadro */
+/* ── Alimentazione: 💡 suggerimenti e ricette personali (11c-ricette.js) ── */
+.sugg-btn{border:0; background:none; padding:0 2px; margin-left:3px; cursor:pointer; font-size:12px; line-height:1; vertical-align:baseline;
+  filter:saturate(.7); opacity:.8; transition:transform var(--rapida), opacity var(--rapida)}
+.sugg-btn:hover, .sugg-btn:focus-visible{opacity:1; transform:scale(1.2); filter:none}
+.modal:has(.ric-tab){max-height:94vh; overflow-y:auto}
+.ric-tab tfoot td{background:var(--paper-3)}
+.ric-tab tfoot tr.ric-tot td{border-top:2px solid var(--border-2)}
+.ric-scheda{text-align:left; background:var(--paper); border:1px solid var(--border); border-left:3px solid var(--orange); border-radius:0 var(--r-sm) var(--r-sm) 0;
+  padding:8px 11px; margin-bottom:10px; font-size:13px}
+.ric-scheda__testa{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.ric-scheda__ing{display:flex; flex-wrap:wrap; gap:4px; margin:6px 0}
+.ric-scheda__ing .pill{text-transform:none; letter-spacing:0}
+.ric-scheda__passi{margin:4px 0 4px; padding-left:20px; font-size:12.5px}
 .spieg-doc{font-family:var(--font-body); color:var(--ink); line-height:1.55; font-size:14px}
 .spieg-kicker{font:600 10.5px var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
 .spieg-doc h3{font-family:var(--font-disp); font-size:20px; margin:4px 0 2px; color:var(--ember-2)}

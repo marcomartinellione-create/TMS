@@ -1,6 +1,6 @@
 /* ════════════════ RENDER: ALIMENTAZIONE ════════════════ */
 const NUTR=[['kcal','Kcal',0],['proteine','Prot.',1],['grassi','Grassi',1],['zuccheri','Carbo',1],['fibre','Fibre',1],['saturi','Saturi',1],['colesterolo','Colest.',0],['sodio','Sodio',0]];
-function foodVal(nome,grammi,key){ const f=FOODBYNAME[String(nome==null?'':nome).trim()]; if(!f)return 0; const v=f.per100[key]; return v==null?0:v*(+grammi||0)/100; }
+function foodVal(nome,grammi,key,ricette){ const f=foodLookup(nome,ricette); if(!f)return 0; const v=f.per100[key]; return v==null?0:v*(+grammi||0)/100; }
 function faseTot(rows){ const t={}; NUTR.forEach(([k])=>t[k]=0); rows.forEach(r=>NUTR.forEach(([k])=>t[k]+=foodVal(r.alimento,r.grammi,k))); return t; }
 const NUTR_FULL=[
  ['Macronutrienti',[['kcal','Energia','kcal',0],['proteine','Proteine','g',1],['grassi','Grassi','g',1],['saturi','di cui saturi','g',1],['monoinsaturi','monoinsaturi','g',1],['polinsaturi','polinsaturi','g',1],['zuccheri','Carboidrati','g',1],['zucch','di cui zuccheri','g',1],['fibre','Fibre','g',1],['colesterolo','Colesterolo','mg',0]]],
@@ -8,10 +8,10 @@ const NUTR_FULL=[
  ['Minerali',[['calcio','Calcio','mg',0],['ferro','Ferro','mg',1],['magnesio','Magnesio','mg',0],['potassio','Potassio','mg',0],['zinco','Zinco','mg',1],['sodio','Sodio','mg',0],['iodio','Iodio','µg',0],['fosforo','Fosforo','mg',0]]],
 ];
 function foodDetail(nome,grammi){
-  const fo=FOODBYNAME[String(nome||'').trim()];
+  const fo=foodLookup(nome);
   if(!fo) return `<span class="muted">«${esc(nome)}» ${t('non è nella banca dati: nessun dettaglio nutrienti.')}</span>`;
   const g=+grammi||0;
-  let html=`<div style="font-size:12px;color:var(--ink-3);margin-bottom:7px">${t('Valori per')} <b>${nf(g,0)} g</b> ${t('di')} <b>${esc(fo.nome)}</b>${fo.categoria?` · <span class="muted">${esc(fo.categoria)}</span>`:''} <span class="muted">${t('(tra parentesi: per 100 g)')}</span></div>`;
+  let html=(fo.ricetta? ricettaScheda(fo.ricetta) : '')+`<div style="font-size:12px;color:var(--ink-3);margin-bottom:7px">${t('Valori per')} <b>${nf(g,0)} g</b> ${t('di')} <b>${esc(fo.nome)}</b>${fo.categoria?` · <span class="muted">${esc(fo.categoria)}</span>`:''} <span class="muted">${t('(tra parentesi: per 100 g)')}</span></div>`;
   html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">`;
   NUTR_FULL.forEach(([grp,items])=>{
     html+=`<div><div class="mono" style="font-size:11px;color:var(--orange);border-bottom:1px solid var(--border);margin-bottom:4px;padding-bottom:2px">${t(grp)}</div>`;
@@ -26,7 +26,7 @@ let fpFilter='';
    (come si comprano o crudi), 'R' = ricette (cucinato, condito o composto — anche «pollo cotto»),
    'I' = integratori (proteine in polvere e simili, valori dall'etichetta) */
 let fpTipo='';
-function foodTipo(fo){ const k=fo&&fo.tipo; return k==='R'||k==='I'? k : 'S'; }
+function foodTipo(fo){ const k=fo&&fo.tipo; return k==='R'||k==='I'||k==='M'? k : 'S'; }   /* M = ricetta personale (11c-ricette.js) */
 /* preferiti alimenti (nomi) per profilo, in DOC.alimentazione.fav */
 function foodFavList(){ const A=DOC.alimentazione||{}; if(!Array.isArray(A.fav)) A.fav=[]; return A.fav; }
 function foodIsFav(nome){ return foodFavList().indexOf(String(nome||'').trim())>=0; }
@@ -35,47 +35,62 @@ function foodToggleFav(nome){ nome=String(nome||'').trim(); if(!nome)return; con
 function foodRecenti(){ const seen=new Set(), out=[]; ['bulk','mant','cut'].forEach(fa=>((DOC.alimentazione||{})[fa]||[]).forEach(r=>{ const n=String((r&&r.alimento)||'').trim(); if(n&&!seen.has(n)){ seen.add(n); out.push(n); } })); return out; }
 /* ricerca «a parole»: tutte le parole digitate presenti in nome+categoria (in qualunque ordine) */
 function foodMatch(fo,q){ q=String(q||'').trim().toLowerCase(); if(!q) return true; const hay=(fo.nome+' '+(fo.categoria||'')).toLowerCase(); return q.split(/\s+/).every(t=>hay.includes(t)); }
-function openFoodPicker(fase,i){ fpFilter=''; renderFoodPicker(fase,i); setTimeout(()=>{ try{ document.getElementById('fp-q').focus(); }catch(e){} },0); }
-function renderFoodPicker(fase,i){
-  const q=fpFilter, cap=400;
-  const rowHtml=fo=>{ const fav=foodIsFav(fo.nome);
+/* il selettore serve a due cose: scegliere l'alimento di una riga del piano e scegliere un
+   ingrediente di una ricetta. opz = {scegli(nome), chiudi(), senzaMie: niente ricette
+   personali (ingredienti), titolo} */
+let fpOpz=null;
+function openFoodPicker(fase,i){ apriSelettoreAlimenti({ scegli:nome=>{ DOC.alimentazione[fase][i].alimento=nome; persist('alimentazione'); closeModal(); renderAlimentazione(); },
+  chiudi:()=>closeModal() }); }
+function apriSelettoreAlimenti(opz){ fpOpz=opz||{}; fpFilter=''; if(fpOpz.senzaMie && fpTipo==='M') fpTipo='';
+  renderFoodPicker(); setTimeout(()=>{ try{ document.getElementById('fp-q').focus(); }catch(e){} },0); }
+function renderFoodPicker(){
+  const O=fpOpz||{}, q=fpFilter, cap=400;
+  const rowHtml=fo=>{ const fav=foodIsFav(fo.nome), tp=foodTipo(fo);
     return `<tr class="fp-row" data-nome="${esc(fo.nome)}" style="cursor:pointer">
       <td class="no-print" style="text-align:center;padding:2px;width:24px"><button class="exp-star${fav?' on':''}" data-fav="${esc(fo.nome)}" title="${fav?t('togli dai preferiti'):t('aggiungi ai preferiti')}">${fav?'★':'☆'}</button></td>
-      <td class="l">${esc(fo.nome)}${foodTipo(fo)==='R'?` <span class="pill fp-ric" title="${t('Ricetta: cucinato, condito o composto')}">${t('ricetta')}</span>`:foodTipo(fo)==='I'?` <span class="pill fp-ric" title="${t('Integratore: valori dall’etichetta del prodotto')}">${t('integratore')}</span>`:''}</td><td class="l muted" style="font-size:11px">${esc((fo.categoria||'').split('/')[0])}</td>
-      <td class="num">${nf(fo.per100.kcal,0)}</td><td class="num">${nf(fo.per100.proteine,1)}</td>
-      <td class="num">${nf(fo.per100.grassi,1)}</td><td class="num">${nf(fo.per100.zuccheri,1)}</td><td class="num">${nf(fo.per100.fibre,1)}</td></tr>`; };
-  const grp=t=>`<tr class="fp-grp"><td colspan="8" style="background:var(--paper-3);color:var(--ember-2);font-family:var(--font-disp);font-size:12px;padding:5px 10px">${t}</td></tr>`;
+      <td class="l">${tp==='M'?'👨‍🍳 ':''}${esc(fo.nome)}${tp==='R'?` <span class="pill fp-ric" title="${t('Ricetta: cucinato, condito o composto')}">${t('ricetta')}</span>`:tp==='I'?` <span class="pill fp-ric" title="${t('Integratore: valori dall’etichetta')}">${t('integratore')}</span>`:tp==='M'?` <button class="btn btn--sm" data-fpedit="${esc(fo.nome)}" title="${t('modifica la ricetta')}">✎</button>`:''}</td>
+      <td class="l muted" style="font-size:11.5px">${esc(tp==='M'?t(RIC_CATEGORIA):(fo.categoria||''))}</td>
+      <td class="num">${fo.per100.kcal==null?'—':nf(fo.per100.kcal,0)}</td><td class="num">${fo.per100.proteine==null?'—':nf(fo.per100.proteine,1)}</td>
+      <td class="num">${fo.per100.grassi==null?'—':nf(fo.per100.grassi,1)}</td><td class="num">${fo.per100.zuccheri==null?'—':nf(fo.per100.zuccheri,1)}</td><td class="num">${fo.per100.fibre==null?'—':nf(fo.per100.fibre,1)}</td></tr>`; };
+  const grp=x=>`<tr class="fp-grp"><td colspan="8" style="background:var(--paper-3);color:var(--ember-2);font-family:var(--font-disp);font-size:12px;padding:5px 10px">${x}</td></tr>`;
   let body='', count;
-  const delTipo=fo=>!fpTipo||foodTipo(fo)===fpTipo;
-  const TUTTI=fpTipo? FOOD.filter(delTipo) : FOOD;
+  const mie=O.senzaMie? [] : ricetteComeAlimenti();
+  const ammesso=fo=>!(O.senzaMie && foodTipo(fo)==='M');
+  const delTipo=fo=>ammesso(fo) && (!fpTipo||foodTipo(fo)===fpTipo);
+  const TUTTI= fpTipo==='M'? mie : (fpTipo? FOOD.filter(delTipo) : mie.concat(FOOD));
   if(q){ const list=TUTTI.filter(fo=>foodMatch(fo,q)); count=list.length; body=list.slice(0,cap).map(rowHtml).join(''); }
   else {
     const favSet=new Set(foodFavList());
-    const favFoods=foodFavList().map(n=>FOODBYNAME[n]).filter(Boolean).filter(delTipo);
-    const rec=[]; foodRecenti().forEach(n=>{ if(rec.length>=12)return; if(!favSet.has(n)){ const fo=FOODBYNAME[n]; if(fo&&delTipo(fo)) rec.push(fo); } });
+    const favFoods=foodFavList().map(n=>foodLookup(n)).filter(Boolean).filter(delTipo);
+    const rec=[]; foodRecenti().forEach(n=>{ if(rec.length>=12)return; if(!favSet.has(n)){ const fo=foodLookup(n); if(fo&&delTipo(fo)) rec.push(fo); } });
+    if(fpTipo==='M') body+=`<tr><td colspan="8" style="padding:8px 10px"><button class="btn btn--ember btn--sm" id="fp-nuova-ric">${t('＋ Nuova ricetta')}</button> <span class="muted" style="font-size:11.5px">${t('gli ingredienti si scelgono dalla banca dati e i valori si sommano da soli')}</span></td></tr>`;
     if(favFoods.length){ body+=grp(t('★ Preferiti'))+favFoods.map(rowHtml).join(''); }
     if(rec.length){ body+=grp(t('🕐 Recenti'))+rec.map(rowHtml).join(''); }
-    if(favFoods.length||rec.length) body+=grp(t('Tutti gli alimenti'));
+    if(favFoods.length||rec.length) body+=grp(fpTipo==='M'?t('Le mie ricette'):t('Tutti gli alimenti'));
     body+=TUTTI.slice(0,cap).map(rowHtml).join(''); count=TUTTI.length;
   }
+  const tipi=[['',t('Tutti')],['S',t('🥕 Alimenti semplici')],['R',t('🍲 Ricette')],['I',t('💊 Integratori')]].concat(O.senzaMie?[]:[['M',t('👨‍🍳 Le mie ricette')]]);
   const m=document.getElementById('modal'); m.style.maxWidth='820px';
-  m.innerHTML=`<h3>${t('Scegli un alimento')} <span class="pill" style="font-weight:400">${count} ${t('risultati')}${count>cap?' · '+t('primi')+' '+cap:''}</span></h3>
-    <div class="fp-tipi no-print">${[['',t('Tutti')],['S',t('🥕 Alimenti semplici')],['R',t('🍲 Ricette')],['I',t('💊 Integratori')]].map(([k,l])=>`<button type="button" class="btn btn--sm${fpTipo===k?' btn--ember':''}" data-fptipo="${k}">${l}</button>`).join('')}
+  m.innerHTML=`<h3>${esc(O.titolo||t('Scegli un alimento'))} <span class="pill" style="font-weight:400">${count} ${t('risultati')}${count>cap?' · '+t('primi')+' '+cap:''}</span></h3>
+    <div class="fp-tipi no-print">${tipi.map(([k,l])=>`<button type="button" class="btn btn--sm${fpTipo===k?' btn--ember':''}" data-fptipo="${k}">${l}</button>`).join('')}
       <span class="muted" style="font-size:11px;margin-left:6px">${t('semplici = come si comprano o crudi · ricette = cucinati, conditi o composti · integratori = valori dall’etichetta')}</span></div>
     <input id="fp-q" class="search" style="width:100%;margin-bottom:8px" placeholder="${t('cerca a parole: nome o categoria…')}" value="${esc(fpFilter)}">
     <div style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:var(--r-sm)">
     <table><thead><tr><th class="no-print"></th><th class="l">${t('Alimento')}</th><th class="l">${t('Categoria')}</th><th>Kcal</th><th>Prot</th><th>${t('Grassi')}</th><th>Carbo</th><th>${t('Fibre')}</th></tr></thead>
-    <tbody>${body||`<tr><td colspan="8" class="empty">${t('Nessun alimento.')}</td></tr>`}</tbody></table></div>
+    <tbody>${body||`<tr><td colspan="8" class="empty">${fpTipo==='M'?t('Nessuna ricetta: creane una con «＋ Nuova ricetta».'):t('Nessun alimento.')}</td></tr>`}</tbody></table></div>
     <div class="muted" style="font-size:11px;margin-top:6px">${t('Valori per 100 g · clicca una riga per selezionare · ☆/★ per i preferiti')}</div>
-    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`;
+    <div class="modal__actions"><button class="btn" id="fp-chiudi">${t('Chiudi')}</button></div>`;
   document.getElementById('modal-bk').classList.remove('hidden');
-  m.querySelectorAll('[data-fptipo]').forEach(b=>b.onclick=()=>{ fpTipo=b.dataset.fptipo; renderFoodPicker(fase,i); try{ document.getElementById('fp-q').focus(); }catch(e){} });
+  document.getElementById('fp-chiudi').onclick=()=>{ m.style.maxWidth=''; if(O.chiudi) O.chiudi(); else closeModal(); };
+  m.querySelectorAll('[data-fptipo]').forEach(b=>b.onclick=()=>{ fpTipo=b.dataset.fptipo; renderFoodPicker(); try{ document.getElementById('fp-q').focus(); }catch(e){} });
   const qi=document.getElementById('fp-q');
-  qi.oninput=e=>{ fpFilter=e.target.value; const pos=qi.selectionStart; renderFoodPicker(fase,i); const ni=document.getElementById('fp-q'); ni.focus(); try{ni.setSelectionRange(pos,pos);}catch(_){} };
-  m.querySelectorAll('.exp-star').forEach(s=>s.onclick=ev=>{ ev.stopPropagation(); const sc=m.querySelector('div[style*="overflow:auto"]'); const y=sc?sc.scrollTop:0; foodToggleFav(s.dataset.fav); renderFoodPicker(fase,i); const sc2=document.getElementById('modal').querySelector('div[style*="overflow:auto"]'); if(sc2)sc2.scrollTop=y; });
-  m.querySelectorAll('.fp-row').forEach(tr=>tr.onclick=()=>{
-    DOC.alimentazione[fase][i].alimento=tr.dataset.nome; persist('alimentazione');
-    m.style.maxWidth=''; closeModal(); renderAlimentazione(); });
+  qi.oninput=e=>{ fpFilter=e.target.value; const pos=qi.selectionStart; renderFoodPicker(); const ni=document.getElementById('fp-q'); ni.focus(); try{ni.setSelectionRange(pos,pos);}catch(_){} };
+  m.querySelectorAll('.exp-star').forEach(s=>s.onclick=ev=>{ ev.stopPropagation(); const sc=m.querySelector('div[style*="overflow:auto"]'); const y=sc?sc.scrollTop:0; foodToggleFav(s.dataset.fav); renderFoodPicker(); const sc2=document.querySelector('#modal div[style*="overflow:auto"]'); if(sc2) sc2.scrollTop=y; });
+  /* una ricetta si crea o si modifica dal selettore e poi si torna qui, con la stessa scelta */
+  const torna=()=>{ apriSelettoreAlimenti(O); fpTipo='M'; renderFoodPicker(); };
+  const nr=document.getElementById('fp-nuova-ric'); if(nr) nr.onclick=()=>apriRicetta('', torna);
+  m.querySelectorAll('[data-fpedit]').forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); apriRicetta(b.dataset.fpedit, torna); });
+  m.querySelectorAll('.fp-row').forEach(tr=>tr.onclick=()=>{ m.style.maxWidth=''; if(O.scegli) O.scegli(tr.dataset.nome); });
 }
 let alimDet=null;
 let omsFase='bulk';
@@ -110,6 +125,9 @@ function omsRef(u){ const c=bodyCalc(u); const en=c.metab||2000, peso=+u.peso||7
    ['Fosforo','fosforo','target', 700,'mg'],
   ];
 }
+/* 💡 accanto a un nutriente sotto il riferimento: suggerisce gli alimenti che ne sono ricchi
+   (11c-ricette.js). Solo per gli obiettivi, non per i limiti né per l'energia. */
+function suggBtn(x){ return (x.type==='target' && x.key!=='kcal')? ` <button type="button" class="sugg-btn no-print" data-sugg="${esc(x.key)}" title="${esc(t('Alimenti ricchi di')+' '+t(x.lab))}" aria-label="${esc(t('Suggerisci alimenti'))}">💡</button>` : ''; }
 function omsRenderSection(){
   const u=DOC.dati_utente; const refs=omsRef(u); const fase=omsFase;
   const rows=DOC.alimentazione[fase]||[];
@@ -120,7 +138,7 @@ function omsRenderSection(){
     const ok = type==='limit'? pct<=100 : pct>=90;
     const col = ok? 'var(--ok)' : (type==='limit'? 'var(--danger)' : (pct<60?'var(--danger)':'var(--gold-2)'));
     const barw=Math.max(2,Math.min(pct,100)), dec=val<10?1:0;
-    body+=`<tr><td class="l">${t(lab)} ${type==='limit'?`<span class="muted" title="${t('limite massimo da non superare')}">${t('(max)')}</span>`:''}</td>
+    body+=`<tr><td class="l">${t(lab)} ${type==='limit'?`<span class="muted" title="${t('limite massimo da non superare')}">${t('(max)')}</span>`:''}${ok?'':suggBtn({key:key,type:type,lab:lab})}</td>
       <td class="num">${nf(week,dec)} ${unit}</td><td class="num muted">${nf(refw,dec)} ${unit}</td>
       <td class="num" style="color:${col};font-weight:600">${nf(pct,0)}%</td>
       <td style="width:80px;min-width:60px"><div style="background:var(--paper-3);border-radius:var(--r-pill);height:9px;overflow:hidden"><div style="width:${barw}%;height:100%;background:${col}"></div></div></td></tr>`;
@@ -142,8 +160,8 @@ function pannelloPiano(fase){
   const pasti=[]; rows.forEach(r=>{ const p=_pastoDi(r); let o=pasti.find(x=>x.p===p); if(!o){ o={p:p,k:0}; pasti.push(o); } o.k+=foodVal(r.alimento,r.grammi,'kcal'); });
   const maxP=Math.max(1,...pasti.map(x=>x.k));
   const fuori=omsRef(u).map(([lab,key,type,val,unit])=>{ const day=rows.reduce((a,r)=>a+foodVal(r.alimento,r.grammi,key),0), q=val>0? day/val*100 : 0;
-      return {lab:lab,type:type,q:q,ok: type==='limit'? q<=100 : q>=90}; }).filter(x=>!x.ok).sort((a,b)=>(a.type==='limit'?-a.q:a.q)-(b.type==='limit'?-b.q:b.q));
-  const nRic=rows.filter(r=>{ const f=FOODBYNAME[String(r.alimento).trim()]; return f&&f.tipo==='R'; }).length;
+      return {lab:lab,key:key,type:type,q:q,ok: type==='limit'? q<=100 : q>=90}; }).filter(x=>!x.ok).sort((a,b)=>(a.type==='limit'?-a.q:a.q)-(b.type==='limit'?-b.q:b.q));
+  const nRic=rows.filter(r=>{ const f=foodLookup(r.alimento); return f&&(f.tipo==='R'||f.tipo==='M'); }).length;
   return `<div class="lat"><h4>🔥 ${t('Energia')} <span class="muted">${t('piano contro fabbisogno')}</span>${spiegaBtn('energia')}</h4>
       <div class="lat-num"><span>${t('Piano')}</span><b>${nf(tot.kcal,0)} kcal</b></div>
       <div class="lat-barra"><span style="width:${(tot.kcal/scala*100).toFixed(1)}%;background:var(--orange)"></span></div>
@@ -161,7 +179,7 @@ function pannelloPiano(fase){
       <div class="lat-giorni">${pasti.map(x=>`<span>${esc(t(x.p))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.k/maxP*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${nf(x.k,0)} kcal · ${tot.kcal?Math.round(x.k/tot.kcal*100):0}%</span>`).join('')}</div>
       <div class="lat-nota">${rows.length} ${t('alimenti')}${nRic?` · ${nRic} ${t('ricette')}`:''}</div></div>
     <div class="lat"><h4>📐 ${t('Fuori dai riferimenti')} <span class="muted">OMS/FAO</span>${spiegaBtn('nutrienti')}</h4>
-      ${fuori.length? fuori.slice(0,8).map(x=>`<div class="lat-num"><span>${esc(t(x.lab))}${x.type==='limit'?` <span class="muted">${t('(max)')}</span>`:''}</span><b style="color:${x.type==='limit'||x.q<60?'var(--danger)':'var(--gold-2)'}">${nf(x.q,0)}%</b></div>`).join('')+(fuori.length>8?`<div class="lat-nota">+ ${fuori.length-8} ${t('altri nella tabella qui sotto')}</div>`:'')
+      ${fuori.length? fuori.slice(0,8).map(x=>`<div class="lat-num"><span>${esc(t(x.lab))}${x.type==='limit'?` <span class="muted">${t('(max)')}</span>`:''}${suggBtn(x)}</span><b style="color:${x.type==='limit'||x.q<60?'var(--danger)':'var(--gold-2)'}">${nf(x.q,0)}%</b></div>`).join('')+(fuori.length>8?`<div class="lat-nota">+ ${fuori.length-8} ${t('altri nella tabella qui sotto')}</div>`:'')
         : `<div class="lat-num"><span style="color:var(--ok)">✓ ${t('Tutti i nutrienti nei riferimenti')}</span></div>`}</div>`;
 }
 function renderAlimentazione(){
@@ -177,9 +195,9 @@ function renderAlimentazione(){
         <button class="btn btn--sm no-print" data-mealedit data-fase="${fase}" data-meal="${esc(meal)}" title="${t('rinomina pasto')}" style="margin-left:8px">✎</button>
         <button class="btn btn--sm no-print" data-mealadd data-fase="${fase}" data-meal="${esc(meal)}" title="${t('aggiungi alimento a questo pasto')}">＋</button>
         <button class="btn btn--sm btn--danger no-print" data-mealdel data-fase="${fase}" data-meal="${esc(meal)}" title="${t('elimina pasto')}">🗑</button></td></tr>`;
-      idxs.forEach(i=>{ const r=rows[i]; const known=!!FOODBYNAME[String(r.alimento||'').trim()];
+      idxs.forEach(i=>{ const r=rows[i]; const fo=foodLookup(r.alimento), known=!!fo, mia=!!(fo&&fo.ricetta);
         body+=`<tr data-fase="${fase}" data-i="${i}">
-          <td class="l"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span> <button class="btn btn--sm no-print food-pick" data-fase="${fase}" data-i="${i}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${r.alimento?'':'color:var(--ink-4)'}">${r.alimento?esc(r.alimento):t('＋ scegli alimento…')}</button>${r.alimento&&!known?` <span class="pill" title="${t('non nella banca dati')}">?</span>`:''}</td>
+          <td class="l"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span> <button class="btn btn--sm no-print food-pick" data-fase="${fase}" data-i="${i}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${r.alimento?'':'color:var(--ink-4)'}">${r.alimento?(mia?'👨‍🍳 ':'')+esc(r.alimento):t('＋ scegli alimento…')}</button>${r.alimento&&!known?` <span class="pill" title="${t('non nella banca dati')}">?</span>`:''}</td>
           <td><input class="cell-in" type="number" min="0" data-f="grammi" value="${r.grammi??''}" style="width:62px"></td>
           <td class="num cell-out">${nf(foodVal(r.alimento,r.grammi,'kcal'),0)}</td>
           <td class="num cell-calc">${nf(foodVal(r.alimento,r.grammi,'proteine'),1)}</td>
@@ -204,7 +222,7 @@ function renderAlimentazione(){
   /* periodi alimentari registrati (per il tab Analisi) */
   const periodi=A.periodi||[];
   const perRows=periodi.map((p,i)=>`<tr><td><span class="pill">${esc(t(FASE_LAB[p.fase]||p.fase))}</span></td>
-     <td>${esc(p.dal||'')}</td><td>${esc(p.al||'')}</td><td class="num">${nf(kcalPiano(p.righe),0)}</td><td class="num">${(p.righe||[]).length}</td>
+     <td>${esc(p.dal||'')}</td><td>${esc(p.al||'')}</td><td class="num">${nf(kcalPiano(p.righe,p.ricette),0)}</td><td class="num">${(p.righe||[]).length}</td>
      <td class="no-print"><button class="btn btn--sm btn--danger" data-perdel="${i}" title="${t('elimina periodo')}">✕</button></td></tr>`).join('');
   const perSection=`
    <div class="sec" style="margin-top:18px">${t('Periodi')} <span class="pill">${periodi.length}</span></div>
@@ -213,7 +231,7 @@ function renderAlimentazione(){
      <tbody>${perRows||`<tr><td colspan="6" class="empty">${t('Nessun periodo registrato.')}</td></tr>`}</tbody></table></div>
    <div class="bar no-print"><button class="btn btn--ember" id="per-add">${t('📅 Registra il piano attuale come periodo…')}</button> <button class="btn" onclick="showTab('analisi')">${t('📊 Vai all\'Analisi')}</button></div>`;
   document.getElementById('panel-alimentazione').innerHTML=`
-   <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="apriStampaDieta()" style="margin-left:auto" title="${t('Apri l\'anteprima per sistemare la stampa del piano della fase attiva (PDF A4 orizzontale, da dare al cliente)')}">${t('🍽 Stampa dieta')}</button></div>
+   <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--sm" id="ricette-btn" style="margin-left:auto" title="${t('Le ricette di questo profilo: ingredienti, tempi, procedimento e valori sommati')}">${t('👨‍🍳 Ricette')}</button><button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="apriStampaDieta()" title="${t('Apri l\'anteprima per sistemare la stampa del piano della fase attiva (PDF A4 orizzontale, da dare al cliente)')}">${t('🍽 Stampa dieta')}</button></div>
    <div class="pag pag--tre"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}</div>
    <aside class="pag__side no-print" id="alim-side">${pannelloPiano(fase)}</aside>
    <div class="pag__terza" id="alim-oms">${omsSection}</div></div>`;
@@ -246,6 +264,7 @@ function renderAlimentazione(){
     if(!await conferma(t('Eliminare il pasto «')+t(meal)+t('» e tutti i suoi alimenti?')))return;
     DOC.alimentazione[fase]=DOC.alimentazione[fase].filter(r=>((((r.pasto||'').trim())||'Senza pasto')!==meal)); persist('alimentazione'); renderAlimentazione(); });
   { const pa=document.getElementById('per-add'); if(pa) pa.onclick=registraPeriodo; }
+  { const rb=document.getElementById('ricette-btn'); if(rb) rb.onclick=ricetteModal; }
   document.querySelectorAll('#panel-alimentazione [data-perdel]').forEach(b=>b.onclick=async()=>{
     const i=+b.dataset.perdel; const p=(DOC.alimentazione.periodi||[])[i]; if(!p) return;
     if(!await conferma(t('Eliminare il periodo')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+p.al+'?')) return;
@@ -451,7 +470,8 @@ function registraPeriodo(){
     /* safe check: sovrapposizione date con periodi già registrati */
     const overlap=DOC.alimentazione.periodi.filter(p=>!(al<p.dal || dal>p.al));
     if(overlap.length && !await conferma(t('⚠ Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
-    DOC.alimentazione.periodi.push({id:Date.now().toString(36), fase:fase, dal:dal, al:al, righe:righe});
+    const ricP=ricetteUsateIn(righe);   /* le ricette personali usate: copia, così il periodo resta una fotografia */
+    DOC.alimentazione.periodi.push(Object.assign({id:Date.now().toString(36), fase:fase, dal:dal, al:al, righe:righe}, ricP.length?{ricette:ricP}:{}));
     DOC.alimentazione.periodi.sort((a,b)=>a.dal<b.dal?-1:1);
     persist('alimentazione'); closeModal(); renderAlimentazione();
     avviso(t('✔ Periodo registrato:')+' '+t(FASE_LAB[fase]||fase)+' '+dal+' → '+al+' ('+righe.length+' '+t('alimenti,')+' '+nf(kcalPiano(righe),0)+' '+t('kcal/giorno).'));

@@ -416,7 +416,7 @@ const SPIEG_EN={
    ['Method and formulas',`<div class="spf">Index = <span class="fr"><i>daily amount in the plan</i><i>reference</i></span> × 100<span class="spn">(1)</span></div>
      References (E = requirement, or 2,000 kcal if missing): energy E; protein 0.83 g/kg; carbohydrates 55% E; fiber 25 g (targets, met from 90%); total fat ≤ 30% E; saturated ≤ 10% E; sugars ≤ 10% E; cholesterol ≤ 300 mg; sodium ≤ 2,000 mg (limits, met up to 100%); vitamins and minerals according to FAO/WHO values.`],
    ['Worked example',`Fiber 18 g out of 25 → <b>72%</b> (yellow, below target); sodium 2,600 mg out of 2,000 → <b>130%</b> (red, limit exceeded).`],
-   ['How to read it',`These are population references for health, not sports targets: protein at 0.83 g/kg is the minimum for a sedentary adult.`],
+   ['How to read it',`These are population references for health, not sports targets: protein at 0.83 g/kg is the minimum for a sedentary adult. The 💡 next to a low nutrient lists the foods richest in it, per 100 g or per 100 kcal.`],
    ['Limitations',`Indicative references, not medical or nutritional advice; the quality of the values depends on the food database.`]],
   b:['WHO/FAO (2003). <i>Diet, nutrition and the prevention of chronic diseases</i>. WHO Technical Report Series 916. Geneva: WHO.',
      'WHO/FAO/UNU (2007). <i>Protein and amino acid requirements in human nutrition</i>. WHO Technical Report Series 935.',

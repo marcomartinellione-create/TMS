@@ -427,7 +427,7 @@ const SPIEG={
    ['Metodo e formule',`<div class="spf">Indice = <span class="fr"><i>quantità giornaliera nel piano</i><i>riferimento</i></span> × 100<span class="spn">(1)</span></div>
      Riferimenti (E = fabbisogno, o 2 000 kcal se manca): energia E; proteine 0,83 g/kg; carboidrati 55% E; fibre 25 g (obiettivi, in regola da 90%); grassi totali ≤ 30% E; saturi ≤ 10% E; zuccheri ≤ 10% E; colesterolo ≤ 300 mg; sodio ≤ 2 000 mg (limiti, in regola fino a 100%); vitamine e minerali secondo i valori FAO/OMS.`],
    ['Esempio svolto',`Fibre 18 g su 25 → <b>72%</b> (giallo, sotto obiettivo); sodio 2 600 mg su 2 000 → <b>130%</b> (rosso, limite superato).`],
-   ['Come leggerlo',`Sono riferimenti di popolazione per la salute, non obiettivi sportivi: le proteine a 0,83 g/kg sono il minimo per un adulto sedentario.`],
+   ['Come leggerlo',`Sono riferimenti di popolazione per la salute, non obiettivi sportivi: le proteine a 0,83 g/kg sono il minimo per un adulto sedentario. Il 💡 accanto a un nutriente scarso elenca gli alimenti che ne sono più ricchi, per 100 g o per 100 kcal.`],
    ['Limiti',`Riferimenti indicativi, non un parere medico o nutrizionale; la qualità dei valori dipende dalla banca dati degli alimenti.`]],
   b:['WHO/FAO (2003). <i>Diet, nutrition and the prevention of chronic diseases</i>. WHO Technical Report Series 916. Ginevra: WHO.',
      'WHO/FAO/UNU (2007). <i>Protein and amino acid requirements in human nutrition</i>. WHO Technical Report Series 935.',

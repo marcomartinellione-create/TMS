@@ -34,6 +34,7 @@
     "app/09b-corpo-foto.js",
     "app/10-storico-corpo.js",
     "app/11-alimentazione.js",
+    "app/11c-ricette.js",
     "app/11b-analisi.js",
     "app/12-esercizi.js",
     "app/13-report.js",
