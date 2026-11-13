@@ -4,6 +4,31 @@
 
 ---
 
+### 2026-11-13 — TMS v1.1.21: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.20
+**Descrizione**:
+- Stampa dieta: barre dei pasti più basse e colonne di larghezza fissa, uguali in tutti i pasti, con grammi e valori incolonnati; mappa esterna: scartati i 3 abbinamenti in sospeso
+- Mappa muscolare esterna: prima revisione dei 604 agganci (452 convalidati, 18 corretti, 16 rifiutati, 3 da decidere), col motivo di ogni scelta nel file di convalida
+- Ragnatela «distribuzione fra i gruppi»: riferimento scelto per esperienza (anagrafica) e tipo di allenamento (Training Set), con quante schede, studi e fonti lo reggono e l'avviso quando i dati non bastano
+- Corpo: composizione e i tre grafici in una griglia 2×2, riquadri tutti della stessa grandezza
+- Stampa dieta: tolto il bug che rompeva «togli riga»; Corpo: box simmetrici e grafici in griglia
+- Stampa dieta: tolta la classe CSS che andava in crash coi nomi dei pasti con lo spazio
+- Corpo: grafici tornano a destra (compatti, come erano) e dati a sinistra; Stampa dieta più robusta
+- Stampa dieta: stesso motore a blocchi del Report, a schermo intero
+- Corpo: corretto come richiesto — niente scambio di contenuti, solo le proporzioni e l'ordine visivo
+- Report: il motore a blocchi diventa generico (repCtx), pronto per servire anche la Stampa dieta
+- Corpo: più respiro ai grafici, dati corporei compatti in orizzontale
+- Report: il numero di pagina (Pagina N / M) va in fondo al foglio invece che in cima
+- Report: lo scorrimento non torna più in cima, obiettivo/note/titolo si aggiornano mentre si scrive
+- Report a blocchi: a sinistra l'anteprima in fogli A4 identica al PDF, a destra gli strumenti; i blocchi si trascinano, si nascondono, hanno impostazioni proprie (titolo, spiegazione, pagina nuova, tutto in una pagina, grandezza del testo, colore, grafici affiancati o in colonna); gli elementi si spostano o si tolgono e i testi si scrivono direttamente nel foglio
+- Report modificabile a mano: con «✎ Modifica testi e tabelle» si scrive direttamente su titoli, testi e celle, si aggiungono o tolgono righe e sezioni, e il PDF esce come si vede (i dati salvati non cambiano)
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-13)
+
+---
+
 ### 2026-11-13 — TMS v1.1.20: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.19
