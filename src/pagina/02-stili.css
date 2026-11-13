@@ -567,6 +567,14 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 .rep-doc tbody td, #pdf-stage tbody td{padding:3px 7px}
 .rep-doc thead th, #pdf-stage thead th{padding:4px 7px; font-size:10.5px}
 .rep-doc .tbl-wrap, #pdf-stage .tbl-wrap{box-shadow:none}
+/* modifica a mano del report: barra degli strumenti, bordo tratteggiato, riga e sezione col cursore */
+.rep-edit-bar{gap:8px; flex-wrap:wrap; align-items:center; margin:2px 0 10px}
+.rep-edit-bar--attiva{position:sticky; top:calc(var(--topbar-h) + 46px); z-index:20; background:var(--paper-2); padding:6px 0; border-bottom:1px solid var(--border)}
+.pill--avviso{background:var(--gold-t); color:var(--ember-2); border-color:var(--gold-2)}
+.rep-doc--modifica{outline:2px dashed var(--gold-2); outline-offset:3px; cursor:text}
+.rep-doc--modifica:focus{outline-color:var(--orange)}
+.rep-doc--modifica .rep-sec.rep-sel{box-shadow:inset 3px 0 0 var(--gold)}
+.rep-doc--modifica tr.rep-sel td{background:var(--gold-t) !important}
 #pdf-stage.land{ width:297mm } #pdf-stage.land .pg{ width:297mm; height:210mm } /* A4 orizzontale (stampa dieta) */
 table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
 /* colonne facoltative della scheda Pesi (▦ Colonne): stessa convenzione del RIR */

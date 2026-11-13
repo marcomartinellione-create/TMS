@@ -322,6 +322,31 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(d.getElementById('modal').innerHTML.includes('Aggiornamento pronto'), 'modale "pronto, riavviare?" in stile app');
   d.getElementById('upd-riavvia').click();
   ok(w.eval('window.__upd.risposte.filter(function(x){return x!=="chiedi";}).join(",")') === 'scarica,riavvia', 'Riavvia ora -> risposta al wrapper');
+  /* ── 2026-11-13 — modifica a mano del Report: testi e tabelle, il PDF esce come si vede ── */
+  w.eval('closeModal(); showTab("report")'); await settle(30);
+  ok(d.getElementById('rep-edit-on') !== null && !d.querySelector('.rep-doc').isContentEditable, 'report: pulsante «Modifica testi e tabelle», documento non scrivibile finché non lo si preme');
+  d.getElementById('rep-edit-on').click(); await settle(20);
+  { const doc = d.querySelector('.rep-doc');
+    ok(doc.getAttribute('contenteditable') === 'true' && d.getElementById('rep-edit-off') && d.querySelector('[data-repop="riga-via"]'), 'report in modifica: documento scrivibile e strumenti per righe e sezioni');
+    doc.querySelector('h1').textContent = 'Report di prova';
+    doc.dispatchEvent(new w.Event('input', { bubbles: true })); await settle(300);
+    const righe0 = doc.querySelectorAll('tbody tr').length;
+    const td = doc.querySelector('tbody tr:not(.day-sep) td');
+    const rg = d.createRange(); rg.selectNodeContents(td); rg.collapse(true); const sel = w.getSelection(); sel.removeAllRanges(); sel.addRange(rg);
+    d.querySelector('[data-repop="riga-sotto"]').click();
+    ok(doc.querySelectorAll('tbody tr').length === righe0 + 1, 'report in modifica: «Riga sotto» aggiunge una riga vuota alla tabella');
+    d.querySelector('[data-repop="riga-via"]').click();
+    ok(doc.querySelectorAll('tbody tr').length === righe0, 'report in modifica: «Togli riga» toglie la riga col cursore'); }
+  d.getElementById('rep-edit-off').click(); await settle(20);
+  w.eval('showTab("allenamento"); showTab("report")'); await settle(30);
+  ok(d.querySelector('.rep-doc h1').textContent === 'Report di prova' && !d.querySelector('.rep-doc').isContentEditable && d.querySelector('.pill--avviso'), 'report: le modifiche restano dopo «Fine modifica» e un cambio di scheda, con l\'avviso «modificato a mano»');
+  ok(w.eval('buildReportUnits(document, document.querySelector(".rep-doc")).some(function(u){ return u.textContent.indexOf("Report di prova")>=0; })') && !w.eval('repEdit.html').includes('contenteditable'), 'report: il PDF prende il testo modificato, senza tracce della modalità di modifica');
+  ok(!JSON.stringify(w.eval('DOC.dati_utente.report')).includes('Report di prova'), 'report: le modifiche a mano non finiscono nei dati salvati');
+  /* qui la fila dei riquadri di conferma può essere occupata da un test precedente: si risponde «sì» direttamente */
+  w.eval('window.__cfOrig=conferma; conferma=function(){ return Promise.resolve(true); }');
+  d.getElementById('rep-edit-reset').click(); await settle(40);
+  w.eval('conferma=window.__cfOrig');
+  ok(d.querySelector('.rep-doc h1').textContent !== 'Report di prova' && !d.querySelector('.pill--avviso'), 'report: «Torna all\'originale» rifà il report dai dati');
   w.eval('closeModal()');
   dom.window.close();
 }
@@ -453,7 +478,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('DOC.dati_utente.report.ordine=["note","profilo","riepilogo","scheda","andamento","progressione","record","alimentazione","analisi"]; renderReport();');
   repDoc = d.querySelector('#panel-report .rep-doc').innerHTML;
   ok(repDoc.indexOf('Note del coach') < repDoc.indexOf('composizione corporea'), 'report: ordine personalizzato applicato (Note prima di Profilo)');
-  d.querySelector('#panel-report [data-repmove="profilo"][data-dir="-1"]').click();
+  d.querySelector('#panel-report [data-repmove="profilo"][data-dir="-1"]').click(); await settle(10);  /* il riordino è asincrono: prima controlla se il report era ritoccato a mano */
   ok(w.eval('DOC.dati_utente.report.ordine[0]') === 'profilo', 'report: freccia ▲ riporta Profilo in cima (handler + persistenza)');
   repDoc = d.querySelector('#panel-report .rep-doc').innerHTML;
   ok(repDoc.indexOf('composizione corporea') < repDoc.indexOf('Note del coach'), 'report: render coerente dopo lo spostamento');

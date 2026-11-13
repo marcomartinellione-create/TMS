@@ -94,16 +94,111 @@ function renderReport(){
      <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`];
   ordine.forEach(k=>{ if(B[k]) S.push(B[k]); });
   S.push(`<p class="muted" style="font-size:11px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px">${t('Report generato dal Training Monitor System. Indici a scopo informativo, non sostituiscono un parere medico/professionale.')}</p>`);
-  document.getElementById('panel-report').innerHTML=ctrl+fotoReportCtrl(R)+`<div class="rep-doc" style="background:var(--paper);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 22px;box-shadow:var(--shadow)">${S.join('')}</div>`;
+  const modificato=repModificato();
+  if(!modificato) repInModifica=false;
+  document.getElementById('panel-report').innerHTML=ctrl+fotoReportCtrl(R)+repBarraModifica(modificato)+
+    `<div class="rep-doc${repInModifica?' rep-doc--modifica':''}"${repInModifica?' contenteditable="true" spellcheck="true"':''} style="background:var(--paper);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 22px;box-shadow:var(--shadow)">${modificato? repEdit.html : S.join('')}</div>`;
+  repCollegaModifica();
   const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo'); };
-  document.querySelectorAll('#panel-report [data-rep]').forEach(cb=>cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); });
-  document.querySelectorAll('#panel-report [data-repmove]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#panel-report [data-rep]').forEach(cb=>cb.onchange=async()=>{
+    if(!(await repLasciaModifiche())){ cb.checked=!cb.checked; return; }
+    R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); });
+  document.querySelectorAll('#panel-report [data-repmove]').forEach(b=>b.onclick=async()=>{
     const ord=R.ordine.slice(), i=ord.indexOf(b.dataset.repmove), j=i+(+b.dataset.dir);
-    if(i<0||j<0||j>=ord.length) return; const t=ord[i]; ord[i]=ord[j]; ord[j]=t; R.ordine=ord; persist('corpo'); renderReport(); });
+    if(i<0||j<0||j>=ord.length) return;
+    if(!(await repLasciaModifiche())) return;
+    const tmp=ord[i]; ord[i]=ord[j]; ord[j]=tmp; R.ordine=ord; persist('corpo'); renderReport(); });
   const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; const pv=document.querySelector('.rep-nota-print'); if(pv)pv.textContent=e.target.value; persist('corpo'); };
   const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
   const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
   if(R.foto && [R.fotoPrima,R.fotoDopo].some(f=>f && !fotoReportUri[f])) ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); });
+}
+/* ── MODIFICA A MANO DEL REPORT (2026-11-13) ──────────────────────────────────────
+   «✎ Modifica» rende il documento scrivibile sulla pagina: titoli, testi, celle delle tabelle.
+   Con il cursore in una tabella si aggiunge o si toglie una riga; con il cursore in una sezione
+   la si toglie tutta. Il PDF e il report digitale escono esattamente come si vede. Le modifiche
+   valgono solo per questo documento: NON toccano i dati salvati (stanno in memoria, per il
+   profilo aperto) e «↺ Torna all'originale» rifà il report dai dati. Cambiare le sezioni o il loro
+   ordine rifà il report: se è stato ritoccato a mano, prima si chiede. */
+let repEdit={profilo:null, html:null}, repInModifica=false;
+function repModificato(){ return !!(repEdit.html && repEdit.profilo===activeProfile); }
+function repDoc(){ return document.querySelector('#panel-report .rep-doc'); }
+/* com'è adesso il documento, senza gli attributi della modifica (va nel PDF e nella memoria) */
+function repSalvaModifica(){
+  const d=repDoc(); if(!d) return;
+  const c=d.cloneNode(true); c.removeAttribute('contenteditable');
+  c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
+  c.querySelectorAll('.rep-sel').forEach(e=>e.classList.remove('rep-sel'));
+  repEdit={profilo:activeProfile, html:c.innerHTML};
+}
+/* chiude la modifica (prima di generare PDF o report digitale): il documento torna normale */
+function repChiudiModifica(){
+  if(!repInModifica) return;
+  repSalvaModifica(); repInModifica=false;
+  const d=repDoc(); if(d){ d.removeAttribute('contenteditable'); d.classList.remove('rep-doc--modifica'); }
+  const b=document.getElementById('rep-edit-bar'); if(b) b.outerHTML=repBarraModifica(true);
+  repCollegaModifica();
+}
+/* prima di rifare il report dai dati: se è stato ritoccato a mano, chiede se va bene perdere i ritocchi */
+async function repLasciaModifiche(){
+  if(repInModifica) repSalvaModifica();
+  if(!repModificato()) return true;
+  const ok=await conferma(t('Il report è stato modificato a mano. Cambiando le sezioni si rifà dai dati e le modifiche si perdono.'), {titolo:t('Perdere le modifiche?'), testoOk:t('Rifai dai dati'), pericolo:true});
+  if(ok){ repEdit={profilo:null, html:null}; repInModifica=false; }
+  return ok;
+}
+function repBarraModifica(modificato){
+  if(!repInModifica) return `<div class="bar no-print rep-edit-bar" id="rep-edit-bar">
+     <button class="btn" id="rep-edit-on" title="${t('Scrivi direttamente sul report: testi, titoli e tabelle. Il PDF esce come lo vedi.')}">${t('✎ Modifica testi e tabelle')}</button>
+     ${modificato?`<span class="pill pill--avviso">${t('modificato a mano')}</span><button class="btn" id="rep-edit-reset" title="${t('Rifà il report dai dati, senza le modifiche')}">${t('↺ Torna all\'originale')}</button>
+       <span class="muted" style="font-size:11.5px">${t('I dati nuovi compaiono tornando all\'originale.')}</span>`:''}</div>`;
+  return `<div class="bar no-print rep-edit-bar rep-edit-bar--attiva" id="rep-edit-bar">
+     <button class="btn btn--ember" id="rep-edit-off">${t('✔ Fine modifica')}</button>
+     <span class="gruppo"><button class="btn" data-repop="riga-sopra" title="${t('Aggiunge una riga vuota sopra quella col cursore')}">${t('＋ Riga sopra')}</button><button class="btn" data-repop="riga-sotto" title="${t('Aggiunge una riga vuota sotto quella col cursore')}">${t('＋ Riga sotto')}</button><button class="btn" data-repop="riga-via" title="${t('Toglie la riga della tabella dove sta il cursore')}">${t('✕ Togli riga')}</button></span>
+     <button class="btn" data-repop="sezione-via" title="${t('Toglie tutta la sezione dove sta il cursore')}">${t('✕ Togli sezione')}</button>
+     <button class="btn" id="rep-edit-reset" title="${t('Rifà il report dai dati, senza le modifiche')}">${t('↺ Torna all\'originale')}</button>
+     <span class="muted" style="font-size:11.5px">${t('Clicca dove vuoi scrivere. Per righe e sezioni metti prima il cursore nel punto giusto.')}</span></div>`;
+}
+/* dove sta il cursore dentro il documento (l'elemento, non il nodo di testo) */
+function repPuntoCursore(){
+  const d=repDoc(); const sel=window.getSelection&&window.getSelection(); if(!d||!sel||!sel.rangeCount) return null;
+  let n=sel.getRangeAt(0).startContainer; if(n&&n.nodeType===3) n=n.parentNode;
+  return n&&d.contains(n)? n : null;
+}
+function repOperazione(op){
+  const n=repPuntoCursore();
+  const tr=n&&n.closest&&n.closest('tbody tr'), sec=n&&n.closest&&n.closest('.rep-sec');
+  if(op.indexOf('riga')===0){
+    if(!tr){ avviso(t('Metti prima il cursore in una riga di una tabella del report.')); return; }
+    if(op==='riga-via'){ const tb=tr.parentNode; tr.remove(); if(tb&&!tb.children.length){ const w=tb.closest('.tbl-wrap'); if(w) w.remove(); } }
+    else { const nuova=tr.cloneNode(true); nuova.classList.remove('day-sep');
+      nuova.querySelectorAll('td').forEach(td=>{ td.innerHTML='&nbsp;'; td.removeAttribute('title'); });
+      tr.parentNode.insertBefore(nuova, op==='riga-sopra'? tr : tr.nextSibling);
+      try{ const r=document.createRange(); r.selectNodeContents(nuova.querySelector('td')); r.collapse(true); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r); }catch(e){} }
+  } else if(op==='sezione-via'){
+    if(!sec||sec===repDoc().firstElementChild){ avviso(t('Metti prima il cursore dentro la sezione da togliere (la copertina resta).')); return; }
+    sec.remove();
+  }
+  repSalvaModifica();
+}
+function repCollegaModifica(){
+  const on=document.getElementById('rep-edit-on'); if(on) on.onclick=()=>{ repInModifica=true; if(!repModificato()) repSalvaModifica(); renderReport();
+    const d=repDoc(); if(d) try{ d.focus(); }catch(e){} };
+  const off=document.getElementById('rep-edit-off'); if(off) off.onclick=()=>repChiudiModifica();
+  const rs=document.getElementById('rep-edit-reset'); if(rs) rs.onclick=async()=>{
+    if(!(await conferma(t('Il report torna com\'è dai dati e le modifiche fatte a mano si perdono.'), {titolo:t('Tornare all\'originale?'), testoOk:t('Torna all\'originale'), pericolo:true}))) return;
+    repEdit={profilo:null, html:null}; repInModifica=false; renderReport(); };
+  /* i pulsanti non devono rubare il cursore al documento: si agisce dove sta */
+  document.querySelectorAll('#rep-edit-bar [data-repop]').forEach(b=>{ b.onmousedown=e=>e.preventDefault(); b.onclick=()=>repOperazione(b.dataset.repop); });
+  const d=repDoc();
+  if(d && repInModifica){
+    let tm=null; d.oninput=()=>{ clearTimeout(tm); tm=setTimeout(repSalvaModifica, 250); };
+    /* evidenzia la riga e la sezione dove sta il cursore */
+    const evid=()=>{ d.querySelectorAll('.rep-sel').forEach(e=>e.classList.remove('rep-sel'));
+      const n=repPuntoCursore(); if(!n) return; const tr=n.closest('tbody tr'), sec=n.closest('.rep-sec');
+      if(tr) tr.classList.add('rep-sel'); if(sec) sec.classList.add('rep-sel'); };
+    d.onkeyup=evid; d.onmouseup=evid;
+  }
 }
 /* pickers prima/dopo per la sezione foto del report (vuoto se non ci sono foto) */
 function fotoReportCtrl(R){
@@ -230,6 +325,7 @@ async function embedVideoFiles(files){
   return map;
 }
 async function exportDigitalReport(){
+  repChiudiModifica();
   if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ avviso(t('Apri prima il Report.')); return; }
@@ -267,6 +363,7 @@ async function exportDigitalReport(){
 async function printReport(){
   /* Esporta un PDF A4 generato da noi: impagina le unità del report, rasterizza ogni pagina con html2canvas
      (tema chiaro forzato via onclone, niente flash) e assembla il PDF (imagesToPdf). Niente stampa del browser. */
+  repChiudiModifica();
   if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ try{ window.print(); }catch(e){} return; }

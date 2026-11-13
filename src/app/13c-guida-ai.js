@@ -495,6 +495,12 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
   (incorporate, quindi funzionano anche offline nel PDF e nel digitale).
 - **PDF A4**: bottone «⬇ Scarica PDF (A4)» — l'app impagina e genera il PDF da sola
   (download diretto, senza passare dalla stampa del browser).
+- **Modifica a mano**: «✎ Modifica testi e tabelle» rende il report scrivibile sulla pagina
+  (titoli, testi, celle delle tabelle); con il cursore in una tabella «＋ Riga sopra/sotto» e
+  «✕ Togli riga», con il cursore in una sezione «✕ Togli sezione». Il PDF e il report digitale
+  escono come si vede. I ritocchi valgono solo per quel documento e per il profilo aperto, NON
+  cambiano i dati salvati; «↺ Torna all'originale» rifà il report dai dati (anche cambiando
+  sezioni o ordine, dopo una conferma).
 - **Report digitale**: pagina HTML per smartphone con i video incorporati, da inviare
   all'atleta. Include anche la sezione «Dieta × allenamento» se ci sono periodi.
 - Tra le sezioni del report c'è anche **«Cardio · attività e carico interno»** (sedute,

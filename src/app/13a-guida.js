@@ -97,7 +97,7 @@ function guidaCompleta(){
      <tr><td class="l"><b>📜 Misure</b> <span class="muted">(nascosto)</span></td><td class="l">Storico rilevazioni corporee (pulsante 📏 Misure in cima al tab Profilo).</td></tr>
      <tr><td class="l"><b>🍖 Alimentazione</b></td><td class="l">Piano della fase attiva (Bulk/Mantenimento/Cut, scelta coi bottoni in cima al tab), banca dati 1190 alimenti con micro/macro e indice OMS.</td></tr>
      <tr><td class="l"><b>📖 Esercizi</b></td><td class="l">Catalogo modificabile (nome, gruppo, target, tipo, fattore TL).</td></tr>
-     <tr><td class="l"><b>🖨 Report</b></td><td class="l">Documento per il cliente: scegli con le caselle <b>quali sezioni</b> includere e con le frecce <b>▲▼ il loro ordine</b> (vale per PDF A4 multipagina e report digitale). La scelta si salva per profilo.</td></tr>
+     <tr><td class="l"><b>🖨 Report</b></td><td class="l">Documento per il cliente: scegli con le caselle <b>quali sezioni</b> includere e con le frecce <b>▲▼ il loro ordine</b> (vale per PDF A4 multipagina e report digitale). La scelta si salva per profilo. Con <b>✎ Modifica testi e tabelle</b> scrivi direttamente sul report (titoli, testi, celle), aggiungi o togli righe e sezioni: il PDF esce esattamente come lo vedi. I ritocchi valgono solo per quel documento, non cambiano i dati; <b>↺ Torna all'originale</b> lo rifà dai dati.</td></tr>
    </tbody></table></div>
 
    <div class="sec" id="gc-ind">5 · Indicatori & formule</div>
@@ -335,7 +335,7 @@ function guidaCompletaEN(){
      <tr><td class="l"><b>📜 Measurements</b> <span class="muted">(hidden)</span></td><td class="l">History of body readings (📏 Measurements button at the top of the Profile tab).</td></tr>
      <tr><td class="l"><b>🍖 Nutrition</b></td><td class="l">Active phase plan (Bulk/Maintenance/Cut, chosen with the buttons at the top of the tab), database of 1190 foods with micro/macro and WHO index.</td></tr>
      <tr><td class="l"><b>📖 Exercises</b></td><td class="l">Editable catalog (name, group, target, type, TL factor).</td></tr>
-     <tr><td class="l"><b>🖨 Report</b></td><td class="l">Document for the client: choose with the checkboxes <b>which sections</b> to include and with the <b>▲▼</b> arrows <b>their order</b> (applies to multi-page A4 PDF and digital report). The choice is saved per profile.</td></tr>
+     <tr><td class="l"><b>🖨 Report</b></td><td class="l">Document for the client: choose with the checkboxes <b>which sections</b> to include and with the <b>▲▼</b> arrows <b>their order</b> (applies to multi-page A4 PDF and digital report). The choice is saved per profile. With <b>✎ Edit texts and tables</b> you write directly on the report (titles, texts, cells) and add or remove rows and sections: the PDF comes out exactly as you see it. The edits apply only to that document and do not change the data; <b>↺ Back to the original</b> rebuilds it from the data.</td></tr>
    </tbody></table></div>
 
    <div class="sec" id="gc-ind">5 · Indicators & formulas</div>
