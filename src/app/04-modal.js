@@ -134,9 +134,14 @@ function conColonne(tab, render){
   return function(){
     const p=document.getElementById('panel-'+tab), SEL='.pag__main,.pag__side,.pag__terza';
     const sc=p? [...p.querySelectorAll(SEL)].map(e=>e.scrollTop) : [];
+    const scY=window.scrollY||document.documentElement.scrollTop||0;   /* schermi non larghi: scorre la pagina, non le colonne */
     const r=render.apply(this, arguments);
-    if(p){ const el=p.querySelectorAll(SEL); sc.forEach((v,i)=>{ if(el[i]&&v) el[i].scrollTop=v; }); }
+    /* adattaPag PRIMA: il foglio nuovo appena ricreato non ha ancora l'altezza giusta (quindi
+       non c'è niente da scorrere) — rimettere scrollTop a questo punto verrebbe azzerato dal
+       browser appena l'altezza si fissa. Prima l'altezza, poi lo scorrimento, altrimenti torna 0. */
     adattaPag();
+    if(p){ const el=p.querySelectorAll(SEL); sc.forEach((v,i)=>{ if(el[i]&&v) el[i].scrollTop=v; }); }
+    if(scY) window.scrollTo(0, scY);
     return r;
   };
 }

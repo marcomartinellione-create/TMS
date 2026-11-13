@@ -377,7 +377,29 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   w.eval('repSel={blocco:"copertina", el:null}; renderReport();'); d.getElementById('rep-rifai').click(); await settle(30);
   w.eval('conferma=window.__cfOrig');
   ok(d.querySelector('#rep-pagine h1').textContent !== 'Report di prova' && !w.eval('repEdits().copertina'), 'report: «↺ Rifai dai dati» riporta il blocco ai dati');
-  w.eval('repEdit={profilo:null, blocchi:{}}; repSel={blocco:null, el:null}; renderReport();');
+  /* ── 2026-11-13 — scorrimento conservato e aggiornamento in tempo reale ── */
+  w.eval('repSel={blocco:"profilo", el:null}; renderReport();'); await settle(10);
+  { const side=d.getElementById('rep-strumenti'); side.scrollTop=123;
+    d.querySelector('#rep-lista [data-selblocco="record"]').click(); await settle(10);
+    ok(w.eval('repSel.blocco')==='record' && side.scrollTop===123, 'report: scegliere un altro blocco non fa saltare in cima il pannello degli strumenti'); }
+  { const goal=d.getElementById('rep-goal'); goal.value='ricomposizione corporea'; goal.dispatchEvent(new w.Event('input',{bubbles:true}));
+    ok(d.querySelector('#rep-pagine [data-blocco="copertina"] .rep-obiettivo-txt').textContent==='ricomposizione corporea'
+      && d.querySelector('#rep-sorgente [data-blocco="copertina"] .rep-obiettivo-txt').textContent==='ricomposizione corporea'
+      && !d.querySelector('#rep-pagine [data-blocco="copertina"] .rep-obiettivo').classList.contains('rep-obiettivo--vuoto'),
+      'report: scrivendo l\'obiettivo il foglio si aggiorna SUBITO, senza aspettare il ridisegno');
+    goal.value=''; goal.dispatchEvent(new w.Event('input',{bubbles:true}));
+    ok(d.querySelector('#rep-pagine [data-blocco="copertina"] .rep-obiettivo').classList.contains('rep-obiettivo--vuoto'), 'report: obiettivo svuotato → la riga sparisce subito'); }
+  { const nota=d.getElementById('rep-nota'); nota.value='Bel lavoro questa settimana'; nota.dispatchEvent(new w.Event('input',{bubbles:true}));
+    ok(d.querySelector('#rep-pagine [data-blocco="note"] .rep-nota').textContent==='Bel lavoro questa settimana'
+      && d.querySelector('#rep-sorgente [data-blocco="note"] .rep-nota').textContent==='Bel lavoro questa settimana',
+      'report: le note si aggiornano subito nel foglio, mentre si scrive'); }
+  w.eval('repSel={blocco:"record", el:null}; renderReport();'); await settle(10);
+  { const ti=d.getElementById('rep-imp-titolo'); const tit0=d.querySelector('#rep-pagine [data-blocco="record"] .rep-tit').textContent;
+    ti.value='I miei record'; ti.dispatchEvent(new w.Event('input',{bubbles:true}));
+    ok(d.querySelector('#rep-pagine [data-blocco="record"] .rep-tit').textContent==='I miei record', 'report: il titolo del blocco cambia subito nel foglio, senza aspettare');
+    ti.value=''; ti.dispatchEvent(new w.Event('input',{bubbles:true}));
+    ok(d.querySelector('#rep-pagine [data-blocco="record"] .rep-tit').textContent===tit0, 'report: titolo svuotato → torna subito al titolo predefinito'); }
+  w.eval('DOC.dati_utente.report.obiettivo=""; DOC.dati_utente.report.nota=""; delete DOC.dati_utente.report.blocchi.record; repEdit={profilo:null, blocchi:{}}; repSel={blocco:null, el:null}; renderReport();');
   w.eval('closeModal()');
   dom.window.close();
 }

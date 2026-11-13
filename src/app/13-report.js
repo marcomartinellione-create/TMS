@@ -130,7 +130,7 @@ function renderReport(){
   B.copertina=`<div class="rep-sec rep-copertina">
      <div><h1 style="font-size:20px;color:var(--ember-2);margin:0">${t('Report di Allenamento')}</h1>
        <div class="muted mono" style="font-size:12px">${esc(u.nome||profNome()||t('Atleta'))}${u.cognome?' '+esc(u.cognome):''} · ${new Date().toLocaleDateString(LANG==='en'?'en-GB':'it-IT')}${last?' · '+t('scheda')+' '+last.scheda:''}</div>
-       ${R.obiettivo?`<div style="margin-top:6px"><b>${t('Obiettivo:')}</b> ${esc(R.obiettivo)}</div>`:''}</div>
+       <div class="rep-obiettivo${R.obiettivo?'':' rep-obiettivo--vuoto'}" style="margin-top:6px"><b>${t('Obiettivo:')}</b> <span class="rep-obiettivo-txt">${esc(R.obiettivo||'')}</span></div></div>
      <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`;
   B.piede=`<div class="rep-sec rep-piede"><p class="muted" style="font-size:11px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px">${t('Report generato dal Training Monitor System. Indici a scopo informativo, non sostituiscono un parere medico/professionale.')}</p></div>`;
   repGenerati={};
@@ -152,7 +152,9 @@ let repUltimo=null;
 function repAggiornaSel(){
   const R=DOC.dati_utente.report, side=document.getElementById('rep-strumenti');
   if(!side||!repUltimo){ renderReport(); return; }
+  const sc=side.scrollTop;   /* scegliere un blocco/elemento non deve far saltare in cima gli strumenti */
   side.innerHTML=repStrumenti(R, repUltimo.ordine, repUltimo.B);
+  side.scrollTop=sc;
   document.querySelectorAll('#rep-pagine .is-sel,#rep-pagine .is-sel-el').forEach(x=>x.classList.remove('is-sel','is-sel-el'));
   document.querySelectorAll('#rep-pagine .u[data-blocco="'+repSel.blocco+'"]').forEach(u=>{ u.classList.add('is-sel');
     if(repSel.el!=null) u.querySelectorAll('[data-el="'+repSel.el+'"]').forEach(x=>x.classList.add('is-sel-el')); });
@@ -318,13 +320,25 @@ function repSposta(R, k, b, dopo){
   let i=REP_FISSI.indexOf(b)>=0? (b==='copertina'? 0 : ord.length) : ord.indexOf(b)+(dopo?1:0);
   if(i<0) i=ord.length; ord.splice(i,0,k); R.ordine=ord; persist('corpo'); renderReport();
 }
+/* aggiorna ALL'ISTANTE il testo di un campo semplice (obiettivo, note, titolo di un blocco) sia
+   nei fogli visibili sia nel documento sorgente (da cui esce il PDF), senza aspettare il
+   ridisegno completo: quello resta, più tardi e in sottofondo, solo per risistemare
+   l'impaginazione (un testo più lungo può spostare dove cade il taglio di pagina). */
+function repTestoLive(blocco, selettore, testo){
+  document.querySelectorAll('#rep-pagine .u[data-blocco="'+blocco+'"] '+selettore).forEach(el=>{ el.textContent=testo; });
+  const sorg=document.querySelector('#rep-sorgente [data-blocco="'+blocco+'"] '+selettore);
+  if(sorg) sorg.textContent=testo;
+}
 function repCollega(R){
   const P=document.getElementById('panel-report'); if(!P) return;
   let tmGoal=null;
   const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo');
-    clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 450); };
+    repTestoLive('copertina', '.rep-obiettivo-txt', e.target.value);
+    document.querySelectorAll('#rep-pagine .u[data-blocco="copertina"] .rep-obiettivo, #rep-sorgente [data-blocco="copertina"] .rep-obiettivo').forEach(el=>el.classList.toggle('rep-obiettivo--vuoto', !e.target.value));
+    clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 700); };
   const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; persist('corpo');
-    clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 450); };
+    repTestoLive('note', '.rep-nota', e.target.value);
+    clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 700); };
   const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
   const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
   /* elenco dei blocchi: spunta, frecce, scelta */
@@ -350,7 +364,9 @@ function repCollega(R){
     P.querySelectorAll('[data-imp-colore]').forEach(b=>b.onclick=()=>{ imp.colore=b.dataset.impColore; salva(); });
     P.querySelectorAll('[data-imp-grafici]').forEach(b=>b.onclick=()=>{ imp.grafici=b.dataset.impGrafici; salva(); });
     const ti=document.getElementById('rep-imp-titolo'); if(ti) ti.oninput=()=>{ imp.titolo=ti.value.trim(); repSalvaImp(R,k,imp);
-      clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 400); };
+      const gen=document.createElement('div'); gen.innerHTML=repGenerati[k]||''; const tit0=((gen.querySelector('.rep-tit')||{}).textContent)||'';
+      repTestoLive(k, '.rep-tit', imp.titolo||tit0);
+      clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 500); };
     const mo=document.getElementById('rep-modifica'); if(mo) mo.onclick=()=>{ repInModifica=k; renderReport();
       const u=document.querySelector('#rep-pagine .u[data-blocco="'+k+'"]'); if(u){ try{ u.focus(); u.scrollIntoView({block:'nearest'}); }catch(e){} } };
     const fi=document.getElementById('rep-fine'); if(fi) fi.onclick=()=>{ repBloccoDaFogli(k); repInModifica=null; renderReport(); };

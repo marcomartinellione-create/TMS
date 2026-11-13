@@ -623,6 +623,7 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 .col-gold .sec .rep-tit{color:#8a6408} .col-ok .sec .rep-tit{color:var(--ok)} .col-violet .sec .rep-tit{color:var(--violet)}
 .rep-graf-colonna .chart-grid{display:block !important} .rep-graf-colonna .chart-grid > .chart-box{margin-bottom:6px}
 .rep-copertina{border-bottom:2px solid var(--gold-2); padding-bottom:10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:flex-start}
+.rep-obiettivo--vuoto{display:none}   /* obiettivo vuoto: la riga sparisce finché non si scrive qualcosa */
 .rep-pagine .t-p .card__v, #pdf-stage .t-p .card__v, .rep-doc .t-p .card__v{font-size:13px}
 .rep-pagine .t-p table, #pdf-stage .t-p table, .rep-doc .t-p table{font-size:8.5px}
 .rep-pagine .t-p p, #pdf-stage .t-p p, .rep-doc .t-p p, .rep-pagine .t-p .rep-nota, #pdf-stage .t-p .rep-nota{font-size:9.5px !important}
