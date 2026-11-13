@@ -392,7 +392,10 @@ Due modi per registrare una seduta:
 - **👨‍🍳 Le mie ricette** (11c-ricette.js): quarta categoria del selettore (pulsante «👨‍🍳 Ricette»
   nella barra). Una ricetta ha nome, porzioni, tempi di preparazione e cottura, descrizione,
   procedimento, note e ingredienti (solo alimenti della banca dati, niente ricette dentro
-  ricette). Sta nel profilo, in alimentazione.json (DOC.alimentazione.ricette). I valori NON
+  ricette). E' CONDIVISA fra i profili come il catalogo esercizi: DOC.ricette <-> TMS_Dati/ricette.json
+  (lettura rigorosa, cache, Annulla, backup, scrittura in chiusura). Rinominata ricorda i
+  vecchi nomi (alias): le righe degli altri profili passano al nome nuovo quando si aprono
+  (migraRicetteProfilo, che porta nel catalogo anche ricette rimaste in alimentazione.json). I valori NON
   sono salvati: foodLookup li ricalcola a ogni lettura, per100 = somma(ingrediente per100 x
   grammi / 100) / peso finale x 100, col peso finale da cotto se indicato, altrimenti la somma
   dei grammi; un nutriente che nessun ingrediente riporta resta vuoto. Nel piano si usa per

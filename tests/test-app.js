@@ -1441,17 +1441,17 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const J = s => JSON.parse(w.eval('JSON.stringify(' + s + ')'));
     const avena = 'Fiocchi di avena', banana = 'Banana, cruda';
     ok(w.eval('!!FOODBYNAME[' + JSON.stringify(avena) + '] && !!FOODBYNAME[' + JSON.stringify(banana) + ']'), 'Ricette: gli ingredienti di prova esistono nella banca dati');
-    w.eval('var _alimPrima=JSON.stringify(DOC.alimentazione); DOC.alimentazione.ricette=[{id:"r1",nome:"Porridge di prova",porzioni:2,pesoFinale:"",ingredienti:[{alimento:' + JSON.stringify(avena) + ',grammi:80},{alimento:' + JSON.stringify(banana) + ',grammi:120}]}];');
+    w.eval('var _alimPrima=JSON.stringify(DOC.alimentazione), _ricPrima=JSON.stringify(DOC.ricette||[]); DOC.ricette=[{id:"r1",nome:"Porridge di prova",porzioni:2,pesoFinale:"",ingredienti:[{alimento:' + JSON.stringify(avena) + ',grammi:80},{alimento:' + JSON.stringify(banana) + ',grammi:120}]}];');
     const atteso = J('(function(){ var a=FOODBYNAME[' + JSON.stringify(avena) + '].per100, b=FOODBYNAME[' + JSON.stringify(banana) + '].per100; return {kcal:(a.kcal*0.8+b.kcal*1.2)/200*100, prot:(a.proteine*0.8+b.proteine*1.2)/200*100}; })()');
     const fo = J('foodLookup("Porridge di prova")');
     ok(fo && fo.tipo === 'M' && Math.abs(fo.per100.kcal - atteso.kcal) < 1e-9 && Math.abs(fo.per100.proteine - atteso.prot) < 1e-9,
        'Ricette: i valori per 100 g sono la somma degli ingredienti divisa per il peso (' + Math.round(fo.per100.kcal) + ' kcal/100 g)');
     ok(Math.abs(w.eval('foodVal("Porridge di prova",200,"kcal")') - atteso.kcal * 2) < 1e-9, 'Ricette: nel piano la ricetta si conta come un alimento (200 g = ricetta intera)');
-    w.eval('DOC.alimentazione.ricette[0].pesoFinale=100');
+    w.eval('DOC.ricette[0].pesoFinale=100');
     ok(Math.abs(J('foodLookup("Porridge di prova")').per100.kcal - atteso.kcal * 2) < 1e-9, 'Ricette: col peso finale da cotto (100 g su 200 crudi) i valori per 100 g raddoppiano');
-    w.eval('DOC.alimentazione.ricette[0].pesoFinale=""; DOC.alimentazione.ricette[0].ingredienti.push({alimento:"Ingrediente inventato",grammi:50});');
-    ok(Math.abs(J('ricettaTotali(DOC.alimentazione.ricette[0])').kcal - atteso.kcal * 2) < 1e-9, 'Ricette: un ingrediente fuori banca dati non aggiunge valori (e non rompe la somma)');
-    w.eval('DOC.alimentazione.ricette[0].ingredienti.pop()');
+    w.eval('DOC.ricette[0].pesoFinale=""; DOC.ricette[0].ingredienti.push({alimento:"Ingrediente inventato",grammi:50});');
+    ok(Math.abs(J('ricettaTotali(DOC.ricette[0])').kcal - atteso.kcal * 2) < 1e-9, 'Ricette: un ingrediente fuori banca dati non aggiunge valori (e non rompe la somma)');
+    w.eval('DOC.ricette[0].ingredienti.pop()');
     /* rinomina: il piano e i preferiti seguono il nome */
     w.eval('DOC.alimentazione.bulk=[{pasto:"Colazione",alimento:"Porridge di prova",grammi:150}]; DOC.alimentazione.fav=["Porridge di prova"]; DOC.dati_utente.faseAlim="bulk";');
     w.eval('apriRicetta("Porridge di prova")');
@@ -1462,7 +1462,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
        'Ricette: rinominando, le righe del piano e i preferiti seguono il nuovo nome');
     w.eval('apriRicetta("Porridge rinominato")'); d.getElementById('ric-nome').value = avena;
     let msg = ''; w.alert = x => { msg = String(x); }; d.getElementById('ric-ok').click();
-    ok(/banca dati|database/.test(msg) && w.eval('DOC.alimentazione.ricette[0].nome') === 'Porridge rinominato', 'Ricette: non si può dare a una ricetta il nome di un alimento della banca dati');
+    ok(/banca dati|database/.test(msg) && w.eval('DOC.ricette[0].nome') === 'Porridge rinominato', 'Ricette: non si può dare a una ricetta il nome di un alimento della banca dati');
     w.eval('closeModal()');
     /* selettore: la categoria «Le mie ricette» c'è nel piano, non fra gli ingredienti */
     w.eval('openFoodPicker("bulk",0)');
@@ -1475,7 +1475,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     w.eval('registraPeriodo()'); d.getElementById('per-fase').value = 'bulk'; d.getElementById('per-ok').click();
     await new Promise(r => setTimeout(r, 30));
     const kPer = w.eval('kcalPiano(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].righe, DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette)');
-    w.eval('DOC.alimentazione.ricette[0].ingredienti[0].grammi=300');
+    w.eval('DOC.ricette[0].ingredienti[0].grammi=300');
     ok(w.eval('(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette||[]).length') === 1 &&
        Math.abs(w.eval('kcalPiano(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].righe, DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette)') - kPer) < 1e-9,
        'Periodi: conservano la ricetta di allora, cambiarla dopo non cambia le kcal del periodo');
@@ -1493,7 +1493,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(/Alimenti ricchi di|Foods rich in/.test(d.getElementById('modal').textContent) && d.querySelectorAll('#modal [data-sadd]').length > 0, 'Suggerimenti: il 💡 apre l\'elenco con il pulsante per aggiungerli al pasto');
     const nPrima = w.eval('DOC.alimentazione.bulk.length'); d.querySelector('#modal [data-sadd]').click();
     ok(w.eval('DOC.alimentazione.bulk.length') === nPrima + 1 && w.eval('DOC.alimentazione.bulk[DOC.alimentazione.bulk.length-1].grammi') === 100, 'Suggerimenti: «＋» aggiunge 100 g dell\'alimento al pasto scelto');
-    w.eval('DOC.alimentazione=JSON.parse(_alimPrima); closeModal(); showTab("allenamento");'); }
+    w.eval('DOC.alimentazione=JSON.parse(_alimPrima); DOC.ricette=JSON.parse(_ricPrima); closeModal(); showTab("allenamento");'); }
   /* ── ricerca esercizi: i preferiti che corrispondono vanno in cima ── */
   { w.eval('(DOC.esercizi||[]).forEach(function(e){ e.fav=false; }); var t2=esLookup("Trazioni presa supina (chin-up)"); if(t2) t2.fav=true;');
     w.eval('pickExercise("", function(){}, null); document.getElementById("exp-q").value="trazioni"; document.getElementById("exp-q").oninput();');
@@ -2070,6 +2070,59 @@ console.log('--- T6: bilingue IT/EN (interruttore lingua, traduzione markup stat
 }
 
 console.log('--- T7: revisione 2026-11 — protezione dei dati ---');
+{
+  /* ricette CONDIVISE (2026-11-13): file proprio accanto al catalogo esercizi, migrazione
+     delle ricette nate nei profili, rinomina seguita dagli altri profili, scarico in chiusura */
+  const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+  const ing = g => [{ alimento: 'Fiocchi di avena', grammi: g }, { alimento: 'Banana, cruda', grammi: 100 }];
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'anna', nome: 'Anna', creato: '2026-01-01' }, { slug: 'bruno', nome: 'Bruno', creato: '2026-01-02' }], active: 'anna' }));
+  for (const sl of ['anna', 'bruno']) {
+    await fsmem.writeFile('TMS_Dati/' + sl + '/scheda.json', J({ settimanale: [], mensile: [] }));
+    await fsmem.writeFile('TMS_Dati/' + sl + '/storico.json', '[]');
+    await fsmem.writeFile('TMS_Dati/' + sl + '/corpo.json', J({ dati_utente: {}, storico_io: [] }));
+    await fsmem.writeFile('TMS_Dati/' + sl + '/alimentazione.json', J({ bulk: [{ pasto: 'Colazione', alimento: 'Porridge', grammi: 200 }], mant: [], cut: [],
+      ricette: [{ nome: 'Porridge', porzioni: 1, ingredienti: ing(sl === 'anna' ? 80 : 50) }] }));
+  }
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem); await settle(500);
+  const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+  const ricFile = () => { try { return JSON.parse(fsmem._files.get('TMS_Dati/ricette.json')); } catch (e) { return null; } };
+  ok(errors.length === 0 && !w.eval('scrittureBloccate'), 'ricette condivise: avvio senza errori');
+  ok(w.eval('DOC.ricette.length') === 1 && (ricFile() || []).length === 1 && ricFile()[0].nome === 'Porridge',
+     'ricette condivise: la ricetta nata nel profilo passa nel catalogo comune (TMS_Dati/ricette.json)');
+  ok(!('ricette' in JSON.parse(fsmem._files.get('TMS_Dati/anna/alimentazione.json'))), 'ricette condivise: il file del profilo non la tiene più');
+  await w.eval('switchProfile("bruno")'); await settle(500);
+  ok(w.eval('DOC.ricette.length') === 2 && w.eval('DOC.ricette.some(r=>r.nome==="Porridge (bruno)")') && w.eval('DOC.alimentazione.bulk[0].alimento') === 'Porridge (bruno)',
+     'ricette condivise: stesso nome con ingredienti diversi → «Porridge (bruno)», e il piano di Bruno segue');
+  ok((ricFile() || []).length === 2, 'ricette condivise: il catalogo comune su disco ha le due ricette');
+  w.eval('apriRicetta("Porridge")'); d.getElementById('ric-nome').value = 'Porridge classico'; d.getElementById('ric-ok').click(); await settle(500);
+  ok(JSON.stringify(w.eval('DOC.ricette.find(r=>r.nome==="Porridge classico").alias')) === '["Porridge"]' && w.eval('!!foodLookup("Porridge")'),
+     'ricette condivise: rinominata ricorda il vecchio nome, e chi usa ancora quello la ritrova');
+  await w.eval('switchProfile("anna")'); await settle(600);
+  ok(w.eval('DOC.alimentazione.bulk[0].alimento') === 'Porridge classico' && JSON.parse(fsmem._files.get('TMS_Dati/anna/alimentazione.json')).bulk[0].alimento === 'Porridge classico',
+     'ricette condivise: aprendo Anna, il suo piano passa al nome nuovo (anche su disco)');
+  ok(w.eval('foodVal("Porridge classico",180,"kcal")') > 0, 'ricette condivise: nel piano di Anna la ricetta conta le sue kcal');
+  const snap = JSON.parse(await w.eval('costruisciSnapshot().then(s=>JSON.stringify(s))'));
+  ok(Array.isArray(snap.ricette) && snap.ricette.length === 2, 'ricette condivise: il backup le comprende');
+  w.eval('DOC.ricette.push({nome:"Chiusura",ingredienti:[{alimento:"Banana, cruda",grammi:100}]}); persist("ricette");');
+  ok(w.eval('scaricaSubito()') >= 1 && (ricFile() || []).some(r => r.nome === 'Chiusura'), 'ricette condivise: alla chiusura la modifica in attesa parte subito');
+  w.eval('annulla()'); await settle(500);
+  ok(!w.eval('DOC.ricette.some(r=>r.nome==="Chiusura")'), 'ricette condivise: Ctrl+Z annulla anche le ricette');
+  dom.window.close();
+}
+{
+  /* ricette.json che c'è ma non si legge: non si riscrive vuoto, si bloccano le scritture */
+  const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'anna', nome: 'Anna', creato: '2026-01-01' }], active: 'anna' }));
+  for (const f of ['scheda', 'storico', 'corpo', 'alimentazione']) await fsmem.writeFile('TMS_Dati/anna/' + f + '.json', J(f === 'scheda' ? { settimanale: [], mensile: [] } : f === 'storico' ? [] : f === 'corpo' ? { dati_utente: {} } : { bulk: [], mant: [], cut: [] }));
+  await fsmem.writeFile('TMS_Dati/ricette.json', '[{"nome":"Porridge","ingre');
+  const { dom } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem); await settle(400);
+  const w = dom.window; w.alert = () => {}; w.confirm = () => true;
+  ok(!!w.eval('scrittureBloccate') && /ricette\.json/.test(w.eval('scrittureBloccate.file')), 'ricette.json illeggibile → salvataggio sospeso, col nome del file');
+  ok(fsmem._files.get('TMS_Dati/ricette.json') === '[{"nome":"Porridge","ingre', 'ricette.json illeggibile: il file resta intatto');
+  dom.window.close();
+}
 {
   /* profilo esistente su disco con lo STORICO illeggibile: l'app non deve riscriverlo */
   const fsmem = makeTmsFS();

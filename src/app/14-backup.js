@@ -46,7 +46,7 @@ async function allegaFoto(pd, blocco){
 }
 async function costruisciSnapshot(conFoto){
   if(dataDir&&profileDir){ try{ await persistAll(); }catch(e){} } else { saveCache(); }
-  const snap={_tms:'backup', version:APP_VERSION, date:new Date().toISOString(), profili:profili, esercizi:DOC.esercizi, profiles:{}};
+  const snap={_tms:'backup', version:APP_VERSION, date:new Date().toISOString(), profili:profili, esercizi:DOC.esercizi, ricette:DOC.ricette||[], profiles:{}};
   if(dataDir){
     for(const p of profili){
       if(p.slug===activeProfile){ snap.profiles[p.slug]=docProfileData();
@@ -191,6 +191,7 @@ async function restoreData(file){
   sbloccaScritture();   /* un ripristino è il modo per uscire dal blocco «dati illeggibili» */
   profili=(snap.profili&&snap.profili.length)?snap.profili:Object.keys(snap.profiles).map(s=>({slug:s,nome:s,creato:''}));
   if(snap.esercizi&&snap.esercizi.length) DOC.esercizi=snap.esercizi; rebuildEs();
+  if(Array.isArray(snap.ricette)) DOC.ricette=snap.ricette;   /* i backup di prima delle ricette condivise non le toccano */
   activeProfile=(profili[0]&&profili[0].slug)||PROFILO_DEMO.slug;
   applyProfileData(snap.profiles[activeProfile]||blankDOC());
   let fotoRipristinate=0;
@@ -209,11 +210,12 @@ async function restoreData(file){
       }
     }
     await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
+    await writeJson(dataDir,FILES.ricette,DOC.ricette||[]);
     await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile});
     profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});
   } else {
     const data={}; Object.keys(snap.profiles).forEach(s=>data[s]=snap.profiles[s]);
-    try{ localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,profili:profili,active:activeProfile,data:data})); }catch(e){}
+    try{ localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,ricette:DOC.ricette||[],profili:profili,active:activeProfile,data:data})); }catch(e){}
   }
   saveCache(); avviso(t('✔ Backup ripristinato (')+np+' '+t('profili).')+(fotoRipristinate?' '+fotoRipristinate+' '+t('foto rimesse al loro posto.'):'')); renderAll(); showTab('profilo');
 }

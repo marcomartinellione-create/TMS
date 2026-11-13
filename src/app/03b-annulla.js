@@ -18,6 +18,7 @@ const UNDO_PARTI={
           nome:'misure, cardio e profilo' },
   alimentazione:{ leggi:()=>DOC.alimentazione, scrivi:v=>{ DOC.alimentazione=v; }, nome:'l’alimentazione' },
   esercizi:{ leggi:()=>DOC.esercizi, scrivi:v=>{ DOC.esercizi=v; }, nome:'il catalogo esercizi' },
+  ricette:{ leggi:()=>DOC.ricette, scrivi:v=>{ DOC.ricette=v; }, nome:'le ricette' },
 };
 function undoFoto(quale){ try{ return JSON.stringify(UNDO_PARTI[quale].leggi()); }catch(e){ return null; } }
 /* punto di partenza: com'è ora ogni parte. Si chiama quando i dati arrivano da fuori

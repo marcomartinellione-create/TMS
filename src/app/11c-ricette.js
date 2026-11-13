@@ -6,9 +6,13 @@
       tempi, procedimento — e soprattutto gli ingredienti che si SOMMANO per dare i valori
       nutritivi della ricetta.
 
-   RICETTE. Stanno nel profilo, in DOC.alimentazione.ricette (alimentazione.json): viaggiano con
-   backup, Annulla e cestino dei profili come i preferiti, senza toccare la persistenza. Una
-   ricetta è usata nel piano come un alimento qualunque, per nome. I suoi valori per 100 g NON
+   RICETTE. Sono CONDIVISE fra tutti i profili, come il catalogo esercizi (Marco, 13/11/2026:
+   «sì, condivise»): DOC.ricette ↔ TMS_Dati/ricette.json, con lettura rigorosa, cache, Annulla,
+   backup e scrittura in chiusura come esercizi.json. (Per qualche ora sono state nel profilo,
+   in alimentazione.json: migraRicetteProfilo le porta nel catalogo al caricamento.) Una
+   ricetta è usata nel piano come un alimento qualunque, per nome. Rinominata, ricorda i vecchi
+   nomi (alias): le righe degli altri profili la ritrovano e al loro caricamento passano al
+   nome nuovo. I suoi valori per 100 g NON
    sono salvati: si ricalcolano dagli ingredienti a ogni lettura (foodLookup), così cambiare un
    ingrediente cambia subito la ricetta ovunque.
        totale[k]  = Σ ingredienti valore100[k] × grammi / 100
@@ -21,9 +25,33 @@
 const RIC_KEYS=['kcal','proteine','grassi','saturi','monoinsaturi','polinsaturi','zuccheri','zucch','fibre','colesterolo',
   'vitA','vitB1','vitB2','vitB6','vitB12','vitC','vitD','vitE','folati','calcio','ferro','magnesio','potassio','zinco','sodio','iodio','fosforo'];
 const RIC_CATEGORIA='Le mie ricette';
-function ricetteList(){ const A=DOC.alimentazione||(DOC.alimentazione={}); if(!Array.isArray(A.ricette)) A.ricette=[]; return A.ricette; }
-function ricettaPerNome(nome, lista){ nome=String(nome==null?'':nome).trim(); if(!nome) return null;
-  return (lista||ricetteList()).find(r=>r&&String(r.nome).trim()===nome) || null; }
+function ricetteList(){ if(!Array.isArray(DOC.ricette)) DOC.ricette=[]; return DOC.ricette; }
+/* per nome; un nome vero vince sempre su un vecchio nome (alias) di un'altra ricetta */
+function ricettaPerNome(nome, lista){ nome=String(nome==null?'':nome).trim(); if(!nome) return null; const L=lista||ricetteList();
+  return L.find(r=>r&&String(r.nome).trim()===nome) || L.find(r=>r&&Array.isArray(r.alias)&&r.alias.indexOf(nome)>=0) || null; }
+/* righe del piano (tre fasi) e preferiti del profilo aperto: da un nome all'altro */
+function rinominaNelProfilo(da, a){ const A=DOC.alimentazione||{}; let n=0;
+  ['bulk','mant','cut'].forEach(f=>(A[f]||[]).forEach(x=>{ if(x&&String(x.alimento||'').trim()===da){ x.alimento=a; n++; } }));
+  if(Array.isArray(A.fav)){ const k=A.fav.indexOf(da); if(k>=0){ A.fav[k]=a; n++; } }
+  return n; }
+/* MIGRAZIONE al caricamento di un profilo (idempotente): 1) ricette rimaste in
+   alimentazione.json → catalogo condiviso (stessa ricetta = una sola; nome già preso da
+   un'altra = «nome (profilo)», e le righe del profilo seguono); 2) righe e preferiti col
+   vecchio nome di una ricetta rinominata → nome attuale. Vero se ha cambiato qualcosa. */
+function migraRicetteProfilo(){
+  const A=DOC.alimentazione; if(!A) return false; const L=ricetteList(); let ch=false;
+  if(Array.isArray(A.ricette)){
+    A.ricette.forEach(r=>{ const nome=String((r&&r.nome)||'').trim(); if(!nome) return;
+      const gia=L.find(x=>x.nome===nome);
+      if(gia && JSON.stringify(gia.ingredienti||[])===JSON.stringify(r.ingredienti||[])) return;
+      let nn=nome;
+      if(gia || FOODBYNAME[nn]){ const sl=activeProfile||'profilo'; nn=nome+' ('+sl+')'; let k=2; while(L.some(x=>x.nome===nn)) nn=nome+' ('+sl+' '+(k++)+')'; rinominaNelProfilo(nome, nn); }
+      L.push(Object.assign({}, r, {nome:nn})); });
+    delete A.ricette; ch=true;
+  } else if('ricette' in A){ delete A.ricette; ch=true; }
+  const mappa={}; L.forEach(r=>(Array.isArray(r.alias)?r.alias:[]).forEach(a=>{ if(!L.some(x=>x.nome===a)) mappa[a]=r.nome; }));
+  Object.keys(mappa).forEach(a=>{ if(rinominaNelProfilo(a, mappa[a])) ch=true; });
+  return ch; }
 function ricettaPesoIngredienti(r){ return (r.ingredienti||[]).reduce((a,x)=>a+(+x.grammi||0),0); }
 function ricettaPesoFinale(r){ const pf=+r.pesoFinale||0; return pf>0? pf : ricettaPesoIngredienti(r); }
 /* totali della ricetta intera, per nutriente (null se nessun ingrediente lo riporta) */
@@ -120,7 +148,7 @@ function chiudiRicetta(dopo){ if(typeof dopo==='function') dopo(); else { closeM
 function nomeRicettaValido(nome, orig){
   if(!nome) return t('Dai un nome alla ricetta.');
   if(FOODBYNAME[nome]) return t('C’è già un alimento della banca dati con questo nome: scegline un altro.');
-  if(nome!==orig && ricettaPerNome(nome)) return t('Esiste già una ricetta con questo nome.');
+  const altra=ricettaPerNome(nome); if(altra && altra.nome!==orig) return t('Esiste già una ricetta con questo nome.');
   return ''; }
 function salvaRicetta(){
   const B=ricBozza; if(!B) return; const r=B.r;
@@ -131,20 +159,23 @@ function salvaRicetta(){
   r.modificata=new Date().toISOString();
   const L=ricetteList(), i=B.orig? L.findIndex(x=>x.nome===B.orig) : -1;
   if(i>=0) L[i]=r; else { r.creata=r.modificata; L.push(r); }
-  /* rinominata: il nome è la chiave nei piani e nei preferiti, va seguito (i periodi restano
-     una fotografia: hanno la loro copia della ricetta col nome di allora) */
-  if(B.orig && B.orig!==r.nome){ const A=DOC.alimentazione;
-    ['bulk','mant','cut'].forEach(f=>(A[f]||[]).forEach(x=>{ if(x&&String(x.alimento||'').trim()===B.orig) x.alimento=r.nome; }));
-    const fv=foodFavList(), k=fv.indexOf(B.orig); if(k>=0) fv[k]=r.nome; }
-  persist('alimentazione'); ricBozza=null; chiudiRicetta(B.dopo);
+  /* rinominata: il nome è la chiave nei piani e nei preferiti. Nel profilo aperto si segue
+     subito; gli altri profili la ritrovano dal vecchio nome (alias) e passano al nuovo quando
+     si aprono. I periodi restano una fotografia: hanno la loro copia col nome di allora. */
+  let piano=false;
+  if(B.orig && B.orig!==r.nome){
+    r.alias=(Array.isArray(r.alias)?r.alias:[]).concat([B.orig]).filter((a,j,arr)=>a && a!==r.nome && arr.indexOf(a)===j);
+    piano=rinominaNelProfilo(B.orig, r.nome)>0; }
+  if(Array.isArray(r.alias)) r.alias=r.alias.filter(a=>a!==r.nome);
+  persist('ricette'); if(piano) persist('alimentazione'); ricBozza=null; chiudiRicetta(B.dopo);
 }
 async function eliminaRicetta(){
   const B=ricBozza; if(!B||!B.orig) return; const u=ricettaUsi(B.orig);
-  const dove= u.righe? ' '+t('È usata in')+' '+u.righe+' '+t('righe del piano: resteranno col nome ma senza valori nutritivi.') : '';
+  const dove=(u.righe? ' '+t('In questo profilo è usata in')+' '+u.righe+' '+t('righe del piano: resteranno col nome ma senza valori nutritivi.') : '')+' '+t('La ricetta è comune a tutti i profili: sparisce anche dagli altri.');
   if(!await conferma(t('Eliminare la ricetta «')+B.orig+t('»?')+dove)) { disegnaRicetta(); return; }
   const L=ricetteList(), i=L.findIndex(x=>x.nome===B.orig); if(i>=0) L.splice(i,1);
-  const fv=foodFavList(), k=fv.indexOf(B.orig); if(k>=0) fv.splice(k,1);
-  persist('alimentazione'); ricBozza=null; chiudiRicetta(B.dopo);
+  const fv=foodFavList(), k=fv.indexOf(B.orig); if(k>=0){ fv.splice(k,1); persist('alimentazione'); }
+  persist('ricette'); ricBozza=null; chiudiRicetta(B.dopo);
 }
 /* scheda della ricetta dentro il dettaglio di una riga del piano */
 function ricettaScheda(r){
@@ -161,7 +192,7 @@ function ricettaScheda(r){
 function ricetteModal(){
   const L=ricetteComeAlimenti();
   modal(`<h3>👨‍🍳 ${t('Le mie ricette')} <span class="pill" style="font-weight:400">${L.length}</span></h3>
-    <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Le ricette di questo profilo: si usano nel piano come un alimento (categoria «Le mie ricette» nel selettore) e i loro valori sono la somma degli ingredienti.')}</div>
+    <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Le ricette sono comuni a tutti i profili: si usano nel piano come un alimento (categoria «Le mie ricette» nel selettore) e i loro valori sono la somma degli ingredienti. «usata» conta le righe del profilo aperto.')}</div>
     ${L.length?`<div class="tbl-wrap"><table><thead><tr><th class="l">${t('Ricetta')}</th><th>${t('ingredienti')}</th><th>${t('peso')}</th><th>Kcal/100 g</th><th>Prot/100 g</th><th>${t('usata')}</th><th></th></tr></thead><tbody>
       ${L.map(f=>{ const r=f.ricetta, u=ricettaUsi(f.nome); return `<tr><td class="l"><b>${esc(f.nome)}</b>${r.descrizione?`<div class="muted" style="font-size:11.5px">${esc(r.descrizione)}</div>`:''}</td>
         <td class="num">${(r.ingredienti||[]).length}</td><td class="num">${nf(ricettaPesoFinale(r),0)} g</td><td class="num">${f.per100.kcal==null?'—':nf(f.per100.kcal,0)}</td><td class="num">${f.per100.proteine==null?'—':nf(f.per100.proteine,1)}</td>

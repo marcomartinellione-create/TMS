@@ -1,7 +1,7 @@
 /* ════════════════ PERSISTENZA (FSA + IndexedDB, concetto todo.html) ════════════════ */
 const SUBDIR='TMS_Dati';
 const EXPECTED_DIR='TMS';  /* nome cartella suggerita nei testi del gate di connessione (browser) */
-const FILES={scheda:'scheda.json',storico:'storico.json',corpo:'corpo.json',alimentazione:'alimentazione.json',esercizi:'esercizi.json',profili:'profili.json'};
+const FILES={scheda:'scheda.json',storico:'storico.json',corpo:'corpo.json',alimentazione:'alimentazione.json',esercizi:'esercizi.json',ricette:'ricette.json',profili:'profili.json'};
 const IDB_NAME='tms-store', IDB_STORE='handles', IDB_KEY='dirHandle';
 const CACHE_KEY='tms-doc';
 const HAS_FSA=typeof window.showDirectoryPicker==='function';
@@ -32,7 +32,7 @@ function setConn(state,txt){
   document.getElementById('conn-txt').textContent=txt;
 }
 
-/* dati del profilo attivo (scheda/storico/corpo/alimentazione); esercizi è condiviso */
+/* dati del profilo attivo (scheda/storico/corpo/alimentazione); esercizi e ricette sono condivisi */
 function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
 function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; undoAzzera(); }
 function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],storico_risc:[],cardio:[],foto:[],dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
@@ -40,13 +40,14 @@ function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],stori
 function saveCache(){ try{
   const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); const data=all.data||{};
   if(activeProfile) data[activeProfile]=docProfileData();
-  localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,profili:profili,active:activeProfile,data:data}));
+  localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,ricette:DOC.ricette,profili:profili,active:activeProfile,data:data}));
 }catch(e){} }
 function loadCache(){ try{
   let _raw=localStorage.getItem(CACHE_KEY);
   if(_raw==null){ try{ const _legacy=localStorage.getItem('tms-erdtree-doc'); if(_legacy!=null){ _raw=_legacy; localStorage.setItem(CACHE_KEY,_legacy); } }catch(e){} }
   const r=JSON.parse(_raw||'null'); if(!r)return false;
   if(r.esercizi&&r.esercizi.length) DOC.esercizi=r.esercizi;
+  if(Array.isArray(r.ricette)) DOC.ricette=r.ricette;
   if(r.profili&&r.profili.length){ profili=r.profili; activeProfile=r.active||r.profili[0].slug; if(r.data&&r.data[activeProfile]) applyProfileData(r.data[activeProfile]); }
   else if(r.scheda||r.storico){ applyProfileData(r); }  /* retro-compat vecchia cache piatta */
   return true;
@@ -176,8 +177,9 @@ async function loadProfile(){
   const preMig=JSON.stringify(DOC.storico);
   const preMigScheda=JSON.stringify(DOC.scheda);
   const migged=!!(migrateStorico()|migrateScheda()|migrateExNames()|migrateCardio()); normalizeAlim();
+  const ricMig=migraRicetteProfilo();   /* ricette nate nel profilo → catalogo condiviso; nomi rinominati seguiti */
   if(migged){ try{ await writeJson(profileDir,'storico.backup.json',{_backup:new Date().toISOString(),storico:JSON.parse(preMig),scheda:JSON.parse(preMigScheda)}); }catch(e){} }
-  if(!sc||!st||!co||!al||migged) await persistAll();
+  if(!sc||!st||!co||!al||migged||ricMig) await persistAll();
 }
 
 async function connectFlow(){
@@ -195,6 +197,11 @@ async function connectFlow(){
     if(!Array.isArray(DOC.esercizi)||!DOC.esercizi.length)
       DOC.esercizi=REF.esercizi.filter(e=>!isVariante(e.nome)).map(e=>Object.assign({},e,{nome:String(e.nome).trim()}));
     rebuildEs();
+    /* ricette personali (condivise tra i profili, 2026-11-13): stessa lettura rigorosa —
+       un file che c'è ma non si legge blocca le scritture, non si riscrive vuoto */
+    const rcR=await leggiJson(dataDir,FILES.ricette);
+    if(rcR.stato==='illeggibile') throw erroreIlleggibile(FILES.ricette, rcR);
+    DOC.ricette=Array.isArray(rcR.dati)? rcR.dati : (rcR.stato==='assente'? (Array.isArray(DOC.ricette)?DOC.ricette:[]) : []);
     /* profili */
     const pjR=await leggiJson(dataDir,FILES.profili);
     if(pjR.stato==='illeggibile') throw erroreIlleggibile(FILES.profili, pjR);
@@ -220,7 +227,7 @@ async function connectFlow(){
       profiliDiRipiego=false;
       activeProfile=(profili[0]&&profili[0].slug)||PROFILO_DEMO.slug;
       if(lsc||lst||lco||lal){ applyProfileData({scheda:lsc,storico:lst,storico_io:lco&&lco.storico_io,storico_rpe:lco&&lco.storico_rpe,storico_risc:lco&&lco.storico_risc,cardio:lco&&lco.cardio,foto:lco&&lco.foto,dati_utente:lco&&lco.dati_utente,alimentazione:lal}); }
-      migrateStorico(); migrateScheda(); migrateExNames(); normalizeAlim();
+      migrateStorico(); migrateScheda(); migrateExNames(); normalizeAlim(); migraRicetteProfilo();
       profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});
       /* manca solo l'elenco dei profili ma la cartella del profilo ha già i suoi file:
          si CARICANO quelli, non ci si scrive sopra con ciò che c'è in memoria */
@@ -250,6 +257,7 @@ async function persistAll(){
     await writeJson(profileDir,FILES.alimentazione,DOC.alimentazione);
   }
   await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
+  await writeJson(dataDir,FILES.ricette,DOC.ricette||[]);
   await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile});
 }
 async function flushSaves(){
@@ -262,6 +270,7 @@ async function flushSaves(){
     else if(which==='corpo'&&profileDir) await writeJson(profileDir,FILES.corpo,{dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto});
     else if(which==='alimentazione'&&profileDir) await writeJson(profileDir,FILES.alimentazione,DOC.alimentazione);
     else if(which==='esercizi') await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
+    else if(which==='ricette') await writeJson(dataDir,FILES.ricette,DOC.ricette||[]);
     else if(which==='profili') await writeJson(dataDir,FILES.profili,{list:profili,active:activeProfile});
     else await persistAll();
   }
@@ -276,7 +285,7 @@ function scaricaSubito(){
   try{
     if(!window.tmsFS||!dataDir||!dataDir._local||scrittureBloccate||!pendingSaves.size) return 0;
     clearTimeout(saveTimer); const keys=[...pendingSaves]; pendingSaves.clear();
-    const tutto=keys.some(k=>['scheda','storico','corpo','alimentazione','esercizi','profili'].indexOf(k)<0);
+    const tutto=keys.some(k=>['scheda','storico','corpo','alimentazione','esercizi','ricette','profili'].indexOf(k)<0);
     const vuole=k=>tutto||keys.indexOf(k)>=0;
     const W=(rel,obj)=>{ try{ const p=window.tmsFS.writeFile(rel, JSON.stringify(obj,null,2)); if(p&&p.catch) p.catch(()=>{}); n++; }catch(e){} };
     let n=0; const base=SUBDIR+'/', pb=base+activeProfile+'/';
@@ -287,6 +296,7 @@ function scaricaSubito(){
       if(vuole('alimentazione')) W(pb+FILES.alimentazione, DOC.alimentazione);
     }
     if(vuole('esercizi')) W(base+FILES.esercizi, DOC.esercizi);
+    if(vuole('ricette')) W(base+FILES.ricette, DOC.ricette||[]);
     if(vuole('profili')) W(base+FILES.profili, {list:profili,active:activeProfile});
     return n;
   }catch(e){ return 0; }
