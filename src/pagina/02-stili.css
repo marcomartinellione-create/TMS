@@ -272,8 +272,15 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .lat-giorni .mono{font-size:11px; color:var(--ink-3); white-space:nowrap}
 .lat-nota{font-size:11px; line-height:1.45; color:var(--ink-3); margin-top:8px}
 .lat .bil-riga{grid-template-columns:84px 1fr 38px; font-size:12.5px}
-/* Corpo (2026-11-13): i 7 campi in griglia 2 per riga, invece di una tabella a una colonna —
-   stanno comodi nella colonna stretta, coi grafici che hanno preso quella larga */
+/* Corpo (2026-11-13, richiesta di Marco): stesse due sezioni di sempre (dati+foto a sinistra nel
+   markup, composizione+grafici a destra) — qui si ridistribuiscono SOLO le proporzioni e l'ordine
+   visivo, senza spostare i contenuti: i grafici (pag__side) diventano la colonna LARGA e passano a
+   sinistra (order), i dati (pag__main) diventano la colonna stretta e passano a destra. */
+.pag.pag--corpo{grid-template-columns:minmax(0,1fr) clamp(330px,26vw,430px)}
+.pag.pag--corpo .pag__main{order:2}
+.pag.pag--corpo .pag__side{order:1}
+/* i 7 campi in griglia 2 per riga, invece di una tabella a una colonna: stanno comodi nella
+   colonna stretta */
 .corpo-form{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; margin-top:4px}
 .corpo-campo__in{display:flex; align-items:center; gap:5px}
 .corpo-campo__in input{width:100%; min-width:0}

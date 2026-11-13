@@ -102,7 +102,7 @@ const PAG_LARGO=1320;
 const TITOLI_PAG={
   profilo:['Profili','Profilo aperto e backup'], allenamento:['Scheda della settimana','Come sta venendo la scheda'],
   cardio:['Attività cardio','Settimana e carico'], storico:['Registrazioni salvate','Sintesi delle righe mostrate'],
-  corpo:['Andamento e foto','Composizione e dati corporei'], alimentazione:['Piano alimentare','Sintesi del piano','Indice nutrienti settimanale OMS/FAO'],
+  corpo:['Dati corporei e foto','Composizione e andamento'], alimentazione:['Piano alimentare','Sintesi del piano','Indice nutrienti settimanale OMS/FAO'],
   analisi:['Periodi, carico e peso','Periodi e lettura'], report:['Anteprima del PDF','Strumenti del report'], esercizi:['Catalogo esercizi','Scheda dell’esercizio'],
 };
 function adattaPag(){
