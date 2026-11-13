@@ -108,7 +108,9 @@ const TITOLI_PAG={
 function adattaPag(){
   try{
     const largo=window.innerWidth>=PAG_LARGO;
-    document.querySelectorAll('.panel.is-active .pag').forEach(p=>{
+    /* #panel-dieta non è un vero tab (non ha classe .panel, apposta: showTab() spegnerebbe il
+       suo is-active cambiando tab sotto), ma quando la Stampa dieta è aperta va adattato uguale */
+    document.querySelectorAll('.panel.is-active .pag, #panel-dieta .pag').forEach(p=>{
       const tab=(p.closest('.panel')||{id:''}).id.replace('panel-',''), tit=TITOLI_PAG[tab];
       if(tit){ ['.pag__main','.pag__side','.pag__terza'].forEach((c,i)=>{ const el=p.querySelector(':scope > '+c); if(el&&tit[i]) el.setAttribute('data-titolo', t(tit[i])); }); }
       /* le intestazioni delle tabelle restano ferme sotto il titolo: serve che il riquadro della

@@ -213,7 +213,7 @@ function renderAlimentazione(){
      <tbody>${perRows||`<tr><td colspan="6" class="empty">${t('Nessun periodo registrato.')}</td></tr>`}</tbody></table></div>
    <div class="bar no-print"><button class="btn btn--ember" id="per-add">${t('📅 Registra il piano attuale come periodo…')}</button> <button class="btn" onclick="showTab('analisi')">${t('📊 Vai all\'Analisi')}</button></div>`;
   document.getElementById('panel-alimentazione').innerHTML=`
-   <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="printDieta()" style="margin-left:auto" title="${t('Stampa il piano della fase attiva in PDF A4 orizzontale (da dare al cliente)')}">${t('⬇ Stampa dieta (PDF A4)')}</button></div>
+   <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="apriStampaDieta()" style="margin-left:auto" title="${t('Apri l\'anteprima per sistemare la stampa del piano della fase attiva (PDF A4 orizzontale, da dare al cliente)')}">${t('🍽 Stampa dieta')}</button></div>
    <div class="pag pag--tre"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}</div>
    <aside class="pag__side no-print" id="alim-side">${pannelloPiano(fase)}</aside>
    <div class="pag__terza" id="alim-oms">${omsSection}</div></div>`;
@@ -310,56 +310,101 @@ function abilitaRiordinoPasti(){
       renderAlimentazione(); };
   });
 }
-/* ── Stampa della dieta in PDF A4 ORIZZONTALE (landscape) ──────────────────────────────
-   Riusa il generatore PDF del Report (buildReportUnits + splitTable + html2canvas +
-   imagesToPdf in modalità landscape): impagina il piano della FASE ATTIVA, pasto per pasto,
-   con i totali per pasto e il totale giornaliero. Una pagina da appendere/dare al cliente. */
-function dietaPrintHTML(){
+/* ── Stampa della dieta: STESSO motore a blocchi del Report (13-report.js), a schermo intero
+   sopra l'app (#dieta-overlay). Un blocco fisso «intro» (titolo, fase, data), un blocco per
+   ogni PASTO presente nel piano della fase attiva (trascinabile, nascondibile, con le stesse
+   impostazioni dei blocchi del Report), un blocco fisso finale «totale» coi valori del giorno.
+   L'ordine e le impostazioni si salvano per profilo+fase (DOC.alimentazione.stampa[fase]); i
+   ritocchi a mano SOLO per il documento aperto. PDF in A4 ORIZZONTALE (297×210mm), stessa
+   impaginazione dell'anteprima (repImpagina). */
+const CTX_DIETA={pre:'dre', pannello:'panel-dieta', fissi:['intro','totale'], grandi:[],
+  R:()=>DOC.alimentazione.stampa[faseAlimActive()], chiave:()=>'dieta:'+faseAlimActive(), render:()=>renderDietaCC(),
+  documento(R){
+    return `<div class="lat"><h4>📄 ${t('Documento')}</h4>
+     <div class="muted" style="font-size:12px;margin-bottom:8px">${t('Fase')} <b>${esc(t(FASE_LAB[faseAlimActive()]||faseAlimActive()))}</b></div>
+     <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap"><button class="btn btn--gold" id="dre-pdf-btn" onclick="stampaDietaPDF()">${t('⬇ Scarica PDF (A4 orizzontale)')}</button></div></div>`;
+  },
+  collegaDocumento(){ /* niente da collegare: il pulsante PDF basta da solo */ }};
+function renderDieta(){
+  repCtx=CTX_DIETA;
   const fase=faseAlimActive(); const rows=(DOC.alimentazione&&DOC.alimentazione[fase])||[];
-  const meals=[]; rows.forEach(r=>{ const p=((r.pasto||'').trim())||'Senza pasto'; if(!meals.includes(p))meals.push(p); });
-  let body='';
-  meals.forEach(meal=>{
-    const idxs=rows.map((r,i)=>i).filter(i=>((((rows[i].pasto||'').trim())||'Senza pasto')===meal));
+  DOC.alimentazione.stampa=DOC.alimentazione.stampa||{};
+  const R=DOC.alimentazione.stampa[fase]=Object.assign({ordine:[],blocchi:{}}, DOC.alimentazione.stampa[fase]||{});
+  const meals=[]; rows.forEach(r=>{ const p=((r.pasto||'').trim())||t('Senza pasto'); if(!meals.includes(p)) meals.push(p); });
+  meals.forEach(m=>{ if(R[m]===undefined) R[m]=true; });
+  let ordine=(Array.isArray(R.ordine)?R.ordine:[]).filter(m=>meals.indexOf(m)>=0);
+  meals.forEach(m=>{ if(ordine.indexOf(m)<0) ordine.push(m); });
+  R.ordine=ordine;
+  repNomi={intro:t('Intestazione'), totale:t('Totale giornaliero')}; ordine.forEach(m=>{ repNomi[m]=m; });
+  const testa=`<thead><tr><th class="l">${t('Alimento')}</th><th>g</th><th>Kcal</th><th>Prot</th><th>${t('Grassi')}</th><th>Carbo</th><th>${t('Fibre')}</th></tr></thead>`;
+  const B={};
+  ordine.forEach(m=>{
+    const idxs=rows.map((r,i)=>i).filter(i=>((((rows[i].pasto||'').trim())||t('Senza pasto'))===m));
     let mk=0; idxs.forEach(i=>mk+=foodVal(rows[i].alimento,rows[i].grammi,'kcal'));
-    body+=`<tr class="day-sep"><td colspan="7">▌ ${esc(t(meal))} · ${nf(mk,0)} kcal</td></tr>`;
-    idxs.forEach(i=>{ const r=rows[i];
-      body+=`<tr><td class="l">${r.alimento?esc(r.alimento):'—'}</td>`+
+    const corpo=idxs.map(i=>{ const r=rows[i];
+      return `<tr><td class="l">${r.alimento?esc(r.alimento):'—'}</td>`+
         `<td class="num" style="font-weight:700;font-size:11px;color:#5b3a14">${nf(r.grammi,0)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'kcal'),0)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'proteine'),1)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'grassi'),1)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'zuccheri'),1)}</td>`+
-        `<td class="num">${nf(foodVal(r.alimento,r.grammi,'fibre'),1)}</td></tr>`;
-    });
+        `<td class="num">${nf(foodVal(r.alimento,r.grammi,'fibre'),1)}</td></tr>`; }).join('');
+    B[m]=`<div class="rep-sec"><div class="sec">${esc(m)} <span class="pill" style="margin-left:auto">${nf(mk,0)} kcal</span></div>
+      <div class="tbl-wrap"><table>${testa}<tbody>${corpo||`<tr><td colspan="7" class="empty">${t('Nessun alimento.')}</td></tr>`}</tbody></table></div></div>`;
   });
-  const tot=faseTot(rows); const lab=esc(t(FASE_LAB[fase]||fase));
-  const head=`<thead><tr><th class="l">${t('Alimento')}</th><th>g</th><th>Kcal</th><th>Prot</th><th>${t('Grassi')}</th><th>Carbo</th><th>${t('Fibre')}</th></tr></thead>`;
-  const foot=`<tfoot><tr style="font-weight:600;background:#efe6d2"><td class="l">${t('Totale giornaliero')}</td><td></td><td class="num">${nf(tot.kcal,0)}</td><td class="num">${nf(tot.proteine,1)}</td><td class="num">${nf(tot.grassi,1)}</td><td class="num">${nf(tot.zuccheri,1)}</td><td class="num">${nf(tot.fibre,1)}</td></tr></tfoot>`;
-  return `<h1>${t('Piano alimentare —')} ${esc(profNome()||'')}</h1>`+
-    `<div class="muted" style="margin:-4px 0 10px">${t('Fase')} ${lab} · ${esc(new Date().toLocaleDateString(LANG==='en'?'en-GB':'it-IT'))}</div>`+
-    `<div class="rep-sec"><div class="sec">${t('Piano della fase')} ${lab}</div>`+
-    `<div class="tbl-wrap"><table>${head}<tbody>${body||`<tr><td colspan="7" class="empty">${t('Nessun alimento nel piano.')}</td></tr>`}</tbody>${foot}</table></div></div>`;
+  const tot=faseTot(rows);
+  B.totale=`<div class="rep-sec rep-piede"><div class="sec">${t('Totale giornaliero')}</div>
+    <div class="cards">
+      <div class="card k--ember"><div class="card__k">Kcal</div><div class="card__v">${nf(tot.kcal,0)}</div></div>
+      <div class="card"><div class="card__k">${t('Proteine')}</div><div class="card__v">${nf(tot.proteine,1)}<small> g</small></div></div>
+      <div class="card"><div class="card__k">${t('Grassi')}</div><div class="card__v">${nf(tot.grassi,1)}<small> g</small></div></div>
+      <div class="card"><div class="card__k">Carbo</div><div class="card__v">${nf(tot.zuccheri,1)}<small> g</small></div></div>
+      <div class="card"><div class="card__k">${t('Fibre')}</div><div class="card__v">${nf(tot.fibre,1)}<small> g</small></div></div>
+    </div></div>`;
+  B.intro=`<div class="rep-sec rep-copertina">
+    <div><h1 style="font-size:20px;color:var(--ember-2);margin:0">${t('Piano alimentare —')} ${esc(profNome()||'')}</h1>
+      <div class="muted mono" style="font-size:12px">${t('Fase')} ${esc(t(FASE_LAB[fase]||fase))} · ${esc(new Date().toLocaleDateString(LANG==='en'?'en-GB':'it-IT'))}</div></div>
+    <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`;
+  repGenerati={};
+  const visibili=['intro'].concat(ordine.filter(m=>R[m]!==false && B[m]),['totale']);
+  const sorgente=visibili.map(k=>repBloccoHTML(R,k,B[k])).join('');
+  if(repSel.blocco && visibili.indexOf(repSel.blocco)<0) repSel={blocco:null, el:null};
+  if(repInModifica && visibili.indexOf(repInModifica)<0) repInModifica=null;
+  document.getElementById('dieta-ov-tit').textContent='🍽 '+t('Stampa dieta')+' · '+esc(t(FASE_LAB[fase]||fase));
+  document.getElementById(repCtx.pannello).innerHTML=`<div class="pag pag--report">
+     <div class="pag__main" id="${ID('anteprima')}"><div class="rep-pagine orizzontale" id="${ID('pagine')}"></div></div>
+     <aside class="pag__side no-print" id="${ID('strumenti')}">${repStrumenti(R, ordine, B)}</aside></div>
+   <div class="rep-doc" id="${ID('sorgente')}" hidden>${sorgente}</div>`;
+  repUltimo={ordine, B};
+  repImpaginaAnteprima();
+  repCollega(R);
 }
-async function printDieta(){
+const renderDietaCC=conColonne('dieta', renderDieta);
+function apriStampaDieta(){
   const fase=faseAlimActive(); const rows=(DOC.alimentazione&&DOC.alimentazione[fase])||[];
   if(!rows.some(r=>r&&r.alimento&&String(r.alimento).trim())){ avviso(t('Il piano della fase attiva è vuoto: niente da stampare.')); return; }
+  repSel={blocco:null, el:null}; repInModifica=null;
+  document.getElementById('dieta-overlay').classList.remove('hidden');
+  renderDietaCC();
+}
+function chiudiStampaDieta(){
+  document.getElementById('dieta-overlay').classList.add('hidden');
+  document.getElementById('panel-dieta').innerHTML='';
+}
+async function stampaDietaPDF(){
+  if(repInModifica){ repBloccoDaFogli(repInModifica); repInModifica=null; renderDietaCC(); }
+  const src=document.getElementById(ID('sorgente'));
+  if(!src){ avviso(t('Apri prima la Stampa dieta.')); return; }
   if(typeof html2canvas!=='function'){ avviso(t('Generatore PDF non disponibile in questa copia.')); return; }
-  const btn=document.getElementById('dieta-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero PDF…'); btn.disabled=true; }
+  const btn=document.getElementById('dre-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero PDF…'); btn.disabled=true; }
   const stage=document.createElement('div'); stage.id='pdf-stage'; stage.className='land';
   try{
     document.body.appendChild(stage);
-    const src=document.createElement('div'); src.className='rep-doc'; src.innerHTML=dietaPrintHTML();
     const units=buildReportUnits(document, src);
     const probe=document.createElement('div'); probe.style.cssText='position:absolute;visibility:hidden;height:100mm'; stage.appendChild(probe);
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     const pxPerMm=(probe.getBoundingClientRect().height||377.95)/100; stage.removeChild(probe);
-    const PAD=13, USABLE=210-PAD-PAD-4, contentPx=USABLE*pxPerMm, padTopPx=PAD*pxPerMm; /* altezza utile A4 orizzontale */
-    const pages=[]; let pg=null; const newPage=()=>{ pg=document.createElement('div'); pg.className='pg'; stage.appendChild(pg); pages.push(pg); };
-    newPage();
-    units.forEach(node=>{ pg.appendChild(node);
-      const used=node.getBoundingClientRect().bottom - pg.getBoundingClientRect().top - padTopPx;
-      if(used>contentPx && pg.childElementCount>1){ pg.removeChild(node); newPage(); pg.appendChild(node); }
-    });
+    const pages=repImpagina(stage, units, pxPerMm, 210);  /* 210 = altezza A4 orizzontale */
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     const images=[];
     for(const p of pages){

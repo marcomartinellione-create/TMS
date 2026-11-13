@@ -510,11 +510,27 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     { const fq=d.getElementById('fp-q'); fq.value='riso secco'; fq.dispatchEvent(new w.Event('input',{bubbles:true})); }
     ok([...d.querySelectorAll('#modal .fp-row')].length>0, 'food picker: ricerca a parole trova risultati');
     w.eval('closeModal(); foodToggleFav('+JSON.stringify(nome)+');'); }
-  /* stampa dieta in PDF A4 orizzontale (rendering reale non testabile in jsdom: verifico markup + PDF) */
+  /* ── 2026-11-13 — Stampa dieta: STESSO motore a blocchi del Report, a schermo intero ── */
   w.eval('DOC.dati_utente.faseAlim="bulk"; renderAlimentazione();');
-  ok(d.querySelector('#panel-alimentazione #dieta-pdf-btn') && d.getElementById('dieta-pdf-btn').getAttribute('onclick')==='printDieta()', 'alimentazione: bottone «Stampa dieta (PDF A4)» presente');
-  { const dh=w.eval('dietaPrintHTML()');
-    ok(dh.includes('Piano alimentare') && dh.includes('Totale giornaliero') && dh.includes('day-sep') && dh.includes('rep-sec'), 'dietaPrintHTML: titolo, pasti (day-sep) e totale giornaliero'); }
+  ok(d.querySelector('#panel-alimentazione #dieta-pdf-btn') && d.getElementById('dieta-pdf-btn').getAttribute('onclick')==='apriStampaDieta()', 'alimentazione: bottone «Stampa dieta» apre l\'editor');
+  d.getElementById('dieta-pdf-btn').click();
+  ok(!d.getElementById('dieta-overlay').classList.contains('hidden') && w.eval('repCtx.pre')==='dre', 'stampa dieta: si apre a schermo intero (dre = contesto della dieta)');
+  { const sorg=d.getElementById('dre-sorgente');
+    ok(sorg.firstElementChild.getAttribute('data-blocco')==='intro' && sorg.lastElementChild.getAttribute('data-blocco')==='totale', 'stampa dieta: blocco intro fisso in cima, totale fisso in fondo');
+    ok(sorg.querySelectorAll('[data-blocco]').length>2, 'stampa dieta: un blocco per ogni pasto del piano');
+    const pasto=d.querySelector('#dre-sorgente [data-blocco]:not([data-blocco="intro"]):not([data-blocco="totale"])');
+    ok(pasto.querySelector('.sec .pill').textContent.includes('kcal'), 'stampa dieta: ogni pasto mostra le sue kcal nel titolo');
+    ok(sorg.querySelector('[data-blocco="totale"] .cards'), 'stampa dieta: il totale giornaliero è una scheda di valori, non più una riga di tabella'); }
+  ok(d.querySelector('#dre-pagine .pg') && d.querySelector('#dre-pagine').classList.contains('orizzontale'), 'stampa dieta: fogli dell\'anteprima in A4 orizzontale');
+  { const pastoK=w.eval('DOC.alimentazione.stampa.bulk.ordine[0]');
+    w.eval('document.querySelector(\'#dre-lista [data-selblocco="'+pastoK+'"] [data-rep]\').click()');
+    ok(w.eval('DOC.alimentazione.stampa.bulk['+JSON.stringify(pastoK)+']')===false && !d.querySelector('#dre-sorgente [data-blocco="'+pastoK+'"]'), 'stampa dieta: nascondere un pasto lo toglie dal documento (si salva per fase)');
+    w.eval('document.querySelector(\'#dre-lista [data-selblocco="'+pastoK+'"] [data-rep]\').click()'); }
+  { const ordinePrima=w.eval('DOC.alimentazione.stampa.bulk.ordine.slice()');
+    w.eval('repSposta(DOC.alimentazione.stampa.bulk, repUltimo.ordine[1], repUltimo.ordine[0], false)');
+    ok(w.eval('DOC.alimentazione.stampa.bulk.ordine[0]')===ordinePrima[1], 'stampa dieta: i pasti si trascinano per riordinarli (stesso meccanismo del Report)'); }
+  d.getElementById('dieta-ov-chiudi').click();
+  ok(d.getElementById('dieta-overlay').classList.contains('hidden') && d.getElementById('panel-dieta').innerHTML==='', 'stampa dieta: «← Chiudi» nasconde l\'editor e libera la pagina');
   { const land=w.eval('(function(){var p=imagesToPdf([{bytes:new Uint8Array([0,1,2]),w:8,h:8}], true); return Array.from(p).map(function(c){return String.fromCharCode(c);}).join("");})()');
     const port=w.eval('(function(){var p=imagesToPdf([{bytes:new Uint8Array([0,1,2]),w:8,h:8}]); return Array.from(p).map(function(c){return String.fromCharCode(c);}).join("");})()');
     ok(land.includes('841.8898 595.2756'), 'imagesToPdf(landscape): MediaBox A4 orizzontale (841.8898 × 595.2756)');

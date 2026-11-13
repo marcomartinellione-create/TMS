@@ -587,6 +587,7 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 .rep-pagine .pg{position:relative; width:210mm; height:297mm; box-sizing:border-box; padding:13mm 14mm; background:#fff; overflow:hidden; margin:0 0 26px;
   box-shadow:0 2px 6px rgba(28,14,4,.10),0 14px 34px rgba(28,14,4,.14); border-radius:2px; flex:0 0 auto}
 .rep-pagine .pg::before{content:attr(data-pagina); position:absolute; bottom:-20px; left:0; font:11px var(--font-mono); color:var(--ink-4)}
+.rep-pagine.orizzontale .pg{width:297mm; height:210mm}   /* Stampa dieta: A4 orizzontale, come il PDF */
 .rep-pagine .pg{overflow:visible} .rep-pagine .pg::after{content:''; position:absolute; inset:0; pointer-events:none}
 .rep-pagine .u{position:relative; border-radius:3px; cursor:pointer; transition:box-shadow var(--rapida)}
 .rep-pagine .u:hover{box-shadow:0 0 0 1px var(--gold-2)}
@@ -649,6 +650,14 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 .rep-pagine .t-g .sec, #pdf-stage .t-g .sec{font-size:15px}
 .rep-pagine .t-g .chart-box h4, #pdf-stage .t-g .chart-box h4{font-size:13px}
 #pdf-stage.land{ width:297mm } #pdf-stage.land .pg{ width:297mm; height:210mm } /* A4 orizzontale (stampa dieta) */
+/* ── STAMPA DIETA (2026-11-13): stesso motore del Report, a schermo intero sopra l'app ── */
+.dieta-overlay{position:fixed; inset:0; z-index:60; background:var(--paper-2); display:flex; flex-direction:column}
+.dieta-overlay.hidden{display:none}
+.dieta-overlay__bar{display:flex; align-items:center; gap:10px; padding:10px 18px; background:linear-gradient(180deg,#241405,#160b03);
+  color:var(--paper); border-bottom:2px solid var(--gold-2); flex:0 0 auto}
+.dieta-overlay__tit{font-family:var(--font-disp); font-size:15px; color:var(--grace); flex:1; min-width:0}
+.dieta-overlay__corpo{flex:1; min-height:0; padding:12px clamp(14px,2vw,30px)}
+.dieta-overlay__corpo .pag{height:100%}
 table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
 /* colonne facoltative della scheda Pesi (▦ Colonne): stessa convenzione del RIR */
 table.hide-note th.col-note,table.hide-note td.col-note,

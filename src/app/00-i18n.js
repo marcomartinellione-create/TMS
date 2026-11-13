@@ -28,6 +28,13 @@ const EN={
   'Progressi':'Progress',
   'Corpo':'Body',
   'Misure':'Measurements',
+  /* stampa dieta (stesso motore a blocchi del report) */
+  'Apri l\'anteprima per sistemare la stampa del piano della fase attiva (PDF A4 orizzontale, da dare al cliente)':'Open the preview to arrange the diet printout (landscape A4 PDF, to give to the client)',
+  '🍽 Stampa dieta':'🍽 Print diet',
+  '⬇ Scarica PDF (A4 orizzontale)':'⬇ Download PDF (landscape A4)',
+  'Intestazione':'Heading',
+  'Stampa dieta':'Print diet',
+  'Apri prima la Stampa dieta.':'Open Print diet first.',
   /* report a blocchi */
   'Copertina':'Cover',
   'Piè di pagina':'Footer',

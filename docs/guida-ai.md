@@ -349,10 +349,16 @@ Due modi per registrare una seduta:
   OMS/FAO. I nutrienti marcati «(max)» sono limiti da non superare. Limiti noti:
   usa gli zuccheri TOTALI come proxy degli zuccheri liberi; i grassi trans non sono
   nel dataset (soglia indicata ma non calcolata).
-- **Stampa dieta (PDF A4)**: bottone «⬇ Stampa dieta (PDF A4)» in cima al tab — genera un
-  PDF **A4 orizzontale** del piano della fase attiva (pasti, grammi, kcal e macro per
-  alimento, totali per pasto e totale giornaliero) da dare al cliente. Lo fa l'app, senza
-  la stampa del browser (stesso motore del Report).
+- **Stampa dieta**: bottone «🍽 Stampa dieta» in cima al tab — apre a schermo intero lo
+  **stesso motore a blocchi** del Report (13-report.js: repCtx, repImpagina, buildReportUnits),
+  applicato al piano della fase attiva: un blocco fisso «Intestazione» (titolo, fase, data), un
+  blocco per ogni **pasto** presente (trascinabile, nascondibile, con le stesse impostazioni dei
+  blocchi del Report — titolo, nuova pagina, testo, colore — e modificabile sul posto con
+  doppio clic), un blocco fisso «Totale giornaliero» con le schede dei valori del giorno.
+  L'ordine e le impostazioni si salvano per profilo **e per fase** (DOC.alimentazione.stampa);
+  i ritocchi a mano solo per il documento aperto. «⬇ Scarica PDF (A4 orizzontale)» genera il
+  PDF **A4 orizzontale** (297×210mm) con la stessa impaginazione dell'anteprima; «← Chiudi»
+  torna al tab Alimentazione. Lo fa l'app, senza la stampa del browser.
 - **Periodi**: registrazione di intervalli datati (piano alimentare + data inizio e
   fine) che alimentano il tab Analisi.
 

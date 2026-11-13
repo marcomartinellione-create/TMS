@@ -82,6 +82,7 @@ async function init(){
       const ok=document.getElementById('disc-ok'); if(ok) ok.onclick=()=>{ if(document.getElementById('disc-read').checked){ try{localStorage.setItem('tms-disc-read','1');}catch(e){} } disc.classList.add('hidden'); }; } }
   const fab=document.getElementById('fab-guida'); if(fab) fab.onclick=()=>showTab('guida');
   { const sg=document.getElementById('fab-segnala'); if(sg) sg.onclick=segnalaModal; }
+  { const dc=document.getElementById('dieta-ov-chiudi'); if(dc) dc.onclick=chiudiStampaDieta; }
   aggiornaTabProfilo();
   showTab('allenamento');
   const HAS_LOCAL=!!window.tmsFS;
