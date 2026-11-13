@@ -10,10 +10,18 @@
    - elementi e testi: si selezionano nell'anteprima, si spostano su/giù, si tolgono, e con
      «✎ Modifica testo» si scrive direttamente nel foglio. Questi ritocchi valgono SOLO per il
      documento aperto (memoria, per profilo): «↺ Rifai dai dati» riporta il blocco ai dati. */
-const REP_FISSI=['copertina','piede'];
+/* repCtx: QUALE dei due documenti a blocchi è aperto adesso (Report o Stampa dieta). Lo stesso
+   motore (sotto) serve entrambi: repCtx dice dove scrivere (pre = prefisso degli id, pannello =
+   contenitore), quali blocchi sono fissi (il primo e l'ultimo dell'elenco: copertina/piede per il
+   Report, intro/totale per la dieta), quali diventano «big» (tabelle a tutta larghezza), come
+   ridisegnare tutto (render) e come si chiama il documento per tenere separati i ritocchi a mano
+   (chiave, usata da repEdits insieme al profilo). repCtx.documento()/collegaDocumento() generano
+   e collegano il riquadro «Documento» in cima agli strumenti, diverso per i due casi. */
+let repCtx=null;   /* diventa CTX_REPORT o CTX_DIETA appena parte un render */
+function ID(s){ return repCtx.pre+'-'+s; }
 const REP_DEF_IMP={titolo:'', mostraTitolo:true, mostraDescr:true, nuovaPagina:false, unito:false, testo:'n', colore:'', grafici:'affiancati'};
-let repSel={blocco:null, el:null}, repInModifica=null, repEdit={profilo:null, blocchi:{}}, repGenerati={}, repNomi={};
-function repEdits(){ if(repEdit.profilo!==activeProfile) repEdit={profilo:activeProfile, blocchi:{}}; return repEdit.blocchi; }
+let repSel={blocco:null, el:null}, repInModifica=null, repEdit={chiave:null, blocchi:{}}, repGenerati={}, repNomi={};
+function repEdits(){ const ch=activeProfile+'·'+repCtx.chiave(); if(repEdit.chiave!==ch) repEdit={chiave:ch, blocchi:{}}; return repEdit.blocchi; }
 function repImp(R,k){ return Object.assign({}, REP_DEF_IMP, (R.blocchi||{})[k]||{}); }
 function repSalvaImp(R,k,imp){ R.blocchi=R.blocchi||{}; const o={}; Object.keys(REP_DEF_IMP).forEach(x=>{ if(imp[x]!==REP_DEF_IMP[x]) o[x]=imp[x]; });
   if(Object.keys(o).length) R.blocchi[k]=o; else delete R.blocchi[k]; persist('corpo'); }
@@ -24,7 +32,7 @@ function repPrepara(sec, k){
   if(h && !h.querySelector('.rep-tit')){ const n=[...h.childNodes].find(x=>x.nodeType===3 && x.textContent.trim());
     if(n){ const s=document.createElement('span'); s.className='rep-tit'; s.textContent=n.textContent.trim(); h.replaceChild(s,n); } }
   let i=0; [...sec.children].forEach(c=>{ if(c.classList.contains('sec')) return; c.setAttribute('data-el', String(i++));
-    if(k!=='piede' && c.classList.contains('muted') && (c.tagName==='P'||c.tagName==='DIV')) c.classList.add('rep-descr'); });
+    if(k!==repCtx.fissi[repCtx.fissi.length-1] && c.classList.contains('muted') && (c.tagName==='P'||c.tagName==='DIV')) c.classList.add('rep-descr'); });
 }
 /* il blocco com'è da mostrare: ritoccato a mano se c'è, altrimenti dai dati; poi le impostazioni */
 function repBloccoHTML(R, k, html){
@@ -33,7 +41,7 @@ function repBloccoHTML(R, k, html){
   repPrepara(sec,k); repGenerati[k]=sec.outerHTML;
   const ed=repEdits()[k]; if(ed){ box.innerHTML=ed; sec=box.firstElementChild; }
   const imp=repImp(R,k);
-  sec.className='rep-sec'+(k==='scheda'||k==='record'?' big':'');
+  sec.className='rep-sec'+(repCtx.grandi.indexOf(k)>=0?' big':'');
   sec.setAttribute('data-blocco',k);
   if(!imp.mostraTitolo) sec.classList.add('rep-no-tit');
   if(!imp.mostraDescr) sec.classList.add('rep-no-descr');
@@ -41,12 +49,13 @@ function repBloccoHTML(R, k, html){
   if(imp.colore) sec.classList.add('col-'+imp.colore);
   if(imp.grafici==='colonna') sec.classList.add('rep-graf-colonna');
   if(imp.nuovaPagina) sec.setAttribute('data-nuovapagina','1'); else sec.removeAttribute('data-nuovapagina');
-  if(imp.unito||k==='copertina') sec.setAttribute('data-unito','1'); else sec.removeAttribute('data-unito');
+  if(imp.unito||k===repCtx.fissi[0]) sec.setAttribute('data-unito','1'); else sec.removeAttribute('data-unito');
   if(imp.titolo){ const tt=sec.querySelector(':scope > .sec .rep-tit'); if(tt) tt.textContent=imp.titolo; }
   if(ed) sec.setAttribute('data-ritoccato','1');
   return sec.outerHTML;
 }
 function renderReport(){
+  repCtx=CTX_REPORT;
   const u=DOC.dati_utente; const c=bodyCalc(u);
   const def={profilo:true,foto:false,riepilogo:true,scheda:true,andamento:true,progressione:true,record:true,cardio:true,alimentazione:true,analisi:true,note:true,obiettivo:(u.obiettivo||''),nota:'',fotoPrima:'',fotoDopo:''};
   u.report=Object.assign({},def,u.report||{}); const R=u.report;
@@ -138,10 +147,10 @@ function renderReport(){
   const sorgente=visibili.map(k=>repBloccoHTML(R,k,B[k])).join('');
   if(repSel.blocco && visibili.indexOf(repSel.blocco)<0) repSel={blocco:null, el:null};
   if(repInModifica && visibili.indexOf(repInModifica)<0) repInModifica=null;
-  document.getElementById('panel-report').innerHTML=`<div class="pag pag--report">
-     <div class="pag__main" id="rep-anteprima"><div class="rep-pagine" id="rep-pagine"></div></div>
-     <aside class="pag__side no-print" id="rep-strumenti">${repStrumenti(R, ordine, B)}</aside></div>
-   <div class="rep-doc" id="rep-sorgente" hidden>${sorgente}</div>`;
+  document.getElementById(repCtx.pannello).innerHTML=`<div class="pag pag--report">
+     <div class="pag__main" id="${ID('anteprima')}"><div class="rep-pagine" id="${ID('pagine')}"></div></div>
+     <aside class="pag__side no-print" id="${ID('strumenti')}">${repStrumenti(R, ordine, B)}</aside></div>
+   <div class="rep-doc" id="${ID('sorgente')}" hidden>${sorgente}</div>`;
   repUltimo={ordine, B};
   repImpaginaAnteprima();
   repCollega(R);
@@ -150,28 +159,21 @@ function renderReport(){
 /* cambia la selezione senza rifare i fogli: si aggiornano solo gli strumenti e i contorni */
 let repUltimo=null;
 function repAggiornaSel(){
-  const R=DOC.dati_utente.report, side=document.getElementById('rep-strumenti');
-  if(!side||!repUltimo){ renderReport(); return; }
+  const R=repCtx.R(), side=document.getElementById(ID('strumenti'));
+  if(!side||!repUltimo){ repCtx.render(); return; }
   const sc=side.scrollTop;   /* scegliere un blocco/elemento non deve far saltare in cima gli strumenti */
   side.innerHTML=repStrumenti(R, repUltimo.ordine, repUltimo.B);
   side.scrollTop=sc;
-  document.querySelectorAll('#rep-pagine .is-sel,#rep-pagine .is-sel-el').forEach(x=>x.classList.remove('is-sel','is-sel-el'));
-  document.querySelectorAll('#rep-pagine .u[data-blocco="'+repSel.blocco+'"]').forEach(u=>{ u.classList.add('is-sel');
+  const pagine=document.getElementById(ID('pagine'));
+  pagine.querySelectorAll('.is-sel,.is-sel-el').forEach(x=>x.classList.remove('is-sel','is-sel-el'));
+  pagine.querySelectorAll('.u[data-blocco="'+repSel.blocco+'"]').forEach(u=>{ u.classList.add('is-sel');
     if(repSel.el!=null) u.querySelectorAll('[data-el="'+repSel.el+'"]').forEach(x=>x.classList.add('is-sel-el')); });
   repCollega(R);
 }
 /* ── colonna destra: documento, blocchi, blocco scelto, elemento scelto ── */
 function repStrumenti(R, ordine, B){
   const ed=repEdits(), k=repSel.blocco;
-  const fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
-  const opts=sel=>fl.map(f=>`<option value="${esc(f.file)}"${f.file===sel?' selected':''}>${esc(fotoDataLabel(f))}</option>`).join('');
-  const doc=`<div class="lat"><h4>📄 ${t('Documento')}</h4>
-     <div class="bar" style="margin:0 0 8px;gap:6px;flex-wrap:wrap"><button class="btn btn--gold" id="rep-pdf-btn" onclick="printReport()">${t('⬇ Scarica PDF (A4)')}</button>
-       <button class="btn" id="rep-html-btn" onclick="exportDigitalReport()" title="${t('HTML per smartphone, con i video incorporati')}">${t('📱 Report digitale')}</button>
-       <label class="pill" style="cursor:pointer;align-self:center;display:inline-flex;align-items:center;gap:5px" title="${t('Incorpora i video nel file (più pesante)')}"><input type="checkbox" id="rep-incl-vid" checked style="width:auto;flex:0 0 auto"> ${t('video')}</label></div>
-     <div class="field"><label>${t('Obiettivo del cliente (in copertina)')}</label><input id="rep-goal" value="${esc(R.obiettivo||'')}" placeholder="${t('es. ricomposizione corporea, +forza panca…')}" style="width:100%"></div>
-     <div class="field" style="margin-top:6px"><label>${t('Note del coach')}</label><textarea id="rep-nota" placeholder="${t('Commento, indicazioni, prossimi step…')}" style="width:100%;min-height:64px">${esc(R.nota||'')}</textarea></div>
-     ${fl.length?`<div class="bar" style="margin:6px 0 0;gap:8px;align-items:flex-end"><div class="field"><label>${t('📸 Foto prima')}</label><select id="rep-foto-a">${opts(R.fotoPrima)}</select></div><div class="field"><label>${t('Dopo')}</label><select id="rep-foto-b">${opts(R.fotoDopo)}</select></div></div>`:''}</div>`;
+  const fissi=repCtx.fissi, primo=fissi[0], ultimo=fissi[fissi.length-1];
   const riga=(b,fisso)=>{ const sel=b===k?' is-sel':'', vuoto=!fisso&&R[b]&&!B[b];
     return `<div class="rep-li${sel}${fisso?' rep-li--fisso':''}${!fisso&&!R[b]?' rep-li--spento':''}"${fisso?'':` draggable="true" data-trascina="${b}"`} data-selblocco="${b}">
       <span class="rep-li__man" title="${fisso?t('Questo blocco resta al suo posto'):t('Trascina per spostare')}">${fisso?'·':'⠿'}</span>
@@ -180,38 +182,38 @@ function repStrumenti(R, ordine, B){
       ${ed[b]?`<span class="pill pill--avviso" title="${t('Ritoccato a mano in questo documento')}">✎</span>`:''}
       ${fisso?'':`<button class="rep-li__mv" data-repmove="${b}" data-dir="-1" title="${t('Sposta su')}">▲</button><button class="rep-li__mv" data-repmove="${b}" data-dir="1" title="${t('Sposta giù')}">▼</button>`}</div>`; };
   const lista=`<div class="lat"><h4>🧱 ${t('Blocchi')} <span class="muted">${t('trascina per riordinare')}</span></h4>
-     <div class="rep-lista" id="rep-lista">${riga('copertina',true)}${ordine.map(b=>riga(b,false)).join('')}${riga('piede',true)}</div>
+     <div class="rep-lista" id="${ID('lista')}">${riga(primo,true)}${ordine.map(b=>riga(b,false)).join('')}${riga(ultimo,true)}</div>
      <div class="lat-nota">${t('Clicca un blocco (qui o nell\'anteprima) per le sue impostazioni; clicca un elemento nell\'anteprima per spostarlo o toglierlo.')}</div></div>`;
-  return doc+lista+repPannelloBlocco(R)+repPannelloElemento();
+  return repCtx.documento(R)+lista+repPannelloBlocco(R)+repPannelloElemento();
 }
 function repPannelloBlocco(R){
   const k=repSel.blocco;
-  if(!k) return `<div class="lat" id="rep-imp"><h4>⚙ ${t('Blocco')}</h4><div class="lat-nota">${t('Nessun blocco scelto.')}</div></div>`;
+  if(!k) return `<div class="lat" id="${ID('imp')}"><h4>⚙ ${t('Blocco')}</h4><div class="lat-nota">${t('Nessun blocco scelto.')}</div></div>`;
   const imp=repImp(R,k), ed=repEdits()[k];
   const gen=document.createElement('div'); gen.innerHTML=repGenerati[k]||'';
   const tit0=((gen.querySelector('.rep-tit')||{}).textContent)||'';
   const haDescr=!!gen.querySelector('.rep-descr'), haGraf=gen.querySelectorAll('.chart-box').length>1, haTit=!!tit0;
   const ck=(id,on,lab,tip)=>`<label class="rep-ck" title="${tip||''}"><input type="checkbox" data-imp="${id}" ${on?'checked':''}> ${lab}</label>`;
   const COL=[['',t('Arancio')],['gold',t('Oro')],['ok',t('Verde')],['violet',t('Viola')],['ink',t('Inchiostro')]];
-  if(repInModifica===k) return `<div class="lat rep-imp--modifica" id="rep-imp"><h4>✎ ${esc(repNomi[k]||k)} <span class="muted">${t('in modifica')}</span></h4>
+  if(repInModifica===k) return `<div class="lat rep-imp--modifica" id="${ID('imp')}"><h4>✎ ${esc(repNomi[k]||k)} <span class="muted">${t('in modifica')}</span></h4>
      <div class="lat-nota" style="margin:0 0 8px">${t('Scrivi direttamente nel foglio a sinistra. Per le righe di una tabella metti prima il cursore nella riga.')}</div>
      <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap">
        <span class="gruppo"><button class="btn" data-repop="riga-sopra">${t('＋ Riga sopra')}</button><button class="btn" data-repop="riga-sotto">${t('＋ Riga sotto')}</button><button class="btn" data-repop="riga-via">${t('✕ Togli riga')}</button></span>
-       <button class="btn btn--ember" id="rep-fine">${t('✔ Fine modifica')}</button></div></div>`;
-  return `<div class="lat" id="rep-imp"><h4>⚙ ${esc(repNomi[k]||k)}${ed?` <span class="pill pill--avviso">${t('ritoccato')}</span>`:''}</h4>
-     ${haTit?`<div class="field"><label>${t('Titolo')}</label><input id="rep-imp-titolo" value="${esc(imp.titolo)}" placeholder="${esc(tit0)}" style="width:100%"></div>
+       <button class="btn btn--ember" id="${ID('fine')}">${t('✔ Fine modifica')}</button></div></div>`;
+  return `<div class="lat" id="${ID('imp')}"><h4>⚙ ${esc(repNomi[k]||k)}${ed?` <span class="pill pill--avviso">${t('ritoccato')}</span>`:''}</h4>
+     ${haTit?`<div class="field"><label>${t('Titolo')}</label><input id="${ID('imp-titolo')}" value="${esc(imp.titolo)}" placeholder="${esc(tit0)}" style="width:100%"></div>
      <div class="rep-cks">${ck('mostraTitolo',imp.mostraTitolo,t('mostra il titolo'))}${haDescr?ck('mostraDescr',imp.mostraDescr,t('mostra la spiegazione')):''}</div>`:''}
      <div class="sec-mini">${t('Impaginazione')}</div>
-     <div class="rep-cks">${k==='copertina'?'':ck('nuovaPagina',imp.nuovaPagina,t('inizia su una pagina nuova'))}${k==='copertina'?'':ck('unito',imp.unito,t('tutto nella stessa pagina'),t('Se il blocco è più alto di una pagina viene comunque diviso'))}</div>
+     <div class="rep-cks">${k===repCtx.fissi[0]?'':ck('nuovaPagina',imp.nuovaPagina,t('inizia su una pagina nuova'))}${k===repCtx.fissi[0]?'':ck('unito',imp.unito,t('tutto nella stessa pagina'),t('Se il blocco è più alto di una pagina viene comunque diviso'))}</div>
      <div class="sec-mini">${t('Aspetto')}</div>
      <div class="rep-opz"><span>${t('Testo')}</span><span class="gruppo">${[['p',t('piccolo')],['n',t('normale')],['g',t('grande')]].map(([v,l])=>`<button class="btn${imp.testo===v?' is-on':''}" data-imp-testo="${v}">${l}</button>`).join('')}</span></div>
      ${haTit?`<div class="rep-opz"><span>${t('Colore del titolo')}</span><span class="rep-colori">${COL.map(([v,l])=>`<button class="rep-col col-${v||'def'}${imp.colore===v?' is-on':''}" data-imp-colore="${v}" title="${l}"></button>`).join('')}</span></div>`:''}
      ${haGraf?`<div class="rep-opz"><span>${t('Grafici')}</span><span class="gruppo">${[['affiancati',t('affiancati')],['colonna',t('uno sotto l\'altro')]].map(([v,l])=>`<button class="btn${imp.grafici===v?' is-on':''}" data-imp-grafici="${v}">${l}</button>`).join('')}</span></div>`:''}
      <div class="bar" style="margin:10px 0 0;gap:6px;flex-wrap:wrap">
-       <button class="btn" id="rep-modifica" title="${t('Scrivi direttamente nel foglio: titoli, testi, celle')}">${t('✎ Modifica testo')}</button>
-       ${ed?`<button class="btn" id="rep-rifai" title="${t('Toglie i ritocchi a mano e riprende i dati aggiornati')}">${t('↺ Rifai dai dati')}</button>`:''}
-       ${REP_FISSI.indexOf(k)<0?`<button class="btn btn--danger" id="rep-togli" title="${t('Toglie il blocco dal report (lo rimetti spuntandolo nell\'elenco)')}">${t('✕ Togli dal report')}</button>`:''}
-       <button class="btn" id="rep-imp-reset" title="${t('Riporta le impostazioni del blocco a quelle iniziali')}">${t('Impostazioni iniziali')}</button></div></div>`;
+       <button class="btn" id="${ID('modifica')}" title="${t('Scrivi direttamente nel foglio: titoli, testi, celle')}">${t('✎ Modifica testo')}</button>
+       ${ed?`<button class="btn" id="${ID('rifai')}" title="${t('Toglie i ritocchi a mano e riprende i dati aggiornati')}">${t('↺ Rifai dai dati')}</button>`:''}
+       ${repCtx.fissi.indexOf(k)<0?`<button class="btn btn--danger" id="${ID('togli')}" title="${t('Toglie il blocco dal report (lo rimetti spuntandolo nell\'elenco)')}">${t('✕ Togli dal report')}</button>`:''}
+       <button class="btn" id="${ID('imp-reset')}" title="${t('Riporta le impostazioni del blocco a quelle iniziali')}">${t('Impostazioni iniziali')}</button></div></div>`;
 }
 function repNomeElemento(el){
   if(!el) return '';
@@ -227,7 +229,7 @@ function repPannelloElemento(){
   const k=repSel.blocco, n=repSel.el; if(!k||n==null||repInModifica) return '';
   const el=document.createElement('div'); el.innerHTML=repBaseBlocco(k);
   const x=el.querySelector('[data-el="'+n+'"]'); if(!x) return '';
-  return `<div class="lat" id="rep-el"><h4>◳ ${esc(repNomeElemento(x))} <span class="muted">${t('elemento')}</span></h4>
+  return `<div class="lat" id="${ID('el')}"><h4>◳ ${esc(repNomeElemento(x))} <span class="muted">${t('elemento')}</span></h4>
      <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap"><span class="gruppo"><button class="btn" data-elop="su">${t('▲ Su')}</button><button class="btn" data-elop="giu">${t('▼ Giù')}</button></span>
        <button class="btn btn--danger" data-elop="via">${t('✕ Togli elemento')}</button></div>
      <div class="lat-nota">${t('Vale solo per questo documento: «↺ Rifai dai dati» sul blocco lo rimette.')}</div></div>`;
@@ -248,7 +250,7 @@ function repElemento(op){
 }
 /* ── colonna sinistra: i fogli A4 (stessa impaginazione del PDF) ── */
 function repImpaginaAnteprima(){
-  const cont=document.getElementById('rep-pagine'), src=document.getElementById('rep-sorgente'); if(!cont||!src) return;
+  const cont=document.getElementById(ID('pagine')), src=document.getElementById(ID('sorgente')); if(!cont||!src) return;
   const probe=document.createElement('div'); probe.style.cssText='position:absolute;visibility:hidden;height:100mm;width:1px'; cont.appendChild(probe);
   const pxPerMm=(probe.offsetHeight||377.95)/100; cont.removeChild(probe);
   const pagine=repImpagina(cont, buildReportUnits(document, src), pxPerMm, 297);
@@ -258,12 +260,12 @@ function repImpaginaAnteprima(){
   cont.querySelectorAll('.u[data-blocco]').forEach(u=>{ const k=u.dataset.blocco;
     if(k===repSel.blocco) u.classList.add('is-sel');
     if(k===repInModifica){ u.setAttribute('contenteditable','true'); u.classList.add('is-modifica'); }
-    if(!visti[k]){ visti[k]=1; if(REP_FISSI.indexOf(k)<0 && repInModifica!==k){
+    if(!visti[k]){ visti[k]=1; if(repCtx.fissi.indexOf(k)<0 && repInModifica!==k){
       const m=document.createElement('span'); m.className='rep-maniglia'; m.textContent='⠿'; m.title=t('Trascina per spostare il blocco'); m.setAttribute('draggable','true'); m.setAttribute('data-trascina',k); m.setAttribute('contenteditable','false'); u.insertBefore(m,u.firstChild); } }
     if(repSel.el!=null && k===repSel.blocco) u.querySelectorAll('[data-el="'+repSel.el+'"]').forEach(x=>x.classList.add('is-sel-el'));
   });
   /* i fogli si rimpiccioliscono se la colonna è più stretta di un A4 */
-  const pg=cont.querySelector('.pg'), col=document.getElementById('rep-anteprima');
+  const pg=cont.querySelector('.pg'), col=document.getElementById(ID('anteprima'));
   if(pg&&col&&col.clientWidth){ const z=Math.min(1,(col.clientWidth-24)/pg.offsetWidth); cont.style.zoom=z>0.3? String(z) : ''; }
 }
 /* impagina i pezzi del report in fogli A4 (anteprima e PDF usano QUESTA funzione: stesso risultato).
@@ -287,7 +289,7 @@ function repImpagina(cont, units, pxPerMm, altMm){
 /* ricostruisce il blocco dai pezzi dei fogli (dopo una modifica sul posto): rimette insieme le
    tabelle divise fra più pagine e toglie tutto ciò che serve solo all'anteprima */
 function repBloccoDaFogli(k){
-  const orig=document.querySelector('#rep-sorgente [data-blocco="'+k+'"]'); if(!orig) return;
+  const orig=document.querySelector('#'+ID('sorgente')+' [data-blocco="'+k+'"]'); if(!orig) return;
   const sec=orig.cloneNode(false);
   const pulisci=c=>{ c.removeAttribute('contenteditable'); c.querySelectorAll('[contenteditable]').forEach(x=>x.removeAttribute('contenteditable'));
     c.classList.remove('is-sel-el'); c.querySelectorAll('.is-sel-el').forEach(x=>x.classList.remove('is-sel-el')); c.querySelectorAll('.rep-maniglia').forEach(x=>x.remove()); return c; };
@@ -295,17 +297,17 @@ function repBloccoDaFogli(k){
     if(cl.classList.contains('tbl-wrap') && ult && ult.classList.contains('tbl-wrap') && ult.getAttribute('data-el')===cl.getAttribute('data-el')){
       const tb=ult.querySelector('tbody'), tb2=cl.querySelector('tbody'); if(tb&&tb2){ [...tb2.children].forEach(r=>tb.appendChild(r)); return; } }
     sec.appendChild(cl); };
-  document.querySelectorAll('#rep-pagine .u[data-blocco="'+k+'"]').forEach(u=>{ [...u.children].forEach(c=>{
+  document.querySelectorAll('#'+ID('pagine')+' .u[data-blocco="'+k+'"]').forEach(u=>{ [...u.children].forEach(c=>{
     if(c.classList.contains('rep-sec')) [...c.children].forEach(aggiungi); else aggiungi(c); }); });
   /* un titolo riscritto a mano diventa il titolo del blocco anche nelle impostazioni */
-  const R=DOC.dati_utente.report, imp=repImp(R,k), tt=sec.querySelector(':scope > .sec .rep-tit');
+  const R=repCtx.R(), imp=repImp(R,k), tt=sec.querySelector(':scope > .sec .rep-tit');
   if(tt && imp.titolo && tt.textContent.trim()!==imp.titolo){ imp.titolo=tt.textContent.trim(); repSalvaImp(R,k,imp); }
   repEdits()[k]=sec.outerHTML;
 }
 function repRigaOp(op){
   const sel=window.getSelection&&window.getSelection(); if(!sel||!sel.rangeCount){ avviso(t('Metti prima il cursore in una riga di una tabella del report.')); return; }
   let n=sel.getRangeAt(0).startContainer; if(n&&n.nodeType===3) n=n.parentNode;
-  const tr=n&&n.closest&&n.closest('#rep-pagine tbody tr');
+  const tr=n&&n.closest&&n.closest('#'+ID('pagine')+' tbody tr');
   if(!tr){ avviso(t('Metti prima il cursore in una riga di una tabella del report.')); return; }
   const k=(tr.closest('.u')||{dataset:{}}).dataset.blocco;
   if(op==='riga-via') tr.remove();
@@ -315,9 +317,9 @@ function repRigaOp(op){
 }
 /* sposta il blocco k prima (o dopo) del blocco b */
 function repSposta(R, k, b, dopo){
-  if(!k||!b||k===b||REP_FISSI.indexOf(k)>=0) return;
+  if(!k||!b||k===b||repCtx.fissi.indexOf(k)>=0) return;
   const ord=R.ordine.filter(x=>x!==k);
-  let i=REP_FISSI.indexOf(b)>=0? (b==='copertina'? 0 : ord.length) : ord.indexOf(b)+(dopo?1:0);
+  let i=repCtx.fissi.indexOf(b)>=0? (b===repCtx.fissi[0]? 0 : ord.length) : ord.indexOf(b)+(dopo?1:0);
   if(i<0) i=ord.length; ord.splice(i,0,k); R.ordine=ord; persist('corpo'); renderReport();
 }
 /* aggiorna ALL'ISTANTE il testo di un campo semplice (obiettivo, note, titolo di un blocco) sia
@@ -325,56 +327,49 @@ function repSposta(R, k, b, dopo){
    ridisegno completo: quello resta, più tardi e in sottofondo, solo per risistemare
    l'impaginazione (un testo più lungo può spostare dove cade il taglio di pagina). */
 function repTestoLive(blocco, selettore, testo){
-  document.querySelectorAll('#rep-pagine .u[data-blocco="'+blocco+'"] '+selettore).forEach(el=>{ el.textContent=testo; });
-  const sorg=document.querySelector('#rep-sorgente [data-blocco="'+blocco+'"] '+selettore);
+  document.querySelectorAll('#'+ID('pagine')+' .u[data-blocco="'+blocco+'"] '+selettore).forEach(el=>{ el.textContent=testo; });
+  const sorg=document.querySelector('#'+ID('sorgente')+' [data-blocco="'+blocco+'"] '+selettore);
   if(sorg) sorg.textContent=testo;
 }
 function repCollega(R){
-  const P=document.getElementById('panel-report'); if(!P) return;
+  const ctx=repCtx, P=document.getElementById(ctx.pannello); if(!P) return;
   let tmGoal=null;
-  const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo');
-    repTestoLive('copertina', '.rep-obiettivo-txt', e.target.value);
-    document.querySelectorAll('#rep-pagine .u[data-blocco="copertina"] .rep-obiettivo, #rep-sorgente [data-blocco="copertina"] .rep-obiettivo').forEach(el=>el.classList.toggle('rep-obiettivo--vuoto', !e.target.value));
-    clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 700); };
-  const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; persist('corpo');
-    repTestoLive('note', '.rep-nota', e.target.value);
-    clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 700); };
-  const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
-  const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+  const tardi=(ms)=>{ clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco(ctx.pannello, ctx.render), ms); };
+  if(ctx.collegaDocumento) ctx.collegaDocumento(R, P, tardi);
   /* elenco dei blocchi: spunta, frecce, scelta */
-  P.querySelectorAll('[data-rep]').forEach(cb=>{ cb.onclick=e=>e.stopPropagation(); cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); }; });
+  P.querySelectorAll('[data-rep]').forEach(cb=>{ cb.onclick=e=>e.stopPropagation(); cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); ctx.render(); }; });
   P.querySelectorAll('[data-repmove]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const ord=R.ordine.slice(), i=ord.indexOf(b.dataset.repmove), j=i+(+b.dataset.dir);
-    if(i<0||j<0||j>=ord.length) return; const tmp=ord[i]; ord[i]=ord[j]; ord[j]=tmp; R.ordine=ord; persist('corpo'); renderReport(); });
-  P.querySelectorAll('#rep-lista [data-selblocco]').forEach(li=>li.onclick=()=>{ const k=li.dataset.selblocco;
-    if(!R[k] && REP_FISSI.indexOf(k)<0) return; repSel={blocco:k, el:null}; repAggiornaSel(); });
+    if(i<0||j<0||j>=ord.length) return; const tmp=ord[i]; ord[i]=ord[j]; ord[j]=tmp; R.ordine=ord; persist('corpo'); ctx.render(); });
+  P.querySelectorAll('#'+ID('lista')+' [data-selblocco]').forEach(li=>li.onclick=()=>{ const k=li.dataset.selblocco;
+    if(!R[k] && ctx.fissi.indexOf(k)<0) return; repSel={blocco:k, el:null}; repAggiornaSel(); });
   /* anteprima: un clic sceglie il blocco (e l'elemento); doppio clic entra nella modifica del testo */
-  const fogli=document.getElementById('rep-pagine');
+  const fogli=document.getElementById(ID('pagine'));
   if(fogli){
     fogli.onclick=e=>{ if(repInModifica) return; const u=e.target.closest('.u[data-blocco]'); if(!u) return;
       const elx=e.target.closest('[data-el]'); repSel={blocco:u.dataset.blocco, el:elx? elx.getAttribute('data-el') : null}; repAggiornaSel(); };
-    fogli.ondblclick=e=>{ const u=e.target.closest('.u[data-blocco]'); if(!u||repInModifica) return; repSel={blocco:u.dataset.blocco, el:null}; repInModifica=u.dataset.blocco; renderReport(); };
+    fogli.ondblclick=e=>{ const u=e.target.closest('.u[data-blocco]'); if(!u||repInModifica) return; repSel={blocco:u.dataset.blocco, el:null}; repInModifica=u.dataset.blocco; ctx.render(); };
     if(repInModifica){ let tm=null; fogli.oninput=()=>{ clearTimeout(tm); tm=setTimeout(()=>repBloccoDaFogli(repInModifica), 250); }; }
   }
   /* impostazioni del blocco scelto */
   const k=repSel.blocco;
-  if(k){ const imp=repImp(R,k), salva=()=>{ repSalvaImp(R,k,imp); renderReport(); };
+  if(k){ const imp=repImp(R,k), salva=()=>{ repSalvaImp(R,k,imp); ctx.render(); };
     P.querySelectorAll('[data-imp]').forEach(cb=>cb.onchange=()=>{ imp[cb.dataset.imp]=cb.checked; salva(); });
     P.querySelectorAll('[data-imp-testo]').forEach(b=>b.onclick=()=>{ imp.testo=b.dataset.impTesto; salva(); });
     P.querySelectorAll('[data-imp-colore]').forEach(b=>b.onclick=()=>{ imp.colore=b.dataset.impColore; salva(); });
     P.querySelectorAll('[data-imp-grafici]').forEach(b=>b.onclick=()=>{ imp.grafici=b.dataset.impGrafici; salva(); });
-    const ti=document.getElementById('rep-imp-titolo'); if(ti) ti.oninput=()=>{ imp.titolo=ti.value.trim(); repSalvaImp(R,k,imp);
+    const ti=document.getElementById(ID('imp-titolo')); if(ti) ti.oninput=()=>{ imp.titolo=ti.value.trim(); repSalvaImp(R,k,imp);
       const gen=document.createElement('div'); gen.innerHTML=repGenerati[k]||''; const tit0=((gen.querySelector('.rep-tit')||{}).textContent)||'';
       repTestoLive(k, '.rep-tit', imp.titolo||tit0);
-      clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 500); };
-    const mo=document.getElementById('rep-modifica'); if(mo) mo.onclick=()=>{ repInModifica=k; renderReport();
-      const u=document.querySelector('#rep-pagine .u[data-blocco="'+k+'"]'); if(u){ try{ u.focus(); u.scrollIntoView({block:'nearest'}); }catch(e){} } };
-    const fi=document.getElementById('rep-fine'); if(fi) fi.onclick=()=>{ repBloccoDaFogli(k); repInModifica=null; renderReport(); };
-    const ri=document.getElementById('rep-rifai'); if(ri) ri.onclick=async()=>{
+      tardi(500); };
+    const mo=document.getElementById(ID('modifica')); if(mo) mo.onclick=()=>{ repInModifica=k; ctx.render();
+      const u=document.querySelector('#'+ID('pagine')+' .u[data-blocco="'+k+'"]'); if(u){ try{ u.focus(); u.scrollIntoView({block:'nearest'}); }catch(e){} } };
+    const fi=document.getElementById(ID('fine')); if(fi) fi.onclick=()=>{ repBloccoDaFogli(k); repInModifica=null; ctx.render(); };
+    const ri=document.getElementById(ID('rifai')); if(ri) ri.onclick=async()=>{
       if(!(await conferma(t('Il blocco torna com\'è dai dati e i ritocchi a mano si perdono.'), {titolo:t('Rifare dai dati?'), testoOk:t('↺ Rifai dai dati'), pericolo:true}))) return;
-      delete repEdits()[k]; renderReport(); };
-    const tg=document.getElementById('rep-togli'); if(tg) tg.onclick=()=>{ R[k]=false; persist('corpo'); repSel={blocco:null, el:null}; renderReport(); };
-    const rs=document.getElementById('rep-imp-reset'); if(rs) rs.onclick=()=>{ repSalvaImp(R,k,Object.assign({},REP_DEF_IMP)); renderReport(); };
+      delete repEdits()[k]; ctx.render(); };
+    const tg=document.getElementById(ID('togli')); if(tg) tg.onclick=()=>{ R[k]=false; persist('corpo'); repSel={blocco:null, el:null}; ctx.render(); };
+    const rs=document.getElementById(ID('imp-reset')); if(rs) rs.onclick=()=>{ repSalvaImp(R,k,Object.assign({},REP_DEF_IMP)); ctx.render(); };
     P.querySelectorAll('[data-elop]').forEach(b=>b.onclick=()=>repElemento(b.dataset.elop));
     P.querySelectorAll('[data-repop]').forEach(b=>{ b.onmousedown=e=>e.preventDefault(); b.onclick=()=>repRigaOp(b.dataset.repop); });
   }
@@ -383,7 +378,7 @@ function repCollega(R){
   P.querySelectorAll('[data-trascina]').forEach(x=>{
     x.ondragstart=e=>{ trascinato=x.getAttribute('data-trascina'); try{ e.dataTransfer.setData('text/plain', trascinato); e.dataTransfer.effectAllowed='move'; }catch(_){} };
     x.ondragend=()=>{ trascinato=null; P.querySelectorAll('.rep-drop-prima,.rep-drop-dopo').forEach(y=>y.classList.remove('rep-drop-prima','rep-drop-dopo')); }; });
-  const bersaglio=e=>e.target.closest&&(e.target.closest('#rep-lista [data-selblocco]')||e.target.closest('#rep-pagine .u[data-blocco]'));
+  const bersaglio=e=>e.target.closest&&(e.target.closest('#'+ID('lista')+' [data-selblocco]')||e.target.closest('#'+ID('pagine')+' .u[data-blocco]'));
   const chiave=x=>x.getAttribute('data-selblocco')||x.getAttribute('data-blocco');
   P.ondragover=e=>{ const b=bersaglio(e); if(!trascinato||!b) return; e.preventDefault();
     const r=b.getBoundingClientRect(), dopo=e.clientY>r.top+r.height/2;
@@ -392,6 +387,31 @@ function repCollega(R){
   P.ondrop=e=>{ const b=bersaglio(e); if(!trascinato||!b) return; e.preventDefault();
     const r=b.getBoundingClientRect(); repSposta(R, trascinato, chiave(b), e.clientY>r.top+r.height/2); };
 }
+/* ── CTX_REPORT: il riquadro «Documento» del Report (obiettivo, note, foto, PDF/digitale) ── */
+const CTX_REPORT={pre:'rep', pannello:'panel-report', fissi:['copertina','piede'], grandi:['scheda','record'],
+  R:()=>DOC.dati_utente.report, chiave:()=>'report', render:()=>renderReport(),
+  documento(R){
+    const fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
+    const opts=sel=>fl.map(f=>`<option value="${esc(f.file)}"${f.file===sel?' selected':''}>${esc(fotoDataLabel(f))}</option>`).join('');
+    return `<div class="lat"><h4>📄 ${t('Documento')}</h4>
+     <div class="bar" style="margin:0 0 8px;gap:6px;flex-wrap:wrap"><button class="btn btn--gold" id="rep-pdf-btn" onclick="printReport()">${t('⬇ Scarica PDF (A4)')}</button>
+       <button class="btn" id="rep-html-btn" onclick="exportDigitalReport()" title="${t('HTML per smartphone, con i video incorporati')}">${t('📱 Report digitale')}</button>
+       <label class="pill" style="cursor:pointer;align-self:center;display:inline-flex;align-items:center;gap:5px" title="${t('Incorpora i video nel file (più pesante)')}"><input type="checkbox" id="rep-incl-vid" checked style="width:auto;flex:0 0 auto"> ${t('video')}</label></div>
+     <div class="field"><label>${t('Obiettivo del cliente (in copertina)')}</label><input id="rep-goal" value="${esc(R.obiettivo||'')}" placeholder="${t('es. ricomposizione corporea, +forza panca…')}" style="width:100%"></div>
+     <div class="field" style="margin-top:6px"><label>${t('Note del coach')}</label><textarea id="rep-nota" placeholder="${t('Commento, indicazioni, prossimi step…')}" style="width:100%;min-height:64px">${esc(R.nota||'')}</textarea></div>
+     ${fl.length?`<div class="bar" style="margin:6px 0 0;gap:8px;align-items:flex-end"><div class="field"><label>${t('📸 Foto prima')}</label><select id="rep-foto-a">${opts(R.fotoPrima)}</select></div><div class="field"><label>${t('Dopo')}</label><select id="rep-foto-b">${opts(R.fotoDopo)}</select></div></div>`:''}</div>`;
+  },
+  collegaDocumento(R, P, tardi){
+    const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo');
+      repTestoLive('copertina', '.rep-obiettivo-txt', e.target.value);
+      document.querySelectorAll('#rep-pagine .u[data-blocco="copertina"] .rep-obiettivo, #rep-sorgente [data-blocco="copertina"] .rep-obiettivo').forEach(el=>el.classList.toggle('rep-obiettivo--vuoto', !e.target.value));
+      tardi(700); };
+    const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; persist('corpo');
+      repTestoLive('note', '.rep-nota', e.target.value);
+      tardi(700); };
+    const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+    const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+  }};
 
 /* embedding base64 delle due foto del report (così entrano sia nel PDF sia nel report digitale) */
 let fotoReportUri={};
