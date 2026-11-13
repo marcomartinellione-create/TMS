@@ -242,7 +242,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .btn:disabled{opacity:.45; cursor:not-allowed}
 
 /* ── TABS ── */
-.tabs{display:flex; flex-wrap:wrap; gap:4px; padding:0 18px; background:var(--paper-2);
+.tabs{display:flex; flex-wrap:wrap; gap:4px; padding:7px 18px 0; background:var(--paper-2);   /* un po’ d’aria sopra le schede (Marco, 13/11/2026) */
   border-bottom:1px solid var(--border); position:sticky; top:var(--topbar-h); z-index:30}
 .tab{
   border:1px solid transparent; border-bottom:none; background:none; color:var(--ink-3);
@@ -551,7 +551,7 @@ div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); backgrou
   .topbar{flex-wrap:wrap; gap:8px; padding:8px 12px}
   .topbar__mark{font-size:16px}
   .conn{order:3}
-  .tabs{padding:0 6px; gap:2px}
+  .tabs{padding:5px 6px 0; gap:2px}
   .tab{padding:8px 9px 7px; font-size:12.5px}
   .tab .ico{font-size:14px}
   .bar{gap:7px}
