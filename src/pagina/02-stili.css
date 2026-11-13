@@ -573,7 +573,7 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 .rep-pagine{display:flex; flex-direction:column; align-items:center; gap:0; padding:6px 0 30px}
 .rep-pagine .pg{position:relative; width:210mm; height:297mm; box-sizing:border-box; padding:13mm 14mm; background:#fff; overflow:hidden; margin:0 0 26px;
   box-shadow:0 2px 6px rgba(28,14,4,.10),0 14px 34px rgba(28,14,4,.14); border-radius:2px; flex:0 0 auto}
-.rep-pagine .pg::before{content:attr(data-pagina); position:absolute; top:-20px; left:0; font:11px var(--font-mono); color:var(--ink-4)}
+.rep-pagine .pg::before{content:attr(data-pagina); position:absolute; bottom:-20px; left:0; font:11px var(--font-mono); color:var(--ink-4)}
 .rep-pagine .pg{overflow:visible} .rep-pagine .pg::after{content:''; position:absolute; inset:0; pointer-events:none}
 .rep-pagine .u{position:relative; border-radius:3px; cursor:pointer; transition:box-shadow var(--rapida)}
 .rep-pagine .u:hover{box-shadow:0 0 0 1px var(--gold-2)}
