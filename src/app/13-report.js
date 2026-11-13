@@ -1,4 +1,51 @@
-/* ════════════════ RENDER: REPORT ════════════════ */
+/* ════════════════ RENDER: REPORT ════════════════
+   Pagina a due colonne (2026-11-13): a sinistra l'ANTEPRIMA del PDF in fogli A4 veri (la stessa
+   impaginazione che esce nel PDF: quello che si vede è il PDF), a destra gli STRUMENTI.
+   Il report è fatto di BLOCCHI (copertina, profilo, riepilogo, scheda… piè di pagina) e ogni
+   blocco di ELEMENTI (schede dei valori, grafici, tabelle, testi):
+   - blocchi: si trascinano (nell'elenco o dal manico ⠿ nell'anteprima), si mostrano/nascondono,
+     si tolgono, hanno impostazioni proprie (titolo, descrizione, pagina nuova, tutto in una
+     pagina, grandezza del testo, colore della barra, grafici affiancati o in colonna). Ordine,
+     visibilità e impostazioni si SALVANO per profilo (DOC.dati_utente.report);
+   - elementi e testi: si selezionano nell'anteprima, si spostano su/giù, si tolgono, e con
+     «✎ Modifica testo» si scrive direttamente nel foglio. Questi ritocchi valgono SOLO per il
+     documento aperto (memoria, per profilo): «↺ Rifai dai dati» riporta il blocco ai dati. */
+const REP_FISSI=['copertina','piede'];
+const REP_DEF_IMP={titolo:'', mostraTitolo:true, mostraDescr:true, nuovaPagina:false, unito:false, testo:'n', colore:'', grafici:'affiancati'};
+let repSel={blocco:null, el:null}, repInModifica=null, repEdit={profilo:null, blocchi:{}}, repGenerati={}, repNomi={};
+function repEdits(){ if(repEdit.profilo!==activeProfile) repEdit={profilo:activeProfile, blocchi:{}}; return repEdit.blocchi; }
+function repImp(R,k){ return Object.assign({}, REP_DEF_IMP, (R.blocchi||{})[k]||{}); }
+function repSalvaImp(R,k,imp){ R.blocchi=R.blocchi||{}; const o={}; Object.keys(REP_DEF_IMP).forEach(x=>{ if(imp[x]!==REP_DEF_IMP[x]) o[x]=imp[x]; });
+  if(Object.keys(o).length) R.blocchi[k]=o; else delete R.blocchi[k]; persist('corpo'); }
+/* prepara il blocco appena generato: titolo in <span class="rep-tit">, un numero a ogni elemento,
+   le righe di spiegazione marcate come descrizione (si possono nascondere) */
+function repPrepara(sec, k){
+  const h=sec.querySelector(':scope > .sec');
+  if(h && !h.querySelector('.rep-tit')){ const n=[...h.childNodes].find(x=>x.nodeType===3 && x.textContent.trim());
+    if(n){ const s=document.createElement('span'); s.className='rep-tit'; s.textContent=n.textContent.trim(); h.replaceChild(s,n); } }
+  let i=0; [...sec.children].forEach(c=>{ if(c.classList.contains('sec')) return; c.setAttribute('data-el', String(i++));
+    if(k!=='piede' && c.classList.contains('muted') && (c.tagName==='P'||c.tagName==='DIV')) c.classList.add('rep-descr'); });
+}
+/* il blocco com'è da mostrare: ritoccato a mano se c'è, altrimenti dai dati; poi le impostazioni */
+function repBloccoHTML(R, k, html){
+  const box=document.createElement('div'); box.innerHTML=html||''; let sec=box.firstElementChild;
+  if(!sec) return '';
+  repPrepara(sec,k); repGenerati[k]=sec.outerHTML;
+  const ed=repEdits()[k]; if(ed){ box.innerHTML=ed; sec=box.firstElementChild; }
+  const imp=repImp(R,k);
+  sec.className='rep-sec'+(k==='scheda'||k==='record'?' big':'');
+  sec.setAttribute('data-blocco',k);
+  if(!imp.mostraTitolo) sec.classList.add('rep-no-tit');
+  if(!imp.mostraDescr) sec.classList.add('rep-no-descr');
+  if(imp.testo!=='n') sec.classList.add('t-'+imp.testo);
+  if(imp.colore) sec.classList.add('col-'+imp.colore);
+  if(imp.grafici==='colonna') sec.classList.add('rep-graf-colonna');
+  if(imp.nuovaPagina) sec.setAttribute('data-nuovapagina','1'); else sec.removeAttribute('data-nuovapagina');
+  if(imp.unito||k==='copertina') sec.setAttribute('data-unito','1'); else sec.removeAttribute('data-unito');
+  if(imp.titolo){ const tt=sec.querySelector(':scope > .sec .rep-tit'); if(tt) tt.textContent=imp.titolo; }
+  if(ed) sec.setAttribute('data-ritoccato','1');
+  return sec.outerHTML;
+}
 function renderReport(){
   const u=DOC.dati_utente; const c=bodyCalc(u);
   const def={profilo:true,foto:false,riepilogo:true,scheda:true,andamento:true,progressione:true,record:true,cardio:true,alimentazione:true,analisi:true,note:true,obiettivo:(u.obiettivo||''),nota:'',fotoPrima:'',fotoDopo:''};
@@ -15,21 +62,15 @@ function renderReport(){
   const io=DOC.storico_io; const prs=prList().slice(0,8);
   const mainLifts=['Panca piana bilanciere','Squat bilanciere','Stacco da terra','Military press / Overhead press','Trazioni alla sbarra'].filter(n=>DOC.storico.some(r=>r.esercizio===n));
   const toggles=[['profilo','Profilo & corpo'],['foto','Foto progressi (prima/dopo)'],['riepilogo','Riepilogo allenamento'],['scheda','Scheda di allenamento'],['andamento','Grafici di andamento'],['progressione','Progressione esercizi'],['record','Record personali'],['cardio','Cardio (attività)'],['alimentazione','Alimentazione'],['analisi','Dieta × allenamento'],['note','Note del coach']].map(x=>[x[0],t(x[1])]);
+  repNomi={copertina:t('Copertina'), piede:t('Piè di pagina')}; toggles.forEach(x=>{ repNomi[x[0]]=x[1]; });
   /* ordine personalizzabile delle sezioni (per profilo): parte dal default, completa con eventuali sezioni nuove */
-  const KEYS=toggles.map(t=>t[0]);
+  const KEYS=toggles.map(x=>x[0]);
   let ordine=(Array.isArray(R.ordine)?R.ordine:[]).filter(k=>KEYS.indexOf(k)>=0);
   KEYS.forEach(k=>{ if(ordine.indexOf(k)<0) ordine.push(k); });
   R.ordine=ordine;
   /* foto report: default prima=più vecchia, dopo=più recente (se ci sono foto) */
   const _fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
   if(_fl.length){ if(!_fl.some(f=>f.file===R.fotoPrima)) R.fotoPrima=_fl[0].file; if(!_fl.some(f=>f.file===R.fotoDopo)) R.fotoDopo=_fl[_fl.length-1].file; }
-  const mvStyle='border:1px solid var(--border);background:var(--paper-2);border-radius:var(--r-xs);cursor:pointer;font-size:10px;line-height:1;padding:2px 4px;color:var(--ink-2)';
-  const ctrl=`<div class="bar no-print" style="flex-wrap:wrap">
-     <div class="field" style="flex:1;min-width:240px"><label>${t('Obiettivo del cliente (in copertina)')}</label><input id="rep-goal" value="${esc(R.obiettivo||'')}" placeholder="${t('es. ricomposizione corporea, +forza panca…')}" style="width:100%"></div>
-     <button class="btn btn--gold" id="rep-pdf-btn" onclick="printReport()">${t('⬇ Scarica PDF (A4)')}</button>
-     <button class="btn" id="rep-html-btn" onclick="exportDigitalReport()" title="${t('HTML per smartphone, con i video incorporati')}">${t('📱 Report digitale')}</button>
-     <label class="pill" style="cursor:pointer;align-self:center;display:inline-flex;align-items:center;gap:5px" title="${t('Incorpora i video nel file (più pesante)')}"><input type="checkbox" id="rep-incl-vid" checked style="width:auto;flex:0 0 auto"> ${t('video')}</label></div>
-   <div class="bar no-print" style="flex-wrap:wrap;gap:8px;align-items:center"><span class="muted mono" style="font-size:11px">${t('Sezioni (spunta per includere · ▲▼ per l\'ordine):')}</span>${ordine.map((k,i)=>{const lab=(toggles.find(x=>x[0]===k)||[])[1]||k;return `<span class="pill" style="display:inline-flex;align-items:center;gap:3px"><label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px"><input type="checkbox" data-rep="${k}" ${R[k]?'checked':''} style="vertical-align:-1px">${lab}</label><button data-repmove="${k}" data-dir="-1" title="${t('Sposta su')}" style="${mvStyle}"${i===0?' disabled':''}>▲</button><button data-repmove="${k}" data-dir="1" title="${t('Sposta giù')}" style="${mvStyle}"${i===ordine.length-1?' disabled':''}>▼</button></span>`;}).join('')}</div>`;
   const B={};
   if(R.profilo){ B.profilo=`<div class="rep-sec"><div class="sec">${t('Profilo & composizione corporea')}</div>
      <div class="cards">
@@ -81,134 +122,261 @@ function renderReport(){
     const periodiR=((DOC.alimentazione||{}).periodi)||[];
     if(periodiR.length){ const settR=serieSettimanali();
       B.analisi=`<div class="rep-sec"><div class="sec">${t('Dieta × allenamento — periodi, carico e peso')}</div>
-       ${timelineChart(settR)}
+       <div class="rep-graf">${timelineChart(settR)}</div>
        <div class="muted" style="font-size:11px;margin-top:4px">${t('Fasce colorate = periodi alimentari registrati (con le kcal/giorno del piano); linee = Training Load settimanale (asse sx) e peso corporeo (asse dx).')}</div></div>`; }
   }
   if(R.note){ B.note=`<div class="rep-sec"><div class="sec">${t('Note del coach')}</div>
-     <textarea id="rep-nota" class="no-print" placeholder="${t('Commento, indicazioni, prossimi step…')}" style="width:100%;min-height:90px">${esc(R.nota||'')}</textarea>
-     <div class="rep-nota-print" style="white-space:pre-wrap;font-size:13px">${esc(R.nota||'')||'<span class="muted">—</span>'}</div></div>`; }
-  const S=[`<div class="rep-sec" style="border-bottom:2px solid var(--gold-2);padding-bottom:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start">
+     <div class="rep-nota" style="white-space:pre-wrap;font-size:13px">${esc(R.nota||'')||'<span class="muted">—</span>'}</div></div>`; }
+  B.copertina=`<div class="rep-sec rep-copertina">
      <div><h1 style="font-size:20px;color:var(--ember-2);margin:0">${t('Report di Allenamento')}</h1>
        <div class="muted mono" style="font-size:12px">${esc(u.nome||profNome()||t('Atleta'))}${u.cognome?' '+esc(u.cognome):''} · ${new Date().toLocaleDateString(LANG==='en'?'en-GB':'it-IT')}${last?' · '+t('scheda')+' '+last.scheda:''}</div>
        ${R.obiettivo?`<div style="margin-top:6px"><b>${t('Obiettivo:')}</b> ${esc(R.obiettivo)}</div>`:''}</div>
-     <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`];
-  ordine.forEach(k=>{ if(B[k]) S.push(B[k]); });
-  S.push(`<p class="muted" style="font-size:11px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px">${t('Report generato dal Training Monitor System. Indici a scopo informativo, non sostituiscono un parere medico/professionale.')}</p>`);
-  const modificato=repModificato();
-  if(!modificato) repInModifica=false;
-  document.getElementById('panel-report').innerHTML=ctrl+fotoReportCtrl(R)+repBarraModifica(modificato)+
-    `<div class="rep-doc${repInModifica?' rep-doc--modifica':''}"${repInModifica?' contenteditable="true" spellcheck="true"':''} style="background:var(--paper);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 22px;box-shadow:var(--shadow)">${modificato? repEdit.html : S.join('')}</div>`;
-  repCollegaModifica();
-  const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo'); };
-  document.querySelectorAll('#panel-report [data-rep]').forEach(cb=>cb.onchange=async()=>{
-    if(!(await repLasciaModifiche())){ cb.checked=!cb.checked; return; }
-    R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); });
-  document.querySelectorAll('#panel-report [data-repmove]').forEach(b=>b.onclick=async()=>{
-    const ord=R.ordine.slice(), i=ord.indexOf(b.dataset.repmove), j=i+(+b.dataset.dir);
-    if(i<0||j<0||j>=ord.length) return;
-    if(!(await repLasciaModifiche())) return;
-    const tmp=ord[i]; ord[i]=ord[j]; ord[j]=tmp; R.ordine=ord; persist('corpo'); renderReport(); });
-  const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; const pv=document.querySelector('.rep-nota-print'); if(pv)pv.textContent=e.target.value; persist('corpo'); };
-  const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
-  const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+     <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`;
+  B.piede=`<div class="rep-sec rep-piede"><p class="muted" style="font-size:11px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px">${t('Report generato dal Training Monitor System. Indici a scopo informativo, non sostituiscono un parere medico/professionale.')}</p></div>`;
+  repGenerati={};
+  const visibili=['copertina'].concat(ordine.filter(k=>R[k]&&B[k]),['piede']);
+  const sorgente=visibili.map(k=>repBloccoHTML(R,k,B[k])).join('');
+  if(repSel.blocco && visibili.indexOf(repSel.blocco)<0) repSel={blocco:null, el:null};
+  if(repInModifica && visibili.indexOf(repInModifica)<0) repInModifica=null;
+  document.getElementById('panel-report').innerHTML=`<div class="pag pag--report">
+     <div class="pag__main" id="rep-anteprima"><div class="rep-pagine" id="rep-pagine"></div></div>
+     <aside class="pag__side no-print" id="rep-strumenti">${repStrumenti(R, ordine, B)}</aside></div>
+   <div class="rep-doc" id="rep-sorgente" hidden>${sorgente}</div>`;
+  repUltimo={ordine, B};
+  repImpaginaAnteprima();
+  repCollega(R);
   if(R.foto && [R.fotoPrima,R.fotoDopo].some(f=>f && !fotoReportUri[f])) ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); });
 }
-/* ── MODIFICA A MANO DEL REPORT (2026-11-13) ──────────────────────────────────────
-   «✎ Modifica» rende il documento scrivibile sulla pagina: titoli, testi, celle delle tabelle.
-   Con il cursore in una tabella si aggiunge o si toglie una riga; con il cursore in una sezione
-   la si toglie tutta. Il PDF e il report digitale escono esattamente come si vede. Le modifiche
-   valgono solo per questo documento: NON toccano i dati salvati (stanno in memoria, per il
-   profilo aperto) e «↺ Torna all'originale» rifà il report dai dati. Cambiare le sezioni o il loro
-   ordine rifà il report: se è stato ritoccato a mano, prima si chiede. */
-let repEdit={profilo:null, html:null}, repInModifica=false;
-function repModificato(){ return !!(repEdit.html && repEdit.profilo===activeProfile); }
-function repDoc(){ return document.querySelector('#panel-report .rep-doc'); }
-/* com'è adesso il documento, senza gli attributi della modifica (va nel PDF e nella memoria) */
-function repSalvaModifica(){
-  const d=repDoc(); if(!d) return;
-  const c=d.cloneNode(true); c.removeAttribute('contenteditable');
-  c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
-  c.querySelectorAll('.rep-sel').forEach(e=>e.classList.remove('rep-sel'));
-  repEdit={profilo:activeProfile, html:c.innerHTML};
+/* cambia la selezione senza rifare i fogli: si aggiornano solo gli strumenti e i contorni */
+let repUltimo=null;
+function repAggiornaSel(){
+  const R=DOC.dati_utente.report, side=document.getElementById('rep-strumenti');
+  if(!side||!repUltimo){ renderReport(); return; }
+  side.innerHTML=repStrumenti(R, repUltimo.ordine, repUltimo.B);
+  document.querySelectorAll('#rep-pagine .is-sel,#rep-pagine .is-sel-el').forEach(x=>x.classList.remove('is-sel','is-sel-el'));
+  document.querySelectorAll('#rep-pagine .u[data-blocco="'+repSel.blocco+'"]').forEach(u=>{ u.classList.add('is-sel');
+    if(repSel.el!=null) u.querySelectorAll('[data-el="'+repSel.el+'"]').forEach(x=>x.classList.add('is-sel-el')); });
+  repCollega(R);
 }
-/* chiude la modifica (prima di generare PDF o report digitale): il documento torna normale */
-function repChiudiModifica(){
-  if(!repInModifica) return;
-  repSalvaModifica(); repInModifica=false;
-  const d=repDoc(); if(d){ d.removeAttribute('contenteditable'); d.classList.remove('rep-doc--modifica'); }
-  const b=document.getElementById('rep-edit-bar'); if(b) b.outerHTML=repBarraModifica(true);
-  repCollegaModifica();
-}
-/* prima di rifare il report dai dati: se è stato ritoccato a mano, chiede se va bene perdere i ritocchi */
-async function repLasciaModifiche(){
-  if(repInModifica) repSalvaModifica();
-  if(!repModificato()) return true;
-  const ok=await conferma(t('Il report è stato modificato a mano. Cambiando le sezioni si rifà dai dati e le modifiche si perdono.'), {titolo:t('Perdere le modifiche?'), testoOk:t('Rifai dai dati'), pericolo:true});
-  if(ok){ repEdit={profilo:null, html:null}; repInModifica=false; }
-  return ok;
-}
-function repBarraModifica(modificato){
-  if(!repInModifica) return `<div class="bar no-print rep-edit-bar" id="rep-edit-bar">
-     <button class="btn" id="rep-edit-on" title="${t('Scrivi direttamente sul report: testi, titoli e tabelle. Il PDF esce come lo vedi.')}">${t('✎ Modifica testi e tabelle')}</button>
-     ${modificato?`<span class="pill pill--avviso">${t('modificato a mano')}</span><button class="btn" id="rep-edit-reset" title="${t('Rifà il report dai dati, senza le modifiche')}">${t('↺ Torna all\'originale')}</button>
-       <span class="muted" style="font-size:11.5px">${t('I dati nuovi compaiono tornando all\'originale.')}</span>`:''}</div>`;
-  return `<div class="bar no-print rep-edit-bar rep-edit-bar--attiva" id="rep-edit-bar">
-     <button class="btn btn--ember" id="rep-edit-off">${t('✔ Fine modifica')}</button>
-     <span class="gruppo"><button class="btn" data-repop="riga-sopra" title="${t('Aggiunge una riga vuota sopra quella col cursore')}">${t('＋ Riga sopra')}</button><button class="btn" data-repop="riga-sotto" title="${t('Aggiunge una riga vuota sotto quella col cursore')}">${t('＋ Riga sotto')}</button><button class="btn" data-repop="riga-via" title="${t('Toglie la riga della tabella dove sta il cursore')}">${t('✕ Togli riga')}</button></span>
-     <button class="btn" data-repop="sezione-via" title="${t('Toglie tutta la sezione dove sta il cursore')}">${t('✕ Togli sezione')}</button>
-     <button class="btn" id="rep-edit-reset" title="${t('Rifà il report dai dati, senza le modifiche')}">${t('↺ Torna all\'originale')}</button>
-     <span class="muted" style="font-size:11.5px">${t('Clicca dove vuoi scrivere. Per righe e sezioni metti prima il cursore nel punto giusto.')}</span></div>`;
-}
-/* dove sta il cursore dentro il documento (l'elemento, non il nodo di testo) */
-function repPuntoCursore(){
-  const d=repDoc(); const sel=window.getSelection&&window.getSelection(); if(!d||!sel||!sel.rangeCount) return null;
-  let n=sel.getRangeAt(0).startContainer; if(n&&n.nodeType===3) n=n.parentNode;
-  return n&&d.contains(n)? n : null;
-}
-function repOperazione(op){
-  const n=repPuntoCursore();
-  const tr=n&&n.closest&&n.closest('tbody tr'), sec=n&&n.closest&&n.closest('.rep-sec');
-  if(op.indexOf('riga')===0){
-    if(!tr){ avviso(t('Metti prima il cursore in una riga di una tabella del report.')); return; }
-    if(op==='riga-via'){ const tb=tr.parentNode; tr.remove(); if(tb&&!tb.children.length){ const w=tb.closest('.tbl-wrap'); if(w) w.remove(); } }
-    else { const nuova=tr.cloneNode(true); nuova.classList.remove('day-sep');
-      nuova.querySelectorAll('td').forEach(td=>{ td.innerHTML='&nbsp;'; td.removeAttribute('title'); });
-      tr.parentNode.insertBefore(nuova, op==='riga-sopra'? tr : tr.nextSibling);
-      try{ const r=document.createRange(); r.selectNodeContents(nuova.querySelector('td')); r.collapse(true); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r); }catch(e){} }
-  } else if(op==='sezione-via'){
-    if(!sec||sec===repDoc().firstElementChild){ avviso(t('Metti prima il cursore dentro la sezione da togliere (la copertina resta).')); return; }
-    sec.remove();
-  }
-  repSalvaModifica();
-}
-function repCollegaModifica(){
-  const on=document.getElementById('rep-edit-on'); if(on) on.onclick=()=>{ repInModifica=true; if(!repModificato()) repSalvaModifica(); renderReport();
-    const d=repDoc(); if(d) try{ d.focus(); }catch(e){} };
-  const off=document.getElementById('rep-edit-off'); if(off) off.onclick=()=>repChiudiModifica();
-  const rs=document.getElementById('rep-edit-reset'); if(rs) rs.onclick=async()=>{
-    if(!(await conferma(t('Il report torna com\'è dai dati e le modifiche fatte a mano si perdono.'), {titolo:t('Tornare all\'originale?'), testoOk:t('Torna all\'originale'), pericolo:true}))) return;
-    repEdit={profilo:null, html:null}; repInModifica=false; renderReport(); };
-  /* i pulsanti non devono rubare il cursore al documento: si agisce dove sta */
-  document.querySelectorAll('#rep-edit-bar [data-repop]').forEach(b=>{ b.onmousedown=e=>e.preventDefault(); b.onclick=()=>repOperazione(b.dataset.repop); });
-  const d=repDoc();
-  if(d && repInModifica){
-    let tm=null; d.oninput=()=>{ clearTimeout(tm); tm=setTimeout(repSalvaModifica, 250); };
-    /* evidenzia la riga e la sezione dove sta il cursore */
-    const evid=()=>{ d.querySelectorAll('.rep-sel').forEach(e=>e.classList.remove('rep-sel'));
-      const n=repPuntoCursore(); if(!n) return; const tr=n.closest('tbody tr'), sec=n.closest('.rep-sec');
-      if(tr) tr.classList.add('rep-sel'); if(sec) sec.classList.add('rep-sel'); };
-    d.onkeyup=evid; d.onmouseup=evid;
-  }
-}
-/* pickers prima/dopo per la sezione foto del report (vuoto se non ci sono foto) */
-function fotoReportCtrl(R){
-  const fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||''))); if(!fl.length) return '';
+/* ── colonna destra: documento, blocchi, blocco scelto, elemento scelto ── */
+function repStrumenti(R, ordine, B){
+  const ed=repEdits(), k=repSel.blocco;
+  const fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
   const opts=sel=>fl.map(f=>`<option value="${esc(f.file)}"${f.file===sel?' selected':''}>${esc(fotoDataLabel(f))}</option>`).join('');
-  return `<div class="bar no-print" style="gap:10px;flex-wrap:wrap;align-items:flex-end"><span class="muted mono" style="font-size:11px;align-self:center">${t('📸 Foto report:')}</span>
-     <div class="field"><label>${t('Prima')}</label><select id="rep-foto-a">${opts(R.fotoPrima)}</select></div>
-     <div class="field"><label>${t('Dopo')}</label><select id="rep-foto-b">${opts(R.fotoDopo)}</select></div>
-     <span class="muted" style="font-size:11px;align-self:center">${t('spunta «Foto progressi» tra le sezioni per inserirle')}</span></div>`;
+  const doc=`<div class="lat"><h4>📄 ${t('Documento')}</h4>
+     <div class="bar" style="margin:0 0 8px;gap:6px;flex-wrap:wrap"><button class="btn btn--gold" id="rep-pdf-btn" onclick="printReport()">${t('⬇ Scarica PDF (A4)')}</button>
+       <button class="btn" id="rep-html-btn" onclick="exportDigitalReport()" title="${t('HTML per smartphone, con i video incorporati')}">${t('📱 Report digitale')}</button>
+       <label class="pill" style="cursor:pointer;align-self:center;display:inline-flex;align-items:center;gap:5px" title="${t('Incorpora i video nel file (più pesante)')}"><input type="checkbox" id="rep-incl-vid" checked style="width:auto;flex:0 0 auto"> ${t('video')}</label></div>
+     <div class="field"><label>${t('Obiettivo del cliente (in copertina)')}</label><input id="rep-goal" value="${esc(R.obiettivo||'')}" placeholder="${t('es. ricomposizione corporea, +forza panca…')}" style="width:100%"></div>
+     <div class="field" style="margin-top:6px"><label>${t('Note del coach')}</label><textarea id="rep-nota" placeholder="${t('Commento, indicazioni, prossimi step…')}" style="width:100%;min-height:64px">${esc(R.nota||'')}</textarea></div>
+     ${fl.length?`<div class="bar" style="margin:6px 0 0;gap:8px;align-items:flex-end"><div class="field"><label>${t('📸 Foto prima')}</label><select id="rep-foto-a">${opts(R.fotoPrima)}</select></div><div class="field"><label>${t('Dopo')}</label><select id="rep-foto-b">${opts(R.fotoDopo)}</select></div></div>`:''}</div>`;
+  const riga=(b,fisso)=>{ const sel=b===k?' is-sel':'', vuoto=!fisso&&R[b]&&!B[b];
+    return `<div class="rep-li${sel}${fisso?' rep-li--fisso':''}${!fisso&&!R[b]?' rep-li--spento':''}"${fisso?'':` draggable="true" data-trascina="${b}"`} data-selblocco="${b}">
+      <span class="rep-li__man" title="${fisso?t('Questo blocco resta al suo posto'):t('Trascina per spostare')}">${fisso?'·':'⠿'}</span>
+      ${fisso?'':`<input type="checkbox" data-rep="${b}" ${R[b]?'checked':''} title="${t('Mostra o nascondi il blocco')}">`}
+      <span class="rep-li__nome">${esc(repNomi[b]||b)}${vuoto?` <span class="muted" style="font-size:10.5px">${t('(senza dati)')}</span>`:''}</span>
+      ${ed[b]?`<span class="pill pill--avviso" title="${t('Ritoccato a mano in questo documento')}">✎</span>`:''}
+      ${fisso?'':`<button class="rep-li__mv" data-repmove="${b}" data-dir="-1" title="${t('Sposta su')}">▲</button><button class="rep-li__mv" data-repmove="${b}" data-dir="1" title="${t('Sposta giù')}">▼</button>`}</div>`; };
+  const lista=`<div class="lat"><h4>🧱 ${t('Blocchi')} <span class="muted">${t('trascina per riordinare')}</span></h4>
+     <div class="rep-lista" id="rep-lista">${riga('copertina',true)}${ordine.map(b=>riga(b,false)).join('')}${riga('piede',true)}</div>
+     <div class="lat-nota">${t('Clicca un blocco (qui o nell\'anteprima) per le sue impostazioni; clicca un elemento nell\'anteprima per spostarlo o toglierlo.')}</div></div>`;
+  return doc+lista+repPannelloBlocco(R)+repPannelloElemento();
 }
+function repPannelloBlocco(R){
+  const k=repSel.blocco;
+  if(!k) return `<div class="lat" id="rep-imp"><h4>⚙ ${t('Blocco')}</h4><div class="lat-nota">${t('Nessun blocco scelto.')}</div></div>`;
+  const imp=repImp(R,k), ed=repEdits()[k];
+  const gen=document.createElement('div'); gen.innerHTML=repGenerati[k]||'';
+  const tit0=((gen.querySelector('.rep-tit')||{}).textContent)||'';
+  const haDescr=!!gen.querySelector('.rep-descr'), haGraf=gen.querySelectorAll('.chart-box').length>1, haTit=!!tit0;
+  const ck=(id,on,lab,tip)=>`<label class="rep-ck" title="${tip||''}"><input type="checkbox" data-imp="${id}" ${on?'checked':''}> ${lab}</label>`;
+  const COL=[['',t('Arancio')],['gold',t('Oro')],['ok',t('Verde')],['violet',t('Viola')],['ink',t('Inchiostro')]];
+  if(repInModifica===k) return `<div class="lat rep-imp--modifica" id="rep-imp"><h4>✎ ${esc(repNomi[k]||k)} <span class="muted">${t('in modifica')}</span></h4>
+     <div class="lat-nota" style="margin:0 0 8px">${t('Scrivi direttamente nel foglio a sinistra. Per le righe di una tabella metti prima il cursore nella riga.')}</div>
+     <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap">
+       <span class="gruppo"><button class="btn" data-repop="riga-sopra">${t('＋ Riga sopra')}</button><button class="btn" data-repop="riga-sotto">${t('＋ Riga sotto')}</button><button class="btn" data-repop="riga-via">${t('✕ Togli riga')}</button></span>
+       <button class="btn btn--ember" id="rep-fine">${t('✔ Fine modifica')}</button></div></div>`;
+  return `<div class="lat" id="rep-imp"><h4>⚙ ${esc(repNomi[k]||k)}${ed?` <span class="pill pill--avviso">${t('ritoccato')}</span>`:''}</h4>
+     ${haTit?`<div class="field"><label>${t('Titolo')}</label><input id="rep-imp-titolo" value="${esc(imp.titolo)}" placeholder="${esc(tit0)}" style="width:100%"></div>
+     <div class="rep-cks">${ck('mostraTitolo',imp.mostraTitolo,t('mostra il titolo'))}${haDescr?ck('mostraDescr',imp.mostraDescr,t('mostra la spiegazione')):''}</div>`:''}
+     <div class="sec-mini">${t('Impaginazione')}</div>
+     <div class="rep-cks">${k==='copertina'?'':ck('nuovaPagina',imp.nuovaPagina,t('inizia su una pagina nuova'))}${k==='copertina'?'':ck('unito',imp.unito,t('tutto nella stessa pagina'),t('Se il blocco è più alto di una pagina viene comunque diviso'))}</div>
+     <div class="sec-mini">${t('Aspetto')}</div>
+     <div class="rep-opz"><span>${t('Testo')}</span><span class="gruppo">${[['p',t('piccolo')],['n',t('normale')],['g',t('grande')]].map(([v,l])=>`<button class="btn${imp.testo===v?' is-on':''}" data-imp-testo="${v}">${l}</button>`).join('')}</span></div>
+     ${haTit?`<div class="rep-opz"><span>${t('Colore del titolo')}</span><span class="rep-colori">${COL.map(([v,l])=>`<button class="rep-col col-${v||'def'}${imp.colore===v?' is-on':''}" data-imp-colore="${v}" title="${l}"></button>`).join('')}</span></div>`:''}
+     ${haGraf?`<div class="rep-opz"><span>${t('Grafici')}</span><span class="gruppo">${[['affiancati',t('affiancati')],['colonna',t('uno sotto l\'altro')]].map(([v,l])=>`<button class="btn${imp.grafici===v?' is-on':''}" data-imp-grafici="${v}">${l}</button>`).join('')}</span></div>`:''}
+     <div class="bar" style="margin:10px 0 0;gap:6px;flex-wrap:wrap">
+       <button class="btn" id="rep-modifica" title="${t('Scrivi direttamente nel foglio: titoli, testi, celle')}">${t('✎ Modifica testo')}</button>
+       ${ed?`<button class="btn" id="rep-rifai" title="${t('Toglie i ritocchi a mano e riprende i dati aggiornati')}">${t('↺ Rifai dai dati')}</button>`:''}
+       ${REP_FISSI.indexOf(k)<0?`<button class="btn btn--danger" id="rep-togli" title="${t('Toglie il blocco dal report (lo rimetti spuntandolo nell\'elenco)')}">${t('✕ Togli dal report')}</button>`:''}
+       <button class="btn" id="rep-imp-reset" title="${t('Riporta le impostazioni del blocco a quelle iniziali')}">${t('Impostazioni iniziali')}</button></div></div>`;
+}
+function repNomeElemento(el){
+  if(!el) return '';
+  if(el.classList.contains('cards')) return t('Schede dei valori');
+  if(el.classList.contains('chart-grid')) return t('Grafici');
+  if(el.classList.contains('chart-box')){ const h=el.querySelector('h4'); return t('Grafico')+(h?' «'+h.textContent.trim()+'»':''); }
+  if(el.classList.contains('tbl-wrap')) return t('Tabella');
+  if(el.querySelector&&el.querySelector('img')) return t('Foto');
+  if(el.querySelector&&el.querySelector('svg')) return t('Grafico');
+  return t('Testo');
+}
+function repPannelloElemento(){
+  const k=repSel.blocco, n=repSel.el; if(!k||n==null||repInModifica) return '';
+  const el=document.createElement('div'); el.innerHTML=repBaseBlocco(k);
+  const x=el.querySelector('[data-el="'+n+'"]'); if(!x) return '';
+  return `<div class="lat" id="rep-el"><h4>◳ ${esc(repNomeElemento(x))} <span class="muted">${t('elemento')}</span></h4>
+     <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap"><span class="gruppo"><button class="btn" data-elop="su">${t('▲ Su')}</button><button class="btn" data-elop="giu">${t('▼ Giù')}</button></span>
+       <button class="btn btn--danger" data-elop="via">${t('✕ Togli elemento')}</button></div>
+     <div class="lat-nota">${t('Vale solo per questo documento: «↺ Rifai dai dati» sul blocco lo rimette.')}</div></div>`;
+}
+/* il blocco come base per le modifiche: il ritocco se c'è, altrimenti quello appena generato */
+function repBaseBlocco(k){ return repEdits()[k] || repGenerati[k] || ''; }
+function repElemento(op){
+  const k=repSel.blocco, n=repSel.el; if(!k||n==null) return;
+  const box=document.createElement('div'); box.innerHTML=repBaseBlocco(k); const sec=box.firstElementChild; if(!sec) return;
+  const x=sec.querySelector(':scope > [data-el="'+n+'"]'); if(!x) return;
+  const fratelli=[...sec.children].filter(c=>c.hasAttribute('data-el'));
+  const i=fratelli.indexOf(x);
+  if(op==='via'){ x.remove(); repSel.el=null; }
+  else if(op==='su' && i>0) sec.insertBefore(x, fratelli[i-1]);
+  else if(op==='giu' && i<fratelli.length-1) sec.insertBefore(fratelli[i+1], x);
+  else return;
+  repEdits()[k]=sec.outerHTML; renderReport();
+}
+/* ── colonna sinistra: i fogli A4 (stessa impaginazione del PDF) ── */
+function repImpaginaAnteprima(){
+  const cont=document.getElementById('rep-pagine'), src=document.getElementById('rep-sorgente'); if(!cont||!src) return;
+  const probe=document.createElement('div'); probe.style.cssText='position:absolute;visibility:hidden;height:100mm;width:1px'; cont.appendChild(probe);
+  const pxPerMm=(probe.offsetHeight||377.95)/100; cont.removeChild(probe);
+  const pagine=repImpagina(cont, buildReportUnits(document, src), pxPerMm, 297);
+  pagine.forEach((pg,i)=>{ pg.setAttribute('data-pagina', t('Pagina')+' '+(i+1)+' / '+pagine.length); });
+  /* manico ⠿ sul primo pezzo di ogni blocco che si può spostare; selezione e modifica */
+  const visti={};
+  cont.querySelectorAll('.u[data-blocco]').forEach(u=>{ const k=u.dataset.blocco;
+    if(k===repSel.blocco) u.classList.add('is-sel');
+    if(k===repInModifica){ u.setAttribute('contenteditable','true'); u.classList.add('is-modifica'); }
+    if(!visti[k]){ visti[k]=1; if(REP_FISSI.indexOf(k)<0 && repInModifica!==k){
+      const m=document.createElement('span'); m.className='rep-maniglia'; m.textContent='⠿'; m.title=t('Trascina per spostare il blocco'); m.setAttribute('draggable','true'); m.setAttribute('data-trascina',k); m.setAttribute('contenteditable','false'); u.insertBefore(m,u.firstChild); } }
+    if(repSel.el!=null && k===repSel.blocco) u.querySelectorAll('[data-el="'+repSel.el+'"]').forEach(x=>x.classList.add('is-sel-el'));
+  });
+  /* i fogli si rimpiccioliscono se la colonna è più stretta di un A4 */
+  const pg=cont.querySelector('.pg'), col=document.getElementById('rep-anteprima');
+  if(pg&&col&&col.clientWidth){ const z=Math.min(1,(col.clientWidth-24)/pg.offsetWidth); cont.style.zoom=z>0.3? String(z) : ''; }
+}
+/* impagina i pezzi del report in fogli A4 (anteprima e PDF usano QUESTA funzione: stesso risultato).
+   altMm = altezza del foglio (297 verticale, 210 orizzontale). Un pezzo che deve stare tutto in una
+   pagina (data-unito) ma è più alto di un foglio viene diviso nei suoi pezzi normali. */
+function repImpagina(cont, units, pxPerMm, altMm){
+  const PAD=13, limite=(altMm-PAD-4)*pxPerMm, utile=(altMm-PAD-PAD-4)*pxPerMm;
+  const pagine=[]; let pg=null;
+  const nuova=()=>{ pg=document.createElement('div'); pg.className='pg'; cont.appendChild(pg); pagine.push(pg); };
+  nuova();
+  const coda=units.slice();
+  while(coda.length){ const node=coda.shift();
+    if(node.getAttribute('data-nuovapagina')==='1' && pg.childElementCount) nuova();
+    pg.appendChild(node);
+    if(node._parti && node.offsetHeight>utile){ pg.removeChild(node); coda.unshift(...node._parti); continue; }
+    const fondo=node.offsetTop+node.offsetHeight;
+    if(fondo>limite && pg.childElementCount>1){ pg.removeChild(node); nuova(); pg.appendChild(node); }
+  }
+  return pagine;
+}
+/* ricostruisce il blocco dai pezzi dei fogli (dopo una modifica sul posto): rimette insieme le
+   tabelle divise fra più pagine e toglie tutto ciò che serve solo all'anteprima */
+function repBloccoDaFogli(k){
+  const orig=document.querySelector('#rep-sorgente [data-blocco="'+k+'"]'); if(!orig) return;
+  const sec=orig.cloneNode(false);
+  const pulisci=c=>{ c.removeAttribute('contenteditable'); c.querySelectorAll('[contenteditable]').forEach(x=>x.removeAttribute('contenteditable'));
+    c.classList.remove('is-sel-el'); c.querySelectorAll('.is-sel-el').forEach(x=>x.classList.remove('is-sel-el')); c.querySelectorAll('.rep-maniglia').forEach(x=>x.remove()); return c; };
+  const aggiungi=c=>{ if(c.classList.contains('rep-maniglia')) return; const cl=pulisci(c.cloneNode(true)); const ult=sec.lastElementChild;
+    if(cl.classList.contains('tbl-wrap') && ult && ult.classList.contains('tbl-wrap') && ult.getAttribute('data-el')===cl.getAttribute('data-el')){
+      const tb=ult.querySelector('tbody'), tb2=cl.querySelector('tbody'); if(tb&&tb2){ [...tb2.children].forEach(r=>tb.appendChild(r)); return; } }
+    sec.appendChild(cl); };
+  document.querySelectorAll('#rep-pagine .u[data-blocco="'+k+'"]').forEach(u=>{ [...u.children].forEach(c=>{
+    if(c.classList.contains('rep-sec')) [...c.children].forEach(aggiungi); else aggiungi(c); }); });
+  /* un titolo riscritto a mano diventa il titolo del blocco anche nelle impostazioni */
+  const R=DOC.dati_utente.report, imp=repImp(R,k), tt=sec.querySelector(':scope > .sec .rep-tit');
+  if(tt && imp.titolo && tt.textContent.trim()!==imp.titolo){ imp.titolo=tt.textContent.trim(); repSalvaImp(R,k,imp); }
+  repEdits()[k]=sec.outerHTML;
+}
+function repRigaOp(op){
+  const sel=window.getSelection&&window.getSelection(); if(!sel||!sel.rangeCount){ avviso(t('Metti prima il cursore in una riga di una tabella del report.')); return; }
+  let n=sel.getRangeAt(0).startContainer; if(n&&n.nodeType===3) n=n.parentNode;
+  const tr=n&&n.closest&&n.closest('#rep-pagine tbody tr');
+  if(!tr){ avviso(t('Metti prima il cursore in una riga di una tabella del report.')); return; }
+  const k=(tr.closest('.u')||{dataset:{}}).dataset.blocco;
+  if(op==='riga-via') tr.remove();
+  else { const nuova=tr.cloneNode(true); nuova.classList.remove('day-sep'); nuova.querySelectorAll('td').forEach(td=>{ td.innerHTML='&nbsp;'; td.removeAttribute('title'); });
+    tr.parentNode.insertBefore(nuova, op==='riga-sopra'? tr : tr.nextSibling); }
+  if(k){ repBloccoDaFogli(k); renderReport(); }
+}
+/* sposta il blocco k prima (o dopo) del blocco b */
+function repSposta(R, k, b, dopo){
+  if(!k||!b||k===b||REP_FISSI.indexOf(k)>=0) return;
+  const ord=R.ordine.filter(x=>x!==k);
+  let i=REP_FISSI.indexOf(b)>=0? (b==='copertina'? 0 : ord.length) : ord.indexOf(b)+(dopo?1:0);
+  if(i<0) i=ord.length; ord.splice(i,0,k); R.ordine=ord; persist('corpo'); renderReport();
+}
+function repCollega(R){
+  const P=document.getElementById('panel-report'); if(!P) return;
+  let tmGoal=null;
+  const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo');
+    clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 450); };
+  const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; persist('corpo');
+    clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 450); };
+  const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+  const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+  /* elenco dei blocchi: spunta, frecce, scelta */
+  P.querySelectorAll('[data-rep]').forEach(cb=>{ cb.onclick=e=>e.stopPropagation(); cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); }; });
+  P.querySelectorAll('[data-repmove]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
+    const ord=R.ordine.slice(), i=ord.indexOf(b.dataset.repmove), j=i+(+b.dataset.dir);
+    if(i<0||j<0||j>=ord.length) return; const tmp=ord[i]; ord[i]=ord[j]; ord[j]=tmp; R.ordine=ord; persist('corpo'); renderReport(); });
+  P.querySelectorAll('#rep-lista [data-selblocco]').forEach(li=>li.onclick=()=>{ const k=li.dataset.selblocco;
+    if(!R[k] && REP_FISSI.indexOf(k)<0) return; repSel={blocco:k, el:null}; repAggiornaSel(); });
+  /* anteprima: un clic sceglie il blocco (e l'elemento); doppio clic entra nella modifica del testo */
+  const fogli=document.getElementById('rep-pagine');
+  if(fogli){
+    fogli.onclick=e=>{ if(repInModifica) return; const u=e.target.closest('.u[data-blocco]'); if(!u) return;
+      const elx=e.target.closest('[data-el]'); repSel={blocco:u.dataset.blocco, el:elx? elx.getAttribute('data-el') : null}; repAggiornaSel(); };
+    fogli.ondblclick=e=>{ const u=e.target.closest('.u[data-blocco]'); if(!u||repInModifica) return; repSel={blocco:u.dataset.blocco, el:null}; repInModifica=u.dataset.blocco; renderReport(); };
+    if(repInModifica){ let tm=null; fogli.oninput=()=>{ clearTimeout(tm); tm=setTimeout(()=>repBloccoDaFogli(repInModifica), 250); }; }
+  }
+  /* impostazioni del blocco scelto */
+  const k=repSel.blocco;
+  if(k){ const imp=repImp(R,k), salva=()=>{ repSalvaImp(R,k,imp); renderReport(); };
+    P.querySelectorAll('[data-imp]').forEach(cb=>cb.onchange=()=>{ imp[cb.dataset.imp]=cb.checked; salva(); });
+    P.querySelectorAll('[data-imp-testo]').forEach(b=>b.onclick=()=>{ imp.testo=b.dataset.impTesto; salva(); });
+    P.querySelectorAll('[data-imp-colore]').forEach(b=>b.onclick=()=>{ imp.colore=b.dataset.impColore; salva(); });
+    P.querySelectorAll('[data-imp-grafici]').forEach(b=>b.onclick=()=>{ imp.grafici=b.dataset.impGrafici; salva(); });
+    const ti=document.getElementById('rep-imp-titolo'); if(ti) ti.oninput=()=>{ imp.titolo=ti.value.trim(); repSalvaImp(R,k,imp);
+      clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco('panel-report', renderReport), 400); };
+    const mo=document.getElementById('rep-modifica'); if(mo) mo.onclick=()=>{ repInModifica=k; renderReport();
+      const u=document.querySelector('#rep-pagine .u[data-blocco="'+k+'"]'); if(u){ try{ u.focus(); u.scrollIntoView({block:'nearest'}); }catch(e){} } };
+    const fi=document.getElementById('rep-fine'); if(fi) fi.onclick=()=>{ repBloccoDaFogli(k); repInModifica=null; renderReport(); };
+    const ri=document.getElementById('rep-rifai'); if(ri) ri.onclick=async()=>{
+      if(!(await conferma(t('Il blocco torna com\'è dai dati e i ritocchi a mano si perdono.'), {titolo:t('Rifare dai dati?'), testoOk:t('↺ Rifai dai dati'), pericolo:true}))) return;
+      delete repEdits()[k]; renderReport(); };
+    const tg=document.getElementById('rep-togli'); if(tg) tg.onclick=()=>{ R[k]=false; persist('corpo'); repSel={blocco:null, el:null}; renderReport(); };
+    const rs=document.getElementById('rep-imp-reset'); if(rs) rs.onclick=()=>{ repSalvaImp(R,k,Object.assign({},REP_DEF_IMP)); renderReport(); };
+    P.querySelectorAll('[data-elop]').forEach(b=>b.onclick=()=>repElemento(b.dataset.elop));
+    P.querySelectorAll('[data-repop]').forEach(b=>{ b.onmousedown=e=>e.preventDefault(); b.onclick=()=>repRigaOp(b.dataset.repop); });
+  }
+  /* trascinamento dei blocchi: dall'elenco o dal manico ⠿ nei fogli, su un altro blocco (sopra o sotto la sua metà) */
+  let trascinato=null;
+  P.querySelectorAll('[data-trascina]').forEach(x=>{
+    x.ondragstart=e=>{ trascinato=x.getAttribute('data-trascina'); try{ e.dataTransfer.setData('text/plain', trascinato); e.dataTransfer.effectAllowed='move'; }catch(_){} };
+    x.ondragend=()=>{ trascinato=null; P.querySelectorAll('.rep-drop-prima,.rep-drop-dopo').forEach(y=>y.classList.remove('rep-drop-prima','rep-drop-dopo')); }; });
+  const bersaglio=e=>e.target.closest&&(e.target.closest('#rep-lista [data-selblocco]')||e.target.closest('#rep-pagine .u[data-blocco]'));
+  const chiave=x=>x.getAttribute('data-selblocco')||x.getAttribute('data-blocco');
+  P.ondragover=e=>{ const b=bersaglio(e); if(!trascinato||!b) return; e.preventDefault();
+    const r=b.getBoundingClientRect(), dopo=e.clientY>r.top+r.height/2;
+    P.querySelectorAll('.rep-drop-prima,.rep-drop-dopo').forEach(y=>y.classList.remove('rep-drop-prima','rep-drop-dopo'));
+    b.classList.add(dopo?'rep-drop-dopo':'rep-drop-prima'); };
+  P.ondrop=e=>{ const b=bersaglio(e); if(!trascinato||!b) return; e.preventDefault();
+    const r=b.getBoundingClientRect(); repSposta(R, trascinato, chiave(b), e.clientY>r.top+r.height/2); };
+}
+
 /* embedding base64 delle due foto del report (così entrano sia nel PDF sia nel report digitale) */
 let fotoReportUri={};
 async function fotoReportDataUri(file){
@@ -242,7 +410,7 @@ function splitTable(D, tblWrap, headingEl){
   groups.forEach((g,gi)=>{
     const d=D.createElement('div'); d.className='u';
     if(headingEl&&gi===0) d.appendChild(D.importNode(headingEl,true));
-    const wrap=D.createElement('div'); wrap.className='tbl-wrap';
+    const wrap=D.createElement('div'); wrap.className='tbl-wrap'; if(tblWrap.hasAttribute('data-el')) wrap.setAttribute('data-el', tblWrap.getAttribute('data-el'));
     const t=D.createElement('table'); if(fixed) t.style.cssText='table-layout:fixed;width:100%';
     if(colgroup) t.appendChild(D.importNode(colgroup,true));     // colonne allineate fra i blocchi
     if(thead&&gi===0) t.appendChild(D.importNode(thead,true));   // intestazione SOLO nel primo blocco
@@ -257,15 +425,26 @@ function buildReportUnits(D, src){
   const units=[];
   const wrapHead=(h,c)=>{ const d=D.createElement('div'); d.className='u'; if(h)d.appendChild(D.importNode(h,true)); d.appendChild(D.importNode(c,true)); return d; };
   const isHead=el=>el.nodeType===1&&(el.tagName==='H1'||(el.classList&&el.classList.contains('sec')));
-  [...src.children].forEach(sec=>{
-    if(!(sec.classList&&sec.classList.contains('rep-sec'))){ const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(sec,true)); units.push(d); return; }
-    let pending=null;
+  const pezzi=sec=>{ const out=[]; let pending=null;
     [...sec.children].forEach(ch=>{
       if(isHead(ch)){ pending=ch; return; }
-      if(ch.classList&&ch.classList.contains('tbl-wrap')){ splitTable(D,ch,pending).forEach(u=>units.push(u)); pending=null; }
-      else { units.push(wrapHead(pending,ch)); pending=null; }
+      if(ch.classList&&ch.classList.contains('tbl-wrap')){ splitTable(D,ch,pending).forEach(u=>out.push(u)); pending=null; }
+      else { out.push(wrapHead(pending,ch)); pending=null; }
     });
-    if(pending){ const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(pending,true)); units.push(d); }
+    if(pending){ const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(pending,true)); out.push(d); }
+    return out; };
+  /* il blocco (data-blocco) e le sue impostazioni passano su ogni pezzo: i fogli li mostrano uguali */
+  const marca=(lista,sec)=>{ const k=sec.getAttribute('data-blocco'); if(!k) return lista;
+    const cls=[...sec.classList].filter(c=>c!=='rep-sec'&&c!=='big');
+    lista.forEach((u,i)=>{ u.setAttribute('data-blocco',k); cls.forEach(c=>u.classList.add(c)); u.classList.add('u-'+k);
+      if(i===0&&sec.getAttribute('data-nuovapagina')==='1') u.setAttribute('data-nuovapagina','1'); });
+    return lista; };
+  [...src.children].forEach(sec=>{
+    if(!(sec.classList&&sec.classList.contains('rep-sec'))){ const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(sec,true)); units.push(d); return; }
+    if(sec.getAttribute('data-unito')==='1'){
+      const d=D.createElement('div'); d.className='u'; d.appendChild(D.importNode(sec,true));
+      marca([d],sec); d._parti=marca(pezzi(sec),sec); units.push(d); return; }
+    marca(pezzi(sec),sec).forEach(u=>units.push(u));
   });
   return units;
 }
@@ -325,7 +504,7 @@ async function embedVideoFiles(files){
   return map;
 }
 async function exportDigitalReport(){
-  repChiudiModifica();
+  if(repInModifica){ repBloccoDaFogli(repInModifica); repInModifica=null; renderReport(); }
   if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ avviso(t('Apri prima il Report.')); return; }
@@ -363,7 +542,7 @@ async function exportDigitalReport(){
 async function printReport(){
   /* Esporta un PDF A4 generato da noi: impagina le unità del report, rasterizza ogni pagina con html2canvas
      (tema chiaro forzato via onclone, niente flash) e assembla il PDF (imagesToPdf). Niente stampa del browser. */
-  repChiudiModifica();
+  if(repInModifica){ repBloccoDaFogli(repInModifica); repInModifica=null; renderReport(); }
   if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ try{ window.print(); }catch(e){} return; }
@@ -376,13 +555,7 @@ async function printReport(){
     const probe=document.createElement('div'); probe.style.cssText='position:absolute;visibility:hidden;height:100mm'; stage.appendChild(probe);
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     const pxPerMm=(probe.getBoundingClientRect().height||377.95)/100; stage.removeChild(probe);
-    const PAD=13, USABLE=297-PAD-PAD-4, contentPx=USABLE*pxPerMm, padTopPx=PAD*pxPerMm;
-    const pages=[]; let pg=null; const newPage=()=>{ pg=document.createElement('div'); pg.className='pg'; stage.appendChild(pg); pages.push(pg); };
-    newPage();
-    units.forEach(node=>{ pg.appendChild(node);
-      const used=node.getBoundingClientRect().bottom - pg.getBoundingClientRect().top - padTopPx;
-      if(used>contentPx && pg.childElementCount>1){ pg.removeChild(node); newPage(); pg.appendChild(node); }
-    });
+    const pages=repImpagina(stage, units, pxPerMm, 297);
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     const images=[];
     for(const p of pages){

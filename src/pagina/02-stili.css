@@ -273,7 +273,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .lat-nota{font-size:11px; line-height:1.45; color:var(--ink-3); margin-top:8px}
 .lat .bil-riga{grid-template-columns:84px 1fr 38px; font-size:12.5px}
 .chart-grid.chart-grid--fluida{grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))}
-#panel-guida, #panel-report{max-width:1240px; margin-left:auto; margin-right:auto}
+#panel-guida{max-width:1240px; margin-left:auto; margin-right:auto}
 @media print{ .pag{display:block; height:auto !important} .pag__main, .pag__terza{overflow:visible; height:auto} .pag__side{display:none !important} }
 tr.is-sel > td{background:var(--gold-t)}
 tr[data-exrow]{cursor:pointer}
@@ -537,44 +537,103 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 .vidbtn{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:18px; padding:0; margin-left:5px; vertical-align:middle; border:1px solid var(--orange); color:var(--orange); background:var(--orange-t); border-radius:var(--r-xs); font-size:9px; line-height:1; cursor:pointer }
 .vidbtn:hover{ background:var(--orange); color:#fff }
 #pdf-stage{ position:fixed; left:-10000px; top:0; width:210mm; background:#fff }
-#pdf-stage .pg{ position:relative; width:210mm; height:297mm; box-sizing:border-box; padding:13mm 14mm; background:#fff; overflow:hidden; margin:0 }
-#pdf-stage .u{ break-inside:avoid }
-#pdf-stage .chart-grid{ display:grid; grid-template-columns:1fr 1fr; gap:3mm }
-#pdf-stage .chart-box,#pdf-stage .card,#pdf-stage .tbl-wrap{ box-shadow:none }
-#pdf-stage .cards{ break-inside:auto } #pdf-stage .card{ break-inside:avoid }
-#pdf-stage .chart-box svg{ width:100%; height:auto; max-height:58mm }
-#pdf-stage table{ width:100%; font-size:9.5px } #pdf-stage thead th{ position:static }
+#pdf-stage .pg, .rep-pagine .pg{ position:relative; width:210mm; height:297mm; box-sizing:border-box; padding:13mm 14mm; background:#fff; overflow:hidden; margin:0 }
+#pdf-stage .u, .rep-pagine .u{ break-inside:avoid }
+#pdf-stage .chart-grid, .rep-pagine .chart-grid{ display:grid; grid-template-columns:1fr 1fr; gap:3mm }
+#pdf-stage .chart-box, #pdf-stage .card, #pdf-stage .tbl-wrap, .rep-pagine .chart-box, .rep-pagine .card, .rep-pagine .tbl-wrap{ box-shadow:none }
+#pdf-stage .cards, .rep-pagine .cards{ break-inside:auto } #pdf-stage .card, .rep-pagine .card{ break-inside:avoid }
+#pdf-stage .chart-box svg, .rep-pagine .chart-box svg{ width:100%; height:auto; max-height:58mm }
+#pdf-stage table, .rep-pagine table{ width:100%; font-size:9.5px } #pdf-stage thead th, .rep-pagine thead th{ position:static }
 /* ── REPORT COMPATTO (2026-11-13): stessi stili a video (.rep-doc) e nel PDF (#pdf-stage, dove le
    sezioni sono copiate fuori da .rep-doc). Schede piccole su una riga, grafici bassi e affiancati,
    tabelle fitte, titoli di sezione sottili. ── */
-#panel-report{max-width:1000px}
-.rep-doc .rep-sec, #pdf-stage .rep-sec{margin-bottom:8px}
-.rep-doc .sec, #pdf-stage .sec{margin:10px 0 6px; padding:4px 10px; font-size:12.5px; border-left-width:3px}
-.rep-doc .sec:first-child, #pdf-stage .sec:first-child{margin-top:4px}
-.rep-doc .cards, #pdf-stage .cards{grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:6px; margin:4px 0}
-.rep-doc .card, #pdf-stage .card{padding:6px 8px 5px; box-shadow:none}
+/* il Report usa tutta la larghezza: fogli a sinistra, strumenti a destra */
+.rep-doc .rep-sec, #pdf-stage .rep-sec, .rep-pagine .rep-sec{margin-bottom:8px}
+.rep-doc .sec, #pdf-stage .sec, .rep-pagine .sec{margin:10px 0 6px; padding:4px 10px; font-size:12.5px; border-left-width:3px}
+.rep-doc .sec:first-child, #pdf-stage .sec:first-child, .rep-pagine .sec:first-child{margin-top:4px}
+.rep-doc .cards, #pdf-stage .cards, .rep-pagine .cards{grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:6px; margin:4px 0}
+.rep-doc .card, #pdf-stage .card, .rep-pagine .card{padding:6px 8px 5px; box-shadow:none}
 .rep-doc .card:hover{transform:none}
-.rep-doc .card__k, #pdf-stage .card__k{font-size:9px; letter-spacing:.03em}
-.rep-doc .card__v, #pdf-stage .card__v{font-size:16px; margin-top:1px}
-.rep-doc .card__v small, #pdf-stage .card__v small{font-size:10px}
-.rep-doc .card__sub, #pdf-stage .card__sub{font-size:9.5px; margin-top:0}
-.rep-doc .chart-box, #pdf-stage .chart-box{padding:6px 9px 4px; margin-bottom:6px; box-shadow:none}
-.rep-doc .chart-box h4, #pdf-stage .chart-box h4{font-size:11.5px; margin-bottom:3px}
+.rep-doc .card__k, #pdf-stage .card__k, .rep-pagine .card__k{font-size:9px; letter-spacing:.03em}
+.rep-doc .card__v, #pdf-stage .card__v, .rep-pagine .card__v{font-size:16px; margin-top:1px}
+.rep-doc .card__v small, #pdf-stage .card__v small, .rep-pagine .card__v small{font-size:10px}
+.rep-doc .card__sub, #pdf-stage .card__sub, .rep-pagine .card__sub{font-size:9.5px; margin-top:0}
+.rep-doc .chart-box, #pdf-stage .chart-box, .rep-pagine .chart-box{padding:6px 9px 4px; margin-bottom:6px; box-shadow:none}
+.rep-doc .chart-box h4, #pdf-stage .chart-box h4, .rep-pagine .chart-box h4{font-size:11.5px; margin-bottom:3px}
 .rep-doc .chart-grid{gap:8px}
 .rep-doc .chart-box svg{max-height:190px}
-.rep-doc p.muted, #pdf-stage p.muted{font-size:10.5px !important; margin:3px 0 0; line-height:1.4}
+.rep-doc p.muted, #pdf-stage p.muted, .rep-pagine p.muted{font-size:10.5px !important; margin:3px 0 0; line-height:1.4}
 .rep-doc table{font-size:12px}
-.rep-doc tbody td, #pdf-stage tbody td{padding:3px 7px}
-.rep-doc thead th, #pdf-stage thead th{padding:4px 7px; font-size:10.5px}
-.rep-doc .tbl-wrap, #pdf-stage .tbl-wrap{box-shadow:none}
-/* modifica a mano del report: barra degli strumenti, bordo tratteggiato, riga e sezione col cursore */
-.rep-edit-bar{gap:8px; flex-wrap:wrap; align-items:center; margin:2px 0 10px}
-.rep-edit-bar--attiva{position:sticky; top:calc(var(--topbar-h) + 46px); z-index:20; background:var(--paper-2); padding:6px 0; border-bottom:1px solid var(--border)}
+.rep-doc tbody td, #pdf-stage tbody td, .rep-pagine tbody td{padding:3px 7px}
+.rep-doc thead th, #pdf-stage thead th, .rep-pagine thead th{padding:4px 7px; font-size:10.5px}
+.rep-doc .tbl-wrap, #pdf-stage .tbl-wrap, .rep-pagine .tbl-wrap{box-shadow:none}
 .pill--avviso{background:var(--gold-t); color:var(--ember-2); border-color:var(--gold-2)}
-.rep-doc--modifica{outline:2px dashed var(--gold-2); outline-offset:3px; cursor:text}
-.rep-doc--modifica:focus{outline-color:var(--orange)}
-.rep-doc--modifica .rep-sec.rep-sel{box-shadow:inset 3px 0 0 var(--gold)}
-.rep-doc--modifica tr.rep-sel td{background:var(--gold-t) !important}
+/* ── REPORT A BLOCCHI (2026-11-13): a sinistra i fogli A4 dell'anteprima, a destra gli strumenti ── */
+.pag.pag--report{grid-template-columns:minmax(0,1fr) clamp(320px,26vw,430px)}
+.rep-pagine{display:flex; flex-direction:column; align-items:center; gap:0; padding:6px 0 30px}
+.rep-pagine .pg{position:relative; width:210mm; height:297mm; box-sizing:border-box; padding:13mm 14mm; background:#fff; overflow:hidden; margin:0 0 26px;
+  box-shadow:0 2px 6px rgba(28,14,4,.10),0 14px 34px rgba(28,14,4,.14); border-radius:2px; flex:0 0 auto}
+.rep-pagine .pg::before{content:attr(data-pagina); position:absolute; top:-20px; left:0; font:11px var(--font-mono); color:var(--ink-4)}
+.rep-pagine .pg{overflow:visible} .rep-pagine .pg::after{content:''; position:absolute; inset:0; pointer-events:none}
+.rep-pagine .u{position:relative; border-radius:3px; cursor:pointer; transition:box-shadow var(--rapida)}
+.rep-pagine .u:hover{box-shadow:0 0 0 1px var(--gold-2)}
+.rep-pagine .u.is-sel{box-shadow:0 0 0 2px var(--gold)}
+.rep-pagine .u .is-sel-el{outline:2px solid var(--orange); outline-offset:2px; border-radius:3px}
+.rep-pagine .u.is-modifica{box-shadow:0 0 0 2px var(--orange); cursor:text; outline:none; background:#fffdf6}
+.rep-pagine .u.rep-drop-prima{box-shadow:0 -4px 0 0 var(--orange)} .rep-pagine .u.rep-drop-dopo{box-shadow:0 4px 0 0 var(--orange)}
+.rep-maniglia{position:absolute; left:-11mm; top:2px; width:8mm; height:8mm; display:flex; align-items:center; justify-content:center;
+  font-size:15px; color:var(--ink-3); background:var(--paper-2); border:1px solid var(--border); border-radius:5px; cursor:grab; opacity:0; transition:opacity var(--rapida)}
+.rep-pagine .u:hover > .rep-maniglia, .rep-pagine .u.is-sel > .rep-maniglia{opacity:1}
+.rep-pagine .rep-nota{display:block}
+/* in tema notte i fogli restano carta bianca, come il PDF */
+[data-theme="notte"] .rep-pagine .pg{--paper:#fdfaf5; --paper-2:#f7f2e8; --paper-3:#ede6d6; --paper-4:#e4d9c2; --border:#d4c8b0; --border-2:#c4b58f;
+  --ink:#1c1208; --ink-2:#3d2e1a; --ink-3:#7a6a50; --ink-4:#a8967a; --ember-2:#2e1a08; --orange:#c2500a; --orange-b:#ea580c; --gold:#d4a017; --gold-2:#b8860b;
+  --gold-t:#fbf3d8; --ok:#2f7d4f; --ok-b:#43c463; --danger:#991b1b; --danger-b:#e0524f; --violet:#7a3ea8; color:var(--ink)}
+/* elenco dei blocchi */
+.rep-lista{display:flex; flex-direction:column; gap:3px}
+.rep-li{display:flex; align-items:center; gap:7px; padding:5px 7px; border:1px solid var(--border); border-radius:var(--r-xs); background:var(--paper); font-size:13px; cursor:pointer}
+.rep-li:hover{border-color:var(--gold-2)}
+.rep-li.is-sel{border-color:var(--gold); box-shadow:inset 3px 0 0 var(--gold); background:var(--gold-t)}
+.rep-li--spento .rep-li__nome{color:var(--ink-4); text-decoration:line-through}
+.rep-li--fisso{background:var(--paper-2)}
+.rep-li__man{cursor:grab; color:var(--ink-3); width:12px; text-align:center}
+.rep-li--fisso .rep-li__man{cursor:default}
+.rep-li input[type=checkbox]{width:auto; flex:0 0 auto; margin:0}
+.rep-li__nome{flex:1; min-width:0}
+.rep-li__mv{border:1px solid var(--border); background:var(--paper-2); border-radius:var(--r-xs); cursor:pointer; font-size:10px; line-height:1; padding:3px 5px; color:var(--ink-2)}
+.rep-li.rep-drop-prima{box-shadow:0 -3px 0 0 var(--orange)} .rep-li.rep-drop-dopo{box-shadow:0 3px 0 0 var(--orange)}
+/* impostazioni del blocco */
+.sec-mini{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); margin:10px 0 4px}
+.rep-cks{display:flex; flex-direction:column; gap:3px; margin-top:5px; font-size:12.5px}
+.rep-ck{display:flex; align-items:center; gap:6px; cursor:pointer} .rep-ck input{width:auto; margin:0}
+.rep-opz{display:flex; align-items:center; justify-content:space-between; gap:8px; margin:5px 0; font-size:12.5px}
+.rep-opz .gruppo > .btn{min-width:0; height:26px; padding:0 9px; font-size:11.5px}
+.gruppo > .btn.is-on{background:var(--gold-t); color:var(--ember-2); font-weight:600}
+.rep-colori{display:flex; gap:5px}
+.rep-col{width:20px; height:20px; border-radius:50%; border:2px solid var(--paper); box-shadow:0 0 0 1px var(--border); cursor:pointer; padding:0}
+.rep-col.is-on{box-shadow:0 0 0 2px var(--ember-2)}
+.rep-col.col-def{background:var(--orange)} .rep-col.col-gold{background:var(--gold-2)} .rep-col.col-ok{background:var(--ok)}
+.rep-col.col-violet{background:var(--violet)} .rep-col.col-ink{background:var(--ink-2)}
+.rep-imp--modifica{border-color:var(--orange)}
+/* impostazioni applicate (fogli, PDF e report digitale) */
+.rep-no-tit .sec{display:none !important}
+.rep-no-descr .rep-descr{display:none !important}
+.col-gold .sec{border-left-color:var(--gold-2) !important} .col-ok .sec{border-left-color:var(--ok) !important}
+.col-violet .sec{border-left-color:var(--violet) !important} .col-ink .sec{border-left-color:var(--ink-2) !important}
+.col-gold .sec .rep-tit{color:#8a6408} .col-ok .sec .rep-tit{color:var(--ok)} .col-violet .sec .rep-tit{color:var(--violet)}
+.rep-graf-colonna .chart-grid{display:block !important} .rep-graf-colonna .chart-grid > .chart-box{margin-bottom:6px}
+.rep-copertina{border-bottom:2px solid var(--gold-2); padding-bottom:10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:flex-start}
+.rep-pagine .t-p .card__v, #pdf-stage .t-p .card__v, .rep-doc .t-p .card__v{font-size:13px}
+.rep-pagine .t-p table, #pdf-stage .t-p table, .rep-doc .t-p table{font-size:8.5px}
+.rep-pagine .t-p p, #pdf-stage .t-p p, .rep-doc .t-p p, .rep-pagine .t-p .rep-nota, #pdf-stage .t-p .rep-nota{font-size:9.5px !important}
+.rep-pagine .t-p .sec, #pdf-stage .t-p .sec{font-size:11px}
+.rep-pagine .t-p .chart-box h4, #pdf-stage .t-p .chart-box h4{font-size:10px}
+.rep-pagine .t-g .card__v, #pdf-stage .t-g .card__v, .rep-doc .t-g .card__v{font-size:20px}
+.rep-pagine .t-g .card__k, #pdf-stage .t-g .card__k{font-size:10.5px}
+.rep-pagine .t-g table, #pdf-stage .t-g table, .rep-doc .t-g table{font-size:11.5px}
+.rep-pagine .t-g p, #pdf-stage .t-g p, .rep-doc .t-g p, .rep-pagine .t-g .rep-nota, #pdf-stage .t-g .rep-nota{font-size:12.5px !important}
+.rep-pagine .t-g .sec, #pdf-stage .t-g .sec{font-size:15px}
+.rep-pagine .t-g .chart-box h4, #pdf-stage .t-g .chart-box h4{font-size:13px}
 #pdf-stage.land{ width:297mm } #pdf-stage.land .pg{ width:297mm; height:210mm } /* A4 orizzontale (stampa dieta) */
 table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
 /* colonne facoltative della scheda Pesi (▦ Colonne): stessa convenzione del RIR */

@@ -322,31 +322,62 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(d.getElementById('modal').innerHTML.includes('Aggiornamento pronto'), 'modale "pronto, riavviare?" in stile app');
   d.getElementById('upd-riavvia').click();
   ok(w.eval('window.__upd.risposte.filter(function(x){return x!=="chiedi";}).join(",")') === 'scarica,riavvia', 'Riavvia ora -> risposta al wrapper');
-  /* ── 2026-11-13 — modifica a mano del Report: testi e tabelle, il PDF esce come si vede ── */
-  w.eval('closeModal(); showTab("report")'); await settle(30);
-  ok(d.getElementById('rep-edit-on') !== null && !d.querySelector('.rep-doc').isContentEditable, 'report: pulsante «Modifica testi e tabelle», documento non scrivibile finché non lo si preme');
-  d.getElementById('rep-edit-on').click(); await settle(20);
-  { const doc = d.querySelector('.rep-doc');
-    ok(doc.getAttribute('contenteditable') === 'true' && d.getElementById('rep-edit-off') && d.querySelector('[data-repop="riga-via"]'), 'report in modifica: documento scrivibile e strumenti per righe e sezioni');
-    doc.querySelector('h1').textContent = 'Report di prova';
-    doc.dispatchEvent(new w.Event('input', { bubbles: true })); await settle(300);
-    const righe0 = doc.querySelectorAll('tbody tr').length;
-    const td = doc.querySelector('tbody tr:not(.day-sep) td');
+  /* ── 2026-11-13 — Report a blocchi: anteprima in fogli A4 a sinistra, strumenti a destra ── */
+  w.eval('closeModal(); repEdit={profilo:null, blocchi:{}}; repSel={blocco:null, el:null}; repInModifica=null; showTab("report")'); await settle(30);
+  ok(d.querySelector('#panel-report .pag--report #rep-pagine .pg') && d.getElementById('rep-strumenti') && d.querySelector('#rep-sorgente.rep-doc'), 'report: fogli A4 dell\'anteprima a sinistra, strumenti a destra');
+  ok(d.querySelector('#rep-pagine .u[data-blocco="copertina"]') && d.querySelector('#rep-pagine .u[data-blocco="piede"]') && d.querySelectorAll('#rep-lista [data-selblocco]').length >= 13, 'report: copertina, blocchi e piè di pagina, tutti nell\'elenco');
+  ok(d.querySelector('#rep-pagine .u[data-blocco="profilo"] .rep-maniglia[draggable="true"]') && !d.querySelector('#rep-pagine .u[data-blocco="copertina"] .rep-maniglia') && !d.querySelector('#rep-sorgente .rep-maniglia'), 'report: manico ⠿ per trascinare i blocchi spostabili, solo nell\'anteprima');
+  /* scelta di un blocco dall'anteprima → impostazioni */
+  d.querySelector('#rep-pagine .u[data-blocco="profilo"] .cards').click(); await settle(10);
+  ok(w.eval('repSel.blocco') === 'profilo' && w.eval('repSel.el') === '0' && d.querySelector('#rep-imp h4').textContent.includes('Profilo') && d.querySelector('#rep-el') && d.querySelector('#rep-pagine .u[data-blocco="profilo"].is-sel'), 'report: un clic nel foglio sceglie blocco ed elemento, con le loro impostazioni');
+  d.querySelector('[data-imp-testo="g"]').click(); await settle(10);
+  d.querySelector('[data-imp-colore="ok"]').click(); await settle(10);
+  d.querySelector('[data-imp="nuovaPagina"]').click(); await settle(10);
+  d.querySelector('[data-imp="mostraDescr"]').click(); await settle(10);
+  { const b = w.eval('JSON.stringify(DOC.dati_utente.report.blocchi.profilo)');
+    ok(b === JSON.stringify({ mostraDescr: false, nuovaPagina: true, testo: 'g', colore: 'ok' }), 'report: le impostazioni del blocco si salvano per profilo (solo quelle cambiate)');
+    const s = d.querySelector('#rep-sorgente [data-blocco="profilo"]');
+    ok(s.classList.contains('t-g') && s.classList.contains('col-ok') && s.classList.contains('rep-no-descr') && s.getAttribute('data-nuovapagina') === '1', 'report: le impostazioni diventano classi del blocco (valgono per fogli, PDF e digitale)');
+    const u = w.eval('buildReportUnits(document, document.getElementById("rep-sorgente")).filter(function(x){return x.getAttribute("data-blocco")==="profilo";}).map(function(x){return x.className+"|"+(x.getAttribute("data-nuovapagina")||"");})');
+    ok(u.length >= 1 && u[0].includes('t-g') && u[0].endsWith('|1'), 'report: i pezzi del PDF portano le impostazioni e il salto pagina'); }
+  d.getElementById('rep-imp-reset').click(); await settle(10);
+  ok(!w.eval('DOC.dati_utente.report.blocchi.profilo'), 'report: «Impostazioni iniziali» toglie le impostazioni del blocco');
+  /* titolo personalizzato */
+  w.eval('repSalvaImp(DOC.dati_utente.report,"record",Object.assign({},REP_DEF_IMP,{titolo:"I miei record"})); renderReport();');
+  ok(d.querySelector('#rep-sorgente [data-blocco="record"] .rep-tit').textContent === 'I miei record', 'report: titolo del blocco cambiato dalle impostazioni');
+  w.eval('repSalvaImp(DOC.dati_utente.report,"record",Object.assign({},REP_DEF_IMP)); renderReport();');
+  /* elementi: togliere e spostare valgono solo per il documento */
+  d.querySelector('#rep-pagine .u[data-blocco="profilo"] .rep-descr').click(); await settle(10);
+  d.querySelector('[data-elop="su"]').click(); await settle(10);
+  ok(d.querySelector('#rep-sorgente [data-blocco="profilo"]').firstElementChild.nextElementSibling.classList.contains('rep-descr') && d.querySelector('#rep-lista [data-selblocco="profilo"] .pill--avviso'), 'report: «▲ Su» sposta l\'elemento dentro il blocco (blocco segnato come ritoccato)');
+  w.eval('repSel={blocco:"profilo", el:document.querySelector("#rep-sorgente [data-blocco=profilo] .rep-descr").getAttribute("data-el")}'); w.eval('repElemento("via")');
+  ok(!d.querySelector('#rep-sorgente [data-blocco="profilo"] .rep-descr'), 'report: «✕ Togli elemento» lo toglie dal documento');
+  ok(!JSON.stringify(w.eval('DOC.dati_utente.report')).includes('rep-descr'), 'report: i ritocchi agli elementi non finiscono nei dati salvati');
+  /* riordino: frecce e trascinamento portano allo stesso risultato */
+  w.eval('repSposta(DOC.dati_utente.report,"record","profilo",false)');
+  ok(w.eval('DOC.dati_utente.report.ordine[0]') === 'record' && d.querySelector('#rep-sorgente').children[1].getAttribute('data-blocco') === 'record', 'report: trascinare un blocco sopra un altro lo sposta lì (anche nei fogli)');
+  w.eval('repSposta(DOC.dati_utente.report,"record","copertina",false)');
+  ok(d.querySelector('#rep-sorgente').firstElementChild.getAttribute('data-blocco') === 'copertina', 'report: la copertina resta sempre in cima');
+  w.eval('delete DOC.dati_utente.report.ordine; renderReport();');
+  /* modifica sul posto: doppio clic, si scrive nel foglio, il blocco si ricompone (anche le tabelle divise) */
+  d.querySelector('#rep-pagine .u[data-blocco="copertina"]').dispatchEvent(new w.MouseEvent('dblclick', { bubbles: true })); await settle(10);
+  ok(w.eval('repInModifica') === 'copertina' && d.querySelector('#rep-pagine .u[data-blocco="copertina"][contenteditable="true"]') && d.getElementById('rep-fine'), 'report: doppio clic su un blocco → si scrive nel foglio');
+  d.querySelector('#rep-pagine .u[data-blocco="copertina"] h1').textContent = 'Report di prova';
+  d.getElementById('rep-fine').click(); await settle(10);
+  ok(d.querySelector('#rep-pagine h1').textContent === 'Report di prova' && !d.querySelector('#rep-pagine [contenteditable="true"]') && !d.querySelector('#rep-sorgente [contenteditable], #rep-sorgente .rep-maniglia'), 'report: «Fine modifica» tiene il testo nuovo, il documento resta pulito');
+  ok(w.eval('buildReportUnits(document, document.getElementById("rep-sorgente")).some(function(u){ return u.textContent.indexOf("Report di prova")>=0; })'), 'report: il PDF prende il testo modificato');
+  w.eval('repSel={blocco:"record", el:null}; repInModifica="record"; renderReport();');
+  { const righe0 = d.querySelectorAll('#rep-pagine .u[data-blocco="record"] tbody tr').length;
+    const td = d.querySelector('#rep-pagine .u[data-blocco="record"] tbody tr:not(.day-sep) td');
     const rg = d.createRange(); rg.selectNodeContents(td); rg.collapse(true); const sel = w.getSelection(); sel.removeAllRanges(); sel.addRange(rg);
-    d.querySelector('[data-repop="riga-sotto"]').click();
-    ok(doc.querySelectorAll('tbody tr').length === righe0 + 1, 'report in modifica: «Riga sotto» aggiunge una riga vuota alla tabella');
-    d.querySelector('[data-repop="riga-via"]').click();
-    ok(doc.querySelectorAll('tbody tr').length === righe0, 'report in modifica: «Togli riga» toglie la riga col cursore'); }
-  d.getElementById('rep-edit-off').click(); await settle(20);
-  w.eval('showTab("allenamento"); showTab("report")'); await settle(30);
-  ok(d.querySelector('.rep-doc h1').textContent === 'Report di prova' && !d.querySelector('.rep-doc').isContentEditable && d.querySelector('.pill--avviso'), 'report: le modifiche restano dopo «Fine modifica» e un cambio di scheda, con l\'avviso «modificato a mano»');
-  ok(w.eval('buildReportUnits(document, document.querySelector(".rep-doc")).some(function(u){ return u.textContent.indexOf("Report di prova")>=0; })') && !w.eval('repEdit.html').includes('contenteditable'), 'report: il PDF prende il testo modificato, senza tracce della modalità di modifica');
-  ok(!JSON.stringify(w.eval('DOC.dati_utente.report')).includes('Report di prova'), 'report: le modifiche a mano non finiscono nei dati salvati');
-  /* qui la fila dei riquadri di conferma può essere occupata da un test precedente: si risponde «sì» direttamente */
+    d.querySelector('[data-repop="riga-sotto"]').click(); await settle(10);
+    ok(d.querySelectorAll('#rep-sorgente [data-blocco="record"] tbody tr').length === righe0 + 1 && d.querySelectorAll('#rep-sorgente [data-blocco="record"] .tbl-wrap').length === 1, 'report in modifica: «Riga sotto» aggiunge una riga, la tabella resta una sola'); }
+  w.eval('repInModifica=null; renderReport();');
   w.eval('window.__cfOrig=conferma; conferma=function(){ return Promise.resolve(true); }');
-  d.getElementById('rep-edit-reset').click(); await settle(40);
+  w.eval('repSel={blocco:"copertina", el:null}; renderReport();'); d.getElementById('rep-rifai').click(); await settle(30);
   w.eval('conferma=window.__cfOrig');
-  ok(d.querySelector('.rep-doc h1').textContent !== 'Report di prova' && !d.querySelector('.pill--avviso'), 'report: «Torna all\'originale» rifà il report dai dati');
+  ok(d.querySelector('#rep-pagine h1').textContent !== 'Report di prova' && !w.eval('repEdits().copertina'), 'report: «↺ Rifai dai dati» riporta il blocco ai dati');
+  w.eval('repEdit={profilo:null, blocchi:{}}; repSel={blocco:null, el:null}; renderReport();');
   w.eval('closeModal()');
   dom.window.close();
 }

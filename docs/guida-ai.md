@@ -481,22 +481,30 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 
 ## 10 · Report (tab 🖨 Report)
 
-- **Sezioni personalizzabili**: la riga «Sezioni» con le caselle decide QUALI blocchi
+- **Sezioni personalizzabili**: nell'elenco «Blocchi» la casella decide QUALI blocchi
   entrano nel report (Profilo & corpo, Foto progressi, Riepilogo, Scheda, Andamento,
-  Progressione, Record, Alimentazione, Dieta × allenamento, Note del coach); le frecce ▲▼
-  accanto a ogni casella ne decidono l'ORDINE. La scelta si salva per profilo e vale sia per
-  il PDF sia per il report digitale.
-- **Foto prima/dopo nel report**: se ci sono foto (tab Corpo), due selettori «📸 Foto report»
+  Progressione, Record, Cardio, Alimentazione, Dieta × allenamento, Note del coach); il
+  trascinamento o le frecce ▲▼ ne decidono l'ORDINE. La scelta si salva per profilo e vale sia
+  per il PDF sia per il report digitale. Obiettivo, note del coach e foto prima/dopo si
+  scrivono nel riquadro «Documento».
+- **Foto prima/dopo nel report**: se ci sono foto (tab Corpo), due selettori nel riquadro «Documento» («📸 Foto prima» e «Dopo»)
   scelgono la foto «Prima» e «Dopo»; con la sezione «Foto progressi» attiva entrano nel report
   (incorporate, quindi funzionano anche offline nel PDF e nel digitale).
 - **PDF A4**: bottone «⬇ Scarica PDF (A4)» — l'app impagina e genera il PDF da sola
   (download diretto, senza passare dalla stampa del browser).
-- **Modifica a mano**: «✎ Modifica testi e tabelle» rende il report scrivibile sulla pagina
-  (titoli, testi, celle delle tabelle); con il cursore in una tabella «＋ Riga sopra/sotto» e
-  «✕ Togli riga», con il cursore in una sezione «✕ Togli sezione». Il PDF e il report digitale
-  escono come si vede. I ritocchi valgono solo per quel documento e per il profilo aperto, NON
-  cambiano i dati salvati; «↺ Torna all'originale» rifà il report dai dati (anche cambiando
-  sezioni o ordine, dopo una conferma).
+- **Pagina a due colonne**: a sinistra l'anteprima in fogli A4 veri (stessa impaginazione del
+  PDF: quello che si vede è il PDF), a destra gli strumenti (documento, elenco dei blocchi,
+  impostazioni del blocco scelto, elemento scelto).
+- **Blocchi**: copertina e piè di pagina fissi, le sezioni in mezzo si trascinano nell'elenco o dal
+  manico ⠿ nei fogli. Impostazioni per blocco, salvate per profilo: titolo, mostra titolo,
+  mostra spiegazione, inizia su pagina nuova, tutto nella stessa pagina (se è più alto di un
+  foglio viene diviso comunque), testo piccolo/normale/grande, colore del titolo, grafici
+  affiancati o uno sotto l'altro.
+- **Elementi e testi**: un clic su un elemento nel foglio (schede, grafico, tabella, testo) lo
+  sceglie: «▲ Su», «▼ Giù», «✕ Togli elemento». Doppio clic o «✎ Modifica testo» rende il blocco
+  scrivibile nel foglio, con «＋ Riga sopra/sotto» e «✕ Togli riga» per le tabelle. Questi
+  ritocchi valgono solo per il documento aperto (non toccano i dati salvati); «↺ Rifai dai dati»
+  riporta il blocco ai dati aggiornati.
 - **Report digitale**: pagina HTML per smartphone con i video incorporati, da inviare
   all'atleta. Include anche la sezione «Dieta × allenamento» se ci sono periodi.
 - Tra le sezioni del report c'è anche **«Cardio · attività e carico interno»** (sedute,
