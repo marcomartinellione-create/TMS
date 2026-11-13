@@ -29,7 +29,10 @@ function renderCorpo(){
   const massSeries=[
     {name:t('Massa magra'),color:'var(--ok)',data:io.map((r,i)=>({x:lbl[i],y:+r.massa_magra}))},
     {name:t('Massa musc.'),color:'var(--orange)',data:io.map((r,i)=>({x:lbl[i],y:+r.massa_muscolare}))}];
-  const F=(k,lab,step,suf)=>`<tr><td class="l">${t(lab)}</td><td><input class="cell-in" type="number" step="${step||'any'}" data-u="${k}" value="${u[k]??''}" style="width:90px"></td><td class="muted l">${suf?t(suf):''}</td></tr>`;
+  /* campo compatto (etichetta sopra, casella e unità affiancate sotto): in griglia 2x per riga
+     nella colonna stretta, così i 7 campi stanno in 4 righe invece di 7 (2026-11-13, richiesta
+     di Marco: più respiro ai grafici, dati corporei compatti e in orizzontale) */
+  const F=(k,lab,step,suf)=>`<div class="field corpo-campo"><label>${t(lab)}</label><div class="corpo-campo__in"><input class="cell-in" type="number" step="${step||'any'}" data-u="${k}" value="${u[k]??''}"><span class="muted">${suf?t(suf):''}</span></div></div>`;
   document.getElementById('panel-corpo').innerHTML=`
    ${statusBanner(DOC.storico_io,'Storico misure')}
    <div class="cards">
@@ -41,23 +44,24 @@ function renderCorpo(){
    </div>
    <div class="bar no-print"><div class="spacer"></div><button class="btn btn--ember" id="btn-save-io">${t('💾 Salva misure nello Storico')}</button><button class="btn btn--danger" id="btn-undo-io">${t('↶ Annulla ultimo')}</button></div>
    <div class="pag"><div class="pag__main">
-       <div class="sec">${t('Dati corporei')}</div>
-       <div class="tbl-wrap"><table><tbody>
-         ${F('peso','Peso','0.1','kg')}
-         ${F('massa_grassa','Massa grassa','0.001','frazione (es. 0.145)')}
-         ${F('massa_muscolare','Massa muscolare','0.1','kg')}${F('massa_ossea','Massa ossea','0.1','kg')}
-         ${F('metab_basale','Metabolismo basale','1','kcal')}${F('livello_attivita','Livello attività (PAL)','0.05','1.2–2.5')}
-         ${F('grasso_viscerale','Grasso viscerale','0.1','indice')}
-         <tr><td colspan="3" class="muted" style="font-size:11px">${t('Altezza, data di nascita, sesso e nome sono nel tab <b>Profilo</b> (dati invariati).')}</td></tr>
-       </tbody></table></div>
-   <div class="callout callout--info no-print"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», che si apre dal tab Profilo.')}</div></div>
+       <div class="chart-grid">
+         <div class="chart-box"><h4>${t('⚖ Peso')}</h4>${lineChart(wSeries,{labels:lbl,h:220})}</div>
+         <div class="chart-box"><h4>BMI</h4>${lineChart(bmiSeries,{labels:lbl,h:220})}</div>
+       </div>
+       <div class="chart-box"><h4>${t('Massa magra / muscolare')}</h4>${lineChart(massSeries,{labels:lbl,h:220})}</div>
    <div id="foto-box"></div>
      </div>
      <aside class="pag__side">
        ${composizioneLat(u,c)}
-       <div class="chart-box"><h4>${t('⚖ Peso')}</h4>${lineChart(wSeries,{labels:lbl,h:150})}</div>
-       <div class="chart-box"><h4>BMI</h4>${lineChart(bmiSeries,{labels:lbl,h:150})}</div>
-       <div class="chart-box"><h4>${t('Massa magra / muscolare')}</h4>${lineChart(massSeries,{labels:lbl,h:150})}</div>
+       <div class="sec">${t('Dati corporei')}</div>
+       <div class="corpo-form">
+         ${F('peso','Peso','0.1','kg')}${F('massa_grassa','Massa grassa','0.001','frazione (es. 0.145)')}
+         ${F('massa_muscolare','Massa muscolare','0.1','kg')}${F('massa_ossea','Massa ossea','0.1','kg')}
+         ${F('metab_basale','Metabolismo basale','1','kcal')}${F('livello_attivita','Livello attività (PAL)','0.05','1.2–2.5')}
+         ${F('grasso_viscerale','Grasso viscerale','0.1','indice')}
+       </div>
+       <div class="muted" style="font-size:11px;margin-top:6px">${t('Altezza, data di nascita, sesso e nome sono nel tab <b>Profilo</b> (dati invariati).')}</div>
+   <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», che si apre dal tab Profilo.')}</div></div>
      </aside>
    </div>`;
   document.querySelectorAll('#panel-corpo [data-u]').forEach(inp=>inp.addEventListener('input',e=>{

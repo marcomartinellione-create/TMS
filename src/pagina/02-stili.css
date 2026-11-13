@@ -272,6 +272,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .lat-giorni .mono{font-size:11px; color:var(--ink-3); white-space:nowrap}
 .lat-nota{font-size:11px; line-height:1.45; color:var(--ink-3); margin-top:8px}
 .lat .bil-riga{grid-template-columns:84px 1fr 38px; font-size:12.5px}
+/* Corpo (2026-11-13): i 7 campi in griglia 2 per riga, invece di una tabella a una colonna —
+   stanno comodi nella colonna stretta, coi grafici che hanno preso quella larga */
+.corpo-form{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; margin-top:4px}
+.corpo-campo__in{display:flex; align-items:center; gap:5px}
+.corpo-campo__in input{width:100%; min-width:0}
+.corpo-campo__in .muted{font-size:10.5px; white-space:nowrap}
 .chart-grid.chart-grid--fluida{grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))}
 #panel-guida{max-width:1240px; margin-left:auto; margin-right:auto}
 @media print{ .pag{display:block; height:auto !important} .pag__main, .pag__terza{overflow:visible; height:auto} .pag__side{display:none !important} }
