@@ -396,7 +396,7 @@ Hang power clean al multipower;Smith Machine Hang Power Clean;0648;power clean;;
 Hang snatch (strappo dall'alto);Hang Snatch;;;;;nessuna corrispondenza;
 Hang snatch - sotto le ginocchia;Hang Snatch - Below Knees;;;;;nessuna corrispondenza;
 Heaving snatch balance;Heaving Snatch Balance;;;;;nessuna corrispondenza;
-High row a leva;Leverage High Row;0581;lever high row;Rear delt flys;1.0;proposta;prima revisione (Claude, 13/11/2026): abbinamento giusto, ma la mappa esterna classifica l'high row come apertura per deltoidi posteriori: da decidere
+High row a leva;Leverage High Row;0581;lever high row;Rear delt flys;1.0;rifiutata;prima revisione (Claude, 13/11/2026): abbinamento giusto, ma la mappa esterna classifica l'high row come apertura per deltoidi posteriori: scartato su indicazione di Marco
 Hip adductions con elastico;Band Hip Adductions;1408;band hip lift;;0.55;proposta;prima revisione (Claude, 13/11/2026): nessun profilo di volume nella mappa esterna: non cambia il conteggio
 Hip lift con banda elastica;Hip Lift with Band;1408;band hip lift;;1.0;proposta;prima revisione (Claude, 13/11/2026): nessun profilo di volume nella mappa esterna: non cambia il conteggio
 Hip raise al multipower;Smith Machine Hip Raise;0756;smith hip raise;Ab crunches;1.0;convalidata;prima revisione (Claude, 13/11/2026): profilo di movimento coerente con l'esercizio
@@ -515,7 +515,7 @@ Panca piana presa larga con bilanciere;Wide-Grip Barbell Bench Press;0122;barbel
 Panca piana presa stretta con bilanciere;Close-Grip Barbell Bench Press;0030;barbell close-grip bench press;Triceps extensions;1.0;convalidata;prima revisione (Claude, 13/11/2026): profilo di movimento coerente con l'esercizio
 Panca presa inversa per tricipiti;Reverse Triceps Bench Press;1624;dumbbell reverse bench press;Dumbbell bench press;0.6;convalidata;prima revisione (Claude, 13/11/2026): profilo di movimento coerente con l'esercizio
 Panca presa stretta al multipower;Smith Machine Close-Grip Bench Press;0751;smith close-grip bench press;Triceps extensions;1.0;convalidata;prima revisione (Claude, 13/11/2026): profilo di movimento coerente con l'esercizio
-Para press a un braccio con kettlebell;One-Arm Kettlebell Para Press;1298;kettlebell one arm floor press;Dumbbell bench press;0.72;proposta;prima revisione (Claude, 13/11/2026): non è chiaro se sia una spinta orizzontale o sopra la testa
+Para press a un braccio con kettlebell;One-Arm Kettlebell Para Press;1298;kettlebell one arm floor press;Dumbbell bench press;0.72;rifiutata;prima revisione (Claude, 13/11/2026): non è chiaro se sia una spinta orizzontale o sopra la testa: scartato su indicazione di Marco
 Passaggio al petto con palla medica;Medicine Ball Chest Pass;1302;medicine ball chest pass;;1.0;proposta;prima revisione (Claude, 13/11/2026): nessun profilo di volume nella mappa esterna: non cambia il conteggio
 Passaggio della kettlebell tra le gambe;Kettlebell Pass Between The Legs;;;;;nessuna corrispondenza;
 Passaggio di rimando dalla posizione atletica;Return Push from Stance;;;;;nessuna corrispondenza;
@@ -611,7 +611,7 @@ Rematore a un braccio con kettlebell;One-Arm Kettlebell Row;0541;kettlebell one 
 Rematore a un braccio con manubrio;One-Arm Dumbbell Row;0293;dumbbell bent over row;Cable rows;;corretta;"prima revisione (Claude, 13/11/2026): era una tirata al mento; è un rematore"
 Rematore ai cavi con seduta rialzata;Elevated Cable Rows;1321;cable rope elevated seated row;Cable rows;0.65;convalidata;prima revisione (Claude, 13/11/2026): profilo di movimento coerente con l'esercizio
 Rematore al collo alla carrucola bassa;Low Pulley Row To Neck;;;;;nessuna corrispondenza;
-Rematore alla carrucola alta in ginocchio;Kneeling High Pulley Row;0167;cable high row (kneeling);Rear delt flys;0.65;proposta;prima revisione (Claude, 13/11/2026): abbinamento giusto, ma la mappa esterna classifica l'high row come apertura per deltoidi posteriori: da decidere
+Rematore alla carrucola alta in ginocchio;Kneeling High Pulley Row;0167;cable high row (kneeling);Rear delt flys;0.65;rifiutata;prima revisione (Claude, 13/11/2026): abbinamento giusto, ma la mappa esterna classifica l'high row come apertura per deltoidi posteriori: scartato su indicazione di Marco
 Rematore busto in avanti al multipower;Smith Machine Bent Over Row;1359;smith bent over row;Cable rows;1.0;convalidata;prima revisione (Claude, 13/11/2026): profilo di movimento coerente con l'esercizio
 Rematore busto in avanti presa supina;Reverse Grip Bent-Over Rows;0118;barbell reverse grip bent over row;Cable rows;0.85;convalidata;prima revisione (Claude, 13/11/2026): profilo di movimento coerente con l'esercizio
 Rematore centrale con bilanciere dalla panca;Straight Bar Bench Mid Rows;;;;;nessuna corrispondenza;

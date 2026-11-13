@@ -337,6 +337,7 @@ function renderDieta(){
   R.ordine=ordine;
   repNomi={intro:t('Intestazione'), totale:t('Totale giornaliero')}; ordine.forEach(m=>{ repNomi[m]=m; });
   const testa=`<thead><tr><th class="l">${t('Alimento')}</th><th>g</th><th>Kcal</th><th>Prot</th><th>${t('Grassi')}</th><th>Carbo</th><th>${t('Fibre')}</th></tr></thead>`;
+  const colonneDieta='<colgroup><col style="width:40%">'+'<col style="width:10%">'.repeat(6)+'</colgroup>';
   const B={};
   ordine.forEach(m=>{
     const idxs=rows.map((r,i)=>i).filter(i=>((((rows[i].pasto||'').trim())||t('Senza pasto'))===m));
@@ -349,8 +350,10 @@ function renderDieta(){
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'grassi'),1)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'zuccheri'),1)}</td>`+
         `<td class="num">${nf(foodVal(r.alimento,r.grammi,'fibre'),1)}</td></tr>`; }).join('');
-    B[m]=`<div class="rep-sec"><div class="sec">${esc(m)} <span class="pill" style="margin-left:auto">${nf(mk,0)} kcal</span></div>
-      <div class="tbl-wrap"><table>${testa}<tbody>${corpo||`<tr><td colspan="7" class="empty">${t('Nessun alimento.')}</td></tr>`}</tbody></table></div></div>`;
+    /* sec--pasto / tab-pasto (sugli elementi: l'impaginazione spezza i blocchi in unità): barra del pasto bassa e colonne di larghezza fissa, uguali in tutti i pasti,
+       cosi' grammi e valori stanno incolonnati da un pasto all'altro (richiesta di Marco) */
+    B[m]=`<div class="rep-sec"><div class="sec sec--pasto">${esc(m)} <span class="pill" style="margin-left:auto">${nf(mk,0)} kcal</span></div>
+      <div class="tbl-wrap"><table class="tab-pasto">${colonneDieta}${testa}<tbody>${corpo||`<tr><td colspan="7" class="empty">${t('Nessun alimento.')}</td></tr>`}</tbody></table></div></div>`;
   });
   const tot=faseTot(rows);
   B.totale=`<div class="rep-sec rep-piede"><div class="sec">${t('Totale giornaliero')}</div>

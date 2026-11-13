@@ -631,6 +631,14 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
   box-shadow:0 2px 6px rgba(28,14,4,.10),0 14px 34px rgba(28,14,4,.14); border-radius:2px; flex:0 0 auto}
 .rep-pagine .pg::before{content:attr(data-pagina); position:absolute; bottom:-20px; left:0; font:11px var(--font-mono); color:var(--ink-4)}
 .rep-pagine.orizzontale .pg{width:297mm; height:210mm}   /* Stampa dieta: A4 orizzontale, come il PDF */
+/* Stampa dieta: barra del pasto (Colazione, Pranzo…) bassa e tabelle a colonne fisse, uguali in
+   ogni pasto, con i valori al centro della riga e incolonnati da un pasto all'altro */
+.rep-doc .sec--pasto, #pdf-stage .sec--pasto, .rep-pagine .sec--pasto{margin:5px 0 2px; padding:1px 8px; font-size:11.5px; line-height:1.35}
+.rep-doc .sec--pasto .pill, #pdf-stage .sec--pasto .pill, .rep-pagine .sec--pasto .pill{padding:0 8px; font-size:9.5px; line-height:1.5}
+.rep-doc table.tab-pasto, #pdf-stage table.tab-pasto, .rep-pagine table.tab-pasto{table-layout:fixed}
+.rep-doc .tab-pasto td, #pdf-stage .tab-pasto td, .rep-pagine .tab-pasto td,
+.rep-doc .tab-pasto th, #pdf-stage .tab-pasto th, .rep-pagine .tab-pasto th{vertical-align:middle; overflow:hidden; text-overflow:ellipsis}
+.rep-doc .tab-pasto th:not(.l), #pdf-stage .tab-pasto th:not(.l), .rep-pagine .tab-pasto th:not(.l){text-align:center}
 .rep-pagine .pg{overflow:visible} .rep-pagine .pg::after{content:''; position:absolute; inset:0; pointer-events:none}
 .rep-pagine .u{position:relative; border-radius:3px; cursor:pointer; transition:box-shadow var(--rapida)}
 .rep-pagine .u:hover{box-shadow:0 0 0 1px var(--gold-2)}
