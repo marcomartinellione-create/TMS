@@ -160,8 +160,21 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   il lavoro coi pesi, e i minuti di cardio convertiti in serie equivalenti gonfierebbero un
   asse che non c'entra. Diverso dal radar di Progressi, che invece il cardio lo include.
   Il conteggio **spalma ogni serie sui gruppi coinvolti** (quoteGruppi in 01-costanti.js):
-  quota 1 ai gruppi dei muscoli_primari dell'esercizio, quota 0,5 a quelli dei
-  muscoli_secondari, un muscolo presente in entrambe le liste vale 1 (si tiene il massimo).
+  serie DIRETTA ai gruppi dei muscoli_primari dell'esercizio, INDIRETTA a quelli dei soli
+  muscoli_secondari (un gruppo con un muscolo primario e' diretto). I pesi predefiniti sono
+  1 alla diretta e 0,5 all'indiretta: sono PROVVISORI (convenzione delle serie frazionarie,
+  Schoenfeld e coll. 2019, non ancora convalidata sul catalogo TMS) e il profilo puo'
+  cambiarli (pesiSerie, gruppiDI e accumulaSerie in 01b-riferimenti.js). Dirette e indirette
+  restano distinte: nell'elenco la barra e' piena per la parte diretta e chiara per
+  l'indiretta, e il suggerimento dice «8 dirette ×1 + 6 indirette ×0,5».
+  In alternativa al catalogo si puo' contare con la MAPPA ESTERNA (Exercises Dataset with
+  Muscle Volume di smyrdev, MIT: 1,0 diretto / 0,5 indiretto per profilo di movimento, 22
+  muscoli ricondotti ai 6 gruppi): e' agganciata al catalogo per somiglianza dei nomi
+  inglesi, quindi e' una PROPOSTA da convalidare (tools/riferimenti/mappa-esterna-convalida.csv,
+  colonna stato); un esercizio senza aggancio si conta col catalogo. Attenzione: la mappa
+  esterna marca diretti tutti i motori primi (la panca e' diretta su petto, spalle e
+  tricipiti), il catalogo solo i primari: per questo il riferimento si conta SEMPRE con lo
+  stesso metodo e gli stessi pesi dell'atleta.
   I 17 nomi di muscolo del catalogo sono mappati sui 6 gruppi dei pesi da MUSCOLO_GRUPPO;
   se l'esercizio non porta le liste dei muscoli si ricade sul solo campo macro, quota 1.
   Quindi 3 serie di panca danno 3 a Pettorali e 1,5 a Spalle e a Braccia, e i totali di
@@ -171,13 +184,40 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   · la RAGNATELA dice la DISTRIBUZIONE: ogni asse e' la QUOTA % del gruppo sul totale delle
     serie coi pesi (distribuzione() e vociDistribuzione() in 01-costanti.js), etichettata
     «Gambe 13%». Una settimana leggera e una pesante distribuite allo stesso modo danno lo
-    STESSO disegno. La fascia verde (RIF_QUOTA) e' la forma delle schede equilibrate: dal 10°
-    al 90° percentile della quota di ogni gruppo, simmetrica perche' le quote fanno cento
-    (se un gruppo sale gli altri scendono: troppo e troppo poco sono lo stesso squilibrio).
-    Valori: Gambe 19-33 %, Pettorali 6-13, Schiena 17-26, Spalle 14-23, Braccia 17-27,
-    Core 0-8. Il rosso scatta sotto 3/4 del 10° o sopra 5/4 del 90° percentile. Il Cardio
-    NON e' sulla ragnatela: non compare nelle schede di riferimento e, entrando nel totale,
-    cambierebbe la quota di tutti gli altri.
+    STESSO disegno. La fascia verde e' la forma del RIFERIMENTO SCELTO (rifCalcola in
+    01b-riferimenti.js): dal 10° al 90° percentile della quota di ogni gruppo sulle voci
+    scelte, simmetrica perche' le quote fanno cento (se un gruppo sale gli altri scendono:
+    troppo e troppo poco sono lo stesso squilibrio). Il rosso scatta sotto 3/4 del 10° o
+    sopra 5/4 del 90° percentile. Il Cardio NON e' sulla ragnatela: non compare nelle schede
+    di riferimento e, entrando nel totale, cambierebbe la quota di tutti gli altri.
+    Il riferimento ha DUE ASSI: l'ESPERIENZA (principiante, intermedio, avanzato), che e'
+    dell'atleta e sta nell'anagrafica (dati_utente.esperienza), e il TIPO DI ALLENAMENTO
+    (forza, ipertrofia, powerlifting, resistenza muscolare, potenza, allenamento generale),
+    che e' della scheda e sta nel Training Set (scheda.tipoAllenamento, selettore nella barra
+    Pesi; ogni set salvato tiene il suo). In Progressi, filtrando un Training Set, vale il
+    tipo di quel set. Sesso, eta', agonismo, attrezzatura e qualita' della fonte sono solo
+    FILTRI di contesto. Tutto si regola dal pulsante «⚙ Riferimento» sotto la ragnatela
+    (Pesi, Bilanciamento, Progressi): raccolta, tabella esperienza × tipo con il numero di
+    voci in ogni casella, filtri, pesi delle serie, elenco di fonti (con licenza) e voci
+    (con indirizzo), e cio' che resta fuori col motivo. Le scelte stanno nel profilo
+    (dati_utente.rifDistr, solo le differenze dal predefinito).
+    Due RACCOLTE che non si mescolano mai: «Schede pubblicate» (una voce = una settimana di
+    allenamento; StrengthLog, Muscle & Strength, depot.fitness; il livello e' quello
+    DICHIARATO dalla scheda) e «Protocolli di studio» (una voce = un protocollo con
+    l'elenco completo degli esercizi; l'esperienza e' dei partecipanti). Dei 359 record del
+    corpus di evidenza solo 18 (11 protocolli) hanno l'elenco completo: gli altri restano
+    nella base dati ma non reggono una distribuzione (250 senza elenco esercizi, bracci su
+    un solo distretto, survey senza core, sintesi) e il riquadro lo dice. Sotto la ragnatela
+    la didascalia scrive il riferimento e su quante voci, record e fonti si regge: con meno
+    di 5 voci «Dati insufficienti» e nessuna fascia, da 5 a 9 fascia tratteggiata
+    (indicativa). Il predefinito (schede equilibrate, tutte le esperienze, tutti i tipi: 63
+    schede da 3 fonti) ridà le fasce storiche RIF_QUOTA a meno di un punto: Gambe 18-33 %,
+    Pettorali 6-13, Schiena 17-26, Spalle 14-24, Braccia 17-27, Core 0-8.
+    I dati stanno in RIF_DISTR (src/dati/05-riferimenti-distribuzione.js), generato da
+    tools/genera-riferimenti.py a partire dagli originali (ZIP del corpus v0.7 in
+    Documentazione, pagine in Doc/meta-analisi, catalogo): per ogni voce solo le serie
+    dirette e indirette per gruppo nei due conteggi, piu' fonte, licenza, etichette
+    originali e stato; quote e fasce si calcolano nell'app.
   · l'ELENCO accanto (e le barre «Serie per gruppo» in Progressi) dice la QUANTITA': serie
     per gruppo con le fasce ASSOLUTE (RIF_GRUPPO: min/max = zona utile, sotto/sopra = rosso).
     Sono diverse fra gruppi perche' ogni asse somma lavoro diretto e indiretto e i gruppi
@@ -192,9 +232,10 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   sotto = 0 e non viene mai segnalato come scarso (quelle schede quasi non prevedono
   addominali diretti); Cardio (solo nelle barre) segue le linee guida OMS, 150-300 min a
   settimana = 15-30 (10 min = 1 serie equivalente, riscaldamento compreso).
-  **Stesso conteggio in Progressi e nel Report**: schedeAggr riempie map[s].sets con
-  quoteGruppi sull'esercizio della riga, e ricade sul macro salvato se l'esercizio non e'
-  piu' a catalogo. La ragnatela «Equilibrio · distribuzione» usa le quote; le barre «Serie
+  **Stesso conteggio in Progressi e nel Report**: schedeAggr riempie map[s].sets (e
+  map[s].setsD / setsI, dirette e indirette) con accumulaSerie sull'esercizio della riga, e
+  ricade sul macro salvato se l'esercizio non e' piu' a catalogo. Le fasce assolute
+  RIF_GRUPPO restano tarate su 1 / 0,5 col catalogo: con pesi diversi l'elenco lo avverte. La ragnatela «Equilibrio · distribuzione» usa le quote; le barre «Serie
   per gruppo» le quantita', cardio compreso, e diventano rosse quando un gruppo esce dalla
   propria fascia. Il TL per gruppo (map[s].grp) resta attribuito al solo macro dello
   storico: e' un'altra metrica.
@@ -220,6 +261,10 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   «🗑 Elimina» (solo se resta almeno un altro set). Dati: campo 'setAttivo' (nome attivo),
   'setsSalvati' (mappa nome→scheda dei set inattivi), 'setsOrdine' in scheda.json; le
   schede preesistenti diventano da sole il set «Base» al primo avvio dopo l'aggiornamento.
+  Ogni Training Set ha anche il suo **tipo di allenamento** ('tipoAllenamento': forza,
+  ipertrofia, powerlifting, resistenza, potenza, generale), scelto dal menù «Tipo di
+  allenamento» accanto: viaggia col set nei cambi e nelle copie, e sceglie il riferimento
+  della ragnatela insieme all'esperienza dell'anagrafica.
 
 - **🔥 Riscaldamento** (dal v1.1.3, video+cardio dal v1.1.6): pulsante arancione accanto a
   Training Set, cambia vista e mostra i riscaldamenti **giorno per giorno del Training Set

@@ -1,0 +1,116 @@
+{
+  "_nota": "Trascrizione TMS dei protocolli di studio con l'elenco COMPLETO degli esercizi (corpus di evidenza v0.7, campo exercises_or_target). Ogni esercizio e' ricondotto a un nome del catalogo TMS; il numero e' il peso relativo delle serie nella settimana (la ragnatela guarda le proporzioni, quindi conta solo il rapporto fra gli esercizi). '@Gruppo' indica lavoro diretto su un gruppo senza un esercizio equivalente nel catalogo. Bracci dello stesso studio con lo stesso elenco e le stesse proporzioni sono UN protocollo: i record restano elencati in record_ids. 'esperienza' e' la lettura TMS del testo della popolazione (vuota se il testo non la dice); il codice originale del corpus resta accanto. 'sesso' (M, F, misto) ed 'eta' (giovani, adulti, over40) vengono dal testo della popolazione. 'stato' passa a 'verificata' solo dopo il confronto con l'articolo. Letto da tools/genera-riferimenti.py.",
+  "stato_predefinito": "trascrizione TMS da verificare",
+  "contesto": {
+    "schoenfeld_2019_volume": {"sesso": "M", "eta": "giovani"},
+    "schoenfeld_2016_load": {"sesso": "M", "eta": "giovani"},
+    "pedersen_2022": {"sesso": "F", "eta": "giovani"},
+    "zuo_2022_trt": {"sesso": "M", "eta": "giovani"},
+    "zuo_2022_frt": {"sesso": "M", "eta": "giovani"},
+    "oldermen_2023": {"sesso": "M", "eta": "over40"},
+    "seo_2023": {"sesso": "F", "eta": "over40"},
+    "bagheri_2026": {"sesso": "F", "eta": "over40"},
+    "sportrxiv_2026_low": {"sesso": "", "eta": ""},
+    "sportrxiv_2026_high": {"sesso": "", "eta": ""},
+    "li_2023": {"sesso": "M", "eta": "giovani"}
+  },
+  "protocolli": [
+    {
+      "id": "schoenfeld_2019_volume",
+      "record_ids": ["schoenfeld_2019_volume_trained_men_low_volume", "schoenfeld_2019_volume_trained_men_moderate_volume", "schoenfeld_2019_volume_trained_men_high_volume"],
+      "esperienza": "intermedio",
+      "esperienza_lettura": "popolazione: «34 uomini allenati con i pesi»",
+      "esercizi": [["Panca piana con bilanciere - presa media", 1], ["Military press in piedi", 1], ["Lat pulldown presa larga", 1], ["Rematore seduto ai cavi", 1], ["Squat con bilanciere", 1], ["Pressa per gambe", 1], ["Leg extension a una gamba", 1]],
+      "note": "1, 3 o 5 serie per esercizio, 3 sedute: le proporzioni sono le stesse nei tre bracci. «military press» senza indicazione in piedi/seduto: stessi muscoli."
+    },
+    {
+      "id": "schoenfeld_2016_load",
+      "record_ids": ["schoenfeld_2016_load_low_load", "schoenfeld_2016_load_high_load"],
+      "esperienza": "intermedio",
+      "esperienza_lettura": "popolazione: «18 uomini allenati»",
+      "esercizi": [["Panca piana con bilanciere - presa media", 3], ["Military press in piedi", 3], ["Lat pulldown presa larga", 3], ["Rematore seduto ai cavi", 3], ["Squat con bilanciere", 3], ["Pressa per gambe", 3], ["Leg extension", 3]],
+      "note": "3 serie per esercizio, 3 sedute; i bracci differiscono solo per il carico."
+    },
+    {
+      "id": "pedersen_2022",
+      "record_ids": ["pedersen_2022_split", "pedersen_2022_full body"],
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: «donne giovani non allenate negli ultimi 6 mesi»",
+      "esercizi": [["Pressa per gambe", 3], ["Stacco a gambe tese con bilanciere", 3], ["Leg extension", 3], ["Hip thrust con bilanciere", 3], ["Lat machine avanti presa stretta", 3], ["Panca piana con bilanciere - presa media", 3], ["Rematore seduto ai cavi", 3], ["Pushdown per tricipiti", 3], ["Curl in piedi ai cavi", 3]],
+      "note": "3 serie per esercizio, ogni muscolo 2 volte a settimana in entrambi i bracci. «triceps press» reso come pushdown (solo tricipiti, come qualunque estensione)."
+    },
+    {
+      "id": "zuo_2022_trt",
+      "record_ids": ["zuo_2022_endurance_trt"],
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: «uomini sani non allenati»",
+      "esercizi": [["Squat con bilanciere", 4.5], ["Panca piana con bilanciere - presa media", 4.5], ["Stacco da terra con bilanciere", 4.5], ["Curl inverso con bilanciere", 4.5], ["Leg curl da sdraiato", 4.5]],
+      "note": "4-5 serie per esercizio (4,5 nella trascrizione)."
+    },
+    {
+      "id": "zuo_2022_frt",
+      "record_ids": ["zuo_2022_endurance_frt"],
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: «uomini sani non allenati»",
+      "esercizi": [["Squat con bilanciere", 4.5], ["Panca piana con bilanciere - presa media", 4.5], ["Stacco da terra con bilanciere", 4.5], ["Swing a un braccio con kettlebell", 4.5], ["Split squat bulgaro con manubri", 4.5]],
+      "note": "Versione su superfici instabili (BOSU, fitball): esercizi ricondotti al gesto di base."
+    },
+    {
+      "id": "oldermen_2023",
+      "record_ids": ["oldermen_2023_rhp", "oldermen_2023_rlp"],
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: «uomini ex-militari non allenati, circa 61-62 anni»",
+      "esercizi": [["Leg extension", 1], ["Leg curl da sdraiato", 1], ["Pressa per gambe", 1], ["Calf in piedi alla macchina", 1], ["Chest press alla macchina", 1], ["Lat machine avanti presa stretta", 1], ["Alzate laterali", 1], ["Curl con manubri", 1], ["Pushdown per tricipiti", 1], ["Crunch", 1], ["Iperestensioni (estensioni lombari)", 1]],
+      "note": "3 serie (settimane 1-4) poi 4 (5-8) su tutti gli esercizi; i bracci differiscono per la dieta."
+    },
+    {
+      "id": "seo_2023",
+      "record_ids": ["seo_2023_rt"],
+      "esperienza": "",
+      "esperienza_lettura": "popolazione: «donne di mezza età con obesità» (esperienza non indicata)",
+      "esercizi": [["Stacco da terra con bilanciere", 1], ["Squat con bilanciere", 1], ["Leg extension", 1], ["Leg curl da sdraiato", 1], ["Panca piana con bilanciere - presa media", 1], ["Curl alla panca Scott", 1], ["Rematore con bilanciere busto in avanti", 1], ["Lento avanti con manubri", 1]],
+      "note": "3-4 serie su tutti gli esercizi."
+    },
+    {
+      "id": "bagheri_2026",
+      "record_ids": ["bagheri_2026_rt", "bagheri_2026_ct"],
+      "esperienza": "",
+      "esperienza_lettura": "popolazione: «108 donne, 40-77 anni» (esperienza non indicata)",
+      "esercizi": [["Lat machine avanti presa stretta", 1], ["Chest press alla macchina", 1], ["Pressa per gambe", 1], ["Affondi con manubri", 1], ["Calf in piedi alla macchina", 1], ["Alzate laterali", 1], ["Lento avanti alla macchina", 1], ["Macchina Crunch Addominali", 1], ["Iperestensioni (estensioni lombari)", 1], ["Curl in piedi ai cavi", 1], ["Pushdown per tricipiti", 1]],
+      "note": "3 serie (settimane 1-6) poi 4 (7-12) su tutti gli esercizi. Il braccio CT aggiunge cardio, che la ragnatela non conta."
+    },
+    {
+      "id": "sportrxiv_2026_low",
+      "record_ids": ["sportrxiv_2026_low"],
+      "esperienza": "",
+      "esperienza_lettura": "esperienza non indicata",
+      "esercizi": [["Pressa per gambe", 3], ["Leg curl da sdraiato", 1.5], ["Leg extension", 3], ["@Gambe", 1.5], ["Pectoral machine (butterfly)", 1.5], ["Pullover con manubrio a braccia tese", 1.5], ["Chest press alla macchina", 1.5], ["Lat machine avanti presa stretta", 1.5], ["French press", 3], ["Curl con manubri", 3], ["Crunch", 1.5], ["Iperestensioni (estensioni lombari)", 1.5], ["Calf da seduto", 1.5], ["Stacco rumeno", 1.5], ["Military press in piedi", 1.5], ["Rematore seduto ai cavi", 1.5], ["Alzate laterali", 1.5], ["Reverse flye (alzate posteriori su panca)", 1.5], ["Rotazione del busto con palla", 1.5]],
+      "note": "Sedute A e B alternate, 3 a settimana, una serie per esercizio: in media 1,5 serie a settimana per ogni comparsa (leg press, leg extension, French press e curl compaiono in tutte e due). Flessione dorsale della caviglia (tibiale) senza equivalente a catalogo: conteggiata come lavoro diretto sulle Gambe."
+    },
+    {
+      "id": "sportrxiv_2026_high",
+      "record_ids": ["sportrxiv_2026_high"],
+      "esperienza": "",
+      "esperienza_lettura": "esperienza non indicata",
+      "esercizi": [["Pressa per gambe", 3], ["Leg curl da sdraiato", 3], ["Leg extension", 3], ["Stacco rumeno", 3], ["Chest press alla macchina", 2], ["Lat machine avanti presa stretta", 2], ["Skull crusher con bilanciere EZ", 2], ["Curl con manubri", 2], ["Lento avanti con manubri", 2], ["Rematore seduto ai cavi", 2], ["French press", 2], ["Hammer curl su panca inclinata", 2]],
+      "note": "Serie per seduta come riportate, 3 sedute uguali."
+    },
+    {
+      "id": "li_2023",
+      "record_ids": ["li_2023_set_structure_traditional_sets_(ts)", "li_2023_set_structure_rest_redistribution_(rr)"],
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: «giovani uomini non allenati»",
+      "esercizi": [["Squat con bilanciere", 1], ["Panca piana con bilanciere - presa media", 1], ["Rematore con bilanciere busto in avanti", 1]],
+      "note": "Stesse serie sui tre esercizi; i bracci differiscono per la struttura della serie."
+    }
+  ],
+  "esclusi": {
+    "hermann_2025": "elenco incompleto: 8 dei 9 esercizi",
+    "coskun_2026": "elenco degli esercizi non riportato",
+    "johnsen_2021": "elenco riassunto, serie per esercizio non riportate",
+    "colquhoun_2018": "solo le alzate di gara, serie per alzata non riportate",
+    "helms_2018": "solo le alzate di gara, volume diverso settimana per settimana",
+    "travis_2021": "esercizi complementari variabili per giorno e fase, serie non riportate",
+    "hollis_2018": "schema generico (spinta, tirata, gambe) senza esercizi fissi"
+  }
+}

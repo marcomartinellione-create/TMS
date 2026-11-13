@@ -1315,6 +1315,98 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       ok(/>Schiena 19%</.test(svg) && !/lbl-fuori[^>]*>Schiena/.test(svg), 'distribuzione: schiena al 19%, dentro fascia → etichetta normale'); }
     ok(/>Gambe \d+%</.test(hb), 'Bilanciamento: la ragnatela etichetta ogni gruppo con la sua quota in %');
     w.eval('closeModal()'); }
+  /* ── riferimenti della ragnatela (2026-11-13): esperienza × tipo, fonti, dirette/indirette ── */
+  { const GR6 = ['Gambe', 'Pettorali', 'Schiena', 'Spalle', 'Braccia', 'Core'];
+    const J = s => JSON.parse(w.eval('JSON.stringify(' + s + ')'));
+    w.eval('delete DOC.dati_utente.rifDistr; delete DOC.dati_utente.esperienza; delete DOC.scheda.tipoAllenamento;');
+    const nR = J('{sch:RIF_DISTR.voci.filter(function(v){return v.raccolta==="schede"}).length, stu:RIF_DISTR.voci.filter(function(v){return v.raccolta==="studi"}).length}');
+    ok(nR.sch > 60 && nR.stu > 0, 'Riferimenti: due raccolte che non si mescolano (schede ' + nR.sch + ', protocolli di studio ' + nR.stu + ')');
+    ok(w.eval('RIF_DISTR.voci.every(function(v){ return v.id && v.fonte && v.D.length===6 && v.I.length===6 && v.eD.length===6 && v.eI.length===6; })'),
+       'Riferimenti: ogni voce ha id, fonte e serie dirette e indirette per i 6 gruppi, nei due conteggi');
+    ok(w.eval('RIF_DISTR.fonti.every(function(f){ return !!f.licenza; }) && RIF_DISTR.voci.every(function(v){ return RIF_DISTR.fonti.some(function(f){ return f.id===v.fonte; }); })'),
+       'Riferimenti: ogni fonte dichiara la licenza e ogni voce rimanda a una fonte registrata');
+    ok(w.eval('RIF_DISTR.raccolte.studi.record_corpus') === 359 && w.eval('RIF_DISTR.raccolte.studi.esclusi["nessun elenco di esercizi (solo numero, serie per esercizio e test di forza)"]') === 250,
+       'Riferimenti: dei 359 record del corpus si dice quanti non reggono la distribuzione e perché (250 senza elenco esercizi)');
+    const rc0 = J('rifCalcola()');
+    ok(rc0.stato === 'solido' && rc0.n >= 61 && rc0.o.raccolta === 'schede' && rc0.esp === '' && rc0.tipo === '',
+       'Riferimento predefinito: schede equilibrate, tutte le esperienze e tutti i tipi (' + rc0.n + ' schede, ' + rc0.fonti.length + ' fonti)');
+    const RQ = J('RIF_QUOTA');
+    ok(GR6.every(g => Math.abs(rc0.fasce[g].min - RQ[g].min) <= 1 && Math.abs(rc0.fasce[g].max - RQ[g].max) <= 1),
+       'Riferimento predefinito: fasce entro un punto da quelle storiche (RIF_QUOTA)');
+    /* l'esperienza viene dall'anagrafica, il tipo dal Training Set */
+    w.eval('DOC.dati_utente.esperienza="principiante"; DOC.scheda.tipoAllenamento="ipertrofia";');
+    const rc1 = J('rifCalcola()');
+    ok(rc1.esp === 'principiante' && rc1.tipo === 'ipertrofia' && rc1.voci.every(v => v.esperienza === 'principiante' && v.tipi.includes('ipertrofia')),
+       'Riferimento: esperienza dall\'anagrafica, tipo dal Training Set, e solo voci di quel profilo (' + rc1.n + ')');
+    ok(rc1.n < rc0.n && rc1.fonti.length >= 1, 'Riferimento: filtrando, le voci calano e le fonti restano contate');
+    /* il tipo viaggia col suo Training Set */
+    w.eval('ensureSets(); var _b=DOC.scheda.setAttivo; creaTrainingSet("ProvaForza","__vuota__");');
+    ok(!w.eval('DOC.scheda.tipoAllenamento'), 'Training Set nuovo e vuoto: senza tipo di allenamento');
+    w.eval('DOC.scheda.tipoAllenamento="forza"; switchTrainingSet(_b);');
+    ok(w.eval('DOC.scheda.tipoAllenamento') === 'ipertrofia' && w.eval('DOC.scheda.setsSalvati.ProvaForza.tipoAllenamento') === 'forza',
+       'Training Set: ognuno tiene il suo tipo di allenamento (Base ipertrofia, ProvaForza forza)');
+    ok(w.eval('tipoScheda("ProvaForza")') === 'forza' && J('rifCalcola(null,{set:"ProvaForza"})').tipo === 'forza',
+       'Riferimento: in Progressi, filtrando un Training Set, vale il tipo di quel set');
+    w.eval('delete DOC.scheda.setsSalvati.ProvaForza; DOC.scheda.setsOrdine=DOC.scheda.setsOrdine.filter(function(n){return n!=="ProvaForza";}); renderAllenamento();');
+    /* dati insufficienti: niente fascia, e lo si scrive */
+    const rcPoco = J('rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""})');
+    ok(rcPoco.stato === 'insufficiente' && rcPoco.fasce === null, 'Riferimento: con meno di 5 voci i dati sono INSUFFICIENTI e la fascia non c\'è');
+    const per = '{"Gambe":20,"Pettorali":9,"Schiena":22,"Spalle":18,"Braccia":22,"Core":3}';
+    ok(!/fill-rule="evenodd"/.test(w.eval('radarChart(vociDistribuzione(' + per + ',null,rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""})))')),
+       'Ragnatela: con dati insufficienti non disegna nessuna fascia');
+    ok(/Dati insufficienti/.test(w.eval('rifDidascalia(rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""}))')),
+       'Didascalia: dice «Dati insufficienti» con voci e fonti contate');
+    /* pochi dati: fascia tratteggiata */
+    const indic = w.eval('(function(){ var E=["","principiante","intermedio","avanzato"], T=["","forza","ipertrofia","generale","resistenza"]; for(var i=0;i<E.length;i++) for(var j=0;j<T.length;j++){ var s={esperienza:E[i],tipo:T[j]}; var r=rifCalcola(s); if(r.stato==="indicativo") return JSON.stringify(s); } return ""; })()');
+    if (indic) ok(/stroke-dasharray/.test(w.eval('radarChart(vociDistribuzione(' + per + ',null,rifCalcola(' + indic + ')))')),
+       'Ragnatela: con 5-9 voci la fascia è tratteggiata (indicativa)');
+    /* pesi delle serie: espliciti, modificabili, e il riferimento si ricalcola con gli stessi */
+    const panca = 'Panca piana con bilanciere - presa media';
+    w.eval('DOC.dati_utente.rifDistr={indiretta:0.25};');
+    ok(J('quoteGruppi(' + JSON.stringify(panca) + ')').Spalle === 0.25, 'Pesi: la serie indiretta vale quanto scritto nel profilo (0,25)');
+    const rcP = J('rifCalcola()');
+    ok(GR6.some(g => rcP.fasce[g].max !== J('rifCalcola({tipo:"ipertrofia",esperienza:"principiante"})').fasce[g].max),
+       'Pesi: cambiando il peso delle indirette cambiano anche le fasce del riferimento (stesso conteggio)');
+    ok(/provvisori/.test(w.eval('rifDidascalia(rifCalcola())')), 'Didascalia: con pesi non predefiniti li mostra, marcati come provvisori');
+    w.eval('DOC.dati_utente.rifDistr={metodo:"esterna"};');
+    ok(w.eval('JSON.stringify(quoteGruppi(' + JSON.stringify(panca) + '))') === '{"Pettorali":1,"Spalle":1,"Braccia":1}',
+       'Mappa esterna: la panca è diretta su petto, spalle e braccia (1,0 a tutti i motori primi)');
+    ok(w.eval('(function(){ var M=RIF_DISTR.mappa_esterna.esercizi; var n=(DOC.esercizi||[]).map(function(e){return e.nome;}).find(function(x){ return !M[x] && (esLookup(x).muscoli_primari||[]).length; }); return !n || JSON.stringify(gruppiDI(n,"esterna"))===JSON.stringify(gruppiDI(n,"tms")); })()'),
+       'Mappa esterna: un esercizio senza aggancio si conta col catalogo TMS');
+    ok(w.eval('Object.values(RIF_DISTR.mappa_esterna.esercizi).every(function(m){ return m.st && m.e; })'), 'Mappa esterna: ogni aggancio porta id esterno e stato di convalida');
+    w.eval('delete DOC.dati_utente.rifDistr;');
+    ok(w.eval('JSON.stringify(quoteGruppi(' + JSON.stringify(panca) + '))') === '{"Pettorali":1,"Spalle":0.5,"Braccia":0.5}', 'Pesi: tolte le scelte, si torna a 1,0 / 0,5 col catalogo TMS');
+    /* dirette e indirette distinte nell'elenco */
+    w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:4,rip:5,peso:100},{giorno:"Lunedì",esercizio:' + JSON.stringify(panca) + ',serie:3,rip:8,peso:70}]; renderAllenamento();');
+    const bilDI = J('bilanciamentoSerie()');
+    ok(bilDI.D.Pettorali === 3 && bilDI.I.Spalle === 3 && bilDI.per.Spalle === 1.5, 'Bilanciamento: serie dirette e indirette tenute a parte (Spalle: 3 indirette → 1,5)');
+    ok(/bil-ind/.test(w.eval('bilRigheHTML(bilanciamentoSerie().per,bilanciamentoSerie())')) && /dirette/.test(d.getElementById('pesi-side').textContent),
+       'Serie per gruppo: barra divisa fra dirette e indirette, con la legenda dei pesi');
+    /* selettore del tipo nella barra Pesi */
+    const ta = d.getElementById('tipo-allen');
+    ok(ta && ta.value === 'ipertrofia', 'Pesi: il selettore «Tipo di allenamento» mostra il tipo del Training Set attivo');
+    ta.value = 'forza'; ta.dispatchEvent(new w.Event('change'));
+    ok(w.eval('DOC.scheda.tipoAllenamento') === 'forza', 'Pesi: cambiare il tipo lo salva nel Training Set');
+    /* riquadro ⚙ Riferimento */
+    d.querySelector('#pesi-side [data-rif-apri]').click();
+    ok(d.querySelectorAll('#modal .rif-cella[data-e]').length === 4 * 7, 'Riferimento: tabella esperienza × tipo con il numero di voci in ogni casella');
+    ok(/Come la scheda/.test(d.getElementById('modal').textContent) && /Come il profilo/.test(d.getElementById('modal').textContent),
+       'Riferimento: esperienza «come il profilo», tipo «come la scheda»');
+    d.querySelector('#modal .rif-cella[data-e="intermedio"][data-x="ipertrofia"]').click();
+    ok(/Il confronto si regge su|Dati insufficienti/.test(d.getElementById('modal').textContent), 'Riferimento: il riquadro dice su quante voci e fonti si regge la scelta');
+    d.getElementById('rif-ok').click();
+    ok(w.eval('JSON.stringify(DOC.dati_utente.rifDistr)') === '{"esperienza":"intermedio","tipo":"ipertrofia"}', 'Riferimento: «Applica» salva nel profilo solo ciò che differisce dal predefinito');
+    d.querySelector('#pesi-side [data-rif-apri]').click(); d.getElementById('rif-def').click(); d.getElementById('rif-ok').click();
+    ok(w.eval('DOC.dati_utente.rifDistr') === undefined, 'Riferimento: «Ripristina predefiniti» toglie le scelte dal profilo');
+    /* esperienza nell'anagrafica, il tipo no */
+    w.eval('var _nomi=[DOC.dati_utente.nome, (profili.find(function(p){return p.slug===activeProfile;})||{}).nome]; anagraficaModal()');
+    ok(d.getElementById('m-esperienza') !== null && d.getElementById('m-tipoall') === null, 'Anagrafica: c\'è l\'esperienza di allenamento, il tipo no (sta nel Training Set)');
+    d.getElementById('m-esperienza').value = 'avanzato'; d.getElementById('m-ok').click();
+    ok(w.eval('DOC.dati_utente.esperienza') === 'avanzato', 'Anagrafica: l\'esperienza si salva nel profilo');
+    /* il salvataggio dell'anagrafica riscrive anche il nome: lo si rimette com'era per le prove che seguono */
+    w.eval('if(_nomi[0]===undefined) delete DOC.dati_utente.nome; else DOC.dati_utente.nome=_nomi[0]; var _p=profili.find(function(p){return p.slug===activeProfile;}); if(_p) _p.nome=_nomi[1];');
+    ok(w.eval('EN["Riferimento della distribuzione"]') === 'Distribution reference' && w.eval('EN["Tipo di allenamento"]') === 'Training type', 'EN: i testi nuovi del riferimento sono tradotti');
+    w.eval('delete DOC.dati_utente.esperienza; delete DOC.scheda.tipoAllenamento; delete DOC.dati_utente.rifDistr; closeModal(); showTab("allenamento");'); }
   /* ── ricerca esercizi: i preferiti che corrispondono vanno in cima ── */
   { w.eval('(DOC.esercizi||[]).forEach(function(e){ e.fav=false; }); var t2=esLookup("Trazioni presa supina (chin-up)"); if(t2) t2.fav=true;');
     w.eval('pickExercise("", function(){}, null); document.getElementById("exp-q").value="trazioni"; document.getElementById("exp-q").oninput();');

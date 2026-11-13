@@ -199,6 +199,43 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .bil-dir{display:flex; justify-content:space-between; align-items:baseline; gap:10px;
   border-top:1px solid var(--border); margin-top:6px; padding-top:6px; font-size:12px}
 .bil-nota{font-size:11.5px; line-height:1.5; margin-top:12px; padding-top:10px; border-top:1px solid var(--border)}
+/* barra divisa: piena = serie dirette, chiara = indirette (lavoro «di striscio») */
+.bil-barra{display:flex}
+.bil-barra > .bil-ind{background:var(--orange); opacity:.38}
+.bil-leg{display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; font-size:11px; color:var(--ink-3); margin:6px 0 2px}
+.bil-leg i{display:inline-block; width:14px; height:8px; border-radius:var(--r-pill); margin-right:5px; vertical-align:middle}
+.bil-leg-d{background:var(--orange)} .bil-leg-i{background:var(--orange); opacity:.38}
+.bil-leg .pill, .rif-provv{padding:1px 7px; font-size:10px; text-transform:none; letter-spacing:0}
+/* ── riferimento della ragnatela: con chi ci si confronta e su quanti dati ── */
+.rif-nota{font-size:11.5px; line-height:1.5; color:var(--ink-3); margin-top:4px; text-align:center}
+.rif-nota b{color:var(--ink-2)}
+.rif-nota.is-poco{color:var(--danger)} .rif-nota.is-poco b{color:var(--danger)}
+.rif-nota .mono{font-size:11px}
+.rif-indic{color:var(--gold-2, var(--ink-2)); font-style:italic}
+.rif-cambia{margin-left:6px; vertical-align:baseline}
+.rif-pesi{font-size:11px; margin-top:2px}
+.rif-provv{background:var(--orange-t); color:var(--orange); border:1px solid var(--orange)}
+.rif-unita{font-size:11.5px; line-height:1.45; margin:2px 0 8px}
+.rif-matrice{width:100%; border-collapse:collapse; font-size:12px}
+.rif-matrice th{font-weight:600; font-size:11px; padding:4px 5px; color:var(--ink-3); white-space:nowrap}
+.rif-matrice td{text-align:center; padding:5px 4px; font-family:var(--font-mono); cursor:pointer; border:1px solid var(--border)}
+.rif-cella.is-ok{background:var(--ok-t); color:var(--ok)}
+.rif-cella.is-indic{background:var(--paper-3); color:var(--ink-2)}
+.rif-cella.is-poco{color:var(--ink-4)}
+.rif-cella.is-sel{outline:2px solid var(--orange); outline-offset:-2px; font-weight:700}
+.rif-matrice td:hover{outline:2px solid var(--orange-b); outline-offset:-2px}
+.rif-leg{font-size:11px; margin:6px 0 10px; display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px}
+.rif-leg .rif-cella{display:inline-block; padding:1px 6px; border:1px solid var(--border); font-family:var(--font-mono); cursor:default}
+.rif-fasce{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11.5px; color:var(--ink-3); margin:6px 0 4px}
+.rif-fasce b{color:var(--ink-2); font-weight:600}
+.rif-det{margin-top:10px; border-top:1px solid var(--border); padding-top:8px}
+.rif-det summary{cursor:pointer; font-weight:600; font-size:12.5px; color:var(--ink-2)}
+.rif-det .row{margin-top:8px}
+.rif-chk{display:flex; align-items:flex-start; gap:8px; cursor:pointer; font-size:12.5px; margin-top:6px}
+.rif-chk input{width:auto; flex:0 0 auto; margin-top:2px}
+.rif-fonti, .rif-voci, .rif-esclusi{font-size:12px; line-height:1.5; margin:6px 0 4px; padding-left:18px}
+.rif-fonti .muted{font-size:11px}
+.rif-voci{max-height:220px; overflow:auto}
 .btn--del{background:linear-gradient(180deg,#c0392b,var(--danger)); color:#fff;
   border-color:#7f1616; box-shadow:var(--shadow-sm); padding:4px 9px; font-size:13px; line-height:1}
 .btn--del:hover{background:linear-gradient(180deg,#d0453a,#b02020); color:#fff; border-color:#7f1616}

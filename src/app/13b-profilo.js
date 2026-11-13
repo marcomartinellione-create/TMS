@@ -26,6 +26,7 @@ function renderProfilo(){
           <div class="card"><div class="card__k">${t('Sesso')}</div><div class="card__v">${esc(u.sesso||'—')}</div></div>
           <div class="card"><div class="card__k">${t('Data di nascita')}</div><div class="card__v" style="font-size:17px">${u.nascita?new Date(u.nascita).toLocaleDateString(LANG==='en'?'en-GB':'it-IT'):'—'}</div><div class="card__sub">${etaOf(u)?etaOf(u)+' '+t('anni'):''}</div></div>
           <div class="card"><div class="card__k">${t('Altezza')}</div><div class="card__v">${u.altezza?nf(u.altezza,0):'—'}<small> cm</small></div></div>
+          <div class="card"><div class="card__k">${t('Esperienza')}</div><div class="card__v" style="font-size:17px">${ESPERIENZE.includes(u.esperienza)?esc(t(ESP_NOME[u.esperienza])):'—'}</div></div>
           <div class="card ${u.useRir?'k--ember':''}"><div class="card__k">${t('RIR nei calcoli')}</div><div class="card__v" style="font-size:18px">${u.useRir?t('Sì'):t('No')}</div></div>
           <div class="card ${u.useRpe?'k--ember':''}"><div class="card__k">Session-RPE</div><div class="card__v" style="font-size:18px">${u.useRpe?t('Sì'):t('No')}</div></div>
           <div class="card"><div class="card__k">${t('Formula 1RM')}</div><div class="card__v" style="font-size:17px">${FL[u.e1rm||'epley']}</div></div>
@@ -119,6 +120,8 @@ function anagraficaModal(){
     <div class="row"><div class="field"><label>${t('Sesso')}</label><select id="m-sesso"><option value="M"${(u.sesso||'')==='M'?' selected':''}>M</option><option value="F"${(u.sesso||'')==='F'?' selected':''}>F</option></select></div>
       <div class="field"><label>${t('Altezza (cm)')}</label><input id="m-altezza" type="number" value="${u.altezza??''}"></div></div>
     <div class="field"><label>${t('Data di nascita')}</label><input id="m-nascita" type="date" value="${esc(u.nascita||'')}"></div>
+    <div class="field"><label>${t('Esperienza di allenamento')}</label><select id="m-esperienza"><option value="">—</option>${ESPERIENZE.map(e=>`<option value="${e}"${u.esperienza===e?' selected':''}>${esc(t(ESP_NOME[e]))}</option>`).join('')}</select>
+      <div class="lat-nota" style="margin-top:4px">${t('Sceglie il riferimento della ragnatela «distribuzione fra i gruppi», insieme al tipo di allenamento del Training Set (barra 🏋 Pesi).')}</div></div>
     <div class="field"><label>${t('Calcoli')}</label>
     <label class="optchk" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" id="m-userir" style="width:auto;flex:0 0 auto;margin-top:2px" ${u.useRir?'checked':''}> <span>${t('Considera il <b>RIR</b> nei calcoli (1RM / %1RM / TL effort-aware)')}</span></label>
     <label class="optchk" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-top:7px"><input type="checkbox" id="m-userpe" style="width:auto;flex:0 0 auto;margin-top:2px" ${u.useRpe?'checked':''}> <span>${t('Abilita il <b>Session-RPE</b> / carico interno (RPE × durata per giorno · Foster)')}</span></label></div>
@@ -131,6 +134,7 @@ function anagraficaModal(){
     u.nome=nome; u.sesso=document.getElementById('m-sesso').value;
     u.altezza=document.getElementById('m-altezza').value===''?'':+document.getElementById('m-altezza').value;
     u.nascita=document.getElementById('m-nascita').value;
+    { const e=document.getElementById('m-esperienza').value; if(ESPERIENZE.includes(e)) u.esperienza=e; else delete u.esperienza; }
     u.useRir=document.getElementById('m-userir').checked;
     u.useRpe=document.getElementById('m-userpe').checked;
     u.e1rm=document.getElementById('m-e1rm').value;

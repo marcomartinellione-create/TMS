@@ -107,16 +107,16 @@ const MUSCOLO_GRUPPO = {
   'bicipiti':'Braccia', 'tricipiti':'Braccia', 'avambracci':'Braccia',
   'addominali':'Core'
 };
-const QUOTA_SECONDARI = 0.5;
+const QUOTA_SECONDARI = 0.5;   /* peso PREDEFINITO della serie indiretta: il profilo può cambiarlo (01b-riferimenti.js) */
 function normMuscolo(m){ return String(m==null?'':m).toLowerCase().trim(); }
 /* {gruppo: quota} per UNA serie dell'esercizio. Un muscolo elencato sia fra i primari
-   sia fra i secondari (capita nei gesti olimpici) vale 1, non 1,5: si tiene il massimo. */
+   sia fra i secondari (capita nei gesti olimpici) vale come diretto, non diretto più
+   indiretto: un gruppo con un muscolo primario è DIRETTO. Quali gruppi sono diretti e quali
+   indiretti lo dice gruppiDI (catalogo TMS, o mappa esterna se il profilo la sceglie); il
+   peso di ciascuno (1,0 e 0,5 salvo modifiche, provvisori) lo dice pesiSerie. */
 function quoteGruppi(nome){
-  const e=esLookup(nome), out={};
-  const add=(m,q)=>{ const g=MUSCOLO_GRUPPO[normMuscolo(m)]; if(g) out[g]=Math.max(out[g]||0,q); };
-  if(e){ (e.muscoli_primari||[]).forEach(m=>add(m,1));
-         (e.muscoli_secondari||[]).forEach(m=>add(m,QUOTA_SECONDARI)); }
-  if(!Object.keys(out).length){ const g=gruppoOf(nome); if(g) out[g]=1; }
+  const p=pesiSerie(), di=gruppiDI(nome,p.metodo), out={};
+  di.D.forEach(g=>{ out[g]=p.d; }); di.I.forEach(g=>{ out[g]=p.i; });
   return out;
 }
 
@@ -163,7 +163,12 @@ const RIF_GRUPPO = {
    sale gli altri scendono — troppo e troppo poco sono lo stesso squilibrio. «sotto» e
    «sopra» (il rosso) stanno a 3/4 del 10° e a 5/4 del 90°.
    Il Cardio non c'è: non compare nelle schede di riferimento e, entrando nel totale,
-   cambierebbe la quota di tutti gli altri gruppi. */
+   cambierebbe la quota di tutti gli altri gruppi.
+   Dal 2026-11-13 la fascia si calcola dal riferimento scelto (rifCalcola, 01b-riferimenti.js:
+   esperienza × tipo di allenamento, con fonti e conteggi). Il predefinito — schede equilibrate,
+   tutti i profili — sulle sole 61 schede di qui ridà questi stessi min/max; con le 2 schede
+   complete di depot.fitness si sposta di un punto al più (Gambe 18-33, Spalle 14-24). RIF_QUOTA
+   resta come fascia storica se i dati dei riferimenti mancano. */
 const RIF_QUOTA = {
   'Gambe':     {min:19, max:33, sotto:14, sopra:41},
   'Pettorali': {min:6,  max:13, sotto:5,  sopra:16},
@@ -178,9 +183,15 @@ function distribuzione(per){ per=per||{};
   const tot=GRUPPI_PESI.reduce((a,g)=>a+(+per[g]||0),0), out={};
   GRUPPI_PESI.forEach(g=>{ out[g]= tot>0? 100*(+per[g]||0)/tot : 0; });
   return out; }
-/* voci pronte per radarChart: etichetta col «%», valore = quota, fascia di distribuzione */
-function vociDistribuzione(per){ const q=distribuzione(per);
-  return GRUPPI_PESI.map(g=>({label:t(g)+' '+Math.round(q[g])+'%', value:q[g], rif:RIF_QUOTA[g]})); }
+/* voci pronte per radarChart: etichetta col «%», valore = quota, fascia del riferimento
+   scelto (null se i dati non bastano: la ragnatela non la disegna). `di` = {D,I} serie
+   dirette e indirette per gruppo, facoltativo: finisce nel suggerimento dell'etichetta. */
+function vociDistribuzione(per, di, rc){ const q=distribuzione(per); rc=rc||rifCalcola(); const p=pesiSerie();
+  return GRUPPI_PESI.map(g=>{ const f=rc.fasce? rc.fasce[g] : null;
+    let tip=t(g)+': '+Math.round(q[g])+'%';
+    if(di&&di.D) tip+=' · '+bilNum(di.D[g]||0)+' '+t('dirette')+' + '+bilNum(di.I[g]||0)+' '+t('indirette')+' ×'+nfPeso(p.i);
+    if(f) tip+=' · '+t('riferimento')+' '+f.min+'–'+f.max+'%';
+    return {label:t(g)+' '+Math.round(q[g])+'%', value:q[g], rif:f, tip:tip}; }); }
 
 /* -- SPINTA / TRAZIONE (parte alta) --------------------------------------------
    Lo squilibrio che conta di più e che le schede sbagliano più spesso: quanto si

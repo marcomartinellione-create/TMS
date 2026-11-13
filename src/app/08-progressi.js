@@ -41,14 +41,14 @@ function fosterWeek(dayMap){
   return {load,monotony,strain}; }
 function schedeAggr(sf){
   const map={};
-  storicoSet(sf).forEach(r=>{ if(r.test) return; const s=+r.scheda; if(!map[s])map[s]={scheda:s,tl:0,pctSum:0,pctN:0,grp:{},sets:{},band:{},tonn:0};
+  storicoSet(sf).forEach(r=>{ if(r.test) return; const s=+r.scheda; if(!map[s])map[s]={scheda:s,tl:0,pctSum:0,pctN:0,grp:{},sets:{},setsD:{},setsI:{},band:{},tonn:0};
     const _t=sTL(r), _p=sPct(r), ser=+r.serie||0; map[s].tl+=_t; if(_p){map[s].pctSum+=_p; map[s].pctN++;}
     const g=r.macro||'Altro'; map[s].grp[g]=(map[s].grp[g]||0)+_t;
     /* le SERIE si contano come nel ⚖ Bilanciamento: piene sui muscoli primari, mezze sui
-       secondari. Il TL sopra resta invece sul solo gruppo dello storico — è un'altra cosa.
-       Se l'esercizio non è più a catalogo si ricade sul macro salvato nella riga. */
-    const q=quoteGruppi(r.esercizio); const qq=Object.keys(q).length? q : (g?{[g]:1}:{});
-    Object.keys(qq).forEach(k=>{ map[s].sets[k]=(map[s].sets[k]||0)+ser*qq[k]; });
+       secondari (pesi del profilo), tenendo a parte dirette e indirette. Il TL sopra resta
+       invece sul solo gruppo dello storico — è un'altra cosa. Se l'esercizio non è più a
+       catalogo si ricade sul macro salvato nella riga. */
+    accumulaSerie({per:map[s].sets, D:map[s].setsD, I:map[s].setsI}, r.esercizio, ser, g);
     map[s].tonn+=ser*(+r.rip||0)*caricoEff(r);   /* tonnellaggio: conta anche il corpo per trazioni/dip */
     if(_p){ const fb=fascia(_p)[0]; map[s].band[fb]=(map[s].band[fb]||0)+ser; }
   });
@@ -101,11 +101,13 @@ function radarChart(items,opts){
   for(let k=1;k<=4;k++){ const rr=R*k/4; let p=''; for(let i=0;i<n;i++){const a=pt(i,rr); p+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1);} g+=`<path d="${p}Z" fill="none" stroke="var(--paper-3)"/>`; }
   if(conRif){ const anello=k=>{ let p=''; for(let i=0;i<n;i++){ const a=pt(i,R*items[i].rif[k]/mx); p+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1); } return p+'Z'; };
     /* il contorno serve: il poligono arancione ci passa sopra e il solo riempimento
-       tenue sparirebbe proprio dove interessa guardare */
-    g+=`<path d="${anello('max')+anello('min')}" fill="var(--ok)" fill-rule="evenodd" fill-opacity=".16" stroke="var(--ok)" stroke-opacity=".55" stroke-width="1"/>`; }
+       tenue sparirebbe proprio dove interessa guardare. Fascia «indicativa» (riferimento
+       con poche voci): contorno tratteggiato e riempimento più tenue */
+    const indic=items.some(d=>d.rif.indicativa);
+    g+=`<path d="${anello('max')+anello('min')}" fill="var(--ok)" fill-rule="evenodd" fill-opacity="${indic?'.09':'.16'}" stroke="var(--ok)" stroke-opacity=".55" stroke-width="1"${indic?' stroke-dasharray="4 3"':''}/>`; }
   for(let i=0;i<n;i++){ const a=pt(i,R); g+=`<line x1="${cx}" y1="${cy}" x2="${a[0].toFixed(1)}" y2="${a[1].toFixed(1)}" stroke="var(--border)"/>`; const l=pt(i,R+15);
     const rf=items[i].rif, fuori=conRif && (items[i].value<rf.sotto || items[i].value>rf.sopra);
-    g+=`<text class="lbl${fuori?' lbl-fuori':''}" x="${l[0].toFixed(1)}" y="${l[1].toFixed(1)}" text-anchor="middle">${esc(items[i].label)}</text>`; }
+    g+=`<text class="lbl${fuori?' lbl-fuori':''}" x="${l[0].toFixed(1)}" y="${l[1].toFixed(1)}" text-anchor="middle">${esc(items[i].label)}${items[i].tip?'<title>'+esc(items[i].tip)+'</title>':''}</text>`; }
   let dp=''; for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); dp+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1);} 
   g+=`<path d="${dp}Z" fill="rgba(194,80,10,.18)" stroke="var(--orange)" stroke-width="2"/>`;
   for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); g+=`<circle cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="2.6" fill="var(--orange)"/>`; }
@@ -172,7 +174,7 @@ function renderProgressi(){
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
   const tonnSeries=[{name:t('Tonnellaggio'),color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:a.tonn||null}))}];
   /* ragnatela = DISTRIBUZIONE fra i gruppi dei pesi (quote %); il cardio sta nelle barre */
-  const radarItems=vociDistribuzione(last.sets);
+  const rifC=rifCalcola(null, sf==='__tutti__'? null : {set:sf}), radarItems=vociDistribuzione(last.sets,{D:last.setsD,I:last.setsI},rifC);
   const cardioSett=(last.sets.Cardio||0)+cardioEquivSets(last.scheda)+riscEquivSets(last.scheda,sf);
   /* stessa lettura del radar: la barra è rossa quando il gruppo è nettamente fuori dalla
      sua fascia, non quando supera una soglia unica valida per tutti */
@@ -223,7 +225,7 @@ function renderProgressi(){
    </div>`:''}
    <div class="sec">${t('Volume & equilibrio per gruppo muscolare')}</div>
    <div class="chart-grid chart-grid--fluida">
-     <div class="chart-box"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = schede equilibrate)')}</span></h4>${radarChart(radarItems)}</div>
+     <div class="chart-box"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = riferimento scelto)')}</span></h4>${radarChart(radarItems)}${rifDidascalia(rifC,{dopo:'tab'})}</div>
      <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span></h4>${barChart(setsData)}</div>
      <div class="chart-box"><h4>${t('Andamento TL per gruppo')}</h4>${lineChart(grpSeries,{labels,fmt:nfk})}</div>
      <div class="chart-box"><h4>${t('🎯 Distribuzione intensità · ultima (serie per fascia)')}</h4>${barChart(intData)}</div>

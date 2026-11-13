@@ -10,7 +10,8 @@
     "lint": "node tools/lint.js",
     "test": "node tools/lint.js && node tools/controlla-sintassi.js && node tests/test-app.js",
     "release": "node tools/release.js",
-    "alimenti": "python tools/genera-alimenti.py"
+    "alimenti": "python tools/genera-alimenti.py",
+    "riferimenti": "python tools/genera-riferimenti.py"
   },
   "devDependencies": {
     "eslint": "^10.4.1",

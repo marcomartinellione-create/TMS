@@ -58,6 +58,13 @@ function riscaldaRows(){ const s=DOC.scheda; if(!s.riscaldamento||typeof s.risca
       carica l'altro (copie profonde: nessun riferimento condiviso → nessun bug di sincronia).
       Idempotente e retro-compatibile: le schede esistenti diventano il set "Base". ── */
 function tsCopy(o){ try{ return JSON.parse(JSON.stringify(o||[])); }catch(e){ return []; } }
+/* fotografia del set attivo (per metterlo fra i salvati) e caricamento di un set nel piano
+   attivo: il TIPO DI ALLENAMENTO viaggia con la sua scheda (Marco, 2026-11-13: l'esperienza
+   sta nell'anagrafica, il tipo nella scheda di riferimento) */
+function tsFoto(s){ const f={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[]), riscaldamento:tsCopy(s.riscaldamento||{})};
+  if(TIPI_ALLEN.includes(s.tipoAllenamento)) f.tipoAllenamento=s.tipoAllenamento; return f; }
+function tsCarica(s,src){ src=src||{}; s.settimanale=tsCopy(src.settimanale||[]); s.mensile=tsCopy(src.mensile||[]); s.riscaldamento=tsCopy(src.riscaldamento||{});
+  if(TIPI_ALLEN.includes(src.tipoAllenamento)) s.tipoAllenamento=src.tipoAllenamento; else delete s.tipoAllenamento; }
 function ensureSets(){ const s=DOC.scheda; if(!s||typeof s!=='object') return s;
   if(typeof s.setAttivo!=='string'||!s.setAttivo) s.setAttivo='Base';
   if(!s.setsSalvati||typeof s.setsSalvati!=='object') s.setsSalvati={};
@@ -66,17 +73,14 @@ function ensureSets(){ const s=DOC.scheda; if(!s||typeof s!=='object') return s;
   [s.setAttivo].concat(Object.keys(s.setsSalvati)).forEach(n=>{ if(ord.indexOf(n)<0) ord.push(n); });
   s.setsOrdine=ord; return s; }
 function switchTrainingSet(nome){ const s=ensureSets(); if(!nome||nome===s.setAttivo||!s.setsSalvati[nome]) return;
-  s.setsSalvati[s.setAttivo]={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[]), riscaldamento:tsCopy(s.riscaldamento||{})};  /* salva l'attivo */
-  const tgt=s.setsSalvati[nome]||{};                                                                   /* carica il target */
-  s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]); s.riscaldamento=tsCopy(tgt.riscaldamento||{});
+  s.setsSalvati[s.setAttivo]=tsFoto(s);  /* salva l'attivo */
+  tsCarica(s, s.setsSalvati[nome]||{});                                                                /* carica il target */
   delete s.setsSalvati[nome]; s.setAttivo=nome; persist('scheda'); renderAllenamento(); }
 function creaTrainingSet(nome, sorgente){ const s=ensureSets(); nome=String(nome||'').trim();
   if(!nome || nome===s.setAttivo || s.setsSalvati[nome]) return;
-  s.setsSalvati[s.setAttivo]={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[]), riscaldamento:tsCopy(s.riscaldamento||{})};  /* salva l'attivo */
-  let base={settimanale:[], mensile:[], riscaldamento:{}};
-  if(sorgente && sorgente!=='__vuota__' && s.setsSalvati[sorgente]){ const src=s.setsSalvati[sorgente];
-    base={settimanale:tsCopy(src.settimanale||[]), mensile:tsCopy(src.mensile||[]), riscaldamento:tsCopy(src.riscaldamento||{})}; }
-  s.settimanale=base.settimanale; s.mensile=base.mensile; s.riscaldamento=base.riscaldamento; s.setAttivo=nome;
+  s.setsSalvati[s.setAttivo]=tsFoto(s);  /* salva l'attivo */
+  tsCarica(s, (sorgente && sorgente!=='__vuota__' && s.setsSalvati[sorgente])? s.setsSalvati[sorgente] : {});  /* copia (tipo compreso) o vuota */
+  s.setAttivo=nome;
   if(s.setsOrdine.indexOf(nome)<0) s.setsOrdine.push(nome);
   persist('scheda'); renderAllenamento(); }
 function nuovoTrainingSetModal(){ const s=ensureSets();
@@ -100,8 +104,7 @@ async function eliminaTrainingSet(){ const s=ensureSets(); const nomi=s.setsOrdi
   if(nomi.length<=1){ avviso(t('Deve restare almeno un Training Set.')); return; }
   const vitt=s.setAttivo;
   if(!await conferma(t('Eliminare il Training Set «')+vitt+t('» e la sua scheda? Operazione irreversibile.'))) return;
-  const altro=nomi.find(n=>n!==vitt); const tgt=s.setsSalvati[altro]||{};
-  s.settimanale=tsCopy(tgt.settimanale||[]); s.mensile=tsCopy(tgt.mensile||[]); s.riscaldamento=tsCopy(tgt.riscaldamento||{});
+  const altro=nomi.find(n=>n!==vitt); tsCarica(s, s.setsSalvati[altro]||{});
   delete s.setsSalvati[altro]; delete s.setsSalvati[vitt];
   s.setAttivo=altro; s.setsOrdine=nomi.filter(n=>n!==vitt); persist('scheda'); renderAllenamento(); }
 /* Bozza RPE/durata per-giorno (Foster): vive in scheda.json (autosave), azzerata al salvataggio nello Storico */
@@ -169,6 +172,8 @@ function barSelettori(S){ return `
        </select></div>
      <div class="field"><label>Training Set</label>
        <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, rinominarle o eliminarle')}">${S.setsOrdine.map(n=>`<option value="${esc(n)}"${n===S.setAttivo?' selected':''}>${esc(n)}</option>`).join('')}<optgroup label="${t('Azioni')}"><option value="__new__">${t('➕ Nuovo Training Set…')}</option><option value="__rename__">${t('✎ Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('🗑 Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
+     <div class="field"><label>${t('Tipo di allenamento')}</label>
+       <select id="tipo-allen" title="${t('Tipo di allenamento di questo Training Set: sceglie il riferimento della ragnatela «distribuzione fra i gruppi»')}"><option value="">—</option>${TIPI_ALLEN.map(x=>`<option value="${x}"${S.tipoAllenamento===x?' selected':''}>${esc(t(TIPO_NOME[x]))}</option>`).join('')}</select></div>
      <button class="btn btn--ember" id="btn-warm" title="${t('Apri i riscaldamenti giorno per giorno di questo Training Set')}">${pesiView==='riscaldamento'?('◂ '+t('Scheda')):('🔥 '+t('Riscaldamento'))}</button>`; }
 function wireBarSelettori(){
   const sm=document.getElementById('sched-mode'); if(sm) sm.onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
@@ -178,6 +183,9 @@ function wireBarSelettori(){
       else if(v==='__rename__') rinominaTrainingSet();
       else if(v==='__delete__') eliminaTrainingSet();
       else switchTrainingSet(v); }; }
+  { const ta=document.getElementById('tipo-allen');
+    if(ta) ta.onchange=e=>{ const v=e.target.value; if(TIPI_ALLEN.includes(v)) DOC.scheda.tipoAllenamento=v; else delete DOC.scheda.tipoAllenamento;
+      persist('scheda'); renderAllenamento(); }; }
   const bw=document.getElementById('btn-warm'); if(bw) bw.onclick=()=>{ pesiView=(pesiView==='riscaldamento'?'scheda':'riscaldamento'); renderAllenamento(); };
 }
 /* ── Vista RISCALDAMENTO: i giorni sono quelli della scheda (modalità corrente), per ogni giorno
@@ -274,32 +282,43 @@ function colonnePesiModal(){
    secondari — altrimenti una scheda fatta di spinte e tirate sembra scoprire braccia e
    spalle, che invece lavorano a ogni serie. */
 function bilanciamentoSerie(){
-  const per={}; GRUPPI.filter(g=>g!=='Cardio').forEach(g=>{ per[g]=0; });
+  const per={}, D={}, I={}; GRUPPI.filter(g=>g!=='Cardio').forEach(g=>{ per[g]=0; D[g]=0; I[g]=0; });
   const dir={spinta:0, trazione:0}; let tot=0;
   schedaRows().forEach(r=>{ if(!r.esercizio) return;
     if(gruppoOf(r.esercizio)==='Cardio') return;         /* qui si guardano i pesi */
     const ser=+r.serie||0; if(ser<=0) return;
     tot+=ser;
-    const q=quoteGruppi(r.esercizio);
-    Object.keys(q).forEach(g=>{ if(g in per) per[g]+=ser*q[g]; });
+    const acc=accumulaSerie({}, r.esercizio, ser);
+    Object.keys(acc.per).forEach(g=>{ if(g in per){ per[g]+=acc.per[g]; D[g]+=acc.D[g]||0; I[g]+=acc.I[g]||0; } });
     const d=direzioneOf(r.esercizio); if(d) dir[d]+=ser;
   });
-  return {per:per, dir:dir, tot:tot};
+  return {per:per, D:D, I:I, dir:dir, tot:tot};
 }
 /* mezze serie in giro: 12 resta «12», 12,5 non diventa «12.5» */
 function bilNum(v){ const x=Math.round(v*10)/10; return x===Math.round(x)? String(x) : String(x).replace('.',','); }
 /* righe «gruppo · barra sulla sua zona utile · serie», dalla più alla meno allenata (usate
-   dal riquadro ⚖ e dal pannello laterale della scheda) */
-function bilRigheHTML(per){
+   dal riquadro ⚖ e dai pannelli laterali). Con `di` ({D,I}: serie dirette e indirette) la
+   barra si divide in due: piena la parte che viene dalle serie dirette, chiara quella che
+   viene dalle indirette — così si vede quanto del numero è lavoro «di striscio». */
+function bilRigheHTML(per, di){
+  const p=pesiSerie();
   return Object.keys(per).sort((a,b)=>per[b]-per[a]).map(g=>{
     const v=per[g], rf=RIF_GRUPPO[g], scala=Math.max(v, rf.max)||1;
     const q=Math.round(v/scala*100), qmin=Math.round(rf.min/scala*100), qmax=Math.round(rf.max/scala*100);
     const fuori=(v<rf.sotto||v>rf.sopra);
-    return `<div class="bil-riga${fuori?' is-fuori':''}" title="${esc(t('zona utile')+' '+rf.min+'-'+rf.max)}">
+    let barra=`<span class="bil-fill" style="width:${q}%;background:${v?'var(--orange)':'transparent'}"></span>`, tip=t('zona utile')+' '+rf.min+'-'+rf.max;
+    if(di&&di.D){ const d=di.D[g]||0, i=di.I[g]||0, qd=v? (d*p.d)/v*q : 0;
+      barra=`<span class="bil-fill" style="width:${qd.toFixed(1)}%;background:${v?'var(--orange)':'transparent'}"></span><span class="bil-fill bil-ind" style="width:${Math.max(q-qd,0).toFixed(1)}%"></span>`;
+      tip=bilNum(d)+' '+t('dirette')+' ×'+nfPeso(p.d)+' + '+bilNum(i)+' '+t('indirette')+' ×'+nfPeso(p.i)+' = '+bilNum(v)+' · '+tip; }
+    return `<div class="bil-riga${fuori?' is-fuori':''}" title="${esc(tip)}">
       <span class="bil-nome">${esc(t(g))}</span>
-      <span class="bil-barra"><span class="bil-zona" style="left:${qmin}%;width:${Math.max(qmax-qmin,1)}%"></span><span class="bil-fill" style="width:${q}%;background:${v?'var(--orange)':'transparent'}"></span></span>
+      <span class="bil-barra"><span class="bil-zona" style="left:${qmin}%;width:${Math.max(qmax-qmin,1)}%"></span>${barra}</span>
       <span class="bil-val mono">${bilNum(v)}</span></div>`; }).join('');
 }
+/* legenda della barra divisa e avviso se i pesi non sono quelli su cui sono tarate le zone */
+function bilLegendaDI(){ const p=pesiSerie();
+  return `<div class="bil-leg"><span><i class="bil-leg-d"></i>${t('dirette')} ×${nfPeso(p.d)}</span><span><i class="bil-leg-i"></i>${t('indirette')} ×${nfPeso(p.i)}</span><span class="pill rif-provv">${t('pesi provvisori')}</span></div>`+
+    (pesiPredefiniti(p)? '' : `<div class="lat-nota">${t('Le zone utili sono tarate col conteggio predefinito (catalogo TMS, 1,0 / 0,5): con pesi diversi leggile con prudenza.')}</div>`); }
 function verdettoDir(sp,tr){ return (!sp&&!tr) ? '' : (tr<sp*0.8 ? t('poca trazione') : sp<tr*0.6 ? t('poca spinta') : t('in equilibrio')); }
 /* ── PANNELLO LATERALE DELLA SCHEDA (2026-11, schermo intero) ─────────────────────
    Mentre si scrive la scheda, a fianco si vede COME sta venendo: la forma (ragnatela della
@@ -323,13 +342,14 @@ function pannelloCostruzione(){
   rows.forEach(r=>{ if(!r.esercizio) return; const p=sPct(r), s=+r.serie||0; if(p&&s){ const fb=fascia(p)[0]; if(fb!=='—'){ band[fb]=(band[fb]||0)+s; conPct+=s; } } });
   const fasceBarra=FASCE_ORD.filter(b=>band[b]).map(b=>`<span style="width:${(band[b]/conPct*100).toFixed(1)}%;background:${FASCE_COL[b]}" title="${esc(t(b))}: ${bilNum(band[b])} ${t('serie')}"></span>`).join('');
   const fasceLeg=FASCE_ORD.filter(b=>band[b]).map(b=>`<span><i style="background:${FASCE_COL[b]}"></i>${esc(t(b))} ${Math.round(band[b]/conPct*100)}%</span>`).join('');
-  return `<div class="lat"><h4>🕸 ${t('Distribuzione fra i gruppi')} <span class="muted">${t('verde = schede equilibrate')}</span></h4>
-      ${radarChart(vociDistribuzione(bil.per),{w:360,h:270})}</div>
+  const rc=rifCalcola();
+  return `<div class="lat"><h4>🕸 ${t('Distribuzione fra i gruppi')} <span class="muted">${t('verde = riferimento scelto')}</span></h4>
+      ${radarChart(vociDistribuzione(bil.per,bil,rc),{w:360,h:270})}${rifDidascalia(rc,{dopo:'tab'})}</div>
     <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${bil.tot} ${t('serie in scheda')}</span></h4>
-      ${bilRigheHTML(bil.per)}
+      ${bilRigheHTML(bil.per,bil)}${bilLegendaDI()}
       ${totDir?`<div class="lat-num" style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px"><span>${t('Spinta · Trazione')}</span><span><b>${bilNum(sp)} · ${bilNum(tr)}</b> <span class="muted">${esc(verdettoDir(sp,tr))}</span></span></div>
       <div class="lat-barra"><span style="width:${(sp/totDir*100).toFixed(1)}%;background:var(--orange)"></span><span style="width:${(tr/totDir*100).toFixed(1)}%;background:var(--violet)"></span></div>`:''}
-      <div class="lat-nota">${t('Serie piene sui muscoli principali, mezze su quelli coinvolti di striscio. La tacca verde è la zona utile del gruppo; in rosso chi ne è nettamente fuori.')}</div></div>
+      <div class="lat-nota">${t('Serie dirette sui muscoli principali, indirette su quelli coinvolti di striscio. La tacca verde è la zona utile del gruppo; in rosso chi ne è nettamente fuori.')}</div></div>
     <div class="lat"><h4>📅 ${t('Carico per giorno')} <span class="muted">TL ${nfk(totTL)}</span></h4>
       <div class="lat-giorni">${gg.map(x=>`<span>${esc(t(x.g))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.tl/maxTL*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${bilNum(x.s)} ${t('serie')} · ${x.n} ${t('es.')} · ${nfk(x.tl)}</span>`).join('')}</div></div>
     ${conPct?`<div class="lat"><h4>🎯 ${t('Intensità')} <span class="muted">${t('serie per fascia di %1RM')}</span></h4>
@@ -338,7 +358,7 @@ function pannelloCostruzione(){
 function bilanciamentoModal(){
   const bil=bilanciamentoSerie(), per=bil.per;
   /* la ragnatela dice la DISTRIBUZIONE (quote %), l'elenco accanto la QUANTITÀ */
-  const items=vociDistribuzione(per);
+  const rc=rifCalcola(), items=vociDistribuzione(per,bil,rc);
   /* la lettura a parole accanto al disegno: il radar dice "che forma ha", la riga
      dice "quante serie" — senza, bisogna stimare a occhio dalla ragnatela */
   /* larghezze fisse e niente a capo: con «21 serie» che si spezzava in due righe le voci
@@ -346,7 +366,7 @@ function bilanciamentoModal(){
   /* la barra si legge sulla fascia DEL SUO gruppo, non su una scala comune: piena a metà
      vuol dire «a metà della zona utile per questo gruppo», che è la domanda vera. Il
      tratto verde segna dove comincia la fascia. */
-  const righe=bilRigheHTML(per);
+  const righe=bilRigheHTML(per,bil);
   /* spinta contro trazione: lo squilibrio più comune, e quello che il radar per gruppi
      non mostra (pettorali e schiena possono pareggiare mentre spalle e tricipiti no) */
   /* soglie asimmetriche: sulle 60 schede equilibrate di riferimento la mediana di spinta
@@ -361,17 +381,18 @@ function bilanciamentoModal(){
       <span>${t('Spinta · Trazione')}</span>
       <span><b class="mono">${bilNum(sp)} · ${bilNum(tr)}</b> <span class="muted">${esc(verdetto)}</span></span></div>` : '';
   modal(`<h3>⚖ ${t('Bilanciamento della settimana')}</h3>
-    <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Serie per gruppo muscolare nella scheda che stai scrivendo: piene sui muscoli principali, <b>mezze su quelli coinvolti di striscio</b> (la panca allena anche spalle e tricipiti). Il <b>cardio è escluso</b>: qui si guarda il lavoro coi pesi.')}</div>
+    <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Serie per gruppo muscolare nella scheda che stai scrivendo: <b>dirette</b> sui muscoli principali, <b>indirette</b> (mezza serie) su quelli coinvolti di striscio — la panca allena anche spalle e tricipiti. Il <b>cardio è escluso</b>: qui si guarda il lavoro coi pesi.')}</div>
     ${bil.tot? `<div class="bil-wrap">
-        <div class="bil-radar">${radarChart(items,{w:360,h:290})}</div>
+        <div class="bil-radar">${radarChart(items,{w:360,h:290})}${rifDidascalia(rc,{dopo:'bilanciamento'})}</div>
         <div class="bil-lista">
           <div class="bil-riga bil-testa"><span class="bil-nome">${t('Gruppo')}</span><span class="bil-barra"></span><span class="bil-val">${t('serie')}</span></div>
           ${righe}
+          ${bilLegendaDI()}
           ${rigaDir}
           <div class="bil-dir"><span>${t('serie in scheda')}</span><span class="mono"><b>${bil.tot}</b></span></div>
         </div>
       </div>
-      <div class="bil-nota muted">${t('La <b>ragnatela</b> mostra la <b>distribuzione</b>: quanta parte del lavoro va a ogni gruppo, in percentuale. La fascia verde è quella delle schede equilibrate pubblicate e non dipende da quante serie fai: una settimana leggera e una pesante distribuite allo stesso modo hanno lo stesso disegno. L\u2019<b>elenco</b> accanto dice invece la <b>quantità</b>, con le tacche verdi della zona utile di ogni gruppo. In rosso chi ne sta nettamente fuori.')}</div>`
+      <div class="bil-nota muted">${t('La <b>ragnatela</b> mostra la <b>distribuzione</b>: quanta parte del lavoro va a ogni gruppo, in percentuale. La fascia verde è il <b>riferimento scelto</b> (scritto sotto il disegno, con quante schede o studi lo reggono): si cambia con ⚙ Riferimento, per esperienza e tipo di allenamento. Non dipende da quante serie fai: una settimana leggera e una pesante distribuite allo stesso modo hanno lo stesso disegno. L\u2019<b>elenco</b> accanto dice invece la <b>quantità</b>, con le tacche verdi della zona utile di ogni gruppo. In rosso chi ne sta nettamente fuori.')}</div>`
       : `<div class="empty" style="padding:26px">${t('Nessuna serie da mostrare: la scheda è vuota (o contiene solo cardio).')}</div>`}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='720px';
