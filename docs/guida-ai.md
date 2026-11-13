@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.18 (2026-11-12). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.19 (2026-11-12). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -90,7 +90,7 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   «Attiva», «✎ Modifica parametri», «✏ Rinomina», «✕ Elimina» (quest'ultimo solo se
   esiste più di un profilo).
 - **Nella riga di ogni profilo**, a destra, due bottoni sempre visibili (senza aprire
-  la tendina): «📤 Esporta scheda» e «📥 Importa rientro» — lo scambio col cliente,
+  la tendina): «📲 Esporta scheda» e «🔄 Importa rientro» — lo scambio col cliente,
   vedi sezione 8. Lavorano sul profilo della riga: se non è quello attivo, l'app lo
   attiva da sola.
 - In fondo alla pagina: «Backup (tutti i profili insieme)» con «⭳ Backup dati»
@@ -99,7 +99,7 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   porta solo i METADATI delle foto, quindi ripristinandolo altrove le immagini mancano;
   il backup completo incorpora le immagini come data-URI (file molto più grande, chiede
   conferma mostrando numero di foto e MB) e al ripristino le riscrive in
-  TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, la riga dei **backup automatici**: l'app ne crea
+  TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, il pulsante **🛟 Backup automatici** (si apre e mostra le copie): l'app ne crea
   uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5
   copie) con link «ripristina» accanto a ciascuno.
 - **Correggere una riga già salvata**: nello **Storico** (tab 👤 Profilo, in cima alla pagina) ogni riga
@@ -381,7 +381,7 @@ TMS Scheda è una PWA su https://marcomartinellione-create.github.io/TMS/app/ �
 installa dal browser con «Aggiungi alla schermata Home», funziona offline, si aggiorna
 da sola. La scheda viaggia come file via chat/email. Nessun server: i dati restano
 nei dispositivi.
-1. **Esporta** — tab «👤 Profilo», riga del cliente, bottone «📤 Esporta scheda»:
+1. **Esporta** — tab «👤 Profilo», riga del cliente, bottone «📲 Esporta scheda»:
    nasce «Scheda_profilo_data.json» (tipo interno 'tms-scheda') con la scheda giorno
    per giorno, il previsto e — se il piano della fase attiva non è vuoto — anche la
    **dieta** (campo 'dieta': pasti, alimenti, grammi, kcal/macro precalcolati, perché
@@ -436,7 +436,7 @@ nei dispositivi.
    «Salva nei Download» (sempre presente). Il tasto indietro del telefono chiude il menu.
    Il **riscaldamento** viaggia nella scheda (campo 'riscaldamento') ma è solo informativo:
    NON entra nel rientro e non conta in alcun calcolo.
-3. **Importa** — riga del cliente, «📥 Importa rientro»: si sceglie il file e l'allenamento
+3. **Importa** — riga del cliente, «🔄 Importa rientro»: si sceglie il file e l'allenamento
    del cliente viene **caricato nella scheda 🏋 Pesi** (NON scritto subito nello Storico);
    se il cliente non usa il Session-RPE, i giorni con 'fatto:true' vengono contati e mostrati
    nell'avviso come «giorni segnati come completati». Le eventuali **foto** ('foto' nel
@@ -613,8 +613,8 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - «Cambiare formula 1RM, RIR, session-RPE» → Profilo → tendina del profilo → ✎
   Modifica parametri.
 - «Cambiare la fase alimentare (Bulk/Mant/Cut)» → Alimentazione → bottoni in cima al tab.
-- «Mandare la scheda a un cliente» → Profilo → riga del cliente → 📤 Esporta scheda.
-- «Registrare ciò che il cliente ha fatto» → Profilo → riga del cliente → 📥 Importa
+- «Mandare la scheda a un cliente» → Profilo → riga del cliente → 📲 Esporta scheda.
+- «Registrare ciò che il cliente ha fatto» → Profilo → riga del cliente → 🔄 Importa
   rientro (file Rientro_*.json che il cliente rimanda).
 - «Salvare l'allenamento della settimana» → Pesi → 💾 Salva nello Storico.
 - «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,

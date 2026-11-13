@@ -173,11 +173,8 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   d.getElementById('ct-ok').click();
   await settle(500);
   ok(w.eval('profili.length') === 2 && w.eval('profili[1].nome') === 'Cliente Prova', 'profilo creato dal bottone (bug risolto)');
-  /* pannello QR con riquadro Tutorial · YouTube (v1.0.65) */
-  d.getElementById('qr-ig').click();
-  const qrHtml = d.getElementById('modal').innerHTML;
-  ok(qrHtml.includes('Tutorial · YouTube') && qrHtml.includes('https://www.youtube.com/@TrainingMonitorSystem') && qrHtml.includes('Apri i Tutorial'), 'pannello QR con riquadro Tutorial · YouTube e link al canale');
-  w.eval('closeModal()');
+  /* il QR in alto è stato tolto (2026-11-13): l'app è solo sul PC */
+  ok(d.getElementById('qr-ig') === null && d.querySelector('.topbar__qr') === null, 'barra in alto: niente QR');
   /* v1.0.76: guida per AI — testo incorporato, bottone nel tab Guida, download .md versionato */
   const gai = w.eval('guidaAITesto()');
   ok(gai.startsWith('# Training Monitor System (TMS) — documentazione per assistenti AI') && gai.includes('Versione app: ' + VERSIONE) && gai.length > 8000, 'guida AI: testo completo con la versione corrente (' + gai.length + ' caratteri)');
@@ -219,8 +216,13 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
     ok(d.getElementById('modal').innerHTML.includes('boom di prova'), '5 click su «TMS» aprono il log errori');
     w.eval('closeModal()');
     w.eval('showTab("profilo")');
-    ok(d.querySelector('#panel-profilo .prof-archivio #lnk-storico') && d.querySelector('#panel-profilo .prof-archivio #lnk-misure') && d.getElementById('dot-storico') && d.getElementById('dot-storico').title !== '',
-      'Profilo: sezione Storico e misure in cima, coi pallini di stato');
+    ok(d.querySelector('#panel-profilo .prof-item #lnk-storico') && d.querySelector('#panel-profilo .prof-item #lnk-misure') && d.getElementById('dot-storico') && d.getElementById('dot-storico').title !== '' && !d.querySelector('.prof-archivio'),
+      'Profilo: Storico e Misure nella riga del profilo attivo, coi pallini di stato');
+    ok(d.querySelectorAll('#panel-profilo .prof-item').length === d.querySelectorAll('#panel-profilo .prof-item [data-parch="storico"]').length, 'Profilo: ogni profilo ha i suoi pulsanti Storico e Misure');
+    { const g = [...d.querySelectorAll('#panel-profilo .prof-item:first-child .gruppo')];
+      ok(g.length === 2 && g[1].querySelector('[data-pexs]') && g[1].querySelector('[data-prin]'), 'Profilo: Esporta e Importa in un unico blocco di due pulsanti'); }
+    ok(!/Il <b>pallino<\/b> accanto al nome/.test(d.getElementById('panel-profilo').innerHTML), 'Profilo: niente guida in cima alla pagina');
+    ok(d.getElementById('prof-autobk') !== null && d.querySelector('.topbar .gruppo #fab-guida') && d.querySelector('.topbar .gruppo #fab-segnala'), 'barra in alto: 📕 e 🐞 in un unico blocco');
     d.getElementById('lnk-storico').click();
     ok(w.eval('curTab') === 'storico' && d.querySelector('.tab[data-tab="profilo"]').classList.contains('is-active'), 'Profilo → 📜 Storico apre lo Storico (resta acceso il tab Profilo)');
     w.eval('showTab("profilo")'); d.getElementById('lnk-misure').click();
@@ -278,7 +280,7 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
      che sta invece sulla versione nel footer). Note locali + specchio delle issue. ── */
   { const sigil = d.querySelector('.topbar__mark .sigil');
     ok(sigil !== null, 'taccuino: il ✦ accanto a «TMS» è il punto del gesto');
-    ok(d.querySelector('.hero') === null && d.querySelector('.topbar #qr-ig') !== null && d.querySelector('.topbar #qr-ig').previousElementSibling.classList.contains('topbar__mark'), 'intestazione: niente fascia del titolo, il QR sta nella barra in alto accanto a «TMS»');
+    ok(d.querySelector('.hero') === null && d.querySelector('.topbar .topbar__mark') !== null, 'intestazione: niente fascia del titolo, «TMS» nella barra in alto');
     for (let i = 0; i < 5; i++) sigil.click();
     await settle(120);
     ok(d.getElementById('tacc-testo') !== null, 'taccuino: 5 click sul ✦ lo aprono');
@@ -314,11 +316,12 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   const updHtml = d.getElementById('modal').innerHTML;
   ok(!d.getElementById('modal-bk').classList.contains('hidden') && updHtml.includes('MAGGIORE') && updHtml.includes('v9.9.9') && updHtml.includes('Novita di prova'), 'annuncio aggiornamento in stile app (maggiore + note)');
   d.getElementById('upd-vai').click();
-  ok(w.eval('window.__upd.risposte.join(",")') === 'scarica' && d.getElementById('modal-bk').classList.contains('hidden'), 'Scarica e installa -> risposta al wrapper, modale chiuso');
+  ok(w.eval('window.__upd.risposte[0]') === 'chiedi', 'aggiornamenti: appena in ascolto la pagina richiede l\'avviso al wrapper (non va perso se arriva prima)');
+  ok(w.eval('window.__upd.risposte.filter(function(x){return x!=="chiedi";}).join(",")') === 'scarica' && d.getElementById('modal-bk').classList.contains('hidden'), 'Scarica e installa -> risposta al wrapper, modale chiuso');
   w.eval('window.__upd.cb({tipo:"pronto", versione:"9.9.9"})');
   ok(d.getElementById('modal').innerHTML.includes('Aggiornamento pronto'), 'modale "pronto, riavviare?" in stile app');
   d.getElementById('upd-riavvia').click();
-  ok(w.eval('window.__upd.risposte.join(",")') === 'scarica,riavvia', 'Riavvia ora -> risposta al wrapper');
+  ok(w.eval('window.__upd.risposte.filter(function(x){return x!=="chiedi";}).join(",")') === 'scarica,riavvia', 'Riavvia ora -> risposta al wrapper');
   w.eval('closeModal()');
   dom.window.close();
 }
@@ -1526,7 +1529,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(!/class="sec[^"]*"[^>]*>▌/.test(guida), 'Guida: nessun glifo ▌ nelle intestazioni (la barra è quella del CSS, non doppia)');
   w.eval('guidaMode = "rapida"; renderGuida()');
   const rapida = d.getElementById('panel-guida').innerHTML;
-  ok(rapida.includes('Coach ↔ cliente') && rapida.includes('📤 Esporta scheda'), 'Guida rapida: passo coach ↔ cliente');
+  ok(rapida.includes('Coach ↔ cliente') && rapida.includes('📲 Esporta scheda'), 'Guida rapida: passo coach ↔ cliente');
   ok(!d.body.innerHTML.includes('Tarnished'), 'nessuna istanza di «Rise, Tarnished»');
   const nomeBk = await w.eval('(async()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ await backupData(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
   ok(typeof nomeBk === 'string' && nomeBk.startsWith('TMS-backup-atleta-template-'), 'backup col nome del profilo attivo (' + nomeBk + ')');
@@ -1578,7 +1581,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   await settle(60);
   ok(['🟢','🟡','🔴','⚪'].includes(d.getElementById('cr-led-template').textContent), 'semaforo: pallino dipinto sulla riga del template');
   ok(d.getElementById('cr-sum-template').innerHTML.includes('ACWR'), 'semaforo: sintesi (ACWR · aggiornamento · monotonia) sotto il nome');
-  ok(d.getElementById('panel-profilo').innerHTML.includes('🟢 ok') && d.getElementById('panel-profilo').innerHTML.includes('🔴 a rischio'), 'semaforo: legenda dei colori nel pannello');
+  ok(d.getElementById('cr-led-template').title.length > 10 && d.getElementById('cr-led-template').title !== 'Stato in calcolo…', 'semaforo: il significato del pallino sta nel suo suggerimento');
   /* ── Foto progressi: template demo → player «tutti» a gruppi + confronto a calendario ── */
   w.eval('switchProfile("template")'); await settle(300);
   w.eval('showTab("corpo")');
@@ -1747,7 +1750,7 @@ console.log('--- T6: bilingue IT/EN (interruttore lingua, traduzione markup stat
   ok(dEn.querySelector('[data-tab="allenamento"] [data-i18n]').textContent === 'Weights', 'EN: tab «Pesi» → «Weights»');
   ok(dEn.querySelector('[data-tab="alimentazione"] [data-i18n]').textContent === 'Nutrition', 'EN: tab «Alimentazione» → «Nutrition»');
   ok(dEn.getElementById('disc-ok').textContent === 'Got it', 'EN: disclaimer «Ho capito» → «Got it»');
-  ok(wEn.eval("renderProfilo(); document.getElementById('lnk-storico').textContent").includes('History') && dEn.querySelector('.prof-archivio__tit').textContent.includes('History and measurements'), 'EN: Profilo «Storico e misure» → «History and measurements»');
+  ok(wEn.eval("renderProfilo(); document.getElementById('lnk-storico').textContent").includes('History') && dEn.querySelector('[data-pexs]').textContent.includes('Export program'), 'EN: riga del profilo «Storico» → «History», «Esporta scheda» → «Export program»');
   ok(dEn.getElementById('fab-guida').title === 'Open the guide', 'EN: suggerimento di 📕 tradotto');
   ok(/select the <strong>TMS<\/strong> folder/i.test(dEn.getElementById('overlay-sub').innerHTML), 'EN: overlay-sub (data-i18n-html) tradotto');
   ok(dEn.getElementById('btn-lang').textContent === 'IT', 'EN: il pulsante lingua propone «IT»');

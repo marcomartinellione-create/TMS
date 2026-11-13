@@ -123,13 +123,25 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .topbar__qr:hover{transform:scale(1.08)}
 .topbar__spacer{flex:1}
 /* 📕 Guida e 🐞 Segnala: solo l'icona, accanto alla lingua (il nome è nel suggerimento) */
-.topbar__ico{font-size:16px; line-height:1; padding:5px 8px; margin-right:-8px}
-/* Storico e misure del profilo aperto, in cima alla pagina Profilo */
-.prof-archivio{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 13px; margin-bottom:10px;
-  border:1px solid var(--border); border-left:3px solid var(--gold-2); border-radius:var(--r-sm); background:var(--paper-2)}
-.prof-archivio__tit{flex:1; min-width:180px; font-family:var(--font-disp); font-size:15px; color:var(--ink-2)}
-.prof-archivio__btn{display:flex; gap:8px; flex-wrap:wrap}
-.prof-archivio__dot{color:var(--ink-4); font-size:12px}
+.topbar__ico{font-size:16px; line-height:1; padding:5px 8px}
+/* blocco di pulsanti affiancati (un solo riquadro, divisi da una riga): 📕🐞 in alto,
+   Storico·Misure ed Esporta·Importa nella riga del profilo */
+.gruppo{display:inline-flex; align-items:stretch; flex:0 0 auto; border:1px solid var(--border); border-radius:var(--r-sm);
+  background:var(--paper); overflow:hidden}
+/* tutti i pulsanti di un blocco uguali (anche il «label» dell'Importa, che altrimenti prende
+   altezza e carattere diversi dai «button»): stessa altezza, stesso carattere, stessa larghezza minima */
+.gruppo > .btn{border:none; border-radius:0; box-shadow:none; margin:0; font-family:var(--font-body); font-size:12px; line-height:1;
+  display:inline-flex; align-items:center; justify-content:center; gap:5px; box-sizing:border-box; height:30px; padding:0 12px;
+  min-width:128px; white-space:nowrap}
+.gruppo > .btn + .btn{border-left:1px solid var(--border)}
+.topbar .gruppo{background:transparent; border-color:rgba(255,255,255,.22)}
+.topbar .gruppo > .btn{font-size:15px; height:25px; min-width:36px; padding:0 9px}
+.topbar .gruppo > .btn + .btn{border-left-color:rgba(255,255,255,.22)}
+.prof-dot{color:var(--ink-4); font-size:11px}
+.prof-bk-lista{margin-top:8px; padding:10px 12px; border:1px solid var(--border); border-radius:var(--r-sm);
+  background:var(--paper); display:flex; flex-wrap:wrap; gap:5px; align-items:center}
+.prof-bk-lista[hidden]{display:none}
+
 /* avviso di Ctrl+Z / Ctrl+Y: compare in basso al centro e sparisce da solo */
 .undo-avviso{position:fixed; left:50%; bottom:18px; transform:translate(-50%,12px); z-index:60; opacity:0; pointer-events:none;
   background:#241405; color:var(--paper); border:1px solid var(--gold-2); border-radius:22px; padding:8px 16px; font-size:13px;
@@ -462,7 +474,7 @@ div.empty{border:1px dashed var(--border-2); border-radius:var(--r-md); backgrou
 /* PRINT (report) A4 multipagina */
 @page{ size:A4; margin:12mm; }
 @media print{
-  .topbar,.tabs,.bar,.no-print,#fab-guida,#fab-segnala,#qr-ig,.overlay,.modal-bk{ display:none !important }
+  .topbar,.tabs,.bar,.no-print,#fab-guida,#fab-segnala,.overlay,.modal-bk{ display:none !important }
   html,body{ background:#fff !important; background-image:none !important }
   body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; color-adjust:exact; font-size:11px }
   .wrap{ max-width:none; padding:0; margin:0 }
@@ -527,11 +539,34 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 #pdf-stage{ position:fixed; left:-10000px; top:0; width:210mm; background:#fff }
 #pdf-stage .pg{ position:relative; width:210mm; height:297mm; box-sizing:border-box; padding:13mm 14mm; background:#fff; overflow:hidden; margin:0 }
 #pdf-stage .u{ break-inside:avoid }
-#pdf-stage .chart-grid{ display:block }
+#pdf-stage .chart-grid{ display:grid; grid-template-columns:1fr 1fr; gap:3mm }
 #pdf-stage .chart-box,#pdf-stage .card,#pdf-stage .tbl-wrap{ box-shadow:none }
 #pdf-stage .cards{ break-inside:auto } #pdf-stage .card{ break-inside:avoid }
-#pdf-stage .chart-box svg{ width:100%; height:auto; max-height:200mm }
+#pdf-stage .chart-box svg{ width:100%; height:auto; max-height:58mm }
 #pdf-stage table{ width:100%; font-size:9.5px } #pdf-stage thead th{ position:static }
+/* ── REPORT COMPATTO (2026-11-13): stessi stili a video (.rep-doc) e nel PDF (#pdf-stage, dove le
+   sezioni sono copiate fuori da .rep-doc). Schede piccole su una riga, grafici bassi e affiancati,
+   tabelle fitte, titoli di sezione sottili. ── */
+#panel-report{max-width:1000px}
+.rep-doc .rep-sec, #pdf-stage .rep-sec{margin-bottom:8px}
+.rep-doc .sec, #pdf-stage .sec{margin:10px 0 6px; padding:4px 10px; font-size:12.5px; border-left-width:3px}
+.rep-doc .sec:first-child, #pdf-stage .sec:first-child{margin-top:4px}
+.rep-doc .cards, #pdf-stage .cards{grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:6px; margin:4px 0}
+.rep-doc .card, #pdf-stage .card{padding:6px 8px 5px; box-shadow:none}
+.rep-doc .card:hover{transform:none}
+.rep-doc .card__k, #pdf-stage .card__k{font-size:9px; letter-spacing:.03em}
+.rep-doc .card__v, #pdf-stage .card__v{font-size:16px; margin-top:1px}
+.rep-doc .card__v small, #pdf-stage .card__v small{font-size:10px}
+.rep-doc .card__sub, #pdf-stage .card__sub{font-size:9.5px; margin-top:0}
+.rep-doc .chart-box, #pdf-stage .chart-box{padding:6px 9px 4px; margin-bottom:6px; box-shadow:none}
+.rep-doc .chart-box h4, #pdf-stage .chart-box h4{font-size:11.5px; margin-bottom:3px}
+.rep-doc .chart-grid{gap:8px}
+.rep-doc .chart-box svg{max-height:190px}
+.rep-doc p.muted, #pdf-stage p.muted{font-size:10.5px !important; margin:3px 0 0; line-height:1.4}
+.rep-doc table{font-size:12px}
+.rep-doc tbody td, #pdf-stage tbody td{padding:3px 7px}
+.rep-doc thead th, #pdf-stage thead th{padding:4px 7px; font-size:10.5px}
+.rep-doc .tbl-wrap, #pdf-stage .tbl-wrap{box-shadow:none}
 #pdf-stage.land{ width:297mm } #pdf-stage.land .pg{ width:297mm; height:210mm } /* A4 orizzontale (stampa dieta) */
 table.hide-rir th.rir-col,table.hide-rir td.rir-col{display:none}
 /* colonne facoltative della scheda Pesi (▦ Colonne): stessa convenzione del RIR */

@@ -41,12 +41,12 @@ function renderReport(){
        <div class="card k--danger"><div class="card__k">${t('Massa grassa')}</div><div class="card__v">${nf(c.grassaKg,1)}<small> kg</small></div><div class="card__sub">${nf((u.massa_grassa||0)*100,1)}%</div></div>
        <div class="card k--violet"><div class="card__k">${t('Fabbisogno')}</div><div class="card__v">${nf(c.metab,0)}<small> kcal</small></div></div>
      </div>
-     ${io.length>1?`<div class="chart-box" style="margin-top:10px"><h4>${t('Andamento peso')}</h4>${lineChart([{name:t('Peso'),color:'var(--orange-b)',data:io.map(r=>({x:schedaLabel(r.scheda),y:+r.peso}))}],{h:140})}</div>`:''}
+     ${io.length>1?`<div class="chart-box" style="margin-top:10px"><h4>${t('Andamento peso')}</h4>${lineChart([{name:t('Peso'),color:'var(--orange-b)',data:io.map(r=>({x:schedaLabel(r.scheda),y:+r.peso}))}],{h:105})}</div>`:''}
      <p class="muted" style="font-size:12px">${t('Il <b>BMI</b> mette in rapporto peso e altezza; <b>massa magra/grassa</b> e <b>fabbisogno calorico</b> orientano l\'alimentazione.')}</p></div>`; }
   if(R.foto){ const fp=(DOC.foto||[]).find(x=>x.file===R.fotoPrima), fd=(DOC.foto||[]).find(x=>x.file===R.fotoDopo);
     if(fp||fd){ const cell=(f,lab)=>{ if(!f) return `<div style="flex:1;text-align:center"><div style="font-weight:700;color:var(--ember-2)">${lab}</div><div class="muted" style="padding:16px">—</div></div>`;
         const du=fotoReportUri[f.file], pz=fotoPeso(f.data);
-        return `<div style="flex:1;text-align:center;min-width:0"><div style="font-weight:700;color:var(--ember-2)">${lab}</div>${du?`<img src="${du}" alt="${lab}" style="max-width:100%;max-height:340px;border-radius:var(--r-sm);border:1px solid var(--border)">`:`<div class="muted" style="padding:16px">${t('(caricamento foto…)')}</div>`}<div class="muted" style="font-size:12px;margin-top:3px">${esc(fotoDataLabel(f))}${pz?' · '+nf(pz,1)+' kg':''}</div></div>`; };
+        return `<div style="flex:1;text-align:center;min-width:0"><div style="font-weight:700;color:var(--ember-2)">${lab}</div>${du?`<img src="${du}" alt="${lab}" style="max-width:100%;max-height:240px;border-radius:var(--r-sm);border:1px solid var(--border)">`:`<div class="muted" style="padding:16px">${t('(caricamento foto…)')}</div>`}<div class="muted" style="font-size:12px;margin-top:3px">${esc(fotoDataLabel(f))}${pz?' · '+nf(pz,1)+' kg':''}</div></div>`; };
       B.foto=`<div class="rep-sec"><div class="sec">${t('Foto progressi — prima / dopo')}</div>
        <div style="display:flex;gap:14px;align-items:flex-start">${cell(fp,t('Prima'))}${cell(fd,t('Dopo'))}</div></div>`; } }
   if(R.riepilogo && last){ B.riepilogo=`<div class="rep-sec"><div class="sec">${t('Riepilogo allenamento')}</div>
@@ -61,14 +61,14 @@ function renderReport(){
      <div class="tbl-wrap"><table style="table-layout:fixed;width:100%"><colgroup><col style="width:24%"><col style="width:32%"><col style="width:12%"><col style="width:10%"><col style="width:9%"><col style="width:13%"></colgroup><thead><tr><th class="l">${t('Esercizio')}</th><th class="l">${t('Target muscolare')}</th><th>${t('Serie×Rip')}</th><th>${t('Peso')}</th><th>${t('Rec.')}</th><th>${t('Zona')}</th></tr></thead><tbody>${progBody}</tbody></table></div></div>`; }
   if(R.andamento && ag.length){ B.andamento=`<div class="rep-sec"><div class="sec">${t('Andamento del carico')}</div>
      <div class="chart-grid">
-       <div class="chart-box"><h4>${t('Carico (TL) nel tempo')}</h4>${lineChart([{name:'TL',color:'var(--orange-b)',data:ag.map(a=>({x:schedaLabel(a.scheda),y:a.tl||null}))}],{labels,h:160,fmt:nfk})}</div>
-       <div class="chart-box"><h4>${t('Equilibrio · distribuzione')}</h4>${radarChart(vociDistribuzione(last.sets),{h:230})}</div>
+       <div class="chart-box"><h4>${t('Carico (TL) nel tempo')}</h4>${lineChart([{name:'TL',color:'var(--orange-b)',data:ag.map(a=>({x:schedaLabel(a.scheda),y:a.tl||null}))}],{labels,h:125,fmt:nfk})}</div>
+       <div class="chart-box"><h4>${t('Equilibrio · distribuzione')}</h4>${radarChart(vociDistribuzione(last.sets),{h:175})}</div>
      </div>
      <p class="muted" style="font-size:12px">${t('A sinistra la crescita del carico settimana dopo settimana; a destra quanto è bilanciato il lavoro tra i gruppi muscolari.')}</p></div>`; }
   if(R.progressione && mainLifts.length){ const cols=['#c2500a','#d4a017','#2f7d4f','#7a3ea8','#991b1b'];
      const series=mainLifts.map((n,idx)=>({name:exName(n.replace(' / Overhead press','')),color:cols[idx%cols.length],data:exProgression(n).map(p=>({x:schedaLabel(p.scheda),y:p.rm||null}))}));
      B.progressione=`<div class="rep-sec"><div class="sec">${t('Progressione di forza (1RM stimato)')}</div>
-     <div class="chart-box">${lineChart(series,{h:210})}</div>
+     <div class="chart-box">${lineChart(series,{h:150})}</div>
      <p class="muted" style="font-size:12px">${t('Massimale stimato sui principali esercizi: una linea che sale significa aumento di forza.')}</p></div>`; }
   if(R.record){ B.record=`<div class="rep-sec big"><div class="sec">${t('Record personali (carico massimo)')}</div>
      <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Carico max')}</th><th>${t('Rip.')}</th><th>${t('Scheda')}</th></tr></thead><tbody>${prs.map(p=>`<tr><td class="l">${esc(exName(p.nome))}</td><td class="num cell-out">${nf(p.peso,1)} kg</td><td class="num">${nf(p.rip,0)}</td><td class="num">${p.scheda}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">—</td></tr>'}</tbody></table></div></div>`; }
@@ -88,13 +88,13 @@ function renderReport(){
      <textarea id="rep-nota" class="no-print" placeholder="${t('Commento, indicazioni, prossimi step…')}" style="width:100%;min-height:90px">${esc(R.nota||'')}</textarea>
      <div class="rep-nota-print" style="white-space:pre-wrap;font-size:13px">${esc(R.nota||'')||'<span class="muted">—</span>'}</div></div>`; }
   const S=[`<div class="rep-sec" style="border-bottom:2px solid var(--gold-2);padding-bottom:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start">
-     <div><h1 style="font-size:26px;color:var(--ember-2);margin:0">${t('Report di Allenamento')}</h1>
+     <div><h1 style="font-size:20px;color:var(--ember-2);margin:0">${t('Report di Allenamento')}</h1>
        <div class="muted mono" style="font-size:12px">${esc(u.nome||profNome()||t('Atleta'))}${u.cognome?' '+esc(u.cognome):''} · ${new Date().toLocaleDateString(LANG==='en'?'en-GB':'it-IT')}${last?' · '+t('scheda')+' '+last.scheda:''}</div>
        ${R.obiettivo?`<div style="margin-top:6px"><b>${t('Obiettivo:')}</b> ${esc(R.obiettivo)}</div>`:''}</div>
      <div style="text-align:right;font-family:var(--font-disp);color:var(--gold-2);font-size:13px;white-space:nowrap">✦ Training Monitor System</div></div>`];
   ordine.forEach(k=>{ if(B[k]) S.push(B[k]); });
   S.push(`<p class="muted" style="font-size:11px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px">${t('Report generato dal Training Monitor System. Indici a scopo informativo, non sostituiscono un parere medico/professionale.')}</p>`);
-  document.getElementById('panel-report').innerHTML=ctrl+fotoReportCtrl(R)+`<div class="rep-doc" style="background:var(--paper);border:1px solid var(--border);border-radius:var(--r-md);padding:28px;box-shadow:var(--shadow)">${S.join('')}</div>`;
+  document.getElementById('panel-report').innerHTML=ctrl+fotoReportCtrl(R)+`<div class="rep-doc" style="background:var(--paper);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 22px;box-shadow:var(--shadow)">${S.join('')}</div>`;
   const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo'); };
   document.querySelectorAll('#panel-report [data-rep]').forEach(cb=>cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); renderReport(); });
   document.querySelectorAll('#panel-report [data-repmove]').forEach(b=>b.onclick=()=>{

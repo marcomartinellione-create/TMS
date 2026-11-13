@@ -251,7 +251,12 @@ app.whenReady().then(() => {
       trovate.sort((a, b) => confronta(b.versione, a.versione));
       return trovate[0] || null;
     };
+    // l'ultimo avviso resta in memoria: il controllo nella cartella è così veloce che può arrivare
+    // prima che la pagina si metta in ascolto (v1.1.18-19: avviso perso). La pagina, appena pronta,
+    // lo richiede con l'azione 'chiedi'.
+    let ultimoAvviso = null;
     const inviaUpdate = (dati) => {
+      ultimoAvviso = dati;
       const manda = () => { const w = BrowserWindow.getAllWindows()[0]; if (w) try { w.webContents.send('tms-update', dati); } catch (e) {} };
       const w = BrowserWindow.getAllWindows()[0];
       if (!w) { setTimeout(manda, 1500); return; }
@@ -272,6 +277,10 @@ app.whenReady().then(() => {
 
     ipcMain.on('tms-update-azione', async (e, azione) => {
       if (azione === 'dopo') { updLog('rimandato dall\'utente'); return; }
+      if (azione === 'chiedi') {
+        if (ultimoAvviso && !installerPronto) { try { e.sender.send('tms-update', ultimoAvviso); updLog('avviso rimandato alla pagina'); } catch (err) {} }
+        return;
+      }
       if ((azione !== 'scarica' && azione !== 'installa') || !disponibile || installerPronto) return;
       updLog('installazione richiesta', disponibile.versione, disponibile.exe);
       try {

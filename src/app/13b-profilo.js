@@ -1,4 +1,4 @@
-let profOpen=null, profParamCache={};
+let profOpen=null, profParamCache={}, profBkAperto=false;
 /* quanto c'è nel profilo aperto, a colpo d'occhio (pannello laterale del tab Profilo) */
 function riepilogoProfiloAperto(){
   const st=DOC.storico||[], sett=new Set(st.map(r=>+r.scheda).filter(Boolean));
@@ -45,34 +45,33 @@ function renderProfilo(){
         <div style="flex:1;min-width:0">
           <div style="font-family:var(--font-disp);font-size:17px">👤 ${esc(p.nome)}${isAct?` <span class="pill">${t('attivo')}</span>`:''}</div>
           <div class="muted" id="cr-sum-${esc(p.slug)}" style="font-size:11.5px;margin-top:2px">…</div>
+          ${p.creato?`<div class="muted mono" style="font-size:10.5px;margin-top:1px">${t('creato il')} ${esc(p.creato)}</div>`:''}
         </div>
-        <button class="btn no-print" data-pexs="${esc(p.slug)}" style="font-size:12px;padding:4px 10px" title="${t('Crea il file scheda di')} ${esc(p.nome)} ${t('da inviare al cliente (lo apre nell\'app TMS Scheda)')}">${t('📤 Esporta scheda')}</button>
-        <label class="btn no-print" style="cursor:pointer;font-size:12px;padding:4px 10px" title="${t('Importa nel profilo di')} ${esc(p.nome)} ${t('il file di rientro compilato dal cliente')}">${t('📥 Importa rientro')}<input type="file" data-prin="${esc(p.slug)}" accept="application/json,.json" style="display:none"></label>
-        <span class="muted mono" style="font-size:11px">${esc(p.creato||'')}</span>
+        <span class="gruppo no-print" title="${t('Archivi del profilo')}">
+          <button class="btn" data-parch="storico" data-pslug="${esc(p.slug)}" ${isAct?'id="lnk-storico"':''} title="${t('Tutte le settimane di allenamento salvate')}">${isAct?'<span id="dot-storico" class="prof-dot">●</span> ':''}📜 ${t('Storico')}</button>
+          <button class="btn" data-parch="storicocorpo" data-pslug="${esc(p.slug)}" ${isAct?'id="lnk-misure"':''} title="${t('Tutte le misure corporee salvate')}">${isAct?'<span id="dot-misure" class="prof-dot">●</span> ':''}📏 ${t('Misure')}</button>
+        </span>
+        <span class="gruppo no-print" title="${t('Scambio della scheda col cliente (app TMS Scheda sul telefono)')}">
+          <button class="btn" data-pexs="${esc(p.slug)}" title="${t('Crea il file scheda di')} ${esc(p.nome)} ${t('da inviare al cliente (lo apre nell\'app TMS Scheda)')}">${t('📲 Esporta scheda')}</button>
+          <label class="btn" style="cursor:pointer" title="${t('Importa nel profilo di')} ${esc(p.nome)} ${t('il file di rientro compilato dal cliente')}">${t('🔄 Importa rientro')}<input type="file" data-prin="${esc(p.slug)}" accept="application/json,.json" style="display:none"></label>
+        </span>
       </div>${open?`<div style="padding:0 13px 12px">${body}</div>`:''}</div>`;
   }).join('');
   document.getElementById('panel-profilo').innerHTML=`
    <div class="bar"><div class="field" style="flex:1"><label>${t('Profili')}</label>
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">👤 ${profili.length} ${t(profili.length===1?'profilo':'profili')}</div></div>
      <button class="btn btn--ember no-print" id="prof-new">${t('＋ Nuovo profilo')}</button></div>
-   <div class="callout callout--info"><div>${t('Il <b>pallino</b> accanto al nome è un <b>semaforo</b> dello stato del cliente (sola lettura): <b style="color:var(--ok)">🟢 ok</b> · <b style="color:var(--warn)">🟡 attenzione</b> · <b style="color:var(--danger)">🔴 a rischio</b> (carico alto, monotonia o scheda ferma) · ⚪ senza dati — sotto al nome trovi ACWR, da quanto non aggiorna e i PR. Clicca un profilo per i <b>parametri</b> (✎ per cambiarli). I bottoni nella riga sono lo <b>scambio scheda ↔ cliente</b>: <b>📤 Esporta scheda</b> crea il file da mandargli (lo apre e compila nell\'app')} <a href="${esc(APP_CLIENTE_URL)}" target="_blank" rel="noopener" style="color:var(--ember-2)"><b>TMS Scheda</b></a>${t(' sul telefono), <b>📥 Importa rientro</b> registra il file che ti rimanda.')} ${dataDir?`${t('Dati in')} <span class="mono">${esc(SUBDIR)}/&lt;profilo&gt;/</span>.`:t('Connetti una cartella (in alto) per salvarli su disco.')}</div></div>
    <div class="pag"><div class="pag__main">
-   <div class="prof-archivio no-print">
-     <div class="prof-archivio__tit">${t('Storico e misure di')} <b>${esc(profNome()||'—')}</b></div>
-     <div class="prof-archivio__btn">
-       <button class="btn" id="lnk-storico" title="${t('Tutte le settimane di allenamento salvate')}"><span id="dot-storico" class="prof-archivio__dot">●</span> 📜 ${t('Storico')}</button>
-       <button class="btn" id="lnk-misure" title="${t('Tutte le misure corporee salvate')}"><span id="dot-misure" class="prof-archivio__dot">●</span> 📏 ${t('Misure')}</button>
-     </div>
-   </div>
    ${items||`<div class="empty">${t('Nessun profilo.')}</div>`}
    </div><aside class="pag__side no-print">${riepilogoProfiloAperto()}
    <div class="sec no-print" style="margin-top:4px">${t('Backup (tutti i profili insieme)')}</div>
    <div class="bar no-print"><button class="btn" id="prof-backup" title="${t('Esporta i dati di TUTTI i profili in un file')}">${t('⭳ Backup dati')}</button> <button class="btn" id="prof-backup-full" title="${t('Come il backup dati, ma con dentro anche le immagini delle foto progressi')}">${t('⭳ Backup completo (con foto)')}</button> <label class="btn" style="cursor:pointer" title="${t('Importa un backup')}">${t('⭱ Ripristina')}<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>
    <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('Il <b>Backup dati</b> contiene schede, storico, misure e alimentazione, ma delle foto progressi porta solo i riferimenti: ripristinandolo su un altro PC le immagini mancherebbero. Usa il <b>Backup completo</b> per portarti dietro anche le foto (file più grande). I <b>video</b> non entrano in nessuno dei due: si riscaricano con l\'app.')}</div></div>
-   <div class="muted no-print" id="prof-autobk" style="font-size:12px;margin-top:6px">🛟 …</div>
+   <div class="no-print" id="prof-autobk" style="margin-top:8px"></div>
    </aside></div>`;
-  { const ls=document.getElementById('lnk-storico'); if(ls) ls.onclick=()=>showTab('storico'); }
-  { const lm=document.getElementById('lnk-misure'); if(lm) lm.onclick=()=>showTab('storicocorpo'); }
+  /* Storico e Misure nella riga di ogni profilo: se non è quello attivo, prima lo si attiva */
+  document.querySelectorAll('#panel-profilo [data-parch]').forEach(b=>b.onclick=async ev=>{ if(ev) ev.stopPropagation();
+    const slug=b.dataset.pslug, dove=b.dataset.parch; if(slug!==activeProfile){ await switchProfile(slug); } showTab(dove); });
   updateStatusDots();   /* i pallini verde/rosso accanto a Storico e Misure */
   { const pn=document.getElementById('prof-new'); if(pn) pn.onclick=()=>chiediTesto(t('Nuovo profilo (atleta/cliente)'),'',v=>{ const n=(v||'').trim(); if(!n)return; createProfile(n); }); }
   { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=()=>backupData(false); }
@@ -83,21 +82,24 @@ function renderProfilo(){
   document.querySelectorAll('#panel-profilo [data-pexs]').forEach(b=>b.onclick=async ev=>{ if(ev) ev.stopPropagation(); const slug=b.dataset.pexs; if(slug!==activeProfile){ await switchProfile(slug); } await esportaSchedaCliente(); });
   document.querySelectorAll('#panel-profilo [data-prin]').forEach(inp=>{ const lab=inp.closest('label'); if(lab) lab.onclick=ev=>ev.stopPropagation();
     inp.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; e.target.value=''; const slug=inp.dataset.prin; if(slug!==activeProfile){ await switchProfile(slug); } importaRientroFile(f); }; });
+  /* backup automatici (e copie fatte prima di un ripristino): un solo pulsante; aperto, mostra
+     tutte le copie con il loro «ripristina». Resta aperto/chiuso fra un ridisegno e l'altro. */
   { const ab=document.getElementById('prof-autobk');
-    if(ab) listaBackupAutomatici().then(l=>{
+    if(ab) Promise.all([listaBackupAutomatici().catch(()=>[]), listaCopieDiSicurezza().catch(()=>[])]).then(([l,ls])=>{
       if(!ab.isConnected) return;
-      if(!l.length){ ab.innerHTML=t('🛟 <b>Backup automatici</b>: l\'app ne crea uno a settimana da sola (ultime')+' '+AUTOBK_MAX+' '+t('copie in')+' <span class="mono">TMS_Dati/'+AUTOBK_DIR+'/</span>).'; return; }
-      ab.innerHTML=t('🛟 <b>Backup automatici</b> (uno a settimana, ultime')+' '+AUTOBK_MAX+' '+t('copie):')+' '+
-        l.map(x=>`<span class="pill">${esc(x.data||'?')} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">${t('ripristina')}</a></span>`).join(' ');
+      l=l||[]; ls=ls||[];
+      const voce=(x,ora)=>`<span class="pill">${esc(x.data||'?')}${ora&&x.ora?' '+esc(x.ora):''} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">${t('ripristina')}</a></span>`;
+      ab.innerHTML=`<button class="btn" id="prof-autobk-btn" aria-expanded="${profBkAperto?'true':'false'}">🛟 ${t('Backup automatici')} <span class="pill">${l.length+ls.length}</span> ${profBkAperto?'▴':'▾'}</button>
+        <div id="prof-autobk-lista" class="prof-bk-lista"${profBkAperto?'':' hidden'}>
+          <div class="muted" style="font-size:11.5px;margin-bottom:2px;flex-basis:100%">${t('Uno a settimana, fatti dall\'app da sola (ultime')} ${AUTOBK_MAX} ${t('copie in')} <span class="mono">TMS_Dati/${AUTOBK_DIR}/</span>).</div>
+          ${l.length? l.map(x=>voce(x,false)).join(' ') : `<span class="muted" style="font-size:12px">${t('Ancora nessuna copia.')}</span>`}
+          ${ls.length?`<div style="margin-top:7px;font-size:12px;flex-basis:100%">${t('↩ <b>Prima dell\'ultimo ripristino</b> (per tornare indietro):')} ${ls.map(x=>voce(x,true)).join(' ')}</div>`:''}
+        </div>`;
+      const bt=document.getElementById('prof-autobk-btn'), li=document.getElementById('prof-autobk-lista');
+      bt.onclick=()=>{ profBkAperto=!profBkAperto; li.hidden=!profBkAperto; bt.setAttribute('aria-expanded', profBkAperto?'true':'false');
+        bt.lastChild.textContent=' '+(profBkAperto?'▴':'▾'); };
       ab.querySelectorAll('[data-autobk]').forEach(a=>a.onclick=ev=>{ ev.preventDefault(); ripristinaBackupAutomatico(a.dataset.autobk); });
-    }).catch(()=>{}).then(()=>listaCopieDiSicurezza()).then(ls=>{
-      if(!ab.isConnected||!ls||!ls.length) return;
-      const box=document.createElement('div'); box.style.marginTop='5px';
-      box.innerHTML=t('↩ <b>Prima dell\'ultimo ripristino</b> (per tornare indietro):')+' '+
-        ls.map(x=>`<span class="pill">${esc(x.data||'?')}${x.ora?' '+esc(x.ora):''} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">${t('ripristina')}</a></span>`).join(' ');
-      ab.appendChild(box);
-      box.querySelectorAll('[data-autobk]').forEach(a=>a.onclick=ev=>{ ev.preventDefault(); ripristinaBackupAutomatico(a.dataset.autobk); });
-    }).catch(()=>{}); }
+    }); }
   document.querySelectorAll('#panel-profilo [data-popen]').forEach(h=>h.onclick=()=>{
     const slug=h.dataset.popen; profOpen = profOpen===slug ? null : slug; renderProfilo();
     if(profOpen && !profParamCache[profOpen]){ const want=profOpen;

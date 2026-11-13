@@ -125,8 +125,7 @@ function omsRenderSection(){
       <td class="num" style="color:${col};font-weight:600">${nf(pct,0)}%</td>
       <td style="width:80px;min-width:60px"><div style="background:var(--paper-3);border-radius:var(--r-pill);height:9px;overflow:hidden"><div style="width:${barw}%;height:100%;background:${col}"></div></div></td></tr>`;
   });
-  return `<div class="sec">${t('Indice nutrienti settimanale · riferimenti OMS/FAO')} <span class="pill no-print" style="margin-left:auto">${t('fase')} ${t(FASE_LAB[fase]||fase)}</span></div>
-    <div class="tbl-wrap"><table><thead><tr><th class="l">${t('Nutriente')}</th><th>${t('Settimana')}</th><th>${t('Riferimento')}</th><th>${t('Indice')}</th><th>—</th></tr></thead><tbody>${body}</tbody></table></div>
+  return `<div class="tbl-wrap"><table><thead><tr><th class="l">${t('Nutriente')}</th><th>${t('Settimana')}</th><th>${t('Riferimento')}</th><th>${t('Indice')}</th><th>—</th></tr></thead><tbody>${body}</tbody></table></div>
     <div class="callout callout--info"><div>${t('📐 Valori settimanali = piano giornaliero × 7, confrontati con i riferimenti <b>OMS/FAO</b> per adulto (energia e proteine personalizzati su fabbisogno e peso). I nutrienti <b>(max)</b> sono limiti da non superare. Riferimenti indicativi: non sostituiscono un parere medico/nutrizionale.')}</div></div>`;
 }
 /* ── PANNELLO LATERALE DEL PIANO (2026-11, schermo intero) ────────────────────────
@@ -167,7 +166,7 @@ function pannelloPiano(fase){
 }
 function renderAlimentazione(){
   const A=DOC.alimentazione; A.bulk=A.bulk||[]; A.mant=A.mant||[]; A.cut=A.cut||[];
-  const fase=faseAlimActive(); omsFase=fase; const tF=faseTot(A[fase]);
+  const fase=faseAlimActive(); omsFase=fase;
   function faseTable(fase,rows){
     const meals=[]; rows.forEach(r=>{ const p=((r.pasto||'').trim())||'Senza pasto'; if(!meals.includes(p))meals.push(p); });
     let body='';
@@ -214,9 +213,7 @@ function renderAlimentazione(){
      <tbody>${perRows||`<tr><td colspan="6" class="empty">${t('Nessun periodo registrato.')}</td></tr>`}</tbody></table></div>
    <div class="bar no-print"><button class="btn btn--ember" id="per-add">${t('📅 Registra il piano attuale come periodo…')}</button> <button class="btn" onclick="showTab('analisi')">${t('📊 Vai all\'Analisi')}</button></div>`;
   document.getElementById('panel-alimentazione').innerHTML=`
-   <div class="callout"><div>${t('🍖 Banca dati')} <b>${FOOD.length}</b> ${t('alimenti. Clicca <b>＋ scegli alimento…</b> per selezionare dalla tabella completa (con macro). Usa <b>▸</b> per i micro/macro. Scegli qui sotto la <b>fase</b> del piano: le fasi non attive restano salvate ma non mostrate.')}</div></div>
    <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="printDieta()" style="margin-left:auto" title="${t('Stampa il piano della fase attiva in PDF A4 orizzontale (da dare al cliente)')}">${t('⬇ Stampa dieta (PDF A4)')}</button></div>
-   <div class="sec">${t('Fase')} ${t(FASE_LAB[fase])} <span class="pill">${nf(tF.kcal,0)} kcal · P ${nf(tF.proteine,0)} · G ${nf(tF.grassi,0)} · C ${nf(tF.zuccheri,0)}</span></div>
    <div class="pag pag--tre"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}</div>
    <aside class="pag__side no-print" id="alim-side">${pannelloPiano(fase)}</aside>
    <div class="pag__terza" id="alim-oms">${omsSection}</div></div>`;
