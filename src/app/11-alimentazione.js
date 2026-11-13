@@ -385,20 +385,23 @@ function apriStampaDieta(){
   if(!rows.some(r=>r&&r.alimento&&String(r.alimento).trim())){ avviso(t('Il piano della fase attiva è vuoto: niente da stampare.')); return; }
   repSel={blocco:null, el:null}; repInModifica=null;
   document.getElementById('dieta-overlay').classList.remove('hidden');
-  renderDietaCC();
+  /* se qualcosa va storto non deve restare uno schermo vuoto senza spiegazione: si richiude e
+     si avvisa (resta nel registro errori interni, 5 click sulla scritta «TMS») */
+  try{ renderDietaCC(); }
+  catch(e){ logErrore('apriStampaDieta', e); chiudiStampaDieta(); avviso(t('Non riesco ad aprire l\'anteprima della dieta.')+' '+e.message); }
 }
 function chiudiStampaDieta(){
   document.getElementById('dieta-overlay').classList.add('hidden');
   document.getElementById('panel-dieta').innerHTML='';
 }
 async function stampaDietaPDF(){
-  if(repInModifica){ repBloccoDaFogli(repInModifica); repInModifica=null; renderDietaCC(); }
-  const src=document.getElementById(ID('sorgente'));
-  if(!src){ avviso(t('Apri prima la Stampa dieta.')); return; }
   if(typeof html2canvas!=='function'){ avviso(t('Generatore PDF non disponibile in questa copia.')); return; }
   const btn=document.getElementById('dre-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero PDF…'); btn.disabled=true; }
   const stage=document.createElement('div'); stage.id='pdf-stage'; stage.className='land';
   try{
+    if(repInModifica){ repBloccoDaFogli(repInModifica); repInModifica=null; renderDietaCC(); }
+    const src=document.getElementById(ID('sorgente'));
+    if(!src){ avviso(t('Apri prima la Stampa dieta.')); return; }
     document.body.appendChild(stage);
     const units=buildReportUnits(document, src);
     const probe=document.createElement('div'); probe.style.cssText='position:absolute;visibility:hidden;height:100mm'; stage.appendChild(probe);

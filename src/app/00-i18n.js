@@ -35,6 +35,7 @@ const EN={
   'Intestazione':'Heading',
   'Stampa dieta':'Print diet',
   'Apri prima la Stampa dieta.':'Open Print diet first.',
+  'Non riesco ad aprire l\'anteprima della dieta.':'I can\'t open the diet preview.',
   /* report a blocchi */
   'Copertina':'Cover',
   'Piè di pagina':'Footer',

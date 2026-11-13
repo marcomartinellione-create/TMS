@@ -43,7 +43,7 @@ function renderCorpo(){
      <div class="card k--violet"><div class="card__k">${t('Fabbisogno')}</div><div class="card__v">${nf(c.metab,0)}<small> kcal</small></div><div class="card__sub">${t('basale·PAL')}</div></div>
    </div>
    <div class="bar no-print"><div class="spacer"></div><button class="btn btn--ember" id="btn-save-io">${t('💾 Salva misure nello Storico')}</button><button class="btn btn--danger" id="btn-undo-io">${t('↶ Annulla ultimo')}</button></div>
-   <div class="pag pag--corpo"><div class="pag__main">
+   <div class="pag"><div class="pag__main">
        <div class="sec">${t('Dati corporei')}</div>
        <div class="corpo-form">
          ${F('peso','Peso','0.1','kg')}${F('massa_grassa','Massa grassa','0.001','frazione (es. 0.145)')}
@@ -57,11 +57,9 @@ function renderCorpo(){
      </div>
      <aside class="pag__side">
        ${composizioneLat(u,c)}
-       <div class="chart-grid">
-         <div class="chart-box"><h4>${t('⚖ Peso')}</h4>${lineChart(wSeries,{labels:lbl,h:220})}</div>
-         <div class="chart-box"><h4>BMI</h4>${lineChart(bmiSeries,{labels:lbl,h:220})}</div>
-       </div>
-       <div class="chart-box"><h4>${t('Massa magra / muscolare')}</h4>${lineChart(massSeries,{labels:lbl,h:220})}</div>
+       <div class="chart-box"><h4>${t('⚖ Peso')}</h4>${lineChart(wSeries,{labels:lbl,h:150})}</div>
+       <div class="chart-box"><h4>BMI</h4>${lineChart(bmiSeries,{labels:lbl,h:150})}</div>
+       <div class="chart-box"><h4>${t('Massa magra / muscolare')}</h4>${lineChart(massSeries,{labels:lbl,h:150})}</div>
      </aside>
    </div>`;
   document.querySelectorAll('#panel-corpo [data-u]').forEach(inp=>inp.addEventListener('input',e=>{
