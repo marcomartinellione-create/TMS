@@ -288,10 +288,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .corpo-campo__in input{width:72px; flex:0 0 auto; min-width:0}
 .corpo-campo__in .muted{font-size:10.5px}
 .chart-grid.chart-grid--fluida{grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))}
-/* Corpo: i grafici stanno tutti nella stessa griglia (2 per riga) invece che uno sotto l'altro a
-   tutta larghezza — compatti, non giganti; quello dispari che resta solo nell'ultima riga prende
-   tutta la larghezza (2026-11-13, richiesta di Marco) */
-.pag--corpo .chart-grid .chart-box:nth-last-child(1):nth-child(odd){grid-column:1/-1}
+/* Corpo: composizione e i tre grafici in una griglia 2×2, quattro riquadri tutti della stessa
+   grandezza (righe di pari altezza), compatti, non giganti (2026-11-13, richiesta di Marco) */
+.chart-grid--corpo{grid-auto-rows:1fr}
+.chart-grid.chart-grid--corpo > *{margin:0; min-width:0}
 #panel-guida{max-width:1240px; margin-left:auto; margin-right:auto}
 @media print{ .pag{display:block; height:auto !important} .pag__main, .pag__terza{overflow:visible; height:auto} .pag__side{display:none !important} }
 tr.is-sel > td{background:var(--gold-t)}

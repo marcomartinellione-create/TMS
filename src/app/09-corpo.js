@@ -56,8 +56,8 @@ function renderCorpo(){
    <div id="foto-box"></div>
      </div>
      <aside class="pag__side">
-       ${composizioneLat(u,c)}
-       <div class="chart-grid">
+       <div class="chart-grid chart-grid--corpo">
+         ${composizioneLat(u,c)}
          <div class="chart-box"><h4>${t('⚖ Peso')}</h4>${lineChart(wSeries,{labels:lbl,h:130})}</div>
          <div class="chart-box"><h4>BMI</h4>${lineChart(bmiSeries,{labels:lbl,h:130})}</div>
          <div class="chart-box"><h4>${t('Massa magra / muscolare')}</h4>${lineChart(massSeries,{labels:lbl,h:130})}</div>
