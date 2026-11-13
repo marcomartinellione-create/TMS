@@ -12,7 +12,7 @@ function composizioneLat(u,c){
   const peso=+u.peso||0; if(!peso) return '';
   const gr=c.grassaKg||0, mu=+u.massa_muscolare||0, os=+u.massa_ossea||0, al=Math.max(0,peso-gr-mu-os);
   const P=x=>(x/peso*100).toFixed(1);
-  return `<div class="lat"><h4>🧬 ${t('Composizione')} <span class="muted">${nf(peso,1)} kg</span></h4>
+  return `<div class="lat"><h4>🧬 ${t('Composizione')} <span class="muted">${nf(peso,1)} kg</span>${spiegaBtn('composizione')}</h4>
     <div class="lat-barra"><span style="width:${P(mu)}%;background:var(--orange)"></span><span style="width:${P(gr)}%;background:var(--danger)"></span><span style="width:${P(os)}%;background:var(--ink-4)"></span><span style="width:${P(al)}%;background:var(--paper-3)"></span></div>
     <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--orange);margin-right:5px"></i>${t('Massa muscolare')}</span><span><b>${nf(mu,1)} kg</b> · ${nf(mu/peso*100,0)}%</span></div>
     <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--danger);margin-right:5px"></i>${t('Massa grassa')}</span><span><b>${nf(gr,1)} kg</b> · ${nf(gr/peso*100,1)}%</span></div>
@@ -58,9 +58,9 @@ function renderCorpo(){
      <aside class="pag__side">
        <div class="chart-grid chart-grid--corpo">
          ${composizioneLat(u,c)}
-         <div class="chart-box"><h4>${t('⚖ Peso')}</h4>${lineChart(wSeries,{labels:lbl,h:130})}</div>
-         <div class="chart-box"><h4>BMI</h4>${lineChart(bmiSeries,{labels:lbl,h:130})}</div>
-         <div class="chart-box"><h4>${t('Massa magra / muscolare')}</h4>${lineChart(massSeries,{labels:lbl,h:130})}</div>
+         <div class="chart-box"><h4>${t('⚖ Peso')}${spiegaBtn('peso')}</h4>${lineChart(wSeries,{labels:lbl,h:130})}</div>
+         <div class="chart-box"><h4>BMI${spiegaBtn('bmi')}</h4>${lineChart(bmiSeries,{labels:lbl,h:130})}</div>
+         <div class="chart-box"><h4>${t('Massa magra / muscolare')}${spiegaBtn('massa')}</h4>${lineChart(massSeries,{labels:lbl,h:130})}</div>
        </div>
      </aside>
    </div>`;

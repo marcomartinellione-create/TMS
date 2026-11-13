@@ -210,28 +210,28 @@ function renderProgressi(){
    <div class="sec">${t('Segnali')}</div>${segnali}
    <div class="sec">${t('Carico allenante (Training Load)')}</div>
    <div class="chart-grid chart-grid--fluida">
-     <div class="chart-box"><h4>${t('📈 TL totale + media mobile')}</h4>${lineChart(tlSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('⚖ ACWR (acuto:cronico) · zona 0.8–1.3')}</h4>${lineChart(acwrSeries,{labels,band:[0.8,1.3,'rgba(47,125,79,.13)']})}</div>
-     <div class="chart-box"><h4>${t('🏋 Tonnellaggio per scheda (kg)')}</h4>${lineChart(tonnSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('Δ Variazione TL %')}</h4>${lineChart(dSeries,{labels})}</div>
+     <div class="chart-box"><h4>${t('📈 TL totale + media mobile')}${spiegaBtn('tl')}</h4>${lineChart(tlSeries,{labels,fmt:nfk})}</div>
+     <div class="chart-box"><h4>${t('⚖ ACWR (acuto:cronico) · zona 0.8–1.3')}${spiegaBtn('acwr')}</h4>${lineChart(acwrSeries,{labels,band:[0.8,1.3,'rgba(47,125,79,.13)']})}</div>
+     <div class="chart-box"><h4>${t('🏋 Tonnellaggio per scheda (kg)')}${spiegaBtn('tonnellaggio')}</h4>${lineChart(tonnSeries,{labels,fmt:nfk})}</div>
+     <div class="chart-box"><h4>${t('Δ Variazione TL %')}${spiegaBtn('delta-tl')}</h4>${lineChart(dSeries,{labels})}</div>
    </div>
    ${hasRpe?`<div class="sec">${t('Carico interno · session-RPE (Foster 2001)')}</div>
    ${fosterSignal}
    <div class="chart-grid chart-grid--fluida">
-     <div class="chart-box"><h4>${t('🔥 Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span></h4>${lineChart(sRpeSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('📊 Monotonia')} <span class="muted" style="font-size:11px">${t('(media7÷SD7 · zona ≤2)')}</span></h4>${lineChart(monoSeries,{labels,band:[0,2,'rgba(47,125,79,.10)']})}</div>
-     <div class="chart-box"><h4>${t('⚡ Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span></h4>${lineChart(strainSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span></h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],{labels})})()}</div>
+     <div class="chart-box"><h4>${t('🔥 Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span>${spiegaBtn('srpe')}</h4>${lineChart(sRpeSeries,{labels,fmt:nfk})}</div>
+     <div class="chart-box"><h4>${t('📊 Monotonia')} <span class="muted" style="font-size:11px">${t('(media7÷SD7 · zona ≤2)')}</span>${spiegaBtn('monotonia')}</h4>${lineChart(monoSeries,{labels,band:[0,2,'rgba(47,125,79,.10)']})}</div>
+     <div class="chart-box"><h4>${t('⚡ Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span>${spiegaBtn('strain')}</h4>${lineChart(strainSeries,{labels,fmt:nfk})}</div>
+     <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span>${spiegaBtn('interno-esterno')}</h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],{labels})})()}</div>
    </div>`:''}
    <div class="sec">${t('Volume & equilibrio per gruppo muscolare')}</div>
    <div class="chart-grid chart-grid--fluida">
-     <div class="chart-box"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = riferimento scelto)')}</span></h4>${radarChart(radarItems)}${rifDidascalia(rifC,{dopo:'tab'})}</div>
-     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span></h4>${barChart(setsData)}</div>
-     <div class="chart-box"><h4>${t('Andamento TL per gruppo')}</h4>${lineChart(grpSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('🎯 Distribuzione intensità · ultima (serie per fascia)')}</h4>${barChart(intData)}</div>
+     <div class="chart-box"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = riferimento scelto)')}</span>${spiegaBtn('distribuzione')}</h4>${radarChart(radarItems)}${rifDidascalia(rifC,{dopo:'tab'})}</div>
+     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span>${spiegaBtn('serie-gruppo')}</h4>${barChart(setsData)}</div>
+     <div class="chart-box"><h4>${t('Andamento TL per gruppo')}${spiegaBtn('tl-gruppo')}</h4>${lineChart(grpSeries,{labels,fmt:nfk})}</div>
+     <div class="chart-box"><h4>${t('🎯 Distribuzione intensità · ultima (serie per fascia)')}${spiegaBtn('intensita')}</h4>${barChart(intData)}</div>
    </div>
    <div class="sec">${t('Progressione per esercizio')}</div>
-   <div class="chart-box">
+   <div class="chart-box">${spiegaBtn('progressione')}
      <div class="bar" style="margin:0 0 8px"><div class="field"><label>${t('Esercizio')}</label><select id="prog-ex" style="min-width:220px">${exs.map(e=>`<option value="${esc(e)}"${e===progEx?' selected':''}>${esc(exName(e))}</option>`).join('')}</select></div></div>
      ${prog.length?lineChart(exSeries,{labels:plab,h:230}):`<div class="empty">${t('Nessun dato per questo esercizio.')}</div>`}
    </div>

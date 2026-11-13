@@ -1161,6 +1161,13 @@ const EN={
   'Serie per gruppo muscolare nella scheda che stai scrivendo: <b>dirette</b> sui muscoli principali, <b>indirette</b> (mezza serie) su quelli coinvolti di striscio — la panca allena anche spalle e tricipiti. Il <b>cardio è escluso</b>: qui si guarda il lavoro coi pesi.':'Sets per muscle group in the program you are writing: <b>direct</b> on the main muscles, <b>indirect</b> (half a set) on those involved in passing — the bench press also trains shoulders and triceps. <b>Cardio is excluded</b>: this looks at the weight work.',
   'La <b>ragnatela</b> mostra la <b>distribuzione</b>: quanta parte del lavoro va a ogni gruppo, in percentuale. La fascia verde è il <b>riferimento scelto</b> (scritto sotto il disegno, con quante schede o studi lo reggono): si cambia con ⚙ Riferimento, per esperienza e tipo di allenamento. Non dipende da quante serie fai: una settimana leggera e una pesante distribuite allo stesso modo hanno lo stesso disegno. L’<b>elenco</b> accanto dice invece la <b>quantità</b>, con le tacche verdi della zona utile di ogni gruppo. In rosso chi ne sta nettamente fuori.':'The <b>radar</b> shows the <b>distribution</b>: how much of the work goes to each group, as a percentage. The green band is the <b>chosen reference</b> (written under the chart, with how many programs or studies support it): change it with ⚙ Reference, by experience and training type. It does not depend on how many sets you do: a light week and a heavy one distributed the same way draw the same shape. The <b>list</b> next to it shows the <b>quantity</b>, with the green marks of each group’s useful zone. Red means clearly outside it.',
   'Esperienza di allenamento':'Training experience',
+  /* ── note metodologiche dei grafici (05b-spiegazioni.js) ── */
+  'Come si legge questo grafico: metodo, formule ed esempio':'How to read this chart: method, formulas and example',
+  'Spiegazione del grafico':'Chart explanation',
+  'Training Monitor System · nota metodologica':'Training Monitor System · methods note',
+  'Dove compare:':'Where it appears:', 'Sommario':'Abstract', 'Bibliografia':'References', '◂ Torna al grafico':'◂ Back to the chart',
+  'Cosa mostra':'What it shows', 'Dati di partenza':'Input data', 'Metodo e formule':'Method and formulas',
+  'Esempio svolto':'Worked example', 'Come leggerlo':'How to read it', 'Limiti':'Limitations',
   'Sceglie il riferimento della ragnatela «distribuzione fra i gruppi», insieme al tipo di allenamento del Training Set (barra 🏋 Pesi).':'It picks the reference of the “distribution across groups” radar, together with the Training Set’s training type (🏋 Weights bar).'
 };
 

@@ -447,6 +447,38 @@ input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange)
 /* charts */
 .chart-box{background:var(--sup); border:1px solid var(--border); border-radius:var(--r-md); padding:14px 16px 10px; box-shadow:var(--shadow); margin-bottom:14px}
 .chart-box h4{font-size:13px; color:var(--ember-2); margin-bottom:8px; display:flex; align-items:center; gap:8px}
+/* ── «?» in alto a destra di ogni grafico: apre la nota metodologica (05b-spiegazioni.js) ── */
+.chart-box, .lat, .bil-radar{position:relative}
+.spieg-btn{position:absolute; top:9px; right:10px; z-index:3; width:17px; height:17px; padding:0; border-radius:50%;
+  border:1.3px solid var(--ink-4); background:var(--paper); color:var(--ink-3); cursor:pointer;
+  font:700 11px/1 var(--font-body); display:inline-flex; align-items:center; justify-content:center;
+  transition:color var(--rapida,.15s), border-color var(--rapida,.15s), background var(--rapida,.15s)}
+.spieg-btn:hover, .spieg-btn:focus-visible{color:var(--orange); border-color:var(--orange); background:var(--orange-t)}
+.spieg-btn.in-linea{position:static; margin-left:6px; vertical-align:middle; width:15px; height:15px; font-size:10px}
+.bil-radar > .spieg-btn{top:0; right:0}
+.chart-box h4:has(> .spieg-btn), .lat h4:has(> .spieg-btn){padding-right:24px}
+.chart-box > .spieg-btn ~ .bar{padding-right:24px}
+@media print{ .spieg-btn{display:none !important} }
+/* la nota: impaginata come un breve articolo scientifico */
+.modal:has(.spieg-doc){max-height:92vh; overflow-y:auto}   /* la nota è lunga: scorre dentro il riquadro */
+.spieg-doc{font-family:var(--font-body); color:var(--ink); line-height:1.55; font-size:14px}
+.spieg-kicker{font:600 10.5px var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.spieg-doc h3{font-family:var(--font-disp); font-size:20px; margin:4px 0 2px; color:var(--ember-2)}
+.spieg-dove{font-size:12px; color:var(--ink-3); font-style:italic; margin-bottom:10px}
+.spieg-abs{background:var(--paper-2); border:1px solid var(--border); border-left:3px solid var(--orange);
+  border-radius:0 var(--r-sm) var(--r-sm) 0; padding:9px 12px; font-size:13.5px; margin-bottom:12px}
+.spieg-doc section{margin-top:12px}
+.spieg-doc h5{font-family:var(--font-disp); font-size:14px; color:var(--ink-2); margin:0 0 4px; display:flex; align-items:baseline; gap:8px;
+  border-bottom:1px solid var(--border); padding-bottom:3px}
+.spieg-doc h5 span{font-family:var(--font-mono); font-size:11.5px; color:var(--orange)}
+.spieg-doc .spf{font-family:'Cambria Math','STIX Two Math','Latin Modern Math',Georgia,serif; font-size:15px; text-align:center;
+  margin:9px 0; padding:8px 40px 8px 12px; position:relative; background:var(--paper-2); border-radius:var(--r-sm); overflow-x:auto}
+.spieg-doc .spn{position:absolute; right:10px; top:50%; transform:translateY(-50%); font:12px var(--font-mono); color:var(--ink-3)}
+.spieg-doc .fr{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; margin:0 3px; font-size:.92em}
+.spieg-doc .fr > i{font-style:normal; padding:0 3px; line-height:1.25}
+.spieg-doc .fr > i:first-child{border-bottom:1px solid currentColor}
+.spieg-bib ol{font-size:12px; padding-left:20px; margin:4px 0 0; color:var(--ink-2)}
+.spieg-bib li{margin-bottom:3px}
 .chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
 svg .axis{stroke:var(--border); stroke-width:1}
 svg .grid{stroke:var(--paper-3); stroke-width:1}

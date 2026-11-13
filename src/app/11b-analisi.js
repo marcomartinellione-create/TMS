@@ -136,18 +136,18 @@ function renderAnalisi(){
       <div class="lat-num" style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px"><span>${t('Settimane con dati')}</span><b>${sett.length}</b></div>
       <div class="lat-num"><span>${t('Settimane utili per il bilancio')}</span><b>${punti.length}</b></div></div>`;
   document.getElementById('panel-analisi').innerHTML=intro+`<div class="pag"><div class="pag__main">
-   <div class="chart-box"><h4>${t('🗓 Timeline — periodi alimentari, carico e peso')}</h4>${timelineChart(sett)}</div>
+   <div class="chart-box"><h4>${t('🗓 Timeline — periodi alimentari, carico e peso')}${spiegaBtn('timeline')}</h4>${timelineChart(sett)}</div>
    <div class="grid2">
-     <div class="chart-box"><h4>${t('⚖ Δpeso vs bilancio calorico')} ${rPB!=null?`<span class="pill" title="${t('correlazione di Pearson')}">r = ${nf(rPB,2)}</span>`:''}</h4>
+     <div class="chart-box"><h4>${t('⚖ Δpeso vs bilancio calorico')} ${rPB!=null?`<span class="pill" title="${t('correlazione di Pearson')}">r = ${nf(rPB,2)}</span>`:''}${spiegaBtn('bilancio-peso')}</h4>
        ${scatterChart(punti,{trend:true,xl:t('bilancio kcal/giorno (piano − metabolismo)'),yl:t('Δpeso kg →sett. dopo')})}
        ${regr?`<div class="muted" style="font-size:11px;margin-top:4px">${t('Retta: ogni 100 kcal/g di surplus ≈')} ${nf(regr.b*100,2)} ${t('kg/settimana')}${rPB!=null&&Math.abs(rPB)<0.3?' · '+t('correlazione debole: servono più settimane'):''}</div>`:''}</div>
-     <div class="chart-box"><h4>${t('⏳ Correlazione con ritardo — TL → Δpeso')} ${lagValidi.length?`<span class="pill">${lagBars[0].n} ${t('settimane')}</span>`:''}</h4>
+     <div class="chart-box"><h4>${t('⏳ Correlazione con ritardo — TL → Δpeso')} ${lagValidi.length?`<span class="pill">${lagBars[0].n} ${t('settimane')}</span>`:''}${spiegaBtn('ritardo')}</h4>
        ${lagValidi.length? barChart(lagBars.filter(b=>b.y!=null),{fmt:x=>nf(x,2)}) : `<div class="empty">${t('Servono più settimane con TL e peso.')}</div>`}
        <div class="muted" style="font-size:11px;margin-top:4px">${t('r di Pearson fra il carico della settimana N e la variazione di peso 1–5 settimane dopo: il picco indica con quanto ritardo l\'allenamento "si vede" sulla bilancia.')}</div></div>
    </div>
    <div class="grid2">
-     <div class="chart-box"><h4>${t('📦 Confronto fasi — Δ Training Load % a settimana')}</h4>${boxChart(boxTL,{fmt:x=>nf(x,0)+'%'})}</div>
-     <div class="chart-box"><h4>${t('📦 Confronto fasi — Δ peso kg a settimana')}</h4>${boxChart(boxPeso,{fmt:x=>nf(x,2)})}</div>
+     <div class="chart-box"><h4>${t('📦 Confronto fasi — Δ Training Load % a settimana')}${spiegaBtn('confronto-fasi')}</h4>${boxChart(boxTL,{fmt:x=>nf(x,0)+'%'})}</div>
+     <div class="chart-box"><h4>${t('📦 Confronto fasi — Δ peso kg a settimana')}${spiegaBtn('confronto-fasi')}</h4>${boxChart(boxPeso,{fmt:x=>nf(x,2)})}</div>
    </div>
    </div><aside class="pag__side">${perLat}
    <div class="callout"><div>${t('📐 <b>Come leggere.</b> Timeline: le fasce colorate sono i periodi (con le kcal/giorno del piano); se il TL regge mentre il peso scende, il cut sta funzionando. Scatter: ogni punto è una settimana — la pendenza della retta dice quanto il surplus/deficit si traduce in peso. Boxplot: barra spessa = mediana, scatola = 50% centrale delle settimane.')}</div></div></aside></div>`;

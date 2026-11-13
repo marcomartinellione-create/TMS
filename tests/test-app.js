@@ -1407,6 +1407,36 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     w.eval('if(_nomi[0]===undefined) delete DOC.dati_utente.nome; else DOC.dati_utente.nome=_nomi[0]; var _p=profili.find(function(p){return p.slug===activeProfile;}); if(_p) _p.nome=_nomi[1];');
     ok(w.eval('EN["Riferimento della distribuzione"]') === 'Distribution reference' && w.eval('EN["Tipo di allenamento"]') === 'Training type', 'EN: i testi nuovi del riferimento sono tradotti');
     w.eval('delete DOC.dati_utente.esperienza; delete DOC.scheda.tipoAllenamento; delete DOC.dati_utente.rifDistr; closeModal(); showTab("allenamento");'); }
+  /* ── «?» sui grafici (2026-11-13): ogni grafico ha la sua nota metodologica ── */
+  { const voci = JSON.parse(w.eval('JSON.stringify(Object.keys(SPIEG))'));
+    ok(voci.length >= 30, 'Note dei grafici: una nota per ogni grafico (' + voci.length + ')');
+    ok(w.eval('Object.values(SPIEG).every(function(v){ return v.t && v.a && v.dove && v.s.length>=5 && v.b.length>=1 && v.s.some(function(x){ return /spf/.test(x[1]); }); })'),
+       'Note dei grafici: ognuna ha titolo, sommario, almeno 5 sezioni, una formula e la bibliografia');
+    const copertura = {};
+    ['allenamento', 'storico', 'progressi', 'corpo', 'cardio', 'alimentazione', 'analisi'].forEach(tab => {
+      w.eval('showTab("' + tab + '")');
+      const pan = d.getElementById('panel-' + tab); if (!pan) return;
+      const box = [...pan.querySelectorAll('.chart-box, .lat')].filter(b => b.querySelector('svg, .lat-barra, .bil-riga, .lat-giorni') && !b.closest('.rep-doc'));
+      const senza = box.filter(b => !b.querySelector('.spieg-btn'));
+      copertura[tab] = box.length + '/' + senza.length;
+      ok(senza.length === 0, 'Note dei grafici: in «' + tab + '» ogni grafico ha il suo «?» (' + box.length + ' grafici)' + (senza.length ? ' — senza: ' + senza.map(b => (b.querySelector('h4') || b).textContent.slice(0, 30)).join(' | ') : ''));
+    });
+    const ids = [...d.querySelectorAll('[data-spieg]')].map(b => b.dataset.spieg);
+    w.eval('showTab("progressi")');
+    const tutti = [...d.querySelectorAll('[data-spieg]')].map(b => b.dataset.spieg).concat(ids);
+    ok(tutti.length > 0 && tutti.every(id => voci.includes(id)), 'Note dei grafici: ogni «?» punta a una nota che esiste');
+    d.querySelector('#panel-progressi [data-spieg="acwr"]').click();
+    const md = d.getElementById('modal');
+    ok(md.querySelector('.spieg-doc') && /ACWR/.test(md.querySelector('h3').textContent) && md.querySelectorAll('.spieg-doc section').length >= 6,
+       'Note dei grafici: il «?» dell\'ACWR apre la sua nota, divisa in sezioni con la bibliografia');
+    d.getElementById('spieg-ok').click();
+    ok(w.eval('document.getElementById("modal-bk").classList.contains("hidden")'), 'Note dei grafici: «Chiudi» chiude la nota');
+    w.eval('showTab("allenamento"); bilanciamentoModal();');
+    d.querySelector('#modal .bil-radar [data-spieg]').click(); d.getElementById('spieg-ok').click();
+    ok(/Bilanciamento|Balance/.test(d.getElementById('modal').textContent), 'Note dei grafici: dal ⚖ Bilanciamento la nota riporta al Bilanciamento');
+    w.eval('closeModal()');
+    ok(w.eval('typeof SPIEG_EN==="object" && Object.keys(SPIEG_EN).every(function(k){ return SPIEG[k] && SPIEG_EN[k].s.length===SPIEG[k].s.length && SPIEG_EN[k].b.length===SPIEG[k].b.length; })'),
+       'Note dei grafici: la versione inglese ha le stesse voci e la stessa struttura'); }
   /* ── ricerca esercizi: i preferiti che corrispondono vanno in cima ── */
   { w.eval('(DOC.esercizi||[]).forEach(function(e){ e.fav=false; }); var t2=esLookup("Trazioni presa supina (chin-up)"); if(t2) t2.fav=true;');
     w.eval('pickExercise("", function(){}, null); document.getElementById("exp-q").value="trazioni"; document.getElementById("exp-q").oninput();');

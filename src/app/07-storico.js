@@ -13,11 +13,11 @@ function pannelloStorico(rows){
   const maxS=Math.max(1,...ult.map(c=>sett[c])), totTL=codici.reduce((a,c)=>a+sett[c],0);
   GRUPPI_PESI.forEach(g=>{ per[g]=per[g]/nS; D[g]=D[g]/nS; I[g]=I[g]/nS; });
   const top=Object.keys(perEx).sort((a,b)=>perEx[b]-perEx[a]).slice(0,7), maxE=Math.max(1,...top.map(n=>perEx[n]));
-  return `<div class="lat"><h4>📈 ${t('Carico per settimana')} <span class="muted">${nS} ${t('settimane')} · ${t('media')} ${nfk(totTL/nS)}</span></h4>
+  return `<div class="lat"><h4>📈 ${t('Carico per settimana')} <span class="muted">${nS} ${t('settimane')} · ${t('media')} ${nfk(totTL/nS)}</span>${spiegaBtn('storico-carico')}</h4>
       <div class="lat-giorni">${ult.slice().reverse().map(c=>`<span class="mono">${esc(schedaLabel(c))}</span><span class="lat-barra" style="margin:0"><span style="width:${(sett[c]/maxS*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${nfk(sett[c])}</span>`).join('')}</div>
       ${codici.length>12?`<div class="lat-nota">${t('le ultime 12 di')} ${codici.length}</div>`:''}</div>
-    <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${t('media a settimana')}</span></h4>${bilRigheHTML(per,{D:D,I:I})}${bilLegendaDI()}</div>
-    <div class="lat"><h4>🏋 ${t('Esercizi che pesano di più')} <span class="muted">${t('quota del TL')}</span></h4>
+    <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${t('media a settimana')}</span>${spiegaBtn('serie-gruppo')}</h4>${bilRigheHTML(per,{D:D,I:I})}${bilLegendaDI()}</div>
+    <div class="lat"><h4>🏋 ${t('Esercizi che pesano di più')} <span class="muted">${t('quota del TL')}</span>${spiegaBtn('storico-esercizi')}</h4>
       <div class="lat-giorni">${top.map(n=>`<span title="${esc(exName(n))}" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(exName(n))}</span><span class="lat-barra" style="margin:0"><span style="width:${(perEx[n]/maxE*100).toFixed(1)}%;background:var(--gold-2)"></span></span><span class="mono">${Math.round(perEx[n]/totTL*100)}%</span>`).join('')}</div></div>`;
 }
 function renderStorico(){

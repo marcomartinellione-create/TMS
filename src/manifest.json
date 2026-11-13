@@ -24,6 +24,8 @@
     "app/03b-annulla.js",
     "app/04-modal.js",
     "app/05-grafici.js",
+    "app/05b-spiegazioni.js",
+    "app/05c-spiegazioni-en.js",
     "app/06-allenamento.js",
     "app/06b-cardio.js",
     "app/07-storico.js",

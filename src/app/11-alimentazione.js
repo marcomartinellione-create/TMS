@@ -144,23 +144,23 @@ function pannelloPiano(fase){
   const fuori=omsRef(u).map(([lab,key,type,val,unit])=>{ const day=rows.reduce((a,r)=>a+foodVal(r.alimento,r.grammi,key),0), q=val>0? day/val*100 : 0;
       return {lab:lab,type:type,q:q,ok: type==='limit'? q<=100 : q>=90}; }).filter(x=>!x.ok).sort((a,b)=>(a.type==='limit'?-a.q:a.q)-(b.type==='limit'?-b.q:b.q));
   const nRic=rows.filter(r=>{ const f=FOODBYNAME[String(r.alimento).trim()]; return f&&f.tipo==='R'; }).length;
-  return `<div class="lat"><h4>🔥 ${t('Energia')} <span class="muted">${t('piano contro fabbisogno')}</span></h4>
+  return `<div class="lat"><h4>🔥 ${t('Energia')} <span class="muted">${t('piano contro fabbisogno')}</span>${spiegaBtn('energia')}</h4>
       <div class="lat-num"><span>${t('Piano')}</span><b>${nf(tot.kcal,0)} kcal</b></div>
       <div class="lat-barra"><span style="width:${(tot.kcal/scala*100).toFixed(1)}%;background:var(--orange)"></span></div>
       ${fabb?`<div class="lat-num"><span>${t('Fabbisogno')}</span><b>${nf(fabb,0)} kcal</b></div>
       <div class="lat-barra"><span style="width:${(fabb/scala*100).toFixed(1)}%;background:var(--ink-4)"></span></div>
       <div class="lat-num" style="margin-top:4px"><span>${d>=0?t('Surplus'):t('Deficit')}</span><b style="color:${Math.abs(d)<50?'var(--ok)':(d>0?'var(--orange)':'var(--violet)')}">${d>=0?'+':'−'}${nf(Math.abs(d),0)} kcal/${t('giorno')}</b></div>`
       :`<div class="lat-nota">${t('Per il confronto col fabbisogno inserisci metabolismo basale e livello di attività nel tab Corpo.')}</div>`}</div>
-    <div class="lat"><h4>🥩 ${t('Macronutrienti')} <span class="muted">${t('quota dell’energia')}</span></h4>
+    <div class="lat"><h4>🥩 ${t('Macronutrienti')} <span class="muted">${t('quota dell’energia')}</span>${spiegaBtn('macro')}</h4>
       <div class="lat-barra"><span style="width:${pct(kP)}%;background:var(--danger)"></span><span style="width:${pct(kC)}%;background:var(--gold-2)"></span><span style="width:${pct(kG)}%;background:var(--violet)"></span></div>
       <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--danger);margin-right:5px"></i>${t('Proteine')}</span><span><b>${nf(tot.proteine,0)} g</b> · ${pct(kP)}%${peso?` · ${nf(tot.proteine/peso,1)} g/kg`:''}</span></div>
       <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--gold-2);margin-right:5px"></i>${t('Carboidrati')}</span><span><b>${nf(tot.zuccheri,0)} g</b> · ${pct(kC)}%${peso?` · ${nf(tot.zuccheri/peso,1)} g/kg`:''}</span></div>
       <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--violet);margin-right:5px"></i>${t('Grassi')}</span><span><b>${nf(tot.grassi,0)} g</b> · ${pct(kG)}%${peso?` · ${nf(tot.grassi/peso,1)} g/kg`:''}</span></div>
       <div class="lat-num"><span>${t('Fibre')}</span><span><b>${nf(tot.fibre,0)} g</b></span></div></div>
-    <div class="lat"><h4>🍽 ${t('Energia per pasto')}</h4>
+    <div class="lat"><h4>🍽 ${t('Energia per pasto')}${spiegaBtn('energia-pasti')}</h4>
       <div class="lat-giorni">${pasti.map(x=>`<span>${esc(t(x.p))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.k/maxP*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${nf(x.k,0)} kcal · ${tot.kcal?Math.round(x.k/tot.kcal*100):0}%</span>`).join('')}</div>
       <div class="lat-nota">${rows.length} ${t('alimenti')}${nRic?` · ${nRic} ${t('ricette')}`:''}</div></div>
-    <div class="lat"><h4>📐 ${t('Fuori dai riferimenti')} <span class="muted">OMS/FAO</span></h4>
+    <div class="lat"><h4>📐 ${t('Fuori dai riferimenti')} <span class="muted">OMS/FAO</span>${spiegaBtn('nutrienti')}</h4>
       ${fuori.length? fuori.slice(0,8).map(x=>`<div class="lat-num"><span>${esc(t(x.lab))}${x.type==='limit'?` <span class="muted">${t('(max)')}</span>`:''}</span><b style="color:${x.type==='limit'||x.q<60?'var(--danger)':'var(--gold-2)'}">${nf(x.q,0)}%</b></div>`).join('')+(fuori.length>8?`<div class="lat-nota">+ ${fuori.length-8} ${t('altri nella tabella qui sotto')}</div>`:'')
         : `<div class="lat-num"><span style="color:var(--ok)">✓ ${t('Tutti i nutrienti nei riferimenti')}</span></div>`}</div>`;
 }

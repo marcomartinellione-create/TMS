@@ -86,13 +86,13 @@ function pannelloCardio(){
   const ult=Object.keys(sett).map(Number).sort((a,b)=>b-a).slice(0,8), maxA=Math.max(1,...ult.map(c=>sett[c].au||sett[c].min));
   const nomi=Object.keys(sport).sort((a,b)=>sport[b]-sport[a]), totM=nomi.reduce((a,n)=>a+sport[n],0)||1;
   const stato= mOggi>=150? (mOggi<=300? t('nella zona consigliata') : t('oltre la zona consigliata')) : t('sotto la zona consigliata');
-  return `<div class="lat"><h4>🎯 ${t('Questa settimana')} <span class="muted">${t('OMS: 150–300 min')}</span></h4>
+  return `<div class="lat"><h4>🎯 ${t('Questa settimana')} <span class="muted">${t('OMS: 150–300 min')}</span>${spiegaBtn('cardio-settimana')}</h4>
       <div class="lat-num"><span>${t('Minuti')}</span><b>${nf(mOggi,0)}</b></div>
       <div class="lat-barra" style="position:relative"><span style="width:${Math.min(100,mOggi/300*100).toFixed(1)}%;background:${mOggi>=150?'var(--ok)':'var(--orange)'}"></span><span style="position:absolute;left:50%;top:0;width:2px;height:100%;background:var(--ink-3)"></span></div>
       <div class="lat-nota">${esc(stato)} · ${t('la tacca è a 150 minuti')}</div></div>
-    <div class="lat"><h4>🔥 ${t('Carico per settimana')} <span class="muted">sRPE (AU)</span></h4>
+    <div class="lat"><h4>🔥 ${t('Carico per settimana')} <span class="muted">sRPE (AU)</span>${spiegaBtn('cardio-carico')}</h4>
       <div class="lat-giorni">${ult.map(c=>`<span class="mono">${esc(schedaLabel(c))}</span><span class="lat-barra" style="margin:0"><span style="width:${((sett[c].au||sett[c].min)/maxA*100).toFixed(1)}%;background:var(--gold-2)"></span></span><span class="mono">${nfk(sett[c].au)} · ${nf(sett[c].min,0)}′</span>`).join('')}</div></div>
-    <div class="lat"><h4>🏃 ${t('Sport')} <span class="muted">${t('quota dei minuti')}</span></h4>
+    <div class="lat"><h4>🏃 ${t('Sport')} <span class="muted">${t('quota dei minuti')}</span>${spiegaBtn('cardio-sport')}</h4>
       <div class="lat-giorni">${nomi.slice(0,8).map(n=>`<span>${esc(t(n))}</span><span class="lat-barra" style="margin:0"><span style="width:${(sport[n]/totM*100).toFixed(1)}%;background:var(--violet)"></span></span><span class="mono">${nf(sport[n]/60,1)} h · ${Math.round(sport[n]/totM*100)}%</span>`).join('')}</div></div>`;
 }
 function renderCardio(){
@@ -286,12 +286,12 @@ function cardioProgressBlock(){
   const ses=list.filter(s=>String(s.tipo).toLowerCase()===sel.toLowerCase()).slice().sort((a,b)=>String(a.data).localeCompare(String(b.data)));
   const lab=ses.map(s=>s.data);
   const charts=[];
-  charts.push(`<div class="chart-box"><h4>${t('🔥 Carico sRPE (AU)')}</h4>${lineChart([{name:'sRPE',color:'var(--gold-2)',data:ses.map(s=>({x:s.data,y:srpeCardio(s)||null}))}],{labels:lab,fmt:nfk})}</div>`);
-  if(ses.some(s=>+s.fcMedia>0)) charts.push(`<div class="chart-box"><h4>${t('❤ FC media (bpm)')}</h4>${lineChart([{name:t('FC media'),color:'var(--danger-b)',data:ses.map(s=>({x:s.data,y:+s.fcMedia||null}))}],{labels:lab})}</div>`);
-  if(inf.dist && ses.some(s=>+s.distanza>0)) charts.push(`<div class="chart-box"><h4>${t('📏 Distanza (km)')}</h4>${lineChart([{name:'km',color:'var(--orange-b)',data:ses.map(s=>({x:s.data,y:+s.distanza||null}))}],{labels:lab})}</div>`);
-  if(inf.ritmo==='passo' && ses.some(s=>passoMinKm(s)!=null)) charts.push(`<div class="chart-box"><h4>${t('⏱ Passo (min/km)')} <span class="muted" style="font-size:11px">${t('più basso = meglio')}</span></h4>${lineChart([{name:t('passo'),color:'var(--violet)',data:ses.map(s=>({x:s.data,y:passoMinKm(s)}))}],{labels:lab,fmt:fmtPasso})}</div>`);
-  else if(inf.ritmo==='velocita' && ses.some(s=>velocitaKmh(s)!=null)) charts.push(`<div class="chart-box"><h4>${t('🚀 Velocità media (km/h)')}</h4>${lineChart([{name:'km/h',color:'var(--violet)',data:ses.map(s=>({x:s.data,y:velocitaKmh(s)}))}],{labels:lab})}</div>`);
-  if(inf.quota && ses.some(s=>+s.quota>0)) charts.push(`<div class="chart-box"><h4>${t('⛰ Dislivello D+ (m)')}</h4>${lineChart([{name:'D+',color:'var(--ink-3)',data:ses.map(s=>({x:s.data,y:+s.quota||null}))}],{labels:lab})}</div>`);
+  charts.push(`<div class="chart-box"><h4>${t('🔥 Carico sRPE (AU)')}${spiegaBtn('cardio-carico')}</h4>${lineChart([{name:'sRPE',color:'var(--gold-2)',data:ses.map(s=>({x:s.data,y:srpeCardio(s)||null}))}],{labels:lab,fmt:nfk})}</div>`);
+  if(ses.some(s=>+s.fcMedia>0)) charts.push(`<div class="chart-box"><h4>${t('❤ FC media (bpm)')}${spiegaBtn('cardio-fc')}</h4>${lineChart([{name:t('FC media'),color:'var(--danger-b)',data:ses.map(s=>({x:s.data,y:+s.fcMedia||null}))}],{labels:lab})}</div>`);
+  if(inf.dist && ses.some(s=>+s.distanza>0)) charts.push(`<div class="chart-box"><h4>${t('📏 Distanza (km)')}${spiegaBtn('cardio-distanza')}</h4>${lineChart([{name:'km',color:'var(--orange-b)',data:ses.map(s=>({x:s.data,y:+s.distanza||null}))}],{labels:lab})}</div>`);
+  if(inf.ritmo==='passo' && ses.some(s=>passoMinKm(s)!=null)) charts.push(`<div class="chart-box"><h4>${t('⏱ Passo (min/km)')} <span class="muted" style="font-size:11px">${t('più basso = meglio')}</span>${spiegaBtn('cardio-passo')}</h4>${lineChart([{name:t('passo'),color:'var(--violet)',data:ses.map(s=>({x:s.data,y:passoMinKm(s)}))}],{labels:lab,fmt:fmtPasso})}</div>`);
+  else if(inf.ritmo==='velocita' && ses.some(s=>velocitaKmh(s)!=null)) charts.push(`<div class="chart-box"><h4>${t('🚀 Velocità media (km/h)')}${spiegaBtn('cardio-velocita')}</h4>${lineChart([{name:'km/h',color:'var(--violet)',data:ses.map(s=>({x:s.data,y:velocitaKmh(s)}))}],{labels:lab})}</div>`);
+  if(inf.quota && ses.some(s=>+s.quota>0)) charts.push(`<div class="chart-box"><h4>${t('⛰ Dislivello D+ (m)')}${spiegaBtn('cardio-dislivello')}</h4>${lineChart([{name:'D+',color:'var(--ink-3)',data:ses.map(s=>({x:s.data,y:+s.quota||null}))}],{labels:lab})}</div>`);
   const grid= charts.length? `<div class="chart-grid chart-grid--fluida">${charts.join('')}</div>` : '';
   const selHtml=`<select id="prog-cardio-sport" style="margin-left:auto;font-size:13px">${sports.map(sp=>`<option value="${esc(sp)}"${sp.toLowerCase()===sel.toLowerCase()?' selected':''}>${esc(t(sp))}</option>`).join('')}</select>`;
   return `<div class="sec">${t('Cardio · progressione per sport')} ${selHtml}</div>

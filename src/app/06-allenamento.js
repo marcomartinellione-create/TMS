@@ -343,16 +343,16 @@ function pannelloCostruzione(){
   const fasceBarra=FASCE_ORD.filter(b=>band[b]).map(b=>`<span style="width:${(band[b]/conPct*100).toFixed(1)}%;background:${FASCE_COL[b]}" title="${esc(t(b))}: ${bilNum(band[b])} ${t('serie')}"></span>`).join('');
   const fasceLeg=FASCE_ORD.filter(b=>band[b]).map(b=>`<span><i style="background:${FASCE_COL[b]}"></i>${esc(t(b))} ${Math.round(band[b]/conPct*100)}%</span>`).join('');
   const rc=rifCalcola();
-  return `<div class="lat"><h4>🕸 ${t('Distribuzione fra i gruppi')} <span class="muted">${t('verde = riferimento scelto')}</span></h4>
+  return `<div class="lat"><h4>🕸 ${t('Distribuzione fra i gruppi')} <span class="muted">${t('verde = riferimento scelto')}</span>${spiegaBtn('distribuzione')}</h4>
       ${radarChart(vociDistribuzione(bil.per,bil,rc),{w:360,h:270})}${rifDidascalia(rc,{dopo:'tab'})}</div>
-    <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${bil.tot} ${t('serie in scheda')}</span></h4>
+    <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${bil.tot} ${t('serie in scheda')}</span>${spiegaBtn('serie-gruppo')}</h4>
       ${bilRigheHTML(bil.per,bil)}${bilLegendaDI()}
       ${totDir?`<div class="lat-num" style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px"><span>${t('Spinta · Trazione')}</span><span><b>${bilNum(sp)} · ${bilNum(tr)}</b> <span class="muted">${esc(verdettoDir(sp,tr))}</span></span></div>
       <div class="lat-barra"><span style="width:${(sp/totDir*100).toFixed(1)}%;background:var(--orange)"></span><span style="width:${(tr/totDir*100).toFixed(1)}%;background:var(--violet)"></span></div>`:''}
       <div class="lat-nota">${t('Serie dirette sui muscoli principali, indirette su quelli coinvolti di striscio. La tacca verde è la zona utile del gruppo; in rosso chi ne è nettamente fuori.')}</div></div>
-    <div class="lat"><h4>📅 ${t('Carico per giorno')} <span class="muted">TL ${nfk(totTL)}</span></h4>
+    <div class="lat"><h4>📅 ${t('Carico per giorno')} <span class="muted">TL ${nfk(totTL)}</span>${spiegaBtn('carico-giorno')}</h4>
       <div class="lat-giorni">${gg.map(x=>`<span>${esc(t(x.g))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.tl/maxTL*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${bilNum(x.s)} ${t('serie')} · ${x.n} ${t('es.')} · ${nfk(x.tl)}</span>`).join('')}</div></div>
-    ${conPct?`<div class="lat"><h4>🎯 ${t('Intensità')} <span class="muted">${t('serie per fascia di %1RM')}</span></h4>
+    ${conPct?`<div class="lat"><h4>🎯 ${t('Intensità')} <span class="muted">${t('serie per fascia di %1RM')}</span>${spiegaBtn('intensita')}</h4>
       <div class="lat-barra">${fasceBarra}</div><div class="lat-leg">${fasceLeg}</div></div>`:''}`;
 }
 function bilanciamentoModal(){
@@ -383,9 +383,9 @@ function bilanciamentoModal(){
   modal(`<h3>⚖ ${t('Bilanciamento della settimana')}</h3>
     <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Serie per gruppo muscolare nella scheda che stai scrivendo: <b>dirette</b> sui muscoli principali, <b>indirette</b> (mezza serie) su quelli coinvolti di striscio — la panca allena anche spalle e tricipiti. Il <b>cardio è escluso</b>: qui si guarda il lavoro coi pesi.')}</div>
     ${bil.tot? `<div class="bil-wrap">
-        <div class="bil-radar">${radarChart(items,{w:360,h:290})}${rifDidascalia(rc,{dopo:'bilanciamento'})}</div>
+        <div class="bil-radar">${spiegaBtn('distribuzione','bilanciamento')}${radarChart(items,{w:360,h:290})}${rifDidascalia(rc,{dopo:'bilanciamento'})}</div>
         <div class="bil-lista">
-          <div class="bil-riga bil-testa"><span class="bil-nome">${t('Gruppo')}</span><span class="bil-barra"></span><span class="bil-val">${t('serie')}</span></div>
+          <div class="bil-riga bil-testa"><span class="bil-nome">${t('Gruppo')}${spiegaBtn('serie-gruppo','bilanciamento',true)}</span><span class="bil-barra"></span><span class="bil-val">${t('serie')}</span></div>
           ${righe}
           ${bilLegendaDI()}
           ${rigaDir}

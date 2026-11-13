@@ -282,7 +282,7 @@ function pannelloEsercizio(nome){
       <div class="mchips">${(e.muscoli_primari||[]).map(m=>chip(m,'is-p')).join('')}${(e.muscoli_secondari||[]).map(m=>chip(m,'is-s')).join('')}</div>
       <div class="lat-nota">${t('pieno = muscolo primario (una serie intera nel Bilanciamento) · tenue = secondario (mezza)')}</div>
       <div class="bar" style="margin:10px 0 0">${videoOf(e.nome)?`<button class="btn btn--sm" data-exvid="${esc(e.nome)}">▶ ${t('Video')}</button>`:''}<button class="btn btn--sm" data-exmod="${esc(e.nome)}">✎ ${t('Modifica')}</button></div></div>
-    <div class="lat"><h4>📒 ${t('Nel tuo storico')}</h4>
+    <div class="lat"><h4>📒 ${t('Nel tuo storico')}${spiegaBtn('progressione')}</h4>
       ${nSett? `<div class="lat-num"><span>${t('Settimane in cui l’hai fatto')}</span><b>${nSett}</b></div>
         ${lp?`<div class="lat-num"><span>${t('Ultima volta')} <span class="muted">(${esc(schedaLabel(lp.scheda))})</span></span><b>${nf(lp.peso,1)} kg × ${nf(lp.rip,0)}</b></div>`:''}
         ${rec?`<div class="lat-num"><span>${t('Record')} <span class="muted">(${esc(schedaLabel(rec.scheda))})</span></span><b>${nf(rec.peso,1)} kg × ${nf(rec.rip,0)}</b></div>`:''}

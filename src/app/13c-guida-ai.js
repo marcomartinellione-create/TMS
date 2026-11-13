@@ -157,6 +157,11 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   (dati_utente.colonnePesi), quindi ogni atleta ha la sua. Esercizio, Serie, Ripetizioni,
   Peso e le azioni non si possono nascondere; il RIR ha il suo interruttore nel Profilo.
 
+- **? sui grafici** (05b-spiegazioni.js): ogni grafico ha in alto a destra un piccolo «?»
+  cerchiato che apre la sua nota metodologica in forma di articolo (sommario, dati, metodo e
+  formule, esempio svolto, lettura, limiti, bibliografia). Le note stanno in SPIEG (italiano)
+  e SPIEG_EN (inglese), una per grafico; le formule sono quelle del codice e vanno
+  aggiornate quando un calcolo cambia.
 - **⚖ Bilanciamento** (bottone a sinistra di ▦ Colonne): apre un radar delle
   SERIE per gruppo muscolare della scheda che si sta scrivendo — non dell'ultima settimana
   salvata: serve mentre si costruisce. Accanto al disegno c'è l'elenco in chiaro, gruppo per
