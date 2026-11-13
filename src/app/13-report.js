@@ -472,7 +472,9 @@ function buildReportUnits(D, src){
   /* il blocco (data-blocco) e le sue impostazioni passano su ogni pezzo: i fogli li mostrano uguali */
   const marca=(lista,sec)=>{ const k=sec.getAttribute('data-blocco'); if(!k) return lista;
     const cls=[...sec.classList].filter(c=>c!=='rep-sec'&&c!=='big');
-    lista.forEach((u,i)=>{ u.setAttribute('data-blocco',k); cls.forEach(c=>u.classList.add(c)); u.classList.add('u-'+k);
+    lista.forEach((u,i)=>{ u.setAttribute('data-blocco',k); cls.forEach(c=>u.classList.add(c));
+      /* niente classe 'u-'+k: per la dieta k è il nome del pasto (spazi/accenti compresi), e
+         DOMTokenList.add() non accetta spazi in un token — data-blocco basta a identificarlo */
       if(i===0&&sec.getAttribute('data-nuovapagina')==='1') u.setAttribute('data-nuovapagina','1'); });
     return lista; };
   [...src.children].forEach(sec=>{

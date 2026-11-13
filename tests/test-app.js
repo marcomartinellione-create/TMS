@@ -531,6 +531,18 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(w.eval('DOC.alimentazione.stampa.bulk.ordine[0]')===ordinePrima[1], 'stampa dieta: i pasti si trascinano per riordinarli (stesso meccanismo del Report)'); }
   d.getElementById('dieta-ov-chiudi').click();
   ok(d.getElementById('dieta-overlay').classList.contains('hidden') && d.getElementById('panel-dieta').innerHTML==='', 'stampa dieta: «← Chiudi» nasconde l\'editor e libera la pagina');
+  /* ── 2026-11-13 — regressione: nome pasto con spazio (es. «Primo Spuntino») non deve mandare in crash
+     l'anteprima (DOMTokenList.add() rifiuta gli spazi in una classe CSS: bug segnalato da Marco) ── */
+  { const primaRiga=w.eval('DOC.alimentazione.bulk.find(function(r){return r.alimento;})');
+    const pastoOriginale=primaRiga.pasto;
+    w.eval('DOC.alimentazione.bulk.find(function(r){return r.alimento;}).pasto="Primo Spuntino";');
+    let crashato=false;
+    try{ w.eval('renderAlimentazione(); document.getElementById("dieta-pdf-btn").click();'); }
+    catch(e){ crashato=true; }
+    ok(!crashato && !d.getElementById('dieta-overlay').classList.contains('hidden'), 'stampa dieta: un pasto chiamato «Primo Spuntino» (con spazio) non manda in crash l\'anteprima');
+    ok(d.querySelector('#dre-sorgente [data-blocco="Primo Spuntino"]')!==null, 'stampa dieta: il blocco del pasto con lo spazio nel nome resta identificabile (data-blocco)');
+    d.getElementById('dieta-ov-chiudi').click();
+    w.eval('DOC.alimentazione.bulk.find(function(r){return r.alimento && r.pasto==="Primo Spuntino";}).pasto='+JSON.stringify(pastoOriginale)+'; renderAlimentazione();'); }
   { const land=w.eval('(function(){var p=imagesToPdf([{bytes:new Uint8Array([0,1,2]),w:8,h:8}], true); return Array.from(p).map(function(c){return String.fromCharCode(c);}).join("");})()');
     const port=w.eval('(function(){var p=imagesToPdf([{bytes:new Uint8Array([0,1,2]),w:8,h:8}]); return Array.from(p).map(function(c){return String.fromCharCode(c);}).join("");})()');
     ok(land.includes('841.8898 595.2756'), 'imagesToPdf(landscape): MediaBox A4 orizzontale (841.8898 × 595.2756)');

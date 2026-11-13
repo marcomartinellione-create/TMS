@@ -272,9 +272,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .lat-giorni .mono{font-size:11px; color:var(--ink-3); white-space:nowrap}
 .lat-nota{font-size:11px; line-height:1.45; color:var(--ink-3); margin-top:8px}
 .lat .bil-riga{grid-template-columns:84px 1fr 38px; font-size:12.5px}
-/* Corpo: dati corporei+foto a sinistra (largo), composizione+grafici a destra (stretto) — come
-   sempre, nessuna modifica alle proporzioni. I 7 campi dei dati corporei stanno in una griglia
-   2 per riga invece di una tabella a una colonna, più compatta. */
+/* Corpo: dati corporei+foto restano a SINISTRA (pag__main), composizione+grafici a DESTRA
+   (pag__side) — stessa posizione di sempre, nessun contenuto spostato. Cambia solo quanto spazio
+   prende ciascuna colonna: dati 1/3, composizione e andamento 2/3 (richiesta di Marco). */
+.pag.pag--corpo{grid-template-columns:clamp(330px,26vw,430px) minmax(0,1fr)}
+/* i 7 campi dei dati corporei in griglia 2 per riga invece di una tabella a una colonna, più
+   compatta: stanno comodi anche nella colonna adesso più stretta */
 .corpo-form{display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; margin-top:4px}
 .corpo-campo__in{display:flex; align-items:center; gap:5px}
 .corpo-campo__in input{width:100%; min-width:0}
