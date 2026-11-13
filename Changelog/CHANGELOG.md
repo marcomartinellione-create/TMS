@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-11-13 — TMS v1.1.20: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.19
+**Descrizione**:
+- Aggiornamento dalla cartella che ora si vede, Profilo più pulito (Storico e Misure nella riga del profilo, Esporta e Importa in un blocco, backup automatici dietro un pulsante), niente guide in cima a Profilo Esercizi e Alimentazione, niente QR, report più compatto a video e nel PDF
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-13)
+
+---
+
 ### 2026-11-12 — TMS v1.1.19: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.18

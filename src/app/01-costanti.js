@@ -1,8 +1,8 @@
 /* ════════════════ COSTANTI / LOOKUP ════════════════ */
 const GIORNI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.19', APP_DATE='2026-11-12';
-const RELEASE_NOTE='Novità: Alimentazione su tre colonne: piano alimentare, sintesi del piano e indice dei nutrienti OMS/FAO, ognuna col suo titolo e il suo scorrimento; Scorrimento che non si blocca più in fondo, titoli fissi in cima alle colonne con le intestazioni delle tabelle sempre visibili, Integratori come terza macro categoria degli alimenti; PUBBLICA.bat: la pubblicazione nella cartella release la lancia Marco quando vuole.'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.20', APP_DATE='2026-11-13';
+const RELEASE_NOTE='Novità: Aggiornamento dalla cartella che ora si vede, Profilo più pulito (Storico e Misure nella riga del profilo, Esporta e Importa in un blocco, backup automatici dietro un pulsante), niente guide in cima a Profilo Esercizi e Alimentazione, niente QR, report più compatto a video e nel PDF.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 const APP_CLIENTE_URL='https://marcomartinellione-create.github.io/TMS/app/';  /* PWA «TMS Scheda» per il cliente */
 /* ── mini-log errori interni (P4): ring buffer in memoria + scrittura best-effort in
