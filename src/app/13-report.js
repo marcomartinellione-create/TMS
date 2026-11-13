@@ -24,7 +24,7 @@ let repSel={blocco:null, el:null}, repInModifica=null, repEdit={chiave:null, blo
 function repEdits(){ const ch=activeProfile+'·'+repCtx.chiave(); if(repEdit.chiave!==ch) repEdit={chiave:ch, blocchi:{}}; return repEdit.blocchi; }
 function repImp(R,k){ return Object.assign({}, REP_DEF_IMP, (R.blocchi||{})[k]||{}); }
 function repSalvaImp(R,k,imp){ R.blocchi=R.blocchi||{}; const o={}; Object.keys(REP_DEF_IMP).forEach(x=>{ if(imp[x]!==REP_DEF_IMP[x]) o[x]=imp[x]; });
-  if(Object.keys(o).length) R.blocchi[k]=o; else delete R.blocchi[k]; persist('corpo'); }
+  if(Object.keys(o).length) R.blocchi[k]=o; else delete R.blocchi[k]; persist(repCtx.persist); }
 /* prepara il blocco appena generato: titolo in <span class="rep-tit">, un numero a ogni elemento,
    le righe di spiegazione marcate come descrizione (si possono nascondere) */
 function repPrepara(sec, k){
@@ -246,7 +246,7 @@ function repElemento(op){
   else if(op==='su' && i>0) sec.insertBefore(x, fratelli[i-1]);
   else if(op==='giu' && i<fratelli.length-1) sec.insertBefore(fratelli[i+1], x);
   else return;
-  repEdits()[k]=sec.outerHTML; renderReport();
+  repEdits()[k]=sec.outerHTML; repCtx.render();
 }
 /* ── colonna sinistra: i fogli A4 (stessa impaginazione del PDF) ── */
 function repImpaginaAnteprima(){
@@ -313,14 +313,14 @@ function repRigaOp(op){
   if(op==='riga-via') tr.remove();
   else { const nuova=tr.cloneNode(true); nuova.classList.remove('day-sep'); nuova.querySelectorAll('td').forEach(td=>{ td.innerHTML='&nbsp;'; td.removeAttribute('title'); });
     tr.parentNode.insertBefore(nuova, op==='riga-sopra'? tr : tr.nextSibling); }
-  if(k){ repBloccoDaFogli(k); renderReport(); }
+  if(k){ repBloccoDaFogli(k); repCtx.render(); }
 }
 /* sposta il blocco k prima (o dopo) del blocco b */
 function repSposta(R, k, b, dopo){
   if(!k||!b||k===b||repCtx.fissi.indexOf(k)>=0) return;
   const ord=R.ordine.filter(x=>x!==k);
   let i=repCtx.fissi.indexOf(b)>=0? (b===repCtx.fissi[0]? 0 : ord.length) : ord.indexOf(b)+(dopo?1:0);
-  if(i<0) i=ord.length; ord.splice(i,0,k); R.ordine=ord; persist('corpo'); renderReport();
+  if(i<0) i=ord.length; ord.splice(i,0,k); R.ordine=ord; persist(repCtx.persist); repCtx.render();
 }
 /* aggiorna ALL'ISTANTE il testo di un campo semplice (obiettivo, note, titolo di un blocco) sia
    nei fogli visibili sia nel documento sorgente (da cui esce il PDF), senza aspettare il
@@ -337,10 +337,10 @@ function repCollega(R){
   const tardi=(ms)=>{ clearTimeout(tmGoal); tmGoal=setTimeout(()=>ridisegnaConFuoco(ctx.pannello, ctx.render), ms); };
   if(ctx.collegaDocumento) ctx.collegaDocumento(R, P, tardi);
   /* elenco dei blocchi: spunta, frecce, scelta */
-  P.querySelectorAll('[data-rep]').forEach(cb=>{ cb.onclick=e=>e.stopPropagation(); cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist('corpo'); ctx.render(); }; });
+  P.querySelectorAll('[data-rep]').forEach(cb=>{ cb.onclick=e=>e.stopPropagation(); cb.onchange=()=>{ R[cb.dataset.rep]=cb.checked; persist(ctx.persist); ctx.render(); }; });
   P.querySelectorAll('[data-repmove]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const ord=R.ordine.slice(), i=ord.indexOf(b.dataset.repmove), j=i+(+b.dataset.dir);
-    if(i<0||j<0||j>=ord.length) return; const tmp=ord[i]; ord[i]=ord[j]; ord[j]=tmp; R.ordine=ord; persist('corpo'); ctx.render(); });
+    if(i<0||j<0||j>=ord.length) return; const tmp=ord[i]; ord[i]=ord[j]; ord[j]=tmp; R.ordine=ord; persist(ctx.persist); ctx.render(); });
   P.querySelectorAll('#'+ID('lista')+' [data-selblocco]').forEach(li=>li.onclick=()=>{ const k=li.dataset.selblocco;
     if(!R[k] && ctx.fissi.indexOf(k)<0) return; repSel={blocco:k, el:null}; repAggiornaSel(); });
   /* anteprima: un clic sceglie il blocco (e l'elemento); doppio clic entra nella modifica del testo */
@@ -368,7 +368,7 @@ function repCollega(R){
     const ri=document.getElementById(ID('rifai')); if(ri) ri.onclick=async()=>{
       if(!(await conferma(t('Il blocco torna com\'è dai dati e i ritocchi a mano si perdono.'), {titolo:t('Rifare dai dati?'), testoOk:t('↺ Rifai dai dati'), pericolo:true}))) return;
       delete repEdits()[k]; ctx.render(); };
-    const tg=document.getElementById(ID('togli')); if(tg) tg.onclick=()=>{ R[k]=false; persist('corpo'); repSel={blocco:null, el:null}; ctx.render(); };
+    const tg=document.getElementById(ID('togli')); if(tg) tg.onclick=()=>{ R[k]=false; persist(ctx.persist); repSel={blocco:null, el:null}; ctx.render(); };
     const rs=document.getElementById(ID('imp-reset')); if(rs) rs.onclick=()=>{ repSalvaImp(R,k,Object.assign({},REP_DEF_IMP)); ctx.render(); };
     P.querySelectorAll('[data-elop]').forEach(b=>b.onclick=()=>repElemento(b.dataset.elop));
     P.querySelectorAll('[data-repop]').forEach(b=>{ b.onmousedown=e=>e.preventDefault(); b.onclick=()=>repRigaOp(b.dataset.repop); });
@@ -388,7 +388,7 @@ function repCollega(R){
     const r=b.getBoundingClientRect(); repSposta(R, trascinato, chiave(b), e.clientY>r.top+r.height/2); };
 }
 /* ── CTX_REPORT: il riquadro «Documento» del Report (obiettivo, note, foto, PDF/digitale) ── */
-const CTX_REPORT={pre:'rep', pannello:'panel-report', fissi:['copertina','piede'], grandi:['scheda','record'],
+const CTX_REPORT={pre:'rep', pannello:'panel-report', fissi:['copertina','piede'], grandi:['scheda','record'], persist:'corpo',
   R:()=>DOC.dati_utente.report, chiave:()=>'report', render:()=>renderReport(),
   documento(R){
     const fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));

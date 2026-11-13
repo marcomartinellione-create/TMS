@@ -317,7 +317,7 @@ function abilitaRiordinoPasti(){
    L'ordine e le impostazioni si salvano per profilo+fase (DOC.alimentazione.stampa[fase]); i
    ritocchi a mano SOLO per il documento aperto. PDF in A4 ORIZZONTALE (297×210mm), stessa
    impaginazione dell'anteprima (repImpagina). */
-const CTX_DIETA={pre:'dre', pannello:'panel-dieta', fissi:['intro','totale'], grandi:[],
+const CTX_DIETA={pre:'dre', pannello:'panel-dieta', fissi:['intro','totale'], grandi:[], persist:'alimentazione',
   R:()=>DOC.alimentazione.stampa[faseAlimActive()], chiave:()=>'dieta:'+faseAlimActive(), render:()=>renderDietaCC(),
   documento(R){
     return `<div class="lat"><h4>📄 ${t('Documento')}</h4>

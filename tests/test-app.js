@@ -528,7 +528,28 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     w.eval('document.querySelector(\'#dre-lista [data-selblocco="'+pastoK+'"] [data-rep]\').click()'); }
   { const ordinePrima=w.eval('DOC.alimentazione.stampa.bulk.ordine.slice()');
     w.eval('repSposta(DOC.alimentazione.stampa.bulk, repUltimo.ordine[1], repUltimo.ordine[0], false)');
-    ok(w.eval('DOC.alimentazione.stampa.bulk.ordine[0]')===ordinePrima[1], 'stampa dieta: i pasti si trascinano per riordinarli (stesso meccanismo del Report)'); }
+    ok(w.eval('DOC.alimentazione.stampa.bulk.ordine[0]')===ordinePrima[1], 'stampa dieta: i pasti si trascinano per riordinarli (stesso meccanismo del Report)');
+    ok(w.eval('repCtx.pre')==='dre', 'stampa dieta: dopo aver trascinato un pasto il motore resta sulla dieta (non scivola sul Report)'); }
+  /* ── 2026-11-13 — regressione: «✕ Togli riga» (dentro «✎ Modifica testo») chiamava renderReport()
+     invece di repCtx.render(), facendo scivolare il motore condiviso sul Report: dopo un solo uso
+     qualunque altra interazione nell'editor della dieta (scegliere un blocco, trascinare…) andava
+     a vuoto, perché repCtx restava puntato sul Report. Bug segnalato da Marco. ── */
+  { const k=w.eval('DOC.alimentazione.stampa.bulk.ordine[0]');
+    w.eval('document.querySelector(\'#dre-pagine [data-blocco="'+k+'"]\').click()');
+    w.eval('document.getElementById("dre-modifica").click()');
+    const righePrima=d.querySelectorAll('#dre-pagine [data-blocco="'+k+'"] tbody tr').length;
+    w.eval(`(function(){
+      var tr=document.querySelector('#dre-pagine [data-blocco="${k}"] tbody tr');
+      var range=document.createRange(); range.selectNodeContents(tr.querySelector('td'));
+      var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    })()`);
+    w.eval('document.querySelector(\'[data-repop="riga-via"]\').click()');
+    ok(w.eval('repCtx.pre')==='dre', 'stampa dieta: «✕ Togli riga» non fa più scivolare il motore sul Report');
+    ok(d.querySelectorAll('#dre-pagine [data-blocco="'+k+'"] tbody tr').length===righePrima-1, 'stampa dieta: «✕ Togli riga» toglie davvero la riga dall\'anteprima');
+    w.eval('document.getElementById("dre-fine").click()');
+    const pastoAltro=w.eval('DOC.alimentazione.stampa.bulk.ordine[1]');
+    w.eval('document.querySelector(\'#dre-pagine [data-blocco="'+pastoAltro+'"]\').click()');
+    ok(w.eval('repSel.blocco')===pastoAltro, 'stampa dieta: dopo «✕ Togli riga» l\'editor resta vivo (si può ancora scegliere un altro blocco)'); }
   d.getElementById('dieta-ov-chiudi').click();
   ok(d.getElementById('dieta-overlay').classList.contains('hidden') && d.getElementById('panel-dieta').innerHTML==='', 'stampa dieta: «← Chiudi» nasconde l\'editor e libera la pagina');
   /* ── 2026-11-13 — regressione: nome pasto con spazio (es. «Primo Spuntino») non deve mandare in crash
