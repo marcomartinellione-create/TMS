@@ -1371,6 +1371,17 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(w.eval('RIF_DISTR.voci.every(function(v){ return !!v.stato; })'), 'Riferimenti: ogni voce dice come è stata letta (stato)');
     const rcAv = J('rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""})');
     ok(rcAv.n >= w.eval('RIF_MIN_VOCI') && rcAv.fasce !== null, 'Riferimento: i protocolli di studio su avanzati reggono una fascia (' + rcAv.n + ' protocolli)');
+    /* i protocolli presi da articoli aperti non sono «record del corpus»: si contano a parte */
+    const rcSt = J('rifCalcola({raccolta:"studi", esperienza:"", tipo:""})');
+    const recCorpus = w.eval('RIF_DISTR.voci.filter(function(v){ return v.raccolta==="studi"; }).reduce(function(a,v){ return a+(v.record_ids||[]).length; },0)');
+    ok(rcSt.record === recCorpus && rcSt.aggiunti === agg.length && rcSt.n === rcSt.aggiunti + w.eval('RIF_DISTR.voci.filter(function(v){ return v.raccolta==="studi" && (v.record_ids||[]).length; }).length'),
+       'Riferimento: negli studi si contano a parte i record del corpus (' + rcSt.record + ') e i protocolli da articoli aperti (' + rcSt.aggiunti + ')');
+    const didSt = w.eval('rifDidascalia(rifCalcola({raccolta:"studi", esperienza:"", tipo:""}))');
+    ok(didSt.includes(rcSt.record + ' record del corpus + ' + rcSt.aggiunti + ' da articoli ad accesso aperto'),
+       'Didascalia: dice da dove vengono i protocolli (record del corpus + articoli ad accesso aperto)');
+    ok(!/record del corpus/.test(w.eval('rifDidascalia(rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:"potenza"}))')),
+       'Didascalia: senza protocolli del corpus non parla di record del corpus');
+    ok(w.eval('EN["da articoli ad accesso aperto"]') === 'from open-access articles', 'EN: «da articoli ad accesso aperto» è tradotto');
     /* pochi dati: fascia tratteggiata */
     const indic = w.eval('(function(){ var E=["","principiante","intermedio","avanzato"], T=["","forza","ipertrofia","generale","resistenza"]; for(var i=0;i<E.length;i++) for(var j=0;j<T.length;j++){ var s={esperienza:E[i],tipo:T[j]}; var r=rifCalcola(s); if(r.stato==="indicativo") return JSON.stringify(s); } return ""; })()');
     if (indic) ok(/stroke-dasharray/.test(w.eval('radarChart(vociDistribuzione(' + per + ',null,rifCalcola(' + indic + ')))')),

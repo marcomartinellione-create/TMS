@@ -8,11 +8,14 @@
    I dati stanno in RIF_DISTR (src/dati/05-riferimenti-distribuzione.js, generato da
    tools/genera-riferimenti.py a partire dagli originali, mai a mano). Due RACCOLTE che non
    si mescolano, perché contano cose diverse:
-   · «schede»: schede pubblicate (StrengthLog, Muscle & Strength, depot.fitness), un elemento
-     = una settimana di allenamento; il livello è quello DICHIARATO dalla scheda;
+   · «schede»: schede pubblicate (StrengthLog, Muscle & Strength, depot.fitness, Liftosaur), un
+     elemento = una settimana di allenamento; il livello è quello DICHIARATO dalla scheda;
    · «studi»: protocolli di studio con l'elenco completo degli esercizi, un elemento = un
      protocollo (uno o più bracci con le stesse proporzioni); l'esperienza è quella dei
-     partecipanti. I record del corpus senza elenco completo non entrano e lo si dice.
+     partecipanti. Vengono dal corpus di evidenza (ogni protocollo porta i suoi record:
+     record_ids) o da articoli ad accesso aperto aggiunti dal TMS (record_ids vuoto): la
+     didascalia li conta separatamente. I record del corpus senza elenco completo non entrano
+     e lo si dice.
    Per ogni voce sono salvate solo le serie DIRETTE e INDIRETTE per gruppo: quote e fasce si
    calcolano qui, con lo STESSO conteggio usato per l'atleta (catalogo TMS o mappa esterna,
    con gli stessi pesi). Così il confronto resta coerente anche cambiando i pesi.
@@ -21,9 +24,8 @@
    verso l'esterno); il rosso scatta sotto 3/4 del 10° o sopra 5/4 del 90°. Con meno di
    RIF_MIN_VOCI voci la fascia NON si disegna («dati insufficienti»); fino a RIF_VOCI_SOLIDE
    si disegna tratteggiata («indicativa»). Il riferimento predefinito (schede equilibrate,
-   tutte le esperienze e tutti i tipi) sono le 61 schede di sempre più le 2 schede complete ed
-   equilibrate di depot.fitness: le fasce restano quelle di RIF_QUOTA a meno di un punto
-   (Gambe da 18 invece che da 19, Spalle fino a 24 invece che a 23).
+   tutte le esperienze e tutti i tipi) regge su 109 schede da 4 fonti (14/11/2026): le fasce
+   stanno entro 4 punti da RIF_QUOTA (Gambe 16–37 invece di 19–33), scelta accettata da Marco.
 
    Dove stanno i due assi (Marco, 2026-11-13): l'ESPERIENZA è dell'atleta e sta nell'anagrafica
    (DOC.dati_utente.esperienza, accanto a sesso e data di nascita); il TIPO è della scheda e sta
@@ -119,15 +121,19 @@ function rifQuoteVoce(v,p){
 }
 function percentile(v,p){ v=v.slice().sort((a,b)=>a-b); if(!v.length) return 0;
   const i=(v.length-1)*p/100, lo=Math.floor(i), hi=Math.min(lo+1,v.length-1); return v[lo]+(v[hi]-v[lo])*(i-lo); }
-/* il riferimento da disegnare: fasce per gruppo (o null), quante voci, record e fonti lo reggono */
+/* il riferimento da disegnare: fasce per gruppo (o null), quante voci, record e fonti lo reggono.
+   Negli studi `record` conta i soli record del corpus; `aggiunti` i protocolli presi da articoli
+   ad accesso aperto fuori dal corpus (record_ids vuoto), che di record non ne hanno. */
 function rifCalcola(src, ctx){
   const o=rifImpost(src), R=rifDati(), esp=rifEsperienza(o), tipo=rifTipo(o,ctx);
-  if(!R) return {o:o, esp:esp, tipo:tipo, voci:[], n:0, record:0, fonti:[], fasce:RIF_QUOTA, stato:'storico'};
+  if(!R) return {o:o, esp:esp, tipo:tipo, voci:[], n:0, record:0, aggiunti:0, fonti:[], fasce:RIF_QUOTA, stato:'storico'};
   const p={d:o.diretta, i:o.indiretta, metodo:o.metodo};
   const voci=rifFiltraAssi(rifVociContesto(o), esp, tipo);
   const quote=voci.map(v=>rifQuoteVoce(v,p)).filter(Boolean), n=quote.length;
   const fonti=[...new Set(voci.map(v=>v.fonte))];
-  const record=o.raccolta==='studi'? voci.reduce((a,v)=>a+((v.record_ids||[]).length||1),0) : n;
+  const studi=o.raccolta==='studi';
+  const record=studi? voci.reduce((a,v)=>a+(v.record_ids||[]).length,0) : n;
+  const aggiunti=studi? voci.filter(v=>!(v.record_ids||[]).length).length : 0;
   let fasce=null, stato='insufficiente';
   if(n>=RIF_MIN_VOCI){
     stato= n>=RIF_VOCI_SOLIDE? 'solido' : 'indicativo'; fasce={};
@@ -135,12 +141,19 @@ function rifCalcola(src, ctx){
       fasce[g]={min:Math.floor(p10), max:Math.ceil(p90), sotto:Math.floor(0.75*p10), sopra:Math.ceil(1.25*p90)};
       if(stato==='indicativo') fasce[g].indicativa=true; });
   }
-  return {o:o, ctx:ctx||{}, esp:esp, tipo:tipo, voci:voci, n:n, record:record, fonti:fonti, fasce:fasce, stato:stato};
+  return {o:o, ctx:ctx||{}, esp:esp, tipo:tipo, voci:voci, n:n, record:record, aggiunti:aggiunti, fonti:fonti, fasce:fasce, stato:stato};
 }
 
 /* ── TESTI ────────────────────────────────────────────────────────────────────── */
 function rifUnita(raccolta, n){ return raccolta==='studi'? (n===1? t('protocollo') : t('protocolli')) : (n===1? t('scheda') : t('schede')); }
 function nfPeso(x){ return String(Math.round(x*100)/100).replace('.', LANG==='en'?'.':','); }
+/* da dove vengono i protocolli di studio: «20 record del corpus + 14 da articoli ad accesso aperto» */
+function rifOrigineStudi(rc){
+  const parti=[];
+  if(rc.record) parti.push(rc.record+' '+t('record del corpus'));
+  if(rc.aggiunti) parti.push(rc.aggiunti+' '+t('da articoli ad accesso aperto'));
+  return parti.join(' + ');
+}
 /* «Schede pubblicate · Principiante · Ipertrofia» */
 function rifNome(rc){
   return t(RACCOLTA_NOME[rc.o.raccolta])+' · '+(rc.esp? t(ESP_NOME[rc.esp]) : t('tutte le esperienze'))+' · '+(rc.tipo? t(TIPO_NOME[rc.tipo]) : t('tutti i tipi'));
@@ -151,7 +164,8 @@ function rifDidascalia(rc, opt){
   const btn=opt.dopo? ` <button class="btn btn--sm rif-cambia no-print" data-rif-apri="${esc(opt.dopo)}" data-rif-set="${esc((rc.ctx&&rc.ctx.set)||'')}">${t('⚙ Riferimento')}</button>` : '';
   if(rc.stato==='storico') return `<div class="rif-nota">${t('Riferimento: schede equilibrate pubblicate (fascia storica).')}${btn}</div>`;
   const fonti=rc.fonti.length+' '+(rc.fonti.length===1? t('fonte') : t('fonti'));
-  const base=rc.n+' '+rifUnita(rc.o.raccolta,rc.n)+(rc.o.raccolta==='studi'? ' ('+rc.record+' '+t('record')+')' : '')+' · '+fonti;
+  const orig=rc.o.raccolta==='studi'? rifOrigineStudi(rc) : '';
+  const base=rc.n+' '+rifUnita(rc.o.raccolta,rc.n)+(orig? ' ('+orig+')' : '')+' · '+fonti;
   const pesi=pesiPredefiniti({d:rc.o.diretta,i:rc.o.indiretta,metodo:rc.o.metodo})? '' :
     `<div class="rif-pesi">${rc.o.metodo==='esterna'? t('Conteggio con la mappa esterna (proposta da convalidare)') : t('Conteggio col catalogo TMS')} · ${t('dirette')} ×${nfPeso(rc.o.diretta)} · ${t('indirette')} ×${nfPeso(rc.o.indiretta)} <span class="pill rif-provv">${t('provvisori')}</span></div>`;
   if(rc.stato==='insufficiente')
@@ -209,7 +223,7 @@ function rifDistrModal(dopo, ctx){
     const elencoVoci=rc.voci.map(v=>`<li>${v.url?`<a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.titolo)}</a>`:esc(v.titolo)} <span class="muted">· ${esc(v.esperienza? t(ESP_NOME[v.esperienza]) : t('esperienza non indicata'))} · ${esc((v.tipi||[]).map(x=>t(TIPO_NOME[x])).join(', '))}${v.stato?' · '+esc(v.stato):''}</span></li>`).join('');
     const riepilogo= rc.stato==='insufficiente'
       ? `<div class="callout" style="background:var(--danger-t);border-color:var(--danger-bd);border-left-color:var(--danger)"><div><b>${t('Dati insufficienti')}</b>: ${rc.n} ${rifUnita(bozza.raccolta,rc.n)} ${t('da')} ${rc.fonti.length} ${rc.fonti.length===1?t('fonte'):t('fonti')} (${t('ne servono almeno')} ${RIF_MIN_VOCI}). ${t('La ragnatela non disegnerà la fascia: scegli una casella con più voci o allarga i filtri.')}</div></div>`
-      : `<div class="callout ${rc.stato==='solido'?'callout--info':''}"><div>${t('Il confronto si regge su')} <b>${rc.n} ${rifUnita(bozza.raccolta,rc.n)}</b>${bozza.raccolta==='studi'?` (${rc.record} ${t('record del corpus')})`:''} ${t('da')} <b>${rc.fonti.length} ${rc.fonti.length===1?t('fonte'):t('fonti')}</b>.${rc.stato==='indicativo'?' '+t('Sono pochi: la fascia sarà tratteggiata, da leggere come indicativa.'):''}</div></div>`;
+      : `<div class="callout ${rc.stato==='solido'?'callout--info':''}"><div>${t('Il confronto si regge su')} <b>${rc.n} ${rifUnita(bozza.raccolta,rc.n)}</b>${bozza.raccolta==='studi'&&rifOrigineStudi(rc)?` (${rifOrigineStudi(rc)})`:''} ${t('da')} <b>${rc.fonti.length} ${rc.fonti.length===1?t('fonte'):t('fonti')}</b>.${rc.stato==='indicativo'?' '+t('Sono pochi: la fascia sarà tratteggiata, da leggere come indicativa.'):''}</div></div>`;
     const fasceTab=rc.fasce? `<div class="rif-fasce">${GRUPPI_PESI.map(g=>`<span><b>${esc(t(g))}</b> ${rc.fasce[g].min}–${rc.fasce[g].max}%</span>`).join('')}</div>` : '';
     document.getElementById('rif-corpo').innerHTML=`
       <div class="row">
