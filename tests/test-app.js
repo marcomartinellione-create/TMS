@@ -1506,8 +1506,29 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* ＋ Esercizio con scelta del giorno */
   { const nPrima = w.eval('DOC.scheda.settimanale.length'); w.eval('aggiungiEsercizioModal()');
     ok(d.getElementById('m-day') !== null, 'Pesi: ＋ Esercizio apre la scelta del giorno');
-    w.eval('document.getElementById("m-day").value="Mercoledì";'); d.getElementById('m-ok').click();
-    ok(w.eval('DOC.scheda.settimanale.length') === nPrima + 1 && w.eval('DOC.scheda.settimanale.some(r=>r.giorno==="Mercoledì"&&!r.esercizio)'), 'Pesi: l\'esercizio viene aggiunto nel giorno scelto (Mercoledì)'); }
+    const opz = [...d.querySelectorAll('#m-day option')].map(o => o.value), nuovo = opz[opz.length - 1];
+    ok(/^Giorno \d+$/.test(nuovo) && /nuovo|new/.test(d.querySelector('#m-day option:last-child').textContent), 'Pesi: fra i giorni c\'è il successivo, segnato «nuovo» (' + nuovo + ')');
+    w.eval('document.getElementById("m-day").value=' + JSON.stringify(nuovo) + ';'); d.getElementById('m-ok').click();
+    ok(w.eval('DOC.scheda.settimanale.length') === nPrima + 1 && w.eval('DOC.scheda.settimanale.some(r=>r.giorno===' + JSON.stringify(nuovo) + '&&!r.esercizio)'), 'Pesi: l\'esercizio viene aggiunto nel giorno scelto (' + nuovo + ')'); }
+  /* ── giorni numerati (2026-11-14): «Giorno 1, 2, 3» al posto dei nomi della settimana ── */
+  { w.eval('var _schPrima=JSON.stringify(DOC.scheda); DOC.scheda={settimanale:[{giorno:"Mercoledì",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:70},{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:4,rip:5,peso:100},{giorno:"Venerdì",esercizio:"Squat con bilanciere",serie:3,rip:5,peso:90}], mensile:[], riscaldamento:{settimanale:[{giorno:"Venerdì",esercizio:"Cyclette",min:10}]}, rpe:{settimanale:{"Lunedì":{rpe:7,min:60}}}, setAttivo:"Base", setsSalvati:{Casa:{settimanale:[{giorno:"Martedì",esercizio:"Squat con bilanciere",serie:3,rip:5,peso:60}],mensile:[]}}, setsOrdine:["Base","Casa"]};');
+    ok(w.eval('migrateGiorniScheda()') === true, 'Giorni numerati: la scheda coi nomi della settimana viene rinumerata');
+    ok(w.eval('JSON.stringify(DOC.scheda.settimanale.map(r=>r.giorno))') === '["Giorno 2","Giorno 1","Giorno 3"]', 'Giorni numerati: Lunedì → Giorno 1, Mercoledì → 2, Venerdì → 3 (nell\'ordine della settimana)');
+    ok(w.eval('DOC.scheda.riscaldamento.settimanale[0].giorno') === 'Giorno 3' && w.eval('!!DOC.scheda.rpe.settimanale["Giorno 1"] && !DOC.scheda.rpe.settimanale["Lunedì"]'),
+       'Giorni numerati: riscaldamenti e RPE del giorno seguono la stessa numerazione');
+    ok(w.eval('DOC.scheda.setsSalvati.Casa.settimanale[0].giorno') === 'Giorno 1', 'Giorni numerati: anche i Training Set salvati');
+    ok(w.eval('migrateGiorniScheda()') === false, 'Giorni numerati: la migrazione è idempotente');
+    ok(w.eval('rowSeduta(sedutaMap(DOC.scheda.settimanale),DOC.scheda.settimanale[2])') === 2, 'Giorni numerati: lo squat del Giorno 3 è la 2ª seduta (S2), dopo quella del Giorno 1');
+    w.eval('renderAllenamento()');
+    ok([...d.querySelectorAll('#panel-allenamento tr.day-sep')].some(x=>/Giorno 1/.test(x.textContent)) && ![...d.querySelectorAll('#panel-allenamento tr.day-sep')].some(x=>/Luned|Mercoled|Venerd/.test(x.textContent)), 'Giorni numerati: nella scheda si legge «Giorno 1», non più i nomi della settimana');
+    w.eval('addDay()'); ok(d.getElementById('m-day').value === 'Giorno 4', 'Aggiungi giorno: propone il successivo (Giorno 4)');
+    w.eval('document.getElementById("m-day").value="Giorno 4"; closeModal();');
+    w.eval('inserisciGiorno(DOC.scheda.settimanale,{giorno:"Giorno 2",esercizio:"",serie:1,rip:1,peso:0}); inserisciGiorno(DOC.scheda.settimanale,{giorno:"Giorno 9",esercizio:"",serie:1,rip:1,peso:0});');
+    ok(w.eval('DOC.scheda.settimanale[DOC.scheda.settimanale.length-1].giorno') === 'Giorno 9', 'Giorni numerati: un giorno nuovo va al suo posto nella sequenza');
+    ok(Math.abs(w.eval('fosterWeek({"Giorno 1":420,"Giorno 2":560,"Giorno 3":300}).monotony') - w.eval('fosterWeek({"Lunedì":420,"Mercoledì":560,"Venerdì":300}).monotony')) < 1e-12 &&
+       Math.abs(w.eval('fosterWeek({"Giorno 1":420,"Giorno 2":560,"Giorno 3":300}).monotony') - 0.8227) < 1e-3,
+       'Monotonia: coi giorni numerati è la stessa (i giorni senza seduta valgono 0 su 7)');
+    w.eval('DOC.scheda=JSON.parse(_schPrima); renderAllenamento();'); }
   /* Training Set — loadout della scheda Pesi (crea/cambia/rinomina/elimina), piano attivo canonico */
   w.eval('schedaMode="settimanale"; DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Panca",serie:3,rip:8,peso:60}]; DOC.scheda.mensile=[]; delete DOC.scheda.setAttivo; delete DOC.scheda.setsSalvati; delete DOC.scheda.setsOrdine; ensureSets();');
   ok(w.eval('DOC.scheda.setAttivo') === 'Base' && w.eval('JSON.stringify(DOC.scheda.setsOrdine)') === '["Base"]', 'Training Set: migrazione idempotente → set «Base» attivo, ordine ["Base"]');

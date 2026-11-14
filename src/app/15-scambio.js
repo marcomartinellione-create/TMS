@@ -143,7 +143,7 @@ function caricaRientroInScheda(dati){
     return (m&&m.rest)||''; };
   const righe=(dati&&Array.isArray(dati.righe))?dati.righe:[];
   DOC.scheda.settimanale=righe.filter(r=>r&&r.esercizio&&String(r.esercizio).trim()).map(r=>{
-    const giorno=String((r&&r.giorno)||'Lunedì'), esercizio=String(r.esercizio).trim();
+    const giorno=String((r&&r.giorno)||giornoScheda(1)), esercizio=String(r.esercizio).trim();
     return { giorno:giorno, esercizio:esercizio, note:String((r&&r.note)||''),
     serie:+r.serie||0, rip:+r.rip||0, peso:+r.peso||0,
     rest:String((r&&r.rest)||'')||restPrec(giorno,esercizio),

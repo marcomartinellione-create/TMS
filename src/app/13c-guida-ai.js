@@ -130,7 +130,11 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
 NB: questo tab si chiamava «Allenamento» fino alla v1.0.77; ora è «Pesi» e affianca il
 nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano nel tab Cardio).
 
-- Scheda **settimanale** (e vista mensile). Si aggiungono Giorni; in ogni giorno righe
+- Scheda **settimanale** (e vista mensile). Si aggiungono Giorni, NUMERATI («Giorno 1»,
+  «Giorno 2»…, salvati cosi' e tradotti a schermo da giornoNome; dal 14/11/2026 non piu' i nomi
+  della settimana, che migrateGiorniScheda rinumera nell'ordine della settimana in scheda,
+  riscaldamenti, RPE del giorno e Training Set; lo Storico vecchio resta com'e'). La monotonia
+  (fosterWeek) conta 7 valori con zero nei giorni senza seduta, qualunque sia il nome. In ogni giorno righe
   esercizio. Per scegliere l'esercizio si tocca la cella «＋ scegli esercizio»: si apre
   un **selettore in sovraimpressione con barra di ricerca e lista per categoria** (si
   digita il nome o si scorre per gruppo muscolare; Invio sceglie il primo risultato). A

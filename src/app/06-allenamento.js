@@ -211,7 +211,7 @@ function renderRiscaldamento(S){
         `<td><input class="cell-in" data-wf="min" type="number" min="0" step="1" value="${r.min??''}" style="width:58px" placeholder="–" title="${t('Durata in minuti (per cardio e per gli esercizi a tempo)')}"></td>`+
         `<td><input class="cell-in" data-wf="note" value="${esc(r.note||'')}" style="width:100%"></td>`+
         `<td><button class="btn btn--sm btn--danger no-print" data-wdel="${i}" title="${t('elimina')}">✕</button></td></tr>`; });
-    content+=`<div class="sec">${esc(t(g))}</div>
+    content+=`<div class="sec">${esc(giornoNome(g))}</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Min')}</th><th class="l">${t('Note')}</th><th></th></tr></thead>
         <tbody>${body||`<tr><td colspan="6" class="empty">${t('Nessun esercizio di riscaldamento per questo giorno.')}</td></tr>`}</tbody>
@@ -351,7 +351,7 @@ function pannelloCostruzione(){
       <div class="lat-barra"><span style="width:${(sp/totDir*100).toFixed(1)}%;background:var(--orange)"></span><span style="width:${(tr/totDir*100).toFixed(1)}%;background:var(--violet)"></span></div>`:''}
       <div class="lat-nota">${t('Serie dirette sui muscoli principali, indirette su quelli coinvolti di striscio. La tacca verde è la zona utile del gruppo; in rosso chi ne è nettamente fuori.')}</div></div>
     <div class="lat"><h4>📅 ${t('Carico per giorno')} <span class="muted">TL ${nfk(totTL)}</span>${spiegaBtn('carico-giorno')}</h4>
-      <div class="lat-giorni">${gg.map(x=>`<span>${esc(t(x.g))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.tl/maxTL*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${bilNum(x.s)} ${t('serie')} · ${x.n} ${t('es.')} · ${nfk(x.tl)}</span>`).join('')}</div></div>
+      <div class="lat-giorni">${gg.map(x=>`<span>${esc(giornoNome(x.g))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.tl/maxTL*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${bilNum(x.s)} ${t('serie')} · ${x.n} ${t('es.')} · ${nfk(x.tl)}</span>`).join('')}</div></div>
     ${conPct?`<div class="lat"><h4>🎯 ${t('Intensità')} <span class="muted">${t('serie per fascia di %1RM')}</span>${spiegaBtn('intensita')}</h4>
       <div class="lat-barra">${fasceBarra}</div><div class="lat-leg">${fasceLeg}</div></div>`:''}`;
 }
@@ -411,7 +411,7 @@ function renderAllenamento(){
   const sigCarico=caricoSignals();
   rows.forEach((r,i)=>{
     if(r.giorno && r.giorno!==lastDay){ lastDay=r.giorno;
-      body+=`<tr class="day-sep"><td colspan="12">▌ ${esc(t(r.giorno))}${useRpeActive()?rpeDayControls(r.giorno):''}</td></tr>`; }
+      body+=`<tr class="day-sep"><td colspan="12">▌ ${esc(giornoNome(r.giorno))}${useRpeActive()?rpeDayControls(r.giorno):''}</td></tr>`; }
     const sd=rowSeduta(smap,r), bk=r.esercizio+'|'+sd;
     const firstOfBlock=r.esercizio && !blockSeen[bk]; if(r.esercizio) blockSeen[bk]=true;
     const m=rmMostrato(r), p=sPct(r), tl=sTL(r);
@@ -573,23 +573,33 @@ function refreshSchedaCalc(){
 /* ＋ Esercizio: chiede in quale giorno aggiungerlo e lo inserisce in fondo a quel giorno
    (se il giorno non esiste ancora, crea la sezione). */
 function aggiungiEsercizioModal(){
-  const rows=schedaRows(); const def=(rows.length?rows[rows.length-1].giorno:'')||'Lunedì';
+  const rows=schedaRows(); const def=(rows.length?rows[rows.length-1].giorno:'')||giornoScheda(1);
   modal(`<h3>${t('Aggiungi esercizio')}</h3>
-    <div class="field"><label>${t('In quale giorno?')}</label><select id="m-day">${GIORNI.map(g=>`<option value="${g}"${g===def?' selected':''}>${t(g)}</option>`).join('')}</select></div>
+    <div class="field"><label>${t('In quale giorno?')}</label><select id="m-day">${opzioniGiorni(def)}</select></div>
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="m-ok">${t('Aggiungi')}</button></div>`);
   document.getElementById('m-ok').onclick=()=>{ const g=document.getElementById('m-day').value; closeModal();
     const r=schedaRows(), nuova={giorno:g,esercizio:'',note:'',serie:3,rip:10,peso:0,rest:'1:30'};
     let last=-1; r.forEach((x,i)=>{ if(x.giorno===g) last=i; });
-    if(last>=0) r.splice(last+1,0,nuova); else r.push(nuova);
+    if(last>=0) r.splice(last+1,0,nuova); else inserisciGiorno(r,nuova);
     persist('scheda'); renderAllenamento(); };
 }
+/* giorni numerati: nel menù i giorni già in scheda più il successivo, «nuovo» */
+function opzioniGiorni(def){
+  const gg=schedaDays(schedaRows()), nuovo=giornoScheda(Math.max(0,...gg.map(giornoNumero))+1);
+  return gg.concat([nuovo]).map(g=>`<option value="${esc(g)}"${g===def?' selected':''}>${esc(giornoNome(g))}${g===nuovo?' · '+t('nuovo'):''}</option>`).join(''); }
+/* un giorno nuovo va al suo posto nella sequenza (il Giorno 3 prima del 4), non in fondo */
+function inserisciGiorno(rows, riga){ const o=giornoOrdine(riga.giorno), i=rows.findIndex(x=>x&&giornoOrdine(x.giorno)>o);
+  if(i>=0) rows.splice(i,0,riga); else rows.push(riga); }
 function addDay(){
+  const usati=new Set(schedaDays(schedaRows()).map(giornoNumero)), max=Math.max(schedaMode==='mensile'?28:7, ...usati);
+  const liberi=[]; for(let n=1;n<=max+1;n++) if(!usati.has(n)) liberi.push(n);
+  const def=liberi.find(n=>n>Math.max(0,...usati))||liberi[0];
   modal(`<h3>${t('Aggiungi giorno')}</h3>
-    <div class="field"><label>${t('Giorno')}</label><select id="m-day">${GIORNI.map(g=>`<option value="${g}">${t(g)}</option>`).join('')}</select></div>
+    <div class="field"><label>${t('Giorno')}</label><select id="m-day">${liberi.map(n=>`<option value="${esc(giornoScheda(n))}"${n===def?' selected':''}>${esc(giornoNome(giornoScheda(n)))}</option>`).join('')}</select></div>
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button>
     <button class="btn btn--ember" id="m-ok">${t('Aggiungi')}</button></div>`);
   document.getElementById('m-ok').onclick=()=>{ const g=document.getElementById('m-day').value;
-    schedaRows().push({giorno:g,esercizio:'',note:'',serie:3,rip:10,peso:0,rest:'1:30'}); persist('scheda'); closeModal(); renderAllenamento(); };
+    inserisciGiorno(schedaRows(), {giorno:g,esercizio:'',note:'',serie:3,rip:10,peso:0,rest:'1:30'}); persist('scheda'); closeModal(); renderAllenamento(); };
 }
 function saveSchedaModal(){
   const w=isoWeek(new Date());

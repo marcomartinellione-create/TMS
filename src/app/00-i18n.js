@@ -1166,6 +1166,7 @@ const EN={
   'Spiegazione del grafico':'Chart explanation',
   'Training Monitor System · nota metodologica':'Training Monitor System · methods note',
   'Dove compare:':'Where it appears:', 'Sommario':'Abstract', 'Bibliografia':'References', '◂ Torna al grafico':'◂ Back to the chart',
+  'nuovo':'new',
   'Cosa mostra':'What it shows', 'Dati di partenza':'Input data', 'Metodo e formule':'Method and formulas',
   'Esempio svolto':'Worked example', 'Come leggerlo':'How to read it', 'Limiti':'Limitations',
   /* ── ricette personali e suggerimenti di alimenti (11c-ricette.js) ── */

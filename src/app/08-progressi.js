@@ -34,7 +34,9 @@ function riscEquivSets(code,sf){
 function rpeByWeek(sf){ const m={}; filtraSet(DOC.storico_rpe||[],sf).forEach(r=>{ const s=+r.scheda||0; const ld=(+r.rpe||0)*(+r.min||0);
   if(!m[s])m[s]={day:{},load:0}; m[s].day[r.giorno]=(m[s].day[r.giorno]||0)+ld; m[s].load+=ld; }); return m; }
 function fosterWeek(dayMap){
-  const vals=GIORNI.map(g=>+(dayMap&&dayMap[g])||0), n=vals.length;
+  /* i giorni della settimana senza seduta valgono 0: con giorni numerati («Giorno 1…») o coi nomi
+     della settimana dello Storico vecchio il conto è lo stesso, su 7 valori */
+  const vals=Object.keys(dayMap||{}).map(g=>+dayMap[g]||0); while(vals.length<7) vals.push(0); const n=vals.length;
   const load=vals.reduce((a,b)=>a+b,0); if(load<=0) return {load:0,monotony:null,strain:null};
   const mean=load/n, sd=Math.sqrt(vals.reduce((a,v)=>a+(v-mean)*(v-mean),0)/n);
   const monotony=sd>0? mean/sd : null, strain=monotony!=null? load*monotony : null;

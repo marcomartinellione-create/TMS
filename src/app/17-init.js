@@ -52,7 +52,7 @@ async function init(){
     DOC.esercizi=REF.esercizi.filter(e=>!isVariante(e.nome)).map(e=>Object.assign({},e,{nome:String(e.nome).trim()}));
   rebuildEs();
   fillDatalists();
-  migrateStorico(); migrateScheda(); migrateExNames();  /* normalizza dati embedded/cache (idempotente) */
+  migrateStorico(); migrateScheda(); migrateGiorniScheda(); migrateExNames();  /* normalizza dati embedded/cache (idempotente) */
   normalizeAlim();
   undoAzzera(); document.addEventListener('keydown', undoTasti);   /* Ctrl+Z / Ctrl+Y */
   document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));

@@ -176,7 +176,7 @@ async function loadProfile(){
   applyProfileData({scheda:sc, storico:st, storico_io:co&&co.storico_io, storico_rpe:co&&co.storico_rpe, storico_risc:co&&co.storico_risc, cardio:co&&co.cardio, foto:co&&co.foto, dati_utente:co&&co.dati_utente, alimentazione:al});
   const preMig=JSON.stringify(DOC.storico);
   const preMigScheda=JSON.stringify(DOC.scheda);
-  const migged=!!(migrateStorico()|migrateScheda()|migrateExNames()|migrateCardio()); normalizeAlim();
+  const migged=!!(migrateStorico()|migrateScheda()|migrateGiorniScheda()|migrateExNames()|migrateCardio()); normalizeAlim();
   const ricMig=migraRicetteProfilo();   /* ricette nate nel profilo → catalogo condiviso; nomi rinominati seguiti */
   if(migged){ try{ await writeJson(profileDir,'storico.backup.json',{_backup:new Date().toISOString(),storico:JSON.parse(preMig),scheda:JSON.parse(preMigScheda)}); }catch(e){} }
   if(!sc||!st||!co||!al||migged||ricMig) await persistAll();
@@ -227,7 +227,7 @@ async function connectFlow(){
       profiliDiRipiego=false;
       activeProfile=(profili[0]&&profili[0].slug)||PROFILO_DEMO.slug;
       if(lsc||lst||lco||lal){ applyProfileData({scheda:lsc,storico:lst,storico_io:lco&&lco.storico_io,storico_rpe:lco&&lco.storico_rpe,storico_risc:lco&&lco.storico_risc,cardio:lco&&lco.cardio,foto:lco&&lco.foto,dati_utente:lco&&lco.dati_utente,alimentazione:lal}); }
-      migrateStorico(); migrateScheda(); migrateExNames(); normalizeAlim(); migraRicetteProfilo();
+      migrateStorico(); migrateScheda(); migrateGiorniScheda(); migrateExNames(); normalizeAlim(); migraRicetteProfilo();
       profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});
       /* manca solo l'elenco dei profili ma la cartella del profilo ha già i suoi file:
          si CARICANO quelli, non ci si scrive sopra con ciò che c'è in memoria */

@@ -1,5 +1,15 @@
 /* ════════════════ COSTANTI / LOOKUP ════════════════ */
 const GIORNI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+/* GIORNI DELLA SCHEDA (2026-11-14, Marco: «i giorni segnati in maniera progressiva, 1 2 3»):
+   la scheda non è legata al calendario, i suoi giorni sono «Giorno 1», «Giorno 2»… — salvati
+   così, in italiano come gli altri dati, e tradotti a schermo da giornoNome. I nomi della
+   settimana (GIORNI) restano validi per lo Storico già salvato e per le schede vecchie, che
+   migrateGiorniScheda rinumera una volta sola nell'ordine della settimana. */
+const GIORNO_RE=/^Giorno (\d+)$/;
+function giornoScheda(n){ return 'Giorno '+n; }
+function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); return m? +m[1] : 0; }
+function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
+function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
 const APP_VERSION='1.1.21', APP_DATE='2026-11-13';
 const RELEASE_NOTE='Novità: Stampa dieta: barre dei pasti più basse e colonne di larghezza fissa, uguali in tutti i pasti, con grammi e valori incolonnati; mappa esterna: scartati i 3 abbinamenti in sospeso; Mappa muscolare esterna: prima revisione dei 604 agganci (452 convalidati, 18 corretti, 16 rifiutati, 3 da decidere), col motivo di ogni scelta nel file di convalida; Ragnatela «distribuzione fra i gruppi»: riferimento scelto per esperienza (anagrafica) e tipo di allenamento (Training Set), con quante schede, studi e fonti lo reggono e l’avviso quando i dati non bastano; Corpo: composizione e i tre grafici in una griglia 2×2, riquadri tutti della stessa grandezza; Stampa dieta: tolto il bug che rompeva «togli riga»; Corpo: box simmetrici e grafici in griglia; Stampa dieta: tolta la classe CSS che andava in crash coi nomi dei pasti con lo spazio; Corpo: grafici tornano a destra (compatti, come erano) e dati a sinistra; Stampa dieta più robusta; Stampa dieta: stesso motore a blocchi del Report, a schermo intero; Corpo: corretto come richiesto — niente scambio di contenuti, solo le proporzioni e l’ordine visivo; Report: il motore a blocchi diventa generico (repCtx), pronto per servire anche la Stampa dieta; Corpo: più respiro ai grafici, dati corporei compatti in orizzontale; Report: il numero di pagina (Pagina N / M) va in fondo al foglio invece che in cima; Report: lo scorrimento non torna più in cima, obiettivo/note/titolo si aggiornano mentre si scrive; Report a blocchi: a sinistra l’anteprima in fogli A4 identica al PDF, a destra gli strumenti; i blocchi si trascinano, si nascondono, hanno impostazioni proprie (titolo, spiegazione, pagina nuova, tutto in una pagina, grandezza del testo, colore, grafici affiancati o in colonna); gli elementi si spostano o si tolgono e i testi si scrivono direttamente nel foglio; Report modificabile a mano: con «✎ Modifica testi e tabelle» si scrive direttamente su titoli, testi e celle, si aggiungono o tolgono righe e sezioni, e il PDF esce come si vede (i dati salvati non cambiano).'; /* mini-changelog della versione; aggiornala a ogni release */
@@ -254,7 +264,7 @@ function sedutaMap(rows){
   const byEx={};
   rows.forEach(r=>{ if(!r.esercizio)return; const g=r.giorno||'·'; (byEx[r.esercizio]=byEx[r.esercizio]||new Set()).add(g); });
   const out={};
-  Object.keys(byEx).forEach(ex=>{ const days=[...byEx[ex]].sort((a,b)=>GIORNI.indexOf(a)-GIORNI.indexOf(b));
+  Object.keys(byEx).forEach(ex=>{ const days=[...byEx[ex]].sort((a,b)=>giornoOrdine(a)-giornoOrdine(b));
     out[ex]={}; days.forEach((d,i)=>out[ex][d]=i+1); });
   return out;
 }
@@ -281,6 +291,27 @@ function migrateScheda(){
     const v=parseVariante(r.esercizio); if(v.nome!==r.esercizio){ r.esercizio=v.nome; if(v.test)r.test=true; changed=true; } }}); });
   return changed;
 }
+/* da «Lunedì, Mercoledì, Venerdì» a «Giorno 1, 2, 3» in un piano (scheda attiva o Training
+   Set salvato), per ogni modalità: righe, riscaldamenti e bozza RPE del giorno seguono insieme.
+   Solo i nomi della settimana cambiano; un giorno già numerato tiene il suo numero. */
+function migraGiorniPiano(p, rpe){ let ch=false;
+  ['settimanale','mensile'].forEach(md=>{
+    const righe=Array.isArray(p[md])? p[md] : [];
+    const warm=(p.riscaldamento&&typeof p.riscaldamento==='object'&&!Array.isArray(p.riscaldamento)&&Array.isArray(p.riscaldamento[md]))? p.riscaldamento[md] : [];
+    const tutte=righe.concat(warm), vecchi=[];
+    tutte.forEach(r=>{ const g=r&&r.giorno; if(g && GIORNI.indexOf(g)>=0 && vecchi.indexOf(g)<0) vecchi.push(g); });
+    if(!vecchi.length) return;
+    vecchi.sort((a,b)=>GIORNI.indexOf(a)-GIORNI.indexOf(b));
+    const usati=new Set(tutte.map(r=>giornoNumero(r&&r.giorno)).filter(Boolean)), mappa={}; let n=1;
+    vecchi.forEach(g=>{ while(usati.has(n)) n++; mappa[g]=giornoScheda(n); usati.add(n); });
+    tutte.forEach(r=>{ if(r && mappa[r.giorno]) r.giorno=mappa[r.giorno]; });
+    if(rpe && rpe[md] && typeof rpe[md]==='object') Object.keys(mappa).forEach(g=>{ if(rpe[md][g]!==undefined){ rpe[md][mappa[g]]=rpe[md][g]; delete rpe[md][g]; } });
+    ch=true; });
+  return ch; }
+function migrateGiorniScheda(){ const s=DOC.scheda; if(!s||typeof s!=='object') return false;
+  let ch=migraGiorniPiano(s, s.rpe);
+  if(s.setsSalvati&&typeof s.setsSalvati==='object') Object.keys(s.setsSalvati).forEach(k=>{ if(s.setsSalvati[k] && migraGiorniPiano(s.setsSalvati[k], null)) ch=true; });
+  return ch; }
 /* ── Migrazione nomi esercizio: vecchio catalogo -> database (una tantum, con backup) ── */
 const EX_RENAME={
   "Squat bilanciere":"Squat con bilanciere",
