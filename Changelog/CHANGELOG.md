@@ -4,6 +4,25 @@
 
 ---
 
+### 2026-11-14 — TMS v1.1.22: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.21
+**Descrizione**:
+- Riferimento della ragnatela: i protocolli di studio dicono da dove vengono — «20 record del corpus + 14 da articoli ad accesso aperto» — invece di contare come record del corpus anche quelli presi dagli articoli aperti
+- Riferimenti della ragnatela: annotato nel LEGGIMI che il nuovo riferimento predefinito (Gambe 16–37) è stato accettato da Marco
+- Ragnatela «distribuzione fra i gruppi»: più dati per i riferimenti — 51 programmi Liftosaur e nomi degli esercizi riconosciuti meglio (schede da 114 a 216, avanzati da 4 a 15 equilibrate) e 14 protocolli da articoli ad accesso aperto (studi su avanzati da 0 a 10)
+- App Android (APK) di TMS Scheda: la PWA del telefono impacchettata come app vera, con le stesse funzioni
+- Pesi: i giorni della scheda sono numerati (Giorno 1, Giorno 2, Giorno 3…) invece dei giorni della settimana
+- Più spazio sopra la barra delle schede (Pesi, Cardio, Progressi, Corpo, Alimentazione…)
+- Ricette condivise fra tutti i profili: una ricetta creata per un cliente la ritrovi per tutti (file TMS_Dati/ricette.json accanto al catalogo esercizi)
+- Alimentazione: ricette personali (ingredienti dalla banca dati con valori che si sommano da soli, porzioni, tempi, peso da cotto, descrizione e procedimento) e 💡 accanto ai nutrienti sotto il riferimento con gli alimenti che ne sono più ricchi
+- Grafici: in alto a destra di ogni grafico un piccolo «?» che apre la sua nota metodologica, scritta come un breve articolo scientifico (sommario, dati, metodo e formule, esempio svolto coi numeri, come leggerlo, limiti, bibliografia), in italiano e in inglese
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-14)
+
+---
+
 ### 2026-11-13 — TMS v1.1.21: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.20
