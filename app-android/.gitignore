@@ -1,0 +1,8 @@
+# generati (si rifanno con «Crea APK.bat»)
+node_modules/
+www/
+android/
+dist/
+*.apk
+# chiave di firma: NON nel repo (pubblico), ma da custodire (OneDrive la salva)
+firma/
