@@ -1310,8 +1310,8 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
          'distribuzione: senza lavoro tutto a zero (niente divisioni per zero)');
       /* scheda sbilanciata come quella di Marco: poche gambe → etichetta rossa sulle Gambe */
       const marco = '{"Gambe":19.5,"Pettorali":19,"Schiena":28.5,"Spalle":33.5,"Braccia":40,"Core":10}';
-      const svg = w.eval('radarChart(vociDistribuzione(' + marco + '))');
-      ok(/class="lbl lbl-fuori"[^>]*>Gambe 13%</.test(svg), 'distribuzione: gambe al 13% (fascia 19–33) → etichetta «Gambe 13%» in rosso');
+      const svg = w.eval('radarChart(vociDistribuzione(' + marco + ',null,{fasce:RIF_QUOTA}))');
+      ok(/class="lbl lbl-fuori"[^>]*>Gambe 13%</.test(svg), 'distribuzione: gambe al 13% (fascia storica 19–33) → etichetta «Gambe 13%» in rosso');
       ok(/>Schiena 19%</.test(svg) && !/lbl-fuori[^>]*>Schiena/.test(svg), 'distribuzione: schiena al 19%, dentro fascia → etichetta normale'); }
     ok(/>Gambe \d+%</.test(hb), 'Bilanciamento: la ragnatela etichetta ogni gruppo con la sua quota in %');
     w.eval('closeModal()'); }
@@ -1331,8 +1331,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(rc0.stato === 'solido' && rc0.n >= 61 && rc0.o.raccolta === 'schede' && rc0.esp === '' && rc0.tipo === '',
        'Riferimento predefinito: schede equilibrate, tutte le esperienze e tutti i tipi (' + rc0.n + ' schede, ' + rc0.fonti.length + ' fonti)');
     const RQ = J('RIF_QUOTA');
-    ok(GR6.every(g => Math.abs(rc0.fasce[g].min - RQ[g].min) <= 1 && Math.abs(rc0.fasce[g].max - RQ[g].max) <= 1),
-       'Riferimento predefinito: fasce entro un punto da quelle storiche (RIF_QUOTA)');
+    /* 14/11/2026: con Liftosaur e il riconoscimento dei nomi migliorato le schede sono 216 (109
+       equilibrate) e la fascia predefinita si allarga fino a 4 punti (Gambe 16–37 invece di 19–33) */
+    ok(GR6.every(g => Math.abs(rc0.fasce[g].min - RQ[g].min) <= 4 && Math.abs(rc0.fasce[g].max - RQ[g].max) <= 4),
+       'Riferimento predefinito: fasce entro 4 punti da quelle storiche (RIF_QUOTA) · ' + GR6.map(g => g + ' ' + rc0.fasce[g].min + '–' + rc0.fasce[g].max).join(', '));
     /* l'esperienza viene dall'anagrafica, il tipo dal Training Set */
     w.eval('DOC.dati_utente.esperienza="principiante"; DOC.scheda.tipoAllenamento="ipertrofia";');
     const rc1 = J('rifCalcola()');
@@ -1348,14 +1350,27 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(w.eval('tipoScheda("ProvaForza")') === 'forza' && J('rifCalcola(null,{set:"ProvaForza"})').tipo === 'forza',
        'Riferimento: in Progressi, filtrando un Training Set, vale il tipo di quel set');
     w.eval('delete DOC.scheda.setsSalvati.ProvaForza; DOC.scheda.setsOrdine=DOC.scheda.setsOrdine.filter(function(n){return n!=="ProvaForza";}); renderAllenamento();');
-    /* dati insufficienti: niente fascia, e lo si scrive */
-    const rcPoco = J('rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""})');
+    /* dati insufficienti: niente fascia, e lo si scrive (nessuna scheda pubblicata di resistenza muscolare) */
+    const POCO = '{raccolta:"schede", esperienza:"", tipo:"resistenza"}';
+    const rcPoco = J('rifCalcola(' + POCO + ')');
     ok(rcPoco.stato === 'insufficiente' && rcPoco.fasce === null, 'Riferimento: con meno di 5 voci i dati sono INSUFFICIENTI e la fascia non c\'è');
     const per = '{"Gambe":20,"Pettorali":9,"Schiena":22,"Spalle":18,"Braccia":22,"Core":3}';
-    ok(!/fill-rule="evenodd"/.test(w.eval('radarChart(vociDistribuzione(' + per + ',null,rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""})))')),
+    ok(!/fill-rule="evenodd"/.test(w.eval('radarChart(vociDistribuzione(' + per + ',null,rifCalcola(' + POCO + ')))')),
        'Ragnatela: con dati insufficienti non disegna nessuna fascia');
-    ok(/Dati insufficienti/.test(w.eval('rifDidascalia(rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""}))')),
+    ok(/Dati insufficienti/.test(w.eval('rifDidascalia(rifCalcola(' + POCO + '))')),
        'Didascalia: dice «Dati insufficienti» con voci e fonti contate');
+    /* fonti aggiunte il 14/11/2026: Liftosaur (schede) e studi ad accesso aperto fuori dal corpus */
+    const lif = J('RIF_DISTR.voci.filter(function(v){ return v.fonte==="liftosaur"; })');
+    ok(lif.length >= 30 && lif.every(v => v.raccolta === 'schede' && /^https:\/\/www\.liftosaur\.com\/programs\//.test(v.url) && v.stato && v.origine_esperienza),
+       'Riferimenti: i programmi Liftosaur sono schede, ognuna con indirizzo, stato e origine del livello (' + lif.length + ')');
+    ok(/AGPL/.test(w.eval('RIF_DISTR.fonti.find(function(f){ return f.id==="liftosaur"; }).licenza')),
+       'Riferimenti: la fonte Liftosaur dichiara la licenza del repository');
+    const agg = J('RIF_DISTR.voci.filter(function(v){ return v.raccolta==="studi" && !(v.record_ids||[]).length; })');
+    ok(agg.length >= 10 && agg.every(v => v.url && v.stato === 'trascrizione TMS da verificare' && J('RIF_DISTR.fonti.find(function(f){ return f.id==="' + v.fonte + '"; })').doi),
+       'Riferimenti: gli studi aggiunti fuori dal corpus hanno DOI, indirizzo e stato «da verificare» (' + agg.length + ')');
+    ok(w.eval('RIF_DISTR.voci.every(function(v){ return !!v.stato; })'), 'Riferimenti: ogni voce dice come è stata letta (stato)');
+    const rcAv = J('rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""})');
+    ok(rcAv.n >= w.eval('RIF_MIN_VOCI') && rcAv.fasce !== null, 'Riferimento: i protocolli di studio su avanzati reggono una fascia (' + rcAv.n + ' protocolli)');
     /* pochi dati: fascia tratteggiata */
     const indic = w.eval('(function(){ var E=["","principiante","intermedio","avanzato"], T=["","forza","ipertrofia","generale","resistenza"]; for(var i=0;i<E.length;i++) for(var j=0;j<T.length;j++){ var s={esperienza:E[i],tipo:T[j]}; var r=rifCalcola(s); if(r.stato==="indicativo") return JSON.stringify(s); } return ""; })()');
     if (indic) ok(/stroke-dasharray/.test(w.eval('radarChart(vociDistribuzione(' + per + ',null,rifCalcola(' + indic + ')))')),

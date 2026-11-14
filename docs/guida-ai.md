@@ -211,20 +211,26 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
     (con indirizzo), e cio' che resta fuori col motivo. Le scelte stanno nel profilo
     (dati_utente.rifDistr, solo le differenze dal predefinito).
     Due RACCOLTE che non si mescolano mai: «Schede pubblicate» (una voce = una settimana di
-    allenamento; StrengthLog, Muscle & Strength, depot.fitness; il livello e' quello
-    DICHIARATO dalla scheda) e «Protocolli di studio» (una voce = un protocollo con
-    l'elenco completo degli esercizi; l'esperienza e' dei partecipanti). Dei 359 record del
-    corpus di evidenza solo 18 (11 protocolli) hanno l'elenco completo: gli altri restano
-    nella base dati ma non reggono una distribuzione (250 senza elenco esercizi, bracci su
-    un solo distretto, survey senza core, sintesi) e il riquadro lo dice. Sotto la ragnatela
+    allenamento; StrengthLog, Muscle & Strength, depot.fitness, Liftosaur; il livello e'
+    quello DICHIARATO dalla scheda; per i programmi di piu' settimane conta la settimana
+    media del ciclo) e «Protocolli di studio» (una voce = un protocollo con l'elenco completo
+    degli esercizi; l'esperienza e' dei partecipanti). Dei 359 record del corpus di evidenza
+    solo 20 (13 protocolli) hanno l'elenco completo: gli altri restano nella base dati ma non
+    reggono una distribuzione (250 senza elenco esercizi, bracci su un solo distretto,
+    survey senza core, sintesi) e il riquadro lo dice. Altri 14 protocolli vengono da 13
+    articoli ad accesso aperto aggiunti dal TMS (soggetti allenati, powerlifter, atleti),
+    ognuno con DOI e stato «trascrizione TMS da verificare». Sotto la ragnatela
     la didascalia scrive il riferimento e su quante voci, record e fonti si regge: con meno
     di 5 voci «Dati insufficienti» e nessuna fascia, da 5 a 9 fascia tratteggiata
-    (indicativa). Il predefinito (schede equilibrate, tutte le esperienze, tutti i tipi: 63
-    schede da 3 fonti) ridà le fasce storiche RIF_QUOTA a meno di un punto: Gambe 18-33 %,
-    Pettorali 6-13, Schiena 17-26, Spalle 14-24, Braccia 17-27, Core 0-8.
+    (indicativa). Il predefinito (schede equilibrate, tutte le esperienze, tutti i tipi: 109
+    schede da 4 fonti) sta entro 4 punti dalle fasce storiche RIF_QUOTA: Gambe 16-37 %,
+    Pettorali 6-14, Schiena 15-27, Spalle 13-24, Braccia 16-27, Core 0-10. Restano senza
+    dati le schede di resistenza muscolare e di potenza; powerlifting ha 3 schede
+    equilibrate e 4 protocolli di studio (dati insufficienti).
     I dati stanno in RIF_DISTR (src/dati/05-riferimenti-distribuzione.js), generato da
     tools/genera-riferimenti.py a partire dagli originali (ZIP del corpus v0.7 in
-    Documentazione, pagine in Doc/meta-analisi, catalogo): per ogni voce solo le serie
+    Documentazione, pagine e programmi Liftosaur in Doc/meta-analisi, trascrizioni degli
+    studi in tools/riferimenti/protocolli-studi.json, catalogo): per ogni voce solo le serie
     dirette e indirette per gruppo nei due conteggi, piu' fonte, licenza, etichette
     originali e stato; quote e fasce si calcolano nell'app.
   · l'ELENCO accanto (e le barre «Serie per gruppo» in Progressi) dice la QUANTITA': serie

@@ -1,5 +1,5 @@
 {
-  "_nota": "Trascrizione TMS dei protocolli di studio con l'elenco COMPLETO degli esercizi (corpus di evidenza v0.7, campo exercises_or_target). Ogni esercizio e' ricondotto a un nome del catalogo TMS; il numero e' il peso relativo delle serie nella settimana (la ragnatela guarda le proporzioni, quindi conta solo il rapporto fra gli esercizi). '@Gruppo' indica lavoro diretto su un gruppo senza un esercizio equivalente nel catalogo. Bracci dello stesso studio con lo stesso elenco e le stesse proporzioni sono UN protocollo: i record restano elencati in record_ids. 'esperienza' e' la lettura TMS del testo della popolazione (vuota se il testo non la dice); il codice originale del corpus resta accanto. 'sesso' (M, F, misto) ed 'eta' (giovani, adulti, over40) vengono dal testo della popolazione. 'stato' passa a 'verificata' solo dopo il confronto con l'articolo. Letto da tools/genera-riferimenti.py.",
+  "_nota": "Trascrizione TMS dei protocolli di studio con l'elenco COMPLETO degli esercizi (corpus di evidenza v0.7, campo exercises_or_target). Ogni esercizio e' ricondotto a un nome del catalogo TMS; il numero e' il peso relativo delle serie nella settimana (la ragnatela guarda le proporzioni, quindi conta solo il rapporto fra gli esercizi). '@Gruppo' indica lavoro diretto su un gruppo senza un esercizio equivalente nel catalogo. Bracci dello stesso studio con lo stesso elenco e le stesse proporzioni sono UN protocollo: i record restano elencati in record_ids. 'esperienza' e' la lettura TMS del testo della popolazione (vuota se il testo non la dice); il codice originale del corpus resta accanto. 'sesso' (M, F, misto) ed 'eta' (giovani, adulti, over40) vengono dal testo della popolazione. 'stato' passa a 'verificata' solo dopo il confronto con l'articolo. Letto da tools/genera-riferimenti.py. Dal 14/11/2026: (1) per i programmi che cambiano di settimana in settimana si usa la SETTIMANA MEDIA del ciclo (serie totali / settimane; per un intervallo di serie il valore centrale); (2) i protocolli con 'studio' vengono da articoli ad accesso aperto FUORI dal corpus Codex, descritti in 'studi_aggiunti' (citazione, DOI, licenza, popolazione, copia del testo in Doc/riferimenti-distribuzione/studi-testi); (3) regola dell'esperienza per gli studi nuovi, approvata da Marco: 'avanzato' se gli autori li dicono ben allenati o agonisti, oppure se dichiarano in media almeno 4 anni di allenamento; 'intermedio' se allenati; 'principiante' se non allenati; (4) pliometria, salti, trasporti e circuiti di condizionamento non si contano, come nelle schede pubblicate.",
   "stato_predefinito": "trascrizione TMS da verificare",
   "contesto": {
     "schoenfeld_2019_volume": {"sesso": "M", "eta": "giovani"},
@@ -12,7 +12,23 @@
     "bagheri_2026": {"sesso": "F", "eta": "over40"},
     "sportrxiv_2026_low": {"sesso": "", "eta": ""},
     "sportrxiv_2026_high": {"sesso": "", "eta": ""},
-    "li_2023": {"sesso": "M", "eta": "giovani"}
+    "li_2023": {"sesso": "M", "eta": "giovani"},
+    "androulakis_2018_per": {"sesso": "M", "eta": "giovani"},
+    "androulakis_2018_max": {"sesso": "M", "eta": "giovani"},
+    "mangine_2015": {"sesso": "M", "eta": "giovani"},
+    "haun_2019": {"sesso": "M", "eta": "giovani"},
+    "arazi_2021": {"sesso": "M", "eta": "giovani"},
+    "blake_2025": {"sesso": "misto", "eta": "giovani"},
+    "fortes_2018": {"sesso": "M", "eta": "giovani"},
+    "tizar_2026": {"sesso": "M", "eta": "giovani"},
+    "hermassi_2019": {"sesso": "M", "eta": "giovani"},
+    "gavanda_2026": {"sesso": "M", "eta": "giovani"},
+    "helms_2023": {"sesso": "misto", "eta": "giovani"},
+    "decamargo_2021_forza": {"sesso": "M", "eta": "giovani"},
+    "decamargo_2021_resistenza": {"sesso": "M", "eta": "giovani"},
+    "carpenter_2025": {"sesso": "F", "eta": "giovani"},
+    "walsh_2025": {"sesso": "M", "eta": ""},
+    "rantila_2025": {"sesso": "misto", "eta": "giovani"}
   },
   "protocolli": [
     {
@@ -102,14 +118,229 @@
       "esperienza_lettura": "popolazione: «giovani uomini non allenati»",
       "esercizi": [["Squat con bilanciere", 1], ["Panca piana con bilanciere - presa media", 1], ["Rematore con bilanciere busto in avanti", 1]],
       "note": "Stesse serie sui tre esercizi; i bracci differiscono per la struttura della serie."
+    },
+    {
+      "id": "androulakis_2018_per",
+      "record_ids": ["helms_2018_daily_max_vs_periodized_arm1"],
+      "riferimento": "Androulakis-Korakakis P, Fisher JP, Kolokotronis P, Gentil P, Steele J (2018). Reduced Volume 'Daily Max' Training Compared to Higher Volume Periodized Training in Powerlifters Preparing for Competition - A Pilot Study. Sports 6(3):86",
+      "doi": "10.3390/sports6030086",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6162635/",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: «10 powerlifter agonisti» della squadra AEK, 5 ± 2 anni di pesi e 2 ± 1 di powerlifting (gli autori li dicono da principianti a intermedi nel powerlifting): agonisti, quindi avanzato",
+      "esercizi": [["Squat con bilanciere", 11.5], ["Panca piana con bilanciere - presa media", 21.8], ["Stacco da terra con bilanciere", 6.2]],
+      "note": "Braccio PER (periodizzato), tabella 1: settimana media delle 10 settimane, col valore centrale di ogni intervallo di serie per seduta moltiplicato per le sedute (squat 2, panca 3, stacco 1). Solo le alzate di gara, senza complementari, come nell'articolo. Nel corpus lo studio è attribuito per errore a «Helms et al. (2018)»: citazione corretta qui."
+    },
+    {
+      "id": "androulakis_2018_max",
+      "record_ids": ["helms_2018_daily_max_vs_periodized_arm2"],
+      "riferimento": "Androulakis-Korakakis P, Fisher JP, Kolokotronis P, Gentil P, Steele J (2018). Reduced Volume 'Daily Max' Training Compared to Higher Volume Periodized Training in Powerlifters Preparing for Competition - A Pilot Study. Sports 6(3):86",
+      "doi": "10.3390/sports6030086",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6162635/",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: «10 powerlifter agonisti» della squadra AEK, 5 ± 2 anni di pesi e 2 ± 1 di powerlifting: agonisti, quindi avanzato",
+      "esercizi": [["Squat con bilanciere", 2], ["Panca piana con bilanciere - presa media", 2.9], ["Stacco da terra con bilanciere", 1.1]],
+      "note": "Braccio MAX (daily max), tabella 2: una serie da 1 a RPE 9-9,5 per alzata e seduta; settimana media delle 10 settimane (nell'ultima: panca 2 sedute, stacco 2)."
+    },
+    {
+      "id": "mangine_2015",
+      "studio": "mangine_2015",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: «33 uomini allenati», almeno 2 anni di pesi (5,7 ± 2,2): in media almeno 4 anni, quindi avanzato",
+      "esercizi": [["Squat con bilanciere", 8], ["Stacco da terra con bilanciere", 8], ["Pressa per gambe", 4], ["Affondo con bilanciere", 4], ["Lat pulldown presa larga", 4], ["Rematore con bilanciere busto in avanti", 4], ["Rematore seduto ai cavi", 4], ["Pullover con manubrio a braccia tese", 4], ["Curl con bilanciere", 4], ["Curl con manubri", 4], ["Panca piana con bilanciere - presa media", 8], ["Panca inclinata con bilanciere - presa media", 8], ["Croci con manubri", 4], ["Croci su panca inclinata con manubri", 4], ["Lento avanti con manubri", 8], ["Alzate laterali", 8], ["French press", 8]],
+      "note": "Tabella 1: 4 sedute (gambe e tirata nei giorni 1 e 3, spinta nei giorni 2 e 4), 4 serie per esercizio in entrambi i bracci (VOL 10-12 rip., INT 3-5 rip.): stesse proporzioni, un protocollo. «Seated shoulder press» reso come lento con manubri, «triceps extension» come French press: stessi muscoli."
+    },
+    {
+      "id": "haun_2019",
+      "studio": "haun_2019",
+      "esperienza": "intermedio",
+      "esperienza_lettura": "popolazione: «uomini giovani allenati», più di un anno di pesi e squat ≥ 1,5 × peso corporeo; gli anni medi sono dichiarati solo per i 15 che sono cresciuti di più (5,5 ± 2,8): resta intermedio",
+      "esercizi": [["Squat con bilanciere", 3], ["Panca piana con bilanciere - presa media", 2], ["Military press in piedi", 1], ["Stacco a gambe tese con bilanciere", 3], ["Lat pulldown presa supina", 3]],
+      "note": "3 sedute: giorni 1 e 3 squat, panca, stacco a gambe tese, lat pulldown presa supina; giorno 2 squat, lento in piedi, stacco a gambe tese, lat pulldown. Le serie crescono da 10 a 32 a settimana per esercizio (panca e lento insieme), ma le proporzioni restano le stesse."
+    },
+    {
+      "id": "arazi_2021",
+      "studio": "arazi_2021",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: «powerlifter maschi» di un club, 4,7 ± 1,2 anni di allenamento: agonisti, quindi avanzato",
+      "esercizi": [["Panca piana con bilanciere - presa media", 21], ["Squat con bilanciere", 21], ["Stacco da terra con bilanciere", 21], ["Military press in piedi", 12], ["Curl con bilanciere", 12], ["Estensione tricipiti da sdraiato", 12], ["Pressa per gambe", 12], ["Leg extension", 12]],
+      "note": "2 sedute di powerlifting (4-5 serie di panca, squat e stacco: 4,5) più 3 sedute di 8 esercizi da 4 serie (tabella 4). I bracci CS (serie a grappolo) e TS (serie tradizionali) hanno gli stessi esercizi e le stesse serie: un protocollo. Il gruppo di controllo (solo le 2 sedute di powerlifting) non entra."
+    },
+    {
+      "id": "blake_2025",
+      "studio": "blake_2025",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: «uomini e donne ben allenati» (10 + 7): ben allenati secondo gli autori, quindi avanzato",
+      "esercizi": [["Stacco rumeno", 8], ["Leg extension", 10], ["Panca piana con bilanciere - presa media", 8], ["Lat machine avanti presa stretta", 8], ["Calf da seduto", 10], ["Alzate laterali da seduto ai cavi", 6], ["Squat con bilanciere", 8], ["Leg curl da sdraiato", 10], ["Military press in piedi", 6], ["Rematore seduto ai cavi", 6], ["Croci ai cavi (cable crossover)", 10], ["Pushdown per tricipiti", 4], ["Curl con manubri", 4]],
+      "note": "Tabella 2: allenamenti A e B alternati, 4 sedute a settimana (A-B-A-B), quindi ogni esercizio due volte. I due bracci (alimentazione a finestra o libera) si allenano allo stesso modo: un protocollo."
+    },
+    {
+      "id": "fortes_2018",
+      "studio": "fortes_2018",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: 36 uomini di 18-30 anni «ben allenati», con almeno 5 anni consecutivi di pesi: avanzato",
+      "esercizi": [["Panca piana con bilanciere - presa media", 6], ["Pressa per gambe", 6], ["Rematore seduto ai cavi", 6], ["Squat con bilanciere", 6], ["Shoulder press a leva", 6], ["Leg curl da sdraiato", 6]],
+      "note": "Tabella 1: 6 esercizi a 10 RM, 6 serie a settimana per esercizio in tutti e tre i bracci (1 seduta da 6 serie, 2 da 3 o 3 da 2): stesse proporzioni, un protocollo."
+    },
+    {
+      "id": "tizar_2026",
+      "studio": "tizar_2026",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: 30 cestisti semiprofessionisti di 18-24 anni, almeno 2 anni di sport regolare: agonisti, quindi avanzato (l'esperienza con i pesi non è indicata)",
+      "esercizi": [["Squat con bilanciere", 4.67], ["Panca piana con bilanciere - presa media", 4.67], ["Stacco da terra con bilanciere", 4.67], ["Affondi con manubri", 3], ["Trazioni alla sbarra (pull-up)", 4], ["Distensioni su panca inclinata con manubri", 3], ["Face pull", 3], ["Split squat bulgaro con manubri", 3], ["Rematore a un braccio con manubrio", 4], ["Ab rollout con bilanciere in ginocchio", 3], ["@Core", 6]],
+      "note": "Tabella 2: 3 sedute (squat, panca, stacco + complementari). Le alzate principali: 5 serie per 5 settimane e 3 nella sesta (tabella 3), in media 4,67. Plank o leg raise e side plank o russian twist contati come lavoro diretto sul core. Non contati: jump squat, box jump, salto in lungo, farmer's walk e il circuito di condizionamento (pliometria e trasporti, come nelle schede)."
+    },
+    {
+      "id": "hermassi_2019",
+      "studio": "hermassi_2019",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: giocatori di pallamano della prima lega nazionale, già abituati a un allenamento di forza moderato: agonisti, quindi avanzato",
+      "esercizi": [["Girata e slancio (clean and jerk)", 1], ["Panca piana con bilanciere - presa media", 1], ["Strappo (snatch)", 1], ["Squat con bilanciere", 1]],
+      "note": "Tabella 1: 2 sedute a settimana con slancio, panca, strappo e mezzo squat, sempre con le stesse serie sui quattro esercizi (3-4): proporzioni uguali. Il mezzo squat è reso come squat con bilanciere."
+    },
+    {
+      "id": "gavanda_2026",
+      "studio": "gavanda_2026",
+      "esperienza": "intermedio",
+      "esperienza_lettura": "popolazione: 22 uomini allenati di 18-35 anni, almeno un anno di panca: intermedio",
+      "esercizi": [["Panca piana con bilanciere - presa media", 11.33], ["Rematore con bilanciere busto in avanti", 5.78], ["Squat con bilanciere", 5.78], ["Trazioni presa supina (chin-up)", 2.89], ["Stacco da terra con bilanciere", 2.89]],
+      "note": "Tabella 2: 3 sedute; settimana media delle settimane 1-9 (la 10ª è di test). I due bracci fanno gli stessi esercizi con le stesse serie (uno usa un attrezzo elastico sulla panca): un protocollo."
+    },
+    {
+      "id": "helms_2023",
+      "studio": "helms_2023",
+      "esperienza": "intermedio",
+      "esperienza_lettura": "popolazione: 21 persone allenate (19 uomini, 2 donne), almeno un anno di pesi con squat e panca ogni settimana: intermedio",
+      "esercizi": [["Squat con bilanciere", 3], ["Panca piana con bilanciere - presa media", 3], ["Lat machine avanti presa stretta", 2], ["Lento avanti con manubri", 2], ["Curl con bilanciere", 2], ["Rematore a un braccio con manubrio", 1], ["Alzate laterali", 1], ["Hammer curl", 1]],
+      "note": "Tabelle 3-5: 3 sedute; squat e panca ogni seduta, lat pulldown, lento con manubri e curl nei giorni 1 e 3, rematore, alzate laterali e hammer curl nel giorno 2; stesse serie per esercizio (3, 2 nella prima e nell'ultima settimana). I tre bracci differiscono solo per l'alimentazione: un protocollo."
+    },
+    {
+      "id": "decamargo_2021_forza",
+      "studio": "decamargo_2021",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: 16 uomini «allenati per diletto», 4,6 ± 0,7 anni di pesi: in media almeno 4 anni, quindi avanzato",
+      "tipi": ["forza"],
+      "esercizi": [["Panca piana con bilanciere - presa media", 6], ["Panca inclinata con bilanciere - presa media", 6], ["Squat con bilanciere", 12], ["Rematore con bilanciere busto in avanti", 6], ["Rematore busto in avanti presa supina", 6], ["Stacco a gambe tese con bilanciere", 12]],
+      "note": "Tabella 2, ciclo di forza massima (2-4 RM): 4 sedute, ogni esercizio due volte a settimana. Testo letto da pmc.ncbi.nlm.nih.gov (Europe PMC non lo fornisce); trascrizione in Doc/riferimenti-distribuzione/studi-testi/PMC8439707-tabelle.txt."
+    },
+    {
+      "id": "decamargo_2021_resistenza",
+      "studio": "decamargo_2021",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: 16 uomini «allenati per diletto», 4,6 ± 0,7 anni di pesi: in media almeno 4 anni, quindi avanzato",
+      "tipi": ["resistenza"],
+      "esercizi": [["Panca piana con bilanciere - presa media", 8], ["Croci con manubri", 8], ["Estensione tricipiti da sdraiato", 8], ["Squat con bilanciere", 16], ["Rematore con bilanciere busto in avanti", 8], ["Reverse flye (alzate posteriori su panca)", 8], ["Curl con bilanciere", 8], ["Stacco a gambe tese con bilanciere", 16]],
+      "note": "Tabella 3, ciclo di «forza resistente» come lo chiamano gli autori (10-12 RM, un minuto di recupero): 4 sedute, ogni esercizio due volte a settimana. «Inverted dumbbell fly» reso come alzate posteriori."
+    },
+    {
+      "id": "carpenter_2025",
+      "studio": "carpenter_2025",
+      "esperienza": "intermedio",
+      "esperienza_lettura": "popolazione: 14 donne allenate, almeno 6 mesi di pesi due volte a settimana: intermedio",
+      "esercizi": [["Pressa per gambe", 9], ["Distensioni su panca piana con manubri", 9], ["Stacco con trap bar", 9], ["Lat machine avanti presa stretta", 9], ["Hip thrust con bilanciere", 9], ["Lento in piedi con manubri", 9]],
+      "note": "3 sedute, 6 esercizi da 3 serie (8-15 rip.) in entrambi i bracci: circuito ad alta intensità (resistenza) o serie tradizionali (forza). Stesse proporzioni: un protocollo."
+    },
+    {
+      "id": "walsh_2025",
+      "studio": "walsh_2025",
+      "esperienza": "",
+      "esperienza_lettura": "popolazione: rugbisti adolescenti (sotto i 18 anni); l'esperienza con i pesi non è indicata",
+      "esercizi": [["Panca piana con bilanciere - presa media", 4], ["Stacco rumeno", 7], ["Goblet squat", 3], ["Rematore a un braccio con manubrio", 3], ["@Core", 3], ["Front squat con bilanciere", 4], ["Floor press con manubri", 3], ["Trazioni presa supina (chin-up)", 3]],
+      "note": "Tabella 5: 2 sedute a settimana dopo la pliometria (non contata). Stacco rumeno = 4 serie col bilanciere + 3 coi manubri; dead bug con elastico come lavoro diretto sul core; bear crawl non contato (come nelle schede)."
+    },
+    {
+      "id": "rantila_2025",
+      "studio": "rantila_2025",
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: uomini e donne non allenati (meno di 10 sedute di pesi all'anno), 32 ± 5 anni: principiante",
+      "esercizi": [["Pressa per gambe", 8], ["Leg extension", 8], ["Panca piana al multipower", 6], ["Curl con bilanciere", 8], ["Rematore seduto ai cavi", 8]],
+      "note": "2 sedute uguali a settimana: pressa 4 serie, leg extension 4, panca al multipower 3, curl 4, rematore seduto con appoggio al petto 4."
     }
   ],
+  "studi_aggiunti": {
+    "mangine_2015": {
+      "riferimento": "Mangine GT, Hoffman JR, Gonzalez AM, et al. (2015). The effect of training volume and intensity on improvements in muscular strength and size in resistance-trained men. Physiol Rep 3(8):e12472",
+      "doi": "10.14814/phy2.12472", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4562558/", "licenza_articolo": "CC BY",
+      "popolazione": "33 uomini allenati, 24 anni, 5,7 ± 2,2 anni di pesi", "tipo_dichiarato": "volume alto (VOL) contro intensità alta (INT)",
+      "tipi": ["ipertrofia", "forza"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC4562558.xml"
+    },
+    "haun_2019": {
+      "riferimento": "Haun CT, Vann CG, Osburn SC, et al. (2019). Muscle fiber hypertrophy in response to 6 weeks of high-volume resistance training in trained young men is largely attributed to sarcoplasmic hypertrophy. PLoS One 14(6):e0215267",
+      "doi": "10.1371/journal.pone.0215267", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6550381/", "licenza_articolo": "CC BY",
+      "popolazione": "31 uomini allenati, college, squat ≥ 1,5 × peso corporeo", "tipo_dichiarato": "volume molto alto (da 10 a 32 serie a settimana)",
+      "tipi": ["ipertrofia"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC6550381.xml"
+    },
+    "arazi_2021": {
+      "riferimento": "Arazi H, Khoshnoud A, Asadi A, Tufano JJ (2021). The effect of resistance training set configuration on strength and muscular performance adaptations in male powerlifters. Sci Rep 11(1):7844",
+      "doi": "10.1038/s41598-021-87372-y", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8041766/", "licenza_articolo": "CC BY",
+      "popolazione": "24 powerlifter maschi, 23 anni, 4,7 anni di allenamento", "tipo_dichiarato": "serie a grappolo contro serie tradizionali, in powerlifter",
+      "tipi": ["powerlifting", "forza"], "agonismo": "powerlifting (club)", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC8041766.xml"
+    },
+    "blake_2025": {
+      "riferimento": "Blake DT, Hamane C, Pacheco C, et al. (2025). Hypercaloric 16:8 time-restricted eating during 8 weeks of resistance exercise in well-trained men and women. J Int Soc Sports Nutr 22(1):2492184",
+      "doi": "10.1080/15502783.2025.2492184", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12006946/", "licenza_articolo": "CC BY-NC",
+      "popolazione": "17 uomini e donne ben allenati, circa 25 anni", "tipo_dichiarato": "allenamento progressivo in surplus calorico (massa e forza)",
+      "tipi": ["ipertrofia"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC12006946.xml"
+    },
+    "fortes_2018": {
+      "riferimento": "Fortes LS, Costa MC, Ferreira MEC, et al. (2018). Frequency of resistance training does not affect inhibitory control or improve strength in well-trained young adults. PLoS One 13(11):e0206784",
+      "doi": "10.1371/journal.pone.0206784", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6214533/", "licenza_articolo": "CC BY",
+      "popolazione": "36 uomini di 18-30 anni, almeno 5 anni di pesi", "tipo_dichiarato": "programma secondo le linee guida per adulti sani, 1-3 sedute a settimana",
+      "tipi": ["generale"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC6214533.xml"
+    },
+    "tizar_2026": {
+      "riferimento": "Tizar E, Erdoğan R (2026). Short-term effects of powerlifting-based training on hormonal, metabolic, and lipid profile markers in male basketball players: a randomized controlled trial. BMC Sports Sci Med Rehabil 18(1):433",
+      "doi": "10.1186/s13102-026-01832-4", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13595689/", "licenza_articolo": "CC BY-NC-ND",
+      "popolazione": "30 cestisti semiprofessionisti, 18-24 anni", "tipo_dichiarato": "allenamento basato sul powerlifting, forza e potenza esplosiva",
+      "tipi": ["powerlifting", "potenza"], "agonismo": "sport: pallacanestro (semiprofessionisti)", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC13595689.xml"
+    },
+    "hermassi_2019": {
+      "riferimento": "Hermassi S, Ghaith A, Schwesig R, et al. (2019). Effects of short-term resistance training and tapering on maximal strength, peak power, throwing ball velocity, and sprint performance in handball players. PLoS One 14(7):e0214827",
+      "doi": "10.1371/journal.pone.0214827", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6611564/", "licenza_articolo": "CC BY",
+      "popolazione": "giocatori di pallamano della prima lega nazionale", "tipo_dichiarato": "programma di pesistica (slancio, strappo) con panca e mezzo squat",
+      "tipi": ["potenza"], "agonismo": "sport: pallamano (prima lega nazionale)", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC6611564.xml"
+    },
+    "gavanda_2026": {
+      "riferimento": "Gavanda S, Wischtukat D, Ruckdeschel M, et al. (2026). Training with an elastic bench press device provides comparable adaptations to conventional resistance training in trained men. Biol Sport 43:839-846",
+      "doi": "10.5114/biolsport.2026.157993", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13217382/", "licenza_articolo": "CC BY",
+      "popolazione": "22 uomini allenati di 18-35 anni, almeno un anno di panca", "tipo_dichiarato": "forza sulla panca con periodizzazione a blocchi",
+      "tipi": ["forza"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC13217382.xml"
+    },
+    "helms_2023": {
+      "riferimento": "Helms ER, Spence AJ, Sousa C, et al. (2023). Effect of Small and Large Energy Surpluses on Strength, Muscle, and Skinfold Thickness in Resistance-Trained Individuals: A Parallel Groups Design. Sports Med Open 9(1):102",
+      "doi": "10.1186/s40798-023-00651-y", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10620361/", "licenza_articolo": "CC BY",
+      "popolazione": "21 persone allenate (19 uomini, 2 donne), almeno un anno di pesi", "tipo_dichiarato": "forza e massa con surplus calorico diversi",
+      "tipi": ["ipertrofia", "forza"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC10620361.xml"
+    },
+    "decamargo_2021": {
+      "riferimento": "de Camargo JBB, Brigatto FA, Braz TV, et al. (2021). Order of Resistance Training Cycles to Develop Strength and Muscle Thickness in Resistance-Trained Men: A Pilot Study. Int J Exerc Sci 14(4):644-656",
+      "doi": "10.70252/oqpo3154", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8439707/", "licenza_articolo": "licenza non indicata",
+      "popolazione": "16 uomini allenati per diletto, 25 anni, 4,6 anni di pesi", "tipo_dichiarato": "ciclo di forza massima e ciclo di forza resistente, in due ordini",
+      "tipi": ["forza", "resistenza"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC8439707-tabelle.txt"
+    },
+    "carpenter_2025": {
+      "riferimento": "Carpenter SL, Helms ER, Pendakur RC, et al. (2025). Effects of High Intensity Circuit Versus Traditional Strength Training on Physiological Responses in Trained Women. Eur J Sport Sci 25(5):e12298",
+      "doi": "10.1002/ejsc.12298", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12051434/", "licenza_articolo": "CC BY",
+      "popolazione": "14 donne allenate, 28 anni", "tipo_dichiarato": "circuito ad alta intensità contro forza tradizionale",
+      "tipi": ["forza", "resistenza"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC12051434.xml"
+    },
+    "walsh_2025": {
+      "riferimento": "Walsh CM, Esformes JI, Moody JA, et al. (2025). Effects of a Combined Plyometric and Resistance Training Programme on Adolescent Rugby Union Players. Muscles 4(2):17",
+      "doi": "10.3390/muscles4020017", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12196436/", "licenza_articolo": "CC BY",
+      "popolazione": "rugbisti adolescenti maschi", "tipo_dichiarato": "pliometria e forza nella stessa seduta",
+      "tipi": ["forza", "potenza"], "agonismo": "sport: rugby union (adolescenti)", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC12196436.xml"
+    },
+    "rantila_2025": {
+      "riferimento": "Räntilä A, Halonen EJ, Tiainen EJ, et al. (2025). Repeated Resistance Training Reveals the Reproducibility of Muscle Strength and Size Responses Within Individuals. Eur J Sport Sci 25(12):e70095",
+      "doi": "10.1002/ejsc.70095", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12659766/", "licenza_articolo": "CC BY",
+      "popolazione": "uomini e donne non allenati, 32 anni", "tipo_dichiarato": "forza e massa, due sedute uguali a settimana",
+      "tipi": ["ipertrofia", "forza"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC12659766.xml"
+    }
+  },
   "esclusi": {
     "hermann_2025": "elenco incompleto: 8 dei 9 esercizi",
     "coskun_2026": "elenco degli esercizi non riportato",
     "johnsen_2021": "elenco riassunto, serie per esercizio non riportate",
     "colquhoun_2018": "solo le alzate di gara, serie per alzata non riportate",
-    "helms_2018": "solo le alzate di gara, volume diverso settimana per settimana",
     "travis_2021": "esercizi complementari variabili per giorno e fase, serie non riportate",
     "hollis_2018": "schema generico (spinta, tirata, gambe) senza esercizi fissi"
   }

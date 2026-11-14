@@ -4,9 +4,11 @@
 Legge SOLO originali e file di lavoro, non scrive mai negli originali:
   - il pacchetto Codex v0.7 (ZIP intatto in Documentazione\\...\\01 Originali): corpus di
     evidenza, catalogo depot.fitness (CC BY 4.0), mappa esercizio-muscoli smyrdev (MIT);
-  - le schede pubblicate già scaricate in Doc/meta-analisi (StrengthLog, Muscle & Strength);
+  - le schede pubblicate già scaricate in Doc/meta-analisi (StrengthLog, Muscle & Strength) e i
+    programmi incorporati di Liftosaur (Doc/meta-analisi/liftosaur, AGPL-3.0, versione in COMMIT.txt);
   - il catalogo TMS (TMS_Dati/esercizi.json) e i nomi inglesi (tools/esercizi-en.json);
-  - tools/riferimenti/protocolli-studi.json (trascrizione TMS dei protocolli di studio);
+  - tools/riferimenti/protocolli-studi.json (trascrizione TMS dei protocolli di studio, del corpus
+    e degli articoli ad accesso aperto aggiunti dal TMS, descritti in «studi_aggiunti»);
   - tools/riferimenti/mappa-esterna-convalida.csv (stato di convalida della mappa esterna:
     le righe «convalidata», «corretta» o «rifiutata» scritte a mano si conservano).
 
@@ -134,15 +136,17 @@ def direzione(nome):
 # ═════════════ riconoscimento dei nomi inglesi (stesse regole di analizza.py) ═════════════
 STOP = set(['the', 'a', 'with', 'and', 'on', 'to', 'in', 'of', 'machine', 'barbell',
             'dumbbell', 'cable', 'bar', 'ez', 'smith', 'weighted'])
-SINON = [(r'\bpull\s*down\b', 'pulldown'), (r'\bpull\s*up\b', 'pullup'), (r'\bchin\s*up\b', 'chinup'),
-         (r'\bpush\s*up\b', 'pushup'), (r'\bpush\s*down\b', 'pushdown'), (r'\bsit\s*up\b', 'situp'),
+SINON = [(r'\bpull\s*downs?\b', 'pulldown'), (r'\bpull\s*ups?\b', 'pullup'), (r'\bchin\s*ups?\b', 'chinup'),
+         (r'\bpush\s*ups?\b', 'pushup'), (r'\bpush\s*downs?\b', 'pushdown'), (r'\bsit\s*ups?\b', 'situp'),
          (r'\bstiff\s*[- ]?\s*leg(ged)?\b', 'stifflegged'), (r'\bback squat\b', 'squat'),
          (r'\bstraight\s*arm\b', 'straightarm'), (r'\bbent\s*over\b', 'bentover'),
          (r'\bhyperextension\b', 'back extension'), (r'\bdb\b', ' '), (r'\bbb\b', ' ')]
+# numerazione davanti al nome nelle tabelle delle schede: «1b. Pull Up», «A2) French Press», «3. Dips»
+NUMERO = re.compile(r'^\s*(?:[a-z]?\d{1,2}[a-z]?|[a-z])\s*[.)]\s+', re.I)
 
 
 def norm(s):
-    s = s.lower()
+    s = NUMERO.sub('', s.lower())
     s = re.sub(r'\(.*?\)', ' ', s)
     s = re.sub(r'[^a-z ]', ' ', s)
     for pat, rep in SINON:
@@ -187,7 +191,7 @@ ALIAS_RAW = {
     'hack squat machine': 'Hack squat alla macchina', 'face pull': 'Face pull',
     'barbell lying triceps extension': 'Skull crusher con bilanciere EZ', 'lying triceps extension': 'Skull crusher con bilanciere EZ',
     'skullcrusher': 'Skull crusher con bilanciere EZ', 'close grip bench press': 'Panca piana presa stretta con bilanciere',
-    'push up': 'Piegamenti sulle braccia (push-up)', 'sumo deadlift': 'Stacco sumo',
+    'push up': 'Piegamenti sulle braccia', 'sumo deadlift': 'Stacco sumo',
     'bulgarian split squat': 'Split squat bulgaro con manubri', 'lunge': 'Affondi con manubri', 'walking lunge': 'Affondi con manubri',
     'shrug': 'Scrollate di spalle con manubri', 'crunch': 'Crunch', 'back extension': 'Iperestensioni (estensioni lombari)',
     'preacher curl': 'Curl alla panca Scott', 'concentration curl': 'Curl di concentrazione', 'spider curl': 'Spider curl',
@@ -204,27 +208,69 @@ ALIAS_RAW = {
     'inverted row': 'Rematore a corpo libero alla sbarra', 'sit up': 'Sit-up',
     'hanging leg raise': 'Sollevamento ginocchia/anche alle parallele', 'leg raise': 'Sollevamento ginocchia/anche alle parallele',
     'hanging knee raise': 'Sollevamento ginocchia/anche alle parallele',
-    'wrist curl': 'Wrist curl con bilanciere presa supina sopra la panca', 'good morning': 'Good morning con bilanciere',
+    'wrist curl': 'Wrist curl con bilanciere presa supina sopra la panca', 'good morning': 'Good morning',
     'split squat': 'Affondi / Split squat', 'step up': 'Step up con bilanciere', 'glute bridge': 'Glute bridge con bilanciere',
     'nordic ham curl': 'Leg curl prono manuale con partner', 'nordic hamstring eccentric': 'Leg curl prono manuale con partner',
     'incline dumbbell curl': 'Curl su panca inclinata con manubri', 'cable curl': 'Curl in piedi ai cavi',
-    'cable lateral raise': 'Alzate laterali da seduto ai cavi', 'front raise': 'Alzate frontali con manubri',
-    'upright row': 'Rematore verticale con bilanciere', 'single leg romanian deadlift': 'Stacco rumeno',
+    'cable lateral raise': 'Alzate laterali da seduto ai cavi', 'front raise': 'Alzata frontale a due manubri simultanea',
+    'upright row': 'Tirata al mento con bilanciere', 'single leg romanian deadlift': 'Stacco rumeno',
     'ab wheel roll out': 'Ab rollout con bilanciere in ginocchio', 'landmine press': 'Military press in piedi',
     'machine leg curl': 'Leg curl da sdraiato', 'cable pull through': 'Pull through ai cavi',
     'decline bench press': 'Panca declinata con bilanciere', 'incline dumbbell bench press': 'Distensioni su panca inclinata con manubri',
     'arnold press': 'Arnold Press con Manubri', 'zercher squat': 'Zercher squat', 'trap bar deadlift': 'Stacco con trap bar',
+    # aggiunti il 14/11/2026: i nomi non riconosciuti più frequenti nelle pagine e nei programmi Liftosaur
+    'rope pressdown': 'Pushdown per tricipiti', 'rope pushdown': 'Pushdown per tricipiti', 'pec dec': 'Pectoral machine (butterfly)',
+    'dumbbell flye': 'Croci con manubri', 'flat dumbbell press': 'Distensioni su panca piana con manubri',
+    'rear lateral raise': 'Croci per deltoidi posteriori ai cavi', 'bent over rear lateral raise': 'Croci per deltoidi posteriori ai cavi',
+    'single arm lateral raise': 'Alzate laterali', 'alternating standing lateral raise': 'Alzate laterali',
+    'hamstring curl': 'Leg curl da sdraiato', 'french press': 'French press', 'wide grip pull up': 'Trazioni alla sbarra (pull-up)',
+    'medium width grip pull up': 'Trazioni alla sbarra (pull-up)', 'hammer strength row': 'Rematore seduto ai cavi',
+    'hammer strength press': 'Chest press alla macchina', 'machine press': 'Chest press alla macchina',
+    'straight arm lat pulldown': 'Pullover con manubrio a braccia tese', 'single leg calf raise': 'Calf in piedi alla macchina',
+    'wide grip upright row': 'Tirata al mento con bilanciere', 'wide grip cable upright row': 'Tirata al mento ai cavi',
+    'behind the back upright row': 'Tirata al mento con bilanciere',
+    'bicycle crunch': 'Crunch', 'side crunch': 'Crunch per obliqui', 'ab bicycle': 'Crunch', 'v up': 'Crunch',
+    'superman': 'Iperestensioni (estensioni lombari)', 'low back extension': 'Iperestensioni (estensioni lombari)',
+    'degree back extension': 'Iperestensioni (estensioni lombari)', 'reverse hyper': 'Iperestensioni (estensioni lombari)',
+    'lateral lunge': 'Affondi con manubri', 'side lunge': 'Affondi con manubri', 'glute kick back': 'Glute kickback (slancio per glutei)',
+    'cable kickback': 'Kickback al cavo su una gamba', 'donkey kick': 'Glute kickback (slancio per glutei)',
+    'hip abduction machine': 'Macchina abduttori', 'hip abductor': 'Macchina abduttori', 'side hip abductor': 'Macchina abduttori',
+    'side lying clam': 'Macchina abduttori', 'adduction machine': 'Macchina adduttori', 'hip adductor': 'Macchina adduttori',
+    'barbell rollout': 'Ab rollout con bilanciere', 'ab wheel': 'Ruota Addominale', 'kneeling ab wheel': 'Ruota Addominale',
+    'rear foot elevated bulgarian split squat': 'Split squat bulgaro con manubri', 'neutral grip cable row': 'Rematore seduto ai cavi',
+    'seated wide grip row': 'Rematore seduto ai cavi', 'chest supported dumbbell row': 'Rematore a un braccio con manubrio',
+    'meadows row': 'Rematore a un braccio con manubrio', 'pendlay row': 'Rematore con bilanciere busto in avanti',
+    'standing cable fly': 'Croci ai cavi (cable crossover)', 'single arm cable lateral raise': 'Alzate laterali da seduto ai cavi',
+    'rope cable curl': 'Hammer curl ai cavi con corda', 'ez bar overhead extension': 'French press',
+    'single arm overhead extension': 'Estensione tricipiti a un braccio con manubrio',
+    'barbell conventional deadlift': 'Stacco da terra con bilanciere', 'dumbbell pullover': 'Pullover con manubrio a braccia tese',
+    'dumbbell skull crusher': 'Estensione tricipiti da sdraiato con manubri', 'diamond push up': 'Piegamenti a presa stretta per tricipiti',
+    'single leg dumbbell deadlift': 'Stacco rumeno', 'dumbbell single leg rdl': 'Stacco rumeno', 'single leg deadlift': 'Stacco rumeno',
+    'lying floor leg raise': 'Leg raise da sdraiato su panca piana', 'toes to bar': 'Leg raise da appeso',
+    'frog pump': 'Ponte per glutei', 'landmine squat': 'Goblet squat', 'dumbbell shrug': 'Scrollate di spalle con manubri',
+    'legs up bench press': 'Panca piana con bilanciere - presa media', 'sling shot bench press': 'Panca piana con bilanciere - presa media',
+    'kneeling pulldown': 'Lat machine avanti presa stretta', 'safety squat bar squat': 'Squat con bilanciere',
+    'chest dip': 'Dip alle parallele - versione petto', 'triceps dip': 'Dip alle parallele', 'cable twist': 'Russian twist ai cavi',
+    'single leg hip thrust': 'Hip thrust con bilanciere', 'reverse lunge': "Affondo all'indietro con manubri",
+    'reverse wrist curl': 'Wrist curl con bilanciere presa prona sopra la panca', 'band cable twist': 'Russian twist ai cavi',
+    'band hip abductor': 'Macchina abduttori', 'seated chest press': 'Chest press alla macchina',
+    'one arm overhead press': 'Lento a un braccio con manubrio',
 }
-ALIAS = dict((' '.join(norm(k)), v) for k, v in ALIAS_RAW.items() if v in cat)
+ALIAS = {}
+for _k, _v in ALIAS_RAW.items():     # a parità di chiave normalizzata vince la PRIMA voce, la più generica:
+    if _v in cat:                    # «dumbbell lateral raise» e «cable lateral raise» diventano entrambe
+        ALIAS.setdefault(' '.join(norm(_k)), _v)   # «lateral raise» (l'attrezzo non conta nella chiave)
 
 SKIP = ['carry', 'ball slam', 'jump rope', 'wood chop', 'sled', 'battle rope', 'sprint', 'treadmill', 'bike',
         'rowing machine', 'burpee', 'mountain climber', 'jumping jack', 'stretch', 'foam roll', 'mobility', 'warm',
         'cardio', 'rest', 'drop ', 'amrap', 'kettlebell swing', 'box jump', 'agility', 'conditioning', 'walk',
-        'run ', 'plank', 'dead hang', 'hold', 'bear crawl', 'crawl', 'jump', 'throw', 'toss', 'circuit']
+        'run ', 'plank', 'dead hang', 'hold', 'bear crawl', 'crawl', 'jump', 'throw', 'toss', 'circuit', 'pass through']
 
 
 def salta(nome):
     n = nome.lower().strip()
+    if 'lunge' in n:                       # «walking lunge» è un affondo, non una camminata
+        n = n.replace('walking', 'w.')
     return (not n) or len(n) < 3 or any(k in n for k in SKIP)
 
 
@@ -548,6 +594,7 @@ def schede_pubblicate(est):
             'D': c.arr(c.tD), 'I': c.arr(c.tI), 'eD': c.arr(c.eD), 'eI': c.arr(c.eI),
             'etichette_originali': orig,
             'origine_esperienza': 'livello dichiarato dalla scheda' if liv else '',
+            'stato': 'lettura automatica delle tabelle della pagina',
         }
         if intera:
             voci.append(voce)
@@ -586,6 +633,7 @@ def depot(z, est):
             'etichette_originali': {'livello': p['level'], 'obiettivo': p['goals'], 'struttura': p['type'],
                                     'attrezzatura': p['equipment']},
             'origine_esperienza': 'livello dichiarato dalla scheda',
+            'stato': 'prescrizioni del dataset (CC BY 4.0), esercizi ricondotti al catalogo TMS',
         }
         if slug not in per_prog:
             scarti.append(dict(base, motivo='solo i totali del programma (serie per esercizio non pubblicate)'))
@@ -623,6 +671,218 @@ def depot(z, est):
     return voci, scarti
 
 
+# ═════════════════════════ Liftosaur (programmi incorporati) ═════════════════════════
+# 61 programmi noti (Sheiko, Calgary Barbell, 5/3/1, GZCL, PHUL…) scritti in Liftoscript nel
+# repository github.com/astashov/liftosaur (AGPL-3.0; i programmi sono di autori terzi). Le copie
+# stanno in Doc/meta-analisi/liftosaur (fuori da git), con la versione in COMMIT.txt.
+AGE_LIFTO = {'less_than_3_months': 'principiante', '3_to_12_months': 'intermedio', 'more_than_year': 'avanzato'}
+GOAL_LIFTO = {'strength': ['forza'], 'hypertrophy': ['ipertrofia'], 'strength_and_hypertrophy': ['forza', 'ipertrofia']}
+SET_LS = re.compile(r'^\s*\d+\s*x\s*\d+')
+
+
+def serie_ls(spec):
+    """serie di una prescrizione Liftoscript: «1x5 50%, 2x4 60%, 5x3 75%» → 8"""
+    return sum(int(x) for x in re.findall(r'(\d+)\s*x\s*\d+', spec or ''))
+
+
+def settimane_ls(rr):
+    """«[1-8]» → settimane 0..7; «[2,1-8]» (ordine, settimane) → 0..7; «[3]» → la terza"""
+    if rr is None:
+        return None
+    p = rr.split(',')[-1].strip()
+    a = p.split('-')
+    if len(a) == 2 and a[0].isdigit() and a[1].isdigit():
+        return list(range(int(a[0]) - 1, int(a[1])))
+    if p.isdigit():
+        return [int(p) - 1]
+    return None
+
+
+def righe_liftoscript(testo):
+    """righe utili dei blocchi ```liftoscript: senza commenti, senza gli script {~ … ~} (anche
+    più d'uno di fila) e con le righe spezzate da «\\» riunite"""
+    righe = []
+    for blocco in re.findall(r'```liftoscript\s*\n(.*?)```', testo, re.S):
+        buf, script = '', False
+        for r in blocco.split('\n'):
+            s = r.strip()
+            if script:
+                if '~}' not in s:
+                    continue
+                s = s[s.rindex('~}') + 2:]
+                script = False
+                if '{~' in s and '~}' not in s[s.index('{~'):]:
+                    script = True
+                continue
+            if '{~' in s:
+                coda = s[s.index('{~'):]
+                script = '~}' not in coda or coda.rindex('{~') > coda.rindex('~}')
+                s = s[:s.index('{~')].strip()
+            if s.endswith(chr(92)):
+                buf += s[:-1] + ' '
+                continue
+            s, buf = (buf + s).strip(), ''
+            if s and not s.startswith('//'):
+                righe.append(s)
+    return righe
+
+
+def leggi_liftoscript(testo):
+    """Serie di un programma Liftoscript per GIORNO di allenamento, in media su tutto il ciclo:
+    ({esercizio: serie per giorno}, settimane del ciclo, giorni del ciclo). Regole: si conta la
+    prima variante di serie («4x3, 1x3+ / 5x2…» → 5 serie); «...nome» rimanda a un modello o a
+    un altro esercizio; «Esercizio[1-8]» si ripete nelle settimane indicate; una definizione vale
+    dalla sua settimana in poi finché non cambia; un modello ridefinito in un giorno vale da quel
+    giorno (e, nelle settimane dopo, nello stesso giorno)."""
+    righe = righe_liftoscript(testo)
+    testa = re.compile(r'^(?:([\w-]+):\s*)?(.*?)\s*(?:\[([^\]]*)\])?$')
+    modelli = set()
+    for s in righe:
+        seg = [x.strip() for x in s.split(' / ')]
+        if any(x.startswith('used:') for x in seg[1:]):
+            modelli.add(testa.match(seg[0]).group(2))
+    defm = collections.defaultdict(list)    # modello → [(settimana, giorno o None se vale ovunque, serie)]
+    occ = collections.defaultdict(list)     # (giorno, etichetta, esercizio) → [(settimana, settimane ripetute, serie, rimando)]
+    w, d = -1, -1
+    for s in righe:
+        if s.startswith('## '):
+            d += 1
+            continue
+        if s.startswith('# '):
+            w, d = w + 1, -1
+            continue
+        w, d = max(w, 0), max(d, 0)
+        seg = [x.strip() for x in s.split(' / ')]
+        m = testa.match(seg[0])
+        lab, nome, rr = m.group(1), m.group(2).strip(), m.group(3)
+        sets = next((x for x in seg[1:] if SET_LS.match(x)), '')
+        ref = next((re.sub(r'\[.*?\]', '', x[3:]).strip() for x in seg[1:] if x.startswith('...')), '')
+        if not lab and nome in modelli:
+            if any(x.startswith('used:') for x in seg[1:]):
+                defm[nome].append((0, None, sets))
+            else:
+                ws = settimane_ls(rr)
+                defm[nome].append((ws[0] if ws else w, d, sets))
+            continue
+        occ[(d, lab or '', nome)].append((w, settimane_ls(rr), sets, ref))
+    n_sett = w + 1
+    for v in occ.values():
+        for (_, ws, _, _) in v:
+            if ws:
+                n_sett = max(n_sett, ws[-1] + 1)
+
+    def modello(nome, sett, giorno):
+        cand = [x for x in defm.get(nome, []) if x[2] and (x[0] < sett or (x[0] == sett and (x[1] is None or x[1] <= giorno)))]
+        stesso = [x for x in cand if x[1] == giorno]
+        if stesso:
+            return max(stesso, key=lambda x: x[0])[2]
+        return max(cand, key=lambda x: (x[0], -1 if x[1] is None else x[1]))[2] if cand else ''
+
+    per_nome = {}
+    for (dd, lab, nome), v in occ.items():
+        for (ww, _, sets, ref) in v:
+            if sets:
+                per_nome.setdefault(nome, sets)
+
+    def spec(x, nome, sett, giorno):
+        return x[2] or modello(x[3], sett, giorno) or per_nome.get(x[3], '') or per_nome.get(nome, '')
+
+    tot, giorni = collections.Counter(), set()
+    for (dd, lab, nome), v in occ.items():
+        for sett in range(n_sett):
+            proprie = [x for x in v if x[0] == sett]
+            if proprie:                      # scritte in questa settimana: contano tutte
+                for x in proprie:
+                    tot[nome] += serie_ls(spec(x, nome, sett, dd))
+                giorni.add((sett, dd))
+                continue
+            if not any(x[1] and sett in x[1] and x[0] <= sett for x in v):
+                continue                     # né scritto né ripetuto in questa settimana
+            prima = [x for x in v if x[0] <= sett and (x[2] or x[3])]
+            if prima:                        # ripetuto: vale l'ultima definizione
+                tot[nome] += serie_ls(spec(max(prima, key=lambda y: y[0]), nome, sett, dd))
+                giorni.add((sett, dd))
+    n_giorni = len(giorni) or 1
+    return dict((k, q / float(n_giorni)) for k, q in tot.items() if q > 0), n_sett, n_giorni
+
+
+EQUIP_LS = {'bodyweight': '', 'barbell': 'barbell', 'dumbbell': 'dumbbell', 'cable': 'cable', 'leverage machine': 'machine',
+            'smith machine': 'smith', 'band': 'band', 'ez bar': 'ez', 'kettlebell': 'kettlebell', 'trap bar': 'trap bar'}
+
+
+def nome_ls(n):
+    """«Bench Press, Dumbbell» → «dumbbell Bench Press»; fra alternative «A | B | C» vale la prima"""
+    n = n.split('|')[0].strip()
+    if ',' in n:
+        a, b = n.split(',', 1)
+        e = EQUIP_LS.get(b.strip().lower(), b.strip())
+        return (e + ' ' + a.strip()).strip()
+    return n
+
+
+def liftosaur(est):
+    cart = os.path.join(META, 'liftosaur')
+    voci, scarti = [], []
+    if not os.path.isdir(cart):
+        return voci, scarti, ''
+    commit = ''
+    if os.path.exists(os.path.join(cart, 'COMMIT.txt')):
+        commit = io.open(os.path.join(cart, 'COMMIT.txt'), encoding='utf-8').read().split()[0]
+    for f in sorted(glob.glob(os.path.join(cart, '*.md'))):
+        t = io.open(f, encoding='utf-8').read()
+        parti = t.split('---')
+        fm = dict(re.findall(r'^(\w+):\s*"?(.*?)"?\s*$', parti[1], re.M)) if len(parti) > 2 else {}
+        pid = fm.get('id') or os.path.basename(f)[:-3]
+        per_giorno, n_sett, n_giorni = leggi_liftoscript(t)
+        try:                                # settimana di calendario: serie per giorno × giorni a settimana
+            freq = float(fm.get('frequency') or 0)
+        except ValueError:
+            freq = 0
+        freq = freq or n_giorni / float(n_sett)
+        per = dict((k, q * freq) for k, q in per_giorno.items())
+        c = Conto(est)
+        righe = risolte = 0
+        for nome, s in sorted(per.items()):
+            if salta(nome_ls(nome)):
+                continue
+            righe += 1
+            r = risolvi(nome_ls(nome))
+            if not r:
+                continue
+            risolte += 1
+            c.aggiungi(r, s)
+        tipi = list(GOAL_LIFTO.get(fm.get('goal', ''), ['generale']))
+        if 'powerlifting' in (fm.get('name', '') + ' ' + fm.get('shortDescription', '')).lower():
+            tipi = ['powerlifting'] + tipi
+        cop = risolte / float(righe or 1)
+        intera, equil = criteri(c, cop)
+        voce = {
+            'id': 'liftosaur:' + pid, 'raccolta': 'schede', 'fonte': 'liftosaur',
+            'titolo': fm.get('name', pid) + (' (' + fm['author'] + ')' if fm.get('author') else ''),
+            'url': 'https://www.liftosaur.com/programs/' + pid,
+            'esperienza': AGE_LIFTO.get(fm.get('age', ''), ''), 'tipi': tipi, 'sesso': '', 'eta': '', 'agonismo': '',
+            'attrezzatura': '', 'qualita': 'scheda pubblicata', 'equilibrata': equil,
+            'serie': round(c.tot, 1), 'copertura': round(cop, 3), 'cop_esterna': round(c.est_cop / c.tot, 3) if c.tot else 0,
+            'spinta': round(c.dir.get('spinta', 0), 1), 'trazione': round(c.dir.get('trazione', 0), 1),
+            'D': c.arr(c.tD), 'I': c.arr(c.tI), 'eD': c.arr(c.eD), 'eI': c.arr(c.eI),
+            'etichette_originali': {'esperienza': fm.get('age', ''), 'obiettivo': fm.get('goal', ''),
+                                    'giorni': fm.get('frequency', ''), 'settimane': n_sett, 'giorni_del_ciclo': n_giorni,
+                                    'autore': fm.get('author', ''),
+                                    'url_autore': fm.get('url', ''), 'versione': commit[:12]},
+            'origine_esperienza': 'livello dichiarato dal programma (campo «age» di Liftosaur)',
+            'stato': 'lettura automatica del testo Liftoscript: serie medie per giorno sul ciclo (%d settimane, %d giorni) '
+                     'per %s giorni a settimana' % (n_sett, n_giorni, ('%g' % freq).replace('.', ',')),
+        }
+        if intera:
+            voci.append(voce)
+        else:
+            motivo = ('esercizi riconosciuti sotto l\'85%' if cop < 0.85 else
+                      'serie a settimana fuori da 25-130' if not (25 <= c.tot <= 130) else
+                      'meno di 5 gruppi con almeno 3 serie')
+            scarti.append(dict(voce, motivo=motivo))
+    return voci, scarti, commit
+
+
 # ═════════════════════════ protocolli di studio ═════════════════════════
 def motivo_studio(r, usati, esclusi_studi):
     rid, rt, src = r['record_id'], r['record_type'], r['extraction_source_id']
@@ -651,45 +911,63 @@ def studi(master, est, prot):
     stato0 = prot.get('stato_predefinito', 'trascrizione TMS da verificare')
     voci, fonti = [], {}
     usati = set()
+    aggiunti = prot.get('studi_aggiunti', {})
     for p in prot['protocolli']:
-        rr = [rec[x] for x in p['record_ids']]
-        usati.update(p['record_ids'])
-        r0 = rr[0]
         c = Conto(est)
         for nome, s in p['esercizi']:
             if not nome.startswith('@') and nome not in cat:
                 raise SystemExit('protocolli-studi.json: esercizio non a catalogo: ' + nome)
             c.aggiungi(nome, float(s))
-        tags = [x.strip() for x in r0['training_type_tags'].split(';') if x.strip()]
-        tipi = []
-        for x in tags:
-            y = TAG_STUDIO.get(x)
-            if y and y not in tipi:
-                tipi.append(y)
-        exp_o = r0['training_experience']
-        exp = LIV_STUDIO.get(exp_o, '')
-        origine = 'codice del corpus' if exp else ''
-        if not exp and p.get('esperienza'):
-            exp, origine = p['esperienza'], 'testo della popolazione (lettura TMS)'
         ctx = prot.get('contesto', {}).get(p['id'], {})
-        fonte = 'studio:' + r0['study_id']
-        url = r0['primary_source_url'] or r0['extraction_source_url']
-        fonti[fonte] = {'id': fonte, 'nome': r0['study_reference'], 'url': url, 'doi': r0['doi'],
-                        'licenza': 'articolo scientifico: nell\'app solo numeri derivati e citazione',
-                        'tipo': 'studio', 'qualita': r0['source_tier']}
+        if p.get('studio'):                 # studio aggiunto dal TMS, fuori dal corpus Codex
+            a = aggiunti[p['studio']]
+            sid, rif, url, doi = p['studio'], a['riferimento'], a['url'], a.get('doi', '')
+            tipi = list(p.get('tipi') or a['tipi'])
+            exp_o, exp = '', p.get('esperienza', '')
+            origine = 'testo della popolazione (lettura TMS)' if exp else ''
+            agon = a.get('agonismo', '')
+            qual = a.get('qualita', 'articolo pubblicato')
+            orig = {'popolazione': a.get('popolazione', ''), 'tipo': a.get('tipo_dichiarato', ''),
+                    'licenza_articolo': a.get('licenza_articolo', ''), 'testo': a.get('testo', '')}
+            fonti['studio:' + sid] = {'id': 'studio:' + sid, 'nome': rif, 'url': url, 'doi': doi,
+                                      'licenza': 'articolo scientifico (' + a.get('licenza_articolo', 'licenza non indicata') +
+                                                 '): nell\'app solo numeri derivati e citazione',
+                                      'tipo': 'studio', 'qualita': qual, 'aggiunto': 'TMS, 14/11/2026 (fuori dal corpus)'}
+        else:                               # studio del corpus: i record restano la provenienza
+            rr = [rec[x] for x in p['record_ids']]
+            usati.update(p['record_ids'])
+            r0 = rr[0]
+            sid = r0['study_id']
+            rif = p.get('riferimento') or r0['study_reference']
+            url = p.get('url') or r0['primary_source_url'] or r0['extraction_source_url']
+            doi = p.get('doi') or r0['doi']
+            tipi = []
+            for x in [x.strip() for x in r0['training_type_tags'].split(';') if x.strip()]:
+                y = TAG_STUDIO.get(x)
+                if y and y not in tipi:
+                    tipi.append(y)
+            exp_o = r0['training_experience']
+            exp = LIV_STUDIO.get(exp_o, '')
+            origine = 'codice del corpus' if exp else ''
+            if not exp and p.get('esperienza'):
+                exp, origine = p['esperienza'], 'testo della popolazione (lettura TMS)'
+            agon = '' if r0['competitive_status'] == 'not_reported' else r0['competitive_status']
+            qual = 'preprint' if 'preprint' in r0['source_tier'].lower() else 'articolo pubblicato'
+            orig = {'esperienza': exp_o, 'tipo': r0['training_type_tags'], 'agonismo': r0['competitive_status'],
+                    'popolazione': r0['population']}
+            fonti['studio:' + sid] = {'id': 'studio:' + sid, 'nome': rif, 'url': url, 'doi': doi,
+                                      'licenza': 'articolo scientifico: nell\'app solo numeri derivati e citazione',
+                                      'tipo': 'studio', 'qualita': r0['source_tier']}
         voci.append({
-            'id': 'studio:' + p['id'], 'raccolta': 'studi', 'fonte': fonte, 'titolo': r0['study_reference'], 'url': url,
-            'record_ids': p['record_ids'], 'studio': r0['study_id'],
+            'id': 'studio:' + p['id'], 'raccolta': 'studi', 'fonte': 'studio:' + sid, 'titolo': rif, 'url': url,
+            'record_ids': p.get('record_ids', []), 'studio': sid,
             'esperienza': exp, 'tipi': tipi or ['generale'], 'sesso': ctx.get('sesso', ''), 'eta': ctx.get('eta', ''),
-            'agonismo': '' if r0['competitive_status'] == 'not_reported' else r0['competitive_status'],
-            'attrezzatura': 'palestra',
-            'qualita': 'preprint' if 'preprint' in r0['source_tier'].lower() else 'articolo pubblicato',
+            'agonismo': agon, 'attrezzatura': 'palestra', 'qualita': qual,
             'equilibrata': criteri(c, 1.0)[1],
             'serie': round(c.tot, 1), 'copertura': 1.0, 'cop_esterna': round(c.est_cop / c.tot, 3),
             'spinta': round(c.dir.get('spinta', 0), 1), 'trazione': round(c.dir.get('trazione', 0), 1),
             'D': c.arr(c.tD), 'I': c.arr(c.tI), 'eD': c.arr(c.eD), 'eI': c.arr(c.eI),
-            'etichette_originali': {'esperienza': exp_o, 'tipo': r0['training_type_tags'],
-                                    'agonismo': r0['competitive_status'], 'popolazione': r0['population']},
+            'etichette_originali': orig,
             'origine_esperienza': origine, 'esperienza_lettura': p.get('esperienza_lettura', ''),
             'stato': p.get('stato', stato0), 'note': p.get('note', ''),
         })
@@ -761,6 +1039,20 @@ def scrivi_csv(path, righe, campi, sep=';'):
                             for k, v in r.items()))
 
 
+def copertura(schede, studi_v):
+    """tabella esperienza × tipo: quante voci reggerebbero ogni casella (come la matrice del riquadro
+    ⚙ Riferimento; schede solo equilibrate, come il predefinito). Sotto 5: dati insufficienti."""
+    esp = ['principiante', 'intermedio', 'avanzato', '']
+    tipi = ['forza', 'ipertrofia', 'powerlifting', 'resistenza', 'potenza', 'generale', '']
+    for nome, V in [('Schede pubblicate (solo equilibrate)', [v for v in schede if v['equilibrata']]),
+                    ('Protocolli di studio', studi_v)]:
+        print('Copertura · %s: %d voci' % (nome, len(V)))
+        print('   %-13s' % '' + ''.join('%13s' % (t or 'tutti') for t in tipi))
+        for e in esp:
+            print('   %-13s' % (e or 'tutte') + ''.join(
+                '%13d' % sum(1 for v in V if (not e or v['esperienza'] == e) and (not t or t in v['tipi'])) for t in tipi))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--zip', default=ZIP_DEF)
@@ -779,11 +1071,13 @@ def main():
     est, righe_conv = mappa_esterna(sm_rows)
     v_sch, s_sch = schede_pubblicate(est)
     v_dep, s_dep = depot(z, est)
+    v_lif, s_lif, commit_lif = liftosaur(est)
     v_stu, fonti_stu, esclusi_stu, esclusi_righe, n_usati = studi(master, est, prot)
 
-    voci = sorted(v_sch + v_dep, key=lambda v: v['id']) + sorted(v_stu, key=lambda v: v['id'])
-    eq = [v for v in v_sch if v['equilibrata']]
-    n_lib = collections.Counter(v['fonte'] for v in v_sch + v_dep)
+    v_sch_tutte = v_sch + v_dep + v_lif
+    voci = sorted(v_sch_tutte, key=lambda v: v['id']) + sorted(v_stu, key=lambda v: v['id'])
+    n_lib = collections.Counter(v['fonte'] for v in v_sch_tutte)
+    n_agg = sum(1 for v in v_stu if not v['record_ids'])
 
     fonti = [
         {'id': 'strengthlog', 'nome': 'StrengthLog — programmi di allenamento', 'url': 'https://www.strengthlog.com/training-programs/',
@@ -798,6 +1092,12 @@ def main():
                     'strength-program dataset, versione 2026.10.13. Modifiche del TMS: esercizi ricondotti al catalogo '
                     'e serie ricalcolate per gruppo muscolare',
          'tipo': 'libreria di schede'},
+        {'id': 'liftosaur', 'nome': 'Liftosaur — programmi incorporati (%d), versione %s' % (len(v_lif) + len(s_lif), commit_lif[:12]),
+         'url': 'https://github.com/astashov/liftosaur/tree/master/programs/builtin',
+         'licenza': "repository AGPL-3.0 (github.com/astashov/liftosaur); i programmi sono di autori terzi: nell'app solo "
+                    "numeri derivati, con l'indirizzo del programma. Livello dal campo «age», obiettivo dal campo «goal»; "
+                    "per i programmi di più settimane, la settimana media del ciclo",
+         'tipo': 'libreria di schede', 'scaricate': '2026-11-14'},
     ] + sorted(fonti_stu.values(), key=lambda f: f['id']) + [
         {'id': 'smyrdev', 'nome': 'Exercises Dataset with Muscle Volume (smyrdev), 1.324 esercizi',
          'url': 'https://github.com/hasaneyldrm/exercises-dataset',
@@ -816,15 +1116,16 @@ def main():
         'pesi_predefiniti': {'diretta': 1.0, 'indiretta': 0.5,
                              'stato': 'provvisori: convenzione delle serie frazionarie (Schoenfeld et al. 2019, Sports 7:177), non ancora convalidata sul catalogo TMS'},
         'raccolte': {
-            'schede': {'unita': 'scheda settimanale pubblicata', 'voci': len(v_sch) + len(v_dep),
-                       'equilibrate': len(eq) + sum(1 for v in v_dep if v['equilibrata']),
+            'schede': {'unita': 'scheda settimanale pubblicata', 'voci': len(v_sch_tutte),
+                       'equilibrate': sum(1 for v in v_sch_tutte if v['equilibrata']),
                        'per_fonte': dict(n_lib),
                        'esclusi': {'settimane non intere o poco riconosciute': len(s_sch),
+                                   'Liftosaur: settimana non intera o poco riconosciuta': len(s_lif),
                                    'depot: solo totali del programma': sum(1 for s in s_dep if s['motivo'].startswith('solo i totali')),
                                    'depot: settimana non intera': sum(1 for s in s_dep if not s['motivo'].startswith('solo i totali'))},
                        'origine_esperienza': 'livello dichiarato dalla scheda (beginner/intermediate/advanced), non esperienza misurata'},
             'studi': {'unita': 'protocollo di studio (bracci con le stesse proporzioni)', 'voci': len(v_stu),
-                      'record': n_usati, 'record_corpus': master['record_count'],
+                      'record': n_usati, 'record_corpus': master['record_count'], 'studi_aggiunti': n_agg,
                       'esclusi': dict(esclusi_stu),
                       'origine_esperienza': 'esperienza dei partecipanti (codice del corpus o testo della popolazione)'},
         },
@@ -847,10 +1148,12 @@ def main():
     nuovo = testa + corpo
 
     print('Schede pubblicate: %d settimane intere (%d equilibrate) da %s; scartate %d'
-          % (len(v_sch) + len(v_dep), rif['raccolte']['schede']['equilibrate'], dict(n_lib), len(s_sch) + len(s_dep)))
-    print('Protocolli di studio: %d protocolli da %d record su %d del corpus' % (len(v_stu), n_usati, master['record_count']))
+          % (len(v_sch_tutte), rif['raccolte']['schede']['equilibrate'], dict(n_lib), len(s_sch) + len(s_dep) + len(s_lif)))
+    print('Protocolli di studio: %d protocolli, %d da %d record su %d del corpus e %d da studi aggiunti dal TMS'
+          % (len(v_stu), len(v_stu) - n_agg, n_usati, master['record_count'], n_agg))
     for k, v in esclusi_stu.most_common():
         print('   esclusi %3d  %s' % (v, k))
+    copertura(v_sch_tutte, v_stu)
     print('Mappa esterna: %d esercizi TMS agganciati (%d con profilo di volume) su %d'
           % (len(est), n_ext, len(cat)))
 
@@ -876,7 +1179,7 @@ def main():
                'agonismo', 'attrezzatura', 'qualita', 'equilibrata', 'serie', 'copertura', 'cop_esterna', 'spinta',
                'trazione', 'D', 'I', 'eD', 'eI', 'etichette_originali', 'record_ids', 'stato', 'note', 'motivo']
     scrivi_csv(os.path.join(OUT_DOC, 'voci-usate.csv'), voci, campi_v)
-    scrivi_csv(os.path.join(OUT_DOC, 'schede-scartate.csv'), s_sch + s_dep, campi_v)
+    scrivi_csv(os.path.join(OUT_DOC, 'schede-scartate.csv'), s_sch + s_dep + s_lif, campi_v)
     scrivi_csv(os.path.join(OUT_DOC, 'record-studi-esclusi.csv'), esclusi_righe,
                ['record_id', 'studio', 'tipo', 'esperienza', 'tipi', 'motivo'])
     print('  scritte le tabelle di controllo in Doc/riferimenti-distribuzione/')
