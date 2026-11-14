@@ -104,7 +104,8 @@ riconoscimento migliorato, Liftosaur 51). Restano **senza dati sufficienti**: re
 muscolare e potenza nelle schede (nessuna fonte aperta trovata), powerlifting (3 schede
 equilibrate, 5 togliendo il filtro; 4 protocolli). Il riferimento predefinito si sposta
 fino a 4 punti: Gambe 16–37 (prima 18–33), Pettorali 6–14, Schiena 15–27, Spalle 13–24,
-Braccia 16–27, Core 0–10.
+Braccia 16–27, Core 0–10. **Marco l'ha accettato il 14/11/2026**: una scheda con le gambe al
+13% col predefinito resta fuori dalla fascia verde ma non è più in rosso, e va bene così.
 
 ## Convalidare la mappa esterna
 
