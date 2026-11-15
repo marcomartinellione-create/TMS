@@ -30,7 +30,7 @@ function periodiPerSettimana(){
   const m={};
   (((DOC.alimentazione||{}).periodi)||[]).forEach(p=>{
     const kc=kcalPiano(p.righe,p.ricette);
-    settimaneTra(p.dal,p.al).forEach(c=>{ m[c]={fase:p.fase, kcal:kc}; });
+    settimaneTra(p.dal,periodoFine(p)).forEach(c=>{ m[c]={fase:p.fase, kcal:kc}; });   /* in corso = fino a oggi */
   });
   return m;
 }
@@ -132,7 +132,7 @@ function renderAnalisi(){
   const boxTL=Object.keys(perFaseTL).map(f=>({x:t(FASE_LAB[f]||f), values:perFaseTL[f], color:FASE_DOT[f]}));
   const boxPeso=Object.keys(perFasePeso).map(f=>({x:t(FASE_LAB[f]||f), values:perFasePeso[f], color:FASE_DOT[f]}));
 
-  const perLat=`<div class="lat"><h4>📅 ${t('Periodi')} <span class="muted">${periodi.length}</span></h4>${periodi.slice().reverse().map(p=>`<div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${FASE_DOT[p.fase]||'var(--orange)'};margin-right:5px"></i>${esc(t(FASE_LAB[p.fase]||p.fase))} <span class="muted">${esc(p.dal)} → ${esc(p.al)}</span></span><b>${nf(kcalPiano(p.righe),0)} kcal</b></div>`).join('')}
+  const perLat=`<div class="lat"><h4>📅 ${t('Periodi')} <span class="muted">${periodi.length}</span></h4>${periodi.slice().reverse().map(p=>`<div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${FASE_DOT[p.fase]||'var(--orange)'};margin-right:5px"></i>${esc(t(FASE_LAB[p.fase]||p.fase))} <span class="muted">${esc(p.dal)} → ${esc(p.al||t('in corso'))}</span></span><b>${nf(kcalPiano(p.righe),0)} kcal</b></div>`).join('')}
       <div class="lat-num" style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px"><span>${t('Settimane con dati')}</span><b>${sett.length}</b></div>
       <div class="lat-num"><span>${t('Settimane utili per il bilancio')}</span><b>${punti.length}</b></div></div>`;
   document.getElementById('panel-analisi').innerHTML=intro+`<div class="pag"><div class="pag__main">

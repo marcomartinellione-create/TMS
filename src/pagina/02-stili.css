@@ -442,6 +442,9 @@ input:focus,select:focus,textarea:focus{outline:none; border-color:var(--orange)
 .modal label.optchk input[type=checkbox]{width:auto; flex:0 0 auto; margin:2px 0 0}
 .pill{display:inline-block; padding:3px 11px; border-radius:var(--r-pill); font-size:11px; font-family:var(--font-mono);
   background:var(--paper-3); border:1px solid var(--border); color:var(--ink-2)}
+/* periodo alimentare in corso (avviato e non ancora terminato) */
+.pill.per-live{background:var(--ok-t); border-color:var(--ok); color:var(--ok); text-transform:none; letter-spacing:0}
+tr.per-riga-live td{background:var(--ok-t)}
 .search{min-width:200px}
 
 /* callout */

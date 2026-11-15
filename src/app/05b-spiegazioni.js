@@ -441,7 +441,7 @@ const SPIEG={
    ['Dati di partenza',`Periodi alimentari (Alimentazione → Periodi: fase, date, piano); TL settimanale dello Storico; peso dello storico delle misure.`],
    ['Metodo e formule',`Le settimane sono l'unione di quelle con TL, peso o periodo. Ogni asse è scalato fra minimo e massimo dei valori, con il 10% di margine:
      <div class="spf">y = alto + altezza × (1 − <span class="fr"><i>v − (min − 0,1·Δ)</i><i>1,2·Δ</i></span>), &nbsp; Δ = max − min<span class="spn">(1)</span></div>
-     Se due periodi si sovrappongono vale l'ultimo registrato.`],
+     Se due periodi si sovrappongono vale l'ultimo registrato; un periodo in corso (avviato e non ancora terminato) arriva fino a oggi.`],
    ['Esempio svolto',`8 settimane di massa a 3 000 kcal (fascia verde) con TL da 25 000 a 30 000 e peso da 78 a 80 kg, poi 6 settimane di definizione a 2 300 kcal con peso in discesa.`],
    ['Come leggerlo',`Serve a vedere insieme cause ed effetti: come cambiano carico e peso entrando in una fase.`],
    ['Limiti',`I due assi hanno scale diverse: l'incrocio delle linee non ha significato.`]],

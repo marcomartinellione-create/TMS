@@ -221,15 +221,16 @@ function renderAlimentazione(){
   const omsSection=omsRenderSection();
   /* periodi alimentari registrati (per il tab Analisi) */
   const periodi=A.periodi||[];
-  const perRows=periodi.map((p,i)=>`<tr><td><span class="pill">${esc(t(FASE_LAB[p.fase]||p.fase))}</span></td>
-     <td>${esc(p.dal||'')}</td><td>${esc(p.al||'')}</td><td class="num">${nf(kcalPiano(p.righe,p.ricette),0)}</td><td class="num">${(p.righe||[]).length}</td>
-     <td class="no-print"><button class="btn btn--sm btn--danger" data-perdel="${i}" title="${t('elimina periodo')}">✕</button></td></tr>`).join('');
+  const perRows=periodi.map((p,i)=>`<tr${periodoInCorso(p)?' class="per-riga-live"':''}><td><span class="pill">${esc(t(FASE_LAB[p.fase]||p.fase))}</span></td>
+     <td>${esc(p.dal||'')}</td><td>${periodoInCorso(p)? `<span class="pill per-live">● ${t('in corso')}</span> <span class="muted">${esc(periodoDurata(p))}</span>` : esc(p.al||'')}</td><td class="num">${nf(kcalPiano(p.righe,p.ricette),0)}</td><td class="num">${(p.righe||[]).length}</td>
+     <td class="no-print">${periodoInCorso(p)?`<button class="btn btn--sm btn--ember" data-perstop="${i}" title="${t('Metti la data di fine al periodo in corso')}">⏹ ${t('Termina')}</button> `:''}<button class="btn btn--sm btn--danger" data-perdel="${i}" title="${t('elimina periodo')}">✕</button></td></tr>`).join('');
+  const aperto=periodoAperto();
   const perSection=`
-   <div class="sec" style="margin-top:18px">${t('Periodi')} <span class="pill">${periodi.length}</span></div>
-   <div class="callout callout--info no-print"><div>${t('📅 Registra il piano con le sue <b>date</b> (dal → al): i periodi alimentano i grafici del tab <b>📊 Analisi</b> (timeline, bilancio calorico, confronto fasi). Ogni periodo salva una <b>fotografia</b> del piano: modificare il piano dopo non cambia i periodi già registrati.')}</div></div>
+   <div class="sec" style="margin-top:18px">${t('Periodi')} <span class="pill">${periodi.length}</span>${aperto?` <span class="pill per-live">● ${esc(t(FASE_LAB[aperto.fase]||aperto.fase))} ${t('in corso dal')} ${esc(aperto.dal)}</span>`:''}</div>
+   <div class="callout callout--info no-print"><div>${t('📅 Un periodo è il piano seguito per un certo tempo. Con <b>▶ Avvia un periodo</b> parte (da oggi o da una data passata) e resta <b>in corso</b> finché non premi <b>⏹ Termina</b>: non serve sapere prima quanto durerà. Se conosci già le date, registralo con <b>dal → al</b>. I periodi alimentano i grafici del tab <b>📊 Analisi</b> (timeline, bilancio calorico, confronto fasi); quello in corso arriva fino a oggi. Ogni periodo salva una <b>fotografia</b> del piano: modificare il piano dopo non cambia i periodi già registrati (terminando un periodo in corso puoi aggiornarla).')}</div></div>
    <div class="tbl-wrap"><table><thead><tr><th>${t('Fase')}</th><th>${t('Dal')}</th><th>${t('Al')}</th><th>${t('kcal/giorno')}</th><th>${t('alimenti')}</th><th class="no-print"></th></tr></thead>
      <tbody>${perRows||`<tr><td colspan="6" class="empty">${t('Nessun periodo registrato.')}</td></tr>`}</tbody></table></div>
-   <div class="bar no-print"><button class="btn btn--ember" id="per-add">${t('📅 Registra il piano attuale come periodo…')}</button> <button class="btn" onclick="showTab('analisi')">${t('📊 Vai all\'Analisi')}</button></div>`;
+   <div class="bar no-print"><button class="btn btn--ember" id="per-start">${t('▶ Avvia un periodo…')}</button> <button class="btn" id="per-add">${t('📅 Registra il piano attuale come periodo…')}</button> <button class="btn" onclick="showTab('analisi')">${t('📊 Vai all\'Analisi')}</button></div>`;
   document.getElementById('panel-alimentazione').innerHTML=`
    <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--sm" id="ricette-btn" style="margin-left:auto" title="${t('Le ricette, comuni a tutti i profili: ingredienti, tempi, procedimento e valori sommati')}">${t('👨‍🍳 Ricette')}</button><button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="apriStampaDieta()" title="${t('Apri l\'anteprima per sistemare la stampa del piano della fase attiva (PDF A4 orizzontale, da dare al cliente)')}">${t('🍽 Stampa dieta')}</button></div>
    <div class="pag pag--tre"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}</div>
@@ -264,10 +265,12 @@ function renderAlimentazione(){
     if(!await conferma(t('Eliminare il pasto «')+t(meal)+t('» e tutti i suoi alimenti?')))return;
     DOC.alimentazione[fase]=DOC.alimentazione[fase].filter(r=>((((r.pasto||'').trim())||'Senza pasto')!==meal)); persist('alimentazione'); renderAlimentazione(); });
   { const pa=document.getElementById('per-add'); if(pa) pa.onclick=registraPeriodo; }
+  { const ps=document.getElementById('per-start'); if(ps) ps.onclick=avviaPeriodo; }
+  document.querySelectorAll('#panel-alimentazione [data-perstop]').forEach(b=>b.onclick=()=>terminaPeriodo(+b.dataset.perstop));
   { const rb=document.getElementById('ricette-btn'); if(rb) rb.onclick=ricetteModal; }
   document.querySelectorAll('#panel-alimentazione [data-perdel]').forEach(b=>b.onclick=async()=>{
     const i=+b.dataset.perdel; const p=(DOC.alimentazione.periodi||[])[i]; if(!p) return;
-    if(!await conferma(t('Eliminare il periodo')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+p.al+'?')) return;
+    if(!await conferma(t('Eliminare il periodo')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+(p.al||t('in corso'))+'?')) return;
     DOC.alimentazione.periodi.splice(i,1); persist('alimentazione'); renderAlimentazione(); });
   document.querySelectorAll('#panel-alimentazione [data-del]').forEach(b=>b.onclick=()=>{
     const [fase,i]=b.dataset.del.split(':'); DOC.alimentazione[fase].splice(+i,1); persist('alimentazione'); renderAlimentazione(); });
@@ -446,10 +449,86 @@ async function stampaDietaPDF(){
   }catch(e){ avviso(t('Errore nella generazione del PDF:')+' '+e.message); }
   finally{ try{ if(stage.parentNode) document.body.removeChild(stage); }catch(e){} if(btn){ btn.innerHTML=blab; btn.disabled=false; } }
 }
+/* ── PERIODI IN CORSO (Marco, 15/11/2026) ─────────────────────────────────────────
+   Un periodo si può AVVIARE senza sapere quando finirà e TERMINARE più avanti (fra un mese,
+   due…). In corso = «al» vuoto: nei grafici dell'Analisi arriva fino a oggi (periodoFine).
+   Uno solo alla volta: avviandone un altro, quello in corso si chiude il giorno prima.
+   La fotografia del piano si prende all'avvio; terminando si può aggiornarla col piano di
+   oggi, se nel frattempo è cambiato. Date in ora LOCALE (toISOString darebbe il giorno UTC). */
+function dataLocale(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dataOggi(){ return dataLocale(new Date()); }
+function giornoPrima(s){ const d=new Date(String(s)+'T12:00:00'); d.setDate(d.getDate()-1); return dataLocale(d); }
+function periodoInCorso(p){ return !!p && !p.al; }
+function periodoFine(p){ return (p&&p.al) || dataOggi(); }
+function periodoAperto(){ return (((DOC.alimentazione||{}).periodi)||[]).find(periodoInCorso)||null; }
+/* da quanto è in corso: «da oggi», «1 giorno», «37 giorni» */
+function periodoDurata(p){ const g=Math.max(0, Math.round((new Date(dataOggi()+'T12:00:00')-new Date(String(p.dal)+'T12:00:00'))/86400000));
+  return g===0? t('da oggi') : g+' '+(g===1? t('giorno') : t('giorni')); }
+/* fotografia del piano di una fase: righe con alimento e grammi, più la copia delle ricette usate */
+function fotografiaPiano(fase){
+  const righe=((DOC.alimentazione||{})[fase]||[]).filter(r=>r&&r.alimento&&String(r.alimento).trim())
+    .map(r=>({alimento:String(r.alimento).trim(), grammi:+r.grammi||0}));
+  return {righe:righe, ricette:ricetteUsateIn(righe)};
+}
+function opzioniFase(sel){ return ['bulk','mant','cut'].map(f=>`<option value="${f}"${f===sel?' selected':''}>${t(FASE_LAB[f]||f)}</option>`).join(''); }
+
+/* ▶ avvia un periodo IN CORSO dalla data scelta (oggi o passata) */
+function avviaPeriodo(){
+  const faseAtt=(DOC.dati_utente&&DOC.dati_utente.faseAlim)||'bulk', oggi=dataOggi(), ap=periodoAperto();
+  modal(`<h3>${t('▶ Avvia un periodo')}</h3>
+   <div class="callout callout--info"><div>${t('Il periodo parte e resta <b>in corso</b> finché non premi <b>⏹ Termina</b>: non serve sapere oggi quanto durerà. All’avvio si salva una <b>fotografia</b> del piano della fase scelta; nei grafici del tab <b>📊 Analisi</b> il periodo arriva fino a oggi.')}</div></div>
+   ${ap?`<div class="callout"><div>⚠ ${t('C’è già un periodo in corso:')} <b>${esc(t(FASE_LAB[ap.fase]||ap.fase))}</b> ${t('dal')} ${esc(ap.dal)}. ${t('Avviando il nuovo, quello si chiude il giorno prima della data di inizio.')}</div></div>`:''}
+   <div class="row">
+    <div class="field"><label>${t('Fase')}</label><select id="per-fase">${opzioniFase(faseAtt)}</select></div>
+    <div class="field"><label>${t('Dal')}</label><input type="date" id="per-dal" value="${oggi}" max="${oggi}"></div></div>
+   <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="per-avvia">${t('▶ Avvia')}</button></div>`);
+  document.getElementById('per-avvia').onclick=async()=>{
+    const fase=document.getElementById('per-fase').value, dal=document.getElementById('per-dal').value;
+    if(!dal){ avviso(t('Serve la data di inizio.')); return; }
+    if(dal>dataOggi()){ avviso(t('La data di inizio non può essere nel futuro: se conosci già le date, usa «Registra il piano attuale come periodo…».')); return; }
+    const foto=fotografiaPiano(fase);
+    if(!foto.righe.length){ avviso(t('Il piano della fase')+' '+t(FASE_LAB[fase]||fase)+' '+t('è vuoto: niente da registrare.')); return; }
+    if(!Array.isArray(DOC.alimentazione.periodi)) DOC.alimentazione.periodi=[];
+    const P=DOC.alimentazione.periodi, aperto=periodoAperto();
+    if(aperto && giornoPrima(dal)<aperto.dal){ avviso(t('Il periodo in corso è iniziato il')+' '+aperto.dal+': '+t('scegli una data di inizio successiva, oppure terminalo o eliminalo prima.')); return; }
+    /* periodi chiusi che finiscono dopo l'inizio del nuovo: vale l'ultimo, ma lo si dice */
+    const overlap=P.filter(p=>p!==aperto && periodoFine(p)>=dal);
+    if(overlap.length && !await conferma(t('⚠ Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
+    if(aperto) aperto.al=giornoPrima(dal);
+    P.push(Object.assign({id:Date.now().toString(36), fase:fase, dal:dal, al:'', righe:foto.righe}, foto.ricette.length?{ricette:foto.ricette}:{}));
+    P.sort((a,b)=>a.dal<b.dal?-1:1);
+    persist('alimentazione'); closeModal(); renderAlimentazione();
+    avviso(t('▶ Periodo avviato:')+' '+t(FASE_LAB[fase]||fase)+' '+t('dal')+' '+dal+'. '+t('Quando finisce, premi ⏹ Termina nella tabella dei periodi.')+(aperto? ' '+t('Il periodo precedente è stato chiuso il')+' '+aperto.al+'.' : ''));
+  };
+}
+
+/* ⏹ termina il periodo in corso: data di fine (oggi o passata) e, se il piano è cambiato, fotografia aggiornata */
+function terminaPeriodo(i){
+  const p=((DOC.alimentazione||{}).periodi||[])[i]; if(!periodoInCorso(p)) return;
+  const oggi=dataOggi(), foto=fotografiaPiano(p.fase);
+  const cambiato=foto.righe.length>0 && JSON.stringify(foto.righe)!==JSON.stringify(p.righe||[]);
+  modal(`<h3>${t('⏹ Termina il periodo')}</h3>
+   <div class="muted" style="margin-bottom:8px"><b>${esc(t(FASE_LAB[p.fase]||p.fase))}</b> ${t('dal')} ${esc(p.dal)} · ${t('in corso')} · ${esc(periodoDurata(p))}</div>
+   <div class="row"><div class="field"><label>${t('Al')}</label><input type="date" id="per-al" value="${oggi}" min="${esc(p.dal)}" max="${oggi}"></div></div>
+   ${cambiato?`<label class="optchk"><input type="checkbox" id="per-foto"> <span>${t('Il piano di questa fase è cambiato dall’avvio: aggiorna la fotografia del periodo con il piano di oggi')} (${nf(kcalPiano(p.righe,p.ricette),0)} → ${nf(kcalPiano(foto.righe,foto.ricette),0)} ${t('kcal/giorno')})</span></label>`:''}
+   <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="per-stop">⏹ ${t('Termina')}</button></div>`);
+  document.getElementById('per-stop').onclick=()=>{
+    const al=document.getElementById('per-al').value;
+    if(!al){ avviso(t('Serve la data di fine.')); return; }
+    if(al<p.dal){ avviso(t('La data di inizio è dopo quella di fine.')); return; }
+    if(al>dataOggi()){ avviso(t('La data di fine non può essere nel futuro.')); return; }
+    p.al=al;
+    const aggiorna=document.getElementById('per-foto');
+    if(cambiato && aggiorna && aggiorna.checked){ p.righe=foto.righe; if(foto.ricette.length) p.ricette=foto.ricette; else delete p.ricette; }
+    persist('alimentazione'); closeModal(); renderAlimentazione();
+    avviso(t('⏹ Periodo terminato:')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+p.al+'.');
+  };
+}
+
 /* registra il piano della fase scelta come PERIODO datato (fotografia per il tab Analisi) */
 function registraPeriodo(){
   const faseAtt=(DOC.dati_utente&&DOC.dati_utente.faseAlim)||'bulk';
-  const fmt=d=>d.toISOString().slice(0,10);
+  const fmt=dataLocale;
   const oggi=new Date(), fa=new Date(); fa.setDate(fa.getDate()-28);
   modal(`<h3>${t('Registra periodo alimentare')}</h3>
    <div class="callout callout--info"><div>${t('📸 Salva una <b>fotografia</b> del piano della fase scelta con le date in cui lo segui. I periodi alimentano i grafici del tab <b>📊 Analisi</b>.')}</div></div>
@@ -468,7 +547,7 @@ function registraPeriodo(){
     if(!righe.length){ avviso(t('Il piano della fase')+' '+t(FASE_LAB[fase]||fase)+' '+t('è vuoto: niente da registrare.')); return; }
     if(!Array.isArray(DOC.alimentazione.periodi)) DOC.alimentazione.periodi=[];
     /* safe check: sovrapposizione date con periodi già registrati */
-    const overlap=DOC.alimentazione.periodi.filter(p=>!(al<p.dal || dal>p.al));
+    const overlap=DOC.alimentazione.periodi.filter(p=>!(al<p.dal || dal>periodoFine(p)));   /* in corso = fino a oggi */
     if(overlap.length && !await conferma(t('⚠ Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
     const ricP=ricetteUsateIn(righe);   /* le ricette personali usate: copia, così il periodo resta una fotografia */
     DOC.alimentazione.periodi.push(Object.assign({id:Date.now().toString(36), fase:fase, dal:dal, al:al, righe:righe}, ricP.length?{ricette:ricP}:{}));

@@ -455,6 +455,46 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok((pan.match(/<svg/g) || []).length >= 4, 'tab Analisi: SVG renderizzati (' + (pan.match(/<svg/g) || []).length + ')');
   w.eval('showTab("alimentazione")');
   ok(d.getElementById('panel-alimentazione').innerHTML.includes('Periodi') && d.getElementById('per-add') !== null, 'sezione Periodi nel tab Alimentazione');
+  /* periodi IN CORSO (Marco, 15/11/2026): si avviano senza data di fine e si terminano dopo */
+  { const salvaPer = w.eval('JSON.stringify(DOC.alimentazione.periodi)');
+    w.eval('DOC.alimentazione.periodi=[]; DOC.dati_utente.faseAlim="mant"; renderAlimentazione();');
+    const oggi = w.eval('dataOggi()'), dueSett = w.eval('(function(){ var x=new Date(); x.setDate(x.getDate()-14); return dataLocale(x); })()');
+    ok(/^\d{4}-\d{2}-\d{2}$/.test(oggi) && w.eval('giornoPrima("2026-03-01")') === '2026-02-28' && w.eval('periodoFine({dal:"2026-01-05",al:""})') === oggi,
+       'periodi in corso: data di oggi in ora locale, giorno prima, fine = oggi se manca la data di fine');
+    ok(d.getElementById('per-start') !== null, 'periodi in corso: pulsante «▶ Avvia un periodo…» nel tab Alimentazione');
+    /* avvio con una data nel futuro: rifiutato */
+    w.eval('avviaPeriodo()'); d.getElementById('per-dal').value = '2999-01-01'; d.getElementById('per-avvia').click();
+    ok(w.eval('DOC.alimentazione.periodi.length') === 0, 'periodi in corso: una data d\'inizio nel futuro non avvia nulla');
+    w.eval('closeModal()');
+    /* avvio due settimane fa */
+    w.eval('avviaPeriodo()'); d.getElementById('per-fase').value = 'mant'; d.getElementById('per-dal').value = dueSett; d.getElementById('per-avvia').click();
+    w.eval('closeModal()');
+    const p1 = JSON.parse(w.eval('JSON.stringify(DOC.alimentazione.periodi[0]||null)'));
+    ok(p1 && p1.fase === 'mant' && p1.dal === dueSett && p1.al === '' && p1.righe.length > 0 && w.eval('!!periodoAperto()'),
+       'periodi in corso: avviato senza data di fine, con la fotografia del piano');
+    const pan2 = d.getElementById('panel-alimentazione').innerHTML;
+    ok(/per-live/.test(pan2) && /in corso/.test(pan2) && d.querySelector('[data-perstop="0"]') !== null,
+       'periodi in corso: la riga dice «in corso» e ha il pulsante ⏹ Termina');
+    ok(w.eval('(function(){ var w0=isoWeek(new Date()); return !!periodiPerSettimana()[schedaCode(w0.anno,w0.sett)]; })()'),
+       'periodi in corso: nell\'Analisi il periodo arriva fino alla settimana di oggi');
+    /* un secondo avvio chiude il primo il giorno prima */
+    w.eval('avviaPeriodo()'); d.getElementById('per-fase').value = 'cut'; d.getElementById('per-dal').value = oggi; d.getElementById('per-avvia').click();
+    w.eval('closeModal()');
+    const P2 = JSON.parse(w.eval('JSON.stringify(DOC.alimentazione.periodi)'));
+    ok(P2.length === 2 && P2[0].al === w.eval('giornoPrima(dataOggi())') && P2[1].fase === 'cut' && P2[1].al === '' && P2.filter(p => !p.al).length === 1,
+       'periodi in corso: avviandone un altro, quello in corso si chiude il giorno prima (uno solo in corso)');
+    /* termina, con la fotografia aggiornata perché il piano è cambiato */
+    w.eval('DOC.alimentazione.cut.push({pasto:"Prova",alimento:DOC.alimentazione.cut.find(function(r){return r.alimento;}).alimento,grammi:50});');
+    w.eval('terminaPeriodo(1)');
+    ok(d.getElementById('per-foto') !== null, 'periodi in corso: terminando, se il piano è cambiato si può aggiornare la fotografia');
+    d.getElementById('per-al').value = '2000-01-01'; d.getElementById('per-stop').click();
+    ok(w.eval('DOC.alimentazione.periodi[1].al') === '', 'periodi in corso: una data di fine prima dell\'inizio non termina il periodo');
+    w.eval('closeModal(); terminaPeriodo(1)');
+    d.getElementById('per-al').value = oggi; d.getElementById('per-foto').checked = true; d.getElementById('per-stop').click();
+    w.eval('closeModal()');
+    ok(w.eval('DOC.alimentazione.periodi[1].al') === oggi && w.eval('DOC.alimentazione.periodi[1].righe.length') === w.eval('fotografiaPiano("cut").righe.length') && !w.eval('periodoAperto()'),
+       'periodi in corso: terminato con la data scelta e la fotografia aggiornata; nessun periodo resta in corso');
+    w.eval('DOC.alimentazione.cut.pop(); DOC.alimentazione.periodi=' + salvaPer + '; renderAlimentazione();'); }
   /* alimentazione (richieste Marco): selettore fase nel tab, riordino pasti, preferiti/recenti + ricerca a parole sugli alimenti */
   ok(d.querySelector('#panel-alimentazione [data-fasesel]') !== null, 'alimentazione: selettore fase nel tab (non più nel Profilo)');
   w.eval('DOC.dati_utente.faseAlim="bulk"; renderAlimentazione();');

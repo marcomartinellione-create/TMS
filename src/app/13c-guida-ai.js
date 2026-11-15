@@ -449,8 +449,12 @@ Due modi per registrare una seduta:
   i ritocchi a mano solo per il documento aperto. «⬇ Scarica PDF (A4 orizzontale)» genera il
   PDF **A4 orizzontale** (297×210mm) con la stessa impaginazione dell'anteprima; «← Chiudi»
   torna al tab Alimentazione. Lo fa l'app, senza la stampa del browser.
-- **Periodi**: registrazione di intervalli datati (piano alimentare + data inizio e
-  fine) che alimentano il tab Analisi.
+- **Periodi**: il piano di una fase seguito per un certo tempo, che alimenta il tab Analisi.
+  «▶ Avvia un periodo…» lo fa partire (oggi o da una data passata) e resta IN CORSO, senza
+  data di fine, finché non si preme «⏹ Termina» nella sua riga; nei grafici arriva fino a
+  oggi. Uno solo in corso alla volta (avviandone un altro, il precedente si chiude il giorno
+  prima). La fotografia del piano si prende all'avvio e terminando si può aggiornare.
+  «Registra il piano attuale come periodo…» registra invece un periodo con inizio e fine.
 
 ## 7 · Analisi (tab 📊 Analisi)
 

@@ -430,7 +430,7 @@ const SPIEG_EN={
    ['Input data',`Nutrition periods (Nutrition → Periods: phase, dates, plan); weekly TL from History; weight from the measurement history.`],
    ['Method and formulas',`The weeks are the union of those with TL, weight or a period. Each axis is scaled between the minimum and maximum of the values, with a 10% margin:
      <div class="spf">y = top + height × (1 − <span class="fr"><i>v − (min − 0.1·Δ)</i><i>1.2·Δ</i></span>), &nbsp; Δ = max − min<span class="spn">(1)</span></div>
-     If two periods overlap the last one recorded applies.`],
+     If two periods overlap the last one recorded applies; a period in progress (started and not yet ended) runs up to today.`],
    ['Worked example',`8 weeks of bulk at 3,000 kcal (green band) with TL from 25,000 to 30,000 and weight from 78 to 80 kg, then 6 weeks of cut at 2,300 kcal with falling weight.`],
    ['How to read it',`It serves to see causes and effects together: how load and weight change on entering a phase.`],
    ['Limitations',`The two axes have different scales: the crossing of the lines has no meaning.`]],
