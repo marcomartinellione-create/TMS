@@ -76,8 +76,13 @@ function costruisciSchedaJSON(videoMap, modificabile){
      esercizi da pesi (cardio e stretching non vanno nella scheda). ~30 KB, meno dei video. */
   const catalogo = modificabile ? (DOC.esercizi||[]).filter(e=>e&&e.nome&&!isCardio(e)&&!isStretching(e))
     .map(e=>({n:String(e.nome).trim(), g:String(e.macro||e.gruppo||'')})) : undefined;
+  /* `corpo` (2026-11-15, bilancia Bluetooth nell'app del telefono): la formula della
+     composizione corporea usa altezza, età e sesso, e alcune bilance li vogliono ricevere
+     prima di misurare. Solo questi tre dati; 0 o '' se il profilo non li ha. */
+  const u=DOC.dati_utente||{};
   return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile, rpe:useRpeActive(),
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
+    corpo:{altezza:+u.altezza||0, sesso:(u.sesso==='F'||u.sesso==='M')?u.sesso:'', eta:etaOf(u)||0},
     appCliente:APP_CLIENTE_URL, righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),
     video:videoMap, dieta:costruisciDietaJSON(), catalogo:catalogo};
 }
@@ -188,27 +193,44 @@ async function importaFotoRientro(foto){
 async function importaRientroFile(file){
   let dati=null;
   try{ dati=JSON.parse(await file.text()); }catch(e){ logErrore('importRientro', e); }
-  if(!dati || dati.tipo!=='tms-rientro' || !Array.isArray(dati.righe) || !dati.righe.length){
-    avviso(t('File non valido: non è un "rientro scheda" del TMS (o non contiene esercizi).')); return; }
+  /* il rientro può portare l'allenamento, le pesate della bilancia (`pesate`, dal 2026-11-15)
+     o entrambi: «📤 Manda solo le pesate» sul telefono lo manda senza esercizi */
+  const righe=(dati&&Array.isArray(dati.righe))?dati.righe:[], pesate=(dati&&Array.isArray(dati.pesate))?dati.pesate:[];
+  if(!dati || dati.tipo!=='tms-rientro' || (!righe.length && !pesate.length)){
+    avviso(t('File non valido: non è un "rientro scheda" del TMS (o non contiene né esercizi né pesate).')); return; }
+  const conAllenamento=righe.length>0;
   /* safe check 1: il profilo del file corrisponde a quello attivo? */
   const pn=(dati.profilo&&dati.profilo.nome)||'?', ps=(dati.profilo&&dati.profilo.slug)||'';
   if(ps!==activeProfile && !await conferma(t('⚠ Il file è della scheda di «')+pn+t('» ma il profilo attivo è «')+profNome()+'».\n'+t('Importare comunque in questo profilo?'))) return;
+  if(conAllenamento){
   /* safe check 2: esercizi fuori catalogo */
-  const sconosciuti=[]; dati.righe.forEach(r=>{ const n=String((r&&r.esercizio)||'').trim(); if(n && !esLookup(n) && !sconosciuti.includes(n)) sconosciuti.push(n); });
+  const sconosciuti=[]; righe.forEach(r=>{ const n=String((r&&r.esercizio)||'').trim(); if(n && !esLookup(n) && !sconosciuti.includes(n)) sconosciuti.push(n); });
   if(sconosciuti.length && !await conferma(t('⚠ Esercizi non presenti nel catalogo:')+'\n• '+sconosciuti.join('\n• ')+'\n\n'+t('Verranno caricati lo stesso (senza fattore TL dedicato). Continuo?'))) return;
   /* safe check 3: la scheda Pesi corrente ha contenuto e verrà sostituita per la revisione */
   const piena=((DOC.scheda&&DOC.scheda.settimanale)||[]).some(r=>r&&r.esercizio&&String(r.esercizio).trim());
   if(piena && !await conferma(t('La scheda Pesi corrente verrà sostituita con l\'allenamento del cliente, per controllarlo prima di salvarlo nello Storico. Procedo?'))) return;
+  }
   /* nuovo flusso (richiesta Marco): NON si scrive subito nello Storico — l'allenamento del
      cliente entra nella scheda Pesi, il coach lo rivede e poi salva a mano (💾 Salva nello Storico). */
-  const ris=caricaRientroInScheda(dati);
-  persist('scheda');
+  let ris=null;
+  if(conAllenamento){ ris=caricaRientroInScheda(dati); persist('scheda'); }
   /* foto progressi scattate dal cliente col telefono: entrano nel tab Corpo */
   let nFoto=0; try{ nFoto=await importaFotoRientro(dati.foto); }catch(e){ logErrore('importFoto', e); }
+  /* pesate della bilancia: la media di ogni settimana va DA SOLA nello Storico misure, senza
+     «💾 Salva misure» (richiesta di Marco, 2026-11-15). Chiede solo prima di sostituire una
+     misura scritta a mano. */
+  let rp=null; try{ rp=await importaPesate(pesate); }catch(e){ logErrore('importPesate', e); }
+  const tp=testoImportPesate(rp);
+  if(!conAllenamento){
+    showTab('corpo');
+    avviso(t('📥 Pesate di «')+pn+'»'+(nFoto?(' · '+nFoto+' '+t('foto salvate nel tab Corpo')):'')+'\n\n'+(tp||t('Nessuna pesata nuova.')));
+    return;
+  }
   showTab('allenamento');
   avviso(t('📥 Allenamento di «')+pn+t('» caricato nella scheda Pesi:')+' '+ris.righe+' '+t('esercizi')+
     (ris.sedute?(' · '+ris.sedute+' '+t('sedute con RPE')):'')+
     (ris.fatti?(' · '+ris.fatti+' '+t('giorni segnati come completati')):'')+
     (nFoto?(' · '+nFoto+' '+t('foto salvate nel tab Corpo')):'')+'.\n\n'+
+    (tp?tp+'\n\n':'')+
     t('Controlla i valori, poi premi «💾 Salva nello Storico» (scegli tu la settimana).'));
 }

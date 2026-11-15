@@ -331,6 +331,13 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
    simmetriche. Ora la casella è fissa e il testo dell'unità cresce dopo, mai il contrario) */
 .corpo-campo__in input{width:72px; flex:0 0 auto; min-width:0}
 .corpo-campo__in .muted{font-size:10.5px}
+/* pesate della bilancia (dal telefono): tabella compatta per la colonna stretta del Corpo;
+   in grigio le pesate che non entrano nella media (dopo la prima del giorno) */
+.tbl-pesate{font-size:12px}
+.tbl-pesate th, .tbl-pesate td{padding:3px 5px}
+.tbl-pesate .pesate-sett td{background:var(--paper-2); padding-top:6px}
+.tbl-pesate .pesata-fuori td{color:var(--ink-4)}
+.tbl-pesate .pesate-media td{border-top:1px solid var(--border)}
 .chart-grid.chart-grid--fluida{grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))}
 /* Corpo: composizione e i tre grafici in una griglia 2×2, quattro riquadri tutti della stessa
    grandezza (righe di pari altezza), compatti, non giganti (2026-11-13, richiesta di Marco) */

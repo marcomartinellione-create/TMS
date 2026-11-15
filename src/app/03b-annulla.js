@@ -13,8 +13,8 @@ let undoPila=[], redoPila=[], undoBase={}, undoUltimo={quale:null,ora:0}, undoIn
 const UNDO_PARTI={
   scheda:{ leggi:()=>DOC.scheda, scrivi:v=>{ DOC.scheda=v; }, nome:'la scheda Pesi' },
   storico:{ leggi:()=>DOC.storico, scrivi:v=>{ DOC.storico=v; }, nome:'lo Storico' },
-  corpo:{ leggi:()=>({dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio}),
-          scrivi:v=>{ DOC.dati_utente=v.dati_utente||{}; DOC.storico_io=v.storico_io||[]; DOC.storico_rpe=v.storico_rpe||[]; DOC.storico_risc=v.storico_risc||[]; DOC.cardio=v.cardio||[]; },
+  corpo:{ leggi:()=>({dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,pesate:DOC.pesate,pesate_scartate:DOC.pesate_scartate}),
+          scrivi:v=>{ DOC.dati_utente=v.dati_utente||{}; DOC.storico_io=v.storico_io||[]; DOC.storico_rpe=v.storico_rpe||[]; DOC.storico_risc=v.storico_risc||[]; DOC.cardio=v.cardio||[]; DOC.pesate=v.pesate||[]; DOC.pesate_scartate=v.pesate_scartate||[]; },
           nome:'misure, cardio e profilo' },
   alimentazione:{ leggi:()=>DOC.alimentazione, scrivi:v=>{ DOC.alimentazione=v; }, nome:'l’alimentazione' },
   esercizi:{ leggi:()=>DOC.esercizi, scrivi:v=>{ DOC.esercizi=v; }, nome:'il catalogo esercizi' },

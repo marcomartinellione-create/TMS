@@ -54,7 +54,7 @@ async function costruisciSnapshot(conFoto){
         continue; }
       try{ const pd=await dataDir.getDirectoryHandle(p.slug,{create:false});
         const sc=await readJson(pd,FILES.scheda), st=await readJson(pd,FILES.storico), co=await readJson(pd,FILES.corpo), al=await readJson(pd,FILES.alimentazione);
-        snap.profiles[p.slug]={scheda:sc||{settimanale:[],mensile:[]},storico:st||[],storico_io:(co&&co.storico_io)||[],storico_rpe:(co&&co.storico_rpe)||[],storico_risc:(co&&co.storico_risc)||[],cardio:(co&&co.cardio)||[],foto:(co&&co.foto)||[],dati_utente:(co&&co.dati_utente)||{},alimentazione:al||{bulk:[],mant:[],cut:[]}};
+        snap.profiles[p.slug]=Object.assign({scheda:sc||{settimanale:[],mensile:[]},storico:st||[],alimentazione:al||{bulk:[],mant:[],cut:[]}}, corpoFile(corpoDaFile(co)));
         if(conFoto){ try{ await allegaFoto(pd, snap.profiles[p.slug]); }catch(e){ logErrore('backupFoto:'+p.slug, e); } }
       }catch(e){ snap.profiles[p.slug]=blankDOC(); logErrore('snapshot:'+p.slug, e); }
     }
@@ -200,7 +200,7 @@ async function restoreData(file){
       const pd=await dataDir.getDirectoryHandle(slug,{create:true}); const d=snap.profiles[slug]||blankDOC();
       await writeJson(pd,FILES.scheda,d.scheda||{settimanale:[],mensile:[]});
       await writeJson(pd,FILES.storico,d.storico||[]);
-      await writeJson(pd,FILES.corpo,{dati_utente:d.dati_utente||{},storico_io:d.storico_io||[],storico_rpe:d.storico_rpe||[],storico_risc:d.storico_risc||[],cardio:d.cardio||[],foto:d.foto||[]});
+      await writeJson(pd,FILES.corpo,corpoFile(d));
       await writeJson(pd,FILES.alimentazione,d.alimentazione||{bulk:[],mant:[],cut:[]});
       /* backup completo: rimette anche le immagini nella cartella foto/ del profilo */
       const ff=d.fotoFiles||{};

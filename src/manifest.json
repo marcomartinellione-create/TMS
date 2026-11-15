@@ -32,6 +32,7 @@
     "app/08-progressi.js",
     "app/09-corpo.js",
     "app/09b-corpo-foto.js",
+    "app/09c-pesate.js",
     "app/10-storico-corpo.js",
     "app/11-alimentazione.js",
     "app/11c-ricette.js",

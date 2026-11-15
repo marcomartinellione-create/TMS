@@ -33,9 +33,18 @@ function setConn(state,txt){
 }
 
 /* dati del profilo attivo (scheda/storico/corpo/alimentazione); esercizi e ricette sono condivisi */
-function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
-function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; undoAzzera(); }
-function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],storico_risc:[],cardio:[],foto:[],dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
+function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto,pesate:DOC.pesate,pesate_scartate:DOC.pesate_scartate,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
+function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.pesate=Array.isArray(d.pesate)?d.pesate:[]; DOC.pesate_scartate=Array.isArray(d.pesate_scartate)?d.pesate_scartate:[]; DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; undoAzzera(); }
+function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],storico_risc:[],cardio:[],foto:[],pesate:[],pesate_scartate:[],dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
+/* CONTENUTO DI corpo.json in un posto solo (2026-11-15, pesate della bilancia): prima
+   l'oggetto era riscritto a mano in ogni salvataggio, e una parte nuova dimenticata in uno
+   solo di quei punti sarebbe stata cancellata dal disco al primo salvataggio.
+   corpoFile: dai dati (DOC o un profilo del backup) all'oggetto da scrivere;
+   corpoDaFile: dal file letto (null se assente) alle parti del profilo. */
+function corpoFile(d){ d=d||{}; return {dati_utente:d.dati_utente||{}, storico_io:d.storico_io||[], storico_rpe:d.storico_rpe||[], storico_risc:d.storico_risc||[],
+  cardio:d.cardio||[], foto:d.foto||[], pesate:d.pesate||[], pesate_scartate:d.pesate_scartate||[]}; }
+function corpoDaFile(co){ co=co||{}; return {storico_io:co.storico_io, storico_rpe:co.storico_rpe, storico_risc:co.storico_risc, cardio:co.cardio, foto:co.foto,
+  pesate:co.pesate, pesate_scartate:co.pesate_scartate, dati_utente:co.dati_utente}; }
 
 function saveCache(){ try{
   const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); const data=all.data||{};
@@ -173,7 +182,7 @@ async function loadProfile(){
      scrittura (l'errore risale a connectFlow/switchProfile, che bloccano il salvataggio) */
   const L=await leggiProfiloRigoroso(profileDir, activeProfile);
   const sc=L.scheda, st=L.storico, co=L.corpo, al=L.alimentazione;
-  applyProfileData({scheda:sc, storico:st, storico_io:co&&co.storico_io, storico_rpe:co&&co.storico_rpe, storico_risc:co&&co.storico_risc, cardio:co&&co.cardio, foto:co&&co.foto, dati_utente:co&&co.dati_utente, alimentazione:al});
+  applyProfileData(Object.assign({scheda:sc, storico:st, alimentazione:al}, corpoDaFile(co)));
   const preMig=JSON.stringify(DOC.storico);
   const preMigScheda=JSON.stringify(DOC.scheda);
   const migged=!!(migrateStorico()|migrateScheda()|migrateGiorniScheda()|migrateExNames()|migrateCardio()); normalizeAlim();
@@ -226,7 +235,7 @@ async function connectFlow(){
       }
       profiliDiRipiego=false;
       activeProfile=(profili[0]&&profili[0].slug)||PROFILO_DEMO.slug;
-      if(lsc||lst||lco||lal){ applyProfileData({scheda:lsc,storico:lst,storico_io:lco&&lco.storico_io,storico_rpe:lco&&lco.storico_rpe,storico_risc:lco&&lco.storico_risc,cardio:lco&&lco.cardio,foto:lco&&lco.foto,dati_utente:lco&&lco.dati_utente,alimentazione:lal}); }
+      if(lsc||lst||lco||lal){ applyProfileData(Object.assign({scheda:lsc,storico:lst,alimentazione:lal}, corpoDaFile(lco))); }
       migrateStorico(); migrateScheda(); migrateGiorniScheda(); migrateExNames(); normalizeAlim(); migraRicetteProfilo();
       profileDir=await dataDir.getDirectoryHandle(activeProfile,{create:true});
       /* manca solo l'elenco dei profili ma la cartella del profilo ha già i suoi file:
@@ -253,7 +262,7 @@ async function persistAll(){
   if(profileDir){
     await writeJson(profileDir,FILES.scheda,DOC.scheda);
     await writeJson(profileDir,FILES.storico,DOC.storico);
-    await writeJson(profileDir,FILES.corpo,{dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto});
+    await writeJson(profileDir,FILES.corpo,corpoFile(DOC));
     await writeJson(profileDir,FILES.alimentazione,DOC.alimentazione);
   }
   await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
@@ -267,7 +276,7 @@ async function flushSaves(){
   for(const which of keys){
     if(which==='scheda'&&profileDir) await writeJson(profileDir,FILES.scheda,DOC.scheda);
     else if(which==='storico'&&profileDir) await writeJson(profileDir,FILES.storico,DOC.storico);
-    else if(which==='corpo'&&profileDir) await writeJson(profileDir,FILES.corpo,{dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto});
+    else if(which==='corpo'&&profileDir) await writeJson(profileDir,FILES.corpo,corpoFile(DOC));
     else if(which==='alimentazione'&&profileDir) await writeJson(profileDir,FILES.alimentazione,DOC.alimentazione);
     else if(which==='esercizi') await writeJson(dataDir,FILES.esercizi,DOC.esercizi);
     else if(which==='ricette') await writeJson(dataDir,FILES.ricette,DOC.ricette||[]);
@@ -292,7 +301,7 @@ function scaricaSubito(){
     if(profileDir&&activeProfile){
       if(vuole('scheda')) W(pb+FILES.scheda, DOC.scheda);
       if(vuole('storico')) W(pb+FILES.storico, DOC.storico);
-      if(vuole('corpo')) W(pb+FILES.corpo, {dati_utente:DOC.dati_utente,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,cardio:DOC.cardio,foto:DOC.foto});
+      if(vuole('corpo')) W(pb+FILES.corpo, corpoFile(DOC));
       if(vuole('alimentazione')) W(pb+FILES.alimentazione, DOC.alimentazione);
     }
     if(vuole('esercizi')) W(base+FILES.esercizi, DOC.esercizi);

@@ -49,10 +49,11 @@ function renderCorpo(){
          ${F('peso','Peso','0.1','kg')}${F('massa_grassa','Massa grassa','0.001','frazione (es. 0.145)')}
          ${F('massa_muscolare','Massa muscolare','0.1','kg')}${F('massa_ossea','Massa ossea','0.1','kg')}
          ${F('metab_basale','Metabolismo basale','1','kcal')}${F('livello_attivita','Livello attività (PAL)','0.05','1.2–2.5')}
-         ${F('grasso_viscerale','Grasso viscerale','0.1','indice')}
+         ${F('grasso_viscerale','Grasso viscerale','0.1','indice')}${F('acqua','Acqua','0.1','%')}
        </div>
        <div class="muted" style="font-size:11px;margin-top:6px">${t('Altezza, data di nascita, sesso e nome sono nel tab <b>Profilo</b> (dati invariati).')}</div>
    <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», che si apre dal tab Profilo.')}</div></div>
+   <div id="pesate-box">${htmlPesate()}</div>
    <div id="foto-box"></div>
      </div>
      <aside class="pag__side">
@@ -71,6 +72,7 @@ function renderCorpo(){
     DOC.dati_utente[e.target.dataset.u]=v; persist('corpo');
     clearTimeout(rerenderT); rerenderT=setTimeout(()=>ridisegnaConFuoco('panel-corpo', renderCorpo),600);
   }));
+  legaPesate();   /* 🗑 sulle pesate della bilancia (09c-pesate.js) */
   document.getElementById('btn-save-io').onclick=saveIoModal;
   document.getElementById('btn-undo-io').onclick=async()=>{ if(!io.length){avviso(t('Vuoto.'));return;}
     if(!await conferma(t('Elimino l\'ultima misura salvata?')))return; DOC.storico_io.pop(); persist('corpo'); renderCorpo(); };
@@ -95,7 +97,8 @@ function saveIoModal(){
       DOC.storico_io=DOC.storico_io.filter(r=>(+r.scheda)!==code); }
     DOC.storico_io.push({scheda:code,eta:etaOf(u),livello:+u.livello_attivita||'',peso:+u.peso||0,
       metabolismo:c.metab,bmi:c.bmi,massa_grassa:+u.massa_grassa||0,massa_magra:c.magraKg,
-      massa_muscolare:+u.massa_muscolare||0,massa_ossea:+u.massa_ossea||0,metab_basale:+u.metab_basale||0,grasso_viscerale:+u.grasso_viscerale||0});
+      massa_muscolare:+u.massa_muscolare||0,massa_ossea:+u.massa_ossea||0,metab_basale:+u.metab_basale||0,grasso_viscerale:+u.grasso_viscerale||0,
+      acqua:(u.acqua===''||u.acqua==null)?'':+u.acqua});
     DOC.storico_io.sort((a,b)=>(+a.scheda||0)-(+b.scheda||0));   /* sempre in ordine di tempo: i grafici seguono l'elenco */
     persist('corpo'); closeModal(); renderCorpo();
   };

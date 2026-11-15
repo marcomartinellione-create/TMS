@@ -1054,7 +1054,7 @@ const EN={
   '— incluso il piano alimentare della fase':'— nutrition plan for phase',
   'Inviala al cliente: la apre nell\'app «TMS Scheda», compila e ti rimanda il file di rientro (da importare qui nel Profilo).':'Send it to the client: they open it in the «TMS Scheda» app, fill it in and send you back the log file (to import here in the Profile).',
   'Prima volta? Il cliente apre questo link sul telefono e aggiunge l\'app alla schermata Home (poi funziona anche offline):':'First time? The client opens this link on their phone and adds the app to the Home screen (then it works offline too):',
-  'File non valido: non è un "rientro scheda" del TMS (o non contiene esercizi).':'Invalid file: it is not a TMS "program log" (or it contains no exercises).',
+  'File non valido: non è un "rientro scheda" del TMS (o non contiene né esercizi né pesate).':'Invalid file: it is not a TMS "program log" (or it contains neither exercises nor weigh-ins).',
   '⚠ Il file è della scheda di «':'⚠ The file is for the program of «',
   '» ma il profilo attivo è «':'» but the active profile is «',
   'Importare comunque in questo profilo?':'Import into this profile anyway?',
@@ -1224,7 +1224,24 @@ const EN={
   'Aggiungi a':'Add to', '% del riferimento':'% of reference', 'aggiungi 100 g al pasto scelto':'add 100 g to the chosen meal',
   'Nessun alimento della banca dati riporta questo nutriente.':'No database food reports this nutrient.',
   'Valori per 100 g dalla banca dati (Svizzera e Ciqual). Restano fuori spezie ed erbe essiccate, alghe secche, condimenti e simili, che si mangiano in quantità minime. «per 100 kcal» premia gli alimenti densi di quel nutriente rispetto alle calorie.':'Values per 100 g from the database (Swiss and Ciqual). Dried spices and herbs, dried seaweed, condiments and the like are left out, since they are eaten in tiny amounts. “per 100 kcal” favours foods dense in that nutrient relative to their calories.',
-  'Sceglie il riferimento della ragnatela «distribuzione fra i gruppi», insieme al tipo di allenamento del Training Set (barra 🏋 Pesi).':'It picks the reference of the “distribution across groups” radar, together with the Training Set’s training type (🏋 Weights bar).'
+  'Sceglie il riferimento della ragnatela «distribuzione fra i gruppi», insieme al tipo di allenamento del Training Set (barra 🏋 Pesi).':'It picks the reference of the “distribution across groups” radar, together with the Training Set’s training type (🏋 Weights bar).',
+  /* ── pesate della bilancia (dal telefono, col rientro) ── */
+  '⚖ Pesate della bilancia':'⚖ Scale weigh-ins', 'Acqua':'Water', 'Acqua %':'Water %', 'N. pesate':'Weigh-ins',
+  'Media delle pesate della bilancia: quante ne sono entrate (una al giorno). Vuoto = misura scritta a mano.':'Average of the scale weigh-ins: how many went in (one per day). Empty = measurement typed by hand.',
+  'Nello Storico misure ci sono già valori scritti a mano per:':'The measurement history already has values typed by hand for:',
+  'settimana del':'week of', 'Settimana del':'Week of', 'media di':'average of',
+  'Li sostituisco con la media delle pesate? Se scegli «Tienili», le pesate restano salvate ma lo Storico di quelle settimane non cambia.':'Replace them with the average of the weigh-ins? If you choose “Keep them”, the weigh-ins stay saved but the history of those weeks does not change.',
+  'Sostituisci':'Replace', 'Tienili':'Keep them', 'pesata nuova':'new weigh-in', 'pesate nuove':'new weigh-ins', 'nessuna pesata nuova':'no new weigh-ins',
+  'già arrivate prima':'already received before', 'Storico misure:':'Measurement history:', 'Lasciate come le avevi scritte:':'Left as you had typed them:',
+  'tolte da te in passato: non rientrano':'removed by you in the past: they do not come back', 'illeggibili, saltate':'unreadable, skipped',
+  'non è nello Storico misure':'not in the measurement history', 'media nello Storico misure':'average in the measurement history',
+  'nello Storico c’è la misura scritta a mano':'the history has the measurement typed by hand',
+  'Togli questa pesata':'Remove this weigh-in', 'Ora':'Time', 'Grasso %':'Fat %', 'Muscolo':'Muscle',
+  'Arrivano col rientro dall’app del telefono e la media di ogni settimana va da sola nello Storico misure. Nella media conta una pesata al giorno, la prima: le altre sono in grigio.':'They arrive with the log from the phone app, and the average of each week goes into the measurement history by itself. One weigh-in per day counts towards the average, the first one: the others are greyed out.',
+  'Mostra solo le ultime 4 settimane':'Show only the last 4 weeks', 'Mostra tutte le settimane':'Show all weeks',
+  'Tolgo la pesata di':'Remove the weigh-in of', 'Togli':'Remove',
+  'Non tornerà con i prossimi rientri, e la media della sua settimana nello Storico misure si ricalcola.':'It will not come back with the next logs, and the average of its week in the measurement history is recalculated.',
+  '📥 Pesate di «':'📥 Weigh-ins of «', 'Nessuna pesata nuova.':'No new weigh-ins.',
 };
 
 const I18N={en:EN};

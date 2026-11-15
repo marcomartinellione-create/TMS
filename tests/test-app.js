@@ -2611,6 +2611,141 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
   dom.window.close();
 }
 
+console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
+{
+  /* 2026-11-15: la bilancia parla con l'app del telefono; le pesate arrivano col rientro e la
+     media di ogni settimana va da sola nello Storico misure (una domanda solo se c'è già una
+     misura scritta a mano). Settimane ISO 2026: 45 = 2–8 nov, 46 = 9–15 nov, 47 = 16–22 nov. */
+  const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'anna', nome: 'Anna', creato: '2026-01-01' }], active: 'anna' }));
+  await fsmem.writeFile('TMS_Dati/anna/scheda.json', J({ settimanale: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 100 }], mensile: [] }));
+  await fsmem.writeFile('TMS_Dati/anna/storico.json', '[]');
+  await fsmem.writeFile('TMS_Dati/anna/corpo.json', J({ dati_utente: { nome: 'Anna', sesso: 'F', altezza: 170, nascita: '1990-05-01', livello_attivita: 1.5, peso: 66, massa_grassa: 0.25 },
+    storico_io: [{ scheda: 202645, eta: 36, livello: 1.5, peso: 66.5, metabolismo: 2100, bmi: 23, massa_grassa: 0.26, massa_magra: 49.2, massa_muscolare: 45, massa_ossea: 2.4, metab_basale: 1400, grasso_viscerale: 5 }] }));
+  await fsmem.writeFile('TMS_Dati/anna/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem); await settle(400);
+  const w = dom.window, d = w.document;
+  let domande = [], risposte = [];
+  w.alert = () => {}; w.confirm = m => { domande.push(String(m)); return risposte.length ? risposte.shift() : true; };
+  const corpoDisco = () => JSON.parse(fsmem._files.get('TMS_Dati/anna/corpo.json'));
+  const riga = c => w.eval('JSON.stringify((DOC.storico_io||[]).find(function(r){return +r.scheda===' + c + ';})||null)');
+  const R = c => JSON.parse(riga(c));
+  const importa = async obj => { w.__fr = { text: async () => JSON.stringify(obj) }; await w.eval('importaRientroFile(window.__fr)'); await settle(150); };
+  const P = (data, ora, peso, x) => Object.assign({ id: data + 'T' + ora + '|' + peso, data: data, ora: ora, peso: peso }, x || {});
+  const comp = (g, ac, mu, bmr) => ({ grasso: g, acqua: ac, muscolo: mu, ossa: 2.5, proteine: 17, visc: 5, bmr: bmr, imp: [500, 480, 300, 310, 20, 450, 430, 280, 290, 18] });
+  ok(errors.length === 0 && !w.eval('scrittureBloccate'), 'pesate: avvio senza errori');
+
+  /* pulizia e scelta della pesata del giorno */
+  ok(w.eval('pulisciPesata({data:"2026-13-40",peso:70})') === null && w.eval('pulisciPesata({data:"2026-11-09",peso:"abc"})') === null && w.eval('pulisciPesata({data:"2026-11-09",peso:5})') === null,
+     'pesate: data o peso non validi → scartata');
+  { const p = JSON.parse(w.eval('JSON.stringify(pulisciPesata({data:"2026-11-09",ora:"7:5",peso:70.123,grasso:99,acqua:55,imp:[1,2,"x"]}))'));
+    ok(p.peso === 70.12 && p.ora === '' && !('grasso' in p) && p.acqua === 55 && !('imp' in p) && /^2026-11-09T00:00\|70/.test(p.id),
+       'pesate: valori fuori intervallo o malformati tolti, la pesata resta (id ricostruito se manca)'); }
+  ok(w.eval('pesateContate([{id:"a",data:"2026-11-09",ora:"07:00",peso:70},{id:"b",data:"2026-11-09",ora:"07:01",peso:70.2,grasso:20},{id:"c",data:"2026-11-09",ora:"19:00",peso:71,grasso:21},{id:"d",data:"2026-11-10",ora:"08:00",peso:69}]).map(function(p){return p.id;}).join()') === 'b,d',
+     'pesate: una al giorno, la prima completa (la prima, se nessuna ha la composizione)');
+
+  /* la scheda per il telefono porta altezza, sesso ed età */
+  { const c = JSON.parse(w.eval('JSON.stringify(costruisciSchedaJSON({}).corpo)'));
+    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30, 'export scheda: porta altezza, sesso ed età per la bilancia (e nient\'altro del corpo)'); }
+
+  /* rientro con sole pesate */
+  const pesate1 = [
+    P('2026-11-09', '07:00', 65.0, comp(24, 52, 46, 1400)),
+    P('2026-11-09', '19:00', 66.0, comp(26, 50, 46, 1390)),
+    P('2026-11-11', '07:10', 64.6, comp(23.6, 52.4, 46.2, 1404)),
+    P('2026-11-16', '07:05', 64.8, comp(23.8, 52.2, 46.1, 1402)),
+    P('2026-11-05', '07:00', 65.5, comp(25, 51, 45.5, 1395)),
+    { id: 'rotta', data: '2026-11-10', peso: 'abc' }];
+  const rientroPesate = { tipo: 'tms-rientro', versione: 1, profilo: { slug: 'anna', nome: 'Anna' }, righe: [], sedute: [], pesate: pesate1 };
+  const schedaPrima = w.eval('JSON.stringify(DOC.scheda)');
+  domande = []; risposte = [false];   /* «Tienili»: la settimana 45 scritta a mano resta com'è */
+  await importa(rientroPesate);
+  ok(domande.length === 1 && /scritti a mano/.test(domande[0]) && /02\/11\/26/.test(domande[0]), 'rientro pesate: UNA domanda, solo per la settimana con la misura scritta a mano');
+  ok(w.eval('DOC.pesate.length') === 5 && w.eval('DOC.scheda && JSON.stringify(DOC.scheda)') === schedaPrima, 'rientro pesate: 5 pesate salvate (1 illeggibile saltata), scheda Pesi intatta');
+  ok(w.eval('curTab') === 'corpo', 'rientro con sole pesate: porta al tab Corpo');
+  { const r = R(202646);
+    ok(r && r.n_pesate === 2 && r.peso === 64.8 && r.massa_grassa === 0.238 && r.acqua === 52.2 && r.metab_basale === 1402,
+       'settimana 46: media di 2 pesate (la seconda del lunedì non conta) → peso 64,8, grasso 23,8 %, acqua 52,2 %');
+    ok(Math.abs(r.bmi - 64.8 / (1.7 * 1.7)) < 0.01 && r.metabolismo === 1402 * 1.5 && Math.abs(r.massa_magra - 64.8 * (1 - 0.238)) < 0.01 && r.massa_muscolare === 46.1,
+       'settimana 46: BMI dall\'altezza del profilo, fabbisogno = basale × livello, massa magra = peso − grasso'); }
+  ok(R(202647) && R(202647).n_pesate === 1 && R(202647).peso === 64.8, 'settimana 47 (ancora in corso): riga con la sola pesata arrivata');
+  ok(R(202645).peso === 66.5 && !R(202645).n_pesate, 'settimana 45 scritta a mano: «Tienili» la lascia com\'era');
+  ok(w.eval('DOC.dati_utente.peso') === 64.8 && w.eval('DOC.dati_utente.massa_grassa') === 0.238 && w.eval('DOC.dati_utente.acqua') === 52.2 && w.eval('DOC.dati_utente.metab_basale') === 1402,
+     'campi del tab Corpo all\'ultima pesata (16/11)');
+  await settle(500);
+  { const c = corpoDisco();
+    ok(Array.isArray(c.pesate) && c.pesate.length === 5 && c.storico_io.some(r => r.scheda === 202646 && r.n_pesate === 2) && Array.isArray(c.pesate_scartate),
+       'corpo.json su disco: pesate e medie salvate'); }
+
+  /* stesso rientro di nuovo: niente doppioni, nessuna domanda */
+  const ioPrima = w.eval('JSON.stringify(DOC.storico_io)');
+  domande = [];
+  await importa(rientroPesate);
+  ok(w.eval('DOC.pesate.length') === 5 && w.eval('JSON.stringify(DOC.storico_io)') === ioPrima && domande.length === 0,
+     'stesso rientro due volte: le pesate già arrivate non si doppiano e lo Storico non cambia');
+  { const r = JSON.parse(await w.eval('(async function(){ return JSON.stringify(await importaPesate(' + J(pesate1) + ')); })()'));
+    ok(r.nuove === 0 && r.gia === 5 && r.nonValide === 1, 'riepilogo: 0 nuove, 5 già arrivate, 1 illeggibile'); }
+
+  /* pesata nuova nella settimana 45, risposta «Sostituisci» */
+  domande = []; risposte = [true];
+  await importa({ tipo: 'tms-rientro', versione: 1, profilo: { slug: 'anna', nome: 'Anna' }, righe: [], pesate: pesate1.concat([P('2026-11-06', '07:02', 65.1, comp(24.6, 51.4, 45.7, 1398))]) });
+  ok(domande.length === 1 && R(202645).n_pesate === 2 && R(202645).peso === 65.3, 'settimana 45: «Sostituisci» mette la media delle pesate (2) al posto della misura a mano');
+  ok(w.eval('DOC.pesate.length') === 6 && w.eval('DOC.dati_utente.peso') === 64.8, 'una pesata vecchia non cambia i campi del tab Corpo (restano all\'ultima)');
+
+  /* riquadro nel tab Corpo e colonne dello Storico misure */
+  w.eval('showTab("corpo")');
+  { const box = d.getElementById('pesate-box');
+    ok(box && box.querySelectorAll('[data-delpes]').length === 6 && box.querySelectorAll('tr.pesata-fuori').length === 1 && /Settimana del/.test(box.textContent),
+       'tab Corpo: riquadro «Pesate della bilancia» per settimana, la seconda pesata del giorno in grigio'); }
+  w.eval('showTab("storicocorpo")');
+  { const p = d.getElementById('panel-storicocorpo');
+    ok(/N\. pesate/.test(p.textContent) && /Acqua %/.test(p.textContent) && /⚖ 2/.test(p.textContent), 'Storico misure: colonne Acqua % e N. pesate'); }
+
+  /* togliere una pesata: la media si ricalcola e la pesata non torna; Ctrl+Z la rimette */
+  await settle(1300);   /* passo di annullamento separato dall'import */
+  w.eval('showTab("corpo")');
+  const id11 = '2026-11-11T07:10|64.6';
+  domande = []; risposte = [true];
+  d.querySelector('#pesate-box [data-delpes="' + id11 + '"]').click(); await settle(80);
+  ok(w.eval('DOC.pesate.length') === 5 && w.eval('DOC.pesate_scartate.indexOf(' + J(id11) + ')') >= 0 && R(202646).n_pesate === 1 && R(202646).peso === 65,
+     'tolta una pesata: la settimana 46 si ricalcola (resta il lunedì)');
+  await importa(rientroPesate);
+  ok(w.eval('DOC.pesate.length') === 5 && R(202646).n_pesate === 1, 'la pesata tolta non torna col rientro successivo');
+  await settle(1300);
+  w.eval('annulla()'); await settle(100);
+  ok(w.eval('DOC.pesate.length') === 6 && w.eval('DOC.pesate_scartate.indexOf(' + J(id11) + ')') < 0 && R(202646).n_pesate === 2, 'Ctrl+Z rimette la pesata tolta e la media di prima');
+
+  /* una settimana di sole pesate tolte del tutto: la riga dello Storico sparisce */
+  w.eval('DOC.pesate=DOC.pesate.filter(function(p){return settimanaPesata(p)!==202647;}); ricalcolaSettimanaPesate(202647);');
+  ok(R(202647) === null, 'settimana senza più pesate: la sua riga (fatta dalle pesate) esce dallo Storico');
+  ok(w.eval('(function(){ var n=DOC.storico_io.length; DOC.storico_io.push({scheda:203001,peso:70}); ricalcolaSettimanaPesate(203001); var ok=DOC.storico_io.length===n+1; DOC.storico_io.pop(); return ok; })()'),
+     'una misura scritta a mano non viene mai tolta dal ricalcolo');
+
+  /* rientro con allenamento E pesate; rientro vuoto; profilo diverso */
+  domande = []; risposte = [];
+  await importa({ tipo: 'tms-rientro', versione: 1, profilo: { slug: 'anna', nome: 'Anna' }, righe: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 105 }], sedute: [],
+    pesate: [P('2026-11-17', '07:00', 64.5, comp(23.5, 52.5, 46.2, 1405))] });
+  ok(w.eval('curTab') === 'allenamento' && w.eval('DOC.scheda.settimanale[0].peso') === 105 && R(202647) && R(202647).n_pesate === 1 && R(202647).peso === 64.5,
+     'rientro con allenamento e pesate: l\'allenamento va nella scheda Pesi, le pesate nello Storico misure');
+  const nPes = w.eval('DOC.pesate.length');
+  await importa({ tipo: 'tms-rientro', versione: 1, profilo: { slug: 'anna' }, righe: [], pesate: [] });
+  ok(w.eval('DOC.pesate.length') === nPes, 'rientro senza esercizi né pesate: rifiutato');
+  domande = []; risposte = [false];
+  await importa({ tipo: 'tms-rientro', versione: 1, profilo: { slug: 'bruno', nome: 'Bruno' }, righe: [], pesate: [P('2026-11-18', '07:00', 80)] });
+  ok(domande.length === 1 && /Bruno/.test(domande[0]) && w.eval('DOC.pesate.length') === nPes, 'pesate di un altro profilo: si chiede, e con «Annulla» non entra nulla');
+
+  /* backup e file: le pesate non si perdono */
+  ok(w.eval('corpoFile({pesate:[1],pesate_scartate:["x"]}).pesate.length') === 1 && w.eval('corpoFile(corpoDaFile(null)).pesate.length') === 0, 'corpoFile/corpoDaFile: le pesate passano, file assente = elenchi vuoti');
+  { const snap = JSON.parse(await w.eval('costruisciSnapshot().then(s=>JSON.stringify(s))'));
+    ok(snap.profiles.anna && snap.profiles.anna.pesate.length === nPes && Array.isArray(snap.profiles.anna.pesate_scartate), 'backup: comprende le pesate del profilo'); }
+  w.eval('DOC.pesate.push({id:"chiusura",data:"2026-11-19",ora:"07:00",peso:64}); persist("corpo");');
+  ok(w.eval('scaricaSubito()') >= 1 && JSON.parse(fsmem._files.get('TMS_Dati/anna/corpo.json')).pesate.some(p => p.id === 'chiusura'), 'chiusura dell\'app: le pesate in attesa partono subito');
+  ok(errors.length === 0, 'pesate: nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  await settle(300);
+  dom.window.close();
+}
+
 console.log('');
 console.log('RISULTATO: ' + pass + ' OK, ' + fail + ' FAIL');
 process.exit(fail ? 1 : 0);

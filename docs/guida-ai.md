@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.22 (2026-11-14). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.23 (2026-11-15). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -117,8 +117,8 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   sistema) e l'operazione è definitiva. Si può togliere qualunque settimana, anche una in
   mezzo allo storico: non solo l'ultima.
 
-- Per ogni profilo i file sono: scheda.json, storico.json, corpo.json,
-  alimentazione.json. I valori derivati (1RM, TL, ACWR…) NON vengono mai salvati:
+- Per ogni profilo i file sono: scheda.json, storico.json, corpo.json (anagrafica, misure,
+  cardio, foto, pesate della bilancia), alimentazione.json. I valori derivati (1RM, TL, ACWR…) NON vengono mai salvati:
   si ricalcolano al volo dai dati grezzi.
 
 ## 4 · Pesi (tab 🏋 Pesi)
@@ -381,8 +381,24 @@ Due modi per registrare una seduta:
   vedi §4 per i dettagli su cosa NON tocca (TL/ACWR/monotonia restano intatti).
 - **Storico** (pulsante «📜 Storico» in cima al tab Profilo): archivio completo delle registrazioni, in codici
   settimana ISO formato AAAASS (es. 202624 = settimana 24 del 2026).
-- **Corpo**: peso e misure corporee con BMI e stime masse; lo storico misure è in un
-  archivio dedicato (pulsante «📏 Misure» in cima al tab Profilo).
+- **Corpo**: peso e misure corporee con BMI e stime masse (anche Acqua %); lo storico misure
+  è in un archivio dedicato (pulsante «📏 Misure» in cima al tab Profilo), con le colonne
+  «Acqua %» e «N. pesate».
+- **Pesate della bilancia** (riquadro «⚖ Pesate della bilancia» nel tab Corpo, visibile solo
+  se ce ne sono): pesate di una bilancia Bluetooth arrivate col rientro dell'app del telefono
+  (campo 'pesate' del rientro), salvate in corpo.json (DOC.pesate; gli id tolti a mano in
+  DOC.pesate_scartate, così un rientro successivo non li riporta). Ogni pesata porta data, ora,
+  peso e, se la bilancia ha misurato con le maniglie, la composizione già calcolata dal
+  telefono (grasso %, acqua %, muscolo kg, ossa kg, proteine %, viscerale, metabolismo basale,
+  età metabolica) più le impedenze grezze, che si conservano soltanto. All'import, per ogni
+  settimana ISO con almeno una pesata NUOVA, la MEDIA va da sola nello Storico misure, senza
+  «💾 Salva misure»: una pesata al giorno, la prima (la prima completa, se quel giorno ce n'è
+  una con la composizione); BMI dall'altezza del profilo, fabbisogno = basale medio × livello
+  di attività del profilo; la riga porta 'n_pesate'. Se la settimana ha già una misura scritta
+  a mano (senza 'n_pesate') il TMS chiede una volta sola («Sostituisci» / «Tienili»). I campi
+  del tab Corpo prendono i valori dell'ultima pesata, se è la più recente. Le pesate già
+  arrivate (stesso id) non si doppiano. Il 🗑 su una pesata la toglie e ricalcola la media
+  della sua settimana (una misura scritta a mano non viene mai toccata); Ctrl+Z la rimette.
 - **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
@@ -541,7 +557,12 @@ nei dispositivi.
    fronte/lato/retro), tramite 'importaFotoRientro'. Il coach rivede la scheda Pesi,
    eventualmente corregge, poi preme «💾 Salva nello Storico» scegliendo la settimana: solo
    allora entra nello Storico (con sedute e RPE) e alimenta TL/ACWR/grafici. Questo dà al
-   coach un controllo manuale prima del salvataggio.
+   coach un controllo manuale prima del salvataggio. Le eventuali **pesate della bilancia**
+   ('pesate' nel rientro) invece vanno da sole nello Storico misure (media per settimana,
+   vedi la voce «Pesate della bilancia» nella sezione dei tab), tramite 'importaPesate'. Un
+   rientro può portare anche SOLO le pesate (righe vuote): allora la scheda Pesi non si tocca
+   e si apre il tab Corpo. La scheda esportata porta 'corpo' (altezza, sesso, età): servono al
+   telefono per calcolare la composizione dalla bilancia.
 Controlli all'import: file non valido → errore chiaro; profilo diverso da quello
 della riga → richiesta conferma; esercizi fuori catalogo → avviso con elenco;
 scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
