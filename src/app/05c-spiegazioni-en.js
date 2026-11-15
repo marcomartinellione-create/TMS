@@ -18,7 +18,7 @@ const SPIEG_EN={
   b:['Schoenfeld BJ, Grgic J, Haun C, Itagaki T, Helms ER (2019). Calculating set-volume for the limb muscles with the performance of multi-joint exercises. <i>Sports</i> 7(7):177.',
      'Pelland JC et al. (2025). The resistance training dose response: meta-regressions exploring the effects of weekly volume and frequency on hypertrophy and strength. <i>Sports Medicine</i>, doi:10.1007/s40279-025-02344-w.',
      'Hyndman RJ, Fan Y (1996). Sample quantiles in statistical packages. <i>The American Statistician</i> 50(4):361–365.',
-     'TMS references: StrengthLog, Muscle &amp; Strength, depot.fitness programs (CC BY 4.0); protocol corpus v0.7. Full list in ⚙ Reference.']},
+     'TMS references: StrengthLog, Muscle &amp; Strength, depot.fitness (CC BY 4.0), Liftosaur and other public programs from 30 websites; protocol corpus v0.7 and open-access articles. Full list in ⚙ Reference.']},
 
 'serie-gruppo':{t:'Sets per muscle group and useful zone',
   dove:'Weights (side panel) · ⚖ Balance · History · Progress',

@@ -1,0 +1,12465 @@
+{
+ "_nota": "Schede GENERATE dal modello Fable il 15/11/2026, su richiesta di Marco, ALLA CIECA: l'agente ha ricevuto solo le definizioni dei tipi e l'elenco dei nomi degli esercizi riconosciuti dall'importatore, senza vedere dati, fasce o fonti del TMS. 5 schede per combinazione esperienza x tipo x sesso (36 combinazioni, 180 schede), palestra, adulti. Serie = serie settimanali (sedute alternate A/B su 3 giorni contate 1,5 volte). NON sono schede reali: nell'app entrano solo se si accende «Schede Fable». Confronto con i dati noti: Doc/riferimenti-distribuzione/fable-2026-11-15 (criterio fissato prima dei risultati) e tools/riferimenti/confronta-fable.js. Originali dell'agente in Doc/riferimenti-distribuzione/fable-2026-11-15/originali.",
+ "modello": "claude-fable-5-2",
+ "data": "2026-11-15",
+ "schede": [
+  {
+   "id": "principiante-forza-M-1",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Progressione lineare A/B",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     4.5
+    ],
+    [
+     "overhead press",
+     4.5
+    ],
+    [
+     "deadlift",
+     1.5
+    ],
+    [
+     "power clean",
+     7.5
+    ],
+    [
+     "chin up",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Pochi fondamentali col bilanciere, 3x5, si aggiunge carico a ogni seduta."
+  },
+  {
+   "id": "principiante-forza-M-2",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "5x5 classico",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     15
+    ],
+    [
+     "bench press",
+     7.5
+    ],
+    [
+     "barbell row",
+     7.5
+    ],
+    [
+     "overhead press",
+     7.5
+    ],
+    [
+     "deadlift",
+     1.5
+    ]
+   ],
+   "extra": [],
+   "nota": "Cinque serie da cinque sui multiarticolari, squat a ogni seduta, progressione lineare."
+  },
+  {
+   "id": "principiante-forza-M-3",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Lineare a livelli 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "corpo intero a livelli (principale pesante, secondario, accessorio)",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "overhead press",
+     8
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Ogni alzata è pesante una volta (5x3) e a volume una volta (3x10), più un accessorio per la schiena."
+  },
+  {
+   "id": "principiante-forza-M-4",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Upper/lower forza base",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "overhead press",
+     6
+    ],
+    [
+     "barbell row",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "plank"
+   ],
+   "nota": "Due sedute per metà corpo, fondamentali a 3x5 e pochi complementari a ripetizioni medie."
+  },
+  {
+   "id": "principiante-forza-M-5",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Corpo intero con accessori",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, 3 sedute diverse",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "chin up",
+     6
+    ],
+    [
+     "barbell row",
+     3
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "back extension",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Base di forza a basse ripetizioni con l'ultima serie a oltranza e qualche accessorio per braccia e schiena."
+  },
+  {
+   "id": "principiante-forza-F-1",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Progressione lineare A/B",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     4.5
+    ],
+    [
+     "overhead press",
+     4.5
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "lat pulldown",
+     4.5
+    ],
+    [
+     "hip thrust",
+     4.5
+    ]
+   ],
+   "extra": [],
+   "nota": "Fondamentali a 3x5 con incrementi piccoli, più trazioni alla lat machine e hip thrust."
+  },
+  {
+   "id": "principiante-forza-F-2",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Dal goblet al bilanciere",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, 3 sedute",
+   "esercizi": [
+    [
+     "goblet squat",
+     3
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "dumbbell row",
+     9
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "dead bug",
+     6
+    ]
+   ],
+   "extra": [
+    "plank"
+   ],
+   "nota": "Si impara la tecnica con carichi crescenti, 5-8 ripetizioni, catena posteriore in evidenza."
+  },
+  {
+   "id": "principiante-forza-F-3",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Upper/lower 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "split squat",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Fondamentali pesanti a inizio seduta, complementari a 8-10 ripetizioni."
+  },
+  {
+   "id": "principiante-forza-F-4",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "3x5 sui fondamentali",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     4.5
+    ],
+    [
+     "barbell row",
+     4.5
+    ],
+    [
+     "overhead press",
+     4.5
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "assisted pull up",
+     4.5
+    ],
+    [
+     "back extension",
+     4.5
+    ]
+   ],
+   "extra": [],
+   "nota": "Versione a 3 serie del 5x5, con lavoro verso la prima trazione alla sbarra."
+  },
+  {
+   "id": "principiante-forza-F-5",
+   "esperienza": "principiante",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Due sedute pesanti",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero A/B",
+   "esercizi": [
+    [
+     "trap bar deadlift",
+     3
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "hip thrust",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "dead bug",
+     4
+    ]
+   ],
+   "extra": [
+    "trasporto di manubri (farmer walk)"
+   ],
+   "nota": "Per chi ha due giorni: pochi esercizi pesanti a seduta, trap bar per imparare lo stacco."
+  },
+  {
+   "id": "intermedio-forza-M-1",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "5/3/1 con volume",
+   "giorni_settimana": 4,
+   "struttura": "una alzata principale per seduta",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "overhead press",
+     8
+    ],
+    [
+     "chin up",
+     10
+    ],
+    [
+     "dumbbell row",
+     5
+    ],
+    [
+     "dip",
+     5
+    ],
+    [
+     "leg curl",
+     5
+    ],
+    [
+     "hanging leg raise",
+     5
+    ],
+    [
+     "face pull",
+     5
+    ]
+   ],
+   "extra": [
+    "traino slitta o camminata in salita 2 volte"
+   ],
+   "nota": "Tre serie di lavoro a percentuali con l'ultima a oltranza, poi 5 serie di volume e accessori."
+  },
+  {
+   "id": "intermedio-forza-M-2",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Volume, recupero, intensità",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, onda settimanale",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     4.5
+    ],
+    [
+     "overhead press",
+     4.5
+    ],
+    [
+     "deadlift",
+     1
+    ],
+    [
+     "power clean",
+     2.5
+    ],
+    [
+     "chin up",
+     6
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "barbell curl",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Lunedì 5x5 di volume, mercoledì leggero, venerdì un record sulle 5 ripetizioni."
+  },
+  {
+   "id": "intermedio-forza-M-3",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Upper/lower pesante e medio",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     7
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "bench press",
+     7
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "pull up",
+     4
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Un giorno a 3-5 ripetizioni e uno a 6-8 per metà corpo, con varianti dei fondamentali."
+  },
+  {
+   "id": "intermedio-forza-M-4",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "5x5 a rampa settimanale",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     13
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "barbell row",
+     9
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "dip",
+     3
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "back extension",
+     2
+    ],
+    [
+     "sit up",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Serie a salire fino a una top set da 5, record il venerdì, progressione settimana per settimana."
+  },
+  {
+   "id": "intermedio-forza-M-5",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Pesante, leggero, medio",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ],
+    [
+     "face pull",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Tre intensità diverse nella settimana per accumulare pratica senza logorarsi."
+  },
+  {
+   "id": "intermedio-forza-F-1",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "5/3/1 con accessori",
+   "giorni_settimana": 4,
+   "struttura": "una alzata principale per seduta",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "overhead press",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "lat pulldown",
+     8
+    ],
+    [
+     "dumbbell row",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Cicli a percentuali con serie a oltranza, accessori orientati a glutei e dorso."
+  },
+  {
+   "id": "intermedio-forza-F-2",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Upper/lower forza",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "hip thrust",
+     7
+    ],
+    [
+     "bench press",
+     5
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "chin up",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "face pull",
+     3
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Un giorno pesante e uno di variante per ogni metà corpo, 3-6 ripetizioni sui principali."
+  },
+  {
+   "id": "intermedio-forza-F-3",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Corpo intero ondulato",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, ripetizioni diverse ogni giorno",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "assisted pull up",
+     6
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Squat e panca tre volte la settimana a 3, 5 e 8 ripetizioni; le donne reggono bene l'alta frequenza."
+  },
+  {
+   "id": "intermedio-forza-F-4",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Alzata più variante",
+   "giorni_settimana": 4,
+   "struttura": "una alzata e la sua variante per seduta",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "bench press",
+     5
+    ],
+    [
+     "incline bench press",
+     3
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "overhead press",
+     5
+    ],
+    [
+     "push press",
+     3
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "ab wheel rollout",
+     4
+    ],
+    [
+     "back extension",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Ogni seduta costruita attorno a un fondamentale pesante seguito dalla variante che cura il punto debole."
+  },
+  {
+   "id": "intermedio-forza-F-5",
+   "esperienza": "intermedio",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Tre giorni attorno allo squat",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     12
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "sumo deadlift",
+     4
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "dead bug",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Squat a ogni seduta con carichi a onda, stacco sumo una volta, panca due."
+  },
+  {
+   "id": "avanzato-forza-M-1",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Coniugato 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "sforzo massimale e sforzo dinamico, upper/lower",
+   "esercizi": [
+    [
+     "speed squat",
+     8
+    ],
+    [
+     "box squat",
+     3
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "floor press",
+     3
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "jm press",
+     4
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "chest supported row",
+     4
+    ],
+    [
+     "glute ham raise",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "face pull",
+     6
+    ]
+   ],
+   "extra": [
+    "traino slitta"
+   ],
+   "nota": "Un massimale su una variante che ruota ogni settimana, un giorno di velocità e tanto lavoro sui punti deboli."
+  },
+  {
+   "id": "avanzato-forza-M-2",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "5/3/1 con serie di richiamo",
+   "giorni_settimana": 4,
+   "struttura": "una alzata principale per seduta",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "overhead press",
+     8
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "pull up",
+     10
+    ],
+    [
+     "barbell row",
+     5
+    ],
+    [
+     "dip",
+     5
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     5
+    ],
+    [
+     "face pull",
+     5
+    ],
+    [
+     "barbell curl",
+     3
+    ]
+   ],
+   "extra": [
+    "sprint in salita o slitta 2 volte"
+   ],
+   "nota": "Percentuali, singole pesanti oltre la top set e richiami al primo carico per il volume."
+  },
+  {
+   "id": "avanzato-forza-M-3",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Alta frequenza 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "corpo intero quotidiano",
+   "esercizi": [
+    [
+     "squat",
+     12
+    ],
+    [
+     "front squat",
+     6
+    ],
+    [
+     "bench press",
+     12
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "overhead press",
+     6
+    ],
+    [
+     "pull up",
+     9
+    ],
+    [
+     "barbell row",
+     6
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Si squatta e si spinge quasi ogni giorno fino a una singola o doppia pesante più serie di scarico."
+  },
+  {
+   "id": "avanzato-forza-M-4",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Ondulazione giornaliera upper/lower",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "deficit deadlift",
+     3
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "bench press",
+     10
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "pull up",
+     5
+    ],
+    [
+     "pendlay row",
+     5
+    ],
+    [
+     "t bar row",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "calf raise",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Stesso gesto due volte a settimana con ripetizioni e carichi diversi, autoregolati a sensazione."
+  },
+  {
+   "id": "avanzato-forza-M-5",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "M",
+   "titolo": "Blocco di intensificazione",
+   "giorni_settimana": 5,
+   "struttura": "split per alzata più giorno accessori",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "front squat",
+     4
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "board press",
+     3
+    ],
+    [
+     "incline bench press",
+     4
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "rack pull",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "overhead press",
+     5
+    ],
+    [
+     "push press",
+     3
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "dip",
+     4
+    ],
+    [
+     "glute ham raise",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ],
+    [
+     "shrug",
+     3
+    ],
+    [
+     "face pull",
+     6
+    ]
+   ],
+   "extra": [
+    "trasporti pesanti (farmer walk)"
+   ],
+   "nota": "Carichi all'85-95% sui principali, sovraccarichi parziali e volume accessorio contenuto."
+  },
+  {
+   "id": "avanzato-forza-F-1",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Ondulazione giornaliera upper/lower",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "bench press",
+     10
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "barbell row",
+     5
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Giorno pesante e giorno a volume per ogni alzata, carichi autoregolati."
+  },
+  {
+   "id": "avanzato-forza-F-2",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "5/3/1 con richiami",
+   "giorni_settimana": 4,
+   "struttura": "una alzata principale per seduta",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "overhead press",
+     8
+    ],
+    [
+     "hip thrust",
+     5
+    ],
+    [
+     "chin up",
+     8
+    ],
+    [
+     "dumbbell row",
+     5
+    ],
+    [
+     "bulgarian split squat",
+     5
+    ],
+    [
+     "glute ham raise",
+     4
+    ],
+    [
+     "dip",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     5
+    ]
+   ],
+   "extra": [
+    "traino slitta"
+   ],
+   "nota": "Percentuali con ultima serie a oltranza e serie di richiamo, accessori su una gamba e catena posteriore."
+  },
+  {
+   "id": "avanzato-forza-F-3",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Alta frequenza 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     14
+    ],
+    [
+     "bench press",
+     14
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "overhead press",
+     5
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "chest supported row",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Squat e panca 4-5 volte la settimana a carichi submassimali: tanta pratica tecnica e buon recupero."
+  },
+  {
+   "id": "avanzato-forza-F-4",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Coniugato adattato",
+   "giorni_settimana": 4,
+   "struttura": "sforzo massimale e sforzo dinamico, upper/lower",
+   "esercizi": [
+    [
+     "speed squat",
+     8
+    ],
+    [
+     "box squat",
+     3
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "floor press",
+     3
+    ],
+    [
+     "glute ham raise",
+     6
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [
+    "traino slitta"
+   ],
+   "nota": "Varianti massimali a rotazione, lavoro di velocità e accessori per catena posteriore e tricipiti."
+  },
+  {
+   "id": "avanzato-forza-F-5",
+   "esperienza": "avanzato",
+   "tipo": "forza",
+   "sesso": "F",
+   "titolo": "Tre sedute pesanti complete",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     10
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "bench press",
+     10
+    ],
+    [
+     "push press",
+     4
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "pull up",
+     9
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Tre sedute lunghe con triple e singole pesanti e serie di scarico, poco contorno."
+  },
+  {
+   "id": "principiante-ipertrofia-M-1",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Corpo intero 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, stessa seduta",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dumbbell curl",
+     6
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Ogni muscolo stimolato tre volte la settimana con 8-12 ripetizioni e progressione doppia."
+  },
+  {
+   "id": "principiante-ipertrofia-M-2",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Upper/lower 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "bench press",
+     6
+    ],
+    [
+     "incline dumbbell press",
+     6
+    ],
+    [
+     "barbell row",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "barbell curl",
+     6
+    ],
+    [
+     "skullcrusher",
+     6
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "leg press",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Due sedute per metà corpo, base multiarticolare e isolamento per braccia e spalle."
+  },
+  {
+   "id": "principiante-ipertrofia-M-3",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Corpo intero A/B",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     4.5
+    ],
+    [
+     "leg press",
+     4.5
+    ],
+    [
+     "bench press",
+     4.5
+    ],
+    [
+     "dumbbell bench press",
+     4.5
+    ],
+    [
+     "barbell row",
+     4.5
+    ],
+    [
+     "pull up",
+     4.5
+    ],
+    [
+     "romanian deadlift",
+     4.5
+    ],
+    [
+     "leg curl",
+     4.5
+    ],
+    [
+     "overhead press",
+     4.5
+    ],
+    [
+     "lateral raise",
+     4.5
+    ],
+    [
+     "barbell curl",
+     4.5
+    ],
+    [
+     "tricep pushdown",
+     4.5
+    ],
+    [
+     "calf raise",
+     4.5
+    ]
+   ],
+   "extra": [],
+   "nota": "Due sedute che si alternano per variare gli esercizi mantenendo alta la frequenza."
+  },
+  {
+   "id": "principiante-ipertrofia-M-4",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Push/pull/legs 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "push/pull/legs una volta",
+   "esercizi": [
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "lateral raise",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "overhead triceps extension",
+     3
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "face pull",
+     3
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "hammer curl",
+     3
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "calf raise",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Una seduta di spinta, una di tirata e una di gambe: frequenza bassa ma sedute semplici da seguire."
+  },
+  {
+   "id": "principiante-ipertrofia-M-5",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Macchine e manubri",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "leg press",
+     9
+    ],
+    [
+     "chest press",
+     9
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "seated dumbbell press",
+     6
+    ],
+    [
+     "pec deck",
+     3
+    ],
+    [
+     "cable curl",
+     6
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Esercizi guidati e stabili per poter spingere vicino al cedimento senza limiti tecnici."
+  },
+  {
+   "id": "principiante-ipertrofia-F-1",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Corpo intero 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "goblet squat",
+     3
+    ],
+    [
+     "hip thrust",
+     9
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Frequenza tre sui grandi gruppi, con glutei e gambe al centro."
+  },
+  {
+   "id": "principiante-ipertrofia-F-2",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Upper/lower 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "leg press",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "dumbbell curl",
+     4
+    ],
+    [
+     "tricep pushdown",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Due sedute gambe e due di parte alta, 8-15 ripetizioni."
+  },
+  {
+   "id": "principiante-ipertrofia-F-3",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Gambe-glutei due volte, alta una",
+   "giorni_settimana": 3,
+   "struttura": "lower / upper / lower",
+   "esercizi": [
+    [
+     "squat",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "lat pulldown",
+     3
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "chest press",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "lateral raise",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Priorità alla parte bassa con due sedute, una seduta completa per la parte alta."
+  },
+  {
+   "id": "principiante-ipertrofia-F-4",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Corpo intero A/B",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     4.5
+    ],
+    [
+     "leg press",
+     4.5
+    ],
+    [
+     "hip thrust",
+     4.5
+    ],
+    [
+     "glute bridge",
+     4.5
+    ],
+    [
+     "romanian deadlift",
+     4.5
+    ],
+    [
+     "leg curl",
+     4.5
+    ],
+    [
+     "lat pulldown",
+     4.5
+    ],
+    [
+     "assisted pull up",
+     4.5
+    ],
+    [
+     "dumbbell row",
+     4.5
+    ],
+    [
+     "incline dumbbell press",
+     4.5
+    ],
+    [
+     "push up",
+     4.5
+    ],
+    [
+     "lateral raise",
+     4.5
+    ],
+    [
+     "dead bug",
+     4.5
+    ]
+   ],
+   "extra": [
+    "plank"
+   ],
+   "nota": "Alternanza di due sedute con varianti diverse dello stesso schema motorio."
+  },
+  {
+   "id": "principiante-ipertrofia-F-5",
+   "esperienza": "principiante",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Quattro giorni con focus glutei",
+   "giorni_settimana": 4,
+   "struttura": "glutei-femorali / alta / quadricipiti-glutei / alta e addome",
+   "esercizi": [
+    [
+     "hip thrust",
+     8
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "walking lunge",
+     3
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "chest press",
+     4
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "face pull",
+     3
+    ],
+    [
+     "reverse crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Due sedute gambe con enfasi diversa e due sedute leggere per la parte alta."
+  },
+  {
+   "id": "intermedio-ipertrofia-M-1",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Push/pull/legs 6 giorni",
+   "giorni_settimana": 6,
+   "struttura": "push/pull/legs due volte",
+   "esercizi": [
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     3
+    ],
+    [
+     "cable crossover",
+     6
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "seated dumbbell press",
+     3
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "overhead triceps extension",
+     6
+    ],
+    [
+     "pull up",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "chest supported row",
+     3
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "barbell curl",
+     6
+    ],
+    [
+     "hammer curl",
+     6
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     6
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Ogni gruppo due volte la settimana, primo giro più pesante e secondo a ripetizioni più alte."
+  },
+  {
+   "id": "intermedio-ipertrofia-M-2",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Upper/lower forza e ipertrofia",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower, due giorni pesanti e due a volume",
+   "esercizi": [
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     7
+    ],
+    [
+     "dumbbell fly",
+     3
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     7
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "incline dumbbell curl",
+     3
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "leg curl",
+     7
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "seated calf raise",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Giorni di forza a 3-5 ripetizioni e giorni di ipertrofia a 8-15 sugli stessi gruppi."
+  },
+  {
+   "id": "intermedio-ipertrofia-M-3",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Split classico 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "split per gruppi: petto, schiena, gambe, spalle, braccia",
+   "esercizi": [
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     4
+    ],
+    [
+     "chest press",
+     3
+    ],
+    [
+     "cable crossover",
+     3
+    ],
+    [
+     "dip",
+     3
+    ],
+    [
+     "pull up",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     3
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "straight arm pulldown",
+     3
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "calf raise",
+     5
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "lateral raise",
+     5
+    ],
+    [
+     "rear delt fly",
+     4
+    ],
+    [
+     "shrug",
+     3
+    ],
+    [
+     "barbell curl",
+     4
+    ],
+    [
+     "preacher curl",
+     3
+    ],
+    [
+     "hammer curl",
+     3
+    ],
+    [
+     "skullcrusher",
+     4
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "overhead triceps extension",
+     3
+    ],
+    [
+     "crunch",
+     4
+    ],
+    [
+     "hanging leg raise",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Un gruppo al giorno con molto volume locale, come nelle schede da culturista tradizionali."
+  },
+  {
+   "id": "intermedio-ipertrofia-M-4",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Torso/gambe/corpo intero-ish 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "upper/lower + push/pull/legs",
+   "esercizi": [
+    [
+     "bench press",
+     3
+    ],
+    [
+     "incline bench press",
+     3
+    ],
+    [
+     "dumbbell bench press",
+     3
+    ],
+    [
+     "pec deck",
+     3
+    ],
+    [
+     "barbell row",
+     3
+    ],
+    [
+     "pull up",
+     3
+    ],
+    [
+     "lat pulldown",
+     3
+    ],
+    [
+     "chest supported row",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lateral raise",
+     7
+    ],
+    [
+     "rear delt fly",
+     3
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "cable curl",
+     3
+    ],
+    [
+     "hammer curl",
+     3
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "squat",
+     3
+    ],
+    [
+     "hack squat",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "calf raise",
+     7
+    ],
+    [
+     "ab wheel rollout",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Due sedute a enfasi forza e tre a enfasi volume, frequenza due per tutti i gruppi."
+  },
+  {
+   "id": "intermedio-ipertrofia-M-5",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Corpo intero 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "corpo intero con esercizi a rotazione",
+   "esercizi": [
+    [
+     "squat",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "seated leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "bench press",
+     3
+    ],
+    [
+     "incline dumbbell press",
+     6
+    ],
+    [
+     "dip",
+     3
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "chest supported row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "cable lateral raise",
+     8
+    ],
+    [
+     "incline dumbbell curl",
+     6
+    ],
+    [
+     "overhead triceps extension",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "hanging leg raise",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Poche serie per gruppo a seduta ma ripetute quattro volte: qualità alta su ogni serie."
+  },
+  {
+   "id": "intermedio-ipertrofia-F-1",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Upper/lower con tre sedute gambe",
+   "giorni_settimana": 5,
+   "struttura": "lower / upper / lower / upper / glutei",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "hip thrust",
+     10
+    ],
+    [
+     "romanian deadlift",
+     7
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "walking lunge",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "hip abduction machine",
+     9
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "reverse crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Tre stimoli settimanali per glutei e gambe, due per la parte alta."
+  },
+  {
+   "id": "intermedio-ipertrofia-F-2",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Upper/lower 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "hack squat",
+     3
+    ],
+    [
+     "hip thrust",
+     7
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "stiff legged deadlift",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     3
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "pull up",
+     3
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lateral raise",
+     7
+    ],
+    [
+     "rear delt fly",
+     3
+    ],
+    [
+     "cable curl",
+     3
+    ],
+    [
+     "overhead triceps extension",
+     3
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Schema equilibrato con giorno pesante e giorno a volume per ciascuna metà."
+  },
+  {
+   "id": "intermedio-ipertrofia-F-3",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Push/pull/legs con glutei",
+   "giorni_settimana": 5,
+   "struttura": "gambe / push / pull / glutei-femorali / alta",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "walking lunge",
+     3
+    ],
+    [
+     "hip thrust",
+     8
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "seated leg curl",
+     6
+    ],
+    [
+     "cable glute kickback",
+     4
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "chest press",
+     3
+    ],
+    [
+     "seated dumbbell press",
+     6
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "tricep pushdown",
+     5
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "chest supported row",
+     6
+    ],
+    [
+     "straight arm pulldown",
+     3
+    ],
+    [
+     "face pull",
+     5
+    ],
+    [
+     "dumbbell curl",
+     5
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Due sedute gambe con enfasi distinta e tre sedute per spinta e tirata."
+  },
+  {
+   "id": "intermedio-ipertrofia-F-4",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Corpo intero 3 giorni denso",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, tre sedute diverse",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "hip thrust",
+     7
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "cable glute kickback",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "dumbbell bench press",
+     3
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "push up",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "dead bug",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Per chi ha tre giorni: sedute complete con superserie fra parte alta e bassa."
+  },
+  {
+   "id": "intermedio-ipertrofia-F-5",
+   "esperienza": "intermedio",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Split glutei, quadricipiti, schiena-spalle, femorali",
+   "giorni_settimana": 4,
+   "struttura": "split per gruppi con due giorni di parte bassa e mezzo",
+   "esercizi": [
+    [
+     "hip thrust",
+     5
+    ],
+    [
+     "glute bridge",
+     3
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "step up",
+     3
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "hack squat",
+     3
+    ],
+    [
+     "leg extension",
+     4
+    ],
+    [
+     "reverse lunge",
+     3
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "seated leg curl",
+     3
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "lateral raise",
+     4
+    ],
+    [
+     "rear delt fly",
+     3
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "calf raise",
+     4
+    ],
+    [
+     "reverse crunch",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Ogni seduta ha un tema preciso, i glutei ricevono lavoro diretto o indiretto tre volte."
+  },
+  {
+   "id": "avanzato-ipertrofia-M-1",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Push/pull/legs ad alto volume",
+   "giorni_settimana": 6,
+   "struttura": "push/pull/legs due volte",
+   "esercizi": [
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     4
+    ],
+    [
+     "chest press",
+     4
+    ],
+    [
+     "cable crossover",
+     4
+    ],
+    [
+     "pec deck",
+     4
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "seated dumbbell press",
+     4
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "cable lateral raise",
+     6
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "skullcrusher",
+     4
+    ],
+    [
+     "overhead triceps extension",
+     4
+    ],
+    [
+     "pull up",
+     4
+    ],
+    [
+     "lat pulldown",
+     8
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "t bar row",
+     4
+    ],
+    [
+     "chest supported row",
+     4
+    ],
+    [
+     "straight arm pulldown",
+     4
+    ],
+    [
+     "rear delt fly",
+     6
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "shrug",
+     4
+    ],
+    [
+     "barbell curl",
+     4
+    ],
+    [
+     "incline dumbbell curl",
+     4
+    ],
+    [
+     "preacher curl",
+     4
+    ],
+    [
+     "hammer curl",
+     4
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "hack squat",
+     4
+    ],
+    [
+     "leg press",
+     8
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "seated leg curl",
+     4
+    ],
+    [
+     "leg extension",
+     8
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "seated calf raise",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Volume alto distribuito su sei sedute, più varianti per ogni gruppo e tecniche di intensità sulle ultime serie."
+  },
+  {
+   "id": "avanzato-ipertrofia-M-2",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Split per gruppi 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "petto / schiena / gambe / spalle / braccia",
+   "esercizi": [
+    [
+     "incline bench press",
+     4
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "dumbbell bench press",
+     3
+    ],
+    [
+     "dip",
+     3
+    ],
+    [
+     "incline dumbbell fly",
+     3
+    ],
+    [
+     "cable crossover",
+     4
+    ],
+    [
+     "pull up",
+     4
+    ],
+    [
+     "t bar row",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "dumbbell pullover",
+     3
+    ],
+    [
+     "rack pull",
+     3
+    ],
+    [
+     "squat",
+     5
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "hack squat",
+     3
+    ],
+    [
+     "leg extension",
+     4
+    ],
+    [
+     "stiff legged deadlift",
+     4
+    ],
+    [
+     "leg curl",
+     5
+    ],
+    [
+     "calf raise",
+     5
+    ],
+    [
+     "seated calf raise",
+     4
+    ],
+    [
+     "seated dumbbell press",
+     4
+    ],
+    [
+     "lateral raise",
+     5
+    ],
+    [
+     "cable lateral raise",
+     3
+    ],
+    [
+     "rear delt fly",
+     5
+    ],
+    [
+     "upright row",
+     3
+    ],
+    [
+     "shrug",
+     4
+    ],
+    [
+     "barbell curl",
+     4
+    ],
+    [
+     "incline dumbbell curl",
+     3
+    ],
+    [
+     "preacher curl",
+     3
+    ],
+    [
+     "hammer curl",
+     3
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "overhead triceps extension",
+     3
+    ],
+    [
+     "hanging leg raise",
+     4
+    ],
+    [
+     "crunch",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Un gruppo per seduta con 15-22 serie locali, recupero di una settimana piena."
+  },
+  {
+   "id": "avanzato-ipertrofia-M-3",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Upper/lower 6 giorni a basso volume per seduta",
+   "giorni_settimana": 6,
+   "struttura": "upper/lower tre volte",
+   "esercizi": [
+    [
+     "bench press",
+     3
+    ],
+    [
+     "incline dumbbell press",
+     6
+    ],
+    [
+     "chest press",
+     3
+    ],
+    [
+     "pec deck",
+     6
+    ],
+    [
+     "pull up",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "chest supported row",
+     6
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "cable lateral raise",
+     9
+    ],
+    [
+     "rear delt fly",
+     6
+    ],
+    [
+     "cable curl",
+     6
+    ],
+    [
+     "incline dumbbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "overhead triceps extension",
+     3
+    ],
+    [
+     "squat",
+     3
+    ],
+    [
+     "hack squat",
+     6
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "seated leg curl",
+     9
+    ],
+    [
+     "leg extension",
+     9
+    ],
+    [
+     "calf raise",
+     9
+    ],
+    [
+     "hip adduction machine",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Frequenza tre con poche serie portate vicino al cedimento a ogni seduta."
+  },
+  {
+   "id": "avanzato-ipertrofia-M-4",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Petto-schiena, spalle-braccia, gambe",
+   "giorni_settimana": 6,
+   "struttura": "petto e schiena / spalle e braccia / gambe, due volte",
+   "esercizi": [
+    [
+     "bench press",
+     5
+    ],
+    [
+     "incline bench press",
+     5
+    ],
+    [
+     "dumbbell fly",
+     4
+    ],
+    [
+     "dumbbell pullover",
+     4
+    ],
+    [
+     "dip",
+     4
+    ],
+    [
+     "chin up",
+     8
+    ],
+    [
+     "t bar row",
+     5
+    ],
+    [
+     "barbell row",
+     5
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "overhead press",
+     5
+    ],
+    [
+     "arnold press",
+     4
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "rear delt fly",
+     6
+    ],
+    [
+     "upright row",
+     3
+    ],
+    [
+     "barbell curl",
+     6
+    ],
+    [
+     "incline dumbbell curl",
+     4
+    ],
+    [
+     "concentration curl",
+     4
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "skullcrusher",
+     6
+    ],
+    [
+     "overhead triceps extension",
+     4
+    ],
+    [
+     "wrist curl",
+     4
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "stiff legged deadlift",
+     4
+    ],
+    [
+     "leg curl",
+     8
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "calf raise",
+     10
+    ],
+    [
+     "sit up",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Antagonisti in superserie e volumi alti, impostazione da culturismo classico."
+  },
+  {
+   "id": "avanzato-ipertrofia-M-5",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "M",
+   "titolo": "Quattro giorni ad alta intensità",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower con poche serie al cedimento",
+   "esercizi": [
+    [
+     "incline bench press",
+     4
+    ],
+    [
+     "chest press",
+     4
+    ],
+    [
+     "pec deck",
+     2
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "chest supported row",
+     4
+    ],
+    [
+     "dumbbell row",
+     2
+    ],
+    [
+     "seated dumbbell press",
+     2
+    ],
+    [
+     "cable lateral raise",
+     6
+    ],
+    [
+     "rear delt fly",
+     4
+    ],
+    [
+     "preacher curl",
+     4
+    ],
+    [
+     "hammer curl",
+     2
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "skullcrusher",
+     2
+    ],
+    [
+     "hack squat",
+     4
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "leg extension",
+     4
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "seated leg curl",
+     5
+    ],
+    [
+     "hip adduction machine",
+     3
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "crunch",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Una o due serie tirate a cedimento per esercizio, recuperi lunghi, carico che sale a ogni seduta."
+  },
+  {
+   "id": "avanzato-ipertrofia-F-1",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Sei giorni con tre sedute gambe",
+   "giorni_settimana": 6,
+   "struttura": "glutei-femorali / spalle-schiena / quadricipiti / petto-braccia / glutei / alta leggera",
+   "esercizi": [
+    [
+     "hip thrust",
+     12
+    ],
+    [
+     "romanian deadlift",
+     8
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "hack squat",
+     4
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     4
+    ],
+    [
+     "walking lunge",
+     3
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "seated leg curl",
+     8
+    ],
+    [
+     "cable glute kickback",
+     8
+    ],
+    [
+     "hip abduction machine",
+     10
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "lat pulldown",
+     8
+    ],
+    [
+     "pull up",
+     3
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "chest supported row",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     4
+    ],
+    [
+     "chest press",
+     3
+    ],
+    [
+     "seated dumbbell press",
+     4
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "cable lateral raise",
+     4
+    ],
+    [
+     "rear delt fly",
+     6
+    ],
+    [
+     "cable curl",
+     4
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "overhead triceps extension",
+     3
+    ],
+    [
+     "hanging leg raise",
+     4
+    ],
+    [
+     "reverse crunch",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Volume molto alto su glutei e gambe, spalle e dorso curati per le proporzioni."
+  },
+  {
+   "id": "avanzato-ipertrofia-F-2",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Upper/lower 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "lower / upper / lower / upper / lower",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "hip thrust",
+     10
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "stiff legged deadlift",
+     3
+    ],
+    [
+     "leg curl",
+     8
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "reverse lunge",
+     3
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "hip abduction machine",
+     8
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "bench press",
+     3
+    ],
+    [
+     "incline dumbbell press",
+     4
+    ],
+    [
+     "pull up",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "barbell row",
+     3
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "rear delt fly",
+     4
+    ],
+    [
+     "dumbbell curl",
+     4
+    ],
+    [
+     "skullcrusher",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Tre sedute di parte bassa con enfasi diverse e due di parte alta complete."
+  },
+  {
+   "id": "avanzato-ipertrofia-F-3",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Push/pull/legs + glutei",
+   "giorni_settimana": 5,
+   "struttura": "gambe / push / pull / glutei / corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "hack squat",
+     3
+    ],
+    [
+     "leg extension",
+     4
+    ],
+    [
+     "hip thrust",
+     9
+    ],
+    [
+     "glute bridge",
+     3
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "seated leg curl",
+     7
+    ],
+    [
+     "single leg glute bridge",
+     3
+    ],
+    [
+     "step up",
+     3
+    ],
+    [
+     "cable glute kickback",
+     4
+    ],
+    [
+     "hip abduction machine",
+     8
+    ],
+    [
+     "dumbbell bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "cable crossover",
+     3
+    ],
+    [
+     "seated dumbbell press",
+     4
+    ],
+    [
+     "lateral raise",
+     9
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "lat pulldown",
+     7
+    ],
+    [
+     "dumbbell row",
+     4
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "rear delt fly",
+     3
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "hammer curl",
+     3
+    ],
+    [
+     "calf raise",
+     4
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Classica divisione spinta-tirata-gambe con una seduta in più dedicata ai glutei."
+  },
+  {
+   "id": "avanzato-ipertrofia-F-4",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Quattro giorni pesanti",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower, pesante e a volume",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "hip thrust",
+     8
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     4
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     4
+    ],
+    [
+     "chin up",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "chest supported row",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Fondamentali pesanti come motore della crescita, isolamento a completare."
+  },
+  {
+   "id": "avanzato-ipertrofia-F-5",
+   "esperienza": "avanzato",
+   "tipo": "ipertrofia",
+   "sesso": "F",
+   "titolo": "Preparazione da gara bikini-style",
+   "giorni_settimana": 6,
+   "struttura": "glutei / schiena / quadricipiti / spalle-braccia / femorali-glutei / corpo intero leggero",
+   "esercizi": [
+    [
+     "hip thrust",
+     10
+    ],
+    [
+     "glute bridge",
+     4
+    ],
+    [
+     "cable glute kickback",
+     8
+    ],
+    [
+     "hip abduction machine",
+     12
+    ],
+    [
+     "step up",
+     4
+    ],
+    [
+     "walking lunge",
+     4
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "sissy squat",
+     3
+    ],
+    [
+     "leg extension",
+     5
+    ],
+    [
+     "romanian deadlift",
+     5
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "leg curl",
+     5
+    ],
+    [
+     "seated leg curl",
+     4
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "lat pulldown",
+     5
+    ],
+    [
+     "assisted pull up",
+     3
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "straight arm pulldown",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "cable lateral raise",
+     4
+    ],
+    [
+     "rear delt fly",
+     5
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "cable curl",
+     3
+    ],
+    [
+     "triceps kickback",
+     3
+    ],
+    [
+     "hanging knee raise",
+     4
+    ],
+    [
+     "side crunch",
+     3
+    ],
+    [
+     "calf raise",
+     4
+    ]
+   ],
+   "extra": [
+    "camminata in salita 20-30 minuti dopo la seduta"
+   ],
+   "nota": "Tanto lavoro diretto su glutei, spalle e dorso per la linea a clessidra richiesta in pedana."
+  },
+  {
+   "id": "principiante-powerlifting-M-1",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Lineare sulle tre alzate",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "barbell row",
+     4.5
+    ],
+    [
+     "overhead press",
+     4.5
+    ],
+    [
+     "chin up",
+     4.5
+    ],
+    [
+     "back extension",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Squat e panca a ogni seduta, stacco a sedute alterne, 3x5 con incremento costante."
+  },
+  {
+   "id": "principiante-powerlifting-M-2",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Novizio 4 giorni upper/lower",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     7
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "face pull",
+     3
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "plank"
+   ],
+   "nota": "Due esposizioni settimanali a squat e panca, stacco una volta pesante, accessori essenziali."
+  },
+  {
+   "id": "principiante-powerlifting-M-3",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Tre giorni: una alzata pesante, una leggera",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero con priorità a rotazione",
+   "esercizi": [
+    [
+     "squat",
+     10
+    ],
+    [
+     "bench press",
+     11
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "lat pulldown",
+     3
+    ],
+    [
+     "dip",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Ogni giorno un'alzata da gara pesante e un'altra tecnica, panca tre volte."
+  },
+  {
+   "id": "principiante-powerlifting-M-4",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Lineare a livelli",
+   "giorni_settimana": 4,
+   "struttura": "principale pesante + secondario + accessorio",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     10
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "sumo deadlift",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "5x3 sul principale e 3x8-10 sul secondario, si prova anche lo stacco sumo per scegliere lo stile."
+  },
+  {
+   "id": "principiante-powerlifting-M-5",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Tecnica e fermo al petto",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "box squat",
+     3
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "floor press",
+     3
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "back extension",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Triple e cinquine tecniche con fermo, varianti che insegnano profondità e traiettoria."
+  },
+  {
+   "id": "principiante-powerlifting-F-1",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Lineare sulle tre alzate",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "lat pulldown",
+     4.5
+    ],
+    [
+     "dumbbell row",
+     4.5
+    ],
+    [
+     "hip thrust",
+     4.5
+    ],
+    [
+     "dead bug",
+     4.5
+    ]
+   ],
+   "extra": [],
+   "nota": "3x5 con incrementi piccoli, panca a ogni seduta perché nelle donne cresce più lentamente."
+  },
+  {
+   "id": "principiante-powerlifting-F-2",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Novizia 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     7
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "sumo deadlift",
+     3
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Due sedute per metà corpo, prova di entrambi gli stili di stacco, tanta panca."
+  },
+  {
+   "id": "principiante-powerlifting-F-3",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Tre giorni con panca frequente",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     10
+    ],
+    [
+     "bench press",
+     12
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "assisted pull up",
+     6
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "hanging knee raise",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Squat due volte, panca tre, stacco una volta pesante più un richiamo tecnico."
+  },
+  {
+   "id": "principiante-powerlifting-F-4",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Tecnica prima del carico",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "goblet squat",
+     3
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "dumbbell bench press",
+     3
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "glute bridge",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "face pull",
+     3
+    ],
+    [
+     "dead bug",
+     6
+    ]
+   ],
+   "extra": [
+    "plank"
+   ],
+   "nota": "Molte serie submassimali da 3-5 per consolidare il gesto, fermo al petto fin da subito."
+  },
+  {
+   "id": "principiante-powerlifting-F-5",
+   "esperienza": "principiante",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Lineare a livelli",
+   "giorni_settimana": 4,
+   "struttura": "principale pesante + secondario + accessorio",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "bench press",
+     11
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "hip thrust",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "crunch",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Ogni alzata ha un giorno pesante e uno a volume, progressione lineare finché regge."
+  },
+  {
+   "id": "intermedio-powerlifting-M-1",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Volume submassimale 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "squat-panca / stacco-panca / squat-panca",
+   "esercizi": [
+    [
+     "squat",
+     15
+    ],
+    [
+     "bench press",
+     23
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "deficit deadlift",
+     3
+    ],
+    [
+     "dumbbell fly",
+     5
+    ],
+    [
+     "good morning",
+     8
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "back extension",
+     3
+    ]
+   ],
+   "extra": [],
+   "nota": "Tante serie da 2-4 ripetizioni al 70-85%, mai a cedimento, panca in ogni seduta."
+  },
+  {
+   "id": "intermedio-powerlifting-M-2",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Upper/lower a blocchi di 6 settimane",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "bench press",
+     12
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "dumbbell row",
+     8
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "lateral raise",
+     4
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Settimane di accumulo, poi di forza e infine prova dei massimali; qui la settimana tipo di accumulo."
+  },
+  {
+   "id": "intermedio-powerlifting-M-3",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "5/3/1 per il powerlifting",
+   "giorni_settimana": 4,
+   "struttura": "una alzata principale per seduta",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "dip",
+     4
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "barbell row",
+     5
+    ],
+    [
+     "glute ham raise",
+     4
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "hanging leg raise",
+     5
+    ]
+   ],
+   "extra": [
+    "traino slitta"
+   ],
+   "nota": "Percentuali a onde con singole pesanti di richiamo e complementari scelti sui punti deboli."
+  },
+  {
+   "id": "intermedio-powerlifting-M-4",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Ondulazione giornaliera 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "corpo intero, ipertrofia / potenza / forza",
+   "esercizi": [
+    [
+     "squat",
+     13
+    ],
+    [
+     "bench press",
+     16
+    ],
+    [
+     "deadlift",
+     7
+    ],
+    [
+     "incline bench press",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "chest supported row",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Squat e panca tre volte con ripetizioni 8, 5 e 2-3; stacco due volte."
+  },
+  {
+   "id": "intermedio-powerlifting-M-5",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Alzata da gara più variante",
+   "giorni_settimana": 4,
+   "struttura": "squat / panca / stacco / panca-variante",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "box squat",
+     4
+    ],
+    [
+     "bench press",
+     10
+    ],
+    [
+     "board press",
+     3
+    ],
+    [
+     "floor press",
+     4
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "rack pull",
+     3
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "dumbbell row",
+     4
+    ],
+    [
+     "overhead triceps extension",
+     3
+    ],
+    [
+     "jm press",
+     3
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Top set autoregolata e serie di scarico sull'alzata da gara, poi la variante mirata al punto di stallo."
+  },
+  {
+   "id": "intermedio-powerlifting-F-1",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Volume submassimale 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "squat-panca / stacco-panca alternati",
+   "esercizi": [
+    [
+     "squat",
+     14
+    ],
+    [
+     "bench press",
+     24
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "sumo deadlift",
+     4
+    ],
+    [
+     "good morning",
+     6
+    ],
+    [
+     "dumbbell fly",
+     4
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Molte serie tecniche al 70-85%; le atlete tollerano e sfruttano volumi alti di panca."
+  },
+  {
+   "id": "intermedio-powerlifting-F-2",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Upper/lower pesante e volume",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "bench press",
+     13
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "chin up",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Un giorno a triple pesanti e uno a serie da 5-8 per squat e panca, stacco una volta."
+  },
+  {
+   "id": "intermedio-powerlifting-F-3",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Ondulazione giornaliera 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     12
+    ],
+    [
+     "bench press",
+     14
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "hip thrust",
+     3
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "lat pulldown",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "glute ham raise",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Tre intensità nella settimana su squat e panca, stacco pesante un giorno e tecnico un altro."
+  },
+  {
+   "id": "intermedio-powerlifting-F-4",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Cinque giorni con panca quattro volte",
+   "giorni_settimana": 5,
+   "struttura": "alta frequenza per alzata",
+   "esercizi": [
+    [
+     "squat",
+     12
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "bench press",
+     16
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "chest supported row",
+     6
+    ],
+    [
+     "skullcrusher",
+     3
+    ],
+    [
+     "rear delt fly",
+     4
+    ],
+    [
+     "back extension",
+     3
+    ],
+    [
+     "dead bug",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Sedute brevi e frequenti: squat tre volte, panca quattro, stacco due."
+  },
+  {
+   "id": "intermedio-powerlifting-F-5",
+   "esperienza": "intermedio",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "5/3/1 per il powerlifting",
+   "giorni_settimana": 4,
+   "struttura": "una alzata principale per seduta",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     4
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "dumbbell bench press",
+     4
+    ],
+    [
+     "lat pulldown",
+     8
+    ],
+    [
+     "dumbbell row",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "hanging knee raise",
+     5
+    ]
+   ],
+   "extra": [],
+   "nota": "Cicli a percentuali con singole di richiamo e accessori per glutei, dorso e tricipiti."
+  },
+  {
+   "id": "avanzato-powerlifting-M-1",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Coniugato",
+   "giorni_settimana": 4,
+   "struttura": "sforzo massimale e dinamico, lower/upper",
+   "esercizi": [
+    [
+     "speed squat",
+     10
+    ],
+    [
+     "box squat",
+     3
+    ],
+    [
+     "good morning",
+     4
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "rack pull",
+     1.5
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "board press",
+     1.5
+    ],
+    [
+     "floor press",
+     1.5
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "jm press",
+     4
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "skullcrusher",
+     4
+    ],
+    [
+     "glute ham raise",
+     8
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "chest supported row",
+     4
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "hammer curl",
+     3
+    ],
+    [
+     "hanging leg raise",
+     8
+    ]
+   ],
+   "extra": [
+    "traino slitta",
+    "lavoro con elastici per i tricipiti"
+   ],
+   "nota": "Massimale su variante che ruota, velocità al 50-60% con elastici, grande volume su tricipiti e catena posteriore."
+  },
+  {
+   "id": "avanzato-powerlifting-M-2",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Scuola russa 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "squat-panca / stacco-panca alternati",
+   "esercizi": [
+    [
+     "squat",
+     20
+    ],
+    [
+     "bench press",
+     30
+    ],
+    [
+     "deadlift",
+     10
+    ],
+    [
+     "deficit deadlift",
+     4
+    ],
+    [
+     "rack pull",
+     4
+    ],
+    [
+     "good morning",
+     9
+    ],
+    [
+     "dumbbell fly",
+     8
+    ],
+    [
+     "dip",
+     4
+    ],
+    [
+     "overhead triceps extension",
+     4
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "back extension",
+     5
+    ]
+   ],
+   "extra": [],
+   "nota": "Volumi molto alti di alzate da gara al 70-90%, serie da 1-4, due passaggi di panca nella stessa seduta."
+  },
+  {
+   "id": "avanzato-powerlifting-M-3",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Top set e scarichi, 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "alta frequenza per alzata con varianti",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "box squat",
+     4
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "bench press",
+     10
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "floor press",
+     4
+    ],
+    [
+     "incline bench press",
+     3
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "deficit deadlift",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "chest supported row",
+     6
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "rear delt fly",
+     4
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Singola o tripla autoregolata più serie di scarico, variante con fermo o tempo nel secondo passaggio settimanale."
+  },
+  {
+   "id": "avanzato-powerlifting-M-4",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Blocco di picco",
+   "giorni_settimana": 4,
+   "struttura": "squat / panca / stacco / panca leggera-squat leggero",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     12
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "board press",
+     3
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "hanging leg raise",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Ultime settimane prima della gara: singole e doppie al 90% e oltre, accessori ridotti al minimo."
+  },
+  {
+   "id": "avanzato-powerlifting-M-5",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "M",
+   "titolo": "Blocco di accumulo 6 giorni",
+   "giorni_settimana": 6,
+   "struttura": "squat e panca quasi quotidiani, stacco due volte",
+   "esercizi": [
+    [
+     "squat",
+     16
+    ],
+    [
+     "front squat",
+     4
+    ],
+    [
+     "bench press",
+     18
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     4
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "stiff legged deadlift",
+     4
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "skullcrusher",
+     4
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "lateral raise",
+     4
+    ],
+    [
+     "barbell curl",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Lontano dalle gare: serie da 5-8 sulle alzate e ipertrofia mirata per alzare la base."
+  },
+  {
+   "id": "avanzato-powerlifting-F-1",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Scuola russa 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "squat-panca / stacco-panca alternati",
+   "esercizi": [
+    [
+     "squat",
+     20
+    ],
+    [
+     "bench press",
+     32
+    ],
+    [
+     "sumo deadlift",
+     10
+    ],
+    [
+     "deficit deadlift",
+     4
+    ],
+    [
+     "good morning",
+     8
+    ],
+    [
+     "dumbbell fly",
+     6
+    ],
+    [
+     "overhead triceps extension",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Volumi alti a intensità media, serie da 2-4, panca in ogni seduta."
+  },
+  {
+   "id": "avanzato-powerlifting-F-2",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Top set e scarichi, 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "alta frequenza per alzata con varianti",
+   "esercizi": [
+    [
+     "squat",
+     10
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "box squat",
+     3
+    ],
+    [
+     "bench press",
+     14
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "floor press",
+     3
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "chest supported row",
+     6
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "rear delt fly",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Top set autoregolata e scarichi su ogni alzata, panca quattro volte con una variante."
+  },
+  {
+   "id": "avanzato-powerlifting-F-3",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Coniugato adattato",
+   "giorni_settimana": 4,
+   "struttura": "sforzo massimale e dinamico, lower/upper",
+   "esercizi": [
+    [
+     "speed squat",
+     8
+    ],
+    [
+     "box squat",
+     3
+    ],
+    [
+     "good morning",
+     4
+    ],
+    [
+     "sumo deadlift",
+     6
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "floor press",
+     1.5
+    ],
+    [
+     "board press",
+     1.5
+    ],
+    [
+     "close grip bench press",
+     4
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "jm press",
+     3
+    ],
+    [
+     "glute ham raise",
+     6
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [
+    "traino slitta"
+   ],
+   "nota": "Varianti massimali a rotazione e lavoro di velocità, con più ripetizioni submassimali di panca rispetto alla versione maschile."
+  },
+  {
+   "id": "avanzato-powerlifting-F-4",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Blocco di picco",
+   "giorni_settimana": 4,
+   "struttura": "squat-panca / stacco / panca / squat leggero-panca",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "bench press",
+     14
+    ],
+    [
+     "deadlift",
+     5
+    ],
+    [
+     "close grip bench press",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "dumbbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "face pull",
+     3
+    ],
+    [
+     "dead bug",
+     4
+    ]
+   ],
+   "extra": [],
+   "nota": "Singole e doppie pesanti verso la gara, volume in calo, accessori di mantenimento."
+  },
+  {
+   "id": "avanzato-powerlifting-F-5",
+   "esperienza": "avanzato",
+   "tipo": "powerlifting",
+   "sesso": "F",
+   "titolo": "Accumulo 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "ondulazione giornaliera con blocco ipertrofia",
+   "esercizi": [
+    [
+     "squat",
+     14
+    ],
+    [
+     "leg press",
+     4
+    ],
+    [
+     "bench press",
+     17
+    ],
+    [
+     "incline dumbbell press",
+     4
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "deadlift",
+     6
+    ],
+    [
+     "stiff legged deadlift",
+     3
+    ],
+    [
+     "hip thrust",
+     5
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "barbell row",
+     5
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "skullcrusher",
+     4
+    ],
+    [
+     "lateral raise",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [],
+   "nota": "Fuori stagione: serie da 5-8 sulle alzate e volume accessorio per costruire massa utile."
+  },
+  {
+   "id": "principiante-resistenza-M-1",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Circuito corpo intero",
+   "giorni_settimana": 3,
+   "struttura": "circuito unico, 3 giri",
+   "esercizi": [
+    [
+     "goblet squat",
+     9
+    ],
+    [
+     "push up",
+     9
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "reverse lunge",
+     9
+    ],
+    [
+     "dumbbell shoulder press",
+     9
+    ],
+    [
+     "seated cable row",
+     9
+    ],
+    [
+     "crunch",
+     9
+    ]
+   ],
+   "extra": [
+    "plank",
+    "5 minuti di vogatore a fine seduta"
+   ],
+   "nota": "Tre giri da 15 ripetizioni con 30 secondi fra le stazioni, carichi leggeri."
+  },
+  {
+   "id": "principiante-resistenza-M-2",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Macchine a ripetizioni alte",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, serie classiche con recuperi brevi",
+   "esercizi": [
+    [
+     "leg press",
+     9
+    ],
+    [
+     "chest press",
+     9
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "seated dumbbell press",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "dumbbell curl",
+     6
+    ],
+    [
+     "sit up",
+     6
+    ]
+   ],
+   "extra": [
+    "10 minuti di cyclette a ritmo sostenuto"
+   ],
+   "nota": "Serie da 15-20 con 45 secondi di recupero su esercizi guidati e sicuri."
+  },
+  {
+   "id": "principiante-resistenza-M-3",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Due circuiti A/B",
+   "giorni_settimana": 3,
+   "struttura": "circuiti A/B alternati",
+   "esercizi": [
+    [
+     "bodyweight squat",
+     4.5
+    ],
+    [
+     "goblet squat",
+     4.5
+    ],
+    [
+     "push up",
+     4.5
+    ],
+    [
+     "dumbbell bench press",
+     4.5
+    ],
+    [
+     "inverted row",
+     4.5
+    ],
+    [
+     "dumbbell row",
+     4.5
+    ],
+    [
+     "step up",
+     4.5
+    ],
+    [
+     "glute bridge",
+     4.5
+    ],
+    [
+     "dumbbell shoulder press",
+     4.5
+    ],
+    [
+     "hanging knee raise",
+     4.5
+    ],
+    [
+     "russian twist",
+     4.5
+    ]
+   ],
+   "extra": [
+    "salto della corda fra i giri",
+    "plank"
+   ],
+   "nota": "Stazioni a tempo, 40 secondi di lavoro e 20 di pausa, due circuiti che si alternano."
+  },
+  {
+   "id": "principiante-resistenza-M-4",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Superserie upper/lower",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower in superserie",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "barbell row",
+     6
+    ],
+    [
+     "overhead press",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell curl",
+     4
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "crunch",
+     8
+    ]
+   ],
+   "extra": [],
+   "nota": "Coppie di esercizi antagonisti senza pausa, 12-15 ripetizioni, un minuto fra le coppie."
+  },
+  {
+   "id": "principiante-resistenza-M-5",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Due sedute a circuito",
+   "giorni_settimana": 2,
+   "struttura": "circuito corpo intero, 4 giri",
+   "esercizi": [
+    [
+     "goblet squat",
+     8
+    ],
+    [
+     "push up",
+     8
+    ],
+    [
+     "seated cable row",
+     8
+    ],
+    [
+     "step up",
+     8
+    ],
+    [
+     "dumbbell shoulder press",
+     8
+    ],
+    [
+     "back extension",
+     8
+    ],
+    [
+     "dead bug",
+     8
+    ]
+   ],
+   "extra": [
+    "trasporto di manubri (farmer walk)",
+    "vogatore 500 metri a fine giro"
+   ],
+   "nota": "Pochi esercizi semplici ripetuti per quattro giri, adatto a chi abbina la corsa."
+  },
+  {
+   "id": "principiante-resistenza-F-1",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Circuito tonificazione",
+   "giorni_settimana": 3,
+   "struttura": "circuito unico, 3 giri",
+   "esercizi": [
+    [
+     "goblet squat",
+     9
+    ],
+    [
+     "incline push up",
+     9
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "glute bridge",
+     9
+    ],
+    [
+     "reverse lunge",
+     9
+    ],
+    [
+     "dumbbell shoulder press",
+     9
+    ],
+    [
+     "seated cable row",
+     9
+    ],
+    [
+     "crunch",
+     9
+    ]
+   ],
+   "extra": [
+    "plank",
+    "corda o step fra i giri"
+   ],
+   "nota": "Otto stazioni da 15 ripetizioni con pause minime, tutto il corpo in ogni seduta."
+  },
+  {
+   "id": "principiante-resistenza-F-2",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Gambe e glutei a ripetizioni alte",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero con enfasi sulla parte bassa",
+   "esercizi": [
+    [
+     "leg press",
+     9
+    ],
+    [
+     "hip thrust",
+     9
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "hip abduction machine",
+     9
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "chest press",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "reverse crunch",
+     9
+    ]
+   ],
+   "extra": [
+    "15 minuti di camminata in salita"
+   ],
+   "nota": "Serie da 15-20 con 45 secondi di pausa, più volume su gambe e glutei."
+  },
+  {
+   "id": "principiante-resistenza-F-3",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Circuiti A/B a tempo",
+   "giorni_settimana": 3,
+   "struttura": "circuiti A/B alternati",
+   "esercizi": [
+    [
+     "bodyweight squat",
+     4.5
+    ],
+    [
+     "goblet squat",
+     4.5
+    ],
+    [
+     "step up",
+     4.5
+    ],
+    [
+     "glute bridge",
+     4.5
+    ],
+    [
+     "single leg glute bridge",
+     4.5
+    ],
+    [
+     "incline push up",
+     4.5
+    ],
+    [
+     "dumbbell bench press",
+     4.5
+    ],
+    [
+     "inverted row",
+     4.5
+    ],
+    [
+     "dumbbell row",
+     4.5
+    ],
+    [
+     "dumbbell shoulder press",
+     4.5
+    ],
+    [
+     "dead bug",
+     4.5
+    ],
+    [
+     "russian twist",
+     4.5
+    ]
+   ],
+   "extra": [
+    "salto della corda",
+    "plank"
+   ],
+   "nota": "Lavoro a tempo 40/20 su due circuiti diversi per non annoiarsi."
+  },
+  {
+   "id": "principiante-resistenza-F-4",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Superserie 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "lower/upper in superserie",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "reverse lunge",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "dumbbell curl",
+     4
+    ],
+    [
+     "crunch",
+     8
+    ]
+   ],
+   "extra": [],
+   "nota": "Coppie di esercizi senza pausa a 12-15 ripetizioni, due sedute per metà corpo."
+  },
+  {
+   "id": "principiante-resistenza-F-5",
+   "esperienza": "principiante",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Due sedute complete",
+   "giorni_settimana": 2,
+   "struttura": "circuito corpo intero, 3-4 giri",
+   "esercizi": [
+    [
+     "goblet squat",
+     7
+    ],
+    [
+     "glute bridge",
+     7
+    ],
+    [
+     "step up",
+     7
+    ],
+    [
+     "lat pulldown",
+     7
+    ],
+    [
+     "chest press",
+     7
+    ],
+    [
+     "seated cable row",
+     7
+    ],
+    [
+     "back extension",
+     7
+    ],
+    [
+     "dead bug",
+     7
+    ]
+   ],
+   "extra": [
+    "10 minuti di ellittica a intervalli"
+   ],
+   "nota": "Per chi fa anche corsi o corsa: due circuiti settimanali completi a carichi leggeri."
+  },
+  {
+   "id": "intermedio-resistenza-M-1",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Circuito con bilanciere",
+   "giorni_settimana": 3,
+   "struttura": "complessi e circuiti, corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "romanian deadlift",
+     9
+    ],
+    [
+     "barbell row",
+     9
+    ],
+    [
+     "push press",
+     9
+    ],
+    [
+     "push up",
+     9
+    ],
+    [
+     "pull up",
+     9
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "hanging leg raise",
+     9
+    ]
+   ],
+   "extra": [
+    "vogatore a intervalli 8x250 metri",
+    "trasporti (farmer walk)"
+   ],
+   "nota": "Complessi col bilanciere senza posarlo e circuiti da 12-15 ripetizioni."
+  },
+  {
+   "id": "intermedio-resistenza-M-2",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Upper/lower densità",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower, serie da 15-20 con recuperi di 30-45 secondi",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "leg press",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "incline dumbbell press",
+     6
+    ],
+    [
+     "lat pulldown",
+     8
+    ],
+    [
+     "seated cable row",
+     8
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "hammer curl",
+     6
+    ],
+    [
+     "crunch",
+     8
+    ]
+   ],
+   "extra": [],
+   "nota": "Molte serie leggere e ravvicinate per alzare la capacità di lavoro locale."
+  },
+  {
+   "id": "intermedio-resistenza-M-3",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Cento ripetizioni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, serie lunghe",
+   "esercizi": [
+    [
+     "leg press",
+     6
+    ],
+    [
+     "goblet squat",
+     6
+    ],
+    [
+     "back extension",
+     6
+    ],
+    [
+     "chest press",
+     6
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "inverted row",
+     6
+    ],
+    [
+     "seated dumbbell press",
+     6
+    ],
+    [
+     "dumbbell curl",
+     6
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "sit up",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ]
+   ],
+   "extra": [
+    "corda 3x2 minuti"
+   ],
+   "nota": "Serie da 20-30 ripetizioni con carichi al 40-50%, due serie per esercizio a seduta."
+  },
+  {
+   "id": "intermedio-resistenza-M-4",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Forza resistente per sport di fatica",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "step up",
+     6
+    ],
+    [
+     "bulgarian split squat",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "pallof press",
+     6
+    ],
+    [
+     "back extension",
+     6
+    ]
+   ],
+   "extra": [
+    "plank laterale",
+    "salti leggeri sul posto"
+   ],
+   "nota": "Per podisti e ciclisti: gambe su un arto, 12-20 ripetizioni, tronco stabile."
+  },
+  {
+   "id": "intermedio-resistenza-M-5",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Circuiti stile funzionale",
+   "giorni_settimana": 4,
+   "struttura": "circuiti a tempo e a giri",
+   "esercizi": [
+    [
+     "front squat",
+     8
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "push press",
+     8
+    ],
+    [
+     "pull up",
+     12
+    ],
+    [
+     "push up",
+     12
+    ],
+    [
+     "walking lunge",
+     8
+    ],
+    [
+     "dip",
+     8
+    ],
+    [
+     "inverted row",
+     8
+    ],
+    [
+     "sit up",
+     12
+    ],
+    [
+     "hang clean",
+     6
+    ],
+    [
+     "turkish get up",
+     4
+    ]
+   ],
+   "extra": [
+    "corda",
+    "vogatore",
+    "corsa 400 metri fra i giri",
+    "spinta della slitta"
+   ],
+   "nota": "Giri a tempo con carichi moderati alternati a tratti di condizionamento."
+  },
+  {
+   "id": "intermedio-resistenza-F-1",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Circuito con bilanciere e manubri",
+   "giorni_settimana": 3,
+   "struttura": "circuiti corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     9
+    ],
+    [
+     "romanian deadlift",
+     9
+    ],
+    [
+     "hip thrust",
+     9
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "push up",
+     9
+    ],
+    [
+     "dumbbell row",
+     9
+    ],
+    [
+     "dumbbell shoulder press",
+     9
+    ],
+    [
+     "assisted pull up",
+     6
+    ],
+    [
+     "hanging knee raise",
+     9
+    ]
+   ],
+   "extra": [
+    "vogatore a intervalli",
+    "corda"
+   ],
+   "nota": "Tre giri da 15 ripetizioni, pause brevi, carichi moderati."
+  },
+  {
+   "id": "intermedio-resistenza-F-2",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Lower/upper densità",
+   "giorni_settimana": 4,
+   "struttura": "lower/upper, serie da 15-20 con recuperi brevi",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "leg press",
+     6
+    ],
+    [
+     "hip thrust",
+     8
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "hip abduction machine",
+     8
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "lat pulldown",
+     8
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "dumbbell curl",
+     4
+    ],
+    [
+     "reverse crunch",
+     8
+    ]
+   ],
+   "extra": [],
+   "nota": "Volume alto a carichi leggeri, più sedute brevi che dense."
+  },
+  {
+   "id": "intermedio-resistenza-F-3",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Tre circuiti a tema",
+   "giorni_settimana": 3,
+   "struttura": "gambe-glutei / parte alta-addome / corpo intero",
+   "esercizi": [
+    [
+     "goblet squat",
+     4
+    ],
+    [
+     "squat",
+     3
+    ],
+    [
+     "reverse lunge",
+     4
+    ],
+    [
+     "step up",
+     4
+    ],
+    [
+     "glute bridge",
+     4
+    ],
+    [
+     "hip thrust",
+     3
+    ],
+    [
+     "single leg glute bridge",
+     4
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "push up",
+     7
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "inverted row",
+     4
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     7
+    ],
+    [
+     "triceps kickback",
+     4
+    ],
+    [
+     "russian twist",
+     4
+    ],
+    [
+     "reverse crunch",
+     4
+    ],
+    [
+     "dead bug",
+     3
+    ]
+   ],
+   "extra": [
+    "corda fra le stazioni",
+    "plank"
+   ],
+   "nota": "Ogni giorno un circuito diverso a tempo, quattro giri."
+  },
+  {
+   "id": "intermedio-resistenza-F-4",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Forza resistente per la corsa",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "bulgarian split squat",
+     6
+    ],
+    [
+     "step up",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "single leg glute bridge",
+     6
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "pallof press",
+     6
+    ],
+    [
+     "back extension",
+     6
+    ]
+   ],
+   "extra": [
+    "plank laterale",
+    "saltelli alla corda"
+   ],
+   "nota": "Per podiste: lavoro monopodalico, glutei e polpacci, 12-20 ripetizioni."
+  },
+  {
+   "id": "intermedio-resistenza-F-5",
+   "esperienza": "intermedio",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Circuiti stile funzionale",
+   "giorni_settimana": 4,
+   "struttura": "circuiti a tempo e a giri",
+   "esercizi": [
+    [
+     "front squat",
+     8
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "push press",
+     8
+    ],
+    [
+     "assisted pull up",
+     8
+    ],
+    [
+     "inverted row",
+     8
+    ],
+    [
+     "push up",
+     12
+    ],
+    [
+     "walking lunge",
+     8
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "sit up",
+     12
+    ],
+    [
+     "hang clean",
+     6
+    ],
+    [
+     "turkish get up",
+     4
+    ]
+   ],
+   "extra": [
+    "vogatore",
+    "corda",
+    "corsa 400 metri fra i giri",
+    "spinta della slitta"
+   ],
+   "nota": "Giri a tempo con bilanciere leggero e corpo libero, alternati a tratti aerobici."
+  },
+  {
+   "id": "avanzato-resistenza-M-1",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Complessi e giri a tempo",
+   "giorni_settimana": 5,
+   "struttura": "circuiti corpo intero con tema giornaliero",
+   "esercizi": [
+    [
+     "squat",
+     10
+    ],
+    [
+     "front squat",
+     8
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "power clean",
+     8
+    ],
+    [
+     "push press",
+     10
+    ],
+    [
+     "pull up",
+     15
+    ],
+    [
+     "push up",
+     15
+    ],
+    [
+     "dip",
+     10
+    ],
+    [
+     "walking lunge",
+     10
+    ],
+    [
+     "barbell row",
+     8
+    ],
+    [
+     "hanging leg raise",
+     12
+    ],
+    [
+     "sit up",
+     10
+    ],
+    [
+     "turkish get up",
+     4
+    ]
+   ],
+   "extra": [
+    "vogatore a intervalli",
+    "corsa 400-800 metri",
+    "spinta e traino slitta",
+    "corda doppia",
+    "trasporti pesanti"
+   ],
+   "nota": "Volume alto a carichi medi con pause incomplete, preparazione da gara di fitness funzionale."
+  },
+  {
+   "id": "avanzato-resistenza-M-2",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Upper/lower alto volume e bassa pausa",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower, serie giganti",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "leg press",
+     8
+    ],
+    [
+     "walking lunge",
+     8
+    ],
+    [
+     "romanian deadlift",
+     8
+    ],
+    [
+     "leg curl",
+     8
+    ],
+    [
+     "leg extension",
+     8
+    ],
+    [
+     "calf raise",
+     10
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "incline dumbbell press",
+     8
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "seated cable row",
+     8
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     8
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "tricep pushdown",
+     8
+    ],
+    [
+     "cable curl",
+     8
+    ],
+    [
+     "ab wheel rollout",
+     8
+    ]
+   ],
+   "extra": [],
+   "nota": "Serie giganti da tre-quattro esercizi a 15-25 ripetizioni, un minuto fra i blocchi."
+  },
+  {
+   "id": "avanzato-resistenza-M-3",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Squat da 20 e contorno",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "dumbbell pullover",
+     6
+    ],
+    [
+     "stiff legged deadlift",
+     6
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "barbell row",
+     9
+    ],
+    [
+     "overhead press",
+     6
+    ],
+    [
+     "chin up",
+     9
+    ],
+    [
+     "dip",
+     9
+    ],
+    [
+     "calf raise",
+     9
+    ],
+    [
+     "sit up",
+     9
+    ]
+   ],
+   "extra": [
+    "traino slitta"
+   ],
+   "nota": "Serie da 20 respirate sullo squat e 15 sul resto: resistenza di forza della vecchia scuola."
+  },
+  {
+   "id": "avanzato-resistenza-M-4",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Resistenza lattacida per sport di combattimento",
+   "giorni_settimana": 3,
+   "struttura": "circuiti a riprese",
+   "esercizi": [
+    [
+     "trap bar deadlift",
+     9
+    ],
+    [
+     "push press",
+     9
+    ],
+    [
+     "pull up",
+     12
+    ],
+    [
+     "push up",
+     12
+    ],
+    [
+     "front squat",
+     9
+    ],
+    [
+     "dumbbell row",
+     9
+    ],
+    [
+     "reverse lunge",
+     9
+    ],
+    [
+     "landmine press",
+     9
+    ],
+    [
+     "russian twist",
+     9
+    ],
+    [
+     "hanging leg raise",
+     9
+    ]
+   ],
+   "extra": [
+    "lanci di palla medica",
+    "corda 3 minuti fra le riprese",
+    "sprint su bici a intervalli",
+    "trasporti"
+   ],
+   "nota": "Riprese da 3-5 minuti di lavoro continuo con un minuto di pausa, come i round."
+  },
+  {
+   "id": "avanzato-resistenza-M-5",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "M",
+   "titolo": "Densità 6 giorni",
+   "giorni_settimana": 6,
+   "struttura": "push/pull/legs due volte a ripetizioni alte",
+   "esercizi": [
+    [
+     "bench press",
+     6
+    ],
+    [
+     "incline dumbbell press",
+     6
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "tricep pushdown",
+     8
+    ],
+    [
+     "dip",
+     6
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "barbell row",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "hammer curl",
+     8
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "leg press",
+     6
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "leg curl",
+     8
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "hanging leg raise",
+     8
+    ],
+    [
+     "crunch",
+     8
+    ]
+   ],
+   "extra": [
+    "10 minuti di vogatore a fine seduta"
+   ],
+   "nota": "Stessa divisione dei culturisti ma con serie da 15-25 e 30-45 secondi di pausa."
+  },
+  {
+   "id": "avanzato-resistenza-F-1",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Complessi e giri a tempo",
+   "giorni_settimana": 5,
+   "struttura": "circuiti corpo intero con tema giornaliero",
+   "esercizi": [
+    [
+     "squat",
+     10
+    ],
+    [
+     "front squat",
+     8
+    ],
+    [
+     "deadlift",
+     8
+    ],
+    [
+     "power clean",
+     6
+    ],
+    [
+     "push press",
+     10
+    ],
+    [
+     "pull up",
+     10
+    ],
+    [
+     "push up",
+     12
+    ],
+    [
+     "walking lunge",
+     10
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "inverted row",
+     8
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "hanging leg raise",
+     10
+    ],
+    [
+     "sit up",
+     10
+    ],
+    [
+     "turkish get up",
+     4
+    ]
+   ],
+   "extra": [
+    "vogatore a intervalli",
+    "corsa 400-800 metri",
+    "spinta slitta",
+    "corda",
+    "trasporti"
+   ],
+   "nota": "Volume alto a carichi medi e pause incomplete, con condizionamento misto in ogni seduta."
+  },
+  {
+   "id": "avanzato-resistenza-F-2",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Lower/upper serie giganti",
+   "giorni_settimana": 4,
+   "struttura": "lower/upper, serie giganti",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "leg press",
+     6
+    ],
+    [
+     "hip thrust",
+     8
+    ],
+    [
+     "romanian deadlift",
+     8
+    ],
+    [
+     "walking lunge",
+     8
+    ],
+    [
+     "leg curl",
+     8
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "hip abduction machine",
+     8
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "lat pulldown",
+     8
+    ],
+    [
+     "seated cable row",
+     8
+    ],
+    [
+     "dumbbell bench press",
+     8
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "cable curl",
+     6
+    ],
+    [
+     "reverse crunch",
+     8
+    ]
+   ],
+   "extra": [],
+   "nota": "Blocchi da tre-quattro esercizi a 15-25 ripetizioni con un minuto fra i blocchi."
+  },
+  {
+   "id": "avanzato-resistenza-F-3",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Tre sedute lunghe a circuito",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, 5 giri",
+   "esercizi": [
+    [
+     "squat",
+     10
+    ],
+    [
+     "trap bar deadlift",
+     5
+    ],
+    [
+     "bulgarian split squat",
+     5
+    ],
+    [
+     "hip thrust",
+     10
+    ],
+    [
+     "step up",
+     5
+    ],
+    [
+     "push up",
+     10
+    ],
+    [
+     "chin up",
+     5
+    ],
+    [
+     "dumbbell row",
+     10
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "dumbbell shoulder press",
+     5
+    ],
+    [
+     "ab wheel rollout",
+     5
+    ],
+    [
+     "russian twist",
+     10
+    ]
+   ],
+   "extra": [
+    "bici d'assalto a intervalli",
+    "corda",
+    "trasporti (farmer walk)"
+   ],
+   "nota": "Cinque giri da 12-15 ripetizioni con tratti di condizionamento fra un giro e l'altro."
+  },
+  {
+   "id": "avanzato-resistenza-F-4",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Forza resistente per sport di endurance",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "bulgarian split squat",
+     6
+    ],
+    [
+     "step up",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "single leg glute bridge",
+     6
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "calf raise",
+     9
+    ],
+    [
+     "seated calf raise",
+     4
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "pallof press",
+     6
+    ],
+    [
+     "back extension",
+     6
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "balzi leggeri e saltelli",
+    "plank laterale"
+   ],
+   "nota": "Per atlete di corsa, triathlon e ciclismo: serie da 15-25 su un arto e tronco."
+  },
+  {
+   "id": "avanzato-resistenza-F-5",
+   "esperienza": "avanzato",
+   "tipo": "resistenza",
+   "sesso": "F",
+   "titolo": "Densità 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "gambe / spinta / tirata / glutei / corpo intero a ripetizioni alte",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "leg press",
+     6
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "leg extension",
+     6
+    ],
+    [
+     "hip thrust",
+     10
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "leg curl",
+     8
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "hip abduction machine",
+     8
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "lat pulldown",
+     8
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "dumbbell curl",
+     6
+    ],
+    [
+     "hanging knee raise",
+     8
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [
+    "15 minuti di scale o camminata in salita"
+   ],
+   "nota": "Divisione per zone con serie da 15-25 e pause sotto i 45 secondi."
+  },
+  {
+   "id": "principiante-potenza-M-1",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Base atletica 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "hang clean",
+     9
+    ],
+    [
+     "squat",
+     9
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box",
+    "lanci di palla medica",
+    "sprint 10-20 metri"
+   ],
+   "nota": "Prima i gesti esplosivi da freschi, poi forza di base a 5 ripetizioni."
+  },
+  {
+   "id": "principiante-potenza-M-2",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Avviamento alla pesistica",
+   "giorni_settimana": 3,
+   "struttura": "strappo / slancio / misto",
+   "esercizi": [
+    [
+     "hang snatch",
+     6
+    ],
+    [
+     "overhead squat",
+     6
+    ],
+    [
+     "hang clean",
+     6
+    ],
+    [
+     "front squat",
+     9
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "clean pull",
+     4
+    ],
+    [
+     "snatch pull",
+     4
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "back extension",
+     6
+    ]
+   ],
+   "extra": [
+    "salti in lungo da fermo"
+   ],
+   "nota": "Si imparano i sollevamenti dalla sospensione con carichi leggeri e molte serie brevi."
+  },
+  {
+   "id": "principiante-potenza-M-3",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Potenza senza pesistica",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "trap bar deadlift",
+     6
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "speed squat",
+     4.5
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "bench press",
+     4.5
+    ],
+    [
+     "split squat",
+     4.5
+    ],
+    [
+     "chin up",
+     6
+    ],
+    [
+     "dumbbell row",
+     4.5
+    ],
+    [
+     "pallof press",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box",
+    "salti con contromovimento",
+    "lanci di palla medica",
+    "spinta della slitta"
+   ],
+   "nota": "Per chi non conosce i sollevamenti olimpici: carichi medi mossi veloci più salti e lanci."
+  },
+  {
+   "id": "principiante-potenza-M-4",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Preparazione per sport di squadra",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "power clean",
+     8
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "bulgarian split squat",
+     4
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "push up",
+     4
+    ],
+    [
+     "dead bug",
+     4
+    ]
+   ],
+   "extra": [
+    "sprint 20 metri",
+    "balzi laterali",
+    "atterraggi dal box",
+    "corda"
+   ],
+   "nota": "Due sedute in stagione: un esercizio esplosivo, uno di forza, uno su una gamba."
+  },
+  {
+   "id": "principiante-potenza-M-5",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Upper/lower atletico",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "hang clean",
+     8
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "step up",
+     3
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "push press",
+     8
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "barbell row",
+     6
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "landmine press",
+     3
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box",
+    "lanci di palla medica dal petto",
+    "sprint in salita"
+   ],
+   "nota": "Due sedute per metà corpo, sempre un gesto veloce in apertura."
+  },
+  {
+   "id": "principiante-potenza-F-1",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Base atletica 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "hang clean",
+     9
+    ],
+    [
+     "squat",
+     9
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "dead bug",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box",
+    "atterraggi controllati",
+    "lanci di palla medica"
+   ],
+   "nota": "Gesto esplosivo in apertura, forza di base e cura degli atterraggi per le ginocchia."
+  },
+  {
+   "id": "principiante-potenza-F-2",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Avviamento alla pesistica",
+   "giorni_settimana": 3,
+   "struttura": "strappo / slancio / misto",
+   "esercizi": [
+    [
+     "hang snatch",
+     6
+    ],
+    [
+     "overhead squat",
+     6
+    ],
+    [
+     "hang clean",
+     6
+    ],
+    [
+     "front squat",
+     9
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "clean pull",
+     4
+    ],
+    [
+     "snatch pull",
+     4
+    ],
+    [
+     "back extension",
+     6
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti in lungo da fermo"
+   ],
+   "nota": "Tecnica dalla sospensione con il bilanciere leggero, tante serie da 2-3 ripetizioni."
+  },
+  {
+   "id": "principiante-potenza-F-3",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Potenza senza pesistica",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "trap bar deadlift",
+     6
+    ],
+    [
+     "goblet squat",
+     4.5
+    ],
+    [
+     "squat",
+     4.5
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "split squat",
+     4.5
+    ],
+    [
+     "hip thrust",
+     4.5
+    ],
+    [
+     "assisted pull up",
+     6
+    ],
+    [
+     "dumbbell row",
+     4.5
+    ],
+    [
+     "pallof press",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box",
+    "salti con contromovimento",
+    "lanci di palla medica",
+    "spinta della slitta"
+   ],
+   "nota": "Carichi medi mossi veloci, salti e lanci al posto dei sollevamenti olimpici."
+  },
+  {
+   "id": "principiante-potenza-F-4",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Preparazione per sport di squadra",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "hang clean",
+     6
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "reverse lunge",
+     4
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "single leg glute bridge",
+     4
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "inverted row",
+     6
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [
+    "sprint 10-20 metri",
+    "balzi laterali",
+    "atterraggi su una gamba",
+    "corda"
+   ],
+   "nota": "Due sedute brevi con prevenzione per ginocchia e femorali, tipica della pallavolo e del calcio femminile."
+  },
+  {
+   "id": "principiante-potenza-F-5",
+   "esperienza": "principiante",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Upper/lower atletico",
+   "giorni_settimana": 4,
+   "struttura": "lower/upper",
+   "esercizi": [
+    [
+     "hang clean",
+     8
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "step up",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "push press",
+     8
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "landmine press",
+     3
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box",
+    "lanci di palla medica",
+    "sprint in salita"
+   ],
+   "nota": "Gesto veloce a inizio seduta, poi forza a 5-8 ripetizioni."
+  },
+  {
+   "id": "intermedio-potenza-M-1",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Pesistica 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "strappo / slancio alternati con squat",
+   "esercizi": [
+    [
+     "snatch",
+     10
+    ],
+    [
+     "clean and jerk",
+     8
+    ],
+    [
+     "power snatch",
+     5
+    ],
+    [
+     "power clean",
+     5
+    ],
+    [
+     "split jerk",
+     4
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "front squat",
+     8
+    ],
+    [
+     "snatch pull",
+     4
+    ],
+    [
+     "clean pull",
+     4
+    ],
+    [
+     "push press",
+     4
+    ],
+    [
+     "good morning",
+     3
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box"
+   ],
+   "nota": "Classici e varianti power, tirate e squat due volte a settimana ciascuno."
+  },
+  {
+   "id": "intermedio-potenza-M-2",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Atleta di sport di squadra",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero: forza / velocità / misto",
+   "esercizi": [
+    [
+     "power clean",
+     9
+    ],
+    [
+     "hang snatch",
+     4
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "speed squat",
+     6
+    ],
+    [
+     "trap bar deadlift",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     6
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "pallof press",
+     6
+    ]
+   ],
+   "extra": [
+    "sprint 10-30 metri",
+    "balzi e pliometria",
+    "lanci di palla medica",
+    "spinta della slitta"
+   ],
+   "nota": "Un giorno pesante, uno veloce al 50-60% e uno misto, pliometria prima dei pesi."
+  },
+  {
+   "id": "intermedio-potenza-M-3",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Contrasto forza-salto",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower con metodo a contrasto",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "trap bar deadlift",
+     4
+    ],
+    [
+     "hang clean",
+     8
+    ],
+    [
+     "split squat",
+     4
+    ],
+    [
+     "glute ham raise",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "barbell row",
+     6
+    ],
+    [
+     "landmine press",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box dopo ogni serie pesante",
+    "salti in profondità",
+    "push up pliometrici",
+    "lanci di palla medica"
+   ],
+   "nota": "Ogni serie pesante è seguita da un gesto esplosivo simile per sfruttare il potenziamento."
+  },
+  {
+   "id": "intermedio-potenza-M-4",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Velocisti e saltatori",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "power clean",
+     10
+    ],
+    [
+     "power snatch",
+     5
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "speed squat",
+     5
+    ],
+    [
+     "step up",
+     4
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "chin up",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ]
+   ],
+   "extra": [
+    "sprint lanciati",
+    "balzi alternati e successivi",
+    "partenze dai blocchi",
+    "traino leggero"
+   ],
+   "nota": "Volume di pesi contenuto e di qualità per lasciare spazio alla pista."
+  },
+  {
+   "id": "intermedio-potenza-M-5",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Pesistica più forza 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "tre sedute tecniche e due di forza",
+   "esercizi": [
+    [
+     "snatch",
+     8
+    ],
+    [
+     "clean and jerk",
+     6
+    ],
+    [
+     "hang snatch",
+     4
+    ],
+    [
+     "hang clean",
+     4
+    ],
+    [
+     "split jerk",
+     5
+    ],
+    [
+     "squat",
+     9
+    ],
+    [
+     "front squat",
+     6
+    ],
+    [
+     "clean pull",
+     5
+    ],
+    [
+     "snatch pull",
+     5
+    ],
+    [
+     "overhead squat",
+     3
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box"
+   ],
+   "nota": "Tecnica quasi quotidiana a carichi medi e due giorni dedicati a squat e tirate."
+  },
+  {
+   "id": "intermedio-potenza-F-1",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Pesistica 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "strappo / slancio alternati con squat",
+   "esercizi": [
+    [
+     "snatch",
+     10
+    ],
+    [
+     "clean and jerk",
+     8
+    ],
+    [
+     "power snatch",
+     5
+    ],
+    [
+     "power clean",
+     5
+    ],
+    [
+     "split jerk",
+     4
+    ],
+    [
+     "squat",
+     9
+    ],
+    [
+     "front squat",
+     8
+    ],
+    [
+     "snatch pull",
+     4
+    ],
+    [
+     "clean pull",
+     4
+    ],
+    [
+     "push press",
+     4
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box"
+   ],
+   "nota": "Classici e varianti power con squat frequenti; le atlete reggono bene più serie tecniche."
+  },
+  {
+   "id": "intermedio-potenza-F-2",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Atleta di sport di squadra",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero: forza / velocità / misto",
+   "esercizi": [
+    [
+     "hang clean",
+     9
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "speed squat",
+     5
+    ],
+    [
+     "trap bar deadlift",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "glute ham raise",
+     3
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "chin up",
+     6
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "pallof press",
+     6
+    ]
+   ],
+   "extra": [
+    "sprint 10-20 metri",
+    "atterraggi e balzi su una gamba",
+    "lanci di palla medica",
+    "spinta della slitta"
+   ],
+   "nota": "Potenza più prevenzione: femorali, glutei e controllo del ginocchio in ogni seduta."
+  },
+  {
+   "id": "intermedio-potenza-F-3",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Contrasto forza-salto",
+   "giorni_settimana": 4,
+   "struttura": "lower/upper con metodo a contrasto",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "trap bar deadlift",
+     4
+    ],
+    [
+     "hang clean",
+     8
+    ],
+    [
+     "reverse lunge",
+     4
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "leg curl",
+     4
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "landmine press",
+     4
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box dopo le serie pesanti",
+    "salti con contromovimento",
+    "lanci di palla medica"
+   ],
+   "nota": "Serie pesante seguita da un salto o da un lancio, recuperi completi."
+  },
+  {
+   "id": "intermedio-potenza-F-4",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Velociste e saltatrici",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "power clean",
+     9
+    ],
+    [
+     "power snatch",
+     5
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "step up",
+     4
+    ],
+    [
+     "single leg glute bridge",
+     4
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "hip thrust",
+     5
+    ],
+    [
+     "bench press",
+     5
+    ],
+    [
+     "lat pulldown",
+     5
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ]
+   ],
+   "extra": [
+    "sprint lanciati",
+    "balzi alternati",
+    "partenze",
+    "saltelli reattivi"
+   ],
+   "nota": "Poche serie di qualità su girate e squat, tanto lavoro di anca per la spinta."
+  },
+  {
+   "id": "intermedio-potenza-F-5",
+   "esperienza": "intermedio",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Pesistica più forza 5 giorni",
+   "giorni_settimana": 5,
+   "struttura": "tre sedute tecniche e due di forza",
+   "esercizi": [
+    [
+     "snatch",
+     9
+    ],
+    [
+     "clean and jerk",
+     6
+    ],
+    [
+     "hang snatch",
+     4
+    ],
+    [
+     "hang clean",
+     4
+    ],
+    [
+     "split jerk",
+     5
+    ],
+    [
+     "squat",
+     9
+    ],
+    [
+     "front squat",
+     6
+    ],
+    [
+     "clean pull",
+     5
+    ],
+    [
+     "snatch pull",
+     5
+    ],
+    [
+     "overhead squat",
+     4
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "pull up",
+     5
+    ],
+    [
+     "back extension",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [
+    "salti sul box"
+   ],
+   "nota": "Tecnica frequente a carichi medi e due giorni per squat, tirate e spinta sopra la testa."
+  },
+  {
+   "id": "avanzato-potenza-M-1",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Pesistica 6 giorni",
+   "giorni_settimana": 6,
+   "struttura": "strappo, slancio e squat con frequenza alta",
+   "esercizi": [
+    [
+     "snatch",
+     16
+    ],
+    [
+     "clean and jerk",
+     12
+    ],
+    [
+     "power snatch",
+     6
+    ],
+    [
+     "power clean",
+     6
+    ],
+    [
+     "hang snatch",
+     4
+    ],
+    [
+     "clean",
+     5
+    ],
+    [
+     "split jerk",
+     6
+    ],
+    [
+     "squat",
+     12
+    ],
+    [
+     "front squat",
+     12
+    ],
+    [
+     "snatch pull",
+     8
+    ],
+    [
+     "clean pull",
+     8
+    ],
+    [
+     "push press",
+     4
+    ],
+    [
+     "overhead squat",
+     3
+    ],
+    [
+     "good morning",
+     4
+    ],
+    [
+     "hanging leg raise",
+     8
+    ],
+    [
+     "back extension",
+     4
+    ]
+   ],
+   "extra": [
+    "salti sul box"
+   ],
+   "nota": "Programmazione da pesista agonista: classici quasi ogni giorno, squat quattro volte, tirate due per tipo."
+  },
+  {
+   "id": "avanzato-potenza-M-2",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Atleta professionista in preparazione",
+   "giorni_settimana": 4,
+   "struttura": "lower forza / upper forza / lower velocità / upper velocità",
+   "esercizi": [
+    [
+     "power clean",
+     6
+    ],
+    [
+     "hang snatch",
+     5
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "speed squat",
+     8
+    ],
+    [
+     "trap bar deadlift",
+     5
+    ],
+    [
+     "bulgarian split squat",
+     6
+    ],
+    [
+     "glute ham raise",
+     6
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     12
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "pull up",
+     9
+    ],
+    [
+     "barbell row",
+     5
+    ],
+    [
+     "chest supported row",
+     4
+    ],
+    [
+     "landmine press",
+     4
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [
+    "sprint 10-40 metri",
+    "salti in profondità",
+    "balzi orizzontali",
+    "lanci di palla medica",
+    "traino e spinta slitta"
+   ],
+   "nota": "Giorni di forza massima alternati a giorni di velocità a carichi leggeri, sprint e salti prima dei pesi."
+  },
+  {
+   "id": "avanzato-potenza-M-3",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Lanciatori",
+   "giorni_settimana": 4,
+   "struttura": "corpo intero pesante ed esplosivo",
+   "esercizi": [
+    [
+     "power clean",
+     10
+    ],
+    [
+     "snatch",
+     8
+    ],
+    [
+     "squat",
+     10
+    ],
+    [
+     "front squat",
+     5
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "split jerk",
+     4
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "incline bench press",
+     5
+    ],
+    [
+     "clean pull",
+     5
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "barbell row",
+     5
+    ],
+    [
+     "russian twist",
+     8
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [
+    "lanci di palla medica rotazionali",
+    "balzi",
+    "sprint brevi",
+    "lanci con attrezzi pesanti"
+   ],
+   "nota": "Forza massima e girate pesanti per pesisti e discoboli, con molto lavoro rotatorio."
+  },
+  {
+   "id": "avanzato-potenza-M-4",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Velocità di esecuzione misurata",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero con controllo della velocità del bilanciere",
+   "esercizi": [
+    [
+     "hang clean",
+     8
+    ],
+    [
+     "power snatch",
+     6
+    ],
+    [
+     "squat",
+     9
+    ],
+    [
+     "speed squat",
+     6
+    ],
+    [
+     "trap bar deadlift",
+     6
+    ],
+    [
+     "step up",
+     4
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "bench press",
+     9
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "chin up",
+     9
+    ],
+    [
+     "glute ham raise",
+     5
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti con sovraccarico leggero",
+    "sprint lanciati",
+    "balzi reattivi",
+    "lanci di palla medica"
+   ],
+   "nota": "La serie si ferma quando la velocità cala: poche ripetizioni tutte alla massima rapidità."
+  },
+  {
+   "id": "avanzato-potenza-M-5",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "M",
+   "titolo": "Pesistica 5 giorni a blocchi",
+   "giorni_settimana": 5,
+   "struttura": "sedute tecniche pesanti e leggere",
+   "esercizi": [
+    [
+     "snatch",
+     12
+    ],
+    [
+     "clean and jerk",
+     10
+    ],
+    [
+     "hang snatch",
+     5
+    ],
+    [
+     "hang clean",
+     5
+    ],
+    [
+     "split jerk",
+     6
+    ],
+    [
+     "squat",
+     8
+    ],
+    [
+     "front squat",
+     10
+    ],
+    [
+     "snatch pull",
+     6
+    ],
+    [
+     "clean pull",
+     6
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "pull up",
+     5
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ]
+   ],
+   "extra": [
+    "salti sul box"
+   ],
+   "nota": "Giorni pesanti sui classici e giorni leggeri sulle varianti dalla sospensione."
+  },
+  {
+   "id": "avanzato-potenza-F-1",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Pesistica 6 giorni",
+   "giorni_settimana": 6,
+   "struttura": "strappo, slancio e squat con frequenza alta",
+   "esercizi": [
+    [
+     "snatch",
+     18
+    ],
+    [
+     "clean and jerk",
+     13
+    ],
+    [
+     "power snatch",
+     6
+    ],
+    [
+     "power clean",
+     6
+    ],
+    [
+     "hang snatch",
+     4
+    ],
+    [
+     "clean",
+     5
+    ],
+    [
+     "split jerk",
+     6
+    ],
+    [
+     "squat",
+     13
+    ],
+    [
+     "front squat",
+     12
+    ],
+    [
+     "snatch pull",
+     8
+    ],
+    [
+     "clean pull",
+     8
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "overhead squat",
+     3
+    ],
+    [
+     "back extension",
+     5
+    ],
+    [
+     "hanging leg raise",
+     8
+    ]
+   ],
+   "extra": [
+    "salti sul box"
+   ],
+   "nota": "Volume leggermente più alto sui classici rispetto agli uomini, intensità relative alte e squat frequenti."
+  },
+  {
+   "id": "avanzato-potenza-F-2",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Atleta professionista in preparazione",
+   "giorni_settimana": 4,
+   "struttura": "lower forza / upper forza / lower velocità / upper velocità",
+   "esercizi": [
+    [
+     "power clean",
+     6
+    ],
+    [
+     "hang snatch",
+     5
+    ],
+    [
+     "squat",
+     6
+    ],
+    [
+     "speed squat",
+     8
+    ],
+    [
+     "trap bar deadlift",
+     5
+    ],
+    [
+     "bulgarian split squat",
+     6
+    ],
+    [
+     "hip thrust",
+     5
+    ],
+    [
+     "glute ham raise",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     10
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "dumbbell row",
+     5
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "landmine press",
+     4
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [
+    "sprint 10-30 metri",
+    "salti in profondità",
+    "atterraggi su una gamba",
+    "lanci di palla medica",
+    "spinta slitta"
+   ],
+   "nota": "Forza massima e giorni di velocità, con lavoro costante su femorali e glutei per proteggere il ginocchio."
+  },
+  {
+   "id": "avanzato-potenza-F-3",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Saltatrici e velociste di alto livello",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "power clean",
+     10
+    ],
+    [
+     "power snatch",
+     6
+    ],
+    [
+     "squat",
+     9
+    ],
+    [
+     "speed squat",
+     5
+    ],
+    [
+     "step up",
+     5
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "single leg glute bridge",
+     4
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "chin up",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ]
+   ],
+   "extra": [
+    "sprint lanciati",
+    "balzi successivi",
+    "salti in profondità",
+    "partenze dai blocchi"
+   ],
+   "nota": "Pesi al servizio della pista: girate veloci, mezzo squat pesante e catena posteriore."
+  },
+  {
+   "id": "avanzato-potenza-F-4",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Pesistica 5 giorni a blocchi",
+   "giorni_settimana": 5,
+   "struttura": "sedute tecniche pesanti e leggere",
+   "esercizi": [
+    [
+     "snatch",
+     13
+    ],
+    [
+     "clean and jerk",
+     10
+    ],
+    [
+     "hang snatch",
+     5
+    ],
+    [
+     "hang clean",
+     5
+    ],
+    [
+     "split jerk",
+     6
+    ],
+    [
+     "squat",
+     9
+    ],
+    [
+     "front squat",
+     10
+    ],
+    [
+     "snatch pull",
+     6
+    ],
+    [
+     "clean pull",
+     6
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "overhead squat",
+     3
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "pull up",
+     5
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ],
+    [
+     "back extension",
+     4
+    ]
+   ],
+   "extra": [
+    "salti sul box"
+   ],
+   "nota": "Alternanza di giorni pesanti sui classici e giorni leggeri sulle varianti."
+  },
+  {
+   "id": "avanzato-potenza-F-5",
+   "esperienza": "avanzato",
+   "tipo": "potenza",
+   "sesso": "F",
+   "titolo": "Contrasto avanzato 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "lower/upper con metodo a contrasto",
+   "esercizi": [
+    [
+     "squat",
+     8
+    ],
+    [
+     "trap bar deadlift",
+     5
+    ],
+    [
+     "hang clean",
+     8
+    ],
+    [
+     "power snatch",
+     4
+    ],
+    [
+     "reverse lunge",
+     4
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "glute ham raise",
+     5
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     8
+    ],
+    [
+     "push press",
+     6
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "barbell row",
+     5
+    ],
+    [
+     "landmine press",
+     4
+    ],
+    [
+     "turkish get up",
+     3
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti in profondità dopo le serie pesanti",
+    "balzi laterali",
+    "push up pliometrici",
+    "lanci di palla medica",
+    "sprint"
+   ],
+   "nota": "Accoppiate pesante-esplosivo con recuperi lunghi, per sport di salto e di cambio di direzione."
+  },
+  {
+   "id": "principiante-generale-M-1",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Prima scheda in sala",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero alle macchine",
+   "esercizi": [
+    [
+     "leg press",
+     9
+    ],
+    [
+     "chest press",
+     9
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "seated dumbbell press",
+     6
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "dumbbell curl",
+     6
+    ],
+    [
+     "crunch",
+     9
+    ]
+   ],
+   "extra": [
+    "15-20 minuti di tapis roulant o cyclette"
+   ],
+   "nota": "Macchine guidate, 3x12, per imparare i movimenti e creare l'abitudine."
+  },
+  {
+   "id": "principiante-generale-M-2",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Due giorni per chi ha poco tempo",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "goblet squat",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dead bug",
+     4
+    ]
+   ],
+   "extra": [
+    "plank",
+    "camminata veloce 30 minuti negli altri giorni"
+   ],
+   "nota": "Sei movimenti fondamentali due volte la settimana: il minimo che dà risultati."
+  },
+  {
+   "id": "principiante-generale-M-3",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Dimagrimento pesi e cardio",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero a circuito leggero",
+   "esercizi": [
+    [
+     "leg press",
+     9
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "chest press",
+     3
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "step up",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "back extension",
+     6
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [
+    "20 minuti di cardio a intervalli a fine seduta",
+    "10.000 passi al giorno"
+   ],
+   "nota": "Pesi per conservare il muscolo durante la dieta e cardio per aumentare il dispendio."
+  },
+  {
+   "id": "principiante-generale-M-4",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Corpo intero A/B con pesi liberi",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     4.5
+    ],
+    [
+     "leg press",
+     4.5
+    ],
+    [
+     "bench press",
+     4.5
+    ],
+    [
+     "dumbbell bench press",
+     4.5
+    ],
+    [
+     "barbell row",
+     4.5
+    ],
+    [
+     "lat pulldown",
+     4.5
+    ],
+    [
+     "romanian deadlift",
+     4.5
+    ],
+    [
+     "overhead press",
+     4.5
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "hanging knee raise",
+     4.5
+    ]
+   ],
+   "extra": [
+    "plank"
+   ],
+   "nota": "Introduzione graduale al bilanciere con 3x8-10 e carichi che salgono piano."
+  },
+  {
+   "id": "principiante-generale-M-5",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Over 50 in salute",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "leg press",
+     4
+    ],
+    [
+     "goblet squat",
+     4
+    ],
+    [
+     "chest press",
+     4
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "glute bridge",
+     4
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "calf raise",
+     4
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [
+    "trasporto di manubri (farmer walk)",
+    "camminata in salita 15 minuti",
+    "esercizi di equilibrio e mobilità"
+   ],
+   "nota": "Forza generale, postura ed equilibrio con esercizi sicuri per le articolazioni."
+  },
+  {
+   "id": "principiante-generale-F-1",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Prima scheda in sala",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero alle macchine",
+   "esercizi": [
+    [
+     "leg press",
+     9
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "chest press",
+     6
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "hip adduction machine",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "glute bridge",
+     6
+    ],
+    [
+     "crunch",
+     9
+    ]
+   ],
+   "extra": [
+    "15-20 minuti di tapis roulant o ellittica"
+   ],
+   "nota": "Esercizi guidati a 12-15 ripetizioni per prendere confidenza con la sala."
+  },
+  {
+   "id": "principiante-generale-F-2",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Due giorni essenziali",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "goblet squat",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     4
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "dead bug",
+     4
+    ]
+   ],
+   "extra": [
+    "plank",
+    "camminata veloce 30 minuti negli altri giorni"
+   ],
+   "nota": "Pochi movimenti completi ripetuti due volte, facili da mantenere nel tempo."
+  },
+  {
+   "id": "principiante-generale-F-3",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Dimagrimento e tono",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero a circuito leggero",
+   "esercizi": [
+    [
+     "leg press",
+     6
+    ],
+    [
+     "goblet squat",
+     3
+    ],
+    [
+     "reverse lunge",
+     6
+    ],
+    [
+     "glute bridge",
+     6
+    ],
+    [
+     "lat pulldown",
+     9
+    ],
+    [
+     "incline push up",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     6
+    ],
+    [
+     "back extension",
+     6
+    ],
+    [
+     "reverse crunch",
+     6
+    ]
+   ],
+   "extra": [
+    "20 minuti di cardio a intervalli",
+    "10.000 passi al giorno"
+   ],
+   "nota": "Pesi per mantenere il muscolo mentre si perde grasso, cardio a completare."
+  },
+  {
+   "id": "principiante-generale-F-4",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Corpo intero A/B con pesi liberi",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero A/B alternati",
+   "esercizi": [
+    [
+     "squat",
+     4.5
+    ],
+    [
+     "leg press",
+     4.5
+    ],
+    [
+     "hip thrust",
+     4.5
+    ],
+    [
+     "romanian deadlift",
+     4.5
+    ],
+    [
+     "dumbbell bench press",
+     4.5
+    ],
+    [
+     "push up",
+     4.5
+    ],
+    [
+     "lat pulldown",
+     4.5
+    ],
+    [
+     "dumbbell row",
+     4.5
+    ],
+    [
+     "dumbbell shoulder press",
+     4.5
+    ],
+    [
+     "lateral raise",
+     3
+    ],
+    [
+     "cable glute kickback",
+     3
+    ],
+    [
+     "dead bug",
+     4.5
+    ]
+   ],
+   "extra": [
+    "plank"
+   ],
+   "nota": "Passaggio graduale a bilanciere e manubri, 3x10 con carichi progressivi."
+  },
+  {
+   "id": "principiante-generale-F-5",
+   "esperienza": "principiante",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Over 50: ossa e postura",
+   "giorni_settimana": 2,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "leg press",
+     4
+    ],
+    [
+     "goblet squat",
+     4
+    ],
+    [
+     "step up",
+     4
+    ],
+    [
+     "glute bridge",
+     4
+    ],
+    [
+     "chest press",
+     4
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "calf raise",
+     4
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [
+    "trasporto di manubri (farmer walk)",
+    "camminata 30 minuti",
+    "esercizi di equilibrio"
+   ],
+   "nota": "Carichi crescenti sugli arti inferiori e sulla schiena per densità ossea, equilibrio e postura."
+  },
+  {
+   "id": "intermedio-generale-M-1",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Corpo intero 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, tre sedute diverse",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "dip",
+     3
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "barbell row",
+     3
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "hanging leg raise",
+     6
+    ]
+   ],
+   "extra": [
+    "15 minuti di vogatore o corsa a fine seduta"
+   ],
+   "nota": "Un po' di forza, un po' di massa e un po' di fiato: la scheda tuttofare."
+  },
+  {
+   "id": "intermedio-generale-M-2",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Upper/lower equilibrato",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "walking lunge",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "dumbbell bench press",
+     3
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "dumbbell curl",
+     4
+    ],
+    [
+     "skullcrusher",
+     4
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [
+    "due uscite di cardio da 30 minuti"
+   ],
+   "nota": "Due sedute per metà corpo a 6-12 ripetizioni, con cardio nei giorni liberi."
+  },
+  {
+   "id": "intermedio-generale-M-3",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Ricomposizione corporea",
+   "giorni_settimana": 4,
+   "struttura": "due sedute pesi corpo intero, due a circuito",
+   "esercizi": [
+    [
+     "trap bar deadlift",
+     4
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "goblet squat",
+     6
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "pull up",
+     4
+    ],
+    [
+     "inverted row",
+     6
+    ],
+    [
+     "dumbbell row",
+     4
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "reverse lunge",
+     6
+    ],
+    [
+     "hip thrust",
+     3
+    ],
+    [
+     "russian twist",
+     6
+    ],
+    [
+     "hanging knee raise",
+     4
+    ]
+   ],
+   "extra": [
+    "bici d'assalto a intervalli",
+    "corda",
+    "spinta della slitta",
+    "trasporti"
+   ],
+   "nota": "Giorni di forza per mantenere il muscolo e giorni metabolici per bruciare."
+  },
+  {
+   "id": "intermedio-generale-M-4",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Tre giorni spinta/tirata/gambe",
+   "giorni_settimana": 3,
+   "struttura": "push/pull/legs",
+   "esercizi": [
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "lateral raise",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "pull up",
+     4
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "face pull",
+     3
+    ],
+    [
+     "hammer curl",
+     3
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "calf raise",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     3
+    ],
+    [
+     "crunch",
+     3
+    ]
+   ],
+   "extra": [
+    "20 minuti di cardio moderato dopo ogni seduta"
+   ],
+   "nota": "Divisione semplice una volta la settimana, sostenibile accanto a lavoro e altri sport."
+  },
+  {
+   "id": "intermedio-generale-M-5",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Atletico per tutti",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero con un gesto per categoria",
+   "esercizi": [
+    [
+     "front squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "split squat",
+     6
+    ],
+    [
+     "overhead press",
+     6
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "chin up",
+     9
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "hip thrust",
+     3
+    ],
+    [
+     "turkish get up",
+     3
+    ],
+    [
+     "pallof press",
+     6
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti leggeri",
+    "trasporti (farmer walk)",
+    "vogatore a intervalli",
+    "mobilità di anche e spalle"
+   ],
+   "nota": "Accosciata, spinta, tirata, cerniera d'anca, trasporto e tronco in ogni seduta."
+  },
+  {
+   "id": "intermedio-generale-F-1",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Corpo intero 3 giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero, tre sedute diverse",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "dumbbell bench press",
+     4
+    ],
+    [
+     "push up",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "15 minuti di cardio a fine seduta"
+   ],
+   "nota": "Forza, tono e fiato insieme, con un occhio in più a gambe e glutei."
+  },
+  {
+   "id": "intermedio-generale-F-2",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Lower/upper equilibrato",
+   "giorni_settimana": 4,
+   "struttura": "lower/upper",
+   "esercizi": [
+    [
+     "squat",
+     4
+    ],
+    [
+     "hip thrust",
+     7
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "walking lunge",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "calf raise",
+     4
+    ],
+    [
+     "dumbbell bench press",
+     4
+    ],
+    [
+     "incline push up",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "seated cable row",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "reverse crunch",
+     6
+    ]
+   ],
+   "extra": [
+    "due sedute di cardio da 30 minuti"
+   ],
+   "nota": "Due sedute per metà corpo a 8-15 ripetizioni, cardio nei giorni liberi."
+  },
+  {
+   "id": "intermedio-generale-F-3",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Ricomposizione corporea",
+   "giorni_settimana": 4,
+   "struttura": "due sedute pesi, due a circuito",
+   "esercizi": [
+    [
+     "trap bar deadlift",
+     4
+    ],
+    [
+     "squat",
+     4
+    ],
+    [
+     "goblet squat",
+     6
+    ],
+    [
+     "hip thrust",
+     4
+    ],
+    [
+     "glute bridge",
+     6
+    ],
+    [
+     "reverse lunge",
+     6
+    ],
+    [
+     "dumbbell bench press",
+     4
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "inverted row",
+     6
+    ],
+    [
+     "dumbbell row",
+     4
+    ],
+    [
+     "dumbbell shoulder press",
+     4
+    ],
+    [
+     "russian twist",
+     6
+    ],
+    [
+     "dead bug",
+     4
+    ]
+   ],
+   "extra": [
+    "bici a intervalli",
+    "corda",
+    "spinta della slitta",
+    "camminata quotidiana"
+   ],
+   "nota": "Due giorni di carichi veri e due metabolici per perdere grasso senza perdere tono."
+  },
+  {
+   "id": "intermedio-generale-F-4",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Gambe-glutei, alta, corpo intero",
+   "giorni_settimana": 3,
+   "struttura": "lower / upper / corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "romanian deadlift",
+     6
+    ],
+    [
+     "step up",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "cable glute kickback",
+     3
+    ],
+    [
+     "hip abduction machine",
+     3
+    ],
+    [
+     "lat pulldown",
+     6
+    ],
+    [
+     "assisted pull up",
+     3
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "dumbbell bench press",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "lateral raise",
+     3
+    ],
+    [
+     "triceps kickback",
+     3
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "crunch",
+     6
+    ]
+   ],
+   "extra": [
+    "20 minuti di scale o camminata in salita"
+   ],
+   "nota": "Tre sedute a tema che toccano tutto due volte, sostenibili a lungo."
+  },
+  {
+   "id": "intermedio-generale-F-5",
+   "esperienza": "intermedio",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Atletica per tutte",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero con un gesto per categoria",
+   "esercizi": [
+    [
+     "front squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "split squat",
+     6
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "push up",
+     6
+    ],
+    [
+     "assisted pull up",
+     6
+    ],
+    [
+     "dumbbell row",
+     6
+    ],
+    [
+     "turkish get up",
+     3
+    ],
+    [
+     "pallof press",
+     6
+    ],
+    [
+     "hanging knee raise",
+     6
+    ]
+   ],
+   "extra": [
+    "salti leggeri e corda",
+    "trasporti (farmer walk)",
+    "vogatore a intervalli",
+    "mobilità"
+   ],
+   "nota": "Accosciata, spinta, tirata, anca, trasporto e tronco ogni volta: forma fisica a tutto tondo."
+  },
+  {
+   "id": "avanzato-generale-M-1",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Forza e massa 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "upper/lower",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "front squat",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "bulgarian split squat",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "bench press",
+     5
+    ],
+    [
+     "incline dumbbell press",
+     4
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "pull up",
+     8
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "chest supported row",
+     3
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "barbell curl",
+     4
+    ],
+    [
+     "skullcrusher",
+     4
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [
+    "due sedute di cardio, una a intervalli e una lunga"
+   ],
+   "nota": "Fondamentali pesanti e complementari da massa, con il fiato curato a parte."
+  },
+  {
+   "id": "avanzato-generale-M-2",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Ibrido pesi e corsa",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "trap bar deadlift",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     4
+    ],
+    [
+     "bench press",
+     5
+    ],
+    [
+     "overhead press",
+     4
+    ],
+    [
+     "dip",
+     4
+    ],
+    [
+     "pull up",
+     9
+    ],
+    [
+     "dumbbell row",
+     4
+    ],
+    [
+     "glute ham raise",
+     4
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [
+    "tre uscite di corsa: lenta, ripetute, lunga",
+    "mobilità"
+   ],
+   "nota": "Tre sedute dense di forza per chi corre altrettante volte: volume basso, intensità alta."
+  },
+  {
+   "id": "avanzato-generale-M-3",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Cinque giorni completi",
+   "giorni_settimana": 5,
+   "struttura": "upper/lower + push/pull/legs",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "romanian deadlift",
+     3
+    ],
+    [
+     "walking lunge",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "calf raise",
+     8
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     6
+    ],
+    [
+     "dip",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "seated dumbbell press",
+     3
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "barbell row",
+     3
+    ],
+    [
+     "lat pulldown",
+     3
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "barbell curl",
+     3
+    ],
+    [
+     "hammer curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "crunch",
+     3
+    ]
+   ],
+   "extra": [
+    "15 minuti di condizionamento a fine seduta due volte"
+   ],
+   "nota": "Frequenza due per ogni gruppo con un giorno pesante e uno più leggero."
+  },
+  {
+   "id": "avanzato-generale-M-4",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Forma fisica funzionale",
+   "giorni_settimana": 5,
+   "struttura": "forza + condizionamento ogni giorno",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "front squat",
+     4
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "power clean",
+     6
+    ],
+    [
+     "snatch",
+     4
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "bench press",
+     5
+    ],
+    [
+     "pull up",
+     12
+    ],
+    [
+     "muscle up",
+     3
+    ],
+    [
+     "handstand push up",
+     5
+    ],
+    [
+     "ring dip",
+     5
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "pistol squat",
+     3
+    ],
+    [
+     "hanging leg raise",
+     8
+    ],
+    [
+     "turkish get up",
+     3
+    ]
+   ],
+   "extra": [
+    "vogatore",
+    "corsa a intervalli",
+    "corda doppia",
+    "slitta",
+    "trasporti pesanti",
+    "salti sul box"
+   ],
+   "nota": "Un blocco di forza o di tecnica seguito da un lavoro misto ad alta intensità."
+  },
+  {
+   "id": "avanzato-generale-M-5",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "M",
+   "titolo": "Mantenimento in tre giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero pesante / leggero / medio",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "step up",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "bench press",
+     6
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "push up",
+     3
+    ],
+    [
+     "chin up",
+     6
+    ],
+    [
+     "barbell row",
+     3
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "lateral raise",
+     3
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "calf raise",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [
+    "due sedute di sport o cardio a piacere",
+    "mobilità"
+   ],
+   "nota": "Volume minimo efficace per conservare forza e massa costruite negli anni, lasciando spazio ad altro."
+  },
+  {
+   "id": "avanzato-generale-F-1",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Forza e forma 4 giorni",
+   "giorni_settimana": 4,
+   "struttura": "lower/upper",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "hip thrust",
+     8
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     4
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "calf raise",
+     4
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "incline dumbbell press",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "chin up",
+     6
+    ],
+    [
+     "barbell row",
+     4
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "lateral raise",
+     6
+    ],
+    [
+     "face pull",
+     6
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [
+    "due sedute di cardio, una a intervalli e una lunga"
+   ],
+   "nota": "Fondamentali pesanti e complementari mirati, fiato allenato a parte."
+  },
+  {
+   "id": "avanzato-generale-F-2",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Ibrido pesi e corsa",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "trap bar deadlift",
+     4
+    ],
+    [
+     "bulgarian split squat",
+     4
+    ],
+    [
+     "hip thrust",
+     5
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "push up",
+     3
+    ],
+    [
+     "pull up",
+     6
+    ],
+    [
+     "dumbbell row",
+     5
+    ],
+    [
+     "single leg glute bridge",
+     4
+    ],
+    [
+     "calf raise",
+     6
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "pallof press",
+     4
+    ]
+   ],
+   "extra": [
+    "tre uscite di corsa: lenta, ripetute, lunga",
+    "mobilità"
+   ],
+   "nota": "Forza a basso volume per chi corre molto, con glutei e polpacci a protezione."
+  },
+  {
+   "id": "avanzato-generale-F-3",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Cinque giorni completi",
+   "giorni_settimana": 5,
+   "struttura": "lower / upper / glutei / spinta-tirata / corpo intero",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "leg press",
+     3
+    ],
+    [
+     "hip thrust",
+     10
+    ],
+    [
+     "romanian deadlift",
+     4
+    ],
+    [
+     "walking lunge",
+     3
+    ],
+    [
+     "step up",
+     3
+    ],
+    [
+     "leg curl",
+     6
+    ],
+    [
+     "leg extension",
+     3
+    ],
+    [
+     "cable glute kickback",
+     6
+    ],
+    [
+     "hip abduction machine",
+     6
+    ],
+    [
+     "calf raise",
+     4
+    ],
+    [
+     "bench press",
+     3
+    ],
+    [
+     "dumbbell bench press",
+     3
+    ],
+    [
+     "push up",
+     3
+    ],
+    [
+     "overhead press",
+     3
+    ],
+    [
+     "lateral raise",
+     8
+    ],
+    [
+     "pull up",
+     5
+    ],
+    [
+     "lat pulldown",
+     4
+    ],
+    [
+     "seated cable row",
+     4
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "face pull",
+     4
+    ],
+    [
+     "dumbbell curl",
+     3
+    ],
+    [
+     "tricep pushdown",
+     4
+    ],
+    [
+     "hanging leg raise",
+     6
+    ],
+    [
+     "reverse crunch",
+     3
+    ]
+   ],
+   "extra": [
+    "15 minuti di condizionamento a fine seduta due volte"
+   ],
+   "nota": "Tutto due volte la settimana, glutei tre, alternando giorni pesanti e leggeri."
+  },
+  {
+   "id": "avanzato-generale-F-4",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Forma fisica funzionale",
+   "giorni_settimana": 5,
+   "struttura": "forza + condizionamento ogni giorno",
+   "esercizi": [
+    [
+     "squat",
+     5
+    ],
+    [
+     "front squat",
+     4
+    ],
+    [
+     "deadlift",
+     4
+    ],
+    [
+     "power clean",
+     6
+    ],
+    [
+     "snatch",
+     4
+    ],
+    [
+     "push press",
+     5
+    ],
+    [
+     "bench press",
+     4
+    ],
+    [
+     "pull up",
+     10
+    ],
+    [
+     "handstand push up",
+     4
+    ],
+    [
+     "ring dip",
+     4
+    ],
+    [
+     "walking lunge",
+     6
+    ],
+    [
+     "pistol squat",
+     3
+    ],
+    [
+     "hip thrust",
+     3
+    ],
+    [
+     "hanging leg raise",
+     8
+    ],
+    [
+     "turkish get up",
+     3
+    ]
+   ],
+   "extra": [
+    "vogatore",
+    "corsa a intervalli",
+    "corda doppia",
+    "slitta",
+    "trasporti",
+    "salti sul box"
+   ],
+   "nota": "Blocco di forza o di tecnica e poi lavoro misto ad alta intensità."
+  },
+  {
+   "id": "avanzato-generale-F-5",
+   "esperienza": "avanzato",
+   "tipo": "generale",
+   "sesso": "F",
+   "titolo": "Mantenimento in tre giorni",
+   "giorni_settimana": 3,
+   "struttura": "corpo intero pesante / leggero / medio",
+   "esercizi": [
+    [
+     "squat",
+     6
+    ],
+    [
+     "deadlift",
+     3
+    ],
+    [
+     "hip thrust",
+     6
+    ],
+    [
+     "step up",
+     3
+    ],
+    [
+     "leg curl",
+     3
+    ],
+    [
+     "bench press",
+     5
+    ],
+    [
+     "dumbbell shoulder press",
+     3
+    ],
+    [
+     "push up",
+     3
+    ],
+    [
+     "chin up",
+     5
+    ],
+    [
+     "seated cable row",
+     3
+    ],
+    [
+     "dumbbell row",
+     3
+    ],
+    [
+     "lateral raise",
+     3
+    ],
+    [
+     "cable glute kickback",
+     3
+    ],
+    [
+     "tricep pushdown",
+     3
+    ],
+    [
+     "ab wheel rollout",
+     6
+    ]
+   ],
+   "extra": [
+    "due sedute di sport, yoga o cardio a piacere"
+   ],
+   "nota": "Volume minimo efficace per mantenere forza e tono, con tempo libero per altre attività."
+  }
+ ]
+}

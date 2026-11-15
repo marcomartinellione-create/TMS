@@ -10,7 +10,10 @@ Legge SOLO originali e file di lavoro, non scrive mai negli originali:
   - tools/riferimenti/protocolli-studi.json (trascrizione TMS dei protocolli di studio, del corpus
     e degli articoli ad accesso aperto aggiunti dal TMS, descritti in «studi_aggiunti»);
   - tools/riferimenti/mappa-esterna-convalida.csv (stato di convalida della mappa esterna:
-    le righe «convalidata», «corretta» o «rifiutata» scritte a mano si conservano).
+    le righe «convalidata», «corretta» o «rifiutata» scritte a mano si conservano);
+  - Doc/riferimenti-distribuzione/schede-web/schede-web.json (schede trascritte dal web il 15/11/2026
+    da agenti di ricerca e riviste da Claude, fuori da git) e tools/riferimenti/fable-schede.json
+    (schede GENERATE alla cieca da Fable: voci «generata», accese solo a richiesta nell'app).
 
 Scrive:
   - src/dati/05-riferimenti-distribuzione.js   (RIF_DISTR, incorporato nell'HTML dalla build)
@@ -883,6 +886,144 @@ def liftosaur(est):
     return voci, scarti, commit
 
 
+# ═════════════════════ schede trascritte dal web e schede Fable ═════════════════════
+# Schede web (15/11/2026): trascritte da pagine pubbliche da agenti di ricerca e riviste da Claude
+# una per una; il file sta in Doc/ (fuori da git, come le pagine della meta-analisi), nell'app solo
+# numeri derivati con l'indirizzo. Schede Fable: generate ALLA CIECA dal modello Fable (senza vedere
+# dati, fasce o fonti), 5 per combinazione esperienza × tipo × sesso; NON sono schede reali: la voce
+# porta «generata»: true e nell'app entrano solo se l'utente le accende. File in tools/riferimenti.
+WEB = os.path.join(OUT_DOC, 'schede-web', 'schede-web.json')
+FABLE = os.path.join(QUI, 'riferimenti', 'fable-schede.json')
+# Le schede Fable entrano in RIF_DISTR (e quindi nell'app) SOLO se il confronto coi dati noti le ha date
+# per buone e Marco ha deciso di accenderle. 15/11/2026: il confronto NON le ha date per buone (scarto
+# massimo 15 punti su avanzato · ipertrofia · Gambe, soglia 10): restano fuori, decisione a Marco.
+# Finché restano fuori, le voci calcolate vanno in Doc/riferimenti-distribuzione/fable-2026-11-15/voci-fable.json,
+# dove le legge tools/riferimenti/confronta-fable.js.
+FABLE_NELL_APP = False
+VOCI_FABLE = os.path.join(OUT_DOC, 'fable-2026-11-15', 'voci-fable.json')
+
+
+def serie_testo(s):
+    """«4» → 4; «3-4» → 3,5 (valore centrale dell'intervallo); «5x5» → 5 (le serie vengono prima)"""
+    t = str(s if s is not None else '').replace(',', '.')
+    m = re.match(r'\s*(\d+(?:\.\d+)?)\s*(?:[-–]|to)\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        return (float(m.group(1)) + float(m.group(2))) / 2.0
+    m = re.match(r'\s*(\d+(?:\.\d+)?)', t)
+    return float(m.group(1)) if m else 0.0
+
+
+def conta_settimana(per, est, alias=None):
+    """serie settimanali per nome inglese → (Conto, copertura, nomi non riconosciuti).
+    L'alias decide PRIMA del filtro sul condizionamento: «Pull-ups (circuito)» è una trazione vera;
+    alias vuoto = non si conta; lista = la riga indica due esercizi, ognuno con le serie della riga."""
+    alias = alias or {}
+    c = Conto(est)
+    righe = risolte = 0
+    ignoti = []
+    for nome, s in sorted(per.items()):
+        if s <= 0:
+            continue
+        if nome in alias:
+            a = alias[nome]
+            if not a:
+                continue
+            righe += 1
+            risolte += 1
+            for r in (a if isinstance(a, list) else [a]):
+                if r not in cat:
+                    raise SystemExit('alias verso un esercizio non a catalogo: %s -> %s' % (nome, r))
+                c.aggiungi(r, s)
+            continue
+        if salta(nome):
+            continue
+        righe += 1
+        r = risolvi(nome)
+        if not r:
+            ignoti.append(nome)
+            continue
+        risolte += 1
+        c.aggiungi(r, s)
+    return c, risolte / float(righe or 1), ignoti
+
+
+def motivo_scarto(c, cop):
+    return ('esercizi riconosciuti sotto l\'85%' if cop < 0.85 else
+            'serie a settimana fuori da 25-130' if not (25 <= c.tot <= 130) else
+            'meno di 5 gruppi con almeno 3 serie')
+
+
+def campi_conto(c, cop):
+    return {'serie': round(c.tot, 1), 'copertura': round(cop, 3),
+            'cop_esterna': round(c.est_cop / c.tot, 3) if c.tot else 0,
+            'spinta': round(c.dir.get('spinta', 0), 1), 'trazione': round(c.dir.get('trazione', 0), 1),
+            'D': c.arr(c.tD), 'I': c.arr(c.tI), 'eD': c.arr(c.eD), 'eI': c.arr(c.eI)}
+
+
+def schede_web(est):
+    """schede trascritte dal web e riviste (Doc/riferimenti-distribuzione/schede-web/schede-web.json)"""
+    if not os.path.exists(WEB):
+        return [], [], []
+    d = leggi_json(WEB)
+    voci, scarti = [], []
+    alias = d.get('alias') or {}            # nome della pagina → nome del catalogo, deciso nella revisione
+    for s in d.get('schede', []):
+        per = collections.Counter()
+        for g in s.get('giorni', []):
+            volte = float(g.get('volte_a_settimana') or 1)
+            for e in g.get('esercizi', []):
+                per[e['nome'].strip()] += serie_testo(e.get('serie')) * volte
+        c, cop, ignoti = conta_settimana(per, est, alias)
+        intera, equil = criteri(c, cop)
+        voce = dict({
+            'id': 'web:' + s['id'], 'raccolta': 'schede', 'fonte': s['fonte_id'], 'titolo': s['titolo'],
+            'url': s['url'], 'esperienza': s.get('esperienza', ''), 'tipi': s.get('tipi', []),
+            'sesso': s.get('sesso', ''), 'eta': s.get('eta', ''), 'agonismo': s.get('agonismo', ''),
+            'attrezzatura': s.get('attrezzatura', ''), 'qualita': 'scheda pubblicata', 'equilibrata': equil,
+            'etichette_originali': {'livello': s.get('livello_dichiarato', ''), 'obiettivo': s.get('obiettivo_dichiarato', ''),
+                                    'giorni': s.get('giorni_settimana', ''), 'settimana': s.get('settimana_trascritta', ''),
+                                    'autore': s.get('autore', '')},
+            'origine_esperienza': 'livello dichiarato dalla scheda' if s.get('livello_dichiarato') else
+                                  'livello letto dal TMS nel testo della scheda',
+            'stato': s.get('stato', 'trascritta dalla pagina da un agente di ricerca, rivista da Claude (15/11/2026)'),
+        }, **campi_conto(c, cop))
+        if s.get('note_revisione'):
+            voce['note'] = s['note_revisione']
+        if intera:
+            voci.append(voce)
+        else:
+            scarti.append(dict(voce, motivo=motivo_scarto(c, cop) + (' (non riconosciuti: ' + ', '.join(ignoti) + ')' if ignoti else '')))
+    return voci, scarti, d.get('fonti', [])
+
+
+def schede_fable(est):
+    """schede generate alla cieca da Fable (tools/riferimenti/fable-schede.json): voci «generata»"""
+    if not os.path.exists(FABLE):
+        return [], [], {}
+    d = leggi_json(FABLE)
+    voci, scarti = [], []
+    for s in d.get('schede', []):
+        per = collections.Counter()
+        for nome, ser in s.get('esercizi', []):
+            per[nome.strip()] += float(ser)
+        c, cop, ignoti = conta_settimana(per, est)
+        intera, equil = criteri(c, cop)
+        voce = dict({
+            'id': 'fable:' + s['id'], 'raccolta': 'schede', 'fonte': 'fable', 'generata': True,
+            'titolo': s.get('titolo', s['id']), 'url': '', 'esperienza': s['esperienza'], 'tipi': [s['tipo']],
+            'sesso': s['sesso'], 'eta': '', 'agonismo': '', 'attrezzatura': 'palestra',
+            'qualita': 'scheda generata (Fable)', 'equilibrata': equil,
+            'etichette_originali': {'giorni': s.get('giorni_settimana', ''), 'struttura': s.get('struttura', '')},
+            'origine_esperienza': 'combinazione chiesta a Fable (esperienza × tipo × sesso)',
+            'stato': 'generata da Fable alla cieca il %s: non è una scheda reale' % d.get('data', ''),
+        }, **campi_conto(c, cop))
+        if intera:
+            voci.append(voce)
+        else:
+            scarti.append(dict(voce, motivo=motivo_scarto(c, cop) + (' (non riconosciuti: ' + ', '.join(ignoti) + ')' if ignoti else '')))
+    return voci, scarti, d
+
+
 # ═════════════════════════ protocolli di studio ═════════════════════════
 def motivo_studio(r, usati, esclusi_studi):
     rid, rt, src = r['record_id'], r['record_type'], r['extraction_source_id']
@@ -932,7 +1073,7 @@ def studi(master, est, prot):
             fonti['studio:' + sid] = {'id': 'studio:' + sid, 'nome': rif, 'url': url, 'doi': doi,
                                       'licenza': 'articolo scientifico (' + a.get('licenza_articolo', 'licenza non indicata') +
                                                  '): nell\'app solo numeri derivati e citazione',
-                                      'tipo': 'studio', 'qualita': qual, 'aggiunto': 'TMS, 14/11/2026 (fuori dal corpus)'}
+                                      'tipo': 'studio', 'qualita': qual, 'aggiunto': 'TMS, ' + a.get('aggiunto', '14/11/2026') + ' (fuori dal corpus)'}
         else:                               # studio del corpus: i record restano la provenienza
             rr = [rec[x] for x in p['record_ids']]
             usati.update(p['record_ids'])
@@ -1072,10 +1213,15 @@ def main():
     v_sch, s_sch = schede_pubblicate(est)
     v_dep, s_dep = depot(z, est)
     v_lif, s_lif, commit_lif = liftosaur(est)
+    v_web, s_web, fonti_web = schede_web(est)
+    v_fab, s_fab, d_fab = schede_fable(est)
+    v_fab_doc = v_fab
+    if not FABLE_NELL_APP:
+        v_fab = []
     v_stu, fonti_stu, esclusi_stu, esclusi_righe, n_usati = studi(master, est, prot)
 
-    v_sch_tutte = v_sch + v_dep + v_lif
-    voci = sorted(v_sch_tutte, key=lambda v: v['id']) + sorted(v_stu, key=lambda v: v['id'])
+    v_sch_tutte = v_sch + v_dep + v_lif + v_web      # solo schede REALI: le Fable restano a parte nei conti
+    voci = sorted(v_sch_tutte + v_fab, key=lambda v: v['id']) + sorted(v_stu, key=lambda v: v['id'])
     n_lib = collections.Counter(v['fonte'] for v in v_sch_tutte)
     n_agg = sum(1 for v in v_stu if not v['record_ids'])
 
@@ -1098,7 +1244,11 @@ def main():
                     "numeri derivati, con l'indirizzo del programma. Livello dal campo «age», obiettivo dal campo «goal»; "
                     "per i programmi di più settimane, la settimana media del ciclo",
          'tipo': 'libreria di schede', 'scaricate': '2026-11-14'},
-    ] + sorted(fonti_stu.values(), key=lambda f: f['id']) + [
+    ] + sorted(fonti_web, key=lambda f: f['id']) + ([
+        {'id': 'fable', 'nome': 'Fable — schede generate alla cieca (%s)' % d_fab.get('data', ''), 'url': '',
+         'licenza': 'generate dal TMS col modello Fable (%s) senza vedere dati, fasce o fonti: NON sono schede reali né '
+                    'pubblicate. Entrano nel riferimento solo se si accende «Schede Fable»' % d_fab.get('modello', ''),
+         'tipo': 'schede generate'}] if v_fab else []) + sorted(fonti_stu.values(), key=lambda f: f['id']) + [
         {'id': 'smyrdev', 'nome': 'Exercises Dataset with Muscle Volume (smyrdev), 1.324 esercizi',
          'url': 'https://github.com/hasaneyldrm/exercises-dataset',
          'licenza': 'MIT — Copyright (c) 2026 smyrdev; Copyright (c) 2026 Hasan Emir Yıldırım (hasaneyldrm/exercises-dataset). '
@@ -1119,8 +1269,12 @@ def main():
             'schede': {'unita': 'scheda settimanale pubblicata', 'voci': len(v_sch_tutte),
                        'equilibrate': sum(1 for v in v_sch_tutte if v['equilibrata']),
                        'per_fonte': dict(n_lib),
+                       'generate': {'fonte': 'fable', 'voci': len(v_fab), 'equilibrate': sum(1 for v in v_fab if v['equilibrata']),
+                                    'scartate': len(s_fab),
+                                    'nota': d_fab.get('_nota', '')} if v_fab else {},
                        'esclusi': {'settimane non intere o poco riconosciute': len(s_sch),
                                    'Liftosaur: settimana non intera o poco riconosciuta': len(s_lif),
+                                   'schede dal web: settimana non intera o poco riconosciuta': len(s_web),
                                    'depot: solo totali del programma': sum(1 for s in s_dep if s['motivo'].startswith('solo i totali')),
                                    'depot: settimana non intera': sum(1 for s in s_dep if not s['motivo'].startswith('solo i totali'))},
                        'origine_esperienza': 'livello dichiarato dalla scheda (beginner/intermediate/advanced), non esperienza misurata'},
@@ -1154,6 +1308,14 @@ def main():
     for k, v in esclusi_stu.most_common():
         print('   esclusi %3d  %s' % (v, k))
     copertura(v_sch_tutte, v_stu)
+    if v_fab_doc:
+        print('Schede Fable (generate, non reali): %d intere (%d equilibrate), scartate %d · %s'
+              % (len(v_fab_doc), sum(1 for v in v_fab_doc if v['equilibrata']), len(s_fab),
+                 "nell'app (accese a richiesta)" if FABLE_NELL_APP else "FUORI dall'app, in Doc per il confronto"))
+    if s_web:
+        print('Schede dal web scartate: %d' % len(s_web))
+        for v in s_web:
+            print('   %s · %s' % (v['id'], v['motivo']))
     print('Mappa esterna: %d esercizi TMS agganciati (%d con profilo di volume) su %d'
           % (len(est), n_ext, len(cat)))
 
@@ -1168,6 +1330,13 @@ def main():
     with io.open(OUT_JS, 'w', encoding='utf-8', newline='\n') as f:
         f.write(nuovo)
     print('  scritto src/dati/05-riferimenti-distribuzione.js (%d byte)' % len(nuovo.encode('utf-8')))
+    if v_fab_doc and not FABLE_NELL_APP:
+        if not os.path.isdir(os.path.dirname(VOCI_FABLE)):
+            os.makedirs(os.path.dirname(VOCI_FABLE))
+        with io.open(VOCI_FABLE, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(json.dumps({'nota': "voci Fable calcolate dall'importatore, FUORI dall'app (FABLE_NELL_APP = False)",
+                                'voci': v_fab_doc}, ensure_ascii=False))
+        print('  scritte le %d voci Fable in %s (fuori dall\'app)' % (len(v_fab_doc), os.path.relpath(VOCI_FABLE, ROOT)))
     scrivi_csv(CONV, righe_conv, CAMPI_CONV)
     print('  scritto tools/riferimenti/mappa-esterna-convalida.csv (%d righe)' % len(righe_conv))
     with io.open(os.path.join(QUI, 'riferimenti', 'LICENZA-mappa-esterna-MIT.txt'), 'w', encoding='utf-8', newline='\n') as f:
@@ -1175,11 +1344,11 @@ def main():
 
     if not os.path.isdir(OUT_DOC):
         os.makedirs(OUT_DOC)
-    campi_v = ['id', 'raccolta', 'fonte', 'titolo', 'url', 'esperienza', 'origine_esperienza', 'tipi', 'sesso', 'eta',
+    campi_v = ['id', 'raccolta', 'fonte', 'generata', 'titolo', 'url', 'esperienza', 'origine_esperienza', 'tipi', 'sesso', 'eta',
                'agonismo', 'attrezzatura', 'qualita', 'equilibrata', 'serie', 'copertura', 'cop_esterna', 'spinta',
                'trazione', 'D', 'I', 'eD', 'eI', 'etichette_originali', 'record_ids', 'stato', 'note', 'motivo']
     scrivi_csv(os.path.join(OUT_DOC, 'voci-usate.csv'), voci, campi_v)
-    scrivi_csv(os.path.join(OUT_DOC, 'schede-scartate.csv'), s_sch + s_dep + s_lif, campi_v)
+    scrivi_csv(os.path.join(OUT_DOC, 'schede-scartate.csv'), s_sch + s_dep + s_lif + s_web + s_fab, campi_v)
     scrivi_csv(os.path.join(OUT_DOC, 'record-studi-esclusi.csv'), esclusi_righe,
                ['record_id', 'studio', 'tipo', 'esperienza', 'tipi', 'motivo'])
     print('  scritte le tabelle di controllo in Doc/riferimenti-distribuzione/')

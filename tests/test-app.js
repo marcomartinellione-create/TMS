@@ -1366,8 +1366,21 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(/AGPL/.test(w.eval('RIF_DISTR.fonti.find(function(f){ return f.id==="liftosaur"; }).licenza')),
        'Riferimenti: la fonte Liftosaur dichiara la licenza del repository');
     const agg = J('RIF_DISTR.voci.filter(function(v){ return v.raccolta==="studi" && !(v.record_ids||[]).length; })');
-    ok(agg.length >= 10 && agg.every(v => v.url && v.stato === 'trascrizione TMS da verificare' && J('RIF_DISTR.fonti.find(function(f){ return f.id==="' + v.fonte + '"; })').doi),
-       'Riferimenti: gli studi aggiunti fuori dal corpus hanno DOI, indirizzo e stato «da verificare» (' + agg.length + ')');
+    /* 15/11/2026: due articoli del J Sports Sci Med (2016, 2018) non hanno DOI: vale l'indirizzo PMC */
+    ok(agg.length >= 10 && agg.every(v => v.url && v.stato === 'trascrizione TMS da verificare' &&
+         (J('RIF_DISTR.fonti.find(function(f){ return f.id==="' + v.fonte + '"; })').doi || /pmc\.ncbi\.nlm\.nih\.gov\/articles\/PMC\d+/.test(v.url))),
+       'Riferimenti: gli studi aggiunti fuori dal corpus hanno DOI (o indirizzo PMC), indirizzo e stato «da verificare» (' + agg.length + ')');
+    /* 15/11/2026: schede trascritte dal web da agenti di ricerca e riviste una per una */
+    const web = J('RIF_DISTR.voci.filter(function(v){ return v.id.indexOf("web:")===0; })');
+    ok(web.length >= 40 && web.every(v => v.raccolta === 'schede' && /^https?:\/\//.test(v.url) && /rivista da Claude|aggiunta da Claude/.test(v.stato) &&
+         J('RIF_DISTR.fonti.find(function(f){ return f.id==="' + v.fonte + '"; })').licenza),
+       'Riferimenti: le schede trovate sul web hanno indirizzo, stato della revisione e fonte con licenza (' + web.length + ')');
+    ok(J('RIF_DISTR.voci.filter(function(v){ return v.raccolta==="schede" && v.tipi.indexOf("powerlifting")>=0; }).length') >= 15 &&
+       J('RIF_DISTR.voci.filter(function(v){ return v.raccolta==="schede" && v.sesso==="F"; }).length') >= 25,
+       'Riferimenti: con le schede dal web il powerlifting e le schede per donne hanno abbastanza voci');
+    /* le schede generate da Fable NON sono nei dati dell'app finché Marco non decide (confronto non superato) */
+    ok(w.eval('RIF_DISTR.voci.every(function(v){ return !v.generata && v.fonte!=="fable"; }) && !RIF_DISTR.fonti.some(function(f){ return f.id==="fable"; })'),
+       'Riferimenti: nessuna scheda generata (Fable) nei dati dell\'app');
     ok(w.eval('RIF_DISTR.voci.every(function(v){ return !!v.stato; })'), 'Riferimenti: ogni voce dice come è stata letta (stato)');
     const rcAv = J('rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""})');
     ok(rcAv.n >= w.eval('RIF_MIN_VOCI') && rcAv.fasce !== null, 'Riferimento: i protocolli di studio su avanzati reggono una fascia (' + rcAv.n + ' protocolli)');

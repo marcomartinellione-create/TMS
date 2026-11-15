@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.21 (2026-11-13). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.22 (2026-11-14). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -211,22 +211,25 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
     (con indirizzo), e cio' che resta fuori col motivo. Le scelte stanno nel profilo
     (dati_utente.rifDistr, solo le differenze dal predefinito).
     Due RACCOLTE che non si mescolano mai: «Schede pubblicate» (una voce = una settimana di
-    allenamento; StrengthLog, Muscle & Strength, depot.fitness, Liftosaur; il livello e'
+    allenamento; StrengthLog, Muscle & Strength, depot.fitness, Liftosaur e altre schede
+    pubbliche di 30 siti trascritte e riviste una per una; il livello e'
     quello DICHIARATO dalla scheda; per i programmi di piu' settimane conta la settimana
     media del ciclo) e «Protocolli di studio» (una voce = un protocollo con l'elenco completo
     degli esercizi; l'esperienza e' dei partecipanti). Dei 359 record del corpus di evidenza
     solo 20 (13 protocolli) hanno l'elenco completo: gli altri restano nella base dati ma non
     reggono una distribuzione (250 senza elenco esercizi, bracci su un solo distretto,
-    survey senza core, sintesi) e il riquadro lo dice. Altri 14 protocolli vengono da 13
-    articoli ad accesso aperto aggiunti dal TMS (soggetti allenati, powerlifter, atleti),
-    ognuno con DOI e stato «trascrizione TMS da verificare». Sotto la ragnatela
+    survey senza core, sintesi) e il riquadro lo dice. Altri 26 protocolli vengono da 25
+    articoli ad accesso aperto aggiunti dal TMS (soggetti allenati, powerlifter, atleti,
+    donne e persone dai 40 anni in su), ognuno con DOI o indirizzo PMC e stato «trascrizione
+    TMS da verificare». Sotto la ragnatela
     la didascalia scrive il riferimento e su quante voci, record e fonti si regge: con meno
     di 5 voci «Dati insufficienti» e nessuna fascia, da 5 a 9 fascia tratteggiata
-    (indicativa). Il predefinito (schede equilibrate, tutte le esperienze, tutti i tipi: 109
-    schede da 4 fonti) sta entro 4 punti dalle fasce storiche RIF_QUOTA: Gambe 16-37 %,
-    Pettorali 6-14, Schiena 15-27, Spalle 13-24, Braccia 16-27, Core 0-10. Restano senza
-    dati le schede di resistenza muscolare e di potenza; powerlifting ha 3 schede
-    equilibrate e 4 protocolli di studio (dati insufficienti).
+    (indicativa). Il predefinito (schede equilibrate, tutte le esperienze, tutti i tipi: 127
+    schede da 17 fonti) sta entro 4 punti dalle fasce storiche RIF_QUOTA: Gambe 16-37 %,
+    Pettorali 6-15, Schiena 15-27, Spalle 13-24, Braccia 16-27, Core 0-10. Restano con
+    pochi dati la resistenza muscolare (2 schede, nessuna equilibrata) e la potenza (20
+    schede, 4 equilibrate, quasi tutte senza livello dichiarato); il powerlifting ha 22
+    schede, 8 equilibrate.
     I dati stanno in RIF_DISTR (src/dati/05-riferimenti-distribuzione.js), generato da
     tools/genera-riferimenti.py a partire dagli originali (ZIP del corpus v0.7 in
     Documentazione, pagine e programmi Liftosaur in Doc/meta-analisi, trascrizioni degli

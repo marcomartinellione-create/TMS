@@ -21,7 +21,9 @@ Sesso, età, agonismo, attrezzatura e qualità della fonte sono solo filtri di c
 | · mappa smyrdev (1.324 esercizi) | nello ZIP | MIT | conteggio alternativo «mappa esterna» (proposta) |
 | schede StrengthLog e Muscle & Strength | `Doc/meta-analisi/` (fuori da git) | nessuna dichiarata | raccolta «Schede pubblicate»: nell'app solo numeri derivati + indirizzo |
 | programmi incorporati di Liftosaur (61) | `Doc/meta-analisi/liftosaur/` (fuori da git; versione in `COMMIT.txt`) | repository AGPL-3.0; programmi di autori terzi | raccolta «Schede pubblicate»: nell'app solo numeri derivati + indirizzo del programma |
-| articoli ad accesso aperto (13) | testi in `Doc/riferimenti-distribuzione/studi-testi/` (fuori da git) | per lo più CC BY, una per una in `protocolli-studi.json` | raccolta «Protocolli di studio» |
+| articoli ad accesso aperto (25) | testi in `Doc/riferimenti-distribuzione/studi-testi/` (fuori da git) | per lo più CC BY, una per una in `protocolli-studi.json` | raccolta «Protocolli di studio» |
+| schede trascritte dal web (56 da 30 siti, 15/11/2026) | `Doc/riferimenti-distribuzione/schede-web/` (fuori da git): `schede-web.json` costruito da `costruisci.py` (decisioni e scarti, col motivo) e `alias.json` (nomi → catalogo) a partire da `../ricerca-2026-11-15/R1…R5.json` | pagine pubbliche, quasi tutte senza licenza dichiarata | raccolta «Schede pubblicate»: nell'app solo numeri derivati + indirizzo |
+| schede Fable (180, generate alla cieca) | `fable-schede.json` (qui) | generate dal TMS col modello Fable | **fuori dall'app** (`FABLE_NELL_APP = False` nell'importatore): vedi «Schede Fable» sotto |
 | catalogo TMS e nomi inglesi | `TMS_Dati/esercizi.json`, `tools/esercizi-en.json` | free-exercise-db (Unlicense) | conteggio TMS |
 | protocolli trascritti a mano | `protocolli-studi.json` (qui) | — | elenco esercizi → catalogo TMS, con stato |
 | convalida della mappa esterna | `mappa-esterna-convalida.csv` (qui) | — | stato di ogni aggancio |
@@ -70,6 +72,40 @@ per riprenderli alla stessa versione si usa il commit scritto in `COMMIT.txt`
 - **Cosa non si conta**: pliometria, salti, trasporti, plank e circuiti di condizionamento
   (elenco `SKIP` nell'importatore), sia nelle schede sia nelle trascrizioni degli studi.
 
+## Schede trovate sul web (15/11/2026)
+
+Sei agenti di ricerca (modello economico) hanno cercato schede e protocolli per le caselle scoperte
+(powerlifting, resistenza muscolare, potenza, donne e over 40, avanzato generale e ipertrofia, studi
+ad accesso aperto), con istruzioni comuni in `Doc/riferimenti-distribuzione/ricerca-2026-11-15/ISTRUZIONI.md`:
+solo pagine aperte davvero, settimana intera, serie di ogni esercizio, livello solo se dichiarato. Claude
+ha rivisto ogni scheda (controlli a campione sulle pagine: Stronglifts, PDF della palestra pcci.edu,
+tabella di Arazi 2021) e deciso in `costruisci.py`: entrano 60 schede (56 reggono i filtri), ne restano
+fuori 19 col motivo (circuiti singoli, blog che potrebbero essere testi generati, tabelle ricostruite,
+abbreviazioni non decifrabili, limite di 5 schede per sito). Regole aggiunte:
+
+- **alias decisi a mano** (`alias.json`): valgono prima del filtro sul condizionamento («Pull-ups
+  (circuito)» è una trazione); stringa vuota = non si conta; una lista = la riga indica due esercizi
+  (superserie «A/B»), ognuno con le serie della riga; i nomi ambigui restano non riconosciuti;
+- un programma diviso in fasi trascritte una per una diventa **una** voce, la settimana media del ciclo;
+- 12 protocolli nuovi in `protocolli-studi.json` (campo `aggiunto` con la data), gli scartati in
+  `esclusi_aggiunti` (solo documentazione: `esclusi` resta per i record del corpus).
+
+## Schede Fable (15/11/2026): fuori dall'app
+
+Su richiesta di Marco il modello Fable ha scritto **alla cieca** (senza vedere dati, fasce o fonti) 5 schede
+per ogni combinazione esperienza × tipo × sesso: 180 schede, 171 reggono i filtri. Il patto: se coincidono
+coi dati noti si danno per buone anche dove i dati mancano e si accendono nell'app come categoria «Fable»
+con un interruttore; se no, decide Marco. Il criterio è stato fissato **prima** di vedere i risultati
+(`Doc/riferimenti-distribuzione/fable-2026-11-15/CRITERIO.md`): mediana Fable nella fascia reale in almeno
+l'80% delle coppie casella × gruppo, scarto medio ≤ 4 punti, nessuno scarto oltre 10.
+
+Esito (`node tools/riferimenti/confronta-fable.js`, resoconto in `CONFRONTO.md` accanto al criterio):
+91% nella fascia e scarto medio 2,4 punti, ma **scarto massimo 15 punti** (avanzato · ipertrofia · Gambe:
+Fable 36%, schede reali 21%; anche Braccia 16% contro 24%). **Non coincidono**: le voci Fable restano fuori
+da `RIF_DISTR` e vanno in `Doc/riferimenti-distribuzione/fable-2026-11-15/voci-fable.json`, in attesa della
+decisione di Marco. Per accenderle: `FABLE_NELL_APP = True` nell'importatore più l'interruttore nell'app
+(da fare).
+
 ## Riconoscimento dei nomi
 
 I nomi inglesi delle schede si riconducono al catalogo con la tabella `ALIAS_RAW`, poi col
@@ -106,6 +142,33 @@ equilibrate, 5 togliendo il filtro; 4 protocolli). Il riferimento predefinito si
 fino a 4 punti: Gambe 16–37 (prima 18–33), Pettorali 6–14, Schiena 15–27, Spalle 13–24,
 Braccia 16–27, Core 0–10. **Marco l'ha accettato il 14/11/2026**: una scheda con le gambe al
 13% col predefinito resta fuori dalla fascia verde ma non è più in rosso, e va bene così.
+
+## Copertura (15/11/2026)
+
+Dopo schede dal web e studi nuovi, **prima → dopo**. Schede pubblicate, solo equilibrate:
+
+| esperienza \ tipo | forza | ipertrofia | powerlifting | resistenza | potenza | generale | tutti |
+|---|---|---|---|---|---|---|---|
+| principiante | 6 → 8 | 25 → 26 | 0 → 1 | 0 | 0 → 1 | 8 → 9 | 35 → 39 |
+| intermedio | 10 → 13 | 24 | 0 → 2 | 0 | 0 → 1 | 10 → 11 | 42 → 46 |
+| avanzato | 7 → 8 | 9 → 11 | 3 | 0 | 1 | 2 | 15 → 17 |
+| tutte | 35 → 48 | 67 → 72 | 3 → 8 | 0 | 1 → 4 | 20 → 24 | 109 → 127 |
+
+Contando anche le non equilibrate le schede sono 272 (erano 216): powerlifting 22, potenza 20, donne 32.
+Le schede di powerlifting e di pesistica sono raramente «equilibrate» (poca trazione), quindi col filtro
+predefinito acceso pesano poco. Protocolli di studio, **prima → dopo**:
+
+| esperienza \ tipo | forza | ipertrofia | powerlifting | resistenza | potenza | generale | tutti |
+|---|---|---|---|---|---|---|---|
+| principiante | 5 | 3 → 4 | 0 | 4 | 0 → 1 | 2 → 6 | 6 → 11 |
+| intermedio | 5 | 4 → 5 | 0 | 2 → 3 | 0 | 0 → 2 | 6 → 8 |
+| avanzato | 5 → 6 | 2 → 4 | 4 | 1 | 2 → 3 | 1 | 10 → 13 |
+| tutte | 18 → 19 | 13 → 17 | 4 | 8 → 9 | 3 → 5 | 5 → 13 | 27 → 39 |
+
+Il riferimento predefinito resta quasi uguale (127 schede da 17 fonti): cambia solo Pettorali, 6–14 → 6–15.
+Restano scoperte la resistenza muscolare nelle schede (2 schede, nessuna equilibrata: i siti militari e dei
+vigili del fuoco rifiutano l'accesso automatico) e la potenza per livello (quasi nessuna scheda dichiara il
+livello).
 
 ## Convalidare la mappa esterna
 

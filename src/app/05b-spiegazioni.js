@@ -29,7 +29,7 @@ const SPIEG={
   b:['Schoenfeld BJ, Grgic J, Haun C, Itagaki T, Helms ER (2019). Calculating set-volume for the limb muscles with the performance of multi-joint exercises. <i>Sports</i> 7(7):177.',
      'Pelland JC et al. (2025). The resistance training dose response: meta-regressions exploring the effects of weekly volume and frequency on hypertrophy and strength. <i>Sports Medicine</i>, doi:10.1007/s40279-025-02344-w.',
      'Hyndman RJ, Fan Y (1996). Sample quantiles in statistical packages. <i>The American Statistician</i> 50(4):361–365.',
-     'Riferimenti TMS: schede StrengthLog, Muscle &amp; Strength, depot.fitness (CC BY 4.0); corpus di protocolli v0.7. Elenco completo in ⚙ Riferimento.']},
+     'Riferimenti TMS: schede StrengthLog, Muscle &amp; Strength, depot.fitness (CC BY 4.0), Liftosaur e altre schede pubbliche di 30 siti; corpus di protocolli v0.7 e articoli ad accesso aperto. Elenco completo in ⚙ Riferimento.']},
 
 'serie-gruppo':{t:'Serie per gruppo muscolare e zona utile',
   dove:'Pesi (pannello laterale) · ⚖ Bilanciamento · Storico · Progressi',

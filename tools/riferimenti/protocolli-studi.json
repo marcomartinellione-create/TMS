@@ -29,6 +29,19 @@
     "carpenter_2025": {"sesso": "F", "eta": "giovani"},
     "walsh_2025": {"sesso": "M", "eta": ""},
     "rantila_2025": {"sesso": "misto", "eta": "giovani"}
+,
+    "pina_2019": {"sesso": "F", "eta": "over40"},
+    "schoenfeld_2016_jssm": {"sesso": "M", "eta": "giovani"},
+    "oliveira_2015": {"sesso": "F", "eta": "over40"},
+    "ward_2020": {"sesso": "F", "eta": "over40"},
+    "isenmann_2023": {"sesso": "F", "eta": "over40"},
+    "arazi_2021_frequenza": {"sesso": "M", "eta": "giovani"},
+    "peng_2026": {"sesso": "M", "eta": "giovani"},
+    "kostikiadis_2018": {"sesso": "M", "eta": "giovani"},
+    "carneiro_2024": {"sesso": "M", "eta": "giovani"},
+    "dossantos_2020": {"sesso": "F", "eta": "over40"},
+    "ramirezcampillo_2016": {"sesso": "F", "eta": "over40"},
+    "bruggisser_2026": {"sesso": "misto", "eta": "over40"}
   },
   "protocolli": [
     {
@@ -255,6 +268,103 @@
       "esercizi": [["Pressa per gambe", 8], ["Leg extension", 8], ["Panca piana al multipower", 6], ["Curl con bilanciere", 8], ["Rematore seduto ai cavi", 8]],
       "note": "2 sedute uguali a settimana: pressa 4 serie, leg extension 4, panca al multipower 3, curl 4, rematore seduto con appoggio al petto 4."
     }
+,
+    {
+      "id": "pina_2019",
+      "studio": "pina_2019",
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: 39 donne di almeno 60 anni, non allenate da 24 settimane dopo una breve introduzione di 3 mesi: principiante",
+      "esercizi": [["Chest press alla macchina", 4], ["Pressa per gambe", 4], ["Rematore seduto ai cavi", 4], ["Leg extension", 4], ["Curl alla panca Scott", 4], ["Leg curl da sdraiato", 4], ["Pushdown per tricipiti", 4], ["Calf da seduto", 4]],
+      "note": "Fase 2 (settimane 13-24): 8 esercizi da 2 serie, 2 o 3 sedute a settimana nei due bracci: stesse proporzioni, un protocollo (nelle settimane 1-12 una serie)."
+    },
+    {
+      "id": "schoenfeld_2016_jssm",
+      "studio": "schoenfeld_2016_jssm",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: 19 uomini allenati, 4,3 e 5,2 anni di pesi in media nei due gruppi: almeno 4 anni, avanzato",
+      "esercizi": [["Panca piana con bilanciere - presa media", 9], ["Military press in piedi", 9], ["Lat pulldown presa larga", 9], ["Rematore seduto ai cavi", 9], ["Squat con bilanciere", 9], ["Pressa per gambe", 9], ["Leg extension", 9]],
+      "note": "3 sedute uguali, 7 esercizi da 3 serie; carico pesante (2-4 rip.) o moderato (8-12): stesse proporzioni, un protocollo."
+    },
+    {
+      "id": "oliveira_2015",
+      "studio": "oliveira_2015",
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: 22 donne in postmenopausa di 60-80 anni, senza esercizio regolare negli ultimi 3 mesi: principiante",
+      "esercizi": [["Chest press alla macchina", 9], ["Leg extension", 9], ["Leg curl da sdraiato", 9], ["Pressa per gambe", 9], ["Macchina abduttori", 9], ["Rematore seduto ai cavi", 9], ["Alzate laterali", 9], ["Calf in piedi alla macchina", 9]],
+      "note": "3 sedute, 8 esercizi da 3 serie (12, 10 e 8 rip. a blocchi di 4 settimane). Abduzione delle spalle = alzate laterali, flessione plantare = calf in piedi."
+    },
+    {
+      "id": "ward_2020",
+      "studio": "ward_2020",
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: 26 donne in postmenopausa, 55,7 anni in media, escluse le attive (più di 75 minuti a settimana): principiante",
+      "esercizi": [["Chest press alla macchina", 6], ["Pressa per gambe", 6], ["Rematore seduto ai cavi", 6], ["Leg curl da sdraiato", 6], ["Lat machine avanti presa stretta", 6], ["Leg extension", 6], ["Crunch", 6], ["Iperestensioni (estensioni lombari)", 6]],
+      "note": "Settimane 4-15: 3 sedute, 8 esercizi da 2 serie (8-12 rip.); sei alle macchine e due a corpo libero."
+    },
+    {
+      "id": "isenmann_2023",
+      "studio": "isenmann_2023",
+      "esperienza": "",
+      "esperienza_lettura": "popolazione: 41 donne di 40-60 anni reclutate in palestra; l'esperienza con i pesi non è indicata",
+      "esercizi": [["Box squat", 8], ["Panca piana con bilanciere - presa media", 8], ["Rematore seduto ai cavi", 4], ["Lat pulldown presa larga", 4], ["Flessioni laterali del busto con manubrio", 8]],
+      "note": "2 sedute: box squat, panca e flessioni laterali in entrambe, rematore nella prima e lat pulldown nella seconda; 4 serie (75% 1RM) o 3 (50% 1RM) nei due bracci: stesse proporzioni. Plank non contato. Che la tabella valga anche per le flessioni laterali è una lettura dell'agente, da verificare."
+    },
+    {
+      "id": "arazi_2021_frequenza",
+      "studio": "arazi_2021_frequenza",
+      "esperienza": "intermedio",
+      "esperienza_lettura": "popolazione: 35 giovani uomini allenati per diletto da almeno 2 anni, 2-3 volte a settimana, senza anni medi dichiarati: intermedio",
+      "esercizi": [["Pressa per gambe", 4], ["Leg curl da sdraiato", 4], ["Lat machine avanti presa stretta", 4], ["Panca piana con bilanciere - presa media", 4], ["Alzate laterali", 4], ["Curl alla macchina", 4], ["Estensione tricipiti alla macchina", 4], ["Leg extension", 4], ["Stacco da terra con bilanciere", 4], ["Rematore seduto ai cavi", 4], ["Panca inclinata con bilanciere - presa media", 4], ["Military press in piedi", 4], ["Curl con manubri", 4], ["Skull crusher con bilanciere EZ", 4]],
+      "note": "Tabella 2 (controllata sulla pagina da Claude): 14 esercizi in due sedute diverse; 2 sedute da 4 serie (RT2) o 4 sedute da 2 serie (RT4): stesse proporzioni, un protocollo."
+    },
+    {
+      "id": "peng_2026",
+      "studio": "peng_2026",
+      "esperienza": "intermedio",
+      "esperienza_lettura": "popolazione: 29 uomini di 18-30 anni allenati con i pesi almeno 2 volte a settimana da 12 mesi, non professionisti: intermedio",
+      "esercizi": [["Power clean (girata di potenza)", 8], ["Squat con bilanciere", 8], ["Panca piana con bilanciere - presa media", 8], ["Stacco con trap bar", 8]],
+      "note": "Circuito di 5 stazioni (30 s di lavoro e 30 s di pausa), 4 giri, 2 sedute; al 30% o al 70% di 1RM nei due bracci: stesse proporzioni. Burpees non contati. Squat dietro la nuca = squat con bilanciere."
+    },
+    {
+      "id": "kostikiadis_2018",
+      "studio": "kostikiadis_2018",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: 17 atleti professionisti di MMA di livello nazionale, almeno 3 anni di MMA sistematico: agonisti, quindi avanzato",
+      "esercizi": [["Squat con bilanciere", 8], ["Panca piana con bilanciere - presa media", 8], ["Stacco da terra con bilanciere", 8]],
+      "note": "Braccio STG, settimana 2 di 4: sedute 1 e 3 con squat, panca e stacco da 4 serie; salti, lanci, sprint, piegamenti pliometrici, shrug saltati e vogatore non contati. Il braccio RTG (circuito con kettlebell: squat, lento, swing, corda) non entra: due soli esercizi di forza."
+    },
+    {
+      "id": "carneiro_2024",
+      "studio": "carneiro_2024",
+      "esperienza": "avanzato",
+      "esperienza_lettura": "popolazione: 23 uomini ben allenati, mediana di 7 e 6 anni di pesi, panca ≥ peso corporeo e squat ≥ 1,5 × peso: avanzato",
+      "esercizi": [["Panca piana con bilanciere - presa media", 10], ["Rematore seduto ai cavi", 10], ["Leg curl da sdraiato", 10], ["Calf in piedi alla macchina", 10], ["Crunch", 10], ["Iperestensioni (estensioni lombari)", 10], ["Pressa per gambe", 5], ["Squat con bilanciere", 5], ["Curl con bilanciere", 5], ["Pushdown per tricipiti", 5], ["Alzate laterali", 5]],
+      "note": "5 sedute a corpo intero o split per gruppi con le stesse serie settimanali per esercizio: un protocollo. I conti per esercizio danno 85 serie a settimana, l'articolo ne dichiara 75: proporzioni da verificare (flessori ed estensori del busto = crunch e iperestensioni; estensori del gomito = pushdown)."
+    },
+    {
+      "id": "dossantos_2020",
+      "studio": "dossantos_2020",
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: 59 donne di 67 anni in media, senza esercizio regolare più di una volta a settimana nei 6 mesi prima: principiante",
+      "esercizi": [["Chest press alla macchina", 9], ["Pressa per gambe", 9], ["Rematore seduto ai cavi", 9], ["Leg extension", 9], ["Curl alla panca Scott", 9], ["Leg curl da sdraiato", 9], ["Pushdown per tricipiti", 9], ["Calf da seduto", 9]],
+      "note": "3 sedute, 8 esercizi da 3 serie a piramide (12/10/8 o 15/10/5 RM nei due bracci): stesse proporzioni. Stesso elenco di Pina 2019 (stesso gruppo di ricerca, Londrina)."
+    },
+    {
+      "id": "ramirezcampillo_2016",
+      "studio": "ramirezcampillo_2016",
+      "esperienza": "principiante",
+      "esperienza_lettura": "popolazione: donne di 60-83 anni senza allenamento con i pesi negli ultimi 6 mesi: principiante",
+      "esercizi": [["Panca piana con bilanciere - presa media", 6], ["Tirata al mento con bilanciere", 6], ["Curl con manubri", 6], ["Leg extension", 6], ["Squat a corpo libero", 6], ["Crunch", 6], ["Superman", 6]],
+      "note": "Allenamento ad alta velocità: 2 sedute da 3 serie o 3 da 2 (stesse proporzioni). Lanci e salti non contati; squat isometrico veloce = squat a corpo libero. Solo 4 esercizi di forza veri: le gambe pesano poco."
+    },
+    {
+      "id": "bruggisser_2026",
+      "studio": "bruggisser_2026",
+      "esperienza": "",
+      "esperienza_lettura": "popolazione: 108 adulti di 60-80 anni (41% donne); l'esperienza con i pesi non è indicata nel testo principale",
+      "esercizi": [["Pressa per gambe", 6], ["Chest press alla macchina", 6], ["Stacco da terra con bilanciere", 6], ["Rematore seduto a un braccio ai cavi", 6], ["Squat con bilanciere", 6]],
+      "note": "Settimane 3-12: 2 sedute di forza da 5 esercizi e 3 serie (pressa a una gamba = pressa per gambe); la seduta di cyclette non è contata."
+    }
   ],
   "studi_aggiunti": {
     "mangine_2015": {
@@ -335,6 +445,79 @@
       "popolazione": "uomini e donne non allenati, 32 anni", "tipo_dichiarato": "forza e massa, due sedute uguali a settimana",
       "tipi": ["ipertrofia", "forza"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/PMC12659766.xml"
     }
+,
+    "pina_2019": {
+      "riferimento": "Pina FLC, Nunes JP, Nascimento MA, Ribeiro AS, Cyrino ES, et al. (2019). Similar Effects of 24 Weeks of Resistance Training Performed with Different Frequencies on Muscle Strength, Muscle Mass, and Muscle Quality in Older Women. Int J Exerc Sci 12(6):623-635",
+      "doi": "10.70252/QSOM3270", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6533095/", "licenza_articolo": "licenza non indicata",
+      "popolazione": "39 donne di almeno 60 anni, non allenate da 24 settimane", "tipo_dichiarato": "frequenza di 2 o 3 sedute a settimana, forza e massa in anziane",
+      "tipi": ["generale"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/pina_2019.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "schoenfeld_2016_jssm": {
+      "riferimento": "Schoenfeld BJ, Contreras B, Vigotsky AD, Peterson M (2016). Differential Effects of Heavy Versus Moderate Loads on Measures of Strength and Hypertrophy in Resistance-Trained Men. J Sports Sci Med 15(4):715-722",
+      "doi": "", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5131226/", "licenza_articolo": "licenza non indicata",
+      "popolazione": "19 uomini allenati, 18-35 anni, 4,3 e 5,2 anni di pesi", "tipo_dichiarato": "carichi pesanti (2-4 rip.) contro moderati (8-12)",
+      "tipi": ["forza", "ipertrofia"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/schoenfeld_2016_jssm.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "oliveira_2015": {
+      "riferimento": "Oliveira PFA, Gadelha AB, Gauche R, et al. (2015). Resistance training improves isokinetic strength and metabolic syndrome-related phenotypes in postmenopausal women. Clin Interv Aging 10:1299-1304",
+      "doi": "10.2147/CIA.S87036", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4535561/", "licenza_articolo": "CC BY-NC",
+      "popolazione": "22 donne in postmenopausa, 60-80 anni, non attive", "tipo_dichiarato": "allenamento con i pesi per salute e sindrome metabolica",
+      "tipi": ["generale"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/oliveira_2015.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "ward_2020": {
+      "riferimento": "Ward LJ, Nilsson S, Hammar M, et al. (2020). Resistance training decreases plasma levels of adipokines in postmenopausal women. Sci Rep 10:19837",
+      "doi": "10.1038/s41598-020-76901-w", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7669850/", "licenza_articolo": "CC BY",
+      "popolazione": "26 donne in postmenopausa, 55,7 anni, sedentarie", "tipo_dichiarato": "allenamento con i pesi per salute (sintomi vasomotori)",
+      "tipi": ["generale"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/ward_2020.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "isenmann_2023": {
+      "riferimento": "Isenmann E, Kaluza D, Havers T, et al. (2023). Resistance training alters body composition in middle-aged women depending on menopause - A 20-week control trial. BMC Womens Health 23:526",
+      "doi": "10.1186/s12905-023-02671-y", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10559623/", "licenza_articolo": "CC BY",
+      "popolazione": "41 donne sane di 40-60 anni, pre e post menopausa", "tipo_dichiarato": "intensità moderata (75% 1RM) contro bassa (50%)",
+      "tipi": ["generale"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/isenmann_2023.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "arazi_2021_frequenza": {
+      "riferimento": "Arazi H, Asadi A, Gentil P, et al. (2021). Effects of different resistance training frequencies on body composition and muscular performance adaptations in men. PeerJ 9:e10537",
+      "doi": "10.7717/peerj.10537", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8067909/", "licenza_articolo": "CC BY",
+      "popolazione": "35 giovani uomini allenati per diletto da almeno 2 anni", "tipo_dichiarato": "2 o 4 sedute a settimana a volume uguale (composizione corporea e prestazione)",
+      "tipi": ["ipertrofia", "generale"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/arazi_2021_frequenza.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "peng_2026": {
+      "riferimento": "Peng W, Qu W, Lu D, Sun J, Li D (2026). The Effects of Individualized Low- and Moderate-Load Circuit Training on Physical Performance, Hormonal Responses and Body Composition in Resistance-Trained Men. J Sports Sci Med",
+      "doi": "10.52082/jssm.2026.195", "url": "https://jssm.org/jssm-25-195.xml-Fulltext", "licenza_articolo": "licenza non indicata",
+      "popolazione": "29 uomini di 18-30 anni allenati da almeno 12 mesi", "tipo_dichiarato": "circuito a carico basso (30% 1RM) o moderato (70%)",
+      "tipi": ["resistenza", "generale"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/peng_2026.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "kostikiadis_2018": {
+      "riferimento": "Kostikiadis IN, Methenitis S, Tsoukos A, et al. (2018). The Effect of Short-Term Sport-Specific Strength and Conditioning Training on Physical Fitness of Well-Trained Mixed Martial Arts Athletes. J Sports Sci Med 17(3):348-358",
+      "doi": "", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6090403/", "licenza_articolo": "licenza non indicata",
+      "popolazione": "17 atleti professionisti di MMA di livello nazionale, 18-35 anni", "tipo_dichiarato": "forza e condizionamento specifici dello sport",
+      "tipi": ["potenza"], "agonismo": "sport: MMA professionistico", "testo": "Doc/riferimenti-distribuzione/studi-testi/kostikiadis_2018.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "carneiro_2024": {
+      "riferimento": "Carneiro MAS, Nunes PRP, Souza MVC, Assumpção CO, Orsatti FL (2024). Full-body resistance training promotes greater fat mass loss than a split-body routine in well-trained males. Eur J Sport Sci 24(7)",
+      "doi": "10.1002/ejsc.12104", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11236007/", "licenza_articolo": "CC BY-NC-ND",
+      "popolazione": "23 uomini ben allenati, 26 anni, 6-7 anni di pesi (mediana)", "tipo_dichiarato": "corpo intero contro split, stesso volume (massa e grasso)",
+      "tipi": ["ipertrofia"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/carneiro_2024.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "dossantos_2020": {
+      "riferimento": "dos Santos L, Ribeiro AS, Nunes JP, et al. (2020). Effects of Pyramid Resistance-Training System with Different Repetition Zones on Cardiovascular Risk Factors in Older Women: A Randomized Controlled Trial. Int J Environ Res Public Health 17(17):6115",
+      "doi": "10.3390/ijerph17176115", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7503540/", "licenza_articolo": "CC BY",
+      "popolazione": "59 donne anziane, 67 anni, non attive", "tipo_dichiarato": "sistema a piramide con due zone di ripetizioni",
+      "tipi": ["generale", "ipertrofia"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/dossantos_2020.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "ramirezcampillo_2016": {
+      "riferimento": "Ramírez-Campillo R, Díaz D, Martínez-Salazar C, et al. (2016). Effects of different doses of high-speed resistance training on physical performance and quality of life in older women: a randomized controlled trial. Clin Interv Aging 11:1797-1804",
+      "doi": "10.2147/CIA.S121313", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5167493/", "licenza_articolo": "CC BY-NC",
+      "popolazione": "donne di 60-83 anni senza allenamento con i pesi da 6 mesi", "tipo_dichiarato": "allenamento con i pesi ad alta velocità (potenza)",
+      "tipi": ["potenza"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/ramirezcampillo_2016.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    },
+    "bruggisser_2026": {
+      "riferimento": "Bruggisser F, Ritter S, et al. (2026). Effects of Daily Rhythm-Aligned Training on Skeletal Muscle Adaptation in Older Adults: A Randomized Controlled Trial. J Cachexia Sarcopenia Muscle",
+      "doi": "10.1002/jcsm.70390", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13614912/", "licenza_articolo": "CC BY",
+      "popolazione": "108 adulti di 60-80 anni (41% donne)", "tipo_dichiarato": "allenamento all'ora del picco o del minimo del ritmo giornaliero",
+      "tipi": ["generale"], "agonismo": "", "testo": "Doc/riferimenti-distribuzione/studi-testi/bruggisser_2026.html", "aggiunto": "15/11/2026 (agente di ricerca R6, rivisto da Claude)"
+    }
   },
   "esclusi": {
     "hermann_2025": "elenco incompleto: 8 dei 9 esercizi",
@@ -343,5 +526,12 @@
     "colquhoun_2018": "solo le alzate di gara, serie per alzata non riportate",
     "travis_2021": "esercizi complementari variabili per giorno e fase, serie non riportate",
     "hollis_2018": "schema generico (spinta, tirata, gambe) senza esercizi fissi"
+  },
+  "esclusi_aggiunti": {
+    "_nota": "studi ad accesso aperto esaminati il 15/11/2026 e lasciati fuori (solo documentazione: non sono record del corpus)",
+    "kostikiadis_2018 braccio RTG": "circuito con kettlebell: due soli esercizi di forza (squat e lento), il resto swing e corda",
+    "wetmore_2020": "15 uomini di esperienza mista, non classificabile",
+    "barbalho_2018": "serie per esercizio non riportate nel testo",
+    "vargasmolina_2020": "serie per esercizio non riportate nel testo"
   }
 }
