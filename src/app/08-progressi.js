@@ -104,9 +104,10 @@ function radarChart(items,opts){
   if(conRif){ const anello=k=>{ let p=''; for(let i=0;i<n;i++){ const a=pt(i,R*items[i].rif[k]/mx); p+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1); } return p+'Z'; };
     /* il contorno serve: il poligono arancione ci passa sopra e il solo riempimento
        tenue sparirebbe proprio dove interessa guardare. Fascia «indicativa» (riferimento
-       con poche voci): contorno tratteggiato e riempimento più tenue */
-    const indic=items.some(d=>d.rif.indicativa);
-    g+=`<path d="${anello('max')+anello('min')}" fill="var(--ok)" fill-rule="evenodd" fill-opacity="${indic?'.09':'.16'}" stroke="var(--ok)" stroke-opacity=".55" stroke-width="1"${indic?' stroke-dasharray="4 3"':''}/>`; }
+       con poche voci): contorno tratteggiato e riempimento più tenue. Fascia presa dalle
+       schede generate da Fable (01b-riferimenti.js): viola invece di verde, sempre tratteggiata */
+    const indic=items.some(d=>d.rif.indicativa), col=items.some(d=>d.rif.generata)? 'var(--violet)' : 'var(--ok)';
+    g+=`<path d="${anello('max')+anello('min')}" fill="${col}" fill-rule="evenodd" fill-opacity="${indic?'.09':'.16'}" stroke="${col}" stroke-opacity=".55" stroke-width="1"${indic?' stroke-dasharray="4 3"':''}/>`; }
   for(let i=0;i<n;i++){ const a=pt(i,R); g+=`<line x1="${cx}" y1="${cy}" x2="${a[0].toFixed(1)}" y2="${a[1].toFixed(1)}" stroke="var(--border)"/>`; const l=pt(i,R+15);
     const rf=items[i].rif, fuori=conRif && (items[i].value<rf.sotto || items[i].value>rf.sopra);
     g+=`<text class="lbl${fuori?' lbl-fuori':''}" x="${l[0].toFixed(1)}" y="${l[1].toFixed(1)}" text-anchor="middle">${esc(items[i].label)}${items[i].tip?'<title>'+esc(items[i].tip)+'</title>':''}</text>`; }

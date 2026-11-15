@@ -200,7 +200,7 @@ function vociDistribuzione(per, di, rc){ const q=distribuzione(per); rc=rc||rifC
   return GRUPPI_PESI.map(g=>{ const f=rc.fasce? rc.fasce[g] : null;
     let tip=t(g)+': '+Math.round(q[g])+'%';
     if(di&&di.D) tip+=' · '+bilNum(di.D[g]||0)+' '+t('dirette')+' + '+bilNum(di.I[g]||0)+' '+t('indirette')+' ×'+nfPeso(p.i);
-    if(f) tip+=' · '+t('riferimento')+' '+f.min+'–'+f.max+'%';
+    if(f) tip+=' · '+t(f.generata? 'riferimento Fable (schede generate)' : 'riferimento')+' '+f.min+'–'+f.max+'%';
     return {label:t(g)+' '+Math.round(q[g])+'%', value:q[g], rif:f, tip:tip}; }); }
 
 /* -- SPINTA / TRAZIONE (parte alta) --------------------------------------------

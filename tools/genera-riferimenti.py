@@ -894,12 +894,13 @@ def liftosaur(est):
 # porta «generata»: true e nell'app entrano solo se l'utente le accende. File in tools/riferimenti.
 WEB = os.path.join(OUT_DOC, 'schede-web', 'schede-web.json')
 FABLE = os.path.join(QUI, 'riferimenti', 'fable-schede.json')
-# Le schede Fable entrano in RIF_DISTR (e quindi nell'app) SOLO se il confronto coi dati noti le ha date
-# per buone e Marco ha deciso di accenderle. 15/11/2026: il confronto NON le ha date per buone (scarto
-# massimo 15 punti su avanzato · ipertrofia · Gambe, soglia 10): restano fuori, decisione a Marco.
-# Finché restano fuori, le voci calcolate vanno in Doc/riferimenti-distribuzione/fable-2026-11-15/voci-fable.json,
-# dove le legge tools/riferimenti/confronta-fable.js.
-FABLE_NELL_APP = False
+# 15/11/2026: il confronto coi dati noti NON ha dato per buone le schede Fable (scarto massimo 15 punti su
+# avanzato · ipertrofia · Gambe, soglia 10). Decisione di Marco, lo stesso giorno: entrano nell'app ma si
+# usano SOLO dove le voci reali sono meno di 5, con l'interruttore «Schede Fable» (spento di serie) e sempre
+# con l'avvertimento che sono generate (rifCalcola in 01b-riferimenti.js). Con False restano fuori da
+# RIF_DISTR e le voci calcolate vanno in Doc/riferimenti-distribuzione/fable-2026-11-15/voci-fable.json
+# (le legge tools/riferimenti/confronta-fable.js).
+FABLE_NELL_APP = True
 VOCI_FABLE = os.path.join(OUT_DOC, 'fable-2026-11-15', 'voci-fable.json')
 
 
@@ -1010,7 +1011,7 @@ def schede_fable(est):
         intera, equil = criteri(c, cop)
         voce = dict({
             'id': 'fable:' + s['id'], 'raccolta': 'schede', 'fonte': 'fable', 'generata': True,
-            'titolo': s.get('titolo', s['id']), 'url': '', 'esperienza': s['esperienza'], 'tipi': [s['tipo']],
+            'titolo': 'Fable · ' + s.get('titolo', s['id']), 'url': '', 'esperienza': s['esperienza'], 'tipi': [s['tipo']],
             'sesso': s['sesso'], 'eta': '', 'agonismo': '', 'attrezzatura': 'palestra',
             'qualita': 'scheda generata (Fable)', 'equilibrata': equil,
             'etichette_originali': {'giorni': s.get('giorni_settimana', ''), 'struttura': s.get('struttura', '')},
@@ -1247,7 +1248,8 @@ def main():
     ] + sorted(fonti_web, key=lambda f: f['id']) + ([
         {'id': 'fable', 'nome': 'Fable — schede generate alla cieca (%s)' % d_fab.get('data', ''), 'url': '',
          'licenza': 'generate dal TMS col modello Fable (%s) senza vedere dati, fasce o fonti: NON sono schede reali né '
-                    'pubblicate. Entrano nel riferimento solo se si accende «Schede Fable»' % d_fab.get('modello', ''),
+                    "pubblicate. Si usano solo con l'interruttore «Schede Fable» acceso e solo dove le schede reali sono meno di 5; "
+                    'la fascia che ne viene è viola, tratteggiata e sempre segnalata' % d_fab.get('modello', ''),
          'tipo': 'schede generate'}] if v_fab else []) + sorted(fonti_stu.values(), key=lambda f: f['id']) + [
         {'id': 'smyrdev', 'nome': 'Exercises Dataset with Muscle Volume (smyrdev), 1.324 esercizi',
          'url': 'https://github.com/hasaneyldrm/exercises-dataset',

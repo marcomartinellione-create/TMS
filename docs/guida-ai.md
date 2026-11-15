@@ -224,7 +224,13 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
     TMS da verificare». Sotto la ragnatela
     la didascalia scrive il riferimento e su quante voci, record e fonti si regge: con meno
     di 5 voci «Dati insufficienti» e nessuna fascia, da 5 a 9 fascia tratteggiata
-    (indicativa). Il predefinito (schede equilibrate, tutte le esperienze, tutti i tipi: 127
+    (indicativa). Interruttore «Schede Fable» (spento di serie, dati_utente.rifDistr.fable): dove
+    le schede reali della casella sono meno di 5 la fascia viene da schede GENERATE alla cieca dal
+    modello Fable (5 per esperienza x tipo x sesso, voci con generata:true), mai mescolate alle
+    reali e senza il filtro «solo equilibrate»; la fascia diventa viola e tratteggiata e la
+    didascalia avverte sempre che non sono schede reali. Nel confronto coi dati noti Fable segue
+    bene i tipi di allenamento ma sbaglia fino a 15 punti in qualche casella (avanzato x
+    ipertrofia), per questo vale solo come ripiego. Il predefinito (schede equilibrate, tutte le esperienze, tutti i tipi: 127
     schede da 17 fonti) sta entro 4 punti dalle fasce storiche RIF_QUOTA: Gambe 16-37 %,
     Pettorali 6-15, Schiena 15-27, Spalle 13-24, Braccia 16-27, Core 0-10. Restano con
     pochi dati la resistenza muscolare (2 schede, nessuna equilibrata) e la potenza (20

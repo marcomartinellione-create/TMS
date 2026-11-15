@@ -1378,9 +1378,42 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(J('RIF_DISTR.voci.filter(function(v){ return v.raccolta==="schede" && v.tipi.indexOf("powerlifting")>=0; }).length') >= 15 &&
        J('RIF_DISTR.voci.filter(function(v){ return v.raccolta==="schede" && v.sesso==="F"; }).length') >= 25,
        'Riferimenti: con le schede dal web il powerlifting e le schede per donne hanno abbastanza voci');
-    /* le schede generate da Fable NON sono nei dati dell'app finché Marco non decide (confronto non superato) */
-    ok(w.eval('RIF_DISTR.voci.every(function(v){ return !v.generata && v.fonte!=="fable"; }) && !RIF_DISTR.fonti.some(function(f){ return f.id==="fable"; })'),
-       'Riferimenti: nessuna scheda generata (Fable) nei dati dell\'app');
+    /* schede generate da Fable (Marco, 15/11/2026): solo come ripiego dove le voci reali sono meno di 5,
+       con l'interruttore acceso (spento di serie) e sempre con l'avvertimento */
+    const fab = J('RIF_DISTR.voci.filter(function(v){ return v.generata; })');
+    ok(fab.length >= 150 && fab.every(v => v.fonte === 'fable' && v.raccolta === 'schede' && /^Fable · /.test(v.titolo) && /non è una scheda reale/.test(v.stato)) &&
+       /NON sono schede reali/.test(w.eval('RIF_DISTR.fonti.find(function(f){ return f.id==="fable"; }).licenza')),
+       'Fable: le schede generate sono marcate (generata, fonte «fable», titolo «Fable ·», stato e licenza lo dicono) (' + fab.length + ')');
+    ok(w.eval('rifImpost({}).fable') === false && !J('rifCalcola()').fable && !J('rifCalcola(' + POCO + ')').fable,
+       'Fable: spento di serie, anche dove i dati reali mancano');
+    ok(w.eval('rifVociContesto(rifImpost({fable:true})).every(function(v){ return !v.generata; })'),
+       'Fable: le voci reali (tabella, conteggi) non contano mai le schede generate');
+    const POCOF = '{raccolta:"schede", esperienza:"", tipo:"resistenza", fable:true}';
+    const rcF = J('rifCalcola(' + POCOF + ')');
+    ok(rcF.fable && rcF.nReali < 5 && rcF.n >= 5 && rcF.voci.every(v => v.generata) && GR6.every(g => rcF.fasce[g].generata && rcF.fasce[g].indicativa),
+       'Fable: acceso, dove le voci reali sono meno di 5 la fascia viene SOLO dalle schede generate, tratteggiata (' + rcF.nReali + ' reali, ' + rcF.n + ' Fable)');
+    ok(/Fascia ipotizzata da Fable: schede generate, non reali/.test(w.eval('rifDidascalia(rifCalcola(' + POCOF + '))')) &&
+       /var\(--violet\)/.test(w.eval('radarChart(vociDistribuzione(' + per + ',null,rifCalcola(' + POCOF + ')))')),
+       'Fable: la didascalia avverte che le schede sono generate e la fascia della ragnatela è viola');
+    const rcPieno = J('rifCalcola({raccolta:"schede", esperienza:"", tipo:"ipertrofia", fable:true})');
+    ok(!rcPieno.fable && rcPieno.n >= 5 && rcPieno.voci.every(v => !v.generata) && !/Fable/.test(w.eval('rifDidascalia(rifCalcola({raccolta:"schede", esperienza:"", tipo:"ipertrofia", fable:true}))')),
+       'Fable: acceso, dove le voci reali bastano non entra e non si mescola (' + rcPieno.n + ' reali)');
+    ok(J('rifCalcola({raccolta:"studi", esperienza:"", tipo:"potenza", fable:true})').voci.every(v => !v.generata),
+       'Fable: nei protocolli di studio non entra mai');
+    /* riquadro: interruttore, caselle «+F», salvato nel profilo solo se acceso */
+    w.eval('rifDistrModal("tab")');
+    const chk = w.document.querySelector('#rif-corpo [data-k="fable"]');
+    ok(chk && !chk.checked && !w.document.querySelector('#rif-corpo .rif-f'), 'Fable: nel riquadro c\'è l\'interruttore, spento, e nessuna casella coperta da Fable');
+    chk.checked = true; chk.onchange();
+    ok(w.document.querySelectorAll('#rif-corpo .rif-cella.is-fable .rif-f').length >= 3 && /coperta da schede generate da Fable/.test(w.document.querySelector('#rif-corpo .rif-leg').textContent),
+       'Fable: acceso, le caselle con meno di 5 voci reali mostrano «+F» e la legenda lo spiega');
+    w.document.querySelector('#rif-corpo .rif-cella[data-e=""][data-x="resistenza"]').onclick();
+    ok(/Schede generate da Fable, non reali/.test(w.document.querySelector('#rif-corpo .rif-fable-box').textContent) &&
+       w.document.querySelectorAll('#rif-corpo .rif-voci .pill.rif-fable').length >= 5,
+       'Fable: scelta una casella coperta da Fable, il riepilogo avverte e ogni voce porta «generata da Fable»');
+    w.document.getElementById('rif-ok').onclick();
+    ok(w.eval('DOC.dati_utente.rifDistr && DOC.dati_utente.rifDistr.fable===true'), 'Fable: l\'interruttore si salva nel profilo');
+    w.eval('delete DOC.dati_utente.rifDistr; closeModal();');
     ok(w.eval('RIF_DISTR.voci.every(function(v){ return !!v.stato; })'), 'Riferimenti: ogni voce dice come è stata letta (stato)');
     const rcAv = J('rifCalcola({raccolta:"studi", esperienza:"avanzato", tipo:""})');
     ok(rcAv.n >= w.eval('RIF_MIN_VOCI') && rcAv.fasce !== null, 'Riferimento: i protocolli di studio su avanzati reggono una fascia (' + rcAv.n + ' protocolli)');

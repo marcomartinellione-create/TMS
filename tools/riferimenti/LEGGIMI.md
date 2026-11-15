@@ -23,7 +23,7 @@ Sesso, età, agonismo, attrezzatura e qualità della fonte sono solo filtri di c
 | programmi incorporati di Liftosaur (61) | `Doc/meta-analisi/liftosaur/` (fuori da git; versione in `COMMIT.txt`) | repository AGPL-3.0; programmi di autori terzi | raccolta «Schede pubblicate»: nell'app solo numeri derivati + indirizzo del programma |
 | articoli ad accesso aperto (25) | testi in `Doc/riferimenti-distribuzione/studi-testi/` (fuori da git) | per lo più CC BY, una per una in `protocolli-studi.json` | raccolta «Protocolli di studio» |
 | schede trascritte dal web (56 da 30 siti, 15/11/2026) | `Doc/riferimenti-distribuzione/schede-web/` (fuori da git): `schede-web.json` costruito da `costruisci.py` (decisioni e scarti, col motivo) e `alias.json` (nomi → catalogo) a partire da `../ricerca-2026-11-15/R1…R5.json` | pagine pubbliche, quasi tutte senza licenza dichiarata | raccolta «Schede pubblicate»: nell'app solo numeri derivati + indirizzo |
-| schede Fable (180, generate alla cieca) | `fable-schede.json` (qui) | generate dal TMS col modello Fable | **fuori dall'app** (`FABLE_NELL_APP = False` nell'importatore): vedi «Schede Fable» sotto |
+| schede Fable (180, generate alla cieca) | `fable-schede.json` (qui) | generate dal TMS col modello Fable | raccolta «Schede pubblicate», voci `generata`: solo come ripiego, con l'interruttore «Schede Fable» (vedi sotto) |
 | catalogo TMS e nomi inglesi | `TMS_Dati/esercizi.json`, `tools/esercizi-en.json` | free-exercise-db (Unlicense) | conteggio TMS |
 | protocolli trascritti a mano | `protocolli-studi.json` (qui) | — | elenco esercizi → catalogo TMS, con stato |
 | convalida della mappa esterna | `mappa-esterna-convalida.csv` (qui) | — | stato di ogni aggancio |
@@ -90,7 +90,7 @@ abbreviazioni non decifrabili, limite di 5 schede per sito). Regole aggiunte:
 - 12 protocolli nuovi in `protocolli-studi.json` (campo `aggiunto` con la data), gli scartati in
   `esclusi_aggiunti` (solo documentazione: `esclusi` resta per i record del corpus).
 
-## Schede Fable (15/11/2026): fuori dall'app
+## Schede Fable (15/11/2026): solo dove mancano i dati
 
 Su richiesta di Marco il modello Fable ha scritto **alla cieca** (senza vedere dati, fasce o fonti) 5 schede
 per ogni combinazione esperienza × tipo × sesso: 180 schede, 171 reggono i filtri. Il patto: se coincidono
@@ -101,10 +101,24 @@ l'80% delle coppie casella × gruppo, scarto medio ≤ 4 punti, nessuno scarto o
 
 Esito (`node tools/riferimenti/confronta-fable.js`, resoconto in `CONFRONTO.md` accanto al criterio):
 91% nella fascia e scarto medio 2,4 punti, ma **scarto massimo 15 punti** (avanzato · ipertrofia · Gambe:
-Fable 36%, schede reali 21%; anche Braccia 16% contro 24%). **Non coincidono**: le voci Fable restano fuori
-da `RIF_DISTR` e vanno in `Doc/riferimenti-distribuzione/fable-2026-11-15/voci-fable.json`, in attesa della
-decisione di Marco. Per accenderle: `FABLE_NELL_APP = True` nell'importatore più l'interruttore nell'app
-(da fare).
+Fable 36%, schede reali 21%; anche Braccia 16% contro 24%). **Non coincidono.** Per tipo di allenamento,
+invece, coincidono del tutto (100% nella fascia, scarto massimo 7,5 punti).
+
+**Decisione di Marco (15/11/2026): le schede Fable entrano, ma solo dove mancano i dati e sempre con
+l'avvertimento.** Regole (`rifCalcola` in `src/app/01b-riferimenti.js`):
+
+- interruttore **«Schede Fable»** nel riquadro ⚙ Riferimento, **spento di serie** (`dati_utente.rifDistr.fable`);
+- acceso, Fable si usa **solo** nella casella scelta in cui le voci reali (dopo i filtri) sono **meno di 5**,
+  e solo se lì Fable ne ha almeno 5; le schede Fable **non si mescolano** mai alle reali;
+- seguono gli stessi filtri di contesto delle reali (sesso, età, attrezzatura…) **tranne «solo equilibrate»**:
+  col filtro resterebbero 2-8 schede per casella e quasi tutti i buchi resterebbero scoperti;
+- la fascia è **viola e tratteggiata** (non verde), la didascalia sotto la ragnatela dice sempre «Fascia
+  ipotizzata da Fable: schede generate, non reali», il riquadro ripete l'avvertimento, ogni voce porta
+  «generata da Fable» e nella tabella le caselle coperte mostrano «+F»;
+- mai nei protocolli di studio.
+
+`FABLE_NELL_APP = False` nell'importatore le toglie di nuovo da `RIF_DISTR` (le voci vanno allora in
+`Doc/riferimenti-distribuzione/fable-2026-11-15/voci-fable.json`, dove le legge `confronta-fable.js`).
 
 ## Riconoscimento dei nomi
 
