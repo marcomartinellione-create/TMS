@@ -4,6 +4,20 @@
 
 ---
 
+### 2026-11-15 — TMS v1.1.23: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.22
+**Descrizione**:
+- Alimentazione: i periodi si possono avviare e terminare — «▶ Avvia un periodo…» lo fa partire (da oggi o da una data passata) e resta in corso finché non si preme «⏹ Termina», senza sapere prima quanto durerà
+- Schede Fable: anche loro passano dal filtro «solo equilibrate», come le schede reali
+- Schede Fable nella ragnatela, solo dove mancano i dati: con l'interruttore «Schede Fable» (spento di serie) le caselle con meno di 5 schede reali usano le schede generate da Fable, con fascia viola tratteggiata e avvertimento sempre visibile
+- Riferimenti della ragnatela: più dati per le caselle scoperte — 56 schede pubbliche da 30 siti (powerlifting, pesistica, schede per donne e dai 40 anni in su) e 12 protocolli di studio ad accesso aperto; schede da 216 a 272, studi da 27 a 39
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-15)
+
+---
+
 ### 2026-11-14 — TMS v1.1.22: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.21
