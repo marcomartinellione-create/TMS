@@ -231,7 +231,7 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
     (indicativa). Interruttore «Schede Fable» (spento di serie, dati_utente.rifDistr.fable): dove
     le schede reali della casella sono meno di 5 la fascia viene da schede GENERATE alla cieca dal
     modello Fable (5 per esperienza x tipo x sesso, voci con generata:true), mai mescolate alle
-    reali e senza il filtro «solo equilibrate»; la fascia diventa viola e tratteggiata e la
+    reali e con gli stessi filtri di contesto, compreso «solo equilibrate»; la fascia diventa viola e tratteggiata e la
     didascalia avverte sempre che non sono schede reali. Nel confronto coi dati noti Fable segue
     bene i tipi di allenamento ma sbaglia fino a 15 punti in qualche casella (avanzato x
     ipertrofia), per questo vale solo come ripiego. Il predefinito (schede equilibrate, tutte le esperienze, tutti i tipi: 127

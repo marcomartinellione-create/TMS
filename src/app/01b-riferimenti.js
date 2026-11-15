@@ -40,7 +40,7 @@
    quindi valgono solo come ripiego: con l'interruttore «Schede Fable» acceso (spento di serie) e SOLO
    dove le voci reali della casella sono meno di RIF_MIN_VOCI. Mai mescolate alle reali; la fascia
    che ne viene è viola e tratteggiata (fasce[g].generata) e la didascalia lo dice sempre. Seguono gli
-   stessi filtri di contesto delle reali tranne «solo equilibrate». */
+   stessi filtri di contesto delle reali, compreso «solo equilibrate» (Marco, 15/11/2026). */
 const RIF_MIN_VOCI=5, RIF_VOCI_SOLIDE=10;
 const ESPERIENZE=['principiante','intermedio','avanzato'];
 const TIPI_ALLEN=['forza','ipertrofia','powerlifting','resistenza','potenza','generale'];
@@ -112,7 +112,7 @@ function accumulaSerie(acc, nome, ser, ripiego){
 
 /* ── FILTRI E FASCE ───────────────────────────────────────────────────────────── */
 function rifPassaContesto(v,o){
-  if(o.raccolta==='schede' && o.soloEquilibrate && !v.equilibrata && !v.generata) return false;
+  if(o.raccolta==='schede' && o.soloEquilibrate && !v.equilibrata) return false;
   if(o.sesso && !(v.sesso===o.sesso || v.sesso==='misto')) return false;
   if(o.eta && v.eta!==o.eta) return false;
   if(o.agonismo==='si' && !v.agonismo) return false;
@@ -245,7 +245,7 @@ function rifDistrModal(dopo, ctx){
     const elencoFonti=fontiUsate.map(x=>`<li><b>${esc(x.nome)}</b>${x.url?` · <a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.url.replace(/^https?:\/\//,'').slice(0,60))}</a>`:''}${x.doi?` · DOI ${esc(x.doi)}`:''}<div class="muted">${esc(x.licenza||'')}</div></li>`).join('');
     const elencoVoci=rc.voci.map(v=>`<li>${v.url?`<a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.titolo)}</a>`:esc(v.titolo)}${v.generata?` <span class="pill rif-fable">${t('generata da Fable')}</span>`:''} <span class="muted">· ${esc(v.esperienza? t(ESP_NOME[v.esperienza]) : t('esperienza non indicata'))} · ${esc((v.tipi||[]).map(x=>t(TIPO_NOME[x])).join(', '))}${v.stato?' · '+esc(v.stato):''}</span></li>`).join('');
     const riepilogo= rc.fable
-      ? `<div class="callout rif-fable-box"><div><b>⚠ ${t('Schede generate da Fable, non reali')}</b>: ${t('qui le schede reali sono')} ${rc.nReali} (${t('ne servono almeno')} ${RIF_MIN_VOCI}), ${t('quindi la fascia viene da')} <b>${rc.n} ${t('schede generate alla cieca da Fable')}</b>. ${t('Sono un’ipotesi, non dati: dove i dati reali ci sono, Fable li segue bene per tipo di allenamento, ma in qualche casella sbaglia fino a 15 punti. Non passano dal filtro «solo equilibrate».')}</div></div>`
+      ? `<div class="callout rif-fable-box"><div><b>⚠ ${t('Schede generate da Fable, non reali')}</b>: ${t('qui le schede reali sono')} ${rc.nReali} (${t('ne servono almeno')} ${RIF_MIN_VOCI}), ${t('quindi la fascia viene da')} <b>${rc.n} ${t('schede generate alla cieca da Fable')}</b>. ${t('Sono un’ipotesi, non dati: dove i dati reali ci sono, Fable li segue bene per tipo di allenamento, ma in qualche casella sbaglia fino a 15 punti.')}</div></div>`
       : rc.stato==='insufficiente'
       ? `<div class="callout" style="background:var(--danger-t);border-color:var(--danger-bd);border-left-color:var(--danger)"><div><b>${t('Dati insufficienti')}</b>: ${rc.n} ${rifUnita(bozza.raccolta,rc.n)} ${t('da')} ${rc.fonti.length} ${rc.fonti.length===1?t('fonte'):t('fonti')} (${t('ne servono almeno')} ${RIF_MIN_VOCI}). ${t('La ragnatela non disegnerà la fascia: scegli una casella con più voci o allarga i filtri.')}</div></div>`
       : `<div class="callout ${rc.stato==='solido'?'callout--info':''}"><div>${t('Il confronto si regge su')} <b>${rc.n} ${rifUnita(bozza.raccolta,rc.n)}</b>${bozza.raccolta==='studi'&&rifOrigineStudi(rc)?` (${rifOrigineStudi(rc)})`:''} ${t('da')} <b>${rc.fonti.length} ${rc.fonti.length===1?t('fonte'):t('fonti')}</b>.${rc.stato==='indicativo'?' '+t('Sono pochi: la fascia sarà tratteggiata, da leggere come indicativa.'):''}</div></div>`;

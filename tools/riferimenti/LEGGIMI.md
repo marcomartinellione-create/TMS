@@ -110,8 +110,10 @@ l'avvertimento.** Regole (`rifCalcola` in `src/app/01b-riferimenti.js`):
 - interruttore **«Schede Fable»** nel riquadro ⚙ Riferimento, **spento di serie** (`dati_utente.rifDistr.fable`);
 - acceso, Fable si usa **solo** nella casella scelta in cui le voci reali (dopo i filtri) sono **meno di 5**,
   e solo se lì Fable ne ha almeno 5; le schede Fable **non si mescolano** mai alle reali;
-- seguono gli stessi filtri di contesto delle reali (sesso, età, attrezzatura…) **tranne «solo equilibrate»**:
-  col filtro resterebbero 2-8 schede per casella e quasi tutti i buchi resterebbero scoperti;
+- seguono gli stessi filtri di contesto delle reali (sesso, età, attrezzatura…), **compreso «solo
+  equilibrate»** (Marco, 15/11/2026): col filtro acceso, come di serie, a Fable restano 2-8 schede per
+  casella e alcune caselle restano «dati insufficienti» (principiante · potenza, intermedio e avanzato ·
+  powerlifting, avanzato · resistenza e potenza); togliendo il filtro tornano coperte;
 - la fascia è **viola e tratteggiata** (non verde), la didascalia sotto la ragnatela dice sempre «Fascia
   ipotizzata da Fable: schede generate, non reali», il riquadro ripete l'avvertimento, ogni voce porta
   «generata da Fable» e nella tabella le caselle coperte mostrano «+F»;

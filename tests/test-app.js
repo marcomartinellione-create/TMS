@@ -1388,6 +1388,9 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
        'Fable: spento di serie, anche dove i dati reali mancano');
     ok(w.eval('rifVociContesto(rifImpost({fable:true})).every(function(v){ return !v.generata; })'),
        'Fable: le voci reali (tabella, conteggi) non contano mai le schede generate');
+    ok(w.eval('rifVociFable(rifImpost({fable:true})).every(function(v){ return v.equilibrata; })') &&
+       w.eval('rifVociFable(rifImpost({fable:true, soloEquilibrate:false})).some(function(v){ return !v.equilibrata; })'),
+       'Fable: anche le schede generate passano dal filtro «solo equilibrate» (Marco, 15/11/2026)');
     const POCOF = '{raccolta:"schede", esperienza:"", tipo:"resistenza", fable:true}';
     const rcF = J('rifCalcola(' + POCOF + ')');
     ok(rcF.fable && rcF.nReali < 5 && rcF.n >= 5 && rcF.voci.every(v => v.generata) && GR6.every(g => rcF.fasce[g].generata && rcF.fasce[g].indicativa),
