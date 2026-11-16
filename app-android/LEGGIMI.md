@@ -17,6 +17,13 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
 - **Avvisi e conferme** in stile app, mai le finestre di sistema.
 - **Tasto indietro** del telefono: risale di una schermata; dal menu chiude l'app.
 - Niente invito a «installare l'app» (lo è già). I link del sito e dei QR si aprono nel browser.
+- **⚖ Bilancia** (solo nell'APK, dalla 1.1.0): con una bilancia Bluetooth a 8 elettrodi della famiglia
+  FitDays/iComon (Healthkeep FG2001B-A, Fitdays FG2202WB…) ci si pesa con la pagina aperta: peso in
+  diretta, poi grasso, muscolo, acqua, viscerale, metabolismo, età metabolica. Le pesate restano sul
+  telefono e partono col rientro (o da sole con «📤 Manda solo le pesate»); nel TMS sul PC la media di
+  ogni settimana va da sola nello Storico misure. Android chiede una volta «Dispositivi nelle
+  vicinanze» (fino ad Android 11 la Posizione: lo pretende Android per cercare dispositivi Bluetooth).
+  FitDays sullo stesso telefono può prendersi la bilancia: va chiuso o disinstallato.
 - Le schede e il rientro sono **gli stessi file** di sempre: il TMS sul PC non vede differenze.
 
 ## Creare l'APK
@@ -67,9 +74,9 @@ apre la scheda nuova nell'APK. Gli **iPhone** non installano APK: restano senza 
 | file | cosa |
 |---|---|
 | `scripts/prepara-www.js` | copia `docs/app/` in `www/` (senza `sw.js`) e applica 4 modifiche con **conteggio asserito**: via il service worker, `confirm(` → `await tmsConferma(` (3 punti), `delEsercizio` async, `nativo.js` dopo lo script. Se la PWA cambia lì, si ferma e lo dice. `--verifica` controlla senza scrivere |
-| `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, file in arrivo, scelta foto, rientro via plugin, `window.tmsIndietro`. Sostituisce funzioni globali della PWA (`stradeSalvataggio`, `salvaRientroCome`, `isStandalone`, `alert`) e avvolge `avvia` |
+| `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, file in arrivo, scelta foto, rientro via plugin, `window.tmsIndietro`, `window.tmsBLE` (trasporto Bluetooth della pagina Bilancia: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; il protocollo e la formula stanno nella PWA). Sostituisce funzioni globali della PWA (`stradeSalvataggio`, `salvaRientroCome`, `isStandalone`, `alert`) e avvolge `avvia` |
 | `nativo/TmsFilePlugin.java` | plugin Capacitor «TmsFile»: `info`, `condividi`, `salvaInCartella` (ACTION_CREATE_DOCUMENT), `salvaInDownload` (MediaStore, Android 10+), evento `fileRicevuto` (VIEW/SEND copiati nella cache), tasto indietro |
-| `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, «Apri con» nel manifest, fotocamera visibile (`<queries>`), permesso di vibrare, stile, firma, versione, compilazione fuori da OneDrive |
+| `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, «Apri con» nel manifest, fotocamera visibile (`<queries>`), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |
 | `scripts/immagini.ps1` | icona adattiva, icone e stella d'avvio da `docs/app/icon-512.png` |
 | `test/prova-nativo.js` | prova in jsdom con un plugin finto (`npm run prova`, da questa cartella) |
 
@@ -84,6 +91,9 @@ Lo dice subito `npm run verifica` dalla radice del progetto (comprende `prepara-
 Due cose scoperte sull'emulatore, da non togliere: il manifest dichiara `<queries>` per
 `IMAGE_CAPTURE` (senza, da Android 11 «Scatta una foto» apre la galleria invece della fotocamera)
 e la condivisione esclude TMS Scheda stessa dalle app proposte (registra «Condividi» per i .json).
+
+La bilancia NON si prova sull'emulatore (niente Bluetooth vero): si prova sul telefono con la bilancia.
+Note sul protocollo, sulla formula e sul confronto con FitDays: `Doc/bilancia/NOTE_TECNICHE.md` (fuori da git).
 
 Collaudo sull'emulatore (telefono virtuale `TMS_Prova`, Android 15, in `D:\Android-build\avd`):
 

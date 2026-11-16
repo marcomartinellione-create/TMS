@@ -6,7 +6,7 @@
       che un .bat lanciato col doppio clic può non vedere);
    2. sorgenti nativi (MainActivity + plugin TmsFile) da nativo/;
    3. AndroidManifest: «Apri con» e «Condividi» per i file .json, permesso di vibrare (timer),
-      fotocamera visibile all'app (per «Scatta una foto»);
+      fotocamera visibile all'app (per «Scatta una foto»), Bluetooth della bilancia senza posizione;
    4. stile: barra di stato scura come la PWA, schermata d'avvio nera con la stella
       (le immagini le fa scripts/immagini.ps1);
    5. build.gradle: versione dall'package.json, firma con la chiave del progetto (firma/),
@@ -85,6 +85,18 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
       '<uses-permission android:name="android.permission.INTERNET" />\n    <!-- TMS: vibrazione a fine recupero (timer) -->\n    <uses-permission android:name="android.permission.VIBRATE" />');
     if (!s.includes('android.permission.VIBRATE')) { console.error('patch-android: non trovo dove aggiungere il permesso VIBRATE'); process.exit(1); }
   }
+  /* bilancia Bluetooth (plugin @capacitor-community/bluetooth-le): da Android 12 basta «Dispositivi
+     nelle vicinanze» SENZA posizione (neverForLocation: l'app non ricava dove sei dalle ricerche);
+     la posizione la dichiara il plugin, qui la si limita ai telefoni fino ad Android 11
+     (maxSdkVersion 30), dove Android la pretende per cercare dispositivi Bluetooth */
+  if (!s.includes('<!-- TMS: bilancia Bluetooth -->')) {
+    const ble = '    <!-- TMS: bilancia Bluetooth -->\n' +
+      '    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />\n' +
+      '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="30" />\n' +
+      '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />\n';
+    if (s.split('</manifest>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</manifest>)'); process.exit(1); }
+    s = s.replace('</manifest>', ble + '</manifest>');
+  }
   /* da Android 11 un'app «vede» le altre solo se lo dichiara: senza questa riga Capacitor non
      trova l'app Fotocamera e «Scatta una foto» ripiega sulla galleria (visto sull'emulatore) */
   if (!s.includes('android.media.action.IMAGE_CAPTURE')) {
@@ -93,7 +105,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
     s = s.replace('    <application', q + '    <application');
   }
   scrivi(f, s);
-  console.log('AndroidManifest: «Apri con» / «Condividi» per i .json, vibrazione');
+  console.log('AndroidManifest: «Apri con» / «Condividi» per i .json, vibrazione, bilancia Bluetooth senza posizione');
 }
 
 /* 4) stile, colori, schermata d'avvio */

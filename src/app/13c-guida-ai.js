@@ -554,6 +554,22 @@ nei dispositivi.
    la dieta la sezione appare disattivata) e «📸 Foto progressi» (dalla v2.2: tre riquadri
    fronte/lato/retro, scatto da fotocamera o scelta da galleria; le foto vengono
    RIMPICCIOLITE — lato lungo 1280px, JPEG — prima di essere incorporate nel rientro).
+   Solo nell'APK (serve il Bluetooth del telefono) c'è anche «⚖ Bilancia»: bilance a 8
+   elettrodi della famiglia FitDays/iComon (Healthkeep FG2001B-A, Fitdays FG2202WB…). La
+   bilancia manda solo peso e 10 impedenze (tronco, braccia, gambe a 20 e 100 kHz); la
+   composizione la calcola l'app con la formula WLA25 ricostruita da openScale (riscritta da
+   zero), usando altezza, età e sesso che arrivano nella scheda (campo 'corpo'). Il grasso e il
+   muscolo per singolo braccio o gamba NON si calcolano (FitDays usa un algoritmo non pubblico).
+   Confrontata con un rapporto reale di FitDays, tutti i valori dopo il grasso seguono le stesse
+   derivazioni della WLA25, ma il grasso di FitDays era più alto di circa un punto: per quel
+   modello FitDays usa un'altra formula del grasso. La pesata si salva da sola sul
+   telefono (una lista per profilo, che una scheda nuova non cancella), si toglie col 🗑 con
+   conferma sulla riga, e parte nel rientro (campo 'pesate', tutte: il TMS riconosce quelle già
+   arrivate) o da sola con «📤 Manda solo le pesate» (rientro con righe vuote). L'app accetta
+   solo un risultato arrivato dopo il peso in diretta (non quello ripetuto al collegamento),
+   conferma i messaggi alla bilancia e si ricorda la bilancia trovata; fuori dalla pagina il
+   Bluetooth si ferma. Permessi: «Dispositivi nelle vicinanze» senza posizione (fino ad
+   Android 11 Android pretende la posizione accesa per cercare dispositivi Bluetooth).
    Nella scheda sceglie il **giorno** da un elenco; ogni giornata è una **seduta in tre
    fasi** (tab): 🔥 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con
    video, stretching o cardio a minuti, NON torna nel rientro), 🏋 Esercizi, ✅ Fine.

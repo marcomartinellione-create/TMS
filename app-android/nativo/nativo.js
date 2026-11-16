@@ -9,11 +9,12 @@
    · foto progressi: si sceglie se scattarla o prenderla dalla galleria;
    · rientro per il coach: condividi, scegli la cartella, Download, fatti da Android;
    · tasto indietro del telefono (window.tmsIndietro, chiamata dal plugin);
+   · bilancia Bluetooth: window.tmsBLE, il trasporto della pagina «⚖ Bilancia» della PWA;
    · niente invito a installare (è già un'app) e link del sito nel browser.
    I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app): stesse chiavi,
    stesso formato del rientro. */
 /* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa,
-   avvia, caricaFile, risali, chiudiDove, chiudiVideo, mostraInstallHint */
+   avvia, caricaFile, risali, chiudiDove, chiudiVideo, mostraInstallHint, bilAggiornaMenu */
 (function(){
 'use strict';
 const N=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TmsFile)||null;
@@ -141,6 +142,55 @@ if(N){ N.info().then(i=>{ if(i) INFO=i; }).catch(()=>{});
       tmsAvviso(tt('Salvataggio non riuscito:')+' '+((e&&e.message)||e)); return false;
     }
   };
+}
+
+/* ── BILANCIA Bluetooth: il TRASPORTO per la pagina «⚖ Bilancia» della PWA (che fa tutto il
+      resto: messaggi della bilancia, formula, pesate). Plugin @capacitor-community/bluetooth-le
+      chiamato direttamente (niente bundler): i dati viaggiano come testo esadecimale «00 a2 …»,
+      gli eventi si chiamano 'onScanResult', 'disconnected|<id>', 'notification|<id>|<serv>|<car>'.
+      Su Android 12 e più recenti si chiede solo «Dispositivi nelle vicinanze», mai la posizione
+      (androidNeverForLocation + flag nel manifest, scripts/patch-android.js); fino ad Android 11
+      Android pretende la posizione per cercare dispositivi Bluetooth. ── */
+const BLE=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.BluetoothLe)||null;
+if(BLE){
+  const SERV='0000ffb0-0000-1000-8000-00805f9b34fb';
+  const CAR=c=>'0000'+c+'-0000-1000-8000-00805f9b34fb';
+  const inHex=bytes=>bytes.map(n=>('0'+((n&255).toString(16))).slice(-2)).join(' ');
+  const daHex=s=>{ const h=String(s||'').replace(/[^0-9a-f]/gi,''), out=[];
+    for(let i=0;i+1<h.length;i+=2) out.push(parseInt(h.slice(i,i+2),16)); return out; };
+  const togli=a=>{ try{ if(a&&a.remove) a.remove(); }catch(e){} };
+  let ascoltoScan=null, ascolti=[];
+  window.tmsBLE={
+    async prepara(){
+      try{ await BLE.initialize({androidNeverForLocation:true}); }
+      catch(e){ return {ok:false, motivo:'permesso', msg:(e&&e.message)||String(e)}; }
+      try{ let r=await BLE.isEnabled();
+        if(!r||!r.value){ try{ await BLE.requestEnable(); }catch(e){} r=await BLE.isEnabled(); }
+        if(!r||!r.value) return {ok:false, motivo:'spento'}; }catch(e){}
+      if((+INFO.sdk||34)<31){ try{ const l=await BLE.isLocationEnabled(); if(l&&l.value===false) return {ok:false, motivo:'posizione'}; }catch(e){} }
+      return {ok:true};
+    },
+    async cerca(filtro, trovato){
+      await this.fermaRicerca();
+      ascoltoScan=await BLE.addListener('onScanResult', r=>{
+        const d=(r&&r.device)||{}, disp={id:d.deviceId||'', nome:d.name||(r&&r.localName)||''};
+        if(disp.id && filtro(disp)) trovato(disp); });
+      await BLE.requestLEScan({allowDuplicates:false});
+    },
+    async fermaRicerca(){ togli(ascoltoScan); ascoltoScan=null; try{ await BLE.stopLEScan(); }catch(e){} },
+    async collega(id, cb){
+      ascolti.forEach(togli); ascolti=[];
+      ascolti.push(await BLE.addListener('disconnected|'+id, ()=>{ ascolti.forEach(togli); ascolti=[]; if(cb.onStaccato) cb.onStaccato(); }));
+      await BLE.connect({deviceId:id, timeout:10000});
+      for(const c of ['ffb2','ffb3']){
+        ascolti.push(await BLE.addListener('notification|'+id+'|'+SERV+'|'+CAR(c), ev=>{ if(cb.onDati) cb.onDati(c, daHex(ev&&ev.value)); }));
+        await BLE.startNotifications({deviceId:id, service:SERV, characteristic:CAR(c)});
+      }
+    },
+    scrivi(id, c, bytes){ return BLE.write({deviceId:id, service:SERV, characteristic:CAR(c), value:inHex(bytes)}); },
+    async stacca(id){ const a=ascolti; ascolti=[]; a.forEach(togli); try{ await BLE.disconnect({deviceId:id}); }catch(e){} }
+  };
+  try{ bilAggiornaMenu(); }catch(e){}     /* la voce «⚖ Bilancia» del menu compare solo adesso */
 }
 
 /* ── tasto INDIETRO del telefono (lo chiama il plugin): true = gestito qui, false = Android

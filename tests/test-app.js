@@ -3088,6 +3088,127 @@ console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
   dom.window.close();
 }
 
+console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) ---');
+{
+  /* Messaggi COSTRUITI qui (valori inventati, nel formato della famiglia FitDays/iComon a 8
+     elettrodi): 72,40 kg e 10 impedenze; a 180 cm la formula WLA25 deve dare 15,8 % di grasso e,
+     per una donna di 31 anni, età metabolica 28 — gli stessi numeri attesi da openScale. */
+  const PWA = path.join(ROOT, 'docs', 'app', 'index.html');
+  const fr = (seq, len, b2, tipo, dati) => { const b = new Array(20).fill(0); b[0] = seq; b[1] = len; b[2] = b2;
+    let i = 3; if (tipo != null) b[i++] = tipo; dati.forEach(x => { b[i++] = x & 255; });
+    let s = 0; for (let k = 3; k <= 18; k++) s += b[k]; b[19] = s & 0x1F; return b; };
+  const u16 = v => [(v >> 8) & 255, v & 255], u24 = v => [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+  const IMP = [24.0, 340.0, 350.0, 280.0, 285.0, 19.0, 300.0, 310.0, 250.0, 255.0];
+  const decimi = a => a.flatMap(x => u16(Math.round(x * 10)));
+  const A1 = fr(0x00, 0x0a, 0, 0xA1, [0x33, 0x31, 0x02, 0x23, 0x00, 0x19, 0x01, 0x0a, 0x19]);
+  const A2 = (seq, stato, g) => fr(seq, 0x07, 0, 0xA2, [stato, 0x19].concat(u24(g)));
+  const P1 = fr(0x05, 0x1a, 0, 0xA3, [0x19].concat(u24(72400), [0], decimi(IMP.slice(0, 5))));
+  const P2 = fr(0x05, 0x1a, 1, null, decimi(IMP.slice(5)));
+  const scheda = { tipo: 'tms-scheda', versione: 1, app: '1.1.24', modificabile: false, rpe: true,
+    profilo: { slug: 'prova', nome: 'Cliente Prova' }, esportata: '2026-11-16', corpo: { altezza: 180, sesso: 'F', eta: 31 },
+    righe: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 80, rest: '2:00', rir: null, test: false, note: '', video: '' }],
+    riscaldamento: [], ultima: {}, video: {}, dieta: null };
+  /* senza trasporto Bluetooth (app vecchia, browser) la voce Bilancia non c'è */
+  { const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(scheda)); win.scrollTo = () => {}; } });
+    await settle(300);
+    ok(sub.window.document.getElementById('menu').hidden === false && sub.window.document.getElementById('vai-bil').hidden === true, 'telefono: senza Bluetooth (fuori dall\'APK) la voce «⚖ Bilancia» non compare');
+    sub.window.close(); }
+  const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+    beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(scheda)); win.scrollTo = () => {};
+      const B = win.__ble = { scritti: [], collegati: [], staccati: 0, cercato: 0 };
+      win.tmsBLE = { prepara: async () => ({ ok: true }),
+        cerca: async (filtro, trovato) => { B.cercato++; B.filtro = filtro; B.trovato = trovato; },
+        fermaRicerca: async () => {}, collega: async (id, cb) => { B.collegati.push(id); B.cb = cb; },
+        scrivi: async (id, c, b) => { B.scritti.push([c, b.slice()]); }, stacca: async () => { B.staccati++; } }; } });
+  await settle(300);
+  const sw = sub.window, sd = sw.document, B = sw.__ble;
+  const dati = (c, b) => B.cb.onDati(c, b.slice());
+  ok(sd.getElementById('vai-bil').hidden === false, 'telefono: nell\'APK (Bluetooth disponibile) il menu ha «⚖ Bilancia»');
+  /* formula e arrotondamenti come la libreria originale */
+  ok(Math.abs(sw.eval('r1(26.35)') - 26.4) < 1e-5 && Math.abs(sw.eval('r1(1.95)') - 1.9) < 1e-5 && Math.abs(sw.eval('r1(70.4)') - 70.4) < 1e-5,
+     'WLA25: arrotondamento al decimo come la libreria (26,35 → 26,4; 1,95 → 1,9 per la virgola mobile a 32 bit)');
+  { const w = JSON.parse(sw.eval('JSON.stringify(wla25(180,72.4,' + JSON.stringify(IMP) + '))'));
+    ok(Math.abs(w.grasso - 15.8) < 1e-5 && w.visc >= 1 && w.visc <= 20 && w.bmr > 1500 && w.bmr < 1800,
+       'WLA25: 180 cm, 72,4 kg e le 10 impedenze di prova → grasso 15,8 % (come openScale)');
+    ok(sw.eval('etaMetabolica(31,"F",15.8)') === 28 && sw.eval('etaMetabolica(31,"M",15.8)') === 29, 'età metabolica: donna 31 anni al 15,8 % → 28; uomo → 29');
+    ok(sw.eval('wla25(180,72.4,[0,0,0,0,0,0,0,0,0,0])') === null && sw.eval('wla25(0,72.4,' + JSON.stringify(IMP) + ')') === null, 'WLA25: impedenze non valide (maniglie non tenute) o altezza mancante → niente composizione'); }
+  ok(sw.eval('bilChkOk(' + JSON.stringify(P1) + ')') === true && sw.eval('bilChkOk(' + JSON.stringify(P1.slice(0, 19).concat([(P1[19] + 1) & 0x1F])) + ')') === false,
+     'messaggi: controllo di somma (5 bit bassi della somma dei byte 3–18)');
+  ok(JSON.stringify(sw.eval('JSON.stringify(bilImpedenze(' + JSON.stringify(P1) + ',' + JSON.stringify(P2) + '))')) === JSON.stringify(JSON.stringify(IMP)),
+     'messaggi: le 10 impedenze dalle due parti del risultato, in decimi di ohm');
+
+  /* pagina Bilancia: ricerca, collegamento, peso in diretta, risultato */
+  sd.getElementById('vai-bil').click(); await settle(50);
+  ok(sd.getElementById('bil').hidden === false && /Cliente Prova/.test(sd.getElementById('bil-chi').textContent) && /180 cm/.test(sd.getElementById('bil-chi').textContent),
+     'pagina Bilancia: dice per chi è la pesata (nome, altezza, età)');
+  ok(B.cercato === 1 && B.filtro({ id: 'X', nome: 'HEALTHKEEP' }) === true && B.filtro({ id: 'Y', nome: 'Mi Band 7' }) === false,
+     'ricerca: la prima volta riconosce la bilancia dal nome, non altri dispositivi');
+  B.trovato({ id: 'AA:BB:CC:DD:EE:FF', nome: 'HEALTHKEEP' }); await settle(30);
+  ok(B.collegati[0] === 'AA:BB:CC:DD:EE:FF' && sw.localStorage.getItem('tms-bilancia-id') === 'AA:BB:CC:DD:EE:FF', 'collegamento: la bilancia trovata viene ricordata');
+  ok(sw.eval('bilIdNoto()') === 'AA:BB:CC:DD:EE:FF', 'ricerca successiva: per indirizzo (la bilancia ricordata)');
+  dati('ffb3', A1); await settle(10);
+  { const a = B.scritti[0] || ['', []];
+    ok(a[0] === 'ffb1' && a[1][3] === 0xB0 && a[1][4] === 0x00 && a[1][1] === 0x03 && sw.eval('bilChkOk(' + JSON.stringify(a[1]) + ')'), 'messaggio informativo A1: confermato con B0 (sul canale di scrittura FFB1)'); }
+  dati('ffb3', P1); dati('ffb3', P2); await settle(30);
+  ok(sw.eval('PESATE.length') === 0, 'un risultato arrivato prima del peso in diretta (ripetuto al collegamento) NON diventa una pesata');
+  dati('ffb2', A2(1, 1, 35000)); dati('ffb2', A2(2, 1, 72400)); await settle(10);
+  ok(/72,4/.test(sd.getElementById('bil-peso').textContent) && /Peso in misura/.test(sd.getElementById('bil-stato').textContent), 'peso in diretta: 72,4 kg mentre si misura');
+  dati('ffb2', A2(3, 3, 72400)); await settle(10);
+  ok(/maniglie/.test(sd.getElementById('bil-stato').textContent), 'peso fermo: chiede di tenere le maniglie mentre misura la composizione');
+  dati('ffb2', fr(4, 0x07, 0, 0xA2, [1, 0x19].concat(u24(99000))).map((x, i) => i === 19 ? (x + 3) & 0x1F : x)); await settle(10);
+  ok(/72,4/.test(sd.getElementById('bil-peso').textContent), 'un messaggio col controllo di somma sbagliato viene ignorato');
+  dati('ffb3', P1); dati('ffb3', P2); await settle(60);
+  { const p = JSON.parse(sw.eval('JSON.stringify(PESATE[0]||null)'));
+    ok(p && p.peso === 72.4 && p.grasso === 15.8 && p.eta_met === 28 && JSON.stringify(p.imp) === JSON.stringify(IMP) && /^\d{4}-\d{2}-\d{2}$/.test(p.data) && /^\d{2}:\d{2}:\d{2}$/.test(p.ora) && p.id === p.data + 'T' + p.ora + '|72.4',
+       'risultato: pesata salvata con peso, composizione (grasso 15,8 %, età metabolica 28), impedenze grezze, data e ora');
+    ok(p && p.muscolo > 40 && p.acqua > 40 && p.bmr > 1000 && p.ossa > 2 && p.proteine > 10 && p.bmi > 20, 'risultato: anche muscolo, acqua, metabolismo, ossa, proteine e BMI'); }
+  { const ack = B.scritti.find(x => x[1][3] === 0xB0 && x[1][4] === 0x05);
+    ok(!!ack && ack[1][0] === 1, 'risultato confermato alla bilancia (B0 col suo numero di messaggio, il nostro contatore va avanti)'); }
+  ok(/Pesata salvata/.test(sd.getElementById('bil-stato').textContent) && sd.querySelectorAll('#bil-lista .bil-row').length === 1 && /15,8/.test(sd.getElementById('bil-ris').textContent),
+     'pagina: «Pesata salvata», ultima pesata coi valori e l\'elenco');
+  dati('ffb3', P1); dati('ffb3', P2); dati('ffb2', A2(5, 3, 72400)); await settle(40);
+  ok(sw.eval('PESATE.length') === 1 && /Pesata salvata/.test(sd.getElementById('bil-stato').textContent), 'la bilancia che ripete il risultato non crea doppioni (e il messaggio resta)');
+  ok(JSON.parse(sw.localStorage.getItem('tms-pesate-prova') || '[]').length === 1, 'pesata salvata sul telefono, nella memoria del profilo');
+  ok(/1 pesata questa settimana/.test(sd.getElementById('meta-bil').textContent), 'menu: «1 pesata questa settimana»');
+  /* il file per il coach porta le pesate; «Manda solo le pesate» = rientro senza esercizi */
+  const rientro = JSON.parse(sw.eval('JSON.stringify(costruisciRientro())'));
+  ok(Array.isArray(rientro.pesate) && rientro.pesate.length === 1 && rientro.righe.length === 1, 'rientro: porta anche le pesate');
+  const soloPes = JSON.parse(sw.eval('rientroPesate().testo'));
+  ok(soloPes.tipo === 'tms-rientro' && soloPes.righe.length === 0 && soloPes.pesate.length === 1 && /_pesate\.json$/.test(sw.eval('rientroPesate().nome')),
+     '«📤 Manda solo le pesate»: rientro senza esercizi, solo con le pesate');
+  /* composizione recuperata: scheda senza altezza → solo peso e misure grezze; poi arriva la scheda giusta */
+  { const r = JSON.parse(sw.eval('(function(){ var c=SCHEDA.corpo; SCHEDA.corpo=null; var p=pesComponi({peso:72.4, imp:' + JSON.stringify(IMP) + '}); var a=JSON.stringify(p); SCHEDA.corpo=c; pesComponi(p); return JSON.stringify([JSON.parse(a), p]); })()'));
+    ok(!('grasso' in r[0]) && r[1].grasso === 15.8, 'senza altezza ed età si tiene la pesata grezza; con la scheda giusta la composizione si completa'); }
+  /* togliere una pesata: conferma sulla riga, niente finestre di sistema */
+  sd.querySelector('#bil-lista [data-pesx]').click(); await settle(10);
+  ok(sd.querySelector('#bil-lista [data-pesok]') !== null && sw.eval('PESATE.length') === 1, '🗑: chiede conferma sulla riga');
+  sd.querySelector('#bil-lista [data-pesno]').click(); await settle(10);
+  ok(sd.querySelector('#bil-lista [data-pesok]') === null && sw.eval('PESATE.length') === 1, '🗑 → «No»: la pesata resta');
+  /* uscendo dalla pagina il Bluetooth si ferma */
+  sd.querySelector('#bil [data-menu]').click(); await settle(30);
+  ok(sd.getElementById('menu').hidden === false && B.staccati >= 1 && sw.eval('BIL.attivo') === false, 'uscendo dalla pagina Bilancia il collegamento si chiude');
+  sw.close();
+
+  /* andata e ritorno: le pesate del telefono entrano nel TMS sul PC (media nello Storico misure) */
+  { const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+    await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'prova', nome: 'Cliente Prova', creato: '2026-01-01' }], active: 'prova' }));
+    await fsmem.writeFile('TMS_Dati/prova/scheda.json', J({ settimanale: [], mensile: [] }));
+    await fsmem.writeFile('TMS_Dati/prova/storico.json', '[]');
+    await fsmem.writeFile('TMS_Dati/prova/corpo.json', J({ dati_utente: { nome: 'Cliente Prova', sesso: 'F', altezza: 180, livello_attivita: 1.4 }, storico_io: [] }));
+    await fsmem.writeFile('TMS_Dati/prova/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+    const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+    await settleConnect(dom, fsmem); await settle(300);
+    const w = dom.window; w.alert = () => {}; w.confirm = () => true;
+    w.__fr = { text: async () => JSON.stringify(soloPes) }; await w.eval('importaRientroFile(window.__fr)'); await settle(150);
+    const p0 = soloPes.pesate[0], code = w.eval('settimanaPesata(' + J(p0) + ')');
+    const riga = JSON.parse(w.eval('JSON.stringify(DOC.storico_io.find(function(r){return +r.scheda===' + code + ';})||null)'));
+    ok(riga && riga.n_pesate === 1 && riga.peso === 72.4 && riga.massa_grassa === 0.158 && riga.metab_basale === p0.bmr && Math.abs(riga.metabolismo - p0.bmr * 1.4) < 1e-6,
+       'andata e ritorno: la pesata del telefono finisce nello Storico misure del PC (media della settimana)');
+    ok(w.eval('DOC.pesate[0].imp.length') === 10 && errors.length === 0, 'andata e ritorno: le impedenze grezze arrivano intatte, nessun errore');
+    dom.window.close(); }
+}
+
 console.log('');
 console.log('RISULTATO: ' + pass + ' OK, ' + fail + ' FAIL');
 process.exit(fail ? 1 : 0);

@@ -9,6 +9,7 @@ const path = require('path');
 const { JSDOM } = require('jsdom');
 
 const WWW = path.join(__dirname, '..', 'www');
+const VERSIONE = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')).version;
 let passati = 0, falliti = 0;
 function ok(cond, nome) { if (cond) { passati++; } else { falliti++; console.log('  ✗ ' + nome); } }
 const attendi = (ms = 60) => new Promise(r => setTimeout(r, ms));
@@ -31,7 +32,7 @@ async function apri(opz = {}) {
   const nativo = fs.readFileSync(path.join(WWW, 'nativo.js'), 'utf8');
   if (html.split('<script src="nativo.js"></script>').length !== 2) throw new Error('www/index.html senza nativo.js: lancia prima scripts/prepara-www.js');
   html = html.replace('<script src="nativo.js"></script>', () => '<script>' + nativo + '</script>');
-  const reg = { chiamate: [], ascolti: {}, file: {} };
+  const reg = { chiamate: [], ascolti: {}, file: {}, ble: [], bleAscolti: {} };
   const dom = new JSDOM(html, {
     runScripts: 'dangerously', url: 'https://localhost/index.html', pretendToBeVisual: true,
     beforeParse(win) {
@@ -48,7 +49,18 @@ async function apri(opz = {}) {
             return { nome: 'Scelto.json' }; },
           salvaInDownload: async o => { reg.chiamate.push(['download', o]); return { nome: o.nome }; },
           addListener: (ev, cb) => { reg.ascolti[ev] = cb; return { remove() {} }; }
-        } }
+        },
+        /* plugin Bluetooth finto: registra chiamate e ascolti (nome dell'evento → funzione) */
+        ...(opz.ble ? { BluetoothLe: {
+          initialize: async o => { reg.ble.push(['initialize', o]); if (opz.bleNegato) throw new Error('Permission denied.'); },
+          isEnabled: async () => ({ value: !opz.bleSpento }), requestEnable: async () => { reg.ble.push(['requestEnable']); },
+          isLocationEnabled: async () => ({ value: false }),
+          requestLEScan: async o => { reg.ble.push(['requestLEScan', o]); }, stopLEScan: async () => { reg.ble.push(['stopLEScan']); },
+          connect: async o => { reg.ble.push(['connect', o]); },
+          startNotifications: async o => { reg.ble.push(['startNotifications', o]); },
+          write: async o => { reg.ble.push(['write', o]); }, disconnect: async o => { reg.ble.push(['disconnect', o]); },
+          addListener: async (ev, cb) => { reg.bleAscolti[ev] = cb; return { remove() { delete reg.bleAscolti[ev]; } }; }
+        } } : {}) }
       };
       win.fetch = async url => {
         if (!(url in reg.file)) return { ok: false, status: 404 };
@@ -72,7 +84,7 @@ async function apri(opz = {}) {
     const { d, w } = a;
     ok(d.getElementById('menu').hidden === false, 'avvio: scheda salvata → menu');
     ok(d.getElementById('install-hint').hidden && d.getElementById('install-hint-2').hidden, 'niente invito a installare (è già un\'app)');
-    ok(/APK 1\.0\.0/.test(d.getElementById('cver').textContent) && /v2\.\d/.test(d.getElementById('cver').textContent), 'piede: versione della PWA + versione dell\'APK');
+    ok(d.getElementById('cver').textContent.includes('APK ' + VERSIONE) && /v2\.\d/.test(d.getElementById('cver').textContent), 'piede: versione della PWA + versione dell\'APK');
     { const l = d.querySelector('footer a'); ok(l.href === 'https://marcomartinellione-create.github.io/TMS/' && l.target === '_blank', 'piede: il link al sito si apre nel browser'); }
     ok(!d.getElementById('file-scheda').hasAttribute('accept') && !d.getElementById('file-scheda-2').hasAttribute('accept'), 'carica scheda: il selettore mostra tutti i file');
     ok(/Apri con TMS Scheda/.test(d.getElementById('benvenuto').textContent), 'benvenuto: spiega «Apri con TMS Scheda»');
@@ -212,6 +224,39 @@ async function apri(opz = {}) {
     a.w.eval('delEsercizio(0)'); await attendi();
     ok(a.bottoniDlg().map(b => b.textContent).join('|') === 'Cancel|OK' && /Remove this exercise/.test(a.testoDlg()), 'inglese: conferma tradotta');
     ok(/Open with TMS Scheda/.test(a.d.getElementById('benvenuto').textContent), 'inglese: «Apri con» tradotto');
+    a.dom.window.close(); }
+
+  /* ── bilancia Bluetooth: il trasporto (nativo.js) col plugin finto ── */
+  { const a = await apri();
+    ok(a.d.getElementById('vai-bil').hidden === true && typeof a.w.tmsBLE === 'undefined', 'senza il plugin Bluetooth: niente voce Bilancia'); a.dom.window.close(); }
+  { const a = await apri({ ble: true }); const { d, reg } = a;
+    ok(d.getElementById('vai-bil').hidden === false, 'con il plugin Bluetooth: la voce «⚖ Bilancia» c\'è');
+    d.getElementById('vai-bil').click(); await attendi(120);
+    const ini = reg.ble.find(x => x[0] === 'initialize');
+    ok(ini && ini[1].androidNeverForLocation === true, 'Bluetooth: si chiede «Dispositivi nelle vicinanze» senza posizione (androidNeverForLocation)');
+    ok(reg.ble.some(x => x[0] === 'requestLEScan') && typeof reg.bleAscolti.onScanResult === 'function', 'Bluetooth: parte la ricerca');
+    reg.bleAscolti.onScanResult({ device: { deviceId: '11:22:33:44:55:66', name: 'Telefono di qualcuno' } });
+    reg.bleAscolti.onScanResult({ device: { deviceId: '80:F4:16:00:00:01', name: 'HEALTHKEEP' } }); await attendi(120);
+    const con = reg.ble.filter(x => x[0] === 'connect');
+    ok(con.length === 1 && con[0][1].deviceId === '80:F4:16:00:00:01', 'Bluetooth: si collega alla bilancia, non al dispositivo vicino');
+    const SERV = '0000ffb0-0000-1000-8000-00805f9b34fb';
+    const n2 = 'notification|80:F4:16:00:00:01|' + SERV + '|0000ffb2-0000-1000-8000-00805f9b34fb', n3 = n2.replace('ffb2-', 'ffb3-');
+    ok(typeof reg.bleAscolti[n2] === 'function' && typeof reg.bleAscolti[n3] === 'function' && typeof reg.bleAscolti['disconnected|80:F4:16:00:00:01'] === 'function',
+       'Bluetooth: ascolta peso in diretta (FFB2), risultati (FFB3) e lo stacco, coi nomi giusti degli eventi');
+    /* un messaggio informativo A1 (valori di prova): la PWA lo conferma, nativo.js lo scrive in esadecimale su FFB1 */
+    const b = new Array(20).fill(0); b[1] = 0x0a; b[3] = 0xA1; b[4] = 0x33; let s = 0; for (let i = 3; i <= 18; i++) s += b[i]; b[19] = s & 0x1F;
+    reg.bleAscolti[n3]({ value: b.map(x => ('0' + x.toString(16)).slice(-2)).join(' ') }); await attendi(60);
+    const wr = reg.ble.find(x => x[0] === 'write');
+    ok(wr && wr[1].characteristic === '0000ffb1-0000-1000-8000-00805f9b34fb' && /^00 03 00 b0 00( 00)+ [0-9a-f]{2}$/.test(wr[1].value) && wr[1].value.split(' ').length === 20,
+       'Bluetooth: la conferma va su FFB1 come testo esadecimale a 20 byte («00 03 00 b0 …»)');
+    a.w.tmsIndietro(); await attendi(60);
+    ok(reg.ble.some(x => x[0] === 'disconnect') && d.getElementById('menu').hidden === false, 'tasto indietro: dalla Bilancia si torna al menu e il collegamento si chiude');
+    a.dom.window.close(); }
+  { const a = await apri({ ble: true, bleNegato: true }); a.d.getElementById('vai-bil').click(); await attendi(120);
+    ok(/Dispositivi nelle vicinanze/.test(a.d.getElementById('bil-stato').textContent) && a.d.getElementById('bil-riprova').hidden === false, 'permesso negato: lo dice e offre «Riprova»');
+    a.dom.window.close(); }
+  { const a = await apri({ ble: true, bleSpento: true, sdk: 30 }); a.d.getElementById('vai-bil').click(); await attendi(120);
+    ok(/spento/.test(a.d.getElementById('bil-stato').textContent) && a.reg.ble.some(x => x[0] === 'requestEnable'), 'Bluetooth spento: chiede di accenderlo e poi lo dice');
     a.dom.window.close(); }
 
   console.log((falliti ? '✗ ' : '✓ ') + passati + ' verifiche passate' + (falliti ? ', ' + falliti + ' FALLITE' : ''));

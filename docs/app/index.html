@@ -168,6 +168,20 @@
  .btn-big:active{background:#7e4a18}
  .btn-lite{display:block;width:100%;margin:7px 0;padding:10px;font:inherit;font-size:13.5px;background:var(--sup);color:#5b4a30;border:1px solid #cdb889;border-radius:var(--r-sm);cursor:pointer;text-align:center;box-shadow:var(--sh-sm)}
  .fine{color:#7a6648;font-size:11.5px;text-align:center;margin-bottom:12px;line-height:1.35}
+ /* bilancia Bluetooth (solo nell'APK): peso in grande, risultati in griglia, elenco delle pesate */
+ .bil-live{text-align:center}
+ .bil-stato{font-size:13.5px;color:#5b4a30;line-height:1.4;min-height:19px}
+ .bil-peso{font-size:44px;font-weight:bold;color:#2b1d10;margin:6px 0 2px;letter-spacing:.5px}
+ .bil-peso small{font-size:18px;color:#7a6648}
+ .bil-ris{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px}
+ .bil-v{display:flex;flex-direction:column}
+ .bil-v b{font-size:17px;color:#2b1d10}
+ .bil-v span{font-size:11.5px;color:#7a6648}
+ .bil-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0e6cf;font-size:13px}
+ .bil-row:last-child{border-bottom:0}
+ .bil-g{flex:1;min-width:0;line-height:1.35}
+ .bil-row.fuori{color:#9b8a6e}
+ .bil-media{font-size:12.5px;color:#5b4a30;margin-top:8px;line-height:1.4}
  #bozza-stato{color:#7a6648;font-size:11.5px;text-align:center;margin:6px 0;min-height:14px}
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:15;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:var(--r-sm);background:#000}
@@ -250,6 +264,10 @@
       <span class="macro-ico">📸</span>
       <span class="macro-l"><span class="macro-name" data-i18n>Foto progressi</span><span class="macro-meta" id="meta-foto"></span></span>
       <span class="chev">›</span></button>
+    <button type="button" class="macro-card" id="vai-bil" hidden>
+      <span class="macro-ico">⚖</span>
+      <span class="macro-l"><span class="macro-name" data-i18n>Bilancia</span><span class="macro-meta" id="meta-bil"></span></span>
+      <span class="chev">›</span></button>
   </div>
   <label class="btn-lite" style="cursor:pointer"><span data-i18n>📂 Carica una nuova scheda</span><input id="file-scheda-2" type="file" accept="application/json,.json" style="display:none"></label>
   <div class="install" id="install-hint-2" hidden></div>
@@ -281,6 +299,23 @@
   <div class="avviso" data-i18n-html>Scatta o scegli una foto per ogni vista: finiscono nel file per il coach e da lì nel <b>tuo storico foto</b> sul PC. 🔒 Restano sul telefono fino a quando invii il file.</div>
   <div class="foto-grid" id="foto-grid"></div>
   <div class="fine" id="foto-nota" data-i18n>Le foto vengono rimpicciolite per non appesantire il file.</div>
+  <button type="button" class="back-btn bottom" data-menu data-i18n>‹ Torna al menu</button>
+</div>
+
+<!-- ── schermata BILANCIA (solo nell'APK: serve il Bluetooth del telefono). Le pesate restano
+       sul telefono e partono col file per il coach; nel TMS la media di ogni settimana va da
+       sola nello Storico misure. ── -->
+<div id="bil" hidden>
+  <button type="button" class="back-btn" data-menu data-i18n>‹ Torna al menu</button>
+  <div class="sez-t" data-i18n>▌ Bilancia</div>
+  <div class="avviso" id="bil-chi"></div>
+  <div class="box bil-live"><div class="bil-stato" id="bil-stato"></div><div class="bil-peso" id="bil-peso">—</div><div class="bil-stato" id="bil-sotto"></div>
+    <button type="button" class="btn-lite" id="bil-riprova" hidden data-i18n>🔄 Riprova</button></div>
+  <div id="bil-ris"></div>
+  <div class="box"><div class="pick-title" data-i18n>Le tue pesate</div><div id="bil-lista"></div></div>
+  <button type="button" class="btn-lite" id="bil-invia" data-i18n>📤 Manda solo le pesate</button>
+  <div class="fine" data-i18n-html>Le pesate restano su <b>questo telefono</b> e partono anche col file per il coach: nel TMS la media di ogni settimana va da sola nello storico delle misure.</div>
+  <button type="button" class="btn-lite" id="bil-dimentica" hidden data-i18n>Usa un’altra bilancia</button>
   <button type="button" class="back-btn bottom" data-menu data-i18n>‹ Torna al menu</button>
 </div>
 
@@ -318,7 +353,7 @@
    coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.6';
+const CVER='2.7';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -436,7 +471,56 @@ const TT={en:{
   'Vuoi togliere questa foto?':'Remove this photo?',
   'Non riesco a leggere questa immagine.':'I can\'t read this image.',
   'Giorno completato':'Day completed',
-  'foto':'photos'
+  'foto':'photos',
+  /* bilancia */
+  "Bilancia":"Scale",
+  "▌ Bilancia":"▌ Scale",
+  "🔄 Riprova":"🔄 Try again",
+  "Le tue pesate":"Your weigh-ins",
+  "📤 Manda solo le pesate":"📤 Send only the weigh-ins",
+  "Usa un’altra bilancia":"Use another scale",
+  "Le pesate restano su <b>questo telefono</b> e partono anche col file per il coach: nel TMS la media di ogni settimana va da sola nello storico delle misure.":"Weigh-ins stay on <b>this phone</b> and also go out with the file for the coach: in the TMS the average of each week goes into the measurement history by itself.",
+  "Senza il permesso «Dispositivi nelle vicinanze» l’app non può parlare con la bilancia. Tocca «Riprova» e poi «Consenti».":"Without the “Nearby devices” permission the app cannot talk to the scale. Tap “Try again” and then “Allow”.",
+  "Il Bluetooth del telefono è spento: accendilo e tocca «Riprova».":"The phone’s Bluetooth is off: turn it on and tap “Try again”.",
+  "Su questo telefono, per cercare la bilancia, Android vuole la Posizione accesa: accendila e tocca «Riprova». L’app non la usa e non la salva.":"On this phone Android wants Location turned on to look for the scale: turn it on and tap “Try again”. The app neither uses nor saves it.",
+  "Il Bluetooth non risponde.":"Bluetooth is not responding.",
+  "Preparo il Bluetooth…":"Getting Bluetooth ready…",
+  "Sali sulla bilancia a piedi nudi: si accende e la trovo.":"Step on the scale barefoot: it turns on and I find it.",
+  "Non la trovo ancora. Se sul telefono c’è FitDays, chiudilo: la bilancia accetta un solo collegamento.":"I can’t find it yet. If FitDays is on the phone, close it: the scale accepts only one connection.",
+  "Bilancia collegata: resta fermo.":"Scale connected: stand still.",
+  "Peso in misura…":"Measuring weight…",
+  "Peso fermo. Tieni le maniglie a braccia distese: misuro la composizione…":"Weight steady. Hold the handles with straight arms: measuring body composition…",
+  "✔ Pesata salvata. Puoi scendere.":"✔ Weigh-in saved. You can step off.",
+  "Senza altezza ed età nella scheda ho salvato solo peso e misure grezze.":"Without height and age in the program I saved only weight and raw readings.",
+  "Solo il peso: per la composizione tieni le maniglie fino alla fine.":"Weight only: for body composition hold the handles until the end.",
+  "Pesata per":"Weigh-in for",
+  "anni":"years",
+  "⚠ La scheda non porta altezza ed età: salvo il peso e le misure grezze, grasso e muscolo li calcolo quando arriva una scheda nuova dal TMS.":"⚠ The program has no height and age: I save the weight and raw readings, and work out fat and muscle when a new program arrives from the TMS.",
+  "Ultima pesata":"Latest weigh-in",
+  "Grasso":"Fat",
+  "Muscolo":"Muscle",
+  "Acqua":"Water",
+  "Grasso viscerale":"Visceral fat",
+  "Metabolismo basale":"Basal metabolism",
+  "Età metabolica":"Metabolic age",
+  "BMI":"BMI",
+  "Proteine":"Protein",
+  "Massa ossea":"Bone mass",
+  "Togli la pesata di":"Remove the weigh-in of",
+  "Togli":"Remove",
+  "No":"No",
+  "grasso":"fat",
+  "muscolo":"muscle",
+  "Togli questa pesata":"Remove this weigh-in",
+  "Ancora nessuna pesata.":"No weigh-ins yet.",
+  "Media di questa settimana":"This week’s average",
+  "Nella media conta una pesata al giorno, la prima: le altre sono in grigio.":"One weigh-in per day counts towards the average, the first one: the others are greyed out.",
+  "pesata questa settimana":"weigh-in this week",
+  "pesate questa settimana":"weigh-ins this week",
+  "nessuna pesata questa settimana":"no weigh-ins this week",
+  "pesati e il peso va al coach":"weigh yourself and the weight goes to the coach",
+  "pesata della bilancia":"scale weigh-in",
+  "pesate della bilancia":"scale weigh-ins"
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 function applyI18n(){
@@ -512,7 +596,7 @@ function ultimaDi(nome){ const u=(SCHEDA&&SCHEDA.ultima)||null; return (u&&u[Str
 function avvia(){
   const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
-  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','riepilogo','foto'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); return; }
+  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','riepilogo','foto','bil'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); return; }
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
@@ -525,6 +609,12 @@ function avvia(){
   renderAlim();
   renderScheda();
   fotoLeggi().then(f=>{ FOTO=f||{}; renderFoto(); }).catch(()=>{ FOTO={}; renderFoto(); });
+  /* pesate della bilancia (per profilo): quelle salvate senza composizione la prendono adesso,
+     se la scheda porta altezza ed età */
+  PESATE=[]; PES_TOGLI=''; bilAggiornaMenu();
+  pesLeggi().then(l=>{ PESATE=Array.isArray(l)?l:[]; const prima=JSON.stringify(PESATE);
+    PESATE.forEach(p=>{ if(p&&p.imp&&p.grasso==null) pesComponi(p); });
+    if(JSON.stringify(PESATE)!==prima) pesSalva(); renderBil(); }).catch(()=>{ PESATE=[]; renderBil(); });
   mostra('menu'); mostraInstallHint();
 }
 /* ricostruisce lista giorni e pagine-giorno dal modello WROWS; poi riaggancia gli
@@ -614,7 +704,8 @@ function rigaEsercizio(r){
       (ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':'')+
     '</div></div>';
 }
-function mostra(id){ ['menu','home','alim','riepilogo','foto'].forEach(s=>{ $(s).hidden=(id!==s); });
+function mostra(id){ ['menu','home','alim','riepilogo','foto','bil'].forEach(s=>{ $(s).hidden=(id!==s); });
+  if(id!=='bil') bilEsci();   /* fuori dalla pagina Bilancia il Bluetooth si ferma */
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
 /* fase visibile dentro la pagina-giorno ('w' riscaldamento · 'e' esercizi · 'f' fine) */
@@ -760,7 +851,7 @@ function risali(){
   if(!$('riepilogo').hidden){ aggiornaStato(); mostra('home'); return true; }
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
   if(giorno){ aggiornaStato(); mostra('home'); return true; }
-  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden){ aggiornaStato(); mostra('menu'); return true; }
+  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden || !$('bil').hidden){ aggiornaStato(); mostra('menu'); return true; }
   return false;   /* siamo al menu: non c'è più nulla sopra, l'app può chiudersi */
 }
 window.addEventListener('popstate',()=>{ if(navLivelli>0) navLivelli--; risali(); });
@@ -780,7 +871,234 @@ function renderRiepilogo(){
   box.innerHTML='<div class="avviso">'+tt('Stai per creare il file da rimandare al coach: ecco cosa contiene.')+'</div>'+
     '<div class="box">'+righe+'</div>'+
     '<div class="fine"><b>'+totF+'/'+totEx+'</b> '+tt('esercizi segnati')+' · <b>'+sed+'</b> '+tt('sedute con fatica e durata')+'</div>'+
+    (PESATE.length?'<div class="fine">⚖ <b>'+PESATE.length+'</b> '+(PESATE.length===1?tt('pesata della bilancia'):tt('pesate della bilancia'))+'</div>':'')+
     (totF===0?'<div class="avviso">'+tt('⚠ Non hai ancora segnato nessun esercizio: il file sarebbe vuoto.')+'</div>':'');
+}
+
+/* ── BILANCIA Bluetooth (solo nell'APK: il trasporto è window.tmsBLE, in nativo.js) ──
+      Bilance della famiglia FitDays/iComon a 8 elettrodi (Healthkeep FG2001B-A, Fitdays
+      FG2202WB…): servizio 0xFFB0, FFB1 scrittura, FFB2 peso in diretta, FFB3 risultati.
+      Messaggi di 20 byte [seq][len][00][tipo][…][chk], chk = somma(byte 3..18) & 0x1F
+      (i bit alti dell'ultimo byte possono portare segnali, si guardano solo i 5 bassi).
+      A1 info → conferma B0 · A2 peso in diretta · A3 risultato: se len > 0x10 in DUE parti
+      (la seconda ha byte2 = 01 e lo stesso seq), con 10 impedenze in decimi di ohm.
+      La bilancia manda solo peso e impedenze: grasso, acqua, muscolo… si calcolano qui con
+      la formula WLA25 di FitDays, come l'ha ricostruita il progetto libero openScale
+      (github.com/oliexdev/openScale, Wla25BodyComposition, GPL): riscritta da zero.
+      Le pesate restano sul telefono (IndexedDB, chiave per profilo, NON legata alla scheda:
+      una scheda nuova non le cancella) e partono col file per il coach (campo `pesate`). ── */
+const BIL_NOMI=/^(healthkeep|my_scale|sacoma|hoffen|runstar|lescale)/i;
+const BIL_KEY_ID='tms-bilancia-id';
+let PESATE=[], PES_TOGLI='';
+const BIL={attivo:false, id:'', collegando:false, outSeq:0, parte1:null, visteLive:false, ultimiGrammi:-1,
+  live:null, liveStato:0, stato:'', motivo:'', msg:'', ultima:null, cercaDa:0, timer:null, fattoConn:false, gen:0};
+function pesKey(){ return 'tms-pesate-'+(((SCHEDA&&SCHEDA.profilo)||{}).slug||'cliente'); }
+async function pesSalva(){ const s=JSON.stringify(PESATE);
+  try{ if(typeof indexedDB!=='undefined'){ await idbReq('readwrite',st=>st.put(s,pesKey())); return; } }catch(e){}
+  try{ localStorage.setItem(pesKey(),s); }catch(e){} }
+async function pesLeggi(){
+  try{ if(typeof indexedDB!=='undefined'){ const s=await idbReq('readonly',st=>st.get(pesKey())); if(s) return JSON.parse(s); } }catch(e){}
+  try{ const s=localStorage.getItem(pesKey()); if(s) return JSON.parse(s); }catch(e){}
+  return []; }
+
+/* — messaggi della bilancia — */
+function bilSomma(b){ let s=0; for(let i=3;i<=18;i++) s+=b[i]&255; return s; }
+function bilChkOk(b){ return Array.isArray(b) && b.length===20 && (b[19]&0x1F)===(bilSomma(b)&0x1F); }
+function bilU16(b,i){ return ((b[i]&255)<<8)|(b[i+1]&255); }
+function bilGrammi(b,i){ return (((b[i]&255)<<16)|((b[i+1]&255)<<8)|(b[i+2]&255))&0x07FFFF; }
+/* conferma B0 di un messaggio ricevuto (stesso formato: seq nostro, len 3, tipo B0, seq confermato) */
+function bilConferma(seqRicevuto, seqNostro){
+  const f=new Array(20).fill(0); f[0]=seqNostro&255; f[1]=0x03; f[3]=0xB0; f[4]=seqRicevuto&255;
+  f[19]=bilSomma(f)&0x1F; return f; }
+/* le 10 impedenze (ohm) dalle due parti del risultato */
+function bilImpedenze(p1,p2){
+  return [9,11,13,15,17].map(i=>bilU16(p1,i)/10).concat([3,5,7,9,11].map(i=>bilU16(p2,i)/10)); }
+
+/* — formula WLA25 (8 elettrodi). Il peso e alcuni passaggi si arrotondano al decimo come fa
+     la libreria originale, in virgola mobile a 32 bit: conta per l'ultimo decimale. — */
+function r1(x){
+  const F=Math.fround, v=F(x), whole=Math.trunc(v);
+  const dec=F(F(v%1)*10), port=(F(dec%1)>0.5)? F(dec+1) : dec;
+  return F(F(Math.trunc(port)/10)+whole); }
+function wla25ImpOk(imp){ return Array.isArray(imp) && imp.length===10 && imp.every((x,i)=>isFinite(x) && ((i===0||i===5)? x>=1 : x>=100)); }
+function wla25(altezza, pesoKg, imp){
+  if(!(altezza>=100) || !(pesoKg>0) || !wla25ImpOk(imp)) return null;
+  const peso=r1(pesoKg), bmi=peso*10000/(altezza*altezza);
+  const s0=imp[0]*0.826, s5=imp[5]<=imp[0]? imp[5]*0.826 : s0-3;
+  const fat=peso*-0.138+altezza*0.164+r1(bmi)*2.657+imp[2]*-0.053+imp[1]*-0.000491+s0*-0.03+imp[4]*-0.127+imp[3]*-0.052
+    +imp[7]*0.07+imp[6]*0.019+s5*0.439+imp[9]*0.153+imp[8]*0.07-88.052;
+  const pct=Math.min(60,Math.max(3,fat/peso*100)), grKg=r1(pct/100*peso), ffm=peso-grKg, acquaKg=ffm*0.733;
+  const bfr=r1(pct), musc=r1((ffm*0.733+ffm*0.2)/peso*100);
+  return {bmi:r1(bmi), grasso:bfr, acqua:r1(acquaKg/peso*100), muscolo:r1(musc/100*peso), ossa:r1(ffm*0.067),
+    proteine:r1(ffm*0.2/peso*100), visc:Math.min(20,Math.max(1,Math.trunc(ffm*-0.029+grKg*0.502-0.477))),
+    bmr:Math.trunc(ffm*21.6+370)}; }
+/* età metabolica: età ± anni secondo la fascia di grasso, diversa per sesso */
+function etaMetabolica(eta, sesso, grasso){
+  if(!(eta>=10)) return eta||null;
+  const M=[[14,-3],[19,-2],[24,-1],[27,1],[30,2],[33,3],[36,4]], D=[[24,-3],[28,-2],[32,-1],[35,1],[38,2],[42,3],[45,4],[46,0]];
+  const f=(sesso==='F'?D:M).find(x=>grasso<x[0]); return eta+(f?f[1]:5); }
+const d1=x=>Math.round(x*10)/10;
+/* completa una pesata con la composizione (altezza, età e sesso arrivano con la scheda) */
+function pesComponi(p){
+  const c=(SCHEDA&&SCHEDA.corpo)||{}, alt=+c.altezza||0, eta=+c.eta||0;
+  const w=p.imp? wla25(alt, p.peso, p.imp) : null;
+  if(w){ ['grasso','acqua','muscolo','ossa','proteine','bmi'].forEach(k=>{ p[k]=d1(w[k]); }); p.visc=w.visc; p.bmr=w.bmr;
+    const em=etaMetabolica(eta, c.sesso, w.grasso); if(em) p.eta_met=em; }
+  else if(alt>=100) p.bmi=d1(p.peso*10000/(alt*alt));
+  return p; }
+function dataLoc(d){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
+function oraLoc(d){ const z=n=>String(n).padStart(2,'0'); return z(d.getHours())+':'+z(d.getMinutes())+':'+z(d.getSeconds()); }
+async function bilNuovaPesata(pesoKg, bpm, imp){
+  const ora=new Date();
+  const p={id:'', data:dataLoc(ora), ora:oraLoc(ora), peso:Math.round(pesoKg*100)/100};
+  p.id=p.data+'T'+p.ora+'|'+p.peso;
+  if(bpm>=25&&bpm<=250) p.bpm=bpm;
+  if(wla25ImpOk(imp)) p.imp=imp;
+  pesComponi(p);
+  PESATE.push(p); BIL.ultima=p;
+  await pesSalva();
+  try{ if(navigator.vibrate) navigator.vibrate(120); }catch(e){}
+  return p; }
+/* un messaggio arrivato dalla bilancia (car = 'ffb2' | 'ffb3', b = 20 byte) */
+function bilMessaggio(car, b){
+  if(!bilChkOk(b)) return;
+  const tipo=b[3]&255;
+  if(car==='ffb2' && b[2]===0 && tipo===0xA2){
+    const g=bilGrammi(b,6); BIL.live=g/1000; BIL.liveStato=b[4]&255; if(g>0) BIL.visteLive=true;
+    /* dopo il risultato si resta su «Pesata salvata» finché non sale qualcuno con un collegamento nuovo */
+    if(BIL.fattoConn || (g===0 && BIL.stato==='fatto')){ bilStato('fatto'); return; }
+    bilStato(g>0? 'misura' : 'collegata'); return; }
+  if(car!=='ffb3') return;
+  if(b[2]===0 && tipo===0xA1){ bilScrivi(bilConferma(b[0], BIL.outSeq++)); return; }
+  if(b[2]===0 && tipo===0xA3){
+    if((b[1]&255)>0x10){ BIL.parte1=b; return; }
+    bilRisultato(b, null); return; }        /* risultato in un messaggio solo: peso (e battito) */
+  if(b[2]===1 && BIL.parte1 && b[0]===BIL.parte1[0]){ const p1=BIL.parte1; BIL.parte1=null; bilRisultato(p1, bilImpedenze(p1,b)); }
+  /* A4 (pesate fatte quando il telefono non c'era) NON si prendono: non si sa di chi siano */
+}
+function bilRisultato(p1, imp){
+  const g=bilGrammi(p1,5);
+  if(!g) return;
+  if(!BIL.visteLive) return;             /* risultato ripetuto appena collegati: non è una pesata nuova */
+  if(g===BIL.ultimiGrammi) return;       /* la bilancia lo ripete finché non lo confermiamo */
+  BIL.ultimiGrammi=g; BIL.fattoConn=true;
+  bilScrivi(bilConferma(p1[0], BIL.outSeq++));
+  bilNuovaPesata(g/1000, p1[8]&255, imp).then(()=>{ bilStato('fatto'); renderBil(); bilAggiornaMenu(); });
+}
+function bilScrivi(f){ if(!window.tmsBLE||!BIL.id) return; try{ Promise.resolve(window.tmsBLE.scrivi(BIL.id,'ffb1',f)).catch(()=>{}); }catch(e){} }
+
+/* — collegamento: si cerca finché la pagina è aperta; la bilancia si fa vedere solo quando
+     ci si sale sopra. La prima volta la si riconosce dal nome, poi dal suo indirizzo. — */
+function bilIdNoto(){ try{ return localStorage.getItem(BIL_KEY_ID)||''; }catch(e){ return ''; } }
+async function bilAvvia(){
+  if(!window.tmsBLE || BIL.attivo) return;
+  BIL.attivo=true; const gen=++BIL.gen; bilStato('preparo');
+  let r=null; try{ r=await window.tmsBLE.prepara(); }catch(e){ r={ok:false, motivo:'errore', msg:(e&&e.message)||String(e)}; }
+  if(!BIL.attivo || gen!==BIL.gen) return;
+  if(!r||!r.ok){ bilStato('errore', r&&r.motivo, r&&r.msg); BIL.attivo=false; return; }
+  bilCerca(); }
+function bilCerca(){
+  if(!BIL.attivo) return;
+  const noto=bilIdNoto(); BIL.cercaDa=Date.now(); bilStato('cerco');
+  clearTimeout(BIL.timer); BIL.timer=setTimeout(()=>{ if(BIL.attivo && BIL.stato==='cerco') bilStato('cerco'); }, 30500);
+  Promise.resolve(window.tmsBLE.cerca(d=>noto? d.id===noto : BIL_NOMI.test(d.nome||''), d=>{ bilCollega(d); }))
+    .catch(e=>{ bilStato('errore','errore',(e&&e.message)||String(e)); BIL.attivo=false; }); }
+async function bilCollega(d){
+  if(BIL.collegando || BIL.id || !BIL.attivo) return;
+  BIL.collegando=true;
+  try{ await window.tmsBLE.fermaRicerca(); }catch(e){}
+  BIL.outSeq=0; BIL.parte1=null; BIL.visteLive=false; BIL.ultimiGrammi=-1; BIL.live=null; BIL.fattoConn=false;
+  try{ await window.tmsBLE.collega(d.id,{onDati:bilMessaggio, onStaccato:bilStaccata}); }
+  catch(e){ BIL.collegando=false; if(BIL.attivo) setTimeout(bilCerca,1500); return; }
+  BIL.collegando=false;
+  if(!BIL.attivo){ try{ window.tmsBLE.stacca(d.id); }catch(e){} return; }
+  BIL.id=d.id; try{ localStorage.setItem(BIL_KEY_ID, d.id); }catch(e){}
+  if(BIL.stato!=='fatto') bilStato('collegata');
+  renderBil(); }
+function bilStaccata(){
+  BIL.id=''; BIL.parte1=null;
+  if(BIL.attivo){ if(BIL.stato!=='fatto') bilStato('cerco'); setTimeout(bilCerca,1500); } }
+function bilEsci(){
+  if(!BIL.attivo && !BIL.id) return;
+  BIL.attivo=false; BIL.gen++; clearTimeout(BIL.timer);
+  if(window.tmsBLE){ try{ Promise.resolve(window.tmsBLE.fermaRicerca()).catch(()=>{}); }catch(e){}
+    if(BIL.id){ try{ Promise.resolve(window.tmsBLE.stacca(BIL.id)).catch(()=>{}); }catch(e){} } }
+  BIL.id=''; BIL.collegando=false; }
+const BIL_ERR={
+  permesso:'Senza il permesso «Dispositivi nelle vicinanze» l’app non può parlare con la bilancia. Tocca «Riprova» e poi «Consenti».',
+  spento:'Il Bluetooth del telefono è spento: accendilo e tocca «Riprova».',
+  posizione:'Su questo telefono, per cercare la bilancia, Android vuole la Posizione accesa: accendila e tocca «Riprova». L’app non la usa e non la salva.',
+  errore:'Il Bluetooth non risponde.'};
+function bilStato(s, motivo, msg){
+  BIL.stato=s;
+  if(s==='errore'){ if(motivo!==undefined){ BIL.motivo=motivo||'errore'; BIL.msg=msg||''; } motivo=BIL.motivo; msg=BIL.msg; }
+  const st=$('bil-stato'), so=$('bil-sotto'), pe=$('bil-peso'), rp=$('bil-riprova');
+  if(!st) return;
+  let a='', b='';
+  if(s==='preparo') a=tt('Preparo il Bluetooth…');
+  else if(s==='cerco'){ a=tt('Sali sulla bilancia a piedi nudi: si accende e la trovo.');
+    if(Date.now()-BIL.cercaDa>30000) b=tt('Non la trovo ancora. Se sul telefono c’è FitDays, chiudilo: la bilancia accetta un solo collegamento.'); }
+  else if(s==='collegata') a=tt('Bilancia collegata: resta fermo.');
+  else if(s==='misura') a=(BIL.liveStato===1)? tt('Peso in misura…') : tt('Peso fermo. Tieni le maniglie a braccia distese: misuro la composizione…');
+  else if(s==='fatto'){ a=tt('✔ Pesata salvata. Puoi scendere.');
+    if(BIL.ultima && !BIL.ultima.grasso) b=BIL.ultima.imp? tt('Senza altezza ed età nella scheda ho salvato solo peso e misure grezze.') : tt('Solo il peso: per la composizione tieni le maniglie fino alla fine.'); }
+  else if(s==='errore'){ a=tt(BIL_ERR[motivo]||BIL_ERR.errore); if(motivo==='errore'&&msg) b=String(msg); }
+  st.textContent=a; so.textContent=b;
+  if(pe) pe.innerHTML=(BIL.live!=null && (s==='misura'||s==='collegata'||s==='fatto'))? esc(nfP(BIL.live,1))+' <small>kg</small>' : '—';
+  if(rp) rp.hidden=(s!=='errore');
+}
+const nfP=(v,dec)=>(+v).toLocaleString(LANGP==='en'?'en-GB':'it-IT',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+function giornoBreve(data){ try{ return new Date(data+'T12:00:00').toLocaleDateString(LANGP==='en'?'en-GB':'it-IT',{weekday:'short',day:'2-digit',month:'2-digit'}); }catch(e){ return data; } }
+/* una per giorno: la prima completa, se quel giorno ce n'è una con la composizione (come nel TMS) */
+function pesContate(lista){ const g={}; lista.slice().sort((a,b)=>(a.data+a.ora).localeCompare(b.data+b.ora)).forEach(p=>{ (g[p.data]=g[p.data]||[]).push(p); });
+  return Object.keys(g).map(k=>g[k].find(p=>p.grasso!=null)||g[k][0]); }
+function lunediDi(data){ const d=new Date(data+'T12:00:00'); d.setDate(d.getDate()-((d.getDay()+6)%7)); return dataLoc(d); }
+function pesMedia(lista,k){ const v=lista.map(p=>p[k]).filter(x=>x!=null&&isFinite(x)); return v.length? v.reduce((a,b)=>a+b,0)/v.length : null; }
+function bilAggiornaMenu(){
+  const vb=$('vai-bil'); if(vb) vb.hidden=!(window.tmsBLE && SCHEDA);
+  const mb=$('meta-bil'); if(!mb) return;
+  const sett=lunediDi(dataLoc(new Date())), n=pesContate(PESATE.filter(p=>lunediDi(p.data)===sett)).length;
+  mb.textContent=n? (n+' '+(n===1?tt('pesata questa settimana'):tt('pesate questa settimana'))) : (PESATE.length? tt('nessuna pesata questa settimana') : tt('pesati e il peso va al coach'));
+}
+function renderBil(){
+  bilAggiornaMenu();
+  const chi=$('bil-chi'); if(!chi) return;
+  const c=(SCHEDA&&SCHEDA.corpo)||{}, nome=((SCHEDA&&SCHEDA.profilo)||{}).nome||'';
+  chi.innerHTML=tt('Pesata per')+' <b>'+esc(nome)+'</b>'+((+c.altezza>=100&&+c.eta)? ' · '+(+c.altezza)+' cm · '+(+c.eta)+' '+tt('anni')+(c.sesso?' · '+esc(c.sesso):'')
+    : '<br>'+tt('⚠ La scheda non porta altezza ed età: salvo il peso e le misure grezze, grasso e muscolo li calcolo quando arriva una scheda nuova dal TMS.'));
+  /* ultima pesata */
+  const ul=PESATE.length? PESATE.slice().sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora))[0] : null, ris=$('bil-ris');
+  if(ris) ris.innerHTML=ul? '<div class="box"><div class="pick-title">'+tt('Ultima pesata')+' · '+esc(giornoBreve(ul.data))+' '+esc(String(ul.ora||'').slice(0,5))+'</div><div class="bil-ris">'+
+      [['Peso',ul.peso,1,'kg'],['Grasso',ul.grasso,1,'%'],['Muscolo',ul.muscolo,1,'kg'],['Acqua',ul.acqua,1,'%'],['Grasso viscerale',ul.visc,0,''],
+       ['Metabolismo basale',ul.bmr,0,'kcal'],['Età metabolica',ul.eta_met,0,tt('anni')],['BMI',ul.bmi,1,''],['Proteine',ul.proteine,1,'%'],['Massa ossea',ul.ossa,1,'kg']]
+      .filter(x=>x[1]!=null).map(x=>'<div class="bil-v"><b>'+esc(nfP(x[1],x[2]))+(x[3]?' '+esc(x[3]):'')+'</b><span>'+esc(tt(x[0]))+'</span></div>').join('')+'</div></div>' : '';
+  /* elenco: le ultime 12, la media della settimana in corso */
+  const lista=$('bil-lista'); if(!lista) return;
+  const ord=PESATE.slice().sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora)), contate=new Set(pesContate(PESATE).map(p=>p.id));
+  const sett=lunediDi(dataLoc(new Date())), cs=pesContate(PESATE.filter(p=>lunediDi(p.data)===sett));
+  lista.innerHTML=(ord.length? ord.slice(0,12).map(p=> PES_TOGLI===p.id?
+      '<div class="bil-row"><span class="bil-g">'+tt('Togli la pesata di')+' '+esc(giornoBreve(p.data))+' '+esc(String(p.ora||'').slice(0,5))+'?</span>'+
+      '<button type="button" class="mini del" data-pesok="'+esc(p.id)+'">'+tt('Togli')+'</button><button type="button" class="mini" data-pesno="1">'+tt('No')+'</button></div>'
+    : '<div class="bil-row'+(contate.has(p.id)?'':' fuori')+'"><span class="bil-g">'+esc(giornoBreve(p.data))+' '+esc(String(p.ora||'').slice(0,5))+' · <b>'+esc(nfP(p.peso,1))+' kg</b>'+
+      (p.grasso!=null?' · '+tt('grasso')+' '+esc(nfP(p.grasso,1))+' %':'')+(p.muscolo!=null?' · '+tt('muscolo')+' '+esc(nfP(p.muscolo,1))+' kg':'')+'</span>'+
+      '<button type="button" class="mini del" data-pesx="'+esc(p.id)+'" title="'+esc(tt('Togli questa pesata'))+'">🗑</button></div>').join('')
+    : '<div class="fine" style="margin:4px 0">'+tt('Ancora nessuna pesata.')+'</div>')+
+    (cs.length? '<div class="bil-media"><b>'+tt('Media di questa settimana')+'</b> ('+cs.length+' '+(cs.length===1?tt('giorno'):tt('giorni'))+'): '+esc(nfP(pesMedia(cs,'peso'),1))+' kg'+
+      (pesMedia(cs,'grasso')!=null?' · '+tt('grasso')+' '+esc(nfP(pesMedia(cs,'grasso'),1))+' %':'')+(pesMedia(cs,'muscolo')!=null?' · '+tt('muscolo')+' '+esc(nfP(pesMedia(cs,'muscolo'),1))+' kg':'')+'</div>' : '')+
+    (ord.length>1?'<div class="fine" style="margin:6px 0 0">'+tt('Nella media conta una pesata al giorno, la prima: le altre sono in grigio.')+'</div>':'');
+  lista.querySelectorAll('[data-pesx]').forEach(b=>{ b.onclick=()=>{ PES_TOGLI=b.getAttribute('data-pesx'); renderBil(); }; });
+  lista.querySelectorAll('[data-pesno]').forEach(b=>{ b.onclick=()=>{ PES_TOGLI=''; renderBil(); }; });
+  lista.querySelectorAll('[data-pesok]').forEach(b=>{ b.onclick=async()=>{ const id=b.getAttribute('data-pesok');
+    PESATE=PESATE.filter(p=>p.id!==id); PES_TOGLI=''; await pesSalva(); renderBil(); }; });
+  const inv=$('bil-invia'); if(inv) inv.disabled=!PESATE.length;
+  const dim=$('bil-dimentica'); if(dim) dim.hidden=!bilIdNoto();
+  if(BIL.stato) bilStato(BIL.stato);
+}
+/* «📤 Manda solo le pesate»: un rientro senza esercizi, solo con le pesate */
+function rientroPesate(){
+  const out={tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
+    esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:[], sedute:[], foto:[], pesate:PESATE.slice()};
+  return {nome:'Rientro_'+(((SCHEDA.profilo||{}).slug)||'cliente')+'_'+out.compilata+'_pesate.json', testo:JSON.stringify(out,null,1)};
 }
 
 /* ── rientro per il coach: STESSO formato (tipo tms-rientro, import TMS invariato).
@@ -800,7 +1118,8 @@ function costruisciRientro(){
      salva nel tab Corpo con la data dello scatto */
   const foto=FOTO_VISTE.filter(v=>FOTO[v]&&FOTO[v].img).map(v=>({tag:v, data:FOTO[v].data||new Date().toISOString().slice(0,10), img:FOTO[v].img}));
   return {tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
-    esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:righe, sedute:sedute, foto:foto};
+    esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:righe, sedute:sedute, foto:foto,
+    pesate:PESATE.slice()};   /* pesate della bilancia: tutte (il TMS riconosce quelle già arrivate) */
 }
 /* ── RIENTRO: dove salvarlo lo decide il cliente (richiesta di Marco 2026-09-29) ──
    Prima: se il telefono sapeva condividere si apriva DIRETTAMENTE il pannello di
@@ -851,8 +1170,8 @@ async function salvaRientroCome(via, nome, testo){
     alert(tt('Salvataggio non riuscito:')+' '+((e&&e.message)||e)); return false;
   }
 }
-async function inviaRientro(){
-  const {nome, testo}=rientroPronto();
+async function inviaRientro(pronto){
+  const {nome, testo}=pronto||rientroPronto();
   const vie=stradeSalvataggio(nome, testo);
   const voci={
     condividi:['📤', tt('Invia o salva con…'), tt('WhatsApp, email, Drive, File… — scegli tu nella schermata che si apre')],
@@ -884,6 +1203,7 @@ function wire(){
   const vs=$('vai-scheda'); if(vs) vs.onclick=()=>{ navEntra(); mostra('home'); };
   const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled){ navEntra(); mostra('alim'); } };
   const vf=$('vai-foto'); if(vf) vf.onclick=()=>{ navEntra(); mostra('foto'); };
+  const vb=$('vai-bil'); if(vb) vb.onclick=()=>{ navEntra(); mostra('bil'); renderBil(); bilAvvia(); };
 }
 function giornoIndex(g){ const i=GIORNI.indexOf(g); return i<0?0:i; }
 /* ── aggiungi / elimina / test 1RM / modifica un esercizio (agiscono su WROWS) ── */
@@ -1011,7 +1331,13 @@ $('doveov').onclick=e=>{ if(e.target===$('doveov')) chiudiDove(); };
 $('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; };
 /* invio: prima il riepilogo, poi il file */
 $('invia').onclick=()=>{ renderRiepilogo(); navEntra(); mostra('riepilogo'); };
-$('invia-ok').onclick=inviaRientro;
+$('invia-ok').onclick=()=>inviaRientro();
+/* bilancia: solo le pesate, riprova, un'altra bilancia */
+$('bil-invia').onclick=()=>{ if(PESATE.length) inviaRientro(rientroPesate()); };
+$('bil-riprova').onclick=()=>{ bilEsci(); bilAvvia(); };
+$('bil-dimentica').onclick=()=>{ try{ localStorage.removeItem(BIL_KEY_ID); }catch(e){} bilEsci(); renderBil(); bilAvvia(); };
+/* app in secondo piano: il Bluetooth si ferma; tornando sulla pagina Bilancia riparte */
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) bilEsci(); else if(!$('bil').hidden) bilAvvia(); });
 /* barra della vista esercizio a schermo pieno */
 /* controlli fissi della barra timer di recupero */
 $('t-pause').onclick=timerToggle;
