@@ -695,6 +695,39 @@ svg .grid{stroke:var(--paper-3); stroke-width:1}
 svg .lbl{fill:var(--ink-3); font-size:var(--graf-fs,9px); font-family:var(--font-mono)}
 svg .lbl-fuori{fill:var(--danger); font-weight:700}
 svg .ln{fill:none; stroke-width:2}
+/* ── grafici a linee interattivi (05-grafici.js, grafInterattivo) ──────────────────────────────────
+   Passando col mouse: linea verticale tratteggiata sulla settimana più vicina, i punti di ogni linea
+   accesi con un anello del colore della carta, il riquadro dei valori accanto. Tutto scivola da una
+   settimana all'altra (stessa curva per guida, punti e riquadro). Entrata: le linee si disegnano da
+   sinistra a destra (rettangolo di ritaglio che si allarga). */
+svg.graf-lin .g-hover{pointer-events:none; opacity:0; transition:opacity .18s ease}
+svg.graf-lin.g-on .g-hover{opacity:1}
+svg.graf-lin .g-guida{stroke:var(--ink-4); stroke-width:1; stroke-dasharray:3 3; transition:transform .22s cubic-bezier(.22,.8,.3,1)}
+svg.graf-lin .g-punto{stroke:var(--paper); stroke-width:2.2; transition:transform .22s cubic-bezier(.22,.8,.3,1), opacity .15s ease}
+svg.graf-lin.g-salto .g-guida, svg.graf-lin.g-salto .g-punto{transition:none}
+svg.graf-lin .g-clip{transform-origin:0 0}
+svg.graf-lin.g-attesa .g-clip{transform:scaleX(0)}
+svg.graf-lin.g-entra .g-clip{animation:grafEntra .95s cubic-bezier(.3,.75,.25,1) both}
+@keyframes grafEntra{from{transform:scaleX(0)} to{transform:scaleX(1)}}
+.graf-tip{position:fixed; left:0; top:0; z-index:9000; pointer-events:none; min-width:150px; max-width:320px; padding:8px 11px 7px;
+  background:var(--paper); color:var(--ink); border:1px solid var(--border); border-radius:var(--r-sm); box-shadow:var(--shadow-lg);
+  font-size:12px; line-height:1.4; opacity:0; transition:opacity .16s ease, transform .2s cubic-bezier(.22,.8,.3,1)}
+.graf-tip.is-on{opacity:1}
+.graf-tip.g-salto{transition:opacity .16s ease}
+.graf-tip__t{font-family:var(--font-mono); font-size:11px; color:var(--ink-3); letter-spacing:.03em; margin-bottom:4px}
+.graf-tip__r{display:flex; align-items:center; gap:7px; padding:1px 0}
+.graf-tip__c{width:9px; height:9px; border-radius:2px; flex:none}
+.graf-tip__n{flex:1; color:var(--ink-2); min-width:0}
+.graf-tip__r b{font-family:var(--font-mono); font-weight:600; color:var(--ink); white-space:nowrap; padding-left:8px}
+.graf-tip__e{margin-top:5px; padding-top:4px; border-top:1px solid var(--border); color:var(--ink-3); font-size:11px}
+@media (prefers-reduced-motion:reduce){
+  svg.graf-lin .g-clip{animation:none !important; transform:none !important}
+  svg.graf-lin .g-guida, svg.graf-lin .g-punto, .graf-tip{transition:none !important}
+}
+@media print{
+  svg.graf-lin .g-clip{animation:none !important; transform:none !important}
+  svg.graf-lin .g-hover, .graf-tip{display:none !important}
+}
 
 /* overlay connessione — gate a tutto schermo */
 .overlay{position:fixed; inset:0; z-index:9999;

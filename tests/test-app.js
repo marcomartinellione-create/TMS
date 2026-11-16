@@ -2445,7 +2445,10 @@ console.log('--- T8: revisione 2026-11 — calcoli e scheda ---');
     w.eval('DOC.cardio=[]; DOC.dati_utente.fcMax=""; DOC.dati_utente.fcRiposo="";'); }
 
   /* grafici: valore al passaggio del mouse */
-  ok(w.eval('lineChart([{name:"TL",color:"red",data:[{x:"a",y:1200},{x:"b",y:1500}]}],{labels:["01/01/26","08/01/26"],fmt:nfk})').includes('<title>08/01/26 · 1,5k</title>'), 'grafico a linee: ogni punto dice data e valore al passaggio del mouse');
+  { const svg = w.eval('lineChart([{name:"TL",color:"red",data:[{x:"a",y:1200},{x:"b",y:1500}]}],{labels:["01/01/26","08/01/26"],fmt:nfk})');
+    const dg = JSON.parse(new w.DOMParser().parseFromString(svg, 'text/html').querySelector('svg').getAttribute('data-g'));
+    ok(dg.l[1] === '08/01/26' && dg.s[0].n === 'TL' && dg.s[0].v[1] === '1,5k' && dg.x.length === 2 && dg.s[0].y.every(v => typeof v === 'number'),
+       'grafico a linee: ogni settimana porta data e valore per il riquadro al passaggio del mouse'); }
   ok(w.eval('showTab("storico"); document.querySelector("#panel-storico .day-sep").textContent').match(/\d{2}\/\d{2}\/\d{2}/) !== null, 'Storico: la settimana è indicata anche come data');
   /* ridisegno senza perdere il punto di scrittura */
   { const s = d.getElementById('st-es'); s.focus(); s.value = 'sq'; s.setSelectionRange(2, 2); s.dispatchEvent(new w.Event('input', { bubbles: true }));
@@ -2730,8 +2733,57 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
     const sempl = w.eval('lineChart([{name:"A",color:"red",data:[{x:"a",y:1},{x:"b",y:2}]}])');
     const conOpz = w.eval('lineChart([{name:"A",color:"red",dash:"2 3",spess:3,punti:false,data:[{x:"a",y:90},{x:"b",y:110,segno:true,nota:"n"}]}],{rif:100,senzaLeg:true})');
     ok(!/stroke-dasharray|pt-segno|rif-base|stroke-width:/.test(sempl) && /r="2.6"/.test(sempl) &&
-       /stroke-dasharray="2 3"/.test(conOpz) && /pt-segno/.test(conOpz) && /rif-base/.test(conOpz) && /stroke-width:3/.test(conOpz) && !/r="2.6"/.test(conOpz) && / · n</.test(conOpz),
+       /stroke-dasharray="2 3"/.test(conOpz) && /pt-segno/.test(conOpz) && /rif-base/.test(conOpz) && /stroke-width:3/.test(conOpz) && !/r="2.6"/.test(conOpz) && /· n&quot;/.test(conOpz),
        'grafici: tratteggio, spessore, cerchietti e linea di base solo se chiesti'); }
+  /* ── GRAFICI A LINEE INTERATTIVI (Marco, 16/11/2026): valori puntuali col mouse, animazioni ── */
+  { const parse = html => new w.DOMParser().parseFromString('<div>' + html + '</div>', 'text/html').querySelector('svg');
+    const src = 'lineChart([{name:"TL",color:"red",data:[{x:"a",y:1000},{x:"b",y:1500},{x:"c",y:null},{x:"d",y:1800}]},{name:"Media <4>",color:"blue",data:[{x:"a",y:900},{x:"b",y:1100},{x:"c",y:1200},{x:"d",y:1400}]}],{labels:["01/01/26","08/01/26","15/01/26","22/01/26"],fmt:nfk})';
+    const sv = parse(w.eval(src)), sv2 = parse(w.eval(src));
+    ok(sv.classList.contains('graf-lin') && sv.querySelectorAll('.g-hover .g-punto').length === 2 && sv.querySelector('.g-hover .g-guida') &&
+       sv.querySelector('.g-serie[clip-path]') && sv.querySelector('clipPath rect.g-clip') && !sv.querySelector('.pt-hit, circle title'),
+       'grafici a linee: linea guida e un punto per linea pronti per il mouse, linee dentro un ritaglio per l\'entrata, niente più suggerimenti sui singoli punti');
+    ok(sv.getAttribute('data-firma') === sv2.getAttribute('data-firma') && sv.querySelector('clipPath').id !== sv2.querySelector('clipPath').id,
+       'grafici a linee: stesso grafico, stessa firma (per non rifare l\'animazione) ma ritaglio con nome suo');
+    const g = JSON.parse(sv.getAttribute('data-g')), G = JSON.stringify(g);
+    ok(w.eval('grafIndice(' + G + ',' + (g.x[1] + 3) + ')') === 1 && w.eval('grafIndice(' + G + ',' + (g.x[0] - 50) + ')') === 0 && w.eval('grafIndice(' + G + ',' + (g.x[3] + 99) + ')') === 3,
+       'grafici a linee: col mouse si prende la settimana più vicina, anche fuori dalle linee');
+    const tip = w.eval('grafTipHtml(' + G + ',2)');
+    ok(/15\/01\/26/.test(tip) && !/>TL</.test(tip) && /Media &lt;4&gt;/.test(tip) && /1,2k/.test(tip),
+       'grafici a linee: il riquadro dice data e valori, salta la linea senza dato in quella settimana e non legge i nomi come codice');
+    /* passaggio del mouse vero, sul primo grafico dei Progressi (jsdom non ha la geometria: la si finge 1:1) */
+    w.eval('showTab("progressi")');
+    const svgP = d.querySelector('#panel-progressi svg.graf-lin');
+    svgP.getScreenCTM = () => ({ a: 1, d: 1, e: 0, f: 0 });
+    const gp = JSON.parse(svgP.getAttribute('data-g')), ix = gp.x.length - 1;
+    svgP.dispatchEvent(new w.MouseEvent('pointermove', { bubbles: true, clientX: gp.x[ix] - 2, clientY: (gp.t + gp.b) / 2 }));
+    const tipEl = d.querySelector('.graf-tip');
+    ok(svgP.classList.contains('g-on') && tipEl && tipEl.classList.contains('is-on') && tipEl.textContent.includes(gp.l[ix]) &&
+       svgP.querySelector('.g-guida').style.transform === 'translate(' + gp.x[ix] + 'px,0)' && tipEl.querySelectorAll('.graf-tip__r').length === gp.s.filter(s => s.y[ix] != null).length,
+       'grafici a linee: col mouse sopra compaiono la linea guida sulla settimana e il riquadro con data e valori di ogni linea (' + gp.l[ix] + ')');
+    d.getElementById('panel-progressi').dispatchEvent(new w.MouseEvent('pointermove', { bubbles: true, clientX: 2, clientY: 2 }));
+    ok(!svgP.classList.contains('g-on') && !tipEl.classList.contains('is-on'), 'grafici a linee: uscendo dal grafico guida e riquadro spariscono');
+    /* entrata animata: si finge che i grafici compaiano a schermo (IntersectionObserver) */
+    w.eval('window.__io=null; window.IntersectionObserver=function(cb){ this.cb=cb; this.obs=[]; window.__io=this; }; window.IntersectionObserver.prototype.observe=function(e){ this.obs.push(e); }; window.IntersectionObserver.prototype.unobserve=function(e){ this.obs=this.obs.filter(function(x){ return x!==e; }); }; grafIO=null; GRAF_VISTI.clear(); renderProgressi();');
+    await settle(40);
+    const att = [...d.querySelectorAll('#panel-progressi svg.graf-lin')];
+    ok(att.length >= 5 && att.every(s => s.classList.contains('g-attesa')), 'entrata: i grafici nuovi aspettano di comparire a schermo (' + att.length + ')');
+    w.eval('window.__io.cb(window.__io.obs.slice().map(function(t){ return {isIntersecting:true, target:t}; }))');
+    ok(att.every(s => s.classList.contains('g-entra') && !s.classList.contains('g-attesa')), 'entrata: quando compaiono, le linee si disegnano da sinistra a destra');
+    w.eval('renderProgressi()'); await settle(40);
+    ok([...d.querySelectorAll('#panel-progressi svg.graf-lin')].every(s => !s.classList.contains('g-attesa') && !s.classList.contains('g-entra')),
+       'entrata: ridisegnato con gli stessi dati (un clic, il ritorno sul tab) non si rianima');
+    const altro = w.eval('exerciseList(progSetGet()).find(function(e){ return e!==progEx; })');
+    if (altro) { const s = d.getElementById('prog-ex'); s.value = altro; s.dispatchEvent(new w.Event('change')); await settle(40);
+      ok(d.querySelector('#panel-progressi .graf-prog-ex svg.graf-lin').classList.contains('g-attesa') && !d.querySelector('#panel-progressi .prog-reale svg.graf-lin').classList.contains('g-attesa'),
+         'entrata: cambiando esercizio si anima solo il grafico che ha dati nuovi'); }
+    w.eval('showTab("report")'); await settle(60);
+    const rep = [...d.querySelectorAll('#panel-report svg.graf-lin')];
+    ok(rep.length > 0 && rep.every(s => !s.classList.contains('g-attesa') && !s.classList.contains('g-entra')), 'entrata: nel Report (e quindi nel PDF) i grafici restano interi, senza animazione (' + rep.length + ')');
+    w.eval('delete window.IntersectionObserver; grafIO=null; showTab("progressi");');
+    { const css = [...d.querySelectorAll('style')].map(s => s.textContent).join('\n');
+      ok(/@media print\{\s*svg\.graf-lin \.g-clip\{animation:none !important; transform:none !important\}\s*svg\.graf-lin \.g-hover, \.graf-tip\{display:none !important\}/.test(css) &&
+         /@media \(prefers-reduced-motion:reduce\)\{\s*svg\.graf-lin \.g-clip\{animation:none !important; transform:none !important\}/.test(css),
+         'grafici a linee: in stampa e con «riduci movimento» il grafico è sempre intero e senza riquadri'); } }
   w.eval('showTab("analisi")');
   { const pa = d.getElementById('panel-analisi');
     if (w.eval('((DOC.alimentazione||{}).periodi||[]).length') > 0) {
@@ -2740,6 +2792,9 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
       const tl = pa.querySelector('.chart-box--largo');
       ok(tl && /Timeline/.test(tl.textContent) && tl.querySelector('.graf-v--largo svg') && tl.querySelector('.graf-v--stretto svg') && tl.querySelector('[data-spieg="timeline"]'),
          'Analisi: la Timeline prende tutta la riga, in versione larga e stretta, col suo «?»');
+      { const gt = JSON.parse(tl.querySelector('.graf-v--largo svg.graf-lin').getAttribute('data-g'));
+        ok(gt.s.length >= 1 && gt.s.some(s => s.n === 'Training Load') && Array.isArray(gt.e) && gt.e.some(x => /Bulk|Mantenimento|Cut/.test(x)),
+           'Analisi: anche la Timeline dà col mouse carico, peso e il periodo alimentare di quella settimana'); }
       ok(pa.querySelectorAll('.chart-grid--compatta > .chart-box').length === 5 && pa.querySelector('.pag__side') && /Periodi/.test(pa.querySelector('.pag__side').textContent),
          'Analisi: i cinque grafici sulla griglia compatta, il pannello dei periodi resta di lato');
     } else ok(false, 'Analisi: servono i periodi del profilo dimostrativo per provare la vista compatta');

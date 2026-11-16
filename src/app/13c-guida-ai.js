@@ -385,8 +385,11 @@ Due modi per registrare una seduta:
   «Equilibrio e distribuzione» (ragnatela della distribuzione fra i gruppi con
   sotto la didascalia del riferimento e il pulsante ⚙ Riferimento, serie per gruppo,
   distribuzione delle intensità %1RM, TL per gruppo muscolare) · «Cardio · progressione per
-  sport». Ogni grafico ha il suo «?» con la spiegazione; passando col mouse su un punto se ne
-  legge il valore. I grafici hanno senso da 2-3 settimane salvate in poi. Dal v1.1.4 in cima c'è il
+  sport». Ogni grafico ha il suo «?» con la spiegazione. Sui grafici a linee (anche la Timeline
+  dell'Analisi, il Corpo, il Cardio e gli Esercizi) passando col mouse in un punto qualsiasi del
+  disegno una linea verticale segna la settimana più vicina e un riquadro dice data e valore di ogni
+  linea; all'apertura, o quando i dati cambiano, le linee si disegnano da sinistra a destra (non nel
+  Report né in stampa). Sulle barre il valore si legge passando sulla barra. I grafici hanno senso da 2-3 settimane salvate in poi. Dal v1.1.4 in cima c'è il
   selettore **«Dati da analizzare»**: «Tutto il percorso» oppure un singolo **Training Set**
   (patch al limite noto della confrontabilità del TL tra schede molto diverse — es. Palestra
   vs Casa). La scelta **si ricorda**: vive nel profilo (dati_utente.progSet, quindi in

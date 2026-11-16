@@ -36,6 +36,99 @@ function grafEtichX(labels,X,W,FS,step,y){
 /* decimali della scala verticale: abbastanza da non ripetere lo stesso numero su due righe
    (la Monotonia, fra 1,38 e 1,53, scriveva «1,5» cinque volte) */
 function grafDec(mn,mx,base){ const passo=(mx-mn)/4; return passo>0? Math.min(2,Math.max(base,Math.ceil(-Math.log10(passo)))) : base; }
+/* ── GRAFICI A LINEE INTERATTIVI (2026-11-16) ──────────────────────────────────────────────────
+   Marco: «tutti i grafici cartesiani con più linee con la stessa interattività di quello su Claude:
+   a seconda di dove vado col mouse mi dà i dati puntuali, con animazioni belle e curate». Come il
+   modo «index» di Chart.js: in qualunque punto del disegno si prende la settimana più vicina, una
+   linea verticale la segna, i punti di tutte le linee si accendono e un riquadro accanto al mouse
+   dice la data e il valore di ogni linea. Tutto scorre morbido da una settimana all'altra.
+   I dati del riquadro viaggiano nel disegno (data-g, valori già scritti come nel grafico): un solo
+   ascoltatore sul documento serve tutti i grafici, anche quelli appena ridisegnati.
+   All'ENTRATA le linee si disegnano da sinistra a destra, una volta per dato: ridisegnare lo stesso
+   grafico (un clic altrove, il ritorno sul tab) non rifà l'animazione; se i dati cambiano sì.
+   Niente animazioni nel Report e nel PDF (html2canvas fotograferebbe il disegno a metà), in stampa
+   e con «riduci movimento» del sistema: lì il grafico è sempre intero. */
+let grafIdN=0;
+function grafFirma(s){ let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0; return (h>>>0).toString(36); }
+/* o = {W,H,P, xs:[x di ogni settimana], labels:[data], serie:[{n:nome,c:colore,y:[y nel disegno|null],v:[valore scritto|null]}], extra:[nota|''] } */
+function grafInterattivo(o){
+  const id='gclip'+(++grafIdN), r1=v=>v==null? null : Math.round(v*10)/10;
+  const dati={x:o.xs.map(r1), l:o.labels.map(l=>String(l==null?'':l)), t:o.P.t, b:o.H-o.P.b, sx:o.P.l, dx:o.W-o.P.r,
+    s:o.serie.map(s=>({n:String(s.n==null?'':s.n), c:s.c, y:s.y.map(r1), v:s.v})), e:o.extra||null};
+  const js=JSON.stringify(dati);
+  return { attr:` class="graf-lin" data-firma="${grafFirma(o.W+'x'+o.H+js)}" data-g="${esc(js)}"`,
+    defs:`<defs><clipPath id="${id}"><rect class="g-clip" x="0" y="0" width="${o.W}" height="${o.H}"/></clipPath></defs>`,
+    clip:` clip-path="url(#${id})"`,
+    hover:`<g class="g-hover" aria-hidden="true"><line class="g-guida" x1="0" y1="${o.P.t}" x2="0" y2="${o.H-o.P.b}"/>`+
+      o.serie.map(s=>`<circle class="g-punto" cx="0" cy="0" r="4.6" fill="${s.c}"/>`).join('')+`</g>` };
+}
+/* settimana più vicina a x (unità del disegno), fra quelle con almeno un valore */
+function grafIndice(g,x){ let best=-1, dist=Infinity;
+  g.x.forEach((xi,i)=>{ if(!g.s.some(s=>s.y[i]!=null)) return; const d=Math.abs(xi-x); if(d<dist){ dist=d; best=i; } }); return best; }
+function grafTipHtml(g,i){
+  return `<div class="graf-tip__t">${esc(g.l[i])}</div>`+
+    g.s.filter(s=>s.y[i]!=null).map(s=>`<div class="graf-tip__r"><span class="graf-tip__c" style="background:${s.c}"></span><span class="graf-tip__n">${esc(s.n)}</span><b>${esc(s.v[i])}</b></div>`).join('')+
+    (g.e&&g.e[i]? `<div class="graf-tip__e">${esc(g.e[i])}</div>` : '');
+}
+const GRAF_TIP={el:null, svg:null, i:-1};
+function grafTipEl(){ if(!GRAF_TIP.el || !GRAF_TIP.el.isConnected){ const d=document.createElement('div'); d.className='graf-tip'; d.setAttribute('role','tooltip'); document.body.appendChild(d); GRAF_TIP.el=d; } return GRAF_TIP.el; }
+function grafDati(svg){ if(svg._g===undefined){ try{ svg._g=JSON.parse(svg.getAttribute('data-g')); }catch(e){ svg._g=null; } } return svg._g; }
+function grafSpegni(){
+  if(GRAF_TIP.svg) GRAF_TIP.svg.classList.remove('g-on');
+  if(GRAF_TIP.el) GRAF_TIP.el.classList.remove('is-on');
+  GRAF_TIP.svg=null; GRAF_TIP.i=-1;
+}
+/* un passaggio del mouse (o un tocco) su un grafico a linee */
+function grafMostra(svg,e){
+  const g=grafDati(svg), m=g && svg.getScreenCTM && svg.getScreenCTM(); if(!m || !m.a){ grafSpegni(); return; }
+  const x=(e.clientX-m.e)/m.a, y=(e.clientY-m.f)/m.d;
+  if(x<g.sx-14 || x>g.dx+14 || y<g.t-14 || y>g.b+14){ grafSpegni(); return; }
+  const i=grafIndice(g,x); if(i<0){ grafSpegni(); return; }
+  const tip=grafTipEl(), nuovo=GRAF_TIP.svg!==svg;
+  if(nuovo){ grafSpegni(); svg.classList.add('g-salto'); tip.classList.add('g-salto'); }
+  if(nuovo || GRAF_TIP.i!==i){
+    const h=svg.querySelector('.g-hover');
+    if(h){ h.querySelector('.g-guida').style.transform=`translate(${g.x[i]}px,0)`;
+      h.querySelectorAll('.g-punto').forEach((c,k)=>{ const s=g.s[k], yy=s&&s.y[i];
+        if(yy==null){ c.style.opacity='0'; return; } c.style.opacity=''; c.style.transform=`translate(${g.x[i]}px,${yy}px)`; }); }
+    tip.innerHTML=grafTipHtml(g,i); GRAF_TIP.svg=svg; GRAF_TIP.i=i;
+  }
+  /* il riquadro sta accanto alla linea verticale, a destra; se non ci sta, a sinistra */
+  const sx=m.a*g.x[i]+m.e, tw=tip.offsetWidth, th=tip.offsetHeight;
+  let left=sx+16; if(left+tw>window.innerWidth-8) left=sx-16-tw; left=Math.max(8,left);
+  const top=Math.max(8,Math.min(window.innerHeight-th-8, e.clientY-th/2));
+  tip.style.transform=`translate(${Math.round(left)}px,${Math.round(top)}px)`;
+  svg.classList.add('g-on'); tip.classList.add('is-on');
+  if(nuovo){ void tip.offsetWidth; (window.requestAnimationFrame||setTimeout)(()=>{ svg.classList.remove('g-salto'); tip.classList.remove('g-salto'); }); }
+}
+/* entrata: si anima solo un grafico mai visto con questi dati, quando compare davvero a schermo */
+const GRAF_VISTI=new Set(); let grafIO=null;
+function grafMovimentoRidotto(){ try{ return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
+function grafAnimaNuovi(){
+  if(GRAF_TIP.svg && !GRAF_TIP.svg.isConnected) grafSpegni();
+  const nuovi=document.querySelectorAll('svg.graf-lin:not(.g-visto)'); if(!nuovi.length) return;
+  const anima=typeof IntersectionObserver!=='undefined' && !grafMovimentoRidotto();
+  if(anima && !grafIO) grafIO=new IntersectionObserver(voci=>voci.forEach(v=>{ if(!v.isIntersecting) return;
+    const svg=v.target; grafIO.unobserve(svg);
+    if(GRAF_VISTI.size>600) GRAF_VISTI.clear(); GRAF_VISTI.add(svg.getAttribute('data-firma'));
+    svg.classList.remove('g-attesa'); svg.classList.add('g-entra'); }),{threshold:0.2});
+  nuovi.forEach(svg=>{ svg.classList.add('g-visto');
+    if(!anima || svg.closest('#panel-report, #pdf-stage, .rep-doc, .rep-pagine') || GRAF_VISTI.has(svg.getAttribute('data-firma'))) return;
+    svg.classList.add('g-attesa'); grafIO.observe(svg); });
+}
+function grafAvvia(){
+  if(grafAvvia.fatto || !document.body) return; grafAvvia.fatto=true;
+  const muovi=e=>{ const svg=e.target && e.target.closest ? e.target.closest('svg.graf-lin') : null;
+    if(svg) grafMostra(svg,e); else if(GRAF_TIP.svg) grafSpegni(); };
+  document.addEventListener('pointermove',muovi,{passive:true});
+  document.addEventListener('pointerdown',muovi,{passive:true});
+  document.addEventListener('mouseout',e=>{ if(!e.relatedTarget) grafSpegni(); });
+  window.addEventListener('scroll',()=>{ if(GRAF_TIP.svg) grafSpegni(); },{capture:true,passive:true});
+  window.addEventListener('blur',grafSpegni);
+  if(typeof MutationObserver!=='undefined') new MutationObserver(grafAnimaNuovi).observe(document.body,{childList:true,subtree:true});
+  grafAnimaNuovi();
+}
+if(typeof document!=='undefined'){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',grafAvvia); else grafAvvia(); }
 function lineChart(series,opts){
   opts=opts||{}; const W=opts.w||560,H=opts.h||200,FS=opts.fs||9,P={l:42,r:12,t:10,b:24};
   const all=[].concat(...series.map(s=>s.data.map(d=>d.y))).filter(v=>v!=null&&!isNaN(v));
@@ -57,21 +150,27 @@ function lineChart(series,opts){
      restano i valori al passaggio del mouse); per punto d.segno (cerchietto vuoto) e d.nota
      (aggiunta al valore). Senza, il disegno è quello di sempre. */
   if(opts.rif!=null && opts.rif>mn && opts.rif<mx){ const yr=Y(opts.rif).toFixed(1); g+=`<line class="rif-base" x1="${P.l}" y1="${yr}" x2="${W-P.r}" y2="${yr}" stroke="var(--ink-4)" stroke-width="1" stroke-dasharray="3 3"/>`; }
+  /* i valori si leggono col mouse in qualunque punto del disegno (grafInterattivo, sopra):
+     data e valore di ogni linea nella settimana più vicina */
+  const vale=d=>d && d.y!=null && !isNaN(d.y);
+  const gi=grafInterattivo({W,H,P, xs:Array.from({length:n},(_,i)=>X(i)),
+    labels:Array.from({length:n},(_,i)=>{ if(labels[i]!=null) return labels[i]; const s=series.find(z=>z.data[i]); return s? s.data[i].x : ''; }),
+    serie:series.map(s=>({n:s.name, c:s.color,
+      y:Array.from({length:n},(_,i)=>vale(s.data[i])? Y(s.data[i].y) : null),
+      v:Array.from({length:n},(_,i)=>vale(s.data[i])? fmtV(s.data[i].y)+(s.data[i].nota?' · '+s.data[i].nota:'') : null)}))});
+  g+=`<g class="g-serie"${gi.clip}>`;
   series.forEach(s=>{
     let dpath='',pts='';
     s.data.forEach((d,i)=>{ if(d.y==null||isNaN(d.y))return; const x=X(i),y=Y(d.y);
       dpath+=(dpath?' L':'M')+x.toFixed(1)+' '+y.toFixed(1);
-      /* cerchio largo e trasparente sopra il punto: passandoci col mouse si legge il valore
-         esatto (prima il grafico diceva l'andamento ma non il numero) */
-      const tip=esc((labels[i]!=null?labels[i]:d.x)+' · '+(series.length>1?s.name+' ':'')+fmtV(d.y)+(d.nota?' · '+d.nota:''));
       if(d.segno) pts+=`<circle class="pt-segno" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.6" fill="var(--paper)" stroke="${s.color}" stroke-width="2"/>`;
-      else if(s.punti!==false) pts+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${s.color}"/>`;
-      pts+=`<circle class="pt-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="transparent"><title>${tip}</title></circle>`;});
+      else if(s.punti!==false) pts+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${s.color}"/>`; });
     g+=`<path class="ln" d="${dpath}" stroke="${s.color}"${s.dash?` stroke-dasharray="${s.dash}"`:''}${s.spess?` style="stroke-width:${s.spess}"`:''}/>${pts}`;
   });
+  g+=`</g>`;
   const leg=series.length>1 && !opts.senzaLeg? `<div style="${grafLeg(opts)}">`+
     series.map(s=>`<span class="mono" style="color:${s.color}">━ ${esc(s.name)}</span>`).join('')+`</div>`:'';
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"${grafFs(opts)}><line class="axis" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/><line class="axis" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>${g}</svg>${leg}`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"${grafFs(opts)}${gi.attr}>${gi.defs}<line class="axis" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/><line class="axis" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>${g}${gi.hover}</svg>${leg}`;
 }
 function scatterChart(pts,opts){ /* pts: [{x,y,color,label}] · opts: xl/yl etichette assi, trend:true per retta di regressione */
   /* il titolo dell'asse verticale sta in una riga sua, sopra il disegno: dentro l'area

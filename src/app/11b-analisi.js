@@ -80,17 +80,25 @@ function timelineChart(sett,opts){
      precedente quella precedente si salta (le due date finali si sovrapponevano) */
   const labels=sett.map(s=>schedaLabel(s.scheda));
   g+=grafEtichX(labels,X,W,FS,Math.ceil(n/grafNEtich(opts,W-P.l-P.r,labels,FS)),H-8);
-  /* linee */
+  /* linee, coi valori di ogni settimana al passaggio del mouse (grafInterattivo, 05-grafici.js):
+     carico, peso e, in fondo al riquadro, il periodo alimentare di quella settimana */
+  const serieInt=[];
+  if(stl) serieInt.push({n:t('Training Load'), c:'var(--orange-b)', y:sett.map(s=>s.tl!=null? Ytl(s.tl) : null), v:sett.map(s=>s.tl!=null? nfk(s.tl) : null)});
+  if(sp) serieInt.push({n:t('Peso'), c:'var(--violet)', y:sett.map(s=>s.peso!=null? Yp(s.peso) : null), v:sett.map(s=>s.peso!=null? nf(s.peso,1)+' kg' : null)});
+  const gi=grafInterattivo({W,H,P, xs:sett.map((s,k)=>X(k)), labels, serie:serieInt,
+    extra:sett.map(s=>s.fase? t(FASE_LAB[s.fase]||s.fase)+(s.kcal?` · ${nf(s.kcal,0)} kcal/g`:'') : '')});
   const linea=(get,Yf,col)=>{ let p='',dots=''; sett.forEach((s,k)=>{ const v=get(s); if(v==null)return; const x=X(k),y=Yf(v);
       p+=(p?' L':'M')+x.toFixed(1)+' '+y.toFixed(1); dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${col}"/>`; });
     return `<path class="ln" d="${p}" stroke="${col}"/>${dots}`; };
+  g+=`<g class="g-serie"${gi.clip}>`;
   if(stl) g+=linea(s=>s.tl,Ytl,'var(--orange-b)');
   if(sp) g+=linea(s=>s.peso,Yp,'var(--violet)');
+  g+=`</g>`;
   const leg=`<div style="${grafLeg(opts)}">`+
     (stl?`<span class="mono" style="color:var(--orange-b)">${t('━ Training Load (asse sx)')}</span>`:'')+
     (sp?`<span class="mono" style="color:var(--violet)">${t('━ Peso kg (asse dx)')}</span>`:'')+
     Object.keys(FASE_COL).map(f=>`<span class="mono"><span style="display:inline-block;width:10px;height:10px;background:${FASE_COL[f]};border:1px solid var(--border);vertical-align:-1px"></span> ${esc(t(FASE_LAB[f]||f))}</span>`).join(' ')+`</div>`;
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"${grafFs(opts)}><line class="axis" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/><line class="axis" x1="${W-P.r}" y1="${P.t}" x2="${W-P.r}" y2="${H-P.b}"/><line class="axis" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>${g}</svg>${leg}`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"${grafFs(opts)}${gi.attr}>${gi.defs}<line class="axis" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/><line class="axis" x1="${W-P.r}" y1="${P.t}" x2="${W-P.r}" y2="${H-P.b}"/><line class="axis" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>${g}${gi.hover}</svg>${leg}`;
 }
 
 function renderAnalisi(){
