@@ -338,7 +338,73 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .tbl-pesate .pesate-sett td{background:var(--paper-2); padding-top:6px}
 .tbl-pesate .pesata-fuori td{color:var(--ink-4)}
 .tbl-pesate .pesate-media td{border-top:1px solid var(--border)}
-.chart-grid.chart-grid--fluida{grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))}
+/* ── VISTA COMPATTA DEI GRAFICI (Progressi e Analisi, 2026-11-16) ──────────────────────────────
+   Richiesta di Marco: «una bella vista compatta dei grafici, sempre divisa per categoria e logica,
+   con grafici chiari ma più piccoli». Ogni sezione ha la sua griglia fitta: tante colonne da ~330 px
+   quante ne entrano, al massimo quattro (4 su uno schermo da 1600, 2 nella colonna dell'Analisi, 1 in
+   una finestra stretta), e i
+   grafici si disegnano per quella misura (05-grafici.js, opts.fs). .chart-box--largo prende tutta
+   la riga; .chart-grid--coppia è una coppia di riquadri larghi affiancati (Record e Progressione). */
+.graf-pagina{container-type:inline-size}
+.graf-pagina > .sec, .graf-pagina > .bar + .sec{margin:16px 0 8px; padding:5px 12px; font-size:13.5px}
+.graf-pagina > .sec:first-child, .graf-pagina > .bar + .sec{margin-top:4px}
+.graf-pagina > .bar{margin-bottom:10px}
+.graf-pagina > .callout{margin:6px 0; padding:8px 13px; font-size:12.5px}
+.chart-grid.chart-grid--compatta{grid-template-columns:repeat(auto-fit,minmax(max(min(330px,100%),calc((100% - 30px) / 4)),1fr)); gap:10px; margin-bottom:6px}
+.chart-grid--compatta > .chart-box{margin:0; min-width:0; padding:8px 11px 6px}
+.chart-grid--compatta .chart-box h4{font-size:12px; line-height:1.3; margin-bottom:2px; gap:1px 6px; flex-wrap:wrap; min-height:17px}
+.chart-grid--compatta .chart-box h4 > .muted{flex-basis:100%; font-size:10.5px !important; font-weight:400; line-height:1.3}
+.chart-grid--compatta .chart-box h4 > .pill{font-size:9.5px; padding:0 7px}
+.chart-grid--compatta .spieg-btn{top:7px; right:8px}
+.chart-grid--compatta .rif-nota{font-size:10.5px; line-height:1.4; margin-top:2px}
+.chart-grid--compatta .rif-nota .mono{font-size:10px}
+.chart-grid--compatta .rif-cambia{padding:1px 8px; font-size:11px}
+.chart-grid--compatta div.empty{padding:18px 14px; font-size:12.5px}
+.chart-box--largo{grid-column:1/-1}
+.chart-grid.chart-grid--compatta.chart-grid--coppia{grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr))}
+/* riquadri con un grafico largo in due versioni (Timeline, Progressione): la versione si sceglie
+   sulla larghezza del riquadro stesso, non della pagina */
+.graf-cont{container-type:inline-size}
+@container (min-width:680px){
+  /* colonne larghe (Analisi su schermo grande, due per riga): il grafico non cresce oltre una certa
+     altezza, si centra nel suo riquadro */
+  .chart-grid--compatta > .chart-box:not(.graf-tl):not(.chart-box--radar) svg{max-height:250px}
+}
+/* una sezione da quattro grafici dove ne entrano solo tre per riga: due per riga, invece di tre
+   più uno rimasto da solo sotto */
+@container (min-width:680px) and (max-width:1349px){
+  .chart-grid--compatta:has(> .chart-box:nth-child(4):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* un grafico largo in un riquadro stretto passa alla sua versione stretta; in colonna unica
+   (finestra stretta) nessun grafico supera una certa altezza (il disegno si centra), altrimenti la
+   pagina tornerebbe lunga */
+.graf-v--stretto{display:none}
+@container (max-width:699px){ .graf-v--largo{display:none} .graf-v--stretto{display:block} }
+@container (max-width:679px){
+  .chart-grid--compatta .chart-box svg{max-height:200px}
+  .chart-grid--compatta .chart-box--radar svg{max-height:250px}
+}
+.graf-nota{font-size:10.5px; line-height:1.4; color:var(--ink-3); margin-top:2px}
+/* la Timeline prende tutta la riga: oltre una certa larghezza non cresce più in altezza */
+.graf-tl svg{max-height:270px}
+/* scelta dell'esercizio, dentro il riquadro della progressione */
+.graf-scelta{display:flex; align-items:center; gap:6px; margin:1px 0 3px; font-size:11px; color:var(--ink-3); padding-right:22px}
+.graf-scelta label{font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.06em; font-size:10px}
+.graf-scelta select{font-size:12.5px; padding:3px 8px; min-width:0; max-width:100%; flex:0 1 300px}
+/* record personali nel riquadro della sezione «Forza e record», accanto alla progressione: le
+   card su due file da tre riempiono l'altezza del riquadro senza diventare colonne vuote */
+.rec-box{display:flex; flex-direction:column}
+.rec-box h4 .pill{margin-left:4px}
+.cards.rec-cards{flex:1; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:4px 0 3px}
+.rec-cards .pr-card{padding:8px 6px; display:flex; flex-direction:column; justify-content:center}
+.rec-cards .pr-ex{font-size:11px}
+.rec-cards .pr-val{font-size:30px; margin:5px 0 3px}
+/* un clic sulla card porta quell'esercizio nel grafico della progressione accanto */
+.rec-cards .pr-card--vai{cursor:pointer; transition:box-shadow var(--media), transform var(--media), border-color var(--rapida)}
+.rec-cards .pr-card--vai:hover{border-color:var(--gold-2)}
+.rec-cards .pr-card.is-sel{border-color:var(--orange); box-shadow:0 0 0 1px var(--orange), var(--shadow)}
+.rec-cards .pr-card.is-sel::before{background:var(--orange)}
+.rec-cards .pr-card.is-sel .pr-ex{color:var(--orange)}
 /* Corpo: composizione e i tre grafici in una griglia 2×2, quattro riquadri tutti della stessa
    grandezza (righe di pari altezza), compatti, non giganti (2026-11-13, richiesta di Marco) */
 .chart-grid--corpo{grid-auto-rows:1fr}
@@ -512,7 +578,7 @@ tr.per-riga-live td{background:var(--ok-t)}
 .chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
 svg .axis{stroke:var(--border); stroke-width:1}
 svg .grid{stroke:var(--paper-3); stroke-width:1}
-svg .lbl{fill:var(--ink-3); font-size:9px; font-family:var(--font-mono)}
+svg .lbl{fill:var(--ink-3); font-size:var(--graf-fs,9px); font-family:var(--font-mono)}
 svg .lbl-fuori{fill:var(--danger); font-weight:700}
 svg .ln{fill:none; stroke-width:2}
 

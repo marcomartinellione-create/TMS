@@ -41,7 +41,7 @@ function guidaRapida(){
      <tr><td class="l"><b>📈 Progressi</b></td><td class="l">Record, grafici e andamento del carico (TL, ACWR, monotonia).</td></tr>
      <tr><td class="l"><b>🜂 Corpo</b></td><td class="l">Peso e misure (BMI, masse) nel tempo + <b>📸 Foto progressi</b> (fronte/lato datate, ▶ riproduzione e ⚖ confronto prima/dopo). Tutto sul tuo PC.</td></tr>
      <tr><td class="l"><b>🍖 Alimentazione</b></td><td class="l">Pasti Bulk/Mantenimento/Cut, banca dati di 1190 alimenti, indice OMS. Qui avvii e termini i <b>Periodi</b> (o li registri con le date) per le analisi.</td></tr>
-     <tr><td class="l"><b>📊 Analisi</b></td><td class="l">Dieta × allenamento: timeline dei periodi con carico e peso, Δpeso vs bilancio calorico, correlazioni, confronto fasi.</td></tr>
+     <tr><td class="l"><b>📊 Analisi</b></td><td class="l">Dieta × allenamento in tre sezioni: <b>quadro nel tempo</b> (timeline dei periodi con carico e peso), <b>dieta e peso</b> (Δpeso vs bilancio calorico, confronto fasi del peso), <b>carico e correlazioni</b> (confronto fasi del TL, correlazione con ritardo).</td></tr>
      <tr><td class="l"><b>📖 Esercizi</b></td><td class="l">Catalogo modificabile, raggruppato per gruppo muscolare e sottocategoria (menù a tendina). Da ✎ modifichi muscoli, tipo e fattore, <b>duplichi</b> un esercizio per farne uno simile, e carichi <b>video personali</b> al posto degli integrati (toggle "Video personali"). Salvare non tocca mai ciò che il modulo non mostra (istruzioni, livello, attrezzatura).</td></tr>
      <tr><td class="l"><b>🖨 Report</b></td><td class="l">Documento stampabile (PDF A4) e <b>Report digitale</b> per smartphone con video.</td></tr>
      <tr><td class="l"><b>📜 Storico / Misure</b></td><td class="l">Archivi completi (pulsanti in cima al tab Profilo).</td></tr>
@@ -93,7 +93,7 @@ function guidaCompleta(){
      <tr><td class="l"><b>🏋 Pesi</b></td><td class="l">Scheda settimanale/mensile per giorno; calcoli automatici; salvataggio nello storico. Selettore <b>Training Set</b> per schede alternative (Palestra/Casa…), con creazione/rinomina/eliminazione nel suo menù. <b>Pallino co-pilota</b> nella cella dell'esercizio (sul Peso): 🟢 progressione sensata · 🟡 attenzione (aumento deciso, calo, RIR basso o monotonia alta) · 🔴 salto troppo grande o ACWR alto (meglio scaricare). Solo suggerimento, decidi tu.</td></tr>
      <tr><td class="l"><b>🏃 Cardio</b></td><td class="l">Sedute cardio datate con durata e RPE → sRPE (Foster); TRIMP (Banister) quando inserisci la FC media.</td></tr>
      <tr><td class="l"><b>📜 Storico</b> <span class="muted">(nascosto)</span></td><td class="l">Archivio di tutte le schede salvate (pulsante 📜 Storico in cima al tab Profilo). Sola lettura.</td></tr>
-     <tr><td class="l"><b>📈 Progressi</b></td><td class="l">Record reali, carico (TL), ACWR, volume per gruppo, intensità, progressione per esercizio. In cima, <b>Dati da analizzare</b> sceglie fra tutto il percorso e un singolo <b>Training Set</b> (Palestra, Casa…): la scelta <b>resta quella al rientro</b>. I record fanno eccezione e restano sempre su tutto lo storico.</td></tr>
+     <tr><td class="l"><b>📈 Progressi</b></td><td class="l">Grafici divisi per argomento: carico e volume (TL, ACWR), forza e record (record reali, progressione per esercizio), equilibrio e distribuzione (volume per gruppo, intensità). In cima, <b>Dati da analizzare</b> sceglie fra tutto il percorso e un singolo <b>Training Set</b> (Palestra, Casa…): la scelta <b>resta quella al rientro</b>. I record fanno eccezione e restano sempre su tutto lo storico.</td></tr>
      <tr><td class="l"><b>🜂 Corpo</b></td><td class="l">Misure variabili con BMI/fabbisogno e grafici; salva le rilevazioni.</td></tr>
      <tr><td class="l"><b>📜 Misure</b> <span class="muted">(nascosto)</span></td><td class="l">Storico rilevazioni corporee (pulsante 📏 Misure in cima al tab Profilo).</td></tr>
      <tr><td class="l"><b>🍖 Alimentazione</b></td><td class="l">Piano della fase attiva (Bulk/Mantenimento/Cut, scelta coi bottoni in cima al tab), banca dati 1190 alimenti con micro/macro e indice OMS.</td></tr>
@@ -165,20 +165,26 @@ function guidaCompleta(){
 
    <div class="sec" id="gc-graf">7 · Lettura dei grafici (Progressi)</div>
    <p>Tutti i valori si <b>ricalcolano</b> dai dati grezzi; le settimane senza dati vengono saltate.</p>
+   <p>I grafici sono <b>divisi per argomento</b> — <b>Segnali</b>, <b>Carico e volume</b>, <b>Carico interno</b> (se il session-RPE è attivo), <b>Forza e record</b>, <b>Equilibrio e distribuzione</b>, <b>Cardio</b> — e stanno <b>affiancati in una griglia compatta</b>: fino a quattro per riga su uno schermo largo, uno per riga in una finestra stretta. Passando col mouse su un punto o su una barra leggi il valore esatto; il <b>?</b> in alto a destra di ogni grafico ne apre la spiegazione.</p>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Grafico</th><th class="l">Cosa mostra e come si legge</th></tr></thead><tbody>
-     <tr><td class="l"><b>Record (carico max)</b></td><td class="l">In cima: il <b>peso reale più alto</b> sollevato su Squat, Stacco, Panca, Military, Trazioni.</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Segnali</div></td></tr>
+     <tr><td class="l"><b>Segnali</b></td><td class="l">Avvisi automatici: 🎉 record al salvataggio, ⏸ esercizi in stallo (TL fermo da ≥3 schede), ⚠️ deload se ACWR alto, ⚠️ monotonia alta (Foster).</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Carico e volume</div></td></tr>
      <tr><td class="l"><b>TL + media mobile</b></td><td class="l">Carico per scheda; la linea grigia (media 4 sett.) ripulisce il rumore. Sale = progredisci.</td></tr>
      <tr><td class="l"><b>ACWR</b></td><td class="l">Zona verde 0.8–1.3 = progressione sicura; &lt;0.8 scarichi; &gt;1.3 troppo in fretta.</td></tr>
      <tr><td class="l"><b>Tonnellaggio</b></td><td class="l">Kg totali sollevati per scheda.</td></tr>
      <tr><td class="l"><b>Δ Variazione TL %</b></td><td class="l">Oscillazioni ~ −3%/+3% = carico/recupero equilibrati.</td></tr>
-     <tr><td class="l"><b>Equilibrio · distribuzione</b></td><td class="l">Ragnatela della <b>quota</b> di ogni gruppo sul lavoro coi pesi, in percentuale, contata come nel ⚖ Bilanciamento. Mostra la <b>forma</b>, non la quantità: la fascia verde è il <b>riferimento scelto</b> (esperienza × tipo di allenamento; filtrando un Training Set vale il suo tipo), con voci e fonti scritte sotto e l'avviso quando i dati non bastano. Il cardio non c'è (cambierebbe la quota di tutti): lo trovi nelle barre accanto.</td></tr>
-     <tr><td class="l"><b>Serie per gruppo</b></td><td class="l">La <b>quantità</b>: serie per gruppo nell'ultima settimana, cardio compreso (minuti ÷ 10, anche dal riscaldamento). La barra diventa rossa quando quel gruppo esce dalla <b>sua</b> zona utile.</td></tr>
-     <tr><td class="l"><b>Andamento TL per gruppo</b></td><td class="l">Carico di ciascun gruppo nel tempo: scopri i distretti trascurati.</td></tr>
-     <tr><td class="l"><b>Distribuzione intensità</b></td><td class="l">Quante serie in ogni fascia di %1RM: l'enfasi dell'allenamento.</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Carico interno (se abilitato)</div></td></tr>
      <tr><td class="l"><b>Carico interno (sRPE)</b> <span class="muted">(se abilitato)</span></td><td class="l">Carico interno settimanale (RPE×min) accanto al TL esterno; l'indice base 100 confronta i due trend. Richiede il Session-RPE attivo nel Profilo.</td></tr>
      <tr><td class="l"><b>Monotonia / Strain</b> <span class="muted">(se abilitato)</span></td><td class="l">Monotonia in zona ≤2 = settimana variata; Strain alto = carico monotono e pesante. Segnali Foster, non verdetti.</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Forza e record</div></td></tr>
+     <tr><td class="l"><b>Record (carico max)</b></td><td class="l">Accanto alla progressione: il <b>peso reale più alto</b> sollevato su Squat, Stacco, Panca, Military, Trazioni. <b>Cliccando una card</b> il grafico accanto mostra la progressione di quell'esercizio (la card scelta resta evidenziata).</td></tr>
      <tr><td class="l"><b>Progressione per esercizio</b></td><td class="l">Per l'esercizio scelto: 1RM stimato e peso massimo nel tempo.</td></tr>
-     <tr><td class="l"><b>Segnali</b></td><td class="l">Avvisi automatici: 🎉 record al salvataggio, ⏸ esercizi in stallo (TL fermo da ≥3 schede), ⚠️ deload se ACWR alto, ⚠️ monotonia alta (Foster).</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Equilibrio e distribuzione</div></td></tr>
+     <tr><td class="l"><b>Equilibrio · distribuzione</b></td><td class="l">Ragnatela della <b>quota</b> di ogni gruppo sul lavoro coi pesi, in percentuale, contata come nel ⚖ Bilanciamento. Mostra la <b>forma</b>, non la quantità: la fascia verde è il <b>riferimento scelto</b> (esperienza × tipo di allenamento; filtrando un Training Set vale il suo tipo), con voci e fonti scritte sotto e l'avviso quando i dati non bastano. Il cardio non c'è (cambierebbe la quota di tutti): lo trovi nelle barre accanto.</td></tr>
+     <tr><td class="l"><b>Serie per gruppo</b></td><td class="l">La <b>quantità</b>: serie per gruppo nell'ultima settimana, cardio compreso (minuti ÷ 10, anche dal riscaldamento). La barra diventa rossa quando quel gruppo esce dalla <b>sua</b> zona utile.</td></tr>
+     <tr><td class="l"><b>Distribuzione intensità</b></td><td class="l">Quante serie in ogni fascia di %1RM: l'enfasi dell'allenamento.</td></tr>
+     <tr><td class="l"><b>Andamento TL per gruppo</b></td><td class="l">Carico di ciascun gruppo nel tempo: scopri i distretti trascurati.</td></tr>
    </tbody></table></div>
 
    <div class="sec" id="gc-nutri">8 · Alimentazione & indice OMS</div>
@@ -285,7 +291,7 @@ function guidaRapidaEN(){
      <tr><td class="l"><b>📈 Progress</b></td><td class="l">Records, charts and load trend (TL, ACWR, monotony).</td></tr>
      <tr><td class="l"><b>🜂 Body</b></td><td class="l">Weight and measurements (BMI, masses) over time + <b>📸 Progress photos</b> (dated front/side, ▶ playback and ⚖ before/after compare). All on your PC.</td></tr>
      <tr><td class="l"><b>🍖 Nutrition</b></td><td class="l">Bulk/Maintenance/Cut meals, database of 1190 foods, WHO index. Here you start and end the <b>Periods</b> (or record them with dates) for the analyses.</td></tr>
-     <tr><td class="l"><b>📊 Analysis</b></td><td class="l">Diet × training: timeline of periods with load and weight, Δweight vs calorie balance, correlations, phase comparison.</td></tr>
+     <tr><td class="l"><b>📊 Analysis</b></td><td class="l">Diet × training in three sections: <b>overview over time</b> (timeline of periods with load and weight), <b>diet and weight</b> (Δweight vs calorie balance, phase comparison of weight), <b>load and correlations</b> (phase comparison of TL, lagged correlation).</td></tr>
      <tr><td class="l"><b>📖 Exercises</b></td><td class="l">Editable catalog, grouped by muscle group and subcategory (dropdown). From ✎ you edit muscles, type and factor, <b>duplicate</b> an exercise to make a similar one, and upload <b>personal videos</b> instead of the built-in ones (toggle "Personal videos"). Saving never touches what the form does not show (instructions, level, equipment).</td></tr>
      <tr><td class="l"><b>🖨 Report</b></td><td class="l">Printable document (A4 PDF) and <b>Digital report</b> for smartphone with videos.</td></tr>
      <tr><td class="l"><b>📜 History / Measurements</b></td><td class="l">Full archives (buttons at the top of the Profile tab).</td></tr>
@@ -337,7 +343,7 @@ function guidaCompletaEN(){
      <tr><td class="l"><b>🏋 Weights</b></td><td class="l">Weekly/monthly program by day; automatic calculations; saving to history. <b>Training Set</b> picker for alternative programs (Gym/Home…), with create/rename/delete in its menu. <b>Co-pilot dot</b> in the exercise cell (on the Weight): 🟢 sensible progression · 🟡 caution (strong increase, drop, low RIR or high monotony) · 🔴 jump too big or high ACWR (better to deload). Hint only, you decide.</td></tr>
      <tr><td class="l"><b>🏃 Cardio</b></td><td class="l">Dated cardio sessions with duration and RPE → sRPE (Foster); TRIMP (Banister) when you enter the average HR.</td></tr>
      <tr><td class="l"><b>📜 History</b> <span class="muted">(hidden)</span></td><td class="l">Archive of all saved programs (📜 History button at the top of the Profile tab). Read-only.</td></tr>
-     <tr><td class="l"><b>📈 Progress</b></td><td class="l">Real records, load (TL), ACWR, volume per group, intensity, progression per exercise. At the top, <b>Data to analyse</b> switches between the whole journey and a single <b>Training Set</b> (Gym, Home…): the choice <b>is remembered</b>. Records are the exception and always cover the whole history.</td></tr>
+     <tr><td class="l"><b>📈 Progress</b></td><td class="l">Charts grouped by topic: load and volume (TL, ACWR), strength and records (real records, progression per exercise), balance and distribution (volume per group, intensity). At the top, <b>Data to analyse</b> switches between the whole journey and a single <b>Training Set</b> (Gym, Home…): the choice <b>is remembered</b>. Records are the exception and always cover the whole history.</td></tr>
      <tr><td class="l"><b>🜂 Body</b></td><td class="l">Variable measurements with BMI/needs and charts; save the readings.</td></tr>
      <tr><td class="l"><b>📜 Measurements</b> <span class="muted">(hidden)</span></td><td class="l">History of body readings (📏 Measurements button at the top of the Profile tab).</td></tr>
      <tr><td class="l"><b>🍖 Nutrition</b></td><td class="l">Active phase plan (Bulk/Maintenance/Cut, chosen with the buttons at the top of the tab), database of 1190 foods with micro/macro and WHO index.</td></tr>
@@ -409,20 +415,26 @@ function guidaCompletaEN(){
 
    <div class="sec" id="gc-graf">7 · Reading the charts (Progress)</div>
    <p>All values are <b>recomputed</b> from raw data; weeks without data are skipped.</p>
+   <p>The charts are <b>grouped by topic</b> — <b>Signals</b>, <b>Load and volume</b>, <b>Internal load</b> (if session-RPE is on), <b>Strength and records</b>, <b>Balance and distribution</b>, <b>Cardio</b> — and sit <b>side by side in a compact grid</b>: up to four per row on a wide screen, one per row in a narrow window. Hover a point or a bar to read the exact value; the <b>?</b> at the top right of each chart opens its explanation.</p>
    <div class="tbl-wrap"><table><thead><tr><th class="l">Chart</th><th class="l">What it shows and how to read it</th></tr></thead><tbody>
-     <tr><td class="l"><b>Records (max load)</b></td><td class="l">At the top: the <b>highest actual weight</b> lifted on Squat, Deadlift, Bench, Military, Pull-ups.</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Signals</div></td></tr>
+     <tr><td class="l"><b>Signals</b></td><td class="l">Automatic alerts: 🎉 record on save, ⏸ stalled exercises (TL flat for ≥3 programs), ⚠️ deload if ACWR high, ⚠️ high monotony (Foster).</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Load and volume</div></td></tr>
      <tr><td class="l"><b>TL + moving average</b></td><td class="l">Load per program; the gray line (4-week average) cleans up the noise. Rising = you progress.</td></tr>
      <tr><td class="l"><b>ACWR</b></td><td class="l">Green zone 0.8–1.3 = safe progression; &lt;0.8 you deload; &gt;1.3 too fast.</td></tr>
      <tr><td class="l"><b>Tonnage</b></td><td class="l">Total kg lifted per program.</td></tr>
      <tr><td class="l"><b>Δ TL change %</b></td><td class="l">Swings ~ −3%/+3% = balanced load/recovery.</td></tr>
-     <tr><td class="l"><b>Balance · distribution</b></td><td class="l">Radar of each group's <b>share</b> of the weight work, as a percentage, counted as in ⚖ Balance. It shows the <b>shape</b>, not the quantity: the green band is the <b>chosen reference</b> (experience × training type; when a Training Set is filtered its type applies), with entries and sources written below and a warning when the data are not enough. Cardio is not there (it would change everyone's share): you find it in the bars next to it.</td></tr>
-     <tr><td class="l"><b>Sets per group</b></td><td class="l">The <b>quantity</b>: sets per group in the last week, cardio included (minutes ÷ 10, warm-up too). The bar turns red when that group leaves <b>its own</b> useful zone.</td></tr>
-     <tr><td class="l"><b>TL trend by group</b></td><td class="l">Load of each group over time: find the neglected areas.</td></tr>
-     <tr><td class="l"><b>Intensity distribution</b></td><td class="l">How many sets in each %1RM zone: the training's emphasis.</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Internal load (if enabled)</div></td></tr>
      <tr><td class="l"><b>Internal load (sRPE)</b> <span class="muted">(if enabled)</span></td><td class="l">Weekly internal load (RPE×min) next to the external TL; the base-100 index compares the two trends. Requires Session-RPE enabled in the Profile.</td></tr>
      <tr><td class="l"><b>Monotony / Strain</b> <span class="muted">(if enabled)</span></td><td class="l">Monotony in the ≤2 zone = varied week; high Strain = monotonous and heavy load. Foster signals, not verdicts.</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Strength and records</div></td></tr>
+     <tr><td class="l"><b>Records (max load)</b></td><td class="l">Next to the progression: the <b>highest actual weight</b> lifted on Squat, Deadlift, Bench, Military, Pull-ups. <b>Clicking a card</b> shows that exercise's progression in the chart next to it (the chosen card stays highlighted).</td></tr>
      <tr><td class="l"><b>Progression per exercise</b></td><td class="l">For the chosen exercise: estimated 1RM and max weight over time.</td></tr>
-     <tr><td class="l"><b>Signals</b></td><td class="l">Automatic alerts: 🎉 record on save, ⏸ stalled exercises (TL flat for ≥3 programs), ⚠️ deload if ACWR high, ⚠️ high monotony (Foster).</td></tr>
+     <tr><td class="l" colspan="2"><div class="sec-mini">Balance and distribution</div></td></tr>
+     <tr><td class="l"><b>Balance · distribution</b></td><td class="l">Radar of each group's <b>share</b> of the weight work, as a percentage, counted as in ⚖ Balance. It shows the <b>shape</b>, not the quantity: the green band is the <b>chosen reference</b> (experience × training type; when a Training Set is filtered its type applies), with entries and sources written below and a warning when the data are not enough. Cardio is not there (it would change everyone's share): you find it in the bars next to it.</td></tr>
+     <tr><td class="l"><b>Sets per group</b></td><td class="l">The <b>quantity</b>: sets per group in the last week, cardio included (minutes ÷ 10, warm-up too). The bar turns red when that group leaves <b>its own</b> useful zone.</td></tr>
+     <tr><td class="l"><b>Intensity distribution</b></td><td class="l">How many sets in each %1RM zone: the training's emphasis.</td></tr>
+     <tr><td class="l"><b>TL trend by group</b></td><td class="l">Load of each group over time: find the neglected areas.</td></tr>
    </tbody></table></div>
 
    <div class="sec" id="gc-nutri">8 · Nutrition & WHO index</div>

@@ -114,7 +114,7 @@ function radarChart(items,opts){
   let dp=''; for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); dp+=(i?'L':'M')+a[0].toFixed(1)+' '+a[1].toFixed(1);} 
   g+=`<path d="${dp}Z" fill="rgba(194,80,10,.18)" stroke="var(--orange)" stroke-width="2"/>`;
   for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); g+=`<circle cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="2.6" fill="var(--orange)"/>`; }
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%"${grafFs(opts)}>${g}</svg>`;
 }
 function exerciseList(sf){ const s=new Set(); storicoSet(sf).forEach(r=>{ if(r.esercizio) s.add(r.esercizio); }); return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
 function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,rmMostrato(r)); mm[s].peso=Math.max(mm[s].peso,pesoMostrato(r)); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
@@ -154,6 +154,13 @@ function barraSetProgressi(){
       <select id="prog-set" title="${t('Analizza tutto il percorso oppure un singolo Training Set (es. solo Palestra): utile quando le schede sono molto diverse tra loro')}">${opts}</select></div>
     <div class="spacer"></div></div>${nota}`;
 }
+/* VISTA COMPATTA (2026-11-16, richiesta di Marco: «una bella vista compatta dei grafici, sempre
+   divisa per categoria e logica»). I grafici stanno in una griglia fitta (.chart-grid--compatta:
+   tante colonne quante ne entrano, una sola sullo schermo stretto) e si disegnano per quella misura
+   (GRAF_C). Le sezioni, in ordine: Segnali · Carico e volume · Carico interno (se c'è il session-RPE)
+   · Forza e record · Equilibrio e distribuzione · Cardio. I calcoli sono quelli di sempre. */
+const GRAF_C={w:380,h:170,fs:11};
+function grafC(o){ return Object.assign({},GRAF_C,o||{}); }
 function renderProgressi(){
   const sf=progSetGet();
   const ag=schedeAggr(sf);
@@ -169,9 +176,15 @@ function renderProgressi(){
   const cron=caricoCronico(ag, sf==='__tutti__');
   const mavg=cron.map(c=>c.media), acwr=cron.map(c=>c.acwr);
   const lastAcwr=acwr[acwr.length-1];
+  const exs=exerciseList(sf); if(progEx==null||!exs.includes(progEx)) progEx=exs[0]||'';
   /* i RECORD non seguono il filtro: un massimale è un massimale, in qualunque Training Set
-     sia stato fatto (richiesta di Marco). Quando un filtro è attivo lo si dice, per chiarezza. */
-  const cards=`<div class="sec">${t('Record personali · carico massimo')}${sf!=='__tutti__'?`<span class="pill muted" style="margin-left:auto;text-transform:none">${t('su tutto il percorso')}</span>`:''}</div><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${MAINLIFTS.map(L=>{ const r=realMax(nomeAttuale(L.nome)); return `<div class="card pr-card"><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div>`;
+     sia stato fatto (richiesta di Marco). Quando un filtro è attivo lo si dice, per chiarezza.
+     Un clic su una card mette quell'esercizio nel grafico della progressione accanto (Marco,
+     16/11/2026); si può solo se l'esercizio c'è nei dati scelti, altrimenti il grafico non
+     avrebbe niente da mostrare. La card dell'esercizio nel grafico resta evidenziata. */
+  const cards=`<div class="chart-box rec-box"><h4>🏆 ${t('Record personali · carico massimo')}${sf!=='__tutti__'?`<span class="pill muted" style="text-transform:none">${t('su tutto il percorso')}</span>`:''}</h4><div class="cards rec-cards">${MAINLIFTS.map(L=>{ const n=nomeAttuale(L.nome), r=realMax(n), vai=exs.includes(n);
+    const att=vai? ` role="button" tabindex="0" data-rec-ex="${esc(n)}" title="${t('Mostra la progressione di questo esercizio nel grafico accanto')}"` : (r? ` title="${t('Nessuna serie di questo esercizio nei dati scelti')}"` : '');
+    return `<div class="card pr-card${vai?' pr-card--vai':''}${vai&&n===progEx?' is-sel':''}"${att}><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div></div>`;
   const tlSeries=[{name:'TL',color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:a.tl||null}))},{name:t('Media mobile 4'),color:'var(--ink-3)',data:ag.map((a,i)=>({x:labels[i],y:mavg[i]}))}];
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
   const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
@@ -187,7 +200,6 @@ function renderProgressi(){
   const BANDS=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
   const bcol={'Forza':'#991b1b','Forza+Iper':'#c2500a','Ipertrofia':'#d4a017','Resistenza':'#2f7d4f','Metabolico':'#7a3ea8'};
   const intData=BANDS.map(b=>({x:t(b),y:last.band[b]||0,color:bcol[b]}));
-  const exs=exerciseList(sf); if(progEx==null||!exs.includes(progEx)) progEx=exs[0]||'';
   const prog=exProgression(progEx,sf); const plab=prog.map(p=>schedaLabel(p.scheda));
   const exSeries=[{name:t('1RM stimato'),color:'var(--orange-b)',data:prog.map((p,i)=>({x:plab[i],y:p.rm||null}))},{name:t('Peso max'),color:'var(--violet)',data:prog.map((p,i)=>({x:plab[i],y:p.peso||null}))}];
   const plats=plateauList(sf);
@@ -209,38 +221,46 @@ function renderProgressi(){
   else if(lastAcwr!=null && lastAcwr<0.8) segnali+=`<div class="callout callout--info"><div>🛌 ${t('<b>Carico basso</b> (ACWR')} ${nf(lastAcwr,2)}${t('): fase di scarico/ripresa. Se non voluto, aumenta gradualmente.')}</div></div>`;
   if(plats.length) segnali+=`<div class="callout"><div>⏸ ${t('<b>In stallo</b> (TL fermo da ≥3 schede):')} ${plats.slice(0,6).map(p=>esc(exName(p.nome))+' <span class="muted">('+p.since+' '+t('sett.')+')</span>').join(' · ')}. ${t('Valuta variazione di carico, volume o esercizio.')}</div></div>`;
   if(!segnali) segnali=`<div class="callout" style="background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ ${t('Nessun segnale critico: carico e progressione regolari.')}</div></div>`;
-  document.getElementById('panel-progressi').innerHTML=barraSetProgressi()+cards+`
+  document.getElementById('panel-progressi').innerHTML=`<div class="graf-pagina">`+barraSetProgressi()+`
    <div class="sec">${t('Segnali')}</div>${segnali}
-   <div class="sec">${t('Carico allenante (Training Load)')}</div>
-   <div class="chart-grid chart-grid--fluida">
-     <div class="chart-box"><h4>${t('📈 TL totale + media mobile')}${spiegaBtn('tl')}</h4>${lineChart(tlSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('⚖ ACWR (acuto:cronico) · zona 0.8–1.3')}${spiegaBtn('acwr')}</h4>${lineChart(acwrSeries,{labels,band:[0.8,1.3,'rgba(47,125,79,.13)']})}</div>
-     <div class="chart-box"><h4>${t('🏋 Tonnellaggio per scheda (kg)')}${spiegaBtn('tonnellaggio')}</h4>${lineChart(tonnSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('Δ Variazione TL %')}${spiegaBtn('delta-tl')}</h4>${lineChart(dSeries,{labels})}</div>
+   <div class="sec">${t('Carico e volume')}</div>
+   <div class="chart-grid chart-grid--compatta">
+     <div class="chart-box"><h4>${t('📈 TL totale + media mobile')}${spiegaBtn('tl')}</h4>${lineChart(tlSeries,grafC({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('⚖ ACWR (acuto:cronico) · zona 0.8–1.3')}${spiegaBtn('acwr')}</h4>${lineChart(acwrSeries,grafC({labels,band:[0.8,1.3,'rgba(47,125,79,.13)']}))}</div>
+     <div class="chart-box"><h4>${t('🏋 Tonnellaggio per scheda (kg)')}${spiegaBtn('tonnellaggio')}</h4>${lineChart(tonnSeries,grafC({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('Δ Variazione TL %')}${spiegaBtn('delta-tl')}</h4>${lineChart(dSeries,grafC({labels}))}</div>
    </div>
    ${hasRpe?`<div class="sec">${t('Carico interno · session-RPE (Foster 2001)')}</div>
    ${fosterSignal}
-   <div class="chart-grid chart-grid--fluida">
-     <div class="chart-box"><h4>${t('🔥 Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span>${spiegaBtn('srpe')}</h4>${lineChart(sRpeSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('📊 Monotonia')} <span class="muted" style="font-size:11px">${t('(media7÷SD7 · zona ≤2)')}</span>${spiegaBtn('monotonia')}</h4>${lineChart(monoSeries,{labels,band:[0,2,'rgba(47,125,79,.10)']})}</div>
-     <div class="chart-box"><h4>${t('⚡ Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span>${spiegaBtn('strain')}</h4>${lineChart(strainSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span>${spiegaBtn('interno-esterno')}</h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],{labels})})()}</div>
+   <div class="chart-grid chart-grid--compatta">
+     <div class="chart-box"><h4>${t('🔥 Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span>${spiegaBtn('srpe')}</h4>${lineChart(sRpeSeries,grafC({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('📊 Monotonia')} <span class="muted" style="font-size:11px">${t('(media7÷SD7 · zona ≤2)')}</span>${spiegaBtn('monotonia')}</h4>${lineChart(monoSeries,grafC({labels,band:[0,2,'rgba(47,125,79,.10)']}))}</div>
+     <div class="chart-box"><h4>${t('⚡ Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span>${spiegaBtn('strain')}</h4>${lineChart(strainSeries,grafC({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span>${spiegaBtn('interno-esterno')}</h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],grafC({labels}))})()}</div>
    </div>`:''}
-   <div class="sec">${t('Volume & equilibrio per gruppo muscolare')}</div>
-   <div class="chart-grid chart-grid--fluida">
-     <div class="chart-box"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = riferimento scelto)')}</span>${spiegaBtn('distribuzione')}</h4>${radarChart(radarItems)}${rifDidascalia(rifC,{dopo:'tab'})}</div>
-     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span>${spiegaBtn('serie-gruppo')}</h4>${barChart(setsData)}</div>
-     <div class="chart-box"><h4>${t('Andamento TL per gruppo')}${spiegaBtn('tl-gruppo')}</h4>${lineChart(grpSeries,{labels,fmt:nfk})}</div>
-     <div class="chart-box"><h4>${t('🎯 Distribuzione intensità · ultima (serie per fascia)')}${spiegaBtn('intensita')}</h4>${barChart(intData)}</div>
+   <div class="sec">${t('Forza e record')}</div>
+   <div class="chart-grid chart-grid--compatta chart-grid--coppia">
+     ${cards}
+     <div class="chart-box graf-cont"><h4>📈 ${t('Progressione per esercizio')}${spiegaBtn('progressione')}</h4>
+       <div class="graf-scelta"><label for="prog-ex">${t('Esercizio')}</label><select id="prog-ex">${exs.map(e=>`<option value="${esc(e)}"${e===progEx?' selected':''}>${esc(exName(e))}</option>`).join('')}</select></div>
+       ${prog.length?grafVarianti(lineChart(exSeries,grafC({labels:plab,w:780,h:175})),lineChart(exSeries,grafC({labels:plab,w:440,h:190}))):`<div class="empty">${t('Nessun dato per questo esercizio.')}</div>`}
+     </div>
    </div>
-   <div class="sec">${t('Progressione per esercizio')}</div>
-   <div class="chart-box">${spiegaBtn('progressione')}
-     <div class="bar" style="margin:0 0 8px"><div class="field"><label>${t('Esercizio')}</label><select id="prog-ex" style="min-width:220px">${exs.map(e=>`<option value="${esc(e)}"${e===progEx?' selected':''}>${esc(exName(e))}</option>`).join('')}</select></div></div>
-     ${prog.length?lineChart(exSeries,{labels:plab,h:230}):`<div class="empty">${t('Nessun dato per questo esercizio.')}</div>`}
+   <div class="sec">${t('Equilibrio e distribuzione')}</div>
+   <div class="chart-grid chart-grid--compatta">
+     <div class="chart-box chart-box--radar"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = riferimento scelto)')}</span>${spiegaBtn('distribuzione')}</h4>${radarChart(radarItems,{w:320,h:262,fs:11})}${rifDidascalia(rifC,{dopo:'tab'})}</div>
+     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span>${spiegaBtn('serie-gruppo')}</h4>${barChart(setsData,grafC({h:250}))}</div>
+     <div class="chart-box"><h4>${t('🎯 Distribuzione intensità · ultima (serie per fascia)')}${spiegaBtn('intensita')}</h4>${barChart(intData,grafC({h:270}))}</div>
+     <div class="chart-box"><h4>${t('Andamento TL per gruppo')}${spiegaBtn('tl-gruppo')}</h4>${lineChart(grpSeries,grafC({labels,fmt:nfk,h:250}))}</div>
    </div>
    ${cardioProgressBlock()}
-`;
+  </div>`;
   const sel=document.getElementById('prog-ex'); if(sel) sel.onchange=e=>{ progEx=e.target.value; renderProgressi(); };
+  document.querySelectorAll('#panel-progressi [data-rec-ex]').forEach(c=>{
+    const vai=tast=>{ progEx=c.dataset.recEx; renderProgressi();
+      if(tast){ const n=[...document.querySelectorAll('#panel-progressi [data-rec-ex]')].find(x=>x.dataset.recEx===progEx); if(n) n.focus(); } };
+    c.onclick=()=>vai(false);
+    c.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); vai(true); } }; });
   const selS=document.getElementById('prog-set'); if(selS) selS.onchange=e=>{ progSetSet(e.target.value); progEx=null; renderProgressi(); };
   bindCardioProgress();
 }

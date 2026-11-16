@@ -2578,8 +2578,90 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
   w.eval('showTab("alimentazione")');
   { const side = d.getElementById('alim-side');
     ok(side !== null && /kcal/.test(side.textContent) && side.querySelectorAll('.lat').length === 4, 'Alimentazione: pannello laterale con energia, macronutrienti, pasti e riferimenti'); }
+  /* ── VISTA COMPATTA dei grafici (Marco, 16/11/2026): sezioni per argomento, griglia fitta ── */
   w.eval('showTab("progressi")');
-  ok(d.querySelectorAll('#panel-progressi .chart-grid--fluida').length >= 3 && d.querySelector('#panel-progressi .chart-grid--fluida').children.length === 4, 'Progressi: i grafici di una sezione stanno in un\'unica griglia che si adatta alla larghezza');
+  { const pp = d.getElementById('panel-progressi');
+    /* la griglia che segue il titolo di sezione */
+    const grigliaDi = (pan, tit) => { const sec = [...pan.querySelectorAll('.graf-pagina > .sec')].find(x => x.textContent.trim().startsWith(tit));
+      let el = sec && sec.nextElementSibling; while (el && !el.classList.contains('chart-grid') && !el.classList.contains('sec')) el = el.nextElementSibling;
+      return el && el.classList.contains('chart-grid') ? el : null; };
+    const griglie = pp.querySelectorAll('.chart-grid--compatta');
+    ok(griglie.length >= 3 && griglie[0].children.length === 4 && !pp.querySelector('.chart-grid--fluida'),
+       'Progressi: i grafici di ogni sezione stanno in una griglia compatta che si adatta alla larghezza (' + griglie.length + ' sezioni)');
+    const titoli = [...pp.querySelectorAll('.graf-pagina > .sec')].map(x => x.textContent.trim());
+    const pos = ['Segnali', 'Carico e volume', 'Forza e record', 'Equilibrio e distribuzione'].map(x => titoli.findIndex(y => y.startsWith(x)));
+    ok(pos.every((v, i) => v >= 0 && (i === 0 || v > pos[i - 1])), 'Progressi: sezioni per argomento, in ordine (' + titoli.join(' · ') + ')');
+    const carico = grigliaDi(pp, 'Carico e volume');
+    ok(carico && /TL totale/.test(carico.textContent) && /ACWR/.test(carico.textContent) && /Tonnellaggio/.test(carico.textContent) && /Variazione TL/.test(carico.textContent),
+       'Progressi: «Carico e volume» raccoglie TL, ACWR, tonnellaggio e variazione del TL');
+    const forza = grigliaDi(pp, 'Forza e record');
+    ok(forza && forza.classList.contains('chart-grid--coppia') && forza.children.length === 2 && forza.querySelectorAll('.rec-box .pr-card').length === w.eval('MAINLIFTS.length') && forza.querySelector('#prog-ex'),
+       'Progressi: «Forza e record» ha le card dei record accanto alla progressione per esercizio (con la sua scelta)');
+    ok(forza && forza.querySelector('.graf-v--largo svg') && forza.querySelector('.graf-v--stretto svg'),
+       'Progressi: la progressione per esercizio ha la versione larga e quella per la colonna unica');
+    /* un clic sulla card di un record porta quell'esercizio nel grafico della progressione (Marco, 16/11/2026) */
+    { const card = [...pp.querySelectorAll('.rec-box [data-rec-ex]')].find(c => c.dataset.recEx !== w.eval('progEx'));
+      ok(!!card && card.getAttribute('role') === 'button' && card.getAttribute('tabindex') === '0', 'Progressi: le card dei record con dati sono cliccabili (anche da tastiera)');
+      const nome = card.dataset.recEx;
+      card.click();
+      const sel = d.getElementById('prog-ex'), ora = d.querySelector('#panel-progressi .rec-box .pr-card.is-sel');
+      ok(w.eval('progEx') === nome && sel.value === nome && ora && ora.dataset.recEx === nome && d.querySelectorAll('#panel-progressi .rec-box .pr-card.is-sel').length === 1,
+         'Progressi: cliccando la card di un record il grafico accanto passa a quell\'esercizio e la card resta evidenziata (' + nome + ')');
+      const altra = [...d.querySelectorAll('#panel-progressi .rec-box [data-rec-ex]')].find(c => c.dataset.recEx !== nome);
+      if (altra) { const n2 = altra.dataset.recEx; altra.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        ok(w.eval('progEx') === n2 && d.activeElement && d.activeElement.dataset.recEx === n2, 'Progressi: anche con Invio dalla tastiera, e il fuoco resta sulla card'); }
+      /* il menu dell'esercizio continua a funzionare e aggiorna la card evidenziata */
+      const s2 = d.getElementById('prog-ex'); s2.value = nome; s2.dispatchEvent(new w.Event('change'));
+      ok(d.querySelector('#panel-progressi .rec-box .pr-card.is-sel').dataset.recEx === nome, 'Progressi: scegliendo dal menu, la card evidenziata segue'); }
+    const equi = grigliaDi(pp, 'Equilibrio e distribuzione');
+    const radarBox = equi && equi.querySelector('.chart-box--radar');
+    ok(equi && equi.children.length === 4 && radarBox && /Equilibrio · distribuzione/.test(radarBox.textContent) && radarBox.querySelector('.rif-nota') && radarBox.querySelector('[data-rif-apri]') && radarBox.querySelector('[data-spieg="distribuzione"]'),
+       'Progressi: in «Equilibrio e distribuzione» la ragnatela tiene la didascalia del riferimento, «⚙ Riferimento» e il «?»');
+    ok(/Serie per gruppo/.test(equi.textContent) && /Distribuzione intensità/.test(equi.textContent) && /Andamento TL per gruppo/.test(equi.textContent),
+       'Progressi: in «Equilibrio e distribuzione» anche serie per gruppo, intensità e TL per gruppo');
+    ok([...pp.querySelectorAll('.chart-grid--compatta svg')].every(x => /--graf-fs/.test(x.getAttribute('style') || '')),
+       'Progressi: tutti i grafici della griglia sono disegnati per la vista compatta');
+    /* schede Fable nella ragnatela dei Progressi: fascia viola e avvertimento sempre presenti */
+    w.eval('DOC.dati_utente.rifDistr={raccolta:"schede", esperienza:"", tipo:"resistenza", fable:true}; renderProgressi();');
+    { const rb = d.querySelector('#panel-progressi .chart-box--radar');
+      ok(rb && rb.querySelector('.rif-nota.is-fable') && /Fascia ipotizzata da Fable/.test(rb.textContent) && /var\(--violet\)/.test(rb.querySelector('svg').innerHTML),
+         'Progressi: con le schede Fable la ragnatela compatta resta viola e con l\'avvertimento sotto'); }
+    w.eval('delete DOC.dati_utente.rifDistr; renderProgressi();');
+  }
+  w.eval('showTab("analisi")');
+  { const pa = d.getElementById('panel-analisi');
+    if (w.eval('((DOC.alimentazione||{}).periodi||[]).length') > 0) {
+      const titoli = [...pa.querySelectorAll('.graf-pagina > .sec')].map(x => x.textContent.trim());
+      ok(titoli.join('|') === 'Quadro nel tempo|Dieta e peso|Carico e correlazioni', 'Analisi: tre sezioni per argomento (' + titoli.join(' · ') + ')');
+      const tl = pa.querySelector('.chart-box--largo');
+      ok(tl && /Timeline/.test(tl.textContent) && tl.querySelector('.graf-v--largo svg') && tl.querySelector('.graf-v--stretto svg') && tl.querySelector('[data-spieg="timeline"]'),
+         'Analisi: la Timeline prende tutta la riga, in versione larga e stretta, col suo «?»');
+      ok(pa.querySelectorAll('.chart-grid--compatta > .chart-box').length === 5 && pa.querySelector('.pag__side') && /Periodi/.test(pa.querySelector('.pag__side').textContent),
+         'Analisi: i cinque grafici sulla griglia compatta, il pannello dei periodi resta di lato');
+    } else ok(false, 'Analisi: servono i periodi del profilo dimostrativo per provare la vista compatta');
+  }
+  /* i grafici senza le misure compatte restano quelli di prima (Report, Corpo, Cardio) */
+  ok(!/--graf-fs/.test(w.eval('lineChart([{name:"A",color:"red",data:[{x:"a",y:1},{x:"b",y:2}]},{name:"B",color:"blue",data:[{x:"a",y:2},{x:"b",y:3}]}])')) &&
+     w.eval('lineChart([{name:"A",color:"red",data:[{x:"a",y:1},{x:"b",y:2}]},{name:"B",color:"blue",data:[{x:"a",y:2},{x:"b",y:3}]}])').includes('display:flex;gap:14px;flex-wrap:wrap;font-size:11px;margin-top:6px') &&
+     /viewBox="0 0 560 240"/.test(w.eval('timelineChart(serieSettimanali())')) && !/--graf-fs/.test(w.eval('timelineChart(serieSettimanali())')),
+     'grafici: senza opts.fs misure, scritte e legenda restano quelle di sempre (il Report li usa così)');
+  /* etichette delle date: nella vista compatta non si accavallano e non escono dal disegno */
+  { const W = 380, FS = 11;
+    const svg = w.eval('(function(){ var L=[]; for(var i=0;i<27;i++){ var x=new Date(2025,10,3+7*i); L.push(("0"+x.getDate()).slice(-2)+"/"+("0"+(x.getMonth()+1)).slice(-2)+"/"+String(x.getFullYear()).slice(2)); } return lineChart([{name:"TL",color:"red",data:L.map(function(l,i){ return {x:l,y:100+i}; })}],{labels:L,w:' + W + ',h:170,fs:' + FS + '}); })()');
+    const et = [...svg.matchAll(/<text class="lbl" x="([\d.]+)" y="162" text-anchor="(\w+)">([^<]+)<\/text>/g)].map(m => { const lw = m[3].length * FS * 0.6, x = +m[1];
+      return m[2] === 'end' ? [x - lw, x] : [x - lw / 2, x + lw / 2]; });
+    ok(et.length >= 3 && et.length <= 6 && et.every((r, i) => r[0] >= 0 && r[1] <= W && (i === 0 || r[0] > et[i - 1][1])),
+       'grafici compatti: le date sull\'asse si diradano, non si accavallano e l\'ultima resta dentro il disegno (' + et.length + ' etichette)'); }
+  { const svg = w.eval('barChart(["Gambe","Pettorali","Schiena","Spalle","Braccia","Core","Cardio"].map(function(g,i){ return {x:g,y:10+i}; }),{w:380,h:215,fs:11})');
+    const ys = [...svg.matchAll(/<text class="lbl" x="[\d.]+" y="([\d.]+)" text-anchor="middle">(Gambe|Pettorali|Schiena|Spalle|Braccia|Core|Cardio)<\/text>/g)].map(m => +m[1]);
+    ok(ys.length === 7 && ys[0] !== ys[1] && ys[0] === ys[2] && ys[1] === ys[3], 'grafici compatti: i nomi lunghi sotto le barre strette si sfalsano su due righe invece di accavallarsi'); }
+  { const svg = w.eval('lineChart([{name:"M",color:"red",data:[1.38,1.53,1.41,1.5,1.45].map(function(v,i){ return {x:"s"+i,y:v}; })}])');
+    const tacche = [...svg.matchAll(/text-anchor="end">([^<]+)<\/text>/g)].map(m => m[1]);
+    ok(tacche.length === 5 && new Set(tacche).size === 5, 'grafici: la scala verticale non ripete lo stesso numero (Monotonia: ' + tacche.join(' ') + ')'); }
+  /* il Report non usa la vista compatta: i suoi grafici restano alle loro misure */
+  w.eval('showTab("report")'); await settle(30);
+  { const svgR = [...d.querySelectorAll('#rep-sorgente svg')];
+    ok(svgR.length > 0 && svgR.every(x => !/--graf-fs/.test(x.getAttribute('style') || '')), 'Report: i grafici restano quelli di prima, senza le misure compatte (' + svgR.length + ' grafici)'); }
   /* due colonne a scorrimento indipendente in tutte le pagine che le hanno */
   for (const tab of ['allenamento', 'cardio', 'storico', 'corpo', 'alimentazione', 'esercizi', 'profilo']) {
     w.eval('showTab(' + JSON.stringify(tab) + ')');

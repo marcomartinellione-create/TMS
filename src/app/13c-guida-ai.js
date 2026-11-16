@@ -334,8 +334,8 @@ Due modi per registrare una seduta:
   con un selettore; per lo sport scelto mostra l'andamento nel tempo di sRPE, FC media e — dove
   ha senso — distanza, passo (min/km, più basso = meglio) o velocità, dislivello. Così vedi se
   in una specifica attività (es. la corsa) stai migliorando passo/distanza o calando di FC.
-- Il cardio compare anche nel grafico **«Equilibrio volume»** (Progressi e Report) come asse
-  dedicato: i minuti diventano «serie-equivalenti» (min÷10), così ~2 h/settimana ≈ 12, in
+- Il cardio compare anche nelle barre **«Serie per gruppo»** (Progressi) come barra
+  dedicata: i minuti diventano «serie-equivalenti» (min÷10), così ~2 h/settimana ≈ 12, in
   piena zona di volume equilibrato, per vedere a colpo d'occhio se il cardio è bilanciato
   rispetto al lavoro coi pesi.
 - «＋ Esercizio» chiede in quale giorno aggiungerlo (lo inserisce in quel giorno);
@@ -363,13 +363,19 @@ Due modi per registrare una seduta:
 
 ## 5 · Progressi, Storico, Corpo (tab 📈 Progressi · 🜂 Corpo; archivi dal tab 👤 Profilo)
 
-- **Progressi**: record personali per esercizio (carico massimo), «Segnali»
-  automatici (🎉 record al salvataggio, ⏸ esercizi in stallo con TL fermo da 3+
-  schede, ⚠ suggerimento deload se ACWR alto, ⚠ monotonia alta) e grafici: TL totale
-  con media mobile, ACWR con la zona sicura evidenziata, TL per gruppo muscolare,
-  distribuzione delle intensità (%1RM), carico interno sRPE (se abilitato),
-  monotonia/strain, progressione del singolo esercizio (1RM e peso max nel tempo).
-  I grafici hanno senso da 2-3 settimane salvate in poi. Dal v1.1.4 in cima c'è il
+- **Progressi**: grafici piccoli e affiancati in una griglia compatta (fino a quattro per
+  riga su schermo largo, uno per riga in una finestra stretta), divisi per argomento in
+  quest'ordine: «Segnali» automatici (🎉 record al salvataggio, ⏸ esercizi in stallo con TL
+  fermo da 3+ schede, ⚠ suggerimento deload se ACWR alto, ⚠ monotonia alta) · «Carico e
+  volume» (TL totale con media mobile, ACWR con la zona sicura evidenziata, tonnellaggio,
+  variazione % del TL) · «Carico interno · session-RPE» (se abilitato: carico interno sRPE,
+  monotonia, strain, interno contro esterno) · «Forza e record» (record personali per
+  esercizio, carico massimo, accanto alla progressione del singolo esercizio: 1RM e peso max
+  nel tempo; cliccando la card di un record il grafico accanto passa a quell'esercizio) · «Equilibrio e distribuzione» (ragnatela della distribuzione fra i gruppi con
+  sotto la didascalia del riferimento e il pulsante ⚙ Riferimento, serie per gruppo,
+  distribuzione delle intensità %1RM, TL per gruppo muscolare) · «Cardio · progressione per
+  sport». Ogni grafico ha il suo «?» con la spiegazione; passando col mouse su un punto se ne
+  legge il valore. I grafici hanno senso da 2-3 settimane salvate in poi. Dal v1.1.4 in cima c'è il
   selettore **«Dati da analizzare»**: «Tutto il percorso» oppure un singolo **Training Set**
   (patch al limite noto della confrontabilità del TL tra schede molto diverse — es. Palestra
   vs Casa). La scelta **si ricorda**: vive nel profilo (dati_utente.progSet, quindi in
@@ -380,7 +386,7 @@ Due modi per registrare una seduta:
   (dal v1.1.6)**: i «Record personali · carico massimo» NON seguono questo filtro — un record
   è un record, sempre calcolato su TUTTO lo storico indipendentemente dal Training Set attivo;
   quando un filtro è impostato compare la pill «su tutto il percorso» accanto al titolo per
-  spiegarlo. Il radar «Volume ed equilibrio · serie per gruppo» somma sull'asse Cardio anche i
+  spiegarlo. Le barre «Serie per gruppo» sommano sulla barra Cardio anche i
   minuti di cardio registrati nel Riscaldamento (oltre a quelli del tab Cardio), min÷10 —
   vedi §4 per i dettagli su cosa NON tocca (TL/ACWR/monotonia restano intatti).
 - **Storico** (pulsante «📜 Storico» in cima al tab Profilo): archivio completo delle registrazioni, in codici
@@ -474,10 +480,13 @@ Due modi per registrare una seduta:
 
 ## 7 · Analisi (tab 📊 Analisi)
 
-Incrocia dieta e allenamento nel tempo (servono periodi alimentari registrati):
-timeline dei periodi con carico allenante e peso sovrapposti; variazione di peso
-contro bilancio calorico stimato; correlazioni con ritardo temporale (lag); confronto
-tra fasi (boxplot). Tutto ricalcolato al volo dai dati, niente da configurare.
+Incrocia dieta e allenamento nel tempo (servono periodi alimentari registrati). I grafici
+stanno in tre sezioni, su una griglia compatta, con accanto il pannello dei periodi:
+«Quadro nel tempo» (timeline dei periodi con carico allenante e peso sovrapposti, a tutta
+riga) · «Dieta e peso» (variazione di peso contro bilancio calorico stimato; confronto tra
+fasi del peso, boxplot) · «Carico e correlazioni» (confronto tra fasi del TL, boxplot;
+correlazione con ritardo temporale, lag). Tutto ricalcolato al volo dai dati, niente da
+configurare.
 
 ## 8 · Le due app: TMS (principale) e TMS Scheda (taccuino) — scambio scheda
 
