@@ -14,7 +14,8 @@ const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'
 const APP_VERSION='1.1.24', APP_DATE='2026-11-16';
 const RELEASE_NOTE='Novità: Aspetto: tre stili per la modalità notte (Notte calda, Grafite, Blu notte) da scegliere nella nuova finestra ⚙ Impostazioni, che contiene anche 📕 Guida e 🐞 Segnala; in alto a destra tre comandi uguali (lingua, giorno/notte, ⚙); di notte grafici più leggibili e casella dell’esercizio della scheda Pesi rifatta; Analisi e Progressi: vista compatta dei grafici, divisi per argomento (Progressi: Segnali, Carico e volume, Carico interno, Forza e record, Equilibrio e distribuzione, Cardio; Analisi: Quadro nel tempo, Dieta e peso, Carico e correlazioni), fino a quattro per riga e uno per riga su finestra stretta; un clic sulla card di un record mostra quell’esercizio nel grafico della progressione accanto; Corpo: le pesate della bilancia arrivano col rientro e la media di ogni settimana va da sola nello Storico misure (una pesata al giorno, la prima; domanda solo se la settimana è già scritta a mano), riquadro «⚖ Pesate della bilancia» nel tab Corpo, campo Acqua e colonne Acqua % e N. pesate nello Storico misure.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
-const APP_CLIENTE_URL='https://marcomartinellione-create.github.io/TMS/app/';  /* PWA «TMS Scheda» per il cliente */
+/* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
+   Il sorgente resta in docs/app/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */
 /* ── mini-log errori interni (P4): ring buffer in memoria + scrittura best-effort in
       TMS_Dati/log_errori.json. Si consulta con 5 click sulla scritta «TMS» in alto. ── */
 const LOG_ERRORI=[], LOG_ERRORI_MAX=200; let _logT=null;

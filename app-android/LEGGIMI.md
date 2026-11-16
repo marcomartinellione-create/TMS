@@ -4,7 +4,8 @@ L'app del telefono del cliente, «TMS Scheda», come **app Android vera** da ins
 Ha le **stesse funzioni** della versione web (PWA in `docs/app/`), perché ne contiene una copia:
 riscaldamento, esercizi coi video, timer di recupero, modifica della scheda col catalogo del
 coach, test del massimale, alimentazione, foto progressi, riepilogo e rientro, italiano e inglese.
-La PWA resta com'è e continua a funzionare finché Marco non decide di spegnerla.
+**Dal 16/11/2026 è l'unica app del telefono** (decisione di Marco): l'app desktop non indica più la
+PWA ai clienti. `docs/app/` resta come **sorgente** dell'APK: si modifica lì e si rifà l'APK.
 
 Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da un browser:
 
@@ -43,11 +44,11 @@ Per gli **aggiornamenti**: si alza `version` in `app-android/package.json` (es. 
 si rifà l'APK e il cliente lo installa **sopra** quello vecchio: la scheda, la bozza e le foto restano.
 Funziona solo perché ogni versione è firmata con la **stessa chiave** (vedi sotto).
 
-## Passare dalla PWA all'APK (per i clienti)
+## Passare dalla PWA all'APK (per i clienti che la usavano)
 
 L'APK e la PWA tengono i dati **separati**: la bozza scritta nella PWA non passa nell'APK.
 Il momento giusto per cambiare è a **scheda nuova**: il cliente manda il rientro dalla PWA, poi
-apre la scheda nuova nell'APK. Gli **iPhone** non installano APK: restano sulla PWA.
+apre la scheda nuova nell'APK. Gli **iPhone** non installano APK: restano senza app del telefono.
 
 ## Da non fare mai (si perderebbero i dati dei clienti)
 

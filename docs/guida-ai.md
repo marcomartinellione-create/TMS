@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.23 (2026-11-15). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.24 (2026-11-16). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -505,9 +505,10 @@ Due modi d'uso: ① **coach + atleta** — il coach ha il TMS completo (un profi
 cliente), l'atleta ha SOLO TMS Scheda sul telefono (niente PC, niente TMS); ② **atleta
 autonomo** — la stessa persona usa entrambi: programma sul PC, annota col telefono,
 reimporta su di sé (i passi sotto valgono identici, «cliente» = sé stessi).
-TMS Scheda è una PWA su https://marcomartinellione-create.github.io/TMS/app/ — si
-installa dal browser con «Aggiungi alla schermata Home», funziona offline, si aggiorna
-da sola. La scheda viaggia come file via chat/email. Nessun server: i dati restano
+TMS Scheda è un'app Android (APK) che il coach manda al cliente come file: si installa
+toccandolo (fuori dal Play Store: va consentita l'installazione da quella fonte), funziona
+offline e si aggiorna installando sopra l'APK nuovo. Solo Android: gli iPhone non installano
+APK. La scheda viaggia come file via chat/email. Nessun server: i dati restano
 nei dispositivi.
 1. **Esporta** — tab «👤 Profilo», riga del cliente, bottone «📲 Esporta scheda»:
    nasce «Scheda_profilo_data.json» (tipo interno 'tms-scheda') con la scheda giorno

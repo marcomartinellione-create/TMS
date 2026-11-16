@@ -1066,7 +1066,7 @@ const EN={
   'Il timer di recupero è disponibile in entrambe.':'The rest timer is available in both.',
   '— incluso il piano alimentare della fase':'— nutrition plan for phase',
   'Inviala al cliente: la apre nell\'app «TMS Scheda», compila e ti rimanda il file di rientro (da importare qui nel Profilo).':'Send it to the client: they open it in the «TMS Scheda» app, fill it in and send you back the log file (to import here in the Profile).',
-  'Prima volta? Il cliente apre questo link sul telefono e aggiunge l\'app alla schermata Home (poi funziona anche offline):':'First time? The client opens this link on their phone and adds the app to the Home screen (then it works offline too):',
+  'Prima volta? Il cliente installa l’app «TMS Scheda» per Android: mandagli il file TMS-Scheda-….apk (cartella app-android › dist del progetto); sul telefono lo tocca e conferma l’installazione.':'First time? The client installs the «TMS Scheda» app for Android: send them the TMS-Scheda-….apk file (project folder app-android › dist); on the phone they tap it and confirm the installation.',
   'File non valido: non è un "rientro scheda" del TMS (o non contiene né esercizi né pesate).':'Invalid file: it is not a TMS "program log" (or it contains neither exercises nor weigh-ins).',
   '⚠ Il file è della scheda di «':'⚠ The file is for the program of «',
   '» ma il profilo attivo è «':'» but the active profile is «',

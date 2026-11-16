@@ -1,9 +1,9 @@
 /* ════ SCAMBIO SCHEDA TRAINER ↔ CLIENTE ════
-   Flusso (rinnovato su richiesta di Marco: app cliente PWA al posto dell'HTML, v1.0.85):
+   Flusso (rinnovato su richiesta di Marco: app cliente al posto dell'HTML, v1.0.85; dal 16/11/2026 solo APK):
    1. il trainer esporta la scheda settimanale come FILE JSON (tipo 'tms-scheda', video
       inclusi come data-URI, stesso embed del Report digitale) e la manda via chat/email;
-   2. il cliente la apre nell'app «TMS Scheda» (PWA su GitHub Pages, APP_CLIENTE_URL;
-      installabile, offline, sorgente in docs/app/): compila ciò che ha fatto DAVVERO
+   2. il cliente la apre nell'app «TMS Scheda» (app Android, APK creato da app-android/ a
+      partire dal sorgente in docs/app/; offline): compila ciò che ha fatto DAVVERO
       (serie/rip/peso/RIR, note, fatica sRPE e durata per seduta) e, dal v1.5 della PWA,
       può anche aggiungere/eliminare/modificare esercizi e segnare i test 1RM (flag `test`);
       genera il "file di rientro" (JSON tipo 'tms-rientro', INVARIATO nel formato);
@@ -83,7 +83,7 @@ function costruisciSchedaJSON(videoMap, modificabile){
   return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile, rpe:useRpeActive(),
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
     corpo:{altezza:+u.altezza||0, sesso:(u.sesso==='F'||u.sesso==='M')?u.sesso:'', eta:etaOf(u)||0},
-    appCliente:APP_CLIENTE_URL, righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),
+    righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),
     video:videoMap, dieta:costruisciDietaJSON(), catalogo:catalogo};
 }
 
@@ -131,7 +131,7 @@ async function esportaSchedaCliente(){
   avviso(t('✔ Scheda esportata (')+(kb>1024?(kb/1024).toFixed(1)+' MB':kb.toFixed(0)+' KB')+')'+
     ' · '+(modificabile?t('scheda modificabile'):t('scheda fissa'))+(dati.dieta?' '+t('— incluso il piano alimentare della fase')+' '+t(dati.dieta.label||'')+'.':'.')+'\n'+
     t('Inviala al cliente: la apre nell\'app «TMS Scheda», compila e ti rimanda il file di rientro (da importare qui nel Profilo).')+'\n\n'+
-    t('Prima volta? Il cliente apre questo link sul telefono e aggiunge l\'app alla schermata Home (poi funziona anche offline):')+'\n'+APP_CLIENTE_URL);
+    t('Prima volta? Il cliente installa l’app «TMS Scheda» per Android: mandagli il file TMS-Scheda-….apk (cartella app-android › dist del progetto); sul telefono lo tocca e conferma l’installazione.'));
 }
 
 /* carica il rientro del cliente nella SCHEDA PESI (settimanale) per la revisione del coach,

@@ -187,7 +187,8 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   /* v1.0.85: l'export scheda è un JSON per l'app cliente (PWA), non più una pagina HTML */
   const schedaJs = w.eval('costruisciSchedaJSON({})');
   ok(schedaJs && schedaJs.tipo === 'tms-scheda' && schedaJs.versione === 1 && Array.isArray(schedaJs.righe) && typeof schedaJs.video === 'object', 'export scheda: JSON tms-scheda (righe + mappa video)');
-  ok(typeof w.eval('APP_CLIENTE_URL') === 'string' && schedaJs.appCliente === w.eval('APP_CLIENTE_URL') && /github\.io\/TMS\/app/.test(schedaJs.appCliente), 'export scheda: URL dell\'app cliente incluso nel file');
+  /* 16/11/2026: l'app del cliente è solo l'APK Android: il file non porta più il link alla PWA */
+  ok(w.eval('typeof APP_CLIENTE_URL') === 'undefined' && !('appCliente' in schedaJs), 'export scheda: niente più link alla PWA nel file (solo APK)');
   ok(w.eval('typeof costruisciSchedaCliente') === 'undefined', 'export HTML rimosso (sostituito dall\'app cliente)');
   /* v1.0.72: backup automatico settimanale + mini-log errori (P4) */
   ok([...fsmem._files.keys()].some(k => /^TMS_Dati\/backup_automatici\/TMS-auto-\d{4}-\d{2}-\d{2}\.json$/.test(k)) && fsmem._files.has('TMS_Dati/backup_automatici/indice.json'), 'backup automatico creato all\'avvio (snapshot + indice)');
