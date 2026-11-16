@@ -2733,7 +2733,7 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
     const sempl = w.eval('lineChart([{name:"A",color:"red",data:[{x:"a",y:1},{x:"b",y:2}]}])');
     const conOpz = w.eval('lineChart([{name:"A",color:"red",dash:"2 3",spess:3,punti:false,data:[{x:"a",y:90},{x:"b",y:110,segno:true,nota:"n"}]}],{rif:100,senzaLeg:true})');
     ok(!/stroke-dasharray|pt-segno|rif-base|stroke-width:/.test(sempl) && /r="2.6"/.test(sempl) &&
-       /stroke-dasharray="2 3"/.test(conOpz) && /pt-segno/.test(conOpz) && /rif-base/.test(conOpz) && /stroke-width:3/.test(conOpz) && !/r="2.6"/.test(conOpz) && /· n&quot;/.test(conOpz),
+       /stroke-dasharray="2 3"/.test(conOpz) && /pt-segno/.test(conOpz) && /rif-base/.test(conOpz) && /stroke-width:3/.test(conOpz) && !/r="2.6"/.test(conOpz) && /&quot;e&quot;:\[&quot;&quot;,&quot;n&quot;\]/.test(conOpz) && !/· n/.test(conOpz),
        'grafici: tratteggio, spessore, cerchietti e linea di base solo se chiesti'); }
   /* ── GRAFICI A LINEE INTERATTIVI (Marco, 16/11/2026): valori puntuali col mouse, animazioni ── */
   { const parse = html => new w.DOMParser().parseFromString('<div>' + html + '</div>', 'text/html').querySelector('svg');
@@ -2750,6 +2750,14 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
     const tip = w.eval('grafTipHtml(' + G + ',2)');
     ok(/15\/01\/26/.test(tip) && !/>TL</.test(tip) && /Media &lt;4&gt;/.test(tip) && /1,2k/.test(tip),
        'grafici a linee: il riquadro dice data e valori, salta la linea senza dato in quella settimana e non legge i nomi come codice');
+    /* la nota di un punto (es. il cambio scheda) sta su una riga sua, non attaccata al valore: lo
+       allungava fino a schiacciare il nome e le scritte si accavallavano (Marco, 16/11/2026) */
+    { const gn = JSON.parse(parse(w.eval('lineChart([{name:"Forza a parità di esercizi",color:"red",data:[{x:"a",y:100},{x:"b",y:150,nota:"○ cambio scheda: l\'indice riparte da qui"}]}],{labels:["01/01/26","08/01/26"]})')).getAttribute('data-g'));
+      const th = w.eval('grafTipHtml(' + JSON.stringify(gn) + ',1)');
+      const css = [...d.querySelectorAll('style')].map(s => s.textContent).join('\n');
+      ok(gn.s[0].v[1] === '150' && /<b>150<\/b>/.test(th) && /graf-tip__e">○ cambio scheda/.test(th) &&
+         /\.graf-tip__r\{display:grid; grid-template-columns:9px minmax\(6em,1fr\) auto;/.test(css) && /\.graf-tip\{[^}]*width:max-content; min-width:150px; max-width:min\(340px, calc\(100vw - 16px\)\)/.test(css),
+         'grafici a linee: la nota del cambio scheda va su una riga sua e nome e valore hanno ognuno la sua colonna (niente scritte accavallate)'); }
     /* passaggio del mouse vero, sul primo grafico dei Progressi (jsdom non ha la geometria: la si finge 1:1) */
     w.eval('showTab("progressi")');
     const svgP = d.querySelector('#panel-progressi svg.graf-lin');

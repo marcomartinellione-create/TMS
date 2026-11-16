@@ -153,11 +153,16 @@ function lineChart(series,opts){
   /* i valori si leggono col mouse in qualunque punto del disegno (grafInterattivo, sopra):
      data e valore di ogni linea nella settimana più vicina */
   const vale=d=>d && d.y!=null && !isNaN(d.y);
+  /* le note dei punti (d.nota, es. «cambio scheda») vanno su una riga loro in fondo al riquadro:
+     attaccate al valore lo allungavano fino a schiacciare il nome della linea, e le scritte si
+     accavallavano (Marco, 16/11/2026) */
+  const note=Array.from({length:n},(_,i)=>[...new Set(series.map(s=>vale(s.data[i])&&s.data[i].nota? String(s.data[i].nota) : '').filter(Boolean))].join(' · '));
   const gi=grafInterattivo({W,H,P, xs:Array.from({length:n},(_,i)=>X(i)),
     labels:Array.from({length:n},(_,i)=>{ if(labels[i]!=null) return labels[i]; const s=series.find(z=>z.data[i]); return s? s.data[i].x : ''; }),
     serie:series.map(s=>({n:s.name, c:s.color,
       y:Array.from({length:n},(_,i)=>vale(s.data[i])? Y(s.data[i].y) : null),
-      v:Array.from({length:n},(_,i)=>vale(s.data[i])? fmtV(s.data[i].y)+(s.data[i].nota?' · '+s.data[i].nota:'') : null)}))});
+      v:Array.from({length:n},(_,i)=>vale(s.data[i])? fmtV(s.data[i].y) : null)})),
+    extra:note.some(Boolean)? note : null});
   g+=`<g class="g-serie"${gi.clip}>`;
   series.forEach(s=>{
     let dpath='',pts='';

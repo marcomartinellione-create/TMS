@@ -245,7 +245,7 @@ function boxProgressoReale(sf){
     num('forza','solid',COL.forza,t('Forza a parità di esercizi'),pctSegno(ip.var.forza),mese(ip.mese.forza),
       t('Solo gli esercizi presenti anche la settimana prima, 1RM stimato: non dipende da quante serie e ripetizioni prevede la scheda'))+
     `</div>`;
-  const salto=new Set(ip.salti), notaSalto=t('cambio scheda: l\'indice riparte da qui');
+  const salto=new Set(ip.salti), notaSalto='○ '+t('cambio scheda: l\'indice riparte da qui');
   const serie=[
     {name:t('TL totale (grezzo)'),color:COL.tot,dash:'2 3',punti:false,data:ip.tot.map((y,i)=>({x:lab[i],y:y}))},
     {name:t('TL a parità di esercizi'),color:COL.tl,dash:'7 4',punti:false,data:ip.tl.map((y,i)=>({x:lab[i],y:y}))},
