@@ -88,6 +88,63 @@ function caricoCronico(ag, calendario){
   });
 }
 function acwrUltimo(ag, calendario){ const c=caricoCronico(ag,calendario); return c.length? c[c.length-1].acwr : null; }
+/* ── PROGRESSO REALE, a parità di esercizi (2026-11-16, richiesta di Marco) ──────────────────────
+   «A volte cambiando scheda il TL diminuisce o aumenta di molto, ma non è indicativo di un
+   progresso effettivo.» Due indici a CATENA, base 100 alla prima settimana: ogni settimana salvata
+   si confronta con la precedente SOLO sugli esercizi presenti in tutte e due, così aggiungere o
+   togliere esercizi e serie non pesa. Per ogni esercizio:
+     forza = 1RM stimato migliore della settimana (sRM: non dipende da serie né da ripetizioni);
+     TL    = TL dell'esercizio diviso per le sue serie.
+   Regole (verificate sullo storico vero di Marco, 39 settimane):
+   - meno di PROG_MIN_ES esercizi in comune, o in comune meno di PROG_COPERTURA del TL di una delle
+     due settimane = CAMBIO SCHEDA: il passo non conta e l'indice riparte da lì (riaggancio);
+   - un esercizio che in una settimana cambia oltre ×PROG_SOGLIA o ÷PROG_SOGLIA è FUORI MISURA (altra
+     macchina o variante con lo stesso nome, errore di battitura): in quel passo non conta;
+   - media GEOMETRICA pesata sul TL medio dell'esercizio nelle due settimane: quella aritmetica
+     sale da sola quando i numeri oscillano (40 settimane di su e giù fanno salire l'indice);
+   - le PAUSE contano: il calo dopo uno stop è vero, e toglierlo gonfierebbe il progresso (si
+     toglierebbero i cali tenendo tutte le risalite).
+   La variazione «al mese» è la pendenza (minimi quadrati sul logaritmo) delle settimane cadute
+   negli ultimi PROG_FINESTRA giorni. Tutto calcolato al volo dallo Storico, mai salvato. */
+const PROG_SOGLIA=1.2, PROG_COPERTURA=0.5, PROG_MIN_ES=3, PROG_FINESTRA=91;
+function indiceProgresso(sf){
+  const ag=schedeAggr(sf); if(ag.length<2) return null;
+  const per={};
+  storicoSet(sf).forEach(r=>{ if(r.test||!r.esercizio) return; const s=+r.scheda;
+    const m=per[s]=per[s]||{}, x=m[r.esercizio]=m[r.esercizio]||{tl:0,serie:0,rm:0};
+    x.tl+=sTL(r); x.serie+=(+r.serie||0); x.rm=Math.max(x.rm,sRM(r)); });
+  const somma=(o,ks)=>ks.reduce((a,k)=>a+o[k].tl,0);
+  const forza=[100], tlp=[100], salti=[]; let esF=0, esT=0, confr=0;
+  for(let i=1;i<ag.length;i++){
+    const A=per[ag[i-1].scheda]||{}, B=per[ag[i].scheda]||{};
+    const totA=somma(A,Object.keys(A)), totB=somma(B,Object.keys(B));
+    const com=Object.keys(B).filter(e=>{ const a=A[e], b=B[e]; return a && a.tl>0 && b.tl>0 && a.serie>0 && b.serie>0 && a.rm>0 && b.rm>0; });
+    const cop=(totA>0&&totB>0)? Math.min(somma(A,com)/totA, somma(B,com)/totB) : 0;
+    if(com.length<PROG_MIN_ES || cop<PROG_COPERTURA){ salti.push(i); forza.push(forza[i-1]); tlp.push(tlp[i-1]); continue; }
+    confr++;
+    const passo=val=>{ let sp=0, sl=0, fuori=0;
+      com.forEach(e=>{ const r=val(A[e],B[e]); if(!(r>0) || Math.abs(Math.log(r))>Math.log(PROG_SOGLIA)){ fuori++; return; }
+        const p=(A[e].tl+B[e].tl)/2; sp+=p; sl+=p*Math.log(r); });
+      return {r: sp>0? Math.exp(sl/sp) : 1, fuori}; };
+    const pf=passo((a,b)=>b.rm/a.rm), pt=passo((a,b)=>(b.tl/b.serie)/(a.tl/a.serie));
+    esF+=pf.fuori; esT+=pt.fuori;
+    forza.push(forza[i-1]*pf.r); tlp.push(tlp[i-1]*pt.r);
+  }
+  /* TL totale messo anch'esso a 100 sulla prima settimana con TL: è la curva di sempre, coi salti */
+  const base=(ag.find(a=>a.tl>0)||{}).tl||0;
+  const tot=ag.map(a=>base&&a.tl>0? a.tl/base*100 : null);
+  const delta=[]; for(let i=1;i<ag.length;i++) if(ag[i-1].tl>0 && ag[i].tl>0) delta.push((ag[i].tl/ag[i-1].tl-1)*100);
+  const giorni=c=>isoWeekMonday(Math.floor(c/100),c%100).getTime()/86400000;
+  const ult=giorni(ag[ag.length-1].scheda);
+  const mese=serie=>{ const pts=ag.map((a,i)=>[giorni(a.scheda),Math.log(serie[i])]).filter(p=>ult-p[0]<=PROG_FINESTRA);
+    if(pts.length<3 || pts[pts.length-1][0]-pts[0][0]<21) return null;
+    const reg=regressione(pts.map(p=>p[0]),pts.map(p=>p[1])); return reg? (Math.exp(reg.b*30.44)-1)*100 : null; };
+  const fin=a=>a[a.length-1]-100, totV=tot.filter(v=>v!=null);
+  return { sett:ag.map(a=>a.scheda), tot, forza, tl:tlp, salti, confrontate:confr, esclusiForza:esF, esclusiTL:esT,
+    var:{ tot: totV.length>1? totV[totV.length-1]-100 : null, forza:fin(forza), tl:fin(tlp) },
+    mese:{ forza:mese(forza), tl:mese(tlp), tutto: ult-giorni(ag[0].scheda)<=PROG_FINESTRA },
+    salto:{ min: delta.length? Math.min(...delta) : null, max: delta.length? Math.max(...delta) : null } };
+}
 function radarChart(items,opts){
   opts=opts||{}; const W=opts.w||380,H=opts.h||300, cx=W/2, cy=H/2+4, R=Math.min(W,H)/2-44, n=items.length;
   if(!n||!items.some(d=>d.value>0)) return `<div class="empty">${t('Nessun dato')}</div>`;
@@ -161,6 +218,45 @@ function barraSetProgressi(){
    · Forza e record · Equilibrio e distribuzione · Cardio. I calcoli sono quelli di sempre. */
 const GRAF_C={w:380,h:170,fs:11};
 function grafC(o){ return Object.assign({},GRAF_C,o||{}); }
+/* percentuale con segno («+64 %», «−1,5 %»): il meno tipografico, non il trattino */
+function pctSegno(v,dec){ if(v==null||!isFinite(v)) return '—'; const r=+(+v).toFixed(dec||0);
+  return (r>0?'+':r<0?'−':'')+nf(Math.abs(r),dec||0)+' %'; }
+/* riquadro GRANDE «Progresso reale» (Marco, 16/11/2026: «mi piace proprio quello che hai fatto,
+   con sopra anche i numeri percentuali, bello grande per le varie informazioni che contiene»).
+   Sopra tre numeri che fanno anche da legenda (il tratto è quello della linea), sotto le tre curve
+   a base 100: il TL di sempre, coi salti; il TL a parità di esercizi; la forza a parità di
+   esercizi, la principale. Il cerchietto vuoto segna i cambi scheda saltati. Calcolo in
+   indiceProgresso(); il grafico «Δ Variazione TL %» resta dov'è. */
+function boxProgressoReale(sf){
+  const ip=indiceProgresso(sf);
+  const tit=`<h4>📐 ${t('Progresso reale · a parità di esercizi')}${ip?` <span class="muted" style="font-size:11px">(${t('base 100 al')} ${schedaLabel(ip.sett[0])})</span>`:''}${spiegaBtn('progresso-reale')}</h4>`;
+  if(!ip) return `<div class="chart-box prog-reale">${tit}<div class="empty">${t('Servono almeno due settimane salvate per misurare il progresso.')}</div></div>`;
+  const lab=ip.sett.map(schedaLabel);
+  const COL={tot:'var(--ink-3)', tl:'var(--violet)', forza:'var(--orange-b)'};
+  /* con meno di tre mesi di dati la pendenza è su tutto il periodo: lo si dice */
+  const mese=v=>v==null? `${t('dal')} ${lab[0]}` : (ip.mese.tutto? t('{v} al mese dal {d}').replace('{d}',lab[0]) : t('ultimi 3 mesi: {v} al mese')).replace('{v}',pctSegno(v,1));
+  const num=(cl,tratto,col,et,val,sub,tip)=>`<div class="card pr-num pr-num--${cl}" title="${esc(tip)}"><div class="pr-num__et"><span class="pr-campione" style="border-top:3px ${tratto} ${col}"></span>${et}</div><div class="pr-num__val">${val}</div><div class="pr-num__sub">${sub}</div></div>`;
+  const numeri=`<div class="pr-nums">`+
+    num('tot','dotted',COL.tot,t('TL totale (grezzo)'),pctSegno(ip.var.tot),
+      ip.salto.min!=null? t('salti in una settimana fra {a} e {b}').replace('{a}',pctSegno(ip.salto.min)).replace('{b}',pctSegno(ip.salto.max)) : '',
+      t('Il TL di sempre, messo a 100 sulla prima settimana: salta a ogni cambio scheda, pausa o settimana incompleta'))+
+    num('tl','dashed',COL.tl,t('TL a parità di esercizi'),pctSegno(ip.var.tl),mese(ip.mese.tl),
+      t('Solo gli esercizi presenti anche la settimana prima, TL diviso per le serie: aggiungere o togliere esercizi e serie non conta'))+
+    num('forza','solid',COL.forza,t('Forza a parità di esercizi'),pctSegno(ip.var.forza),mese(ip.mese.forza),
+      t('Solo gli esercizi presenti anche la settimana prima, 1RM stimato: non dipende da quante serie e ripetizioni prevede la scheda'))+
+    `</div>`;
+  const salto=new Set(ip.salti), notaSalto=t('cambio scheda: l\'indice riparte da qui');
+  const serie=[
+    {name:t('TL totale (grezzo)'),color:COL.tot,dash:'2 3',punti:false,data:ip.tot.map((y,i)=>({x:lab[i],y:y}))},
+    {name:t('TL a parità di esercizi'),color:COL.tl,dash:'7 4',punti:false,data:ip.tl.map((y,i)=>({x:lab[i],y:y}))},
+    {name:t('Forza a parità di esercizi'),color:COL.forza,spess:2.8,data:ip.forza.map((y,i)=>({x:lab[i],y:y,segno:salto.has(i),nota:salto.has(i)?notaSalto:''}))}];
+  const op=o=>grafC(Object.assign({labels:lab,senzaLeg:true,rif:100,fmt:x=>nf(x,0),fmtTip:v=>pctSegno(v-100,1)},o));
+  const giorni=ip.salti.map(i=>lab[i]);
+  const nota=`<div class="graf-nota pr-nota">${ip.confrontate} ${t('settimane confrontate')} · `+
+    (giorni.length? `<span class="pr-segno-leg">○</span> ${giorni.length} ${giorni.length===1?t('cambio scheda saltato'):t('cambi scheda saltati')} (${giorni.slice(-3).join(', ')}${giorni.length>3?'…':''})` : t('nessun cambio scheda da saltare'))+
+    ` · ${t('confronti di esercizi fuori misura esclusi:')} ${ip.esclusiForza} ${t('forza')}, ${ip.esclusiTL} TL</div>`;
+  return `<div class="chart-box prog-reale graf-cont">${tit}${numeri}${grafVarianti(lineChart(serie,op({w:900,h:340})),lineChart(serie,op({w:440,h:260})))}${nota}</div>`;
+}
 function renderProgressi(){
   const sf=progSetGet();
   const ag=schedeAggr(sf);
@@ -181,11 +277,13 @@ function renderProgressi(){
   const exs=exerciseList(sf); if(progEx==null||!exs.includes(progEx)) progEx=exs[0]||'';
   /* i RECORD non seguono il filtro: un massimale è un massimale, in qualunque Training Set
      sia stato fatto (richiesta di Marco). Quando un filtro è attivo lo si dice, per chiarezza.
-     Un clic su una card mette quell'esercizio nel grafico della progressione accanto (Marco,
+     Un clic su una card mette quell'esercizio nel grafico della progressione qui sotto (Marco,
      16/11/2026); si può solo se l'esercizio c'è nei dati scelti, altrimenti il grafico non
-     avrebbe niente da mostrare. La card dell'esercizio nel grafico resta evidenziata. */
+     avrebbe niente da mostrare. La card dell'esercizio nel grafico resta evidenziata.
+     Impaginazione della sezione (stessa sera): a sinistra, grande, il Progresso reale; a destra
+     le card dei record con sotto la progressione dell'esercizio (02-stili.css, .chart-grid--forza). */
   const cards=`<div class="chart-box rec-box"><h4>🏆 ${t('Record personali · carico massimo')}${sf!=='__tutti__'?`<span class="pill muted" style="text-transform:none">${t('su tutto il percorso')}</span>`:''}</h4><div class="cards rec-cards">${MAINLIFTS.map(L=>{ const n=nomeAttuale(L.nome), r=realMax(n), vai=exs.includes(n);
-    const att=vai? ` role="button" tabindex="0" data-rec-ex="${esc(n)}" title="${t('Mostra la progressione di questo esercizio nel grafico accanto')}"` : (r? ` title="${t('Nessuna serie di questo esercizio nei dati scelti')}"` : '');
+    const att=vai? ` role="button" tabindex="0" data-rec-ex="${esc(n)}" title="${t('Mostra la progressione di questo esercizio nel grafico qui sotto')}"` : (r? ` title="${t('Nessuna serie di questo esercizio nei dati scelti')}"` : '');
     return `<div class="card pr-card${vai?' pr-card--vai':''}${vai&&n===progEx?' is-sel':''}"${att}><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div></div>`;
   const tlSeries=[{name:'TL',color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:a.tl||null}))},{name:t('Media mobile 4'),color:'var(--ink-3)',data:ag.map((a,i)=>({x:labels[i],y:mavg[i]}))}];
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
@@ -241,9 +339,10 @@ function renderProgressi(){
      <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span>${spiegaBtn('interno-esterno')}</h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],grafC({labels}))})()}</div>
    </div>`:''}
    <div class="sec">${t('Forza e record')}</div>
-   <div class="chart-grid chart-grid--compatta chart-grid--coppia">
+   <div class="chart-grid chart-grid--compatta chart-grid--forza">
+     ${boxProgressoReale(sf)}
      ${cards}
-     <div class="chart-box graf-cont"><h4>📈 ${t('Progressione per esercizio')}${spiegaBtn('progressione')}</h4>
+     <div class="chart-box graf-cont graf-prog-ex"><h4>📈 ${t('Progressione per esercizio')}${spiegaBtn('progressione')}</h4>
        <div class="graf-scelta"><label for="prog-ex">${t('Esercizio')}</label><select id="prog-ex">${exs.map(e=>`<option value="${esc(e)}"${e===progEx?' selected':''}>${esc(exName(e))}</option>`).join('')}</select></div>
        ${prog.length?grafVarianti(lineChart(exSeries,grafC({labels:plab,w:780,h:175})),lineChart(exSeries,grafC({labels:plab,w:440,h:190}))):`<div class="empty">${t('Nessun dato per questo esercizio.')}</div>`}
      </div>

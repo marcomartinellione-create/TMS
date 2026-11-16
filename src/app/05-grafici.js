@@ -50,19 +50,26 @@ function lineChart(series,opts){
        `<text class="lbl" x="${P.l-5}" y="${(y+3).toFixed(1)}" text-anchor="end">${(opts.fmt||(x=>nf(x,grafDec(mn,mx,Math.abs(mx)<10?1:0))))(v)}</text>`;}
   if(opts.band){ const yl=Y(opts.band[0]), yh=Y(opts.band[1]); g+=`<rect x="${P.l}" y="${Math.min(yl,yh).toFixed(1)}" width="${(W-P.l-P.r).toFixed(1)}" height="${Math.abs(yl-yh).toFixed(1)}" fill="${opts.band[2]||'rgba(47,125,79,.12)'}"/>`; }
   const labels=opts.labels||series[0].data.map(d=>d.x);
-  const fmtV=opts.fmt||(x=>nf(x,Math.abs(x)<10?2:(Math.abs(x)<100?1:0)));
+  const fmtV=opts.fmtTip||opts.fmt||(x=>nf(x,Math.abs(x)<10?2:(Math.abs(x)<100?1:0)));
   g+=grafEtichX(labels.slice(0,n),X,W,FS,Math.ceil(n/grafNEtich(opts,W-P.l-P.r,labels,FS)),H-8);
+  /* opzioni facoltative (Progresso reale): opts.rif = linea tratteggiata a quel valore (la base
+     100); per serie s.dash (tratteggio), s.spess (spessore), s.punti===false (niente pallini,
+     restano i valori al passaggio del mouse); per punto d.segno (cerchietto vuoto) e d.nota
+     (aggiunta al valore). Senza, il disegno è quello di sempre. */
+  if(opts.rif!=null && opts.rif>mn && opts.rif<mx){ const yr=Y(opts.rif).toFixed(1); g+=`<line class="rif-base" x1="${P.l}" y1="${yr}" x2="${W-P.r}" y2="${yr}" stroke="var(--ink-4)" stroke-width="1" stroke-dasharray="3 3"/>`; }
   series.forEach(s=>{
     let dpath='',pts='';
     s.data.forEach((d,i)=>{ if(d.y==null||isNaN(d.y))return; const x=X(i),y=Y(d.y);
       dpath+=(dpath?' L':'M')+x.toFixed(1)+' '+y.toFixed(1);
       /* cerchio largo e trasparente sopra il punto: passandoci col mouse si legge il valore
          esatto (prima il grafico diceva l'andamento ma non il numero) */
-      const tip=esc((labels[i]!=null?labels[i]:d.x)+' · '+(series.length>1?s.name+' ':'')+fmtV(d.y));
-      pts+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${s.color}"/><circle class="pt-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="transparent"><title>${tip}</title></circle>`;});
-    g+=`<path class="ln" d="${dpath}" stroke="${s.color}"/>${pts}`;
+      const tip=esc((labels[i]!=null?labels[i]:d.x)+' · '+(series.length>1?s.name+' ':'')+fmtV(d.y)+(d.nota?' · '+d.nota:''));
+      if(d.segno) pts+=`<circle class="pt-segno" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.6" fill="var(--paper)" stroke="${s.color}" stroke-width="2"/>`;
+      else if(s.punti!==false) pts+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${s.color}"/>`;
+      pts+=`<circle class="pt-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="transparent"><title>${tip}</title></circle>`;});
+    g+=`<path class="ln" d="${dpath}" stroke="${s.color}"${s.dash?` stroke-dasharray="${s.dash}"`:''}${s.spess?` style="stroke-width:${s.spess}"`:''}/>${pts}`;
   });
-  const leg=series.length>1? `<div style="${grafLeg(opts)}">`+
+  const leg=series.length>1 && !opts.senzaLeg? `<div style="${grafLeg(opts)}">`+
     series.map(s=>`<span class="mono" style="color:${s.color}">━ ${esc(s.name)}</span>`).join('')+`</div>`:'';
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"${grafFs(opts)}><line class="axis" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/><line class="axis" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>${g}</svg>${leg}`;
 }

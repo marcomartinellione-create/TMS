@@ -212,6 +212,33 @@ const SPIEG={
      'Brzycki M (1993). Strength testing — predicting a one-rep max from reps-to-fatigue. <i>J Phys Educ Recreat Dance</i> 64(1):88–90.',
      'LeSuer DA, McCormick JH, Mayhew JL, Wasserstein RL, Arnold MD (1997). The accuracy of prediction equations for estimating 1-RM performance. <i>J Strength Cond Res</i> 11(4):211–213.']},
 
+'progresso-reale':{t:'Progresso reale a parità di esercizi',
+  dove:'Progressi (sezione «Forza e record»)',
+  a:`Misura quanto cresci davvero senza farti ingannare dai cambi scheda. Il TL totale salta quando cambi esercizi, serie o ripetizioni, anche se la forza non è cambiata. Qui ogni settimana si confronta con la precedente <b>solo sugli esercizi che ci sono in tutte e due</b>, e le variazioni si mettono in fila a catena, con base 100 alla prima settimana.`,
+  s:[['Cosa mostra',`Tre numeri e tre linee, tutte a 100 sulla prima settimana dei dati scelti:
+     <ul><li><b>TL totale (grezzo)</b>, a puntini: il TL di sempre, coi suoi salti. Sotto il numero, il calo e la salita più grandi da una settimana all'altra.</li>
+     <li><b>TL a parità di esercizi</b>, tratteggiata: il TL per serie degli esercizi ripetuti.</li>
+     <li><b>Forza a parità di esercizi</b>, la linea piena: il massimale stimato (1RM) degli esercizi ripetuti. È la principale.</li></ul>
+     Sopra ogni linea il numero grande è la variazione da inizio a fine periodo; sotto, la pendenza in % al mese degli ultimi 3 mesi (o di tutto il periodo, se è più corto). Il cerchietto vuoto segna le settimane di cambio scheda saltate.`],
+   ['Dati di partenza',`Le righe dello Storico (esclusi i test del massimale ★): per ogni esercizio e settimana il TL, il numero di serie e il 1RM stimato più alto, calcolati come nel resto dell'app (corpo libero compreso). Segue il filtro «Dati da analizzare».`],
+   ['Metodo e formule',`Per ogni coppia di settimane salvate consecutive, anche con una pausa in mezzo, si prendono gli esercizi <i>e</i> presenti in tutte e due. Per ognuno il rapporto:
+     <div class="spf">r<sub>e</sub> = <span class="fr"><i>1RM<sub>e,t</sub></i><i>1RM<sub>e,t−1</sub></i></span> &nbsp;(forza) &nbsp;oppure&nbsp; r<sub>e</sub> = <span class="fr"><i>TL<sub>e,t</sub> / serie<sub>e,t</sub></i><i>TL<sub>e,t−1</sub> / serie<sub>e,t−1</sub></i></span> &nbsp;(TL)<span class="spn">(1)</span></div>
+     Il passo della settimana è la media <b>geometrica</b> dei rapporti, pesata sul TL medio dell'esercizio nelle due settimane (<i>p<sub>e</sub></i>), e l'indice è il prodotto dei passi:
+     <div class="spf">R<sub>t</sub> = exp( <span class="fr"><i>Σ<sub>e</sub> p<sub>e</sub> · ln r<sub>e</sub></i><i>Σ<sub>e</sub> p<sub>e</sub></i></span> ) &nbsp;&nbsp;&nbsp; I<sub>t</sub> = I<sub>t−1</sub> × R<sub>t</sub>, &nbsp; I<sub>0</sub> = 100<span class="spn">(2)</span></div>
+     Tre regole:
+     <ul><li><b>Cambio scheda</b>: se gli esercizi in comune sono meno di 3, o coprono meno di metà del TL di una delle due settimane, il passo non conta (R = 1) e l'indice riparte da lì.</li>
+     <li><b>Fuori misura</b>: un esercizio con r<sub>e</sub> sopra 1,2 o sotto 1/1,2 (cioè oltre +20 % o −17 % in una settimana) non conta per quel passo: di solito è un'altra macchina o variante con lo stesso nome, o un errore di battitura.</li>
+     <li><b>Pause</b>: contano. Il calo dopo uno stop è vero; toglierlo farebbe contare le risalite senza i cali e gonfierebbe il progresso.</li></ul>
+     La % al mese è la pendenza della retta dei minimi quadrati su ln I<sub>t</sub> rispetto ai giorni, nelle settimane degli ultimi 91 giorni (almeno 3, distanti almeno 3 settimane), trasformata in mese da 30,44 giorni: (e<sup>b·30,44</sup> − 1) × 100.`],
+   ['Esempio svolto',`Settimana 1: Squat 1RM 160 kg (TL 2 000), Panca 100 kg (TL 1 200), Rematore 90 kg (TL 800). Settimana 2: Squat 164, Panca 101, Rematore 90, più un Hip thrust nuovo e un Lat Pull Over passato da 20 a 60 kg perché cambia macchina.
+     <div class="spf">r: Squat 1,025 · Panca 1,010 · Rematore 1,000 · Hip thrust escluso (non c'era) · Lat Pull Over escluso (×3)</div>
+     <div class="spf">R = exp( (2 000 × ln 1,025 + 1 200 × ln 1,010 + 800 × ln 1) ÷ 4 000 ) = exp(0,0153) = 1,0155</div>
+     L'indice passa da 100 a <b>101,5</b>: +1,5 %, anche se il TL totale, con l'esercizio nuovo e la macchina più pesante, magari è salito del 15 %. Se la settimana dopo la scheda cambia quasi tutta (in comune il 38 % del TL), quel passo si salta e l'indice resta 101,5.`],
+   ['Come leggerlo',`Guarda la linea piena: se sale con regolarità, la forza cresce, qualunque scheda tu stia facendo. Se si appiattisce per settimane mentre il TL totale sale, stai aggiungendo volume senza diventare più forte. Se il TL a parità di esercizi sale molto più della forza, il progresso viene soprattutto da più ripetizioni. Dopo una pausa un calo di pochi punti è normale.`],
+   ['Limiti',`Il 1RM è una stima, meno precisa oltre le 10 ripetizioni: sugli esercizi da 15–20 ripetizioni la forza si legge peggio. Il TL per serie cresce più del 1RM con le ripetizioni e cambia se la scheda cambia lo schema (da 3 × 11 a 3 × 6 cala anche se sei più forte). Le soglie (3 esercizi, metà del TL, ±20 %) sono scelte pratiche, provate su uno storico reale di 39 settimane. Un indice a catena accumula i piccoli errori di ogni passo: su molti mesi va letto come tendenza, non al decimale.`]],
+  b:['International Labour Office, IMF, OECD, Eurostat, UNECE, World Bank (2004). <i>Consumer Price Index Manual: Theory and Practice</i>. Geneva: ILO — capitoli sugli indici a catena e sul confronto a parità di articoli (matched models).',
+     'Epley B (1985). <i>Poundage chart</i>. Boyd Epley Workout.']},
+
 'storico-carico':{t:'Carico per settimana nello Storico',
   dove:'Storico (pannello laterale)',
   a:`Riassume il Training Load delle righe attualmente filtrate nello Storico, settimana per settimana, per vedere a colpo d'occhio come si è distribuito il carico.`,

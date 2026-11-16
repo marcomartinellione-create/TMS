@@ -429,7 +429,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
    quante ne entrano, al massimo quattro (4 su uno schermo da 1600, 2 nella colonna dell'Analisi, 1 in
    una finestra stretta), e i
    grafici si disegnano per quella misura (05-grafici.js, opts.fs). .chart-box--largo prende tutta
-   la riga; .chart-grid--coppia è una coppia di riquadri larghi affiancati (Record e Progressione). */
+   la riga; .chart-grid--forza è la sezione «Forza e record» (Progresso reale grande, record e progressione). */
 .graf-pagina{container-type:inline-size}
 .graf-pagina > .sec, .graf-pagina > .bar + .sec{margin:16px 0 8px; padding:5px 12px; font-size:13.5px}
 .graf-pagina > .sec:first-child, .graf-pagina > .bar + .sec{margin-top:4px}
@@ -446,14 +446,13 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .chart-grid--compatta .rif-cambia{padding:1px 8px; font-size:11px}
 .chart-grid--compatta div.empty{padding:18px 14px; font-size:12.5px}
 .chart-box--largo{grid-column:1/-1}
-.chart-grid.chart-grid--compatta.chart-grid--coppia{grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr))}
 /* riquadri con un grafico largo in due versioni (Timeline, Progressione): la versione si sceglie
    sulla larghezza del riquadro stesso, non della pagina */
 .graf-cont{container-type:inline-size}
 @container (min-width:680px){
   /* colonne larghe (Analisi su schermo grande, due per riga): il grafico non cresce oltre una certa
      altezza, si centra nel suo riquadro */
-  .chart-grid--compatta > .chart-box:not(.graf-tl):not(.chart-box--radar) svg{max-height:250px}
+  .chart-grid--compatta > .chart-box:not(.graf-tl):not(.chart-box--radar):not(.prog-reale) svg{max-height:250px}
 }
 /* una sezione da quattro grafici dove ne entrano solo tre per riga: due per riga, invece di tre
    più uno rimasto da solo sotto */
@@ -476,7 +475,35 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .graf-scelta{display:flex; align-items:center; gap:6px; margin:1px 0 3px; font-size:11px; color:var(--ink-3); padding-right:22px}
 .graf-scelta label{font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.06em; font-size:10px}
 .graf-scelta select{font-size:12.5px; padding:3px 8px; min-width:0; max-width:100%; flex:0 1 300px}
-/* record personali nel riquadro della sezione «Forza e record», accanto alla progressione: le
+/* «Forza e record» (16/11/2026, Marco: il Progresso reale «bello grande», gli altri di conseguenza):
+   a sinistra, su due righe, il Progresso reale; a destra le card dei record e sotto la progressione
+   dell'esercizio scelto (un clic su una card la cambia). Su una pagina stretta, tutto in colonna. */
+.chart-grid.chart-grid--compatta.chart-grid--forza{grid-template-columns:minmax(0,3fr) minmax(0,2fr); grid-template-areas:"reale rec" "reale prog"}
+.chart-grid--forza > .prog-reale{grid-area:reale}
+.chart-grid--forza > .rec-box{grid-area:rec}
+.chart-grid--forza > .graf-prog-ex{grid-area:prog}
+@container (max-width:979px){
+  .chart-grid.chart-grid--compatta.chart-grid--forza{grid-template-columns:minmax(0,1fr); grid-template-areas:"reale" "rec" "prog"}
+}
+.prog-reale{display:flex; flex-direction:column}
+.prog-reale > .graf-v{flex:1; display:flex; flex-direction:column; justify-content:center}
+.prog-reale > .graf-v--stretto{display:none}
+@container (max-width:699px){ .prog-reale > .graf-v--largo{display:none} .prog-reale > .graf-v--stretto{display:flex} }
+.chart-grid--compatta .chart-box.prog-reale .graf-v svg{max-height:420px}
+/* i tre numeri sopra il grafico fanno anche da legenda: il tratto davanti al nome è quello della linea */
+.pr-nums{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr)); gap:8px; margin:4px 0 6px}
+.card.pr-num{padding:8px 11px 7px}
+.card.pr-num::before{background:var(--ink-4)}
+.card.pr-num--tl::before{background:var(--violet)}
+.card.pr-num--forza{border-color:var(--orange-b); box-shadow:0 0 0 1px var(--orange-b), var(--shadow)}
+.card.pr-num--forza::before{background:var(--orange-b)}
+.pr-num__et{display:flex; align-items:center; gap:7px; font-size:10.5px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em; font-family:var(--font-mono)}
+.pr-campione{display:inline-block; flex:none; width:22px; height:0}
+.pr-num__val{font-family:var(--font-disp); font-size:30px; line-height:1.05; color:var(--ember-2); margin:4px 0 2px}
+.pr-num--forza .pr-num__val{color:var(--orange)}
+.pr-num__sub{font-size:11px; color:var(--ink-3); line-height:1.3}
+.pr-segno-leg{display:inline-block; color:var(--orange-b); font-weight:700}
+/* record personali nel riquadro della sezione «Forza e record», sopra la progressione: le
    card su due file da tre riempiono l'altezza del riquadro senza diventare colonne vuote */
 .rec-box{display:flex; flex-direction:column}
 .rec-box h4 .pill{margin-left:4px}
@@ -660,6 +687,8 @@ tr.per-riga-live td{background:var(--ok-t)}
 .spieg-doc .fr > i:first-child{border-bottom:1px solid currentColor}
 .spieg-bib ol{font-size:12px; padding-left:20px; margin:4px 0 0; color:var(--ink-2)}
 .spieg-bib li{margin-bottom:3px}
+.spieg-doc section ul{margin:4px 0 6px; padding-left:20px}
+.spieg-doc section ul li{margin-bottom:3px}
 .chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
 svg .axis{stroke:var(--border); stroke-width:1}
 svg .grid{stroke:var(--paper-3); stroke-width:1}

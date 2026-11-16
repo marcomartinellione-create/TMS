@@ -2604,8 +2604,26 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
     ok(carico && /TL totale/.test(carico.textContent) && /ACWR/.test(carico.textContent) && /Tonnellaggio/.test(carico.textContent) && /Variazione TL/.test(carico.textContent),
        'Progressi: «Carico e volume» raccoglie TL, ACWR, tonnellaggio e variazione del TL');
     const forza = grigliaDi(pp, 'Forza e record');
-    ok(forza && forza.classList.contains('chart-grid--coppia') && forza.children.length === 2 && forza.querySelectorAll('.rec-box .pr-card').length === w.eval('MAINLIFTS.length') && forza.querySelector('#prog-ex'),
-       'Progressi: «Forza e record» ha le card dei record accanto alla progressione per esercizio (con la sua scelta)');
+    ok(forza && forza.classList.contains('chart-grid--forza') && forza.children.length === 3 && forza.children[0].classList.contains('prog-reale') &&
+       forza.children[1].classList.contains('rec-box') && forza.children[2].classList.contains('graf-prog-ex') &&
+       forza.querySelectorAll('.rec-box .pr-card').length === w.eval('MAINLIFTS.length') && forza.querySelector('.graf-prog-ex #prog-ex'),
+       'Progressi: «Forza e record» ha il Progresso reale grande, le card dei record e sotto la progressione per esercizio (con la sua scelta)');
+    { const css = [...d.querySelectorAll('style')].map(s => s.textContent).join('\n');
+      ok(/\.chart-grid--forza\{grid-template-columns:minmax\(0,3fr\) minmax\(0,2fr\); grid-template-areas:"reale rec" "reale prog"\}/.test(css) &&
+         /@container \(max-width:979px\)\{\s*\.chart-grid\.chart-grid--compatta\.chart-grid--forza\{grid-template-columns:minmax\(0,1fr\); grid-template-areas:"reale" "rec" "prog"\}/.test(css),
+         'Progressi: Progresso reale a sinistra su due righe, record e progressione a destra; su pagina stretta tutto in colonna'); }
+    { const pr = forza && forza.querySelector('.prog-reale');
+      const nums = pr ? [...pr.querySelectorAll('.pr-nums > .pr-num')] : [];
+      ok(nums.length === 3 && nums.map(n => n.querySelector('.pr-num__et').textContent).join('|') === 'TL totale (grezzo)|TL a parità di esercizi|Forza a parità di esercizi' &&
+         nums.every(n => /^[+−]?[\d.,]+ %$/.test(n.querySelector('.pr-num__val').textContent)) && nums[2].classList.contains('pr-num--forza'),
+         'Progresso reale: sopra il grafico i tre numeri in percentuale, la forza evidenziata (' + nums.map(n => n.querySelector('.pr-num__val').textContent).join(' · ') + ')');
+      ok(pr && pr.querySelector('[data-spieg="progresso-reale"]') && pr.querySelector('.graf-v--largo svg') && pr.querySelector('.graf-v--stretto svg') &&
+         pr.querySelector('.graf-v--largo svg').querySelectorAll('path.ln').length === 3 && /viewBox="0 0 900 340"/.test(pr.querySelector('.graf-v--largo').innerHTML),
+         'Progresso reale: riquadro grande (900×340, e la versione stretta) con tre linee e il suo «?»');
+      ok(pr && /settimane confrontate/.test(pr.querySelector('.pr-nota').textContent) && /fuori misura/.test(pr.querySelector('.pr-nota').textContent),
+         'Progresso reale: sotto il grafico quante settimane sono confrontate, i cambi scheda saltati e i confronti esclusi'); }
+    ok(carico && /Variazione TL/.test(carico.textContent) && carico.children.length === 4,
+       'Progresso reale: il grafico «Δ Variazione TL %» resta dov\'era, in «Carico e volume»');
     ok(forza && forza.querySelector('.graf-v--largo svg') && forza.querySelector('.graf-v--stretto svg'),
        'Progressi: la progressione per esercizio ha la versione larga e quella per la colonna unica');
     /* un clic sulla card di un record porta quell'esercizio nel grafico della progressione (Marco, 16/11/2026) */
@@ -2637,6 +2655,83 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
          'Progressi: con le schede Fable la ragnatela compatta resta viola e con l\'avvertimento sotto'); }
     w.eval('delete DOC.dati_utente.rifDistr; renderProgressi();');
   }
+  /* ── PROGRESSO REALE a parità di esercizi (Marco, 16/11/2026): indici a catena ── */
+  { const IP = (rows, sf) => JSON.parse(w.eval('(function(){ var s=DOC.storico; DOC.storico=' + JSON.stringify(rows) + '; try{ return JSON.stringify(indiceProgresso(' + JSON.stringify(sf || '__tutti__') + ')); } finally { DOC.storico=s; } })()'));
+    const R = (sch, es, serie, rip, peso, extra) => Object.assign({ scheda: sch, esercizio: es, macro: 'Altro', serie: serie, rip: rip, peso: peso }, extra || {});
+    const sett = (sch, pA, pB, pC) => [R(sch, 'Es A', 3, 5, pA), R(sch, 'Es B', 3, 8, pB), R(sch, 'Es C', 3, 10, pC)];
+    const vicino = (a, b, tol) => Math.abs(a - b) < (tol || 1e-9);
+    ok(IP(sett(202601, 100, 60, 40)) === null, 'Progresso reale: con una sola settimana non c\'è nulla da confrontare');
+    /* il passo è la media GEOMETRICA dei rapporti del 1RM, pesata sul TL medio dell'esercizio */
+    const w1 = sett(202601, 100, 60, 40), w2 = sett(202602, 105, 62, 40);
+    const atteso = w.eval('(function(){ function m(rows){ var o={}; rows.forEach(function(r){ var x=o[r.esercizio]=o[r.esercizio]||{tl:0,rm:0}; x.tl+=sTL(r); x.rm=Math.max(x.rm,sRM(r)); }); return o; } var a=m(' + JSON.stringify(w1) + '), b=m(' + JSON.stringify(w2) + '); var sp=0, sl=0; Object.keys(b).forEach(function(e){ var p=(a[e].tl+b[e].tl)/2; sp+=p; sl+=p*Math.log(b[e].rm/a[e].rm); }); return 100*Math.exp(sl/sp); })()');
+    const base = IP(w1.concat(w2));
+    ok(base && base.forza[0] === 100 && vicino(base.forza[1], atteso) && base.salti.length === 0 && base.confrontate === 1,
+       'Progresso reale: indice di forza = media geometrica dei rapporti del 1RM pesata sul TL (' + base.forza[1].toFixed(3) + ')');
+    /* un esercizio nuovo non sposta gli indici, il TL totale sì */
+    const nuovo = IP(w1.concat(w2, [R(202602, 'Es D', 4, 10, 80)]));
+    ok(vicino(nuovo.forza[1], base.forza[1]) && vicino(nuovo.tl[1], base.tl[1]) && nuovo.tot[1] > base.tot[1] + 20,
+       'Progresso reale: un esercizio aggiunto fa saltare il TL totale (' + nuovo.tot[1].toFixed(0) + ') ma non gli indici a parità di esercizi');
+    /* più serie sullo stesso esercizio: il TL per serie e la forza non cambiano */
+    const serie = IP(w1.concat([R(202602, 'Es A', 3, 5, 100), R(202602, 'Es B', 5, 8, 60), R(202602, 'Es C', 3, 10, 40)]));
+    ok(serie.forza[1] === 100 && vicino(serie.tl[1], 100) && serie.tot[1] > 110,
+       'Progresso reale: aggiungere serie sale nel TL totale (' + serie.tot[1].toFixed(0) + '), non negli indici (si conta il TL per serie)');
+    /* esercizio fuori misura (×3 in una settimana: altra macchina o errore): in quel passo non conta */
+    const q1 = w1.concat([R(202601, 'Es D', 3, 12, 30)]);
+    const fuori = IP(q1.concat([R(202602, 'Es A', 3, 5, 105), R(202602, 'Es B', 3, 8, 62), R(202602, 'Es C', 3, 10, 120), R(202602, 'Es D', 3, 12, 30)]));
+    const senzaC = IP(q1.concat([R(202602, 'Es A', 3, 5, 105), R(202602, 'Es B', 3, 8, 62), R(202602, 'Es D', 3, 12, 30)]));
+    ok(vicino(fuori.forza[1], senzaC.forza[1]) && fuori.forza[1] > 100 && senzaC.salti.length === 0 && fuori.esclusiForza === 1 && fuori.esclusiTL === 1 && senzaC.esclusiForza === 0,
+       'Progresso reale: un esercizio che cambia oltre ×1,2 in una settimana è escluso da quel passo');
+    ok(IP(w1.concat(sett(202602, 119, 60, 40))).esclusiForza === 0 && IP(w1.concat(sett(202602, 121, 60, 40))).esclusiForza === 1,
+       'Progresso reale: la soglia è ×1,2 sul massimale stimato');
+    /* cambio scheda: meno di 3 esercizi in comune → il passo si salta e l'indice riparte da lì */
+    const w3 = [R(202603, 'Es A', 3, 5, 107), R(202603, 'Es E', 4, 8, 90), R(202603, 'Es F', 4, 8, 70), R(202603, 'Es G', 4, 10, 50)];
+    const w4 = [R(202604, 'Es A', 3, 5, 110), R(202604, 'Es E', 4, 8, 92), R(202604, 'Es F', 4, 8, 70), R(202604, 'Es G', 4, 10, 50)];
+    const cambio = IP(w1.concat(w2, w3, w4));
+    ok(cambio.salti.join() === '2' && cambio.forza[2] === cambio.forza[1] && cambio.tl[2] === cambio.tl[1] && cambio.forza[3] > cambio.forza[2] && cambio.confrontate === 2,
+       'Progresso reale: al cambio scheda il passo si salta e l\'indice riparte da lì');
+    /* in comune 3 esercizi ma meno di metà del TL: è comunque un cambio scheda */
+    const w3b = sett(202603, 105, 62, 40).concat([R(202603, 'Es H', 6, 8, 200), R(202603, 'Es I', 6, 8, 200)]);
+    ok(IP(w1.concat(w2, w3b)).salti.join() === '2', 'Progresso reale: in comune meno di metà del TL = cambio scheda, anche con 3 esercizi uguali');
+    /* le righe di test del massimale non contano */
+    const conTest = IP(w1.concat(w2, [R(202602, 'Es A', 1, 1, 150, { test: true })]));
+    ok(vicino(conTest.forza[1], base.forza[1]) && vicino(conTest.tot[1], base.tot[1]), 'Progresso reale: le righe di test del massimale (★) non contano');
+    /* le pause contano: il calo dopo uno stop resta nell'indice */
+    const pausa = IP(w1.concat(sett(202607, 92, 56, 38)));
+    ok(pausa.salti.length === 0 && pausa.forza[1] < 100 && pausa.tl[1] < 100, 'Progresso reale: la settimana dopo una pausa si confronta lo stesso e il calo resta (' + pausa.forza[1].toFixed(1) + ')');
+    /* % al mese: 1 % a settimana per 8 settimane = 1,01^(30,44/7) − 1 */
+    const otto = []; for (let i = 0; i < 8; i++) otto.push(...sett(202601 + i, 100 * Math.pow(1.01, i), 60 * Math.pow(1.01, i), 40 * Math.pow(1.01, i)));
+    const m8 = IP(otto), atteso8 = (Math.pow(1.01, 30.44 / 7) - 1) * 100;
+    ok(vicino(m8.mese.forza, atteso8, 1e-6) && m8.mese.tutto === true && vicino(m8.var.forza, (Math.pow(1.01, 7) - 1) * 100, 1e-6),
+       'Progresso reale: +1 % a settimana = ' + m8.mese.forza.toFixed(2) + ' % al mese, e +' + m8.var.forza.toFixed(1) + ' % in 8 settimane');
+    ok(IP(w1.concat(w2)).mese.forza === null, 'Progresso reale: con due sole settimane non si calcola la % al mese');
+    /* segue il filtro del Training Set */
+    const set = IP(sett(202601, 100, 60, 40).map(r => Object.assign(r, { set: 'X' })).concat(sett(202602, 130, 60, 40).map(r => Object.assign(r, { set: 'Y' })), sett(202603, 105, 62, 40).map(r => Object.assign(r, { set: 'X' }))), 'X');
+    ok(set && set.sett.join() === '202601,202603' && vicino(set.forza[1], atteso), 'Progresso reale: col filtro del Training Set conta solo quel set');
+    ok(w.eval('pctSegno(-1.54,1)') === '−1,5 %' && w.eval('pctSegno(64.2)') === '+64 %' && w.eval('pctSegno(0)') === '0 %' && w.eval('pctSegno(null)') === '—',
+       'Progresso reale: percentuali col segno e il meno tipografico');
+    /* nel riquadro: cerchietto sui cambi scheda, nota, e nulla viene salvato */
+    w.eval('var _st=DOC.storico, _ps=DOC.dati_utente.progSet; DOC.dati_utente.progSet="__tutti__"; DOC.storico=' + JSON.stringify(w1.concat(w2, w3, w4)) + '; showTab("progressi");');
+    { const pr = d.querySelector('#panel-progressi .prog-reale');
+      ok(pr && pr.querySelectorAll('.graf-v--largo .pt-segno').length === 1 && /1 cambio scheda saltato \(12\/01\/26\)/.test(pr.querySelector('.pr-nota').textContent) &&
+         /cambio scheda: l'indice riparte da qui/.test(pr.querySelector('.graf-v--largo').innerHTML),
+         'Progresso reale: il cambio scheda saltato ha il cerchietto vuoto e la data nella nota'); }
+    w.eval('DOC.storico=' + JSON.stringify(w1) + '; renderProgressi();');
+    ok(/Servono almeno due settimane salvate/.test(d.querySelector('#panel-progressi .prog-reale').textContent) && d.querySelector('#panel-progressi .rec-box'),
+       'Progresso reale: con una settimana sola il riquadro lo dice e il resto della pagina c\'è');
+    w.eval('DOC.storico=_st; if(_ps===undefined) delete DOC.dati_utente.progSet; else DOC.dati_utente.progSet=_ps;');
+    const primaSt = w.eval('JSON.stringify(DOC.storico)'), primaU = w.eval('JSON.stringify(DOC.dati_utente)');
+    w.eval('renderProgressi()');
+    ok(w.eval('JSON.stringify(DOC.storico)') === primaSt && w.eval('JSON.stringify(DOC.dati_utente)') === primaU,
+       'Progresso reale: calcolato al volo, nello Storico e nel profilo non si salva nulla');
+    ok(w.eval('EN["Progresso reale · a parità di esercizi"]') === 'Real progress · like-for-like exercises' && w.eval('EN["Mostra la progressione di questo esercizio nel grafico qui sotto"]') &&
+       w.eval('SPIEG_EN["progresso-reale"].s.length===SPIEG["progresso-reale"].s.length') && /qui sotto/.test(d.querySelector('#panel-progressi [data-rec-ex]').getAttribute('title')),
+       'Progresso reale: testi, spiegazione e card dei record tradotti in inglese');
+    /* le opzioni nuove del grafico a linee non cambiano i grafici di sempre */
+    const sempl = w.eval('lineChart([{name:"A",color:"red",data:[{x:"a",y:1},{x:"b",y:2}]}])');
+    const conOpz = w.eval('lineChart([{name:"A",color:"red",dash:"2 3",spess:3,punti:false,data:[{x:"a",y:90},{x:"b",y:110,segno:true,nota:"n"}]}],{rif:100,senzaLeg:true})');
+    ok(!/stroke-dasharray|pt-segno|rif-base|stroke-width:/.test(sempl) && /r="2.6"/.test(sempl) &&
+       /stroke-dasharray="2 3"/.test(conOpz) && /pt-segno/.test(conOpz) && /rif-base/.test(conOpz) && /stroke-width:3/.test(conOpz) && !/r="2.6"/.test(conOpz) && / · n</.test(conOpz),
+       'grafici: tratteggio, spessore, cerchietti e linea di base solo se chiesti'); }
   w.eval('showTab("analisi")');
   { const pa = d.getElementById('panel-analisi');
     if (w.eval('((DOC.alimentazione||{}).periodi||[]).length') > 0) {

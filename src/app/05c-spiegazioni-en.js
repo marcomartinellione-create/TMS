@@ -201,6 +201,33 @@ const SPIEG_EN={
      'Brzycki M (1993). Strength testing — predicting a one-rep max from reps-to-fatigue. <i>J Phys Educ Recreat Dance</i> 64(1):88–90.',
      'LeSuer DA, McCormick JH, Mayhew JL, Wasserstein RL, Arnold MD (1997). The accuracy of prediction equations for estimating 1-RM performance. <i>J Strength Cond Res</i> 11(4):211–213.']},
 
+'progresso-reale':{t:'Real progress with like-for-like exercises',
+  dove:'Progress (“Strength and records” section)',
+  a:`Measures how much you really improve without being fooled by program changes. Total TL jumps when you change exercises, sets or reps, even if your strength has not changed. Here each week is compared with the previous one <b>only on the exercises present in both</b>, and the changes are chained together, with base 100 on the first week.`,
+  s:[['What it shows',`Three numbers and three lines, all at 100 on the first week of the chosen data:
+     <ul><li><b>Total TL (raw)</b>, dotted: the usual TL, with its jumps. Under the number, the largest drop and rise from one week to the next.</li>
+     <li><b>TL, like-for-like exercises</b>, dashed: the TL per set of the repeated exercises.</li>
+     <li><b>Strength, like-for-like exercises</b>, the solid line: the estimated maximum (1RM) of the repeated exercises. It is the main one.</li></ul>
+     Above each line the big number is the change from the start to the end of the period; below it, the slope in % per month over the last 3 months (or over the whole period, if shorter). The hollow circle marks the program-change weeks that were skipped.`],
+   ['Input data',`The History rows (1RM tests ★ excluded): for each exercise and week the TL, the number of sets and the highest estimated 1RM, computed as in the rest of the app (bodyweight exercises included). It follows the “Data to analyze” filter.`],
+   ['Method and formulas',`For each pair of consecutive saved weeks, even with a break in between, the exercises <i>e</i> present in both are taken. For each one the ratio:
+     <div class="spf">r<sub>e</sub> = <span class="fr"><i>1RM<sub>e,t</sub></i><i>1RM<sub>e,t−1</sub></i></span> &nbsp;(strength) &nbsp;or&nbsp; r<sub>e</sub> = <span class="fr"><i>TL<sub>e,t</sub> / sets<sub>e,t</sub></i><i>TL<sub>e,t−1</sub> / sets<sub>e,t−1</sub></i></span> &nbsp;(TL)<span class="spn">(1)</span></div>
+     The week's step is the <b>geometric</b> mean of the ratios, weighted by the exercise's average TL over the two weeks (<i>p<sub>e</sub></i>), and the index is the product of the steps:
+     <div class="spf">R<sub>t</sub> = exp( <span class="fr"><i>Σ<sub>e</sub> p<sub>e</sub> · ln r<sub>e</sub></i><i>Σ<sub>e</sub> p<sub>e</sub></i></span> ) &nbsp;&nbsp;&nbsp; I<sub>t</sub> = I<sub>t−1</sub> × R<sub>t</sub>, &nbsp; I<sub>0</sub> = 100<span class="spn">(2)</span></div>
+     Three rules:
+     <ul><li><b>Program change</b>: if fewer than 3 exercises are shared, or they cover less than half of the TL of either week, the step does not count (R = 1) and the index restarts from there.</li>
+     <li><b>Out of range</b>: an exercise with r<sub>e</sub> above 1.2 or below 1/1.2 (i.e. beyond +20% or −17% in one week) does not count for that step: usually it is another machine or variant with the same name, or a typo.</li>
+     <li><b>Breaks</b>: they count. The drop after a break is real; removing it would count the climbs back without the drops and inflate the progress.</li></ul>
+     The % per month is the slope of the least-squares line of ln I<sub>t</sub> against days, over the weeks of the last 91 days (at least 3, at least 3 weeks apart), turned into a 30.44-day month: (e<sup>b·30.44</sup> − 1) × 100.`],
+   ['Worked example',`Week 1: Squat 1RM 160 kg (TL 2,000), Bench 100 kg (TL 1,200), Row 90 kg (TL 800). Week 2: Squat 164, Bench 101, Row 90, plus a new Hip thrust and a Lat Pull Over gone from 20 to 60 kg because the machine changed.
+     <div class="spf">r: Squat 1.025 · Bench 1.010 · Row 1.000 · Hip thrust left out (not there before) · Lat Pull Over left out (×3)</div>
+     <div class="spf">R = exp( (2,000 × ln 1.025 + 1,200 × ln 1.010 + 800 × ln 1) ÷ 4,000 ) = exp(0.0153) = 1.0155</div>
+     The index goes from 100 to <b>101.5</b>: +1.5%, even if total TL, with the new exercise and the heavier machine, may have risen by 15%. If the following week the program changes almost entirely (38% of the TL in common), that step is skipped and the index stays at 101.5.`],
+   ['How to read it',`Look at the solid line: if it rises steadily, strength is growing, whatever program you are doing. If it flattens for weeks while total TL rises, you are adding volume without getting stronger. If the like-for-like TL rises much more than strength, the progress comes mainly from more reps. After a break a drop of a few points is normal.`],
+   ['Limitations',`The 1RM is an estimate, less accurate beyond 10 reps: on 15–20-rep exercises strength reads worse. TL per set grows faster than 1RM with reps and changes if the program changes the scheme (from 3 × 11 to 3 × 6 it drops even if you are stronger). The thresholds (3 exercises, half of the TL, ±20%) are practical choices, tested on a real 39-week history. A chain index accumulates the small errors of each step: over many months read it as a trend, not to the decimal.`]],
+  b:['International Labour Office, IMF, OECD, Eurostat, UNECE, World Bank (2004). <i>Consumer Price Index Manual: Theory and Practice</i>. Geneva: ILO — chapters on chain indices and on matched-item comparison (matched models).',
+     'Epley B (1985). <i>Poundage chart</i>. Boyd Epley Workout.']},
+
 'storico-carico':{t:'Load per week in History',
   dove:'History (side panel)',
   a:`Summarizes the Training Load of the rows currently filtered in History, week by week, to see at a glance how the load has been distributed.`,

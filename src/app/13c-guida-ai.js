@@ -376,9 +376,13 @@ Due modi per registrare una seduta:
   fermo da 3+ schede, ⚠ suggerimento deload se ACWR alto, ⚠ monotonia alta) · «Carico e
   volume» (TL totale con media mobile, ACWR con la zona sicura evidenziata, tonnellaggio,
   variazione % del TL) · «Carico interno · session-RPE» (se abilitato: carico interno sRPE,
-  monotonia, strain, interno contro esterno) · «Forza e record» (record personali per
-  esercizio, carico massimo, accanto alla progressione del singolo esercizio: 1RM e peso max
-  nel tempo; cliccando la card di un record il grafico accanto passa a quell'esercizio) · «Equilibrio e distribuzione» (ragnatela della distribuzione fra i gruppi con
+  monotonia, strain, interno contro esterno) · «Forza e record»: a sinistra, grande, il
+  «Progresso reale · a parità di esercizi» (tre linee a base 100 con i loro numeri sopra: TL
+  totale grezzo coi salti, TL per serie a parità di esercizi, forza = 1RM stimato a parità di
+  esercizi, la principale; la % al mese è la pendenza degli ultimi 3 mesi), a destra i record
+  personali per esercizio (carico massimo) e sotto la progressione del singolo esercizio (1RM e
+  peso max nel tempo; cliccando la card di un record il grafico passa a quell'esercizio) ·
+  «Equilibrio e distribuzione» (ragnatela della distribuzione fra i gruppi con
   sotto la didascalia del riferimento e il pulsante ⚙ Riferimento, serie per gruppo,
   distribuzione delle intensità %1RM, TL per gruppo muscolare) · «Cardio · progressione per
   sport». Ogni grafico ha il suo «?» con la spiegazione; passando col mouse su un punto se ne
@@ -730,6 +734,16 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - **Monotonia**: media giornaliera del carico / deviazione standard (zona buona ≤2:
   settimana variata). **Strain**: carico settimanale × monotonia (alto = settimana
   pesante e monotona insieme).
+- **Progresso reale a parità di esercizi** (Progressi, «Forza e record»): risponde a «il TL
+  è sceso perché ho cambiato scheda o perché sono peggiorato?». Ogni settimana salvata si
+  confronta con la precedente solo sugli esercizi presenti in tutte e due; per ognuno il
+  rapporto del 1RM stimato (indice di forza) o del TL per serie (indice del TL); il passo è
+  la media geometrica dei rapporti pesata sul TL medio dell'esercizio; l'indice (base 100) è
+  il prodotto dei passi. Con meno di 3 esercizi in comune o meno di metà del TL in comune è
+  un cambio scheda: il passo si salta e l'indice riparte da lì. Un esercizio che cambia oltre
+  ×1,2 o ÷1,2 in una settimana non conta per quel passo (altra macchina, errore). Le pause
+  contano. La % al mese è la pendenza dei minimi quadrati sul logaritmo dell'indice nelle
+  ultime 13 settimane. Calcolato al volo, non salvato; segue il filtro Training Set.
 - Basi scientifiche citate nella Guida completa, sezione 12 (Scott 2016, Foster 2001,
   Gabbett 2016, Zourdos 2016, Schoenfeld 2010/2017, Epley 1985, OMS/FAO…).
 
