@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-11-16 — TMS v1.1.24: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.23
+**Descrizione**:
+- Aspetto: tre stili per la modalità notte (Notte calda, Grafite, Blu notte) da scegliere nella nuova finestra ⚙ Impostazioni, che contiene anche 📕 Guida e 🐞 Segnala; in alto a destra tre comandi uguali (lingua, giorno/notte, ⚙); di notte grafici più leggibili e casella dell'esercizio della scheda Pesi rifatta
+- Analisi e Progressi: vista compatta dei grafici, divisi per argomento (Progressi: Segnali, Carico e volume, Carico interno, Forza e record, Equilibrio e distribuzione, Cardio; Analisi: Quadro nel tempo, Dieta e peso, Carico e correlazioni), fino a quattro per riga e uno per riga su finestra stretta; un clic sulla card di un record mostra quell'esercizio nel grafico della progressione accanto
+- Corpo: le pesate della bilancia arrivano col rientro e la media di ogni settimana va da sola nello Storico misure (una pesata al giorno, la prima; domanda solo se la settimana è già scritta a mano), riquadro «⚖ Pesate della bilancia» nel tab Corpo, campo Acqua e colonne Acqua % e N. pesate nello Storico misure
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-16)
+
+---
+
 ### 2026-11-15 — TMS v1.1.23: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.22
