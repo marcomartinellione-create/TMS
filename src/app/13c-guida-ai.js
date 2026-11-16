@@ -18,9 +18,15 @@ ufficiale e completa dell'app: basa le risposte su quanto scritto qui.
   i nomi di tab e bottoni sono in italiano; se l'utente ha scelto l'inglese, cita l'equivalente.
 - Se la domanda non trova risposta in questo documento, dillo chiaramente e suggerisci
   la Guida interna dell'app (tab «📕 Guida», versioni Rapida e Completa) o una
-  segnalazione col pulsante 🐞 nella barra in alto (vedi sotto).
-- **Pulsante 🐞 Segnala** (nella barra in alto, accanto a 📕 Guida e a sinistra del pulsante della lingua;
-  solo l'icona, il nome compare passandoci sopra): apre un modulo per
+  segnalazione col pulsante 🐞 in ⚙ Impostazioni (vedi sotto).
+- **⚙ Impostazioni** (ingranaggio in alto a destra, in un blocco di tre comandi uguali con la
+  lingua EN/IT e il pulsante 🌙/☀): impostazioni generali dell'app, valide su quel computer per
+  tutti i profili (stanno nel localStorage, non nei dati del profilo). Dentro ci sono anche
+  **📕 Guida** e **🐞 Segnala** (sezione «Aiuto»). Oggi le impostazioni contengono l'aspetto: tema giorno o notte e lo stile della notte fra Notte calda
+  (pergamena e brace, predefinito), Grafite (grigio neutro) e Blu notte (blu ardesia), ognuno con
+  la sua anteprima; la scelta si applica subito. Il pulsante 🌙/☀ della barra passa da giorno a
+  notte e di notte usa lo stile scelto.
+- **Pulsante 🐞 Segnala** (in ⚙ Impostazioni, sezione «Aiuto», accanto a 📕 Guida): apre un modulo per
   bug e idee. Si sceglie il tipo (qualcosa non funziona / proposta), si racconta cosa
   succede e come rifarlo accadere, e per i bug quanto pesa (blocca / dà fastidio /
   dettaglio). L app allega DA SOLA una scheda tecnica: versione, modalità dati, sistema,
@@ -55,7 +61,8 @@ App desktop Windows **gratuita** (progetto aperto: si chiede di mantenere i cred
 di non venderla) per atleti e coach. In un'unica finestra: scheda di allenamento,
 storico, progressi (1RM, Training Load, ACWR…), misure corporee, piani alimentari su
 banca dati USAV, catalogo di 883 esercizi con video, report PDF e mobile, scambio
-scheda coach-cliente. Tema «pergamena»; modalità notte col bottone luna/sole in alto.
+scheda coach-cliente. Tema «pergamena»; modalità notte col bottone luna/sole in alto, in tre
+stili (Notte calda, Grafite, Blu notte) da scegliere in ⚙ Impostazioni.
 Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTube
 @TrainingMonitorSystem.
 

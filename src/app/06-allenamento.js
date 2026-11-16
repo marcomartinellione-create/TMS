@@ -327,7 +327,7 @@ function verdettoDir(sp,tr){ return (!sp&&!tr) ? '' : (tr<sp*0.8 ? t('poca trazi
    Sono gli stessi calcoli del riquadro ⚖ Bilanciamento e dei Progressi, ma sulla scheda in
    scrittura e aggiornati a ogni tasto. Sola lettura: non salva e non cambia nulla. */
 const FASCE_ORD=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
-const FASCE_COL={'Forza':'#991b1b','Forza+Iper':'#c2500a','Ipertrofia':'#d4a017','Resistenza':'#2f7d4f','Metabolico':'#7a3ea8'};
+const FASCE_COL={'Forza':'var(--c-rosso)','Forza+Iper':'var(--c-arancio)','Ipertrofia':'var(--c-oro)','Resistenza':'var(--c-verde)','Metabolico':'var(--c-viola)'};   /* variabili: di notte si schiariscono */
 function pannelloCostruzione(){
   const bil=bilanciamentoSerie(), rows=schedaRows();
   if(!bil.tot) return `<div class="lat"><h4>🧭 ${t('Come sta venendo la scheda')}</h4><div class="empty">${t('Aggiungi qualche esercizio: qui vedrai in tempo reale com’è distribuito il lavoro fra gruppi muscolari, giorni e intensità.')}</div></div>`;

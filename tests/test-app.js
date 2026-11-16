@@ -204,12 +204,20 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(d.getElementById('modal').innerHTML.includes('boom di prova'), 'modale log errori (5 click sulla versione) con la voce');
   /* ── 2026-09-07 — SEGNALAZIONI (🐞): modulo bug/idee con scheda tecnica allegata ── */
   w.eval('closeModal()');
-  ok(d.getElementById('fab-segnala') !== null, 'segnalazioni: pulsante 🐞 presente');
-  { const bar = d.querySelector('.topbar'), ids = [...bar.querySelectorAll('button')].map(b => b.id);
-    ok(bar.contains(d.getElementById('fab-guida')) && bar.contains(d.getElementById('fab-segnala')) && ids.indexOf('fab-guida') < ids.indexOf('btn-lang') && ids.indexOf('fab-segnala') === ids.indexOf('btn-lang') - 1,
-      'barra in alto: 📕 e 🐞 subito a sinistra della lingua');
-    ok(d.getElementById('fab-guida').textContent.trim() === '📕' && d.getElementById('fab-segnala').textContent.trim() === '🐞' && /guida/i.test(d.getElementById('fab-guida').title),
-      'barra in alto: 📕 e 🐞 solo icona, il nome sta nel suggerimento');
+  /* barra in alto simmetrica (Marco, 16/11/2026): lingua, giorno/notte e ⚙ in un blocco di tre;
+     📕 Guida e 🐞 Segnala stanno dentro ⚙ Impostazioni */
+  { const bar = d.querySelector('.topbar'), com = bar.querySelector('.gruppo.topbar__comandi');
+    ok(com && [...com.querySelectorAll(':scope > button')].map(b => b.id).join(',') === 'btn-lang,btn-theme,btn-impost' && bar.querySelectorAll('.gruppo').length === 1,
+      'barra in alto: un solo blocco di tre comandi uguali — lingua, giorno/notte, ⚙');
+    ok(!bar.querySelector('#fab-guida') && !bar.querySelector('#fab-segnala') && d.getElementById('fab-segnala') === null, 'barra in alto: 📕 e 🐞 non ci sono più, stanno nelle Impostazioni');
+    d.getElementById('btn-impost').click();
+    ok(d.querySelector('#modal #fab-guida') && d.querySelector('#modal #fab-segnala') && d.getElementById('fab-guida').textContent.includes('📕') && d.getElementById('fab-segnala').textContent.includes('🐞') && /guida/i.test(d.getElementById('fab-guida').title),
+      'Impostazioni: nella sezione «Aiuto» ci sono 📕 Guida e 🐞 Segnala');
+    d.getElementById('fab-segnala').click();
+    ok(!d.querySelector('#modal #fab-guida') && /Segnala|scheda tecnica/i.test(d.getElementById('modal').textContent), 'Impostazioni: 🐞 Segnala apre il modulo delle segnalazioni');
+    w.eval('closeModal()');
+    d.getElementById('btn-impost').click(); d.getElementById('fab-guida').click();
+    ok(w.eval('curTab') === 'guida' && w.eval('document.getElementById("modal-bk").classList.contains("hidden")'), 'Impostazioni: 📕 Guida chiude la finestra e apre la guida');
     ok(!d.querySelector('.footer') && !/dati locali, nessun cloud/.test(d.body.textContent), 'niente fascia in fondo alle pagine');
     ok(d.getElementById('app-ver').closest('.topbar__mark') && d.querySelector('.topbar__mark').title.includes('v' + w.eval('APP_VERSION')), 'la versione si legge passando su «TMS» in alto');
     for (let k = 0; k < 5; k++) d.getElementById('app-ver').click();
@@ -222,7 +230,7 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
     { const g = [...d.querySelectorAll('#panel-profilo .prof-item:first-child .gruppo')];
       ok(g.length === 2 && g[1].querySelector('[data-pexs]') && g[1].querySelector('[data-prin]'), 'Profilo: Esporta e Importa in un unico blocco di due pulsanti'); }
     ok(!/Il <b>pallino<\/b> accanto al nome/.test(d.getElementById('panel-profilo').innerHTML), 'Profilo: niente guida in cima alla pagina');
-    ok(d.getElementById('prof-autobk') !== null && d.querySelector('.topbar .gruppo #fab-guida') && d.querySelector('.topbar .gruppo #fab-segnala'), 'barra in alto: 📕 e 🐞 in un unico blocco');
+    ok(d.getElementById('prof-autobk') !== null && d.querySelector('.topbar .gruppo #btn-impost') && d.querySelector('.topbar .gruppo #btn-lang'), 'barra in alto: ⚙ e la lingua nello stesso blocco');
     d.getElementById('lnk-storico').click();
     ok(w.eval('curTab') === 'storico' && d.querySelector('.tab[data-tab="profilo"]').classList.contains('is-active'), 'Profilo → 📜 Storico apre lo Storico (resta acceso il tab Profilo)');
     w.eval('showTab("profilo")'); d.getElementById('lnk-misure').click();
@@ -2193,7 +2201,7 @@ console.log('--- T6: bilingue IT/EN (interruttore lingua, traduzione markup stat
   ok(dEn.querySelector('[data-tab="alimentazione"] [data-i18n]').textContent === 'Nutrition', 'EN: tab «Alimentazione» → «Nutrition»');
   ok(dEn.getElementById('disc-ok').textContent === 'Got it', 'EN: disclaimer «Ho capito» → «Got it»');
   ok(wEn.eval("renderProfilo(); document.getElementById('lnk-storico').textContent").includes('History') && dEn.querySelector('[data-pexs]').textContent.includes('Export program'), 'EN: riga del profilo «Storico» → «History», «Esporta scheda» → «Export program»');
-  ok(dEn.getElementById('fab-guida').title === 'Open the guide', 'EN: suggerimento di 📕 tradotto');
+  ok(dEn.getElementById('btn-impost').title === 'Settings, guide and reports', 'EN: suggerimento di ⚙ tradotto');
   ok(/select the <strong>TMS<\/strong> folder/i.test(dEn.getElementById('overlay-sub').innerHTML), 'EN: overlay-sub (data-i18n-html) tradotto');
   ok(dEn.getElementById('btn-lang').textContent === 'IT', 'EN: il pulsante lingua propone «IT»');
   ok(wEn.eval("renderProfilo(); document.getElementById('prof-new').textContent") === '＋ New profile', 'EN: tab Profilo «＋ Nuovo profilo» → «＋ New profile»');
@@ -2662,6 +2670,39 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
   w.eval('showTab("report")'); await settle(30);
   { const svgR = [...d.querySelectorAll('#rep-sorgente svg')];
     ok(svgR.length > 0 && svgR.every(x => !/--graf-fs/.test(x.getAttribute('style') || '')), 'Report: i grafici restano quelli di prima, senza le misure compatte (' + svgR.length + ' grafici)'); }
+  /* ── ⚙ Impostazioni e stili della notte (Marco, 16/11/2026) ── */
+  { const bi = d.getElementById('btn-impost');
+    ok(bi && bi.closest('.topbar') && bi.parentElement.querySelector('#btn-theme'), 'Impostazioni: l\'ingranaggio ⚙ sta nella barra in alto, accanto a 🌙/☀');
+    w.eval('temaSalva("giorno")');
+    bi.click();
+    let m = d.getElementById('modal');
+    ok(m.querySelectorAll('[data-imp-notte] .imp-ant').length === 3 && m.querySelectorAll('[data-imp-tema]').length === 2 && /Stile della modalità notte/.test(m.textContent),
+       'Impostazioni: tema giorno/notte e i tre stili della notte, ognuno con la sua anteprima');
+    m.querySelector('[data-imp-notte="grafite"]').click();
+    const h = d.documentElement;
+    ok(h.getAttribute('data-theme') === 'notte' && h.getAttribute('data-notte') === 'grafite' && w.localStorage.getItem('tms-notte') === 'grafite' && w.localStorage.getItem('tms-theme') === 'notte',
+       'Impostazioni: scelto «Grafite» si passa subito alla notte con quello stile, e la scelta si ricorda');
+    m = d.getElementById('modal');
+    ok(m.querySelector('[data-imp-notte="grafite"].is-on') && m.querySelector('[data-imp-tema="notte"].is-on'), 'Impostazioni: lo stile e il tema scelti risultano selezionati');
+    d.getElementById('imp-ok').click();
+    ok(w.eval('document.getElementById("modal-bk").classList.contains("hidden")'), 'Impostazioni: «Chiudi» chiude la finestra');
+    d.getElementById('btn-theme').click();
+    ok(h.getAttribute('data-theme') === 'giorno' && w.localStorage.getItem('tms-theme') === 'giorno' && w.localStorage.getItem('tms-notte') === 'grafite',
+       'Impostazioni: 🌙/☀ torna al giorno e lo stile della notte resta quello scelto');
+    d.getElementById('btn-theme').click();
+    ok(h.getAttribute('data-theme') === 'notte' && h.getAttribute('data-notte') === 'grafite', 'Impostazioni: ripassando alla notte torna lo stile scelto');
+    w.localStorage.setItem('tms-notte', 'boh'); w.localStorage.setItem('tms-theme', 'erdtree');
+    ok(w.eval('notteGet()') === 'calda' && w.eval('temaGet()') === 'giorno', 'Impostazioni: valori sconosciuti o vecchi ricadono su giorno e «Notte calda»');
+    const css = [...d.querySelectorAll('style')].map(x => x.textContent).join('');
+    ok(/\[data-theme="notte"\]\[data-notte="grafite"\]\{/.test(css) && /\[data-theme="notte"\]\[data-notte="blu"\]\{/.test(css) && /\[data-theme="notte"\] \.ex-pick\{/.test(css),
+       'Tema notte: ci sono le palette Grafite e Blu notte e la nuova casella dell\'esercizio');
+    ok(/\.rep-pagine \.pg\{[^}]*--c-rosso:#991b1b[^}]*--n-testa:/.test(css), 'Tema notte: i fogli del Report restano carta, anche coi colori dei grafici e le intestazioni delle tabelle');
+    w.eval('temaSalva("giorno","calda")');
+  }
+  /* colori dei gruppi e delle fasce nei grafici: passano dalle variabili del tema */
+  w.eval('showTab("progressi")');
+  { const hp = d.getElementById('panel-progressi').innerHTML;
+    ok(/var\(--c-rosso\)/.test(hp) && /var\(--c-viola\)/.test(hp) && !/#991b1b|#7a3ea8/.test(hp), 'Progressi: i colori dei gruppi e delle fasce vengono dal tema (di notte si schiariscono)'); }
   /* due colonne a scorrimento indipendente in tutte le pagine che le hanno */
   for (const tab of ['allenamento', 'cardio', 'storico', 'corpo', 'alimentazione', 'esercizi', 'profilo']) {
     w.eval('showTab(' + JSON.stringify(tab) + ')');

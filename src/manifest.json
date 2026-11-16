@@ -43,6 +43,7 @@
     "app/13b-profilo.js",
     "app/13c-guida-ai.js",
     "app/13d-cruscotto.js",
+    "app/13e-impostazioni.js",
     "app/14-backup.js",
     "app/15-scambio.js",
     "app/15b-segnalazioni.js",

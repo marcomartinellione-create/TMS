@@ -72,16 +72,17 @@ async function init(){
   { const bl=document.getElementById('btn-lang');
     if(bl){ bl.textContent=LANG==='it'?'EN':'IT'; bl.title=LANG==='it'?'Switch to English':'Torna all\'italiano';
       bl.onclick=()=>setLang(LANG==='it'?'en':'it'); } }
-  { const bt=document.getElementById('btn-theme');
-    const applyTheme=(md)=>{ document.documentElement.setAttribute('data-theme',md); if(bt){ bt.textContent=md==='notte'?'☀':'🌙'; bt.title=md==='notte'?t('Modalità giorno'):t('Modalità notte'); } };
-    let th='giorno'; try{ let _t=localStorage.getItem('tms-theme'); if(_t==='erdtree')_t='giorno'; th=_t||'giorno'; }catch(e){} applyTheme(th);
-    if(bt) bt.onclick=()=>{ const cur=document.documentElement.getAttribute('data-theme')==='notte'?'giorno':'notte'; try{localStorage.setItem('tms-theme',cur);}catch(e){} applyTheme(cur); }; }
+  /* tema: giorno/notte e stile della notte (13e-impostazioni.js); 🌙/☀ passa dall'uno all'altro,
+     ⚙ apre le impostazioni generali dell'app */
+  { applicaTema(temaGet(), notteGet());
+    const bt=document.getElementById('btn-theme');
+    if(bt) bt.onclick=()=>temaSalva(document.documentElement.getAttribute('data-theme')==='notte'? 'giorno' : 'notte');
+    const bi=document.getElementById('btn-impost'); if(bi) bi.onclick=()=>impostazioniModal(); }
   { let read=false; try{ read=!!localStorage.getItem('tms-disc-read'); }catch(e){}
     const disc=document.getElementById('disclaimer');
     if(disc){ if(!read) disc.classList.remove('hidden');
       const ok=document.getElementById('disc-ok'); if(ok) ok.onclick=()=>{ if(document.getElementById('disc-read').checked){ try{localStorage.setItem('tms-disc-read','1');}catch(e){} } disc.classList.add('hidden'); }; } }
-  const fab=document.getElementById('fab-guida'); if(fab) fab.onclick=()=>showTab('guida');
-  { const sg=document.getElementById('fab-segnala'); if(sg) sg.onclick=segnalaModal; }
+  /* 📕 Guida e 🐞 Segnala stanno in ⚙ Impostazioni (13e-impostazioni.js) */
   { const dc=document.getElementById('dieta-ov-chiudi'); if(dc) dc.onclick=chiudiStampaDieta; }
   aggiornaTabProfilo();
   showTab('allenamento');

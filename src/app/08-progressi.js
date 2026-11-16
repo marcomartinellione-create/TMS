@@ -172,7 +172,9 @@ function renderProgressi(){
     { const s=document.getElementById('prog-set'); if(s) s.onchange=e=>{ progSetSet(e.target.value); renderProgressi(); }; } return; }
   const labels=ag.map(a=>schedaLabel(a.scheda));
   const last=ag[ag.length-1];
-  const grpColors={Gambe:'#c2500a',Pettorali:'#d4a017',Schiena:'#2f7d4f',Spalle:'#7a3ea8',Braccia:'#b8860b',Core:'#991b1b',Altro:'#7a6a50'};
+  /* colori dei gruppi in variabili CSS (02-stili.css, --c-*): di giorno sono quelli di sempre, di notte
+     si schiariscono — scritti fissi, sul fondo scuro il rosso di Core e il viola di Spalle sparivano */
+  const grpColors={Gambe:'var(--c-arancio)',Pettorali:'var(--c-oro)',Schiena:'var(--c-verde)',Spalle:'var(--c-viola)',Braccia:'var(--c-ocra)',Core:'var(--c-rosso)',Altro:'var(--c-terra)'};
   const cron=caricoCronico(ag, sf==='__tutti__');
   const mavg=cron.map(c=>c.media), acwr=cron.map(c=>c.acwr);
   const lastAcwr=acwr[acwr.length-1];
@@ -198,7 +200,7 @@ function renderProgressi(){
     return {x:t(g), y:v, color:(rf&&(v<rf.sotto||v>rf.sopra))?'var(--danger)':grpColors[g]}; });
   const grpSeries=GRUPPI.map(g=>({name:t(g),color:grpColors[g],data:ag.map((a,i)=>({x:labels[i],y:a.grp[g]||null}))}));
   const BANDS=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
-  const bcol={'Forza':'#991b1b','Forza+Iper':'#c2500a','Ipertrofia':'#d4a017','Resistenza':'#2f7d4f','Metabolico':'#7a3ea8'};
+  const bcol={'Forza':'var(--c-rosso)','Forza+Iper':'var(--c-arancio)','Ipertrofia':'var(--c-oro)','Resistenza':'var(--c-verde)','Metabolico':'var(--c-viola)'};
   const intData=BANDS.map(b=>({x:t(b),y:last.band[b]||0,color:bcol[b]}));
   const prog=exProgression(progEx,sf); const plab=prog.map(p=>schedaLabel(p.scheda));
   const exSeries=[{name:t('1RM stimato'),color:'var(--orange-b)',data:prog.map((p,i)=>({x:plab[i],y:p.rm||null}))},{name:t('Peso max'),color:'var(--violet)',data:prog.map((p,i)=>({x:plab[i],y:p.peso||null}))}];

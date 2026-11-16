@@ -14,6 +14,8 @@
   --violet:#7a3ea8;
   --grace:#e8c45a;
   --warn:#c9961f;   /* ambra "attenzione": semafori, LED del carico */
+  /* colori dei gruppi muscolari e delle fasce d'intensità nei grafici (di notte si schiariscono) */
+  --c-arancio:#c2500a; --c-oro:#d4a017; --c-ocra:#b8860b; --c-verde:#2f7d4f; --c-viola:#7a3ea8; --c-rosso:#991b1b; --c-terra:#7a6a50;
   --font-disp:'Cinzel','Trajan Pro',Georgia,'Times New Roman',serif;
   --font-body:'Iowan Old Style','Palatino Linotype','Book Antiqua',Georgia,serif;
   --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,'Courier New',monospace;
@@ -36,31 +38,63 @@
   --shadow-lg:0 8px 20px rgba(28,14,4,.09),0 24px 56px rgba(28,14,4,.10);
   --rapida:.12s; --media:.2s;   /* durate transizioni */
 }
-/* Palette notte. Gli accenti sono meno carichi delle controparti chiare: su fondo scuro
-   un colore molto saturo e molto chiaro sembra acceso da dietro, e qui ce ne sono a
-   centinaia in pagina (un bordo per ogni campo della scheda). Meno saturazione, non meno
-   contrasto: i testi restano ampiamente sopra le soglie di leggibilità. */
+/* ── PALETTE NOTTE · tre stili, scelti in ⚙ Impostazioni (data-notte sull'<html>) ────────────────
+   «Notte calda» è quella predefinita (qui sotto); «Grafite» e «Blu notte» cambiano solo le
+   variabili. Gli accenti sono meno carichi delle controparti chiare: su fondo scuro un colore
+   molto saturo sembra acceso da dietro, e qui ce ne sono a centinaia in pagina (un bordo per ogni
+   campo della scheda). Ogni stile tiene ben separati i piani — pagina, riquadri, barre — che nella
+   prima versione erano tutti dello stesso marrone (Marco, 16/11/2026: «non mi fa impazzire»).
+   --c-* sono i colori dei gruppi e delle fasce nei grafici, --n-* le superfici proprie della notte
+   (barra in alto, intestazioni delle tabelle, righe dei giorni). */
 [data-theme="notte"]{
-  --paper:#1b160f; --paper-2:#15110b; --paper-3:#262019; --paper-4:#2e2619;
-  --border:#3a3024; --border-2:#4a3d2c;
-  --ink:#e4dac7; --ink-2:#c5b8a0; --ink-3:#9a8c72; --ink-4:#6e6353;
-  --ember:#0e0703; --ember-2:#ded2ba;
-  --orange:#d4741f; --orange-b:#e08a3c; --orange-t:#2a1707;
-  --gold:#d2a948; --gold-2:#a98a3f; --gold-t:#2c2410;
-  --ok:#5aa47a; --ok-b:#6fbf92; --ok-t:#10241a;
-  --danger:#d3625f; --danger-b:#dd7f7c; --danger-t:#2c1210; --danger-bd:rgba(211,98,95,.45);
-  --violet:#a98fc9; --grace:#d9c483; --warn:#c2a052;
+  --paper:#201c17; --paper-2:#151310; --paper-3:#2b261f; --paper-4:#352f26;
+  --border:#3d362c; --border-2:#504739;
+  --ink:#eee6d7; --ink-2:#d2c6b0; --ink-3:#a99b83; --ink-4:#7d7262;
+  --ember:#0e0703; --ember-2:#f0d9a6;
+  --orange:#e57d3a; --orange-b:#ef9554; --orange-t:#2c1d11;
+  --gold:#e3bb4c; --gold-2:#bf9c4c; --gold-t:#2b2516;
+  --ok:#62b483; --ok-b:#7cc89a; --ok-t:#14261b;
+  --danger:#e06a64; --danger-b:#e88580; --danger-t:#2e1715; --danger-bd:rgba(224,106,100,.45);
+  --violet:#b48fdc; --grace:#e6cc85; --warn:#d1ad5a;
+  --c-arancio:#e57d3a; --c-oro:#e3bb4c; --c-ocra:#c9a35c; --c-verde:#62b483; --c-viola:#b48fdc; --c-rosso:#e06a64; --c-terra:#a8977a;
+  --n-barra:#100e0b; --n-testa:#2b261f; --n-testa-txt:#e6cc85; --n-giorno:#262119;
   --shadow:0 2px 6px rgba(0,0,0,.40),0 12px 28px rgba(0,0,0,.34);
-  --sup:linear-gradient(180deg,var(--paper),var(--paper-2));
+  --sup:linear-gradient(180deg,#221e19,#1d1915);
   --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.25);
   --shadow-lg:0 8px 20px rgba(0,0,0,.45),0 24px 56px rgba(0,0,0,.40);
   color-scheme:dark;
 }
-[data-theme="notte"] body{ background-image:radial-gradient(circle at 20% -10%, rgba(227,181,60,.05), transparent 40%),radial-gradient(circle at 100% 0%, rgba(224,112,15,.05), transparent 35%); }
+/* Grafite: grigi neutri, senza tinta; gli accenti del TMS risaltano di più sul fondo neutro */
+[data-theme="notte"][data-notte="grafite"]{
+  --paper:#1c1d1f; --paper-2:#131415; --paper-3:#26282b; --paper-4:#2f3135;
+  --border:#33363a; --border-2:#44474d;
+  --ink:#ecebe7; --ink-2:#cfccc5; --ink-3:#a19e97; --ink-4:#76746f;
+  --ember-2:#f2dcaa;
+  --orange:#e8803c; --orange-b:#f09858; --orange-t:#2b2019;
+  --gold-2:#c09d4d; --gold-t:#2a2720; --ok-t:#18251e; --danger-t:#2d1b1a;
+  --n-barra:#0d0e0f; --n-testa:#26282b; --n-giorno:#222427;
+  --sup:linear-gradient(180deg,#1e1f22,#1a1b1d);
+}
+/* Blu notte: blu ardesia (colore nuovo per il TMS, scelto da Marco), titoli crema, accenti brace e oro */
+[data-theme="notte"][data-notte="blu"]{
+  --paper:#18202a; --paper-2:#10161d; --paper-3:#212b37; --paper-4:#2a3543;
+  --border:#2d3846; --border-2:#3b4859;
+  --ink:#e8edf2; --ink-2:#c7d0db; --ink-3:#95a2b2; --ink-4:#6a7684;
+  --ember-2:#f3dcaa;
+  --orange:#ee8a45; --orange-b:#f4a063; --orange-t:#2b2220;
+  --gold:#e6c056; --gold-2:#c4a254; --gold-t:#262a26;
+  --ok:#62bc8a; --ok-b:#7ed0a0; --ok-t:#15282a;
+  --danger:#ec6f6f; --danger-b:#f08b8b; --danger-t:#2c1d24; --danger-bd:rgba(236,111,111,.45);
+  --violet:#b99df0; --grace:#e8cf8a; --warn:#d6b25f;
+  --n-barra:#0b1016; --n-testa:#212b37; --n-testa-txt:#e8cf8a; --n-giorno:#1d2631;
+  --sup:linear-gradient(180deg,#1a222d,#161d26);
+}
+[data-theme="notte"] body{ background-image:none }
 [data-theme="notte"] .tab.is-active{ border-bottom-color:var(--paper); }
-[data-theme="notte"] .topbar{ color:#e0d5c1 }
+[data-theme="notte"] .topbar{ color:#e0d5c1; background:var(--n-barra); border-bottom-color:#8a7136 }
 [data-theme="notte"] .btn--ghost{ color:#e0d5c1 }
-[data-theme="notte"] thead th{ color:#c9b478 }
+[data-theme="notte"] thead th{ background:var(--n-testa); color:var(--n-testa-txt) }
+[data-theme="notte"] tbody tr.day-sep td{ background:var(--n-giorno) }
 [data-theme="notte"] .fascia{ filter:none }
 /* i campi della scheda sono centinaia: col bordo oro pieno la tabella sembrava
    illuminata al neon. Bordo neutro, il colore resta per il fuoco e gli accenti. */
@@ -69,7 +103,24 @@
 [data-theme="notte"] .cell-out{ background:rgba(169,138,63,.09) }
 /* l'alone dietro al titolo, di notte, e' proprio l'effetto "fosforescente" */
 [data-theme="notte"] .topbar__mark{ text-shadow:none }
-[data-theme="notte"] .topbar{ border-bottom-color:#6b5827 }
+/* bordi degli avvisi pensati per la carta (giallo, rosso, verde chiari, anche scritti nel codice):
+   di notte sembravano accesi. Tenui sui tre lati, la riga colorata a sinistra resta */
+[data-theme="notte"] .callout{ border-top-color:rgba(210,169,72,.30); border-right-color:rgba(210,169,72,.30); border-bottom-color:rgba(210,169,72,.30) }
+[data-theme="notte"] .callout--ember{ border-top-color:rgba(229,125,58,.32); border-right-color:rgba(229,125,58,.32); border-bottom-color:rgba(229,125,58,.32) }
+[data-theme="notte"] .callout--info{ border-top-color:var(--border); border-right-color:var(--border); border-bottom-color:var(--border) }
+[data-theme="notte"] .callout[style*="#e6b8b8"]{ border-top-color:var(--danger-bd) !important; border-right-color:var(--danger-bd) !important; border-bottom-color:var(--danger-bd) !important }
+[data-theme="notte"] .callout[style*="#bcdcc6"]{ border-top-color:rgba(98,180,131,.40) !important; border-right-color:rgba(98,180,131,.40) !important; border-bottom-color:rgba(98,180,131,.40) !important }
+/* i pulsanti arancioni, di notte, senza l'ombra che li faceva brillare */
+[data-theme="notte"] .btn--ember{ box-shadow:none }
+/* casella dell'esercizio nella scheda Pesi: è un pulsante, e senza un bordo suo prendeva quello «a
+   rilievo» del sistema — di notte un riquadro nero smussato, diverso da tutti gli altri campi.
+   Ora è un campo come gli altri: bordo sottile e arrotondato, fondo appena rialzato, freccia a destra. */
+[data-theme="notte"] .ex-pick{ display:flex; align-items:center; justify-content:space-between; gap:6px;
+  border:1px solid var(--border-2); border-radius:var(--r-xs); background:var(--paper-3); color:var(--ink);
+  padding:5px 9px; font-family:var(--font-body); font-size:13px; line-height:1.3; box-shadow:none;
+  transition:border-color var(--rapida), background var(--rapida) }
+[data-theme="notte"] .ex-pick:hover{ background:var(--paper-4); border-color:var(--gold-2) }
+[data-theme="notte"] .ex-pick:focus-visible{ border-color:var(--orange) }
 
 [data-theme="notte"] .f-forza{ background:rgba(211,98,95,.14); color:#d99290; border-color:rgba(211,98,95,.36) }
 [data-theme="notte"] .f-ipf{ background:rgba(212,116,31,.14); color:#dda169; border-color:rgba(212,116,31,.36) }
@@ -137,6 +188,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 .topbar .gruppo{background:transparent; border-color:rgba(255,255,255,.22)}
 .topbar .gruppo > .btn{font-size:15px; height:25px; min-width:36px; padding:0 9px}
 .topbar .gruppo > .btn + .btn{border-left-color:rgba(255,255,255,.22)}
+/* i tre comandi in alto a destra (lingua, giorno/notte, ⚙): tre caselle identiche, simmetriche
+   (Marco, 16/11/2026); guida e segnalazioni stanno dentro ⚙ Impostazioni */
+.topbar .topbar__comandi > .btn{width:42px; min-width:0; padding:0; justify-content:center; font-size:14px; font-family:var(--font-body); letter-spacing:.04em}
+.topbar .topbar__comandi > #btn-lang{font-size:12px; font-weight:600}
 .prof-dot{color:var(--ink-4); font-size:11px}
 .prof-bk-lista{margin-top:8px; padding:10px 12px; border:1px solid var(--border); border-radius:var(--r-sm);
   background:var(--paper); display:flex; flex-wrap:wrap; gap:5px; align-items:center}
@@ -338,6 +393,36 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .tbl-pesate .pesate-sett td{background:var(--paper-2); padding-top:6px}
 .tbl-pesate .pesata-fuori td{color:var(--ink-4)}
 .tbl-pesate .pesate-media td{border-top:1px solid var(--border)}
+/* ── ⚙ IMPOSTAZIONI (13e-impostazioni.js) ── */
+.imp-sez + .imp-sez{margin-top:18px}
+.imp-aiuto{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px}
+.imp-voce{display:flex; align-items:flex-start; gap:10px; text-align:left; padding:10px 12px; border:1px solid var(--border-2);
+  border-radius:var(--r-md); background:var(--sup); color:var(--ink); font-family:var(--font-body); font-size:12px; line-height:1.35;
+  cursor:pointer; transition:border-color var(--rapida)}
+.imp-voce:hover{border-color:var(--gold-2)}
+.imp-voce > i{font-style:normal; font-size:20px; line-height:1}
+.imp-voce b{display:block; font-family:var(--font-disp); font-size:13px; color:var(--ember-2); margin-bottom:2px}
+.imp-voce span{color:var(--ink-3)}
+.imp-sez h4{font-size:13px; color:var(--ember-2); margin:4px 0 8px; padding-bottom:4px; border-bottom:1px solid var(--border)}
+.imp-riga{display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:13.5px; margin-bottom:12px}
+.imp-riga .gruppo > .btn{font-size:12.5px; height:28px; padding:0 12px}
+.imp-etich{font-size:12.5px; color:var(--ink-3); margin:0 0 6px}
+.imp-temi{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px}
+.imp-tema{display:flex; flex-direction:column; align-items:stretch; gap:4px; text-align:left; padding:8px; border:1px solid var(--border-2);
+  border-radius:var(--r-md); background:var(--sup); color:var(--ink); font-family:var(--font-body); font-size:12px; line-height:1.35;
+  cursor:pointer; transition:border-color var(--rapida), box-shadow var(--rapida)}
+.imp-tema:hover{border-color:var(--gold-2)}
+.imp-tema.is-on{border-color:var(--orange); box-shadow:0 0 0 2px var(--orange-t), 0 0 0 3px var(--orange)}
+.imp-tema b{font-family:var(--font-disp); font-size:13px; color:var(--ember-2); margin-top:2px}
+.imp-tema > span:last-child{color:var(--ink-3)}
+.imp-ant{display:flex; flex-direction:column; align-self:stretch; width:100%; box-sizing:border-box; height:74px; border-radius:var(--r-xs); overflow:hidden; border:1px solid rgba(0,0,0,.35)}
+.imp-ant__barra{height:11px; border-bottom:2px solid #8a7136; flex:0 0 auto}
+.imp-ant__card{flex:1; margin:7px; border-radius:5px; padding:6px 7px; display:flex; flex-direction:column; gap:4px; border:1px solid rgba(255,255,255,.07)}
+.imp-ant__riga{height:3px; width:70%; border-radius:2px; opacity:.85}
+.imp-ant__riga--corta{width:42%; opacity:.5}
+.imp-ant__barre{flex:1; display:flex; align-items:flex-end; gap:5px}
+.imp-ant__barre i{flex:1; border-radius:2px 2px 0 0}
+
 /* ── VISTA COMPATTA DEI GRAFICI (Progressi e Analisi, 2026-11-16) ──────────────────────────────
    Richiesta di Marco: «una bella vista compatta dei grafici, sempre divisa per categoria e logica,
    con grafici chiari ma più piccoli». Ogni sezione ha la sua griglia fitta: tante colonne da ~330 px
@@ -781,7 +866,9 @@ tr.drop-b > td{ box-shadow:inset 0 -2px 0 var(--orange) }
 /* in tema notte i fogli restano carta bianca, come il PDF */
 [data-theme="notte"] .rep-pagine .pg{--paper:#fdfaf5; --paper-2:#f7f2e8; --paper-3:#ede6d6; --paper-4:#e4d9c2; --border:#d4c8b0; --border-2:#c4b58f;
   --ink:#1c1208; --ink-2:#3d2e1a; --ink-3:#7a6a50; --ink-4:#a8967a; --ember-2:#2e1a08; --orange:#c2500a; --orange-b:#ea580c; --gold:#d4a017; --gold-2:#b8860b;
-  --gold-t:#fbf3d8; --ok:#2f7d4f; --ok-b:#43c463; --danger:#991b1b; --danger-b:#e0524f; --violet:#7a3ea8; color:var(--ink)}
+  --gold-t:#fbf3d8; --ok:#2f7d4f; --ok-b:#43c463; --danger:#991b1b; --danger-b:#e0524f; --violet:#7a3ea8; color:var(--ink);
+  --c-arancio:#c2500a; --c-oro:#d4a017; --c-ocra:#b8860b; --c-verde:#2f7d4f; --c-viola:#7a3ea8; --c-rosso:#991b1b; --c-terra:#7a6a50;
+  --n-testa:linear-gradient(180deg,#2e1a08,#241405); --n-testa-txt:#fbf3d8; --n-giorno:#241606}
 /* elenco dei blocchi */
 .rep-lista{display:flex; flex-direction:column; gap:3px}
 .rep-li{display:flex; align-items:center; gap:7px; padding:5px 7px; border:1px solid var(--border); border-radius:var(--r-xs); background:var(--paper); font-size:13px; cursor:pointer}
