@@ -276,8 +276,11 @@ function parseFIT(buf){
 /* ── Progressi cardio per sport (in renderProgressi): scegli lo sport e vedi l'andamento
       dei dati che hanno senso per quello sport — passo/velocità, distanza, FC media, sRPE. ── */
 let progCardioSport=null;
-function cardioProgressBlock(){
-  const list=cardioList().filter(s=>s&&s.data&&String(s.tipo||'').trim());
+/* f = filtro di periodo/alimentazione dei Progressi (progFiltro): solo le sedute delle settimane
+   scelte; fra un blocco e l'altro i grafici mostrano lo stacco, come gli altri dei Progressi */
+function cardioSettimana(data){ const w=isoWeek(new Date(String(data)+'T12:00:00')); return schedaCode(w.anno,w.sett); }
+function cardioProgressBlock(f){
+  const list=cardioList().filter(s=>s&&s.data&&String(s.tipo||'').trim()&&(!f||f.passa(cardioSettimana(s.data))));
   if(!list.length) return '';
   const cnt={}; list.forEach(s=>{ const t=String(s.tipo).trim(); cnt[t]=(cnt[t]||0)+1; });
   const sports=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);
@@ -285,6 +288,8 @@ function cardioProgressBlock(){
   const sel=progCardioSport, inf=sportInfo(sel);
   const ses=list.filter(s=>String(s.tipo).toLowerCase()===sel.toLowerCase()).slice().sort((a,b)=>String(a.data).localeCompare(String(b.data)));
   const lab=ses.map(s=>s.data);
+  const stacchi=(typeof progStacchi==='function')? progStacchi(f, ses.map(s=>cardioSettimana(s.data))) : [];
+  const grafC=o=>Object.assign({},GRAF_C,{stacchi},o||{});   /* come quello dei Progressi, con gli stacchi */
   const charts=[];
   charts.push(`<div class="chart-box"><h4>${t('🔥 Carico sRPE (AU)')}${spiegaBtn('cardio-carico')}</h4>${lineChart([{name:'sRPE',color:'var(--gold-2)',data:ses.map(s=>({x:s.data,y:srpeCardio(s)||null}))}],grafC({labels:lab,fmt:nfk}))}</div>`);
   if(ses.some(s=>+s.fcMedia>0)) charts.push(`<div class="chart-box"><h4>${t('❤ FC media (bpm)')}${spiegaBtn('cardio-fc')}</h4>${lineChart([{name:t('FC media'),color:'var(--danger-b)',data:ses.map(s=>({x:s.data,y:+s.fcMedia||null}))}],grafC({labels:lab}))}</div>`);

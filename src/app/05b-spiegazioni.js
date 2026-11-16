@@ -106,7 +106,7 @@ const SPIEG={
    ['Metodo e formule',`<div class="spf">ACWR<sub>t</sub> = <span class="fr"><i>TL<sub>t</sub></i><i>Cronico<sub>t</sub></i></span>, &nbsp; Cronico<sub>t</sub> = <span class="fr"><i>Σ<sub>k=t−3…t</sub> TL<sub>k</sub></i><i>n</i></span><span class="spn">(1)</span></div>
      Il carico cronico comprende la settimana corrente (modello «accoppiato») e conta le settimane di calendario: quelle senza allenamento valgono zero. Con ritmo di registrazione non settimanale, o filtrando un Training Set, si usano le ultime 4 registrazioni.`],
    ['Esempio svolto',`TL delle ultime quattro settimane: 10 000, 11 000, 10 500, 14 000. Cronico = 45 500 / 4 = 11 375; ACWR = 14 000 / 11 375 = <b>1,23</b> (in zona). Dopo tre settimane di stop (0, 0, 0) e un rientro a 14 000: cronico = 3 500, ACWR = <b>4,0</b> → segnale di carico molto alto, perché l'atleta non è più abituato a quel volume.`],
-   ['Come leggerlo',`È un segnale di progressione troppo rapida, non una diagnosi. Sopra 1,5 conviene valutare uno scarico o un aumento più graduale; sotto 0,8 per più settimane il carico sta calando (voluto in uno scarico, altrimenti da rivedere).`],
+   ['Come leggerlo',`Con un filtro di periodo o di alimentazione l'ACWR resta calcolato su tutta la storia (il carico cronico di una settimana dipende da quelle prima, anche se escluse): si mostrano solo le settimane scelte. È un segnale di progressione troppo rapida, non una diagnosi. Sopra 1,5 conviene valutare uno scarico o un aumento più graduale; sotto 0,8 per più settimane il carico sta calando (voluto in uno scarico, altrimenti da rivedere).`],
    ['Limiti',`L'ACWR è stato criticato per motivi statistici (accoppiamento fra numeratore e denominatore, instabilità con carichi cronici bassi) e la relazione con gli infortuni è stata dimostrata soprattutto negli sport di squadra. Le soglie 0,8–1,3 e 1,5 sono indicative.`]],
   b:['Gabbett TJ (2016). The training–injury prevention paradox: should athletes be training smarter and harder? <i>Br J Sports Med</i> 50(5):273–280.',
      'Hulin BT, Gabbett TJ, Lawson DW, Caputi P, Sampson JA (2016). The acute:chronic workload ratio predicts injury. <i>Br J Sports Med</i> 50(4):231–236.',
@@ -131,7 +131,7 @@ const SPIEG={
   s:[['Cosa mostra',`Una linea con la variazione percentuale del TL rispetto alla registrazione precedente.`],
    ['Dati di partenza',`Il TL settimanale (vedi «Training Load totale»).`],
    ['Metodo e formule',`<div class="spf">ΔTL%<sub>t</sub> = ( <span class="fr"><i>TL<sub>t</sub></i><i>TL<sub>t−1</sub></i></span> − 1 ) × 100<span class="spn">(1)</span></div>
-     dove <i>t</i>−1 è la registrazione precedente (non necessariamente la settimana di calendario precedente). Il primo punto non ha confronto.`],
+     dove <i>t</i>−1 è la registrazione precedente (non necessariamente la settimana di calendario precedente). Il primo punto non ha confronto. Con un filtro di periodo o di alimentazione attivo, alla ripresa dopo uno stacco (settimane escluse dal filtro in mezzo) il punto manca: non si confronta con la settimana prima dello stacco.`],
    ['Esempio svolto',`TL 2 889 → 3 100: ΔTL% = (3 100 / 2 889 − 1) × 100 = <b>+7,3%</b>. TL 3 100 → 2 500: −19,4%.`],
    ['Come leggerlo',`Oscillazioni contenute (circa ±3–10%) indicano una progressione regolare; picchi positivi grandi sono salti di carico, picchi negativi scarichi o settimane incomplete.`],
    ['Limiti',`Se fra due registrazioni passano più settimane il confronto le ignora: in quel caso l'ACWR su settimane di calendario è più informativo.`]],
@@ -228,7 +228,8 @@ const SPIEG={
      Tre regole:
      <ul><li><b>Cambio scheda</b>: se gli esercizi in comune sono meno di 3, o coprono meno di metà del TL di una delle due settimane, il passo non conta (R = 1) e l'indice riparte da lì.</li>
      <li><b>Fuori misura</b>: un esercizio con r<sub>e</sub> sopra 1,2 o sotto 1/1,2 (cioè oltre +20 % o −17 % in una settimana) non conta per quel passo: di solito è un'altra macchina o variante con lo stesso nome, o un errore di battitura.</li>
-     <li><b>Pause</b>: contano. Il calo dopo uno stop è vero; toglierlo farebbe contare le risalite senza i cali e gonfierebbe il progresso.</li></ul>
+     <li><b>Pause</b>: contano. Il calo dopo uno stop è vero; toglierlo farebbe contare le risalite senza i cali e gonfierebbe il progresso.</li>
+     <li><b>Stacchi</b>: con un filtro di periodo o di alimentazione (per esempio solo i Bulk), alla ripresa dopo le settimane escluse il passo non conta e l'indice riparte dal livello raggiunto; nel grafico lo stacco è lo spazio fra due linee tratteggiate.</li></ul>
      La % al mese è la pendenza della retta dei minimi quadrati su ln I<sub>t</sub> rispetto ai giorni, nelle settimane degli ultimi 91 giorni (almeno 3, distanti almeno 3 settimane), trasformata in mese da 30,44 giorni: (e<sup>b·30,44</sup> − 1) × 100.`],
    ['Esempio svolto',`Settimana 1: Squat 1RM 160 kg (TL 2 000), Panca 100 kg (TL 1 200), Rematore 90 kg (TL 800). Settimana 2: Squat 164, Panca 101, Rematore 90, più un Hip thrust nuovo e un Lat Pull Over passato da 20 a 60 kg perché cambia macchina.
      <div class="spf">r: Squat 1,025 · Panca 1,010 · Rematore 1,000 · Hip thrust escluso (non c'era) · Lat Pull Over escluso (×3)</div>

@@ -95,7 +95,7 @@ const SPIEG_EN={
    ['Method and formulas',`<div class="spf">ACWR<sub>t</sub> = <span class="fr"><i>TL<sub>t</sub></i><i>Chronic<sub>t</sub></i></span>, &nbsp; Chronic<sub>t</sub> = <span class="fr"><i>Σ<sub>k=t−3…t</sub> TL<sub>k</sub></i><i>n</i></span><span class="spn">(1)</span></div>
      The chronic load includes the current week (“coupled” model) and counts calendar weeks: those without training count as zero. With a non-weekly recording pace, or when filtering a Training Set, the last 4 records are used.`],
    ['Worked example',`TL of the last four weeks: 10,000, 11,000, 10,500, 14,000. Chronic = 45,500 / 4 = 11,375; ACWR = 14,000 / 11,375 = <b>1.23</b> (in zone). After three weeks off (0, 0, 0) and a return at 14,000: chronic = 3,500, ACWR = <b>4.0</b> → very-high-load signal, because the athlete is no longer accustomed to that volume.`],
-   ['How to read it',`It is a signal of too rapid progression, not a diagnosis. Above 1.5 it is advisable to consider a deload or a more gradual increase; below 0.8 for several weeks the load is declining (intended in a deload, otherwise to be reviewed).`],
+   ['How to read it',`With a period or nutrition filter the ACWR is still computed on the whole history (a week's chronic load depends on the weeks before it, even if excluded): only the chosen weeks are shown. It is a signal of too rapid progression, not a diagnosis. Above 1.5 it is advisable to consider a deload or a more gradual increase; below 0.8 for several weeks the load is declining (intended in a deload, otherwise to be reviewed).`],
    ['Limitations',`The ACWR has been criticized on statistical grounds (coupling between numerator and denominator, instability with low chronic loads) and the relationship with injuries has been shown mainly in team sports. The thresholds 0.8–1.3 and 1.5 are indicative.`]],
   b:['Gabbett TJ (2016). The training–injury prevention paradox: should athletes be training smarter and harder? <i>Br J Sports Med</i> 50(5):273–280.',
      'Hulin BT, Gabbett TJ, Lawson DW, Caputi P, Sampson JA (2016). The acute:chronic workload ratio predicts injury. <i>Br J Sports Med</i> 50(4):231–236.',
@@ -120,7 +120,7 @@ const SPIEG_EN={
   s:[['What it shows',`A line with the percentage change in TL relative to the previous record.`],
    ['Input data',`The weekly TL (see “Total Training Load”).`],
    ['Method and formulas',`<div class="spf">ΔTL%<sub>t</sub> = ( <span class="fr"><i>TL<sub>t</sub></i><i>TL<sub>t−1</sub></i></span> − 1 ) × 100<span class="spn">(1)</span></div>
-     where <i>t</i>−1 is the previous record (not necessarily the previous calendar week). The first point has no comparison.`],
+     where <i>t</i>−1 is the previous record (not necessarily the previous calendar week). The first point has no comparison. With a period or nutrition filter on, at the restart after a gap (weeks excluded by the filter in between) the point is missing: it is not compared with the week before the gap.`],
    ['Worked example',`TL 2,889 → 3,100: ΔTL% = (3,100 / 2,889 − 1) × 100 = <b>+7.3%</b>. TL 3,100 → 2,500: −19.4%.`],
    ['How to read it',`Contained oscillations (about ±3–10%) indicate regular progression; large positive peaks are load jumps, negative peaks are deloads or incomplete weeks.`],
    ['Limitations',`If several weeks pass between two records the comparison ignores them: in that case the ACWR on calendar weeks is more informative.`]],
@@ -217,7 +217,8 @@ const SPIEG_EN={
      Three rules:
      <ul><li><b>Program change</b>: if fewer than 3 exercises are shared, or they cover less than half of the TL of either week, the step does not count (R = 1) and the index restarts from there.</li>
      <li><b>Out of range</b>: an exercise with r<sub>e</sub> above 1.2 or below 1/1.2 (i.e. beyond +20% or −17% in one week) does not count for that step: usually it is another machine or variant with the same name, or a typo.</li>
-     <li><b>Breaks</b>: they count. The drop after a break is real; removing it would count the climbs back without the drops and inflate the progress.</li></ul>
+     <li><b>Breaks</b>: they count. The drop after a break is real; removing it would count the climbs back without the drops and inflate the progress.</li>
+     <li><b>Gaps</b>: with a period or nutrition filter (for example only the Bulks), at the restart after the excluded weeks the step does not count and the index restarts from the level reached; in the chart the gap is the space between two dashed lines.</li></ul>
      The % per month is the slope of the least-squares line of ln I<sub>t</sub> against days, over the weeks of the last 91 days (at least 3, at least 3 weeks apart), turned into a 30.44-day month: (e<sup>b·30.44</sup> − 1) × 100.`],
    ['Worked example',`Week 1: Squat 1RM 160 kg (TL 2,000), Bench 100 kg (TL 1,200), Row 90 kg (TL 800). Week 2: Squat 164, Bench 101, Row 90, plus a new Hip thrust and a Lat Pull Over gone from 20 to 60 kg because the machine changed.
      <div class="spf">r: Squat 1.025 · Bench 1.010 · Row 1.000 · Hip thrust left out (not there before) · Lat Pull Over left out (×3)</div>

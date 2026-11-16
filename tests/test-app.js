@@ -2792,6 +2792,66 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
       ok(/@media print\{\s*svg\.graf-lin \.g-clip\{animation:none !important; transform:none !important\}\s*svg\.graf-lin \.g-hover, \.graf-tip\{display:none !important\}/.test(css) &&
          /@media \(prefers-reduced-motion:reduce\)\{\s*svg\.graf-lin \.g-clip\{animation:none !important; transform:none !important\}/.test(css),
          'grafici a linee: in stampa e con «riduci movimento» il grafico è sempre intero e senza riquadri'); } }
+  /* ── FILTRI «PERIODO» E «ALIMENTAZIONE» dei Progressi, con lo stacco (Marco, 16/11/2026) ── */
+  { const J = s => JSON.parse(w.eval('JSON.stringify(' + s + ')'));
+    const dg = sel => { const e = d.querySelector(sel); return e ? JSON.parse(e.getAttribute('data-g')) : null; };
+    const boxDi = tit => [...d.querySelectorAll('#panel-progressi .chart-box')].find(b => (b.querySelector('h4') || {}).textContent && b.querySelector('h4').textContent.indexOf(tit) >= 0);
+    /* 12 settimane di fila (dal 29/12/2025): Bulk 4 settimane, Cut 4, di nuovo Bulk 4 */
+    const righe = []; for (let i = 0; i < 12; i++) ['Es A', 'Es B', 'Es C'].forEach((e, k) => righe.push({ scheda: 202601 + i, esercizio: e, macro: 'Altro', serie: 3, rip: 8, peso: Math.round((60 + k * 20) * (1 + 0.02 * i) * 10) / 10 }));
+    w.eval('var _fSt=DOC.storico, _fAl=JSON.stringify(DOC.alimentazione), _fU=JSON.stringify(DOC.dati_utente), _fOggi=dataOggi;' +
+      'DOC.storico=' + JSON.stringify(righe) + ';' +
+      'DOC.alimentazione.periodi=[{id:"b1",fase:"bulk",dal:"2025-12-29",al:"2026-01-25",righe:[]},{id:"c1",fase:"cut",dal:"2026-01-26",al:"2026-02-22",righe:[]},{id:"b2",fase:"bulk",dal:"2026-02-23",al:"2026-03-22",righe:[]}];' +
+      'DOC.dati_utente.progSet="__tutti__"; delete DOC.dati_utente.progPer; delete DOC.dati_utente.progPerDa; delete DOC.dati_utente.progPerA; delete DOC.dati_utente.progAlim;' +
+      'dataOggi=function(){ return "2026-03-22"; }; showTab("progressi");');
+    ok(w.eval('progFiltro()') === null && !d.querySelector('#panel-progressi .g-stacco') && d.getElementById('prog-per') && d.getElementById('prog-alim'),
+       'Filtri: senza scelta nessun filtro e nessuno stacco; in cima ci sono i menu Periodo e Alimentazione');
+    ok(d.getElementById('prog-per').options.length === 6 && [...d.getElementById('prog-alim').querySelectorAll('optgroup')].map(g => g.children.length).join() === '2,3',
+       'Filtri: periodo (tutto, 4 settimane, 3 e 6 mesi, anno, da… a…) e alimentazione per fase (Bulk, Cut) o singolo periodo (3)');
+    /* tutti i Bulk: due blocchi separati dal Cut */
+    { const s = d.getElementById('prog-alim'); s.value = 'bulk'; s.dispatchEvent(new w.Event('change')); }
+    ok(w.eval('DOC.dati_utente.progAlim') === 'bulk' && w.eval('progFiltro().passa(202603) && !progFiltro().passa(202606) && progFiltro().passa(202610)'),
+       'Filtri: «Bulk» si ricorda nel profilo e tiene le settimane dei due Bulk, non quelle del Cut');
+    { const tl = boxDi('TL totale + media mobile'), st = tl && tl.querySelectorAll('.g-stacco');
+      const g = dg('#panel-progressi .chart-grid--compatta .chart-box svg.graf-lin');
+      const path = tl && tl.querySelector('path.ln').getAttribute('d');
+      ok(st && st.length === 1 && /Cut/.test(st[0].textContent) && /4 sett\./.test(st[0].textContent) && st[0].querySelectorAll('line[stroke-dasharray]').length === 2 &&
+         g.l.length === 8 && (path.match(/M/g) || []).length === 2,
+         'Filtri: fra i due Bulk uno stacco fra due linee tratteggiate con scritto «Cut · 4 sett.», la linea si interrompe e riprende'); }
+    { const dl = dg('#panel-progressi .chart-grid--compatta .chart-box:nth-child(4) svg.graf-lin');
+      ok(dl && dl.s[0].y[4] === null && dl.s[0].y[3] !== null && dl.s[0].y[5] !== null, 'Filtri: alla ripresa la Δ TL % non si confronta con la settimana prima dello stacco'); }
+    { const atteso = w.eval('nf(caricoCronico(schedeAggr("__tutti__"),true)[8].acwr,2)'), ac = dg('#panel-progressi .chart-grid--compatta .chart-box:nth-child(2) svg.graf-lin');
+      ok(ac && ac.s[0].v[4] === atteso, 'Filtri: l\'ACWR della ripresa resta quello calcolato su tutta la storia (' + atteso + ')'); }
+    { const ip = J('indiceProgresso("__tutti__",progFiltro())');
+      ok(ip.sett.length === 8 && ip.stacchi.length === 1 && ip.stacchi[0].i === 4 && ip.forza[4] === ip.forza[3] && ip.confrontate === 6 && ip.salti.length === 0 &&
+         d.querySelector('#panel-progressi .prog-reale .graf-v--largo .g-stacco'),
+         'Filtri: il Progresso reale riparte dal livello raggiunto dopo lo stacco, senza contarlo come cambio scheda'); }
+    ok(d.querySelector('#panel-progressi .graf-prog-ex .graf-v--largo .g-stacco') !== null, 'Filtri: anche la progressione per esercizio mostra lo stacco');
+    ok(/situazione attuale/.test(d.getElementById('panel-progressi').textContent) && /su tutto il percorso/.test(d.querySelector('#panel-progressi .rec-box h4').textContent) &&
+       /ultima settimana scelta: 16\/03\/26/.test(d.getElementById('panel-progressi').textContent),
+       'Filtri: Segnali e Record restano su tutto il percorso (e lo dicono), l\'«ultima settimana» è l\'ultima scelta');
+    /* un solo periodo: il Cut, quattro settimane di fila, nessuno stacco */
+    w.eval('DOC.dati_utente.progAlim="p:c1"; renderProgressi();');
+    ok(J('schedeAggr("__tutti__").filter(function(a){ return progFiltro().passa(a.scheda); }).map(function(a){ return a.scheda; })').join() === '202605,202606,202607,202608' && !d.querySelector('#panel-progressi .g-stacco'),
+       'Filtri: un solo periodo (il Cut) mostra le sue quattro settimane, senza stacchi');
+    /* periodo fra due date: le settimane che toccano l'intervallo */
+    w.eval('delete DOC.dati_utente.progAlim; DOC.dati_utente.progPer="date"; DOC.dati_utente.progPerDa="2026-02-01"; DOC.dati_utente.progPerA="2026-02-28"; renderProgressi();');
+    ok(J('schedeAggr("__tutti__").filter(function(a){ return progFiltro().passa(a.scheda); }).map(function(a){ return a.scheda; })').join() === '202605,202606,202607,202608,202609' &&
+       d.getElementById('prog-per-da') && d.getElementById('prog-per-da').value === '2026-02-01' && !d.querySelector('#panel-progressi .g-stacco'),
+       'Filtri: «Da… a…» tiene le settimane che toccano le due date (01/02–28/02/26), con le due caselle delle date');
+    /* ultime 4 settimane da oggi (22/03/26), e insieme a «Bulk» */
+    w.eval('DOC.dati_utente.progPer="4s"; renderProgressi();');
+    ok(J('schedeAggr("__tutti__").filter(function(a){ return progFiltro().passa(a.scheda); }).map(function(a){ return a.scheda; })').join() === '202609,202610,202611,202612',
+       'Filtri: «Ultime 4 settimane» conta da oggi');
+    w.eval('DOC.dati_utente.progAlim="p:c1"; renderProgressi();');
+    ok(/Nessuna settimana salvata nel periodo o nella fase alimentare scelti/.test(d.getElementById('panel-progressi').textContent) && d.getElementById('prog-per') && d.getElementById('prog-alim'),
+       'Filtri: se la scelta non trova settimane lo si dice, e i menu restano per cambiarla');
+    w.eval('DOC.dati_utente.progAlim="p:sparito"; DOC.dati_utente.progPer="boh";');
+    ok(w.eval('progAlimGet()') === 'tutte' && w.eval('progPerGet()') === 'tutto', 'Filtri: un periodo eliminato o una scelta sconosciuta tornano a «tutto»');
+    ok(w.eval('cardioProgressBlock({passa:function(){ return false; }})') === '', 'Filtri: il blocco Cardio segue il filtro (nessuna seduta scelta, niente blocco)');
+    { const svg = new w.DOMParser().parseFromString('<div>' + w.eval('lineChart([{name:"A",color:"red",data:[1,2,3,4].map(function(v,i){ return {x:"s"+i,y:v}; })}],{w:400,h:200,stacchi:[{i:2,testo:"Cut",sotto:"3 sett."}]})') + '</div>', 'text/html').querySelector('svg');
+      const x = JSON.parse(svg.getAttribute('data-g')).x;
+      ok(x[2] - x[1] > 2 * (x[1] - x[0]) && svg.querySelectorAll('.g-stacco').length === 1, 'grafici a linee: lo stacco allarga lo spazio fra i due blocchi'); }
+    w.eval('DOC.storico=_fSt; DOC.alimentazione=JSON.parse(_fAl); DOC.dati_utente=JSON.parse(_fU); dataOggi=_fOggi; renderProgressi();'); }
   w.eval('showTab("analisi")');
   { const pa = d.getElementById('panel-analisi');
     if (w.eval('((DOC.alimentazione||{}).periodi||[]).length') > 0) {

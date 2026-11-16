@@ -135,9 +135,29 @@ function lineChart(series,opts){
   if(!all.length) return `<div class="empty">${t('Nessun dato')}</div>`;
   let mn=Math.min(...all),mx=Math.max(...all); if(mn===mx){mx+=1;mn-=1;} const pad=(mx-mn)*.08; mn-=pad; mx+=pad;
   const n=Math.max(...series.map(s=>s.data.length));
-  const X=i=>P.l+(n<=1?0:(W-P.l-P.r)*i/(n-1));
+  /* STACCHI (filtri dei Progressi, 16/11/2026): opts.stacchi = [{i, testo, sotto}] dove le settimane
+     scelte riprendono dopo un tratto escluso dal filtro. Fra il blocco prima e quello dopo si lascia
+     uno spazio (STACCO_LARGO settimane) chiuso da due linee tratteggiate, con scritto cosa manca;
+     le linee si interrompono e riprendono. Senza stacchi le posizioni sono quelle di sempre. */
+  /* lo spazio di uno stacco (in più rispetto a una settimana) è di 1,6 settimane, ma almeno quanto
+     serve alla sua scritta («Cut · 13 sett.»): nei grafici piccoli con tante settimane sarebbe
+     troppo stretto. Al massimo il 40 % del disegno per tutti gli stacchi insieme. */
+  const st=(opts.stacchi||[]).filter(s=>s && s.i>0 && s.i<n).sort((a,b)=>a.i-b.i), nSt=st.length, Wp=W-P.l-P.r;
+  const larghezzaScritta=nSt? Math.max(...st.map(s=>Math.max(String(s.testo).length,String(s.sotto).length)))*FS*0.6+10 : 0;
+  let passo=n>1? Wp/(n-1+1.6*nSt) : 0, extra=1.6*passo;
+  if(nSt && n>1 && extra+0.1*passo<larghezzaScritta){ extra=Math.min(larghezzaScritta,0.4*Wp/nSt); passo=(Wp-nSt*extra)/(n-1); }
+  const blocco=i=>st.filter(s=>s.i<=i).length;
+  const X=nSt? (i=>P.l+(n<=1?0:i*passo+blocco(i)*extra)) : (i=>P.l+(n<=1?0:(W-P.l-P.r)*i/(n-1)));
   const Y=v=>P.t+(H-P.t-P.b)*(1-(v-mn)/(mx-mn));
   let g='';
+  if(nSt){
+    st.forEach(s=>{ const xa=X(s.i-1)+passo*0.45, xb=X(s.i)-passo*0.45, lg=xb-xa, xm=(xa+xb)/2, ym=P.t+(H-P.t-P.b)/2;
+      const ci=str=>String(str).length*FS*0.6<=lg-4;
+      g+=`<g class="g-stacco"><rect x="${xa.toFixed(1)}" y="${P.t}" width="${Math.max(0,lg).toFixed(1)}" height="${H-P.t-P.b}" fill="var(--ink-4)" fill-opacity=".09"/>`+
+        `<line x1="${xa.toFixed(1)}" y1="${P.t}" x2="${xa.toFixed(1)}" y2="${H-P.b}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="4 4"/>`+
+        `<line x1="${xb.toFixed(1)}" y1="${P.t}" x2="${xb.toFixed(1)}" y2="${H-P.b}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="4 4"/>`+
+        (ci(s.testo)? `<text class="lbl" x="${xm.toFixed(1)}" y="${(ym-2).toFixed(1)}" text-anchor="middle" style="font-weight:700">${esc(s.testo)}</text>` : '')+
+        (ci(s.sotto)? `<text class="lbl" x="${xm.toFixed(1)}" y="${(ym+FS+1).toFixed(1)}" text-anchor="middle">${esc(s.sotto)}</text>` : '')+`</g>`; }); }
   for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4,y=Y(v);
     g+=`<line class="grid" x1="${P.l}" y1="${y.toFixed(1)}" x2="${W-P.r}" y2="${y.toFixed(1)}"/>`+
        `<text class="lbl" x="${P.l-5}" y="${(y+3).toFixed(1)}" text-anchor="end">${(opts.fmt||(x=>nf(x,grafDec(mn,mx,Math.abs(mx)<10?1:0))))(v)}</text>`;}
@@ -165,9 +185,9 @@ function lineChart(series,opts){
     extra:note.some(Boolean)? note : null});
   g+=`<g class="g-serie"${gi.clip}>`;
   series.forEach(s=>{
-    let dpath='',pts='';
-    s.data.forEach((d,i)=>{ if(d.y==null||isNaN(d.y))return; const x=X(i),y=Y(d.y);
-      dpath+=(dpath?' L':'M')+x.toFixed(1)+' '+y.toFixed(1);
+    let dpath='',pts='',bl=-1;
+    s.data.forEach((d,i)=>{ if(d.y==null||isNaN(d.y))return; const x=X(i),y=Y(d.y), b=blocco(i);
+      dpath+=(dpath && b===bl?' L':(dpath?' M':'M'))+x.toFixed(1)+' '+y.toFixed(1); bl=b;
       if(d.segno) pts+=`<circle class="pt-segno" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.6" fill="var(--paper)" stroke="${s.color}" stroke-width="2"/>`;
       else if(s.punti!==false) pts+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${s.color}"/>`; });
     g+=`<path class="ln" d="${dpath}" stroke="${s.color}"${s.dash?` stroke-dasharray="${s.dash}"`:''}${s.spess?` style="stroke-width:${s.spess}"`:''}/>${pts}`;

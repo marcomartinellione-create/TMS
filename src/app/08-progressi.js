@@ -21,6 +21,58 @@ function setDiStorico(){ const s=new Set();
   const sc=DOC.scheda; if(sc&&Array.isArray(sc.setsOrdine)) sc.setsOrdine.forEach(n=>{ if(n) s.add(n); });
   return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
 function senzaEtichetta(){ return (DOC.storico||[]).some(r=>!String((r&&r.set)||'').trim()); }
+/* ── FILTRI «PERIODO» E «ALIMENTAZIONE» (2026-11-16, Marco) ────────────────────────────────────
+   Oltre al Training Set i grafici si restringono a un periodo (ultime settimane o mesi da oggi,
+   oppure da… a…) e a una fase alimentare (tutti i Bulk, i Mantenimenti, i Cut, o un solo periodo).
+   Le scelte vivono nel profilo come il Training Set (dati_utente.progPer, progPerDa, progPerA,
+   progAlim) e si leggono ogni volta dal profilo attivo, senza copie in memoria. Una settimana
+   passa il filtro se tocca l'intervallo di date e cade in un periodo della fase scelta.
+   Quando le settimane scelte non sono di seguito perché il filtro ne esclude qualcuna in mezzo
+   (due Bulk separati da un Cut) i grafici nel tempo mostrano uno STACCO: spazio fra due linee
+   tratteggiate con scritto cosa è stato saltato, e le linee riprendono dopo (lineChart, opts.stacchi).
+   Una pausa senza allenamento dentro la fase scelta non è uno stacco. */
+const PROG_PERIODI=[['tutto','Tutto'],['4s','Ultime 4 settimane'],['3m','Ultimi 3 mesi'],['6m','Ultimi 6 mesi'],['1a','Ultimo anno'],['date','Da… a…']];
+function progPeriodiAlim(){ return ((((DOC||{}).alimentazione)||{}).periodi||[]).filter(p=>p && p.dal && p.fase); }
+function progPerGet(){ const v=(DOC&&DOC.dati_utente&&DOC.dati_utente.progPer)||'tutto'; return PROG_PERIODI.some(p=>p[0]===v)? v : 'tutto'; }
+function progAlimGet(){ const v=String((DOC&&DOC.dati_utente&&DOC.dati_utente.progAlim)||'tutte');
+  if(v.indexOf('p:')===0) return progPeriodiAlim().some(p=>'p:'+p.id===v)? v : 'tutte';
+  return ['bulk','mant','cut'].includes(v) && progPeriodiAlim().some(p=>p.fase===v)? v : 'tutte'; }
+function progFiltroSalva(k,v){ const u=(DOC.dati_utente=DOC.dati_utente||{}); if(v==null||v==='') delete u[k]; else u[k]=v; persist('corpo'); }
+/* intervallo [da, a] (AAAA-MM-GG) del filtro del periodo; null = tutto */
+function progIntervallo(){
+  const p=progPerGet(); if(p==='tutto') return null;
+  const u=DOC.dati_utente||{}, oggi=dataOggi();
+  if(p==='date'){ const da=u.progPerDa||'', a=u.progPerA||''; return (da||a)? {da:da||'0000-01-01', a:a||'9999-12-31'} : null; }
+  const d=new Date(oggi+'T12:00:00'); if(p==='4s') d.setDate(d.getDate()-27); else d.setMonth(d.getMonth()-({'3m':3,'6m':6,'1a':12})[p]);
+  return {da:dataLocale(d), a:oggi};
+}
+/* il filtro attivo: {passa(codice settimana), fasi: fase di ogni settimana} oppure null */
+function progFiltro(){
+  const iv=progIntervallo(), al=progAlimGet(); if(!iv && al==='tutte') return null;
+  let alim=null;
+  if(al!=='tutte'){ alim=new Set(); progPeriodiAlim().filter(p=> al.indexOf('p:')===0? 'p:'+p.id===al : p.fase===al)
+    .forEach(p=>settimaneTra(p.dal,periodoFine(p)).forEach(c=>alim.add(+c))); }
+  const ymd=ms=>new Date(ms).toISOString().slice(0,10);
+  const passa=c=>{ c=+c; if(alim && !alim.has(c)) return false;
+    if(iv){ const lun=isoWeekMonday(Math.floor(c/100),c%100).getTime(); if(ymd(lun+6*86400000)<iv.da || ymd(lun)>iv.a) return false; }
+    return true; };
+  return {passa, iv, alim:al, fasi:periodiPerSettimana()};
+}
+/* stacco fra due settimane scelte consecutive c1 < c2: c'è se il filtro esclude almeno una
+   settimana di calendario in mezzo; dice cosa c'era (fase alimentare) e quante settimane */
+function progStacco(f,c1,c2){
+  if(!f) return null; const SETT=7*86400000; let n=0; const fasi=[];
+  const fine=isoWeekMonday(Math.floor(c2/100),c2%100).getTime();
+  for(let m=isoWeekMonday(Math.floor(c1/100),c1%100).getTime()+SETT; m<fine; m+=SETT){
+    const d=new Date(m), w=isoWeek(new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())), c=schedaCode(w.anno,w.sett);
+    if(f.passa(c)) continue; n++; const fs=f.fasi[c] && f.fasi[c].fase; if(fs && !fasi.includes(fs)) fasi.push(fs); }
+  if(!n) return null;
+  return {testo: fasi.length? fasi.map(x=>t(FASE_LAB[x]||x)).join(', ') : t('fuori filtro'), sotto: n+' '+t('sett.')};
+}
+/* per una lista ordinata di settimane scelte: dove riprende un blocco ([{i, testo, sotto}]) */
+function progStacchi(f,codes){ const out=[]; if(!f) return out;
+  for(let i=1;i<codes.length;i++){ if(+codes[i]===+codes[i-1]) continue; const s=progStacco(f,+codes[i-1],+codes[i]); if(s) out.push(Object.assign({i:i},s)); }
+  return out; }
 function filtraSet(rows,sf){ if(!sf||sf==='__tutti__') return rows||[];
   return (rows||[]).filter(r=>String((r&&r.set)||'')===sf); }
 function storicoSet(sf){ return filtraSet(DOC.storico||[],sf); }
@@ -105,10 +157,14 @@ function acwrUltimo(ag, calendario){ const c=caricoCronico(ag,calendario); retur
    - le PAUSE contano: il calo dopo uno stop è vero, e toglierlo gonfierebbe il progresso (si
      toglierebbero i cali tenendo tutte le risalite).
    La variazione «al mese» è la pendenza (minimi quadrati sul logaritmo) delle settimane cadute
-   negli ultimi PROG_FINESTRA giorni. Tutto calcolato al volo dallo Storico, mai salvato. */
+   negli ultimi PROG_FINESTRA giorni. Tutto calcolato al volo dallo Storico, mai salvato.
+   Con un filtro di periodo o di alimentazione (f = progFiltro()) si usano solo le settimane scelte:
+   alla RIPRESA dopo uno stacco il passo non si confronta con la settimana prima dello stacco
+   (riaggancio, come al cambio scheda, ma senza il cerchietto: lo stacco si vede già). */
 const PROG_SOGLIA=1.2, PROG_COPERTURA=0.5, PROG_MIN_ES=3, PROG_FINESTRA=91;
-function indiceProgresso(sf){
-  const ag=schedeAggr(sf); if(ag.length<2) return null;
+function indiceProgresso(sf,f){
+  const agT=schedeAggr(sf), ag=f? agT.filter(a=>f.passa(a.scheda)) : agT; if(ag.length<2) return null;
+  const stacchi=progStacchi(f, ag.map(a=>a.scheda)), ripresa=new Set(stacchi.map(s=>s.i));
   const per={};
   storicoSet(sf).forEach(r=>{ if(r.test||!r.esercizio) return; const s=+r.scheda;
     const m=per[s]=per[s]||{}, x=m[r.esercizio]=m[r.esercizio]||{tl:0,serie:0,rm:0};
@@ -116,6 +172,7 @@ function indiceProgresso(sf){
   const somma=(o,ks)=>ks.reduce((a,k)=>a+o[k].tl,0);
   const forza=[100], tlp=[100], salti=[]; let esF=0, esT=0, confr=0;
   for(let i=1;i<ag.length;i++){
+    if(ripresa.has(i)){ forza.push(forza[i-1]); tlp.push(tlp[i-1]); continue; }
     const A=per[ag[i-1].scheda]||{}, B=per[ag[i].scheda]||{};
     const totA=somma(A,Object.keys(A)), totB=somma(B,Object.keys(B));
     const com=Object.keys(B).filter(e=>{ const a=A[e], b=B[e]; return a && a.tl>0 && b.tl>0 && a.serie>0 && b.serie>0 && a.rm>0 && b.rm>0; });
@@ -133,14 +190,14 @@ function indiceProgresso(sf){
   /* TL totale messo anch'esso a 100 sulla prima settimana con TL: è la curva di sempre, coi salti */
   const base=(ag.find(a=>a.tl>0)||{}).tl||0;
   const tot=ag.map(a=>base&&a.tl>0? a.tl/base*100 : null);
-  const delta=[]; for(let i=1;i<ag.length;i++) if(ag[i-1].tl>0 && ag[i].tl>0) delta.push((ag[i].tl/ag[i-1].tl-1)*100);
+  const delta=[]; for(let i=1;i<ag.length;i++) if(ag[i-1].tl>0 && ag[i].tl>0 && !ripresa.has(i)) delta.push((ag[i].tl/ag[i-1].tl-1)*100);
   const giorni=c=>isoWeekMonday(Math.floor(c/100),c%100).getTime()/86400000;
   const ult=giorni(ag[ag.length-1].scheda);
   const mese=serie=>{ const pts=ag.map((a,i)=>[giorni(a.scheda),Math.log(serie[i])]).filter(p=>ult-p[0]<=PROG_FINESTRA);
     if(pts.length<3 || pts[pts.length-1][0]-pts[0][0]<21) return null;
     const reg=regressione(pts.map(p=>p[0]),pts.map(p=>p[1])); return reg? (Math.exp(reg.b*30.44)-1)*100 : null; };
   const fin=a=>a[a.length-1]-100, totV=tot.filter(v=>v!=null);
-  return { sett:ag.map(a=>a.scheda), tot, forza, tl:tlp, salti, confrontate:confr, esclusiForza:esF, esclusiTL:esT,
+  return { sett:ag.map(a=>a.scheda), tot, forza, tl:tlp, salti, stacchi, confrontate:confr, esclusiForza:esF, esclusiTL:esT,
     var:{ tot: totV.length>1? totV[totV.length-1]-100 : null, forza:fin(forza), tl:fin(tlp) },
     mese:{ forza:mese(forza), tl:mese(tlp), tutto: ult-giorni(ag[0].scheda)<=PROG_FINESTRA },
     salto:{ min: delta.length? Math.min(...delta) : null, max: delta.length? Math.max(...delta) : null } };
@@ -173,8 +230,9 @@ function radarChart(items,opts){
   for(let i=0;i<n;i++){ const a=pt(i,R*items[i].value/mx); g+=`<circle cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="2.6" fill="var(--orange)"/>`; }
   return `<svg viewBox="0 0 ${W} ${H}" width="100%"${grafFs(opts)}>${g}</svg>`;
 }
-function exerciseList(sf){ const s=new Set(); storicoSet(sf).forEach(r=>{ if(r.esercizio) s.add(r.esercizio); }); return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
-function exProgression(nome,sf){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome)return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,rmMostrato(r)); mm[s].peso=Math.max(mm[s].peso,pesoMostrato(r)); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
+/* f (facoltativo) = filtro di periodo/alimentazione dei Progressi: solo le settimane che lo passano */
+function exerciseList(sf,f){ const s=new Set(); storicoSet(sf).forEach(r=>{ if(r.esercizio && (!f || f.passa(r.scheda))) s.add(r.esercizio); }); return [...s].sort((a,b)=>String(a).localeCompare(String(b))); }
+function exProgression(nome,sf,f){ const mm={}; storicoSet(sf).forEach(r=>{ if(r.esercizio!==nome || (f && !f.passa(r.scheda)))return; const s=+r.scheda; if(!mm[s])mm[s]={rm:0,peso:0,scheda:s}; mm[s].rm=Math.max(mm[s].rm,rmMostrato(r)); mm[s].peso=Math.max(mm[s].peso,pesoMostrato(r)); }); return Object.values(mm).sort((a,b)=>a.scheda-b.scheda); }
 /* RECORD: per trazioni, dip e leg raise il kg è la ZAVORRA, mai il totale (regola di Marco,
    2026-09-29) — come già la colonna 1RM. Classificare sul totale dava due storture: il
    record cambiava col peso del corpo (prendere 2 kg valeva un «primato» senza sollevare di
@@ -199,17 +257,35 @@ function plateauList(sf){
   });
   return out.sort((a,b)=>b.since-a.since);
 }
-/* barra «Dati da analizzare»: tutto il percorso oppure un singolo Training Set */
+/* barra «Dati da analizzare»: Training Set (tutto il percorso o uno solo), periodo e alimentazione */
 function barraSetProgressi(){
-  const sets=setDiStorico();
-  if(!sets.length) return '';
+  const sets=setDiStorico(), per=progPeriodiAlim(), pv=progPerGet(), av=progAlimGet(), u=(DOC&&DOC.dati_utente)||{};
   const opts=`<option value="__tutti__"${progSetGet()==='__tutti__'?' selected':''}>${t('Tutto il percorso')}</option>`+
     sets.map(n=>`<option value="${esc(n)}"${n===progSetGet()?' selected':''}>${esc(n)}</option>`).join('');
   const nota=(progSetGet()!=='__tutti__'&&senzaEtichetta())
     ? `<div class="muted" style="font-size:11.5px;margin:-6px 0 10px">${t('Le settimane salvate prima di questa versione non hanno l\'etichetta del Training Set: si vedono solo in «Tutto il percorso».')}</div>` : '';
-  return `<div class="bar no-print"><div class="field"><label>${t('Dati da analizzare')}</label>
-      <select id="prog-set" title="${t('Analizza tutto il percorso oppure un singolo Training Set (es. solo Palestra): utile quando le schede sono molto diverse tra loro')}">${opts}</select></div>
-    <div class="spacer"></div></div>${nota}`;
+  const campoSet=sets.length? `<div class="field"><label>${t('Dati da analizzare')}</label>
+      <select id="prog-set" title="${t('Analizza tutto il percorso oppure un singolo Training Set (es. solo Palestra): utile quando le schede sono molto diverse tra loro')}">${opts}</select></div>` : '';
+  const campoPer=`<div class="field"><label>${t('Periodo')}</label><select id="prog-per" title="${t('Mostra solo le settimane di un periodo: le ultime settimane o mesi da oggi, oppure fra due date')}">`+
+    PROG_PERIODI.map(p=>`<option value="${p[0]}"${p[0]===pv?' selected':''}>${t(p[1])}</option>`).join('')+`</select></div>`+
+    (pv==='date'? `<div class="field"><label>${t('Dal')}</label><input type="date" id="prog-per-da" value="${esc(u.progPerDa||'')}"></div>`+
+                  `<div class="field"><label>${t('Al')}</label><input type="date" id="prog-per-a" value="${esc(u.progPerA||'')}"></div>` : '');
+  const ggmmaa=s=>{ const p=String(s||'').split('-'); return p.length===3? p[2]+'/'+p[1]+'/'+p[0].slice(2) : String(s||''); };
+  const campoAlim=per.length? `<div class="field"><label>${t('Alimentazione')}</label><select id="prog-alim" title="${t('Mostra solo le settimane di una fase alimentare (tutti i suoi periodi) o di un solo periodo')}">`+
+    `<option value="tutte"${av==='tutte'?' selected':''}>${t('Tutte le fasi')}</option>`+
+    `<optgroup label="${esc(t('Fase'))}">${['bulk','mant','cut'].filter(f=>per.some(p=>p.fase===f)).map(f=>`<option value="${f}"${av===f?' selected':''}>${esc(t(FASE_LAB[f]||f))}</option>`).join('')}</optgroup>`+
+    `<optgroup label="${esc(t('Un solo periodo'))}">${per.slice().sort((a,b)=>String(a.dal).localeCompare(String(b.dal))).map(p=>`<option value="p:${esc(p.id)}"${av==='p:'+p.id?' selected':''}>${esc(t(FASE_LAB[p.fase]||p.fase))} · ${ggmmaa(p.dal)} → ${p.al? ggmmaa(p.al) : t('in corso')}</option>`).join('')}</optgroup>`+
+    `</select></div>` : '';
+  return `<div class="bar no-print prog-filtri">${campoSet}${campoPer}${campoAlim}<div class="spacer"></div></div>${nota}`;
+}
+/* i comandi della barra (anche nella pagina vuota, così si può cambiare la scelta) */
+function bindFiltriProgressi(){
+  const q=id=>document.getElementById(id);
+  if(q('prog-set')) q('prog-set').onchange=e=>{ progSetSet(e.target.value); progEx=null; renderProgressi(); };
+  if(q('prog-per')) q('prog-per').onchange=e=>{ progFiltroSalva('progPer', e.target.value==='tutto'? null : e.target.value); renderProgressi(); };
+  if(q('prog-per-da')) q('prog-per-da').onchange=e=>{ progFiltroSalva('progPerDa', e.target.value); renderProgressi(); };
+  if(q('prog-per-a')) q('prog-per-a').onchange=e=>{ progFiltroSalva('progPerA', e.target.value); renderProgressi(); };
+  if(q('prog-alim')) q('prog-alim').onchange=e=>{ progFiltroSalva('progAlim', e.target.value==='tutte'? null : e.target.value); progEx=null; renderProgressi(); };
 }
 /* VISTA COMPATTA (2026-11-16, richiesta di Marco: «una bella vista compatta dei grafici, sempre
    divisa per categoria e logica»). I grafici stanno in una griglia fitta (.chart-grid--compatta:
@@ -227,8 +303,8 @@ function pctSegno(v,dec){ if(v==null||!isFinite(v)) return '—'; const r=+(+v).
    a base 100: il TL di sempre, coi salti; il TL a parità di esercizi; la forza a parità di
    esercizi, la principale. Il cerchietto vuoto segna i cambi scheda saltati. Calcolo in
    indiceProgresso(); il grafico «Δ Variazione TL %» resta dov'è. */
-function boxProgressoReale(sf){
-  const ip=indiceProgresso(sf);
+function boxProgressoReale(sf,f){
+  const ip=indiceProgresso(sf,f);
   const tit=`<h4>📐 ${t('Progresso reale · a parità di esercizi')}${ip?` <span class="muted" style="font-size:11px">(${t('base 100 al')} ${schedaLabel(ip.sett[0])})</span>`:''}${spiegaBtn('progresso-reale')}</h4>`;
   if(!ip) return `<div class="chart-box prog-reale">${tit}<div class="empty">${t('Servono almeno due settimane salvate per misurare il progresso.')}</div></div>`;
   const lab=ip.sett.map(schedaLabel);
@@ -250,7 +326,7 @@ function boxProgressoReale(sf){
     {name:t('TL totale (grezzo)'),color:COL.tot,dash:'2 3',punti:false,data:ip.tot.map((y,i)=>({x:lab[i],y:y}))},
     {name:t('TL a parità di esercizi'),color:COL.tl,dash:'7 4',punti:false,data:ip.tl.map((y,i)=>({x:lab[i],y:y}))},
     {name:t('Forza a parità di esercizi'),color:COL.forza,spess:2.8,data:ip.forza.map((y,i)=>({x:lab[i],y:y,segno:salto.has(i),nota:salto.has(i)?notaSalto:''}))}];
-  const op=o=>grafC(Object.assign({labels:lab,senzaLeg:true,rif:100,fmt:x=>nf(x,0),fmtTip:v=>pctSegno(v-100,1)},o));
+  const op=o=>grafC(Object.assign({labels:lab,senzaLeg:true,rif:100,fmt:x=>nf(x,0),fmtTip:v=>pctSegno(v-100,1),stacchi:ip.stacchi},o));
   const giorni=ip.salti.map(i=>lab[i]);
   const nota=`<div class="graf-nota pr-nota">${ip.confrontate} ${t('settimane confrontate')} · `+
     (giorni.length? `<span class="pr-segno-leg">○</span> ${giorni.length} ${giorni.length===1?t('cambio scheda saltato'):t('cambi scheda saltati')} (${giorni.slice(-3).join(', ')}${giorni.length>3?'…':''})` : t('nessun cambio scheda da saltare'))+
@@ -258,23 +334,30 @@ function boxProgressoReale(sf){
   return `<div class="chart-box prog-reale graf-cont">${tit}${numeri}${grafVarianti(lineChart(serie,op({w:900,h:340})),lineChart(serie,op({w:440,h:260})))}${nota}</div>`;
 }
 function renderProgressi(){
-  const sf=progSetGet();
-  const ag=schedeAggr(sf);
+  const sf=progSetGet(), f=progFiltro();
+  const agTutte=schedeAggr(sf);
+  /* filtri di periodo e alimentazione: si mostrano solo le settimane scelte (ag); ACWR e media
+     mobile restano calcolati su tutta la storia (agTutte), i Segnali e i Record pure */
+  const ag=f? agTutte.filter(a=>f.passa(a.scheda)) : agTutte;
   if(!ag.length){ document.getElementById('panel-progressi').innerHTML=barraSetProgressi()+
-      `<div class="empty"><span class="empty__ico">📈</span>${sf==='__tutti__'
+      `<div class="empty"><span class="empty__ico">📈</span>${agTutte.length
+        ? t('<b>Nessuna settimana salvata nel periodo o nella fase alimentare scelti.</b><br>Cambia il periodo o l\'alimentazione qui sopra.')
+        : sf==='__tutti__'
         ?t('<b>Ancora nessun progresso da mostrare.</b><br>I grafici si accendono quando salvi la prima scheda nello Storico: compila la scheda in <b>🏋 Pesi</b> e premi «💾 Salva nello Storico».')+
          `<br><button class="btn btn--ember" onclick="showTab('allenamento')">${t('🏋 Vai alla scheda Pesi')}</button>`
         :t('<b>Nessuna scheda salvata con questo Training Set.</b><br>Cambia Training Set qui sopra, oppure salva una scheda mentre questo è attivo.')}</div>`;
-    { const s=document.getElementById('prog-set'); if(s) s.onchange=e=>{ progSetSet(e.target.value); renderProgressi(); }; } return; }
+    bindFiltriProgressi(); return; }
   const labels=ag.map(a=>schedaLabel(a.scheda));
+  const stacchi=progStacchi(f, ag.map(a=>a.scheda)), ripresa=new Set(stacchi.map(s=>s.i));
+  const gc=o=>grafC(Object.assign({stacchi},o));   /* i grafici nel tempo delle settimane scelte, con gli stacchi */
   const last=ag[ag.length-1];
   /* colori dei gruppi in variabili CSS (02-stili.css, --c-*): di giorno sono quelli di sempre, di notte
      si schiariscono — scritti fissi, sul fondo scuro il rosso di Core e il viola di Spalle sparivano */
   const grpColors={Gambe:'var(--c-arancio)',Pettorali:'var(--c-oro)',Schiena:'var(--c-verde)',Spalle:'var(--c-viola)',Braccia:'var(--c-ocra)',Core:'var(--c-rosso)',Altro:'var(--c-terra)'};
-  const cron=caricoCronico(ag, sf==='__tutti__');
-  const mavg=cron.map(c=>c.media), acwr=cron.map(c=>c.acwr);
-  const lastAcwr=acwr[acwr.length-1];
-  const exs=exerciseList(sf); if(progEx==null||!exs.includes(progEx)) progEx=exs[0]||'';
+  const cronT=caricoCronico(agTutte, sf==='__tutti__'), cronDi={}; agTutte.forEach((a,i)=>{ cronDi[a.scheda]=cronT[i]; });
+  const mavg=ag.map(a=>cronDi[a.scheda].media), acwr=ag.map(a=>cronDi[a.scheda].acwr);
+  const lastAcwr=cronT.length? cronT[cronT.length-1].acwr : null;
+  const exs=exerciseList(sf,f); if(progEx==null||!exs.includes(progEx)) progEx=exs[0]||'';
   /* i RECORD non seguono il filtro: un massimale è un massimale, in qualunque Training Set
      sia stato fatto (richiesta di Marco). Quando un filtro è attivo lo si dice, per chiarezza.
      Un clic su una card mette quell'esercizio nel grafico della progressione qui sotto (Marco,
@@ -282,12 +365,12 @@ function renderProgressi(){
      avrebbe niente da mostrare. La card dell'esercizio nel grafico resta evidenziata.
      Impaginazione della sezione (stessa sera): a sinistra, grande, il Progresso reale; a destra
      le card dei record con sotto la progressione dell'esercizio (02-stili.css, .chart-grid--forza). */
-  const cards=`<div class="chart-box rec-box"><h4>🏆 ${t('Record personali · carico massimo')}${sf!=='__tutti__'?`<span class="pill muted" style="text-transform:none">${t('su tutto il percorso')}</span>`:''}</h4><div class="cards rec-cards">${MAINLIFTS.map(L=>{ const n=nomeAttuale(L.nome), r=realMax(n), vai=exs.includes(n);
+  const cards=`<div class="chart-box rec-box"><h4>🏆 ${t('Record personali · carico massimo')}${(sf!=='__tutti__'||f)?`<span class="pill muted" style="text-transform:none">${t('su tutto il percorso')}</span>`:''}</h4><div class="cards rec-cards">${MAINLIFTS.map(L=>{ const n=nomeAttuale(L.nome), r=realMax(n), vai=exs.includes(n);
     const att=vai? ` role="button" tabindex="0" data-rec-ex="${esc(n)}" title="${t('Mostra la progressione di questo esercizio nel grafico qui sotto')}"` : (r? ` title="${t('Nessuna serie di questo esercizio nei dati scelti')}"` : '');
     return `<div class="card pr-card${vai?' pr-card--vai':''}${vai&&n===progEx?' is-sel':''}"${att}><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div></div>`;
   const tlSeries=[{name:'TL',color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:a.tl||null}))},{name:t('Media mobile 4'),color:'var(--ink-3)',data:ag.map((a,i)=>({x:labels[i],y:mavg[i]}))}];
   const acwrSeries=[{name:'ACWR',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:acwr[i]}))}];
-  const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
+  const dSeries=[{name:'Δ TL %',color:'var(--violet)',data:ag.map((a,i)=>({x:labels[i],y:i>0&&!ripresa.has(i)&&ag[i-1].tl?((a.tl/ag[i-1].tl)-1)*100:null}))}];
   const tonnSeries=[{name:t('Tonnellaggio'),color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:a.tonn||null}))}];
   /* ragnatela = DISTRIBUZIONE fra i gruppi dei pesi (quote %); il cardio sta nelle barre */
   const rifC=rifCalcola(null, sf==='__tutti__'? null : {set:sf}), radarItems=vociDistribuzione(last.sets,{D:last.setsD,I:last.setsI},rifC);
@@ -300,7 +383,7 @@ function renderProgressi(){
   const BANDS=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
   const bcol={'Forza':'var(--c-rosso)','Forza+Iper':'var(--c-arancio)','Ipertrofia':'var(--c-oro)','Resistenza':'var(--c-verde)','Metabolico':'var(--c-viola)'};
   const intData=BANDS.map(b=>({x:t(b),y:last.band[b]||0,color:bcol[b]}));
-  const prog=exProgression(progEx,sf); const plab=prog.map(p=>schedaLabel(p.scheda));
+  const prog=exProgression(progEx,sf,f); const plab=prog.map(p=>schedaLabel(p.scheda)), stProg=progStacchi(f, prog.map(p=>p.scheda));
   const exSeries=[{name:t('1RM stimato'),color:'var(--orange-b)',data:prog.map((p,i)=>({x:plab[i],y:p.rm||null}))},{name:t('Peso max'),color:'var(--violet)',data:prog.map((p,i)=>({x:plab[i],y:p.peso||null}))}];
   const plats=plateauList(sf);
   /* Foster — carico interno settimanale, allineato ai codici-settimana dello storico esterno */
@@ -322,39 +405,39 @@ function renderProgressi(){
   if(plats.length) segnali+=`<div class="callout"><div>⏸ ${t('<b>In stallo</b> (TL fermo da ≥3 schede):')} ${plats.slice(0,6).map(p=>esc(exName(p.nome))+' <span class="muted">('+p.since+' '+t('sett.')+')</span>').join(' · ')}. ${t('Valuta variazione di carico, volume o esercizio.')}</div></div>`;
   if(!segnali) segnali=`<div class="callout" style="background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ ${t('Nessun segnale critico: carico e progressione regolari.')}</div></div>`;
   document.getElementById('panel-progressi').innerHTML=`<div class="graf-pagina">`+barraSetProgressi()+`
-   <div class="sec">${t('Segnali')}</div>${segnali}
+   <div class="sec">${t('Segnali')}${f?` <span class="sec-nota">· ${t('situazione attuale, su tutto il percorso')}</span>`:''}</div>${segnali}
    <div class="sec">${t('Carico e volume')}</div>
    <div class="chart-grid chart-grid--compatta">
-     <div class="chart-box"><h4>${t('📈 TL totale + media mobile')}${spiegaBtn('tl')}</h4>${lineChart(tlSeries,grafC({labels,fmt:nfk}))}</div>
-     <div class="chart-box"><h4>${t('⚖ ACWR (acuto:cronico) · zona 0.8–1.3')}${spiegaBtn('acwr')}</h4>${lineChart(acwrSeries,grafC({labels,band:[0.8,1.3,'rgba(47,125,79,.13)']}))}</div>
-     <div class="chart-box"><h4>${t('🏋 Tonnellaggio per scheda (kg)')}${spiegaBtn('tonnellaggio')}</h4>${lineChart(tonnSeries,grafC({labels,fmt:nfk}))}</div>
-     <div class="chart-box"><h4>${t('Δ Variazione TL %')}${spiegaBtn('delta-tl')}</h4>${lineChart(dSeries,grafC({labels}))}</div>
+     <div class="chart-box"><h4>${t('📈 TL totale + media mobile')}${spiegaBtn('tl')}</h4>${lineChart(tlSeries,gc({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('⚖ ACWR (acuto:cronico) · zona 0.8–1.3')}${spiegaBtn('acwr')}</h4>${lineChart(acwrSeries,gc({labels,band:[0.8,1.3,'rgba(47,125,79,.13)']}))}</div>
+     <div class="chart-box"><h4>${t('🏋 Tonnellaggio per scheda (kg)')}${spiegaBtn('tonnellaggio')}</h4>${lineChart(tonnSeries,gc({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('Δ Variazione TL %')}${spiegaBtn('delta-tl')}</h4>${lineChart(dSeries,gc({labels}))}</div>
    </div>
    ${hasRpe?`<div class="sec">${t('Carico interno · session-RPE (Foster 2001)')}</div>
    ${fosterSignal}
    <div class="chart-grid chart-grid--compatta">
-     <div class="chart-box"><h4>${t('🔥 Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span>${spiegaBtn('srpe')}</h4>${lineChart(sRpeSeries,grafC({labels,fmt:nfk}))}</div>
-     <div class="chart-box"><h4>${t('📊 Monotonia')} <span class="muted" style="font-size:11px">${t('(media7÷SD7 · zona ≤2)')}</span>${spiegaBtn('monotonia')}</h4>${lineChart(monoSeries,grafC({labels,band:[0,2,'rgba(47,125,79,.10)']}))}</div>
-     <div class="chart-box"><h4>${t('⚡ Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span>${spiegaBtn('strain')}</h4>${lineChart(strainSeries,grafC({labels,fmt:nfk}))}</div>
-     <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span>${spiegaBtn('interno-esterno')}</h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],grafC({labels}))})()}</div>
+     <div class="chart-box"><h4>${t('🔥 Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span>${spiegaBtn('srpe')}</h4>${lineChart(sRpeSeries,gc({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('📊 Monotonia')} <span class="muted" style="font-size:11px">${t('(media7÷SD7 · zona ≤2)')}</span>${spiegaBtn('monotonia')}</h4>${lineChart(monoSeries,gc({labels,band:[0,2,'rgba(47,125,79,.10)']}))}</div>
+     <div class="chart-box"><h4>${t('⚡ Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span>${spiegaBtn('strain')}</h4>${lineChart(strainSeries,gc({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span>${spiegaBtn('interno-esterno')}</h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],gc({labels}))})()}</div>
    </div>`:''}
    <div class="sec">${t('Forza e record')}</div>
    <div class="chart-grid chart-grid--compatta chart-grid--forza">
-     ${boxProgressoReale(sf)}
+     ${boxProgressoReale(sf,f)}
      ${cards}
      <div class="chart-box graf-cont graf-prog-ex"><h4>📈 ${t('Progressione per esercizio')}${spiegaBtn('progressione')}</h4>
        <div class="graf-scelta"><label for="prog-ex">${t('Esercizio')}</label><select id="prog-ex">${exs.map(e=>`<option value="${esc(e)}"${e===progEx?' selected':''}>${esc(exName(e))}</option>`).join('')}</select></div>
-       ${prog.length?grafVarianti(lineChart(exSeries,grafC({labels:plab,w:780,h:175})),lineChart(exSeries,grafC({labels:plab,w:440,h:190}))):`<div class="empty">${t('Nessun dato per questo esercizio.')}</div>`}
+       ${prog.length?grafVarianti(lineChart(exSeries,grafC({labels:plab,w:780,h:175,stacchi:stProg})),lineChart(exSeries,grafC({labels:plab,w:440,h:190,stacchi:stProg}))):`<div class="empty">${t('Nessun dato per questo esercizio.')}</div>`}
      </div>
    </div>
-   <div class="sec">${t('Equilibrio e distribuzione')}</div>
+   <div class="sec">${t('Equilibrio e distribuzione')}${f?` <span class="sec-nota">· ${t('ultima settimana scelta:')} ${schedaLabel(last.scheda)}</span>`:''}</div>
    <div class="chart-grid chart-grid--compatta">
      <div class="chart-box chart-box--radar"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = riferimento scelto)')}</span>${spiegaBtn('distribuzione')}</h4>${radarChart(radarItems,{w:320,h:262,fs:11})}${rifDidascalia(rifC,{dopo:'tab'})}</div>
      <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span>${spiegaBtn('serie-gruppo')}</h4>${barChart(setsData,grafC({h:250}))}</div>
      <div class="chart-box"><h4>${t('🎯 Distribuzione intensità · ultima (serie per fascia)')}${spiegaBtn('intensita')}</h4>${barChart(intData,grafC({h:270}))}</div>
-     <div class="chart-box"><h4>${t('Andamento TL per gruppo')}${spiegaBtn('tl-gruppo')}</h4>${lineChart(grpSeries,grafC({labels,fmt:nfk,h:250}))}</div>
+     <div class="chart-box"><h4>${t('Andamento TL per gruppo')}${spiegaBtn('tl-gruppo')}</h4>${lineChart(grpSeries,gc({labels,fmt:nfk,h:250}))}</div>
    </div>
-   ${cardioProgressBlock()}
+   ${cardioProgressBlock(f)}
   </div>`;
   const sel=document.getElementById('prog-ex'); if(sel) sel.onchange=e=>{ progEx=e.target.value; renderProgressi(); };
   document.querySelectorAll('#panel-progressi [data-rec-ex]').forEach(c=>{
@@ -362,6 +445,6 @@ function renderProgressi(){
       if(tast){ const n=[...document.querySelectorAll('#panel-progressi [data-rec-ex]')].find(x=>x.dataset.recEx===progEx); if(n) n.focus(); } };
     c.onclick=()=>vai(false);
     c.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); vai(true); } }; });
-  const selS=document.getElementById('prog-set'); if(selS) selS.onchange=e=>{ progSetSet(e.target.value); progEx=null; renderProgressi(); };
+  bindFiltriProgressi();
   bindCardioProgress();
 }

@@ -385,7 +385,14 @@ Due modi per registrare una seduta:
   dell'Analisi, il Corpo, il Cardio e gli Esercizi) passando col mouse in un punto qualsiasi del
   disegno una linea verticale segna la settimana più vicina e un riquadro dice data e valore di ogni
   linea; all'apertura, o quando i dati cambiano, le linee si disegnano da sinistra a destra (non nel
-  Report né in stampa). Sulle barre il valore si legge passando sulla barra. I grafici hanno senso da 2-3 settimane salvate in poi. Dal v1.1.4 in cima c'è il
+  Report né in stampa). Sulle barre il valore si legge passando sulla barra. I grafici hanno senso da 2-3 settimane salvate in poi. Accanto al Training Set
+  ci sono i filtri **Periodo** (tutto, ultime 4 settimane, ultimi 3 o 6 mesi, ultimo anno, «Da… a…»)
+  e **Alimentazione** (tutte le fasi, una fase con tutti i suoi periodi, un solo periodo), salvati
+  nel profilo (dati_utente.progPer, progPerDa, progPerA, progAlim). Se le settimane scelte non sono
+  di seguito (due Bulk separati da un Cut) i grafici nel tempo mostrano uno stacco fra due linee
+  tratteggiate con scritto cosa manca, e le linee riprendono; ACWR e media mobile restano su tutta
+  la storia, Segnali e Record pure; alla ripresa Δ TL e Progresso reale non confrontano con la
+  settimana prima dello stacco. Dal v1.1.4 in cima c'è il
   selettore **«Dati da analizzare»**: «Tutto il percorso» oppure un singolo **Training Set**
   (patch al limite noto della confrontabilità del TL tra schede molto diverse — es. Palestra
   vs Casa). La scelta **si ricorda**: vive nel profilo (dati_utente.progSet, quindi in
