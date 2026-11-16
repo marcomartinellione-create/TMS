@@ -3209,6 +3209,57 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
     dom.window.close(); }
 }
 
+console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---');
+{
+  const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'prova', nome: 'Cliente Prova', creato: '2026-01-01' }], active: 'prova' }));
+  await fsmem.writeFile('TMS_Dati/prova/scheda.json', J({ settimanale: [], mensile: [] }));
+  await fsmem.writeFile('TMS_Dati/prova/storico.json', '[]');
+  await fsmem.writeFile('TMS_Dati/prova/corpo.json', J({ dati_utente: { nome: 'Cliente Prova', sesso: 'M', altezza: 180, nascita: '1995-03-01', livello_attivita: 1.5 }, storico_io: [] }));
+  await fsmem.writeFile('TMS_Dati/prova/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem); await settle(300);
+  const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+  /* valori inventati */
+  const IMP = [24.0, 340.0, 350.0, 280.0, 285.0, 19.0, 300.0, 310.0, 250.0, 255.0];
+  const P = (data, ora, peso, x) => Object.assign({ id: data + 'T' + ora + '|' + peso, data: data, ora: ora, peso: peso }, x || {});
+  const pes = [P('2026-11-09', '07:00', 72.9, { grasso: 16.2, acqua: 61.4, muscolo: 57.0, ossa: 4.1, proteine: 16.7, visc: 3, bmr: 1690, eta_met: 29, imp: IMP }),
+    P('2026-11-16', '07:00', 72.4, { grasso: 15.8, acqua: 61.7, muscolo: 56.8, ossa: 4.1, proteine: 16.8, visc: 3, bmr: 1685, eta_met: 28, imp: IMP }),
+    P('2026-11-17', '07:00', 72.2)];
+  await w.eval('importaPesate(' + J(pes) + ')'); await settle(100);
+  ok(J(w.eval('fasceGrasso("M",26)')) === '[8,20,25]' && J(w.eval('fasceGrasso("F",45)')) === '[23,34,40]' && J(w.eval('fasceGrasso("M",70)')) === '[13,25,30]',
+     'fasce del grasso (Gallagher 2000) per sesso ed età');
+  { const c = JSON.parse(w.eval('JSON.stringify(compDaPesata(' + J(pes[1]) + ', DOC.dati_utente))'));
+    const magra = 72.4 - 72.4 * 0.158, acqua = 0.617 * 72.4;
+    ok(Math.abs(c.magra - magra) < 1e-9 && Math.abs(c.scheletrico - (acqua * 0.834 - 2.627)) < 1e-9 && Math.abs(c.sottocutaneo - (15.8 * -0.0002 + 0.72) * 15.8) < 1e-9 && Math.abs(c.fabbisogno - 1685 * 1.5) < 1e-9,
+       'valori derivati come FitDays: massa magra, muscolo scheletrico, sottocutaneo; fabbisogno = basale × attività'); }
+  { const h = w.eval('htmlRapportoCorpo(DOC.pesate.find(function(p){return p.data==="2026-11-16";}))');
+    const box = d.createElement('div'); box.innerHTML = h;
+    const on = [...box.querySelectorAll('.comp-griglia div')].map((x, i) => x.classList.contains('on') ? i : -1).filter(i => i >= 0);
+    ok(/Cliente Prova/.test(box.textContent) && /15,8/.test(box.textContent) && /72,4/.test(box.textContent) && on.length === 1 && on[0] === 4 && /Equilibrato/.test(box.querySelector('.comp-griglia div.on').textContent),
+       'rapporto: anagrafica, valori, tipo di corpo (BMI 22,3 e grasso nella norma → «Equilibrato»)');
+    ok(box.querySelectorAll('.comp-imp tbody tr').length === 2 && /−0,5/.test(box.querySelector('.comp-tab').textContent) && box.querySelectorAll('.comp-sett tbody tr').length === 2,
+       'rapporto: misure grezze (20 e 100 kHz), differenza dalla pesata prima, medie settimanali dello Storico misure');
+    ok(!/punteggio/i.test(box.textContent) && box.querySelectorAll('.comp-linea').length === 2, 'rapporto: andamento di peso e grasso; niente punteggio inventato');
+    { const fig = box.querySelector('.comp-figura');
+      ok(fig && fig.querySelectorAll('circle[fill="#d4a017"]').length === 8 && fig.querySelectorAll('polyline').length === 8 && /72,4 kg/.test(fig.textContent) && /BMI 22,3/.test(fig.textContent) && /Muscolo scheletrico/.test(fig.textContent),
+         'rapporto: figura del corpo con gli 8 elettrodi e otto valori collegati da linee (peso, BMI, grasso, muscolo…)'); } }
+  { const h = w.eval('htmlRapportoCorpo(DOC.pesate.find(function(p){return p.data==="2026-11-17";}))');
+    ok(/solo il peso/.test(h) && /72,2/.test(h), 'rapporto di una pesata col solo peso: lo dice, senza errori'); }
+  /* dal tab Corpo: 📄 sulla riga → anteprima → PDF */
+  w.eval('showTab("corpo")');
+  ok(d.querySelectorAll('#pesate-box [data-reppes]').length === 4, 'tab Corpo: 📄 su ogni pesata e «Rapporto dell\'ultima»');
+  d.querySelector('#pesate-box [data-reppes="2026-11-16T07:00|72.4"]').click(); await settle(30);
+  ok(d.querySelector('#modal .comp-anteprima .comp-pg') !== null && d.getElementById('comp-pdf') !== null, '📄: anteprima del rapporto con «Scarica PDF»');
+  w.eval('window.html2canvas=function(){ return Promise.resolve({width:16,height:22,toDataURL:function(){ return "data:image/jpeg;base64,/9j/AAAA"; }}); };' +
+    'window.__dl=null; window.__oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ if(this.download){ window.__dl=this.download; return; } return window.__oc.call(this); };');
+  await w.eval('pdfRapportoCorpo("2026-11-16T07:00|72.4")'); await settle(30);
+  ok(w.eval('window.__dl') === 'Composizione_Cliente_Prova_2026-11-16.pdf' && d.getElementById('pdf-stage') === null, 'Scarica PDF: file «Composizione_<nome>_<data>.pdf», la pagina di lavoro viene tolta');
+  w.eval('HTMLAnchorElement.prototype.click=window.__oc; closeModal();');
+  ok(errors.length === 0, 'rapporto: nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  dom.window.close();
+}
+
 console.log('');
 console.log('RISULTATO: ' + pass + ' OK, ' + fail + ' FAIL');
 process.exit(fail ? 1 : 0);

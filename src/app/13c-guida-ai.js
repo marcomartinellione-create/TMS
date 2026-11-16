@@ -430,6 +430,19 @@ Due modi per registrare una seduta:
   del tab Corpo prendono i valori dell'ultima pesata, se è la più recente. Le pesate già
   arrivate (stesso id) non si doppiano. Il 🗑 su una pesata la toglie e ricalcola la media
   della sua settimana (una misura scritta a mano non viene mai toccata); Ctrl+Z la rimette.
+  Il 📄 su ogni pesata (e «📄 Rapporto dell'ultima» nel titolo del riquadro) apre il RAPPORTO DI
+  COMPOSIZIONE CORPOREA: una pagina A4 (anteprima + «📄 Scarica PDF», file
+  Composizione_<nome>_<data>.pdf, fatto come il PDF del Report). Contiene: figura del corpo
+  (disegno del TMS: sagoma sfumata con gli 8 elettrodi e otto valori collegati da linee: peso,
+  BMI, grasso, viscerale, acqua, massa muscolare, muscolo scheletrico, ossa), tabella della
+  composizione in kg e % del peso con la differenza dalla pesata precedente, BMI e grasso su
+  fasce (BMI dell'OMS; grasso di Gallagher e coll. 2000 per sesso ed età), tipo di corpo (BMI ×
+  grasso), altri indicatori (viscerale, metabolismo basale, fabbisogno = basale × livello di
+  attività, sottocutaneo, età metabolica, battito), andamento di peso e grasso, misure grezze
+  della bilancia (tronco + 4 arti a 20 e 100 kHz) e le ultime medie settimanali dello Storico
+  misure. Massa magra, acqua, proteine, muscolo scheletrico e sottocutaneo si ricavano dal
+  grasso come fa FitDays. NON ci sono (calcoli interni di FitDays non pubblici): punteggio,
+  intervalli «standard» con valutazioni, peso obiettivo, valori per singolo braccio o gamba, WHR.
 - **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
