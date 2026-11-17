@@ -61,8 +61,9 @@ if (fs.existsSync(exeDi(VER))) {
   console.log('La v' + VER + ' è già in release/: preparo la v' + NUOVA + '.');
   for (const f of FILE_TOCCATI) originali[f] = leggi(f);
 
-  // nota di rilascio (dentro l'app: niente apice semplice, backtick né dollaro+graffa)
-  const pulisci = s => String(s).replace(/[`]/g, '').replace(/\$\{/g, '$ {').replace(/'/g, '’').replace(/\s+/g, ' ').trim();
+  // nota di rilascio (dentro l'app: niente apice semplice, backtick né dollaro+graffa; la barra
+  // rovesciata si raddoppia — «My Drive\6 - TMS» in un commit diventava un carattere non valido, 17/11/2026)
+  const pulisci = s => String(s).replace(/\\/g, '\\\\').replace(/[`]/g, '').replace(/\$\{/g, '$ {').replace(/'/g, '’').replace(/\s+/g, ' ').trim();
   const elenco = nuovi.length ? nuovi : ['modifiche varie'];
   const testoNota = pulisci(nota || ('Novità: ' + elenco.join('; ') + '.'));
   let cost = originali[F_COST]
