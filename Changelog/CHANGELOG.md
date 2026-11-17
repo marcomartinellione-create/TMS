@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-11-17 — TMS v1.1.26: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.25
+**Descrizione**:
+- Telefono collegato: la scheda dei Pesi è COLLEGATA al telefono invece di essere mandata — si modifica da tutte e due le parti (valori, note, recupero, ★ test, esercizi aggiunti, tolti o spostati, fatica e durata) e l'altro si aggiorna da solo; se lo stesso campo cambia sui due vince l'ultima modifica; «💾 Salva nello Storico» cristallizza la settimana (anche sul telefono fatica, durata e spunte ripartono da zero) e la scheda resta collegata; via «🔗 Manda al telefono»
+- App del telefono (APK 1.2.1): la scheda è COLLEGATA al TMS sul PC — una sola scheda, la si modifica dal telefono o dal PC e l'altro si aggiorna da solo (vince l'ultima modifica, campo per campo); i campi sono la scheda (RIR e note compresi), niente più «la apro?» né file per il coach; «💾 Salva nello Storico» sul PC azzera fatica, durata e spunte ✔ e la scheda resta collegata per la settimana dopo
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-17)
+
+---
+
 ### 2026-11-17 — TMS v1.1.25: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.24
