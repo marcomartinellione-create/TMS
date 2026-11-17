@@ -4,6 +4,21 @@
 
 ---
 
+### 2026-11-17 — TMS v1.1.28: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.27
+**Descrizione**:
+- Dizionario inglese del PC: tolte 48 voci vecchie con emoji non più usate
+- App del PC, rifinitura grafica (tappa 3): via le emoji anche dalla Guida, dalla guida per l'AI e dalle note dei grafici
+- App del PC, rifinitura grafica (tappa 2): via le emoji da pulsanti, titoli, avvisi e tabelle di tutti i tab
+- App del PC, rifinitura grafica (tappa 1): caratteri, icone disegnate nella barra e nei tab, pulsanti, campi e riquadri più puliti
+- App del telefono (APK 1.2.5): grafica rifatta da capo, più pulita e della stessa famiglia del TMS sul PC
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-17)
+
+---
+
 ### 2026-11-17 — TMS v1.1.27: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.26
