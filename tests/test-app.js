@@ -1003,14 +1003,17 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sd.getElementById('vai-alim').disabled === false && sd.getElementById('meta-alim').textContent.includes('kcal/giorno'), 'app cliente: card Alimentazione attiva col riassunto kcal');
     sd.getElementById('vai-alim').click();
     ok(sd.getElementById('alim').hidden === false && sd.querySelectorAll('#alim-body .al-row').length === schedaCli.dieta.righe.length, 'app cliente: pagina Alimentazione con tutte le righe del piano');
-    ok(sd.querySelector('#alim [data-menu]') !== null, 'app cliente: bottone «Torna al menu» nella pagina Alimentazione');
-    sd.querySelector('#alim [data-menu]').click();
+    await settle(20);
+    ok(sd.getElementById('barra-ind').hidden === false && sd.getElementById('barra-ind-t').textContent === 'Menu' && sd.getElementById('barra-titolo').textContent === 'Alimentazione' && sd.getElementById('barra-marchio').hidden === true,
+       'app cliente: barra in alto con «‹ Menu» e il titolo della pagina Alimentazione');
+    sd.getElementById('barra-ind').click();
     /* scheda: menu → giorni → giorno, con bottoni di ritorno evidenti */
     sd.getElementById('vai-scheda').click();
     ok(sd.getElementById('home').hidden === false && sd.querySelectorAll('.day-card').length === giorniCli.length && sd.querySelectorAll('.day-page').length === giorniCli.length, 'app cliente: menu → Scheda: una card e una pagina per ogni giorno');
     ok(sd.getElementById('s-0') !== null && +sd.getElementById('s-0').value === schedaCli.righe[0].serie, 'app cliente: campi precompilati col previsto del coach');
     ok(sd.getElementById('rir-0') !== null && sd.getElementById('rir-0').value === '', 'app cliente: RIR NON precompilato (si inserisce dopo l\'allenamento)');
-    ok(sd.querySelector('.day-page .back-btn') !== null && sd.querySelector('.day-page .back-btn').textContent.includes('Torna ai giorni'), 'app cliente: bottone «Torna ai giorni» evidente nella pagina giorno');
+    await settle(20);
+    ok(sd.getElementById('barra-titolo').textContent === 'Scheda allenamento' && sd.getElementById('barra-ind-t').textContent === 'Menu', 'app cliente: nella lista dei giorni la barra in alto riporta al menu');
     ok(sd.querySelector('.vbtn') !== null, 'app cliente: bottone ▶ video presente (video nel file)');
     /* v2.0: la giornata è una SEDUTA in fasi (🔥 riscaldamento · 🏋 esercizi · ✅ fine) */
     { const pag0 = sd.getElementById('day-0');
@@ -1055,10 +1058,13 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sd.getElementById('ck-0').textContent === '✔' && /1\//.test(sd.getElementById('plab-0').textContent), 'app cliente v2: spunta ✔ sull\'esercizio e avanzamento «1/n fatti»');
     ok(sd.getElementById('prog-0').style.width !== '' && sd.getElementById('prog-0').style.width !== '0%', 'app cliente v2: la barra di avanzamento si riempie');
     ok(!sd.getElementById('invia') && !sd.getElementById('riepilogo'), 'app cliente: niente più «Crea il file per il coach» né riepilogo per il file');
-    sd.querySelector('[data-menu]').click(); await settle(60); sd.getElementById('vai-scheda').click();
+    sd.getElementById('barra-ind').click(); await settle(60); sd.getElementById('vai-scheda').click();
     /* v2.2: il tasto INDIETRO del telefono risale nell'app invece di chiuderla */
     sd.querySelector('.day-card').click();                       /* entra nel giorno */
     ok(sd.getElementById('day-0').hidden === false, 'app cliente v2.2: si entra nel giorno');
+    await settle(20);
+    ok(sd.getElementById('barra-ind-t').textContent === 'Giorni' && sd.getElementById('barra-titolo').textContent === sd.querySelector('.day-card .day-name').textContent && sd.body.dataset.schermo === 'giorno',
+       'app cliente: nel giorno la barra in alto ha «‹ Giorni» e il nome del giorno');
     sub.window.history.back();                                    /* = tasto indietro del telefono */
     await settle(60);
     ok(sd.getElementById('home').hidden === false && sd.getElementById('day-0').hidden === true, 'app cliente v2.2: il tasto indietro torna alla lista dei giorni (non chiude l\'app)');
@@ -1104,7 +1110,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     await settle(300);
     const sd = sub.window.document;
     ok(sd.getElementById('benvenuto').hidden === false && sd.getElementById('file-scheda') === null && sd.getElementById('ben-solo-apk').hidden === false, 'app cliente: senza scheda mostra il benvenuto (nel browser: il collegamento c\'è nell\'app Android)');
-    ok(sub.window.eval('LANGP') === 'en' && (sd.querySelector('#benvenuto [data-i18n]')||{}).textContent === '👋 Welcome', 'app cliente EN: lingua auto-rilevata + benvenuto tradotto');
+    ok(sub.window.eval('LANGP') === 'en' && (sd.querySelector('#benvenuto [data-i18n]')||{}).textContent === 'Welcome', 'app cliente EN: lingua auto-rilevata + benvenuto tradotto');
     ok(sub.window.eval('validaScheda({tipo:"x"})') === false && sub.window.eval('validaScheda(' + JSON.stringify(schedaCli) + ')') === true, 'app cliente: validazione del file scheda (tipo tms-scheda)');
     sub.window.close();
   }
@@ -3091,7 +3097,7 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
   sd.querySelector('#bil-lista [data-pesno]').click(); await settle(10);
   ok(sd.querySelector('#bil-lista [data-pesok]') === null && sw.eval('PESATE.length') === 1, '🗑 → «No»: la pesata resta');
   /* uscendo dalla pagina il Bluetooth si ferma */
-  sd.querySelector('#bil [data-menu]').click(); await settle(30);
+  sd.getElementById('barra-ind').click(); await settle(30);
   ok(sd.getElementById('menu').hidden === false && B.staccati >= 1 && sw.eval('BIL.attivo') === false, 'uscendo dalla pagina Bilancia il collegamento si chiude');
   sw.close();
 

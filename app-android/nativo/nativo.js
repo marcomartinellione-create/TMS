@@ -36,12 +36,14 @@ Object.assign(TT.en,{
 
 /* ── finestre in stile app: una alla volta, si chiudono anche toccando fuori o col tasto indietro ── */
 { const st=document.createElement('style');
-  st.textContent='.tms-dlg{position:fixed;inset:0;background:rgba(20,10,2,.82);display:flex;align-items:center;justify-content:center;z-index:30;padding:16px}'+
+  st.textContent='.tms-dlg{position:fixed;inset:0;background:rgba(20,10,2,.6);display:flex;align-items:center;justify-content:center;z-index:30;padding:20px}'+
     '.tms-dlg-box{max-width:440px}'+
-    '.tms-dlg-msg{font-size:15px;line-height:1.45;color:#2b1d10;margin:4px 2px 10px;word-break:break-word}'+
-    '.tms-dlg-az{display:flex;flex-wrap:wrap;gap:0 9px}'+
-    '.tms-dlg-az>button{flex:1 1 0;margin:6px 0 0}'+
-    '.tms-dlg-az>.dove-btn{flex:1 1 100%;margin:0 0 9px}';
+    '.tms-dlg-msg{font-size:16px;line-height:1.5;color:var(--ink,#1c1208);margin:2px 2px 14px;word-break:break-word}'+
+    '.tms-dlg-titolo{margin:0 0 4px;font-family:var(--serif,Georgia,serif);font-size:19px;color:var(--ink,#1c1208);text-align:center}'+
+    '.tms-dlg-az{display:flex;flex-wrap:wrap;gap:0 10px}'+
+    '.tms-dlg-az>button{flex:1 1 0;margin:4px 0 0}'+
+    '.tms-dlg-az>.dove-btn{flex:1 1 100%;margin:0 0 10px}'+
+    '.tms-dlg-az>.dove-btn+.btn-lite{margin-top:2px}';
   document.head.appendChild(st); }
 let DLG=null;
 function finestra(corpoHtml, bottoni, valoreAnnulla){
@@ -81,10 +83,10 @@ try{ mostraInstallHint(); }catch(e){}
   if(ff) ff.addEventListener('click',e=>{
     if(libero){ libero=false; return; }
     e.preventDefault();
-    const voce=(ic,t1,t2)=>'<span class="ic">'+ic+'</span><span>'+esc(t1)+'<small>'+esc(t2)+'</small></span>';
-    finestra('<h3 style="margin:2px 0 4px;color:#9a5b1f;text-align:center">'+esc(tt(FOTO_LAB[fotoVistaAttesa]||'Foto progressi'))+'</h3>',[
-      {cls:'dove-btn',html:voce('📷',tt('Scatta una foto'),tt('con la sagoma, sempre inquadrata uguale')),valore:'camera'},
-      {cls:'dove-btn',html:voce('🖼',tt('Scegli dalla galleria'),tt('una foto che hai già')),valore:'galleria'},
+    const voce=(ic,t1,t2)=>'<span class="icbox">'+ico(ic)+'</span><span>'+esc(t1)+'<small>'+esc(t2)+'</small></span>';
+    finestra('<h3 class="tms-dlg-titolo">'+esc(tt(FOTO_LAB[fotoVistaAttesa]||'Foto progressi'))+'</h3>',[
+      {cls:'dove-btn',html:voce('camera',tt('Scatta una foto'),tt('con la sagoma, sempre inquadrata uguale')),valore:'camera'},
+      {cls:'dove-btn',html:voce('immagine',tt('Scegli dalla galleria'),tt('una foto che hai già')),valore:'galleria'},
       {cls:'btn-lite',html:esc(tt('Annulla')),valore:null}],null)
     .then(async via=>{ if(!via) return;
       if(via==='camera' && typeof window.camApri==='function'){

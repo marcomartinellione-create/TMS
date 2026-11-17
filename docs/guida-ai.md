@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.26 (2026-11-17). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.27 (2026-11-17). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -539,7 +539,7 @@ scelta in ⚙ Impostazioni › 🔗 Telefono collegato (il percorso lo tiene il 
 Electron: la pagina chiede solo file .json relativi a quella cartella, con scrittura atomica e
 senza uscite); lì si crea il CODICE DI COLLEGAMENTO (16 segni) e si preme «Collega la scheda di
 questo profilo». Sul telefono una cartella tenuta uguale da un'app di sincronizzazione
-bidirezionale (Autosync, FolderSync…), scelta in «⚙ Collegamento e promemoria», dove si scrive il
+bidirezionale (Autosync, FolderSync…), scelta in «Collegamento e promemoria», dove si scrive il
 codice. Struttura: <profilo>/dal-pc/stato.json, scheda.json e video.json (li scrive SOLO il PC),
 <profilo>/dal-telefono/scheda.json ed eventi/*.json (li scrive SOLO il telefono; il PC toglie un
 evento DOPO averlo salvato su disco), apk/versione.json + apk/TMS-Scheda-x.y.z.apk (li mette
@@ -572,14 +572,14 @@ sola lettura, grammi in evidenza), «📸 Foto progressi» (fronte/lato/retro, g
 SAGOMA della vista: riquadro 3:4, testa sulla riga in alto al 30%, metà coscia su quella in basso al
 78%, inquadratura ricavata dai selfie allo specchio dell'utente ma disegno generico; a richiesta la
 foto di prima in trasparenza e l'autoscatto da 3 o 10 s; si salva esattamente il riquadro visto;
-senza permesso della fotocamera si ripiega su quella del telefono; col ✥ su una foto fatta, e da
+senza permesso della fotocamera si ripiega su quella del telefono; col tasto a quattro frecce su una foto fatta, e da
 sola per quelle della galleria, si SPOSTA E RITAGLIA sulla sagoma (dito, due dita o barra; si parte
 sempre dall'originale; se la foto era già arrivata al PC la nuova porta «sostituisce» e lì prende
-il posto della vecchia, il file vecchio resta su disco); rimpicciolite a 1280 px JPEG), «⚖ Bilancia» e «⚙ Collegamento e promemoria». Il tasto indietro
+il posto della vecchia, il file vecchio resta su disco); rimpicciolite a 1280 px JPEG), «Bilancia» e «Collegamento e promemoria». Il tasto indietro
 del telefono risale nell'app (video/QR, giorno → lista giorni → menu; solo dal menu l'app si
 chiude). Nella scheda si sceglie il **giorno**; ogni giornata è una **seduta in tre fasi** (tab):
-🔥 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con video, stretching o cardio a
-minuti), 🏋 Esercizi, ✅ Fine. I campi di TUTTI gli esercizi sono **già visibili insieme**; i campi
+Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con video, stretching o cardio a
+minuti), Esercizi, Fine. I campi di TUTTI gli esercizi sono **già visibili insieme**; i campi
 SONO la scheda (RIR e note compresi, come la tabella del PC); sotto ogni esercizio compare
 **«l'ultima volta»** (ultima prestazione dallo Storico). Una spunta ✔ e una barra di avanzamento
 segnano gli esercizi toccati in settimana. Nella fase Fine: se il profilo usa il Session-RPE trova
@@ -609,7 +609,7 @@ compare «✔ al PC».
 **AGGIORNAMENTO DELL'APK**: se in apk/versione.json c'è una versione più alta di quella
 installata, l'app la propone, copia l'APK, ne controlla l'impronta SHA-256 e lo passa
 all'installer di Android (conferma dell'utente; la prima volta «Installa app sconosciute»).
-**PROMEMORIA** (notifiche locali, in «⚙ Collegamento e promemoria»): ogni sera all'ora scelta
+**PROMEMORIA** (notifiche locali, in «Collegamento e promemoria»): ogni sera all'ora scelta
 (predefinita 21:00) la pesata, il lunedì anche le foto; si programmano i 28 giorni successivi e si
 ricalcolano a ogni apertura, pesata o foto: se quel giorno la pesata (o le foto) c'è già, quello
 della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
@@ -804,7 +804,7 @@ della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
   Modifica parametri.
 - «Cambiare la fase alimentare (Bulk/Mant/Cut)» → Alimentazione → bottoni in cima al tab.
 - «Avere la scheda sul telefono» → ⚙ Impostazioni › 🔗 Telefono collegato (cartella, codice,
-  «Collega la scheda di questo profilo») e, sul telefono, ⚙ Collegamento e promemoria. Da lì la
+  «Collega la scheda di questo profilo») e, sul telefono, Collegamento e promemoria. Da lì la
   scheda è la stessa sui due e quello che si scrive in palestra arriva da solo nei Pesi.
 - «Salvare l'allenamento della settimana» → Pesi → 💾 Salva nello Storico.
 - «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,
