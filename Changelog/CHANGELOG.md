@@ -4,6 +4,26 @@
 
 ---
 
+### 2026-11-17 — TMS v1.1.25: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.24
+**Descrizione**:
+- PUBBLICA.bat: una barra rovesciata nei messaggi di commit (es. «My Drive\6 - TMS») non ferma più la pubblicazione — nella nota di versione dentro l'app si raddoppia, come già si toglievano apici e backtick
+- Telefono collegato: il TMS e l'app del telefono si scambiano tutto da soli attraverso una cartella condivisa di Google Drive (⚙ Impostazioni › 🔗 Telefono collegato: cartella, codice di collegamento, profilo) — «🔗 Manda al telefono» nel tab Pesi apre la settimana, quello che scrivi in palestra arriva da solo nella scheda Pesi (RIR e note non scritti restano quelli del coach), le modifiche fatte qui ripartono verso il telefono, «💾 Salva nello Storico» chiude la settimana anche lì, pesate e foto entrano da sole nel tab Corpo; file cifrati, mai cancellato un file arrivato a metà
+- App del telefono (APK 1.2.0): «⚙ Collegamento e promemoria» — collegata alla cartella condivisa col TMS sul PC (come Movienaitor: una cartella del telefono tenuta uguale a «My Drive\6 - TMS» da un'app di sincronizzazione), riceve da sola la scheda nuova e i cambi di metà settimana tenendo quello che hai scritto, manda allenamento, pesate e foto senza file da passare a mano (✔ «al PC» quando sono salvate), tutto cifrato col codice di collegamento; promemoria ogni sera alle 21 per la pesata e il lunedì anche per le foto; l'APK nuovo messo da «Crea APK» nella cartella si propone e si installa da solo
+- Corpo: rapporto di composizione corporea da una pesata della bilancia (📄 su ogni pesata) — una pagina A4 con la figura del corpo e i valori intorno, composizione in kg e in % del peso con la differenza dalla pesata prima, BMI e grasso su fasce di riferimento, tipo di corpo, altri indicatori, andamento, misure grezze e medie settimanali; «📄 Scarica PDF» lo salva
+- App del telefono (APK 1.1.0): pagina «⚖ Bilancia» — con una bilancia Bluetooth a 8 elettrodi della famiglia FitDays (Healthkeep, Fitdays) ci si pesa con l'app aperta, si vedono peso in diretta e composizione (grasso, muscolo, acqua, viscerale, metabolismo, età metabolica) e le pesate partono col rientro o da sole con «📤 Manda solo le pesate»; crediti a openScale
+- Progressi: filtri «Periodo» (tutto, ultime 4 settimane, ultimi 3 o 6 mesi, ultimo anno, da… a…) e «Alimentazione» (tutte le fasi, una fase con tutti i suoi periodi, un solo periodo) accanto al Training Set, ricordati per profilo; quando le settimane scelte non sono di seguito (due Bulk separati da un Cut) i grafici nel tempo mostrano uno stacco fra due linee tratteggiate con scritto cosa manca («Cut · 14 sett.») e le linee riprendono dopo
+- Grafici a linee: nel riquadro dei valori le scritte non si accavallano più — la nota di un punto (il «○ cambio scheda» del Progresso reale) va su una riga sua in fondo invece di allungare il valore, e ogni riga ha colonne fisse per colore, nome e valore (un nome lungo va a capo nella sua colonna)
+- Grafici a linee interattivi: passando col mouse in un punto qualsiasi del disegno una linea verticale segna la settimana più vicina, i punti di ogni linea si accendono e un riquadro accanto dice data e valore di ogni linea (nella Timeline dell'Analisi anche il periodo alimentare), con guida, punti e riquadro che scivolano da una settimana all'altra; all'apertura, o quando i dati cambiano, le linee si disegnano da sinistra a destra. Vale per tutti i grafici a linee (Progressi, Analisi, Corpo, Cardio, Esercizi); nel Report, nel PDF, in stampa e con «riduci movimento» i grafici restano interi e fermi
+- Progressi: nuovo riquadro grande «Progresso reale · a parità di esercizi» — ogni settimana si confronta con la precedente solo sugli esercizi presenti in tutte e due, così i cambi scheda non falsano il conto; tre linee a base 100 con i numeri sopra (TL totale coi suoi salti, TL per serie a parità di esercizi, forza = 1RM stimato a parità di esercizi) e la % al mese degli ultimi 3 mesi; le settimane di cambio scheda si saltano (cerchietto vuoto), gli esercizi fuori misura (oltre ±20 % in una settimana) non contano, le pause sì. La sezione «Forza e record» è ridisegnata: Progresso reale grande a sinistra, a destra i record con sotto la progressione per esercizio; su finestra stretta tutto in colonna. Il grafico «Δ Variazione TL %» resta com'era
+- App del telefono solo APK: il TMS non indica più la vecchia PWA ai clienti — dopo l'export della scheda spiega come installare l'APK Android, e le guide e il sito descrivono TMS Scheda come app Android
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-17)
+
+---
+
 ### 2026-11-16 — TMS v1.1.24: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.23
