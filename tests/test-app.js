@@ -91,6 +91,29 @@ function makeStaleHandle(){
   }};
 }
 
+/* jsdom non ha crypto.subtle (cifratura dello scambio col telefono): si presta quella di Node */
+function conCrypto(win){
+  try{ Object.defineProperty(win, 'crypto', { value: require('crypto').webcrypto, configurable: true }); }catch(e){}
+  if(!win.TextEncoder) win.TextEncoder = require('util').TextEncoder;
+  if(!win.TextDecoder) win.TextDecoder = require('util').TextDecoder;
+}
+/* la cartella condivisa PC ↔ telefono, in memoria: `pc` imita window.tmsScambio (Electron),
+   `tel` window.tmsCartella (APK). Stessi file per tutti e due, come dopo una sincronizzazione. */
+function makeCartella(){
+  const files = new Map(), norm = p => String(p || '').replace(/^\/+/, '');
+  const figli = c => { const pre = c ? norm(c) + '/' : '', vis = new Map();
+    for(const k of files.keys()){ if(!k.startsWith(pre)) continue; const r = k.slice(pre.length), i = r.indexOf('/'); if(i < 0) vis.set(r, false); else vis.set(r.slice(0, i), true); }
+    return [...vis].map(([nome, cartella]) => ({ nome, cartella })); };
+  const C = { files, installati: [] };
+  C.pc = { cartella: async () => 'C:\\Prova\\My Drive\\6 - TMS', scegli: async () => 'C:\\Prova\\My Drive\\6 - TMS', scollega: async () => '',
+    leggi: async rel => files.has(norm(rel)) ? { stato: 'ok', testo: files.get(norm(rel)) } : { stato: 'assente' },
+    elenca: async rel => figli(rel).filter(x => !x.cartella && /\.json$/.test(x.nome)).map(x => x.nome),
+    scrivi: async (rel, t) => { files.set(norm(rel), String(t)); }, togli: async rel => { files.delete(norm(rel)); } };
+  C.tel = { pronta: () => true, nome: () => '6 - TMS', scegli: async () => ({ nome: '6 - TMS' }), dimentica(){},
+    leggi: async p => files.has(norm(p)) ? files.get(norm(p)) : null, scrivi: async (p, t) => { files.set(norm(p), String(t)); },
+    elenca: async c => figli(c), installaApk: async (p, sha) => { C.installati.push([p, sha]); return { permesso: true, avviato: true }; } };
+  return C;
+}
 function load(opts){
   const errors = [];
   const vc = new VirtualConsole();
@@ -105,6 +128,8 @@ function load(opts){
       if(!window.matchMedia) window.matchMedia = ()=>({matches:false,addListener(){},removeListener(){}});
       if(opts.idb) window.indexedDB = opts.idb;
       if(opts.tmsFS) window.tmsFS = opts.tmsFS;
+      if(opts.scambio) window.tmsScambio = opts.scambio;   /* cartella condivisa col telefono (finta) */
+      conCrypto(window);
       if(opts.fsa) window.showDirectoryPicker = async ()=>{ const e = new Error('abort'); e.name='AbortError'; throw e; };
       if(!window.URL.createObjectURL){ window.URL.createObjectURL = ()=>'blob:test'; window.URL.revokeObjectURL = ()=>{}; }
       /* stub del canale aggiornamenti del wrapper (v1.0.73) */
@@ -3257,6 +3282,146 @@ console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---'
   ok(w.eval('window.__dl') === 'Composizione_Cliente_Prova_2026-11-16.pdf' && d.getElementById('pdf-stage') === null, 'Scarica PDF: file «Composizione_<nome>_<data>.pdf», la pagina di lavoro viene tolta');
   w.eval('HTMLAnchorElement.prototype.click=window.__oc; closeModal();');
   ok(errors.length === 0, 'rapporto: nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  dom.window.close();
+}
+
+console.log('--- T14: telefono collegato (cartella condivisa cifrata PC ↔ app del telefono, promemoria, APK nuovo) ---');
+{
+  const PWA = path.join(ROOT, 'docs', 'app', 'index.html');
+  const J = o => JSON.stringify(o), CODICE = 'K7QM3XRPA9TB4WZC';
+  const C = makeCartella();
+  const fsmem = makeTmsFS();
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'prova', nome: 'Cliente Prova', creato: '2026-01-01' }], active: 'prova' }));
+  await fsmem.writeFile('TMS_Dati/prova/scheda.json', J({ settimanale: [
+    { giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 80, rest: '2:00', rir: 2, note: 'fermo in basso', test: false },
+    { giorno: 'Lunedì', esercizio: 'Panca piana con bilanciere', serie: 3, rip: 8, peso: 60, rest: '1:30', rir: 2, note: '', test: false }], mensile: [] }));
+  await fsmem.writeFile('TMS_Dati/prova/storico.json', '[]');
+  await fsmem.writeFile('TMS_Dati/prova/corpo.json', J({ dati_utente: { nome: 'Cliente Prova', sesso: 'M', altezza: 180, nascita: '1995-03-01' }, storico_io: [] }));
+  await fsmem.writeFile('TMS_Dati/prova/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true, scambio: C.pc });
+  await settleConnect(dom, fsmem); await settle(200);
+  const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+  const giroPC = () => w.eval('(async function(){ while(_telGiroIn) await new Promise(function(r){ setTimeout(r,20); }); await telGiro(); })()');
+  /* cifratura */
+  w.eval('localStorage.setItem("tms-telefono", ' + J(J({ codice: CODICE, profili: { prova: { ricevute: [] } } })) + '); TEL=null; _telChiave=null;');
+  { const c = await w.eval('telCifra({a:"Squat 80 kg"})');
+    ok(!/Squat/.test(c) && JSON.parse(c).tms === 'scambio', 'cifratura: nel file non si legge niente (solo busta «scambio» + dati cifrati)');
+    ok(J(await w.eval('telDecifra(' + J(c) + ')')) === J({ a: 'Squat 80 kg' }), 'cifratura: si rilegge col codice giusto');
+    let rotta = false; try { await w.eval('telDecifra(' + J(c.slice(0, c.length - 12) + '"}') + ')'); } catch (e) { rotta = true; }
+    let altro = false; try { w.eval('TEL.codice="ZZZZZZZZZZZZZZZZ"'); await w.eval('telDecifra(' + J(c) + ')'); } catch (e) { altro = true; }
+    w.eval('TEL.codice=' + J(CODICE));
+    ok(rotta && altro, 'cifratura: un file arrivato a metà o un codice diverso vengono rifiutati (sigillo)');
+    ok(/^[A-HJ-NP-Z2-9]{16}$/.test(w.eval('telNuovoCodice()')) && w.eval('telCodiceBello("k7qm3xrpa9tb4wzc")') === 'K7QM-3XRP-A9TB-4WZC', 'codice di collegamento: 16 segni senza I, O, 0, 1, mostrato a gruppi di quattro'); }
+  /* interfaccia del PC */
+  w.eval('showTab("allenamento")');
+  ok(d.getElementById('tel-riga') && d.getElementById('tel-manda'), 'tab Pesi: riga «telefono collegato» con «🔗 Manda al telefono»');
+  await w.eval('impostazioniModal()'); await settle(30);
+  ok(d.querySelector('#imp-tel .tel-codice') && d.querySelector('#imp-tel .tel-codice').textContent === 'K7QM-3XRP-A9TB-4WZC' && /6 - TMS/.test(d.getElementById('imp-tel').textContent),
+     '⚙ Impostazioni: cartella condivisa e codice di collegamento');
+  w.eval('closeModal()');
+  /* «🔗 Manda al telefono» */
+  w.eval('chiediModalitaScheda=function(){ return Promise.resolve("fissa"); };');
+  await w.eval('telMandaScheda()'); await settle(30);
+  ok(C.files.has('prova/dal-pc/scheda.json') && C.files.has('prova/dal-pc/stato.json') && !/Squat/.test(C.files.get('prova/dal-pc/scheda.json')),
+     'Manda al telefono: scheda e stato nella cartella del profilo, cifrati');
+  const p0 = JSON.parse(w.eval('JSON.stringify(telProf())'));
+  ok(p0.id && p0.rev === 1 && !p0.chiusa, 'Manda al telefono: settimana aperta (id, revisione 1)');
+
+  /* il telefono */
+  const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+    beforeParse(win){ conCrypto(win); win.localStorage.setItem('tms-scheda-lang', 'it'); win.scrollTo = () => {}; win.confirm = () => true; win.alert = () => {};
+      win.localStorage.setItem('tms-col', J({ codice: CODICE, slug: 'prova', nome: 'Cliente Prova' }));
+      win.TMS_APK_VERSIONE = '1.2.0'; win.tmsCartella = C.tel; } });
+  const sw = sub.window, sd = sw.document;
+  const giroTel = () => sw.eval('(async function(){ while(COL.inCorso) await new Promise(function(r){ setTimeout(r,20); }); await colGiro(); })()');
+  for (let k = 0; k < 60 && !sw.eval('!!(SCHEDA&&SCHEDA.sync)'); k++) await settle(100);
+  ok(sw.eval('!!(SCHEDA && SCHEDA.sync && SCHEDA.sync.id===' + J(p0.id) + ')') && sd.getElementById('menu').hidden === false,
+     'telefono: vede la scheda nuova dal PC, la propone e la apre');
+  ok(sd.getElementById('vai-col').hidden === false && /collegato/.test(sd.getElementById('meta-col').textContent), 'telefono: voce «⚙ Collegamento e promemoria» nel menu, collegato');
+  ok(sd.getElementById('col-home').hidden === false, 'telefono: sotto i giorni dice che quello che scrivi arriva da solo al PC');
+  /* in palestra: 4 serie di squat invece di 3 */
+  { const el = sd.getElementById('s-0'); el.value = '4'; el.dispatchEvent(new sw.Event('input', { bubbles: true })); }
+  await sw.eval('colScriviBozza()');
+  ok(C.files.has('prova/dal-telefono/bozza.json') && !/Squat/.test(C.files.get('prova/dal-telefono/bozza.json')), 'telefono: la bozza va nella cartella, cifrata');
+  await giroPC(); await settle(30);
+  { const r = JSON.parse(w.eval('JSON.stringify(DOC.scheda.settimanale)'));
+    ok(r.length === 2 && r[0].serie === 4 && r[0].note === 'fermo in basso' && r[0].rir === 2 && r[0].rest === '2:00' && r[1].peso === 60,
+       'PC: l\'allenamento arriva da solo nella scheda Pesi; RIR, note e recupero non toccati sul telefono restano quelli del coach'); }
+  await settle(4300);   /* il controllo «scheda cambiata qui» scatta 4 s dopo l'ultimo salvataggio */
+  ok(JSON.parse(fsmem._files.get('TMS_Dati/prova/scheda.json')).settimanale[0].serie === 4, 'PC: e si salva su disco come ogni modifica');
+  ok(w.eval('telAperta(telProf()) && telProf().rev===1'), 'PC: la bozza del telefono non fa ripartire la scheda verso il telefono (niente eco)');
+  /* il coach cambia la panca a metà settimana */
+  w.eval('DOC.scheda.settimanale[1].peso=62.5;');
+  ok(await w.eval('telRimanda()') === true && w.eval('telProf().rev') === 2, 'PC: una modifica della scheda a settimana aperta riparte (revisione 2)');
+  /* il telefono scrive ancora sulla revisione 1: il PC aspetta */
+  { const el = sd.getElementById('r-0'); el.value = '6'; el.dispatchEvent(new sw.Event('input', { bubbles: true })); }
+  await sw.eval('colScriviBozza()'); await giroPC();
+  ok(w.eval('DOC.scheda.settimanale[1].peso') === 62.5 && w.eval('telProf().bozzaAttesa') === true, 'PC: una bozza fatta sulla scheda vecchia non copre la modifica del coach (aspetta il telefono)');
+  await giroTel(); await settle(500);
+  ok(sw.eval('SCHEDA.sync.rev') === 2 && sd.getElementById('s-0').value === '4' && sd.getElementById('r-0').value === '6' && sd.getElementById('p-1').value === '62.5',
+     'telefono: unisce la scheda cambiata — tiene quello che hai scritto, prende il peso nuovo della panca');
+  await giroPC();
+  ok(w.eval('DOC.scheda.settimanale[0].rip') === 6 && w.eval('DOC.scheda.settimanale[1].peso') === 62.5 && w.eval('telProf().bozzaAttesa') === false, 'PC: dopo l\'unione la bozza torna a entrare');
+  /* pesata e foto dal telefono */
+  sw.eval('PESATE.push({id:"2026-11-17T21:00:00|72.4", data:"2026-11-17", ora:"21:00:00", peso:72.4}); FOTO.fronte={id:"fprova1", img:"data:image/jpeg;base64,/9j/AAAA", data:"2026-11-17"};');
+  await sw.eval('colEventi()');
+  const ev = [...C.files.keys()].filter(k => k.startsWith('prova/dal-telefono/eventi/'));
+  ok(ev.length === 2 && ev.every(k => !/72\.4|AAAA/.test(C.files.get(k))), 'telefono: una pesata e una foto diventano due file cifrati');
+  C.files.set('prova/dal-telefono/eventi/pesata-rotta.json', '{"tms":"scambio","v":1,"iv":"AAAA');
+  await giroPC(); await settle(450);
+  ok(w.eval('DOC.pesate.length') === 1 && w.eval('DOC.pesate[0].peso') === 72.4 && w.eval('DOC.foto.some(function(f){ return f.id==="fprova1"; })'), 'PC: pesata (Storico misure) e foto (tab Corpo) importate da sole');
+  ok(!C.files.has(ev[0]) && !C.files.has(ev[1]) && C.files.has('prova/dal-telefono/eventi/pesata-rotta.json'), 'PC: dopo il salvataggio toglie i file arrivati; quello a metà resta lì (mai cancellato)');
+  ok(await w.eval('importaFotoRientro([{id:"fprova1", tag:"fronte", data:"2026-11-17", img:"data:image/jpeg;base64,/9j/AAAA"}])') === 0, 'PC: la stessa foto arrivata di nuovo (es. anche col file di rientro) non si duplica');
+  await giroTel();
+  ok(sw.eval('PESATE[0].pc===true && FOTO.fronte.pc===true'), 'telefono: pesata e foto segnate «✔ al PC»');
+  sw.eval('navEntra(); mostra("bil"); renderBil();');
+  ok(/al PC/.test(sd.getElementById('bil-lista').textContent), 'telefono: nell\'elenco delle pesate compare «✔ al PC»');
+  sw.eval('risali();');
+  /* 💾 Salva nello Storico chiude la settimana anche sul telefono */
+  w.eval('telSettimanaSalvata(202647)'); await settle(50);
+  ok(w.eval('!telAperta(telProf()) && telProf().chiusa.codice===202647'), 'PC: «Salva nello Storico» chiude la settimana del telefono');
+  await giroTel();
+  ok(sw.eval('!!SCHEDA.sync.chiusa') && /salvata nello Storico/.test(sd.getElementById('col-avvisi').textContent), 'telefono: «✔ Settimana salvata nello Storico sul PC»');
+  C.files.delete('prova/dal-telefono/bozza.json'); await sw.eval('colScriviBozza()');
+  ok(!C.files.has('prova/dal-telefono/bozza.json'), 'telefono: a settimana chiusa la bozza non parte più');
+  /* collegamento: il codice si scrive come si vuole; sbagliato non collega */
+  sw.eval('colStacca(); navEntra(); mostra("col"); colRender();');
+  ok(sd.getElementById('col').hidden === false && sd.getElementById('col-codice-box').hidden === false, 'telefono: schermata Collegamento con il campo del codice');
+  sd.getElementById('col-codice').value = 'zzzz-zzzz-zzzz-zzzz'; await sw.eval('colCollega()');
+  ok(!sw.eval('colConf().slug') && /codice/.test(sd.getElementById('col-stato').textContent), 'telefono: con un codice sbagliato non si collega e lo dice');
+  sd.getElementById('col-codice').value = 'k7qm-3xrp-a9tb-4wzc'; await sw.eval('colCollega()');
+  ok(sw.eval('colConf().slug') === 'prova' && sw.eval('colConf().codice') === CODICE, 'telefono: col codice giusto (anche minuscolo, coi trattini) trova il profilo e si collega');
+  sw.eval('risali();');
+  /* promemoria */
+  sw.eval('avvSalvaConf({on:true, ora:"21:00"}); PESATE=[];');
+  { const l = JSON.parse(sw.eval('JSON.stringify(avvLista(new Date(2026,10,16,8,0)))'));
+    ok(l.length === 28 && l[0].id === 7000 && new Date(l[0].at).getHours() === 21 && /foto/.test(l[0].titolo) && /Pesata/.test(l[0].titolo) && l[0].pagina === 'bil' && !/foto/.test(l[1].titolo),
+       'promemoria: ogni sera alle 21 la pesata, il lunedì anche le foto (28 giorni)'); }
+  sw.eval('PESATE=[{id:"x", data:"2026-11-16", ora:"07:00:00", peso:72}];');
+  { const l = JSON.parse(sw.eval('JSON.stringify(avvLista(new Date(2026,10,16,8,0)))'));
+    ok(l[0].pagina === 'foto' && !/Pesata/.test(l[0].titolo), 'promemoria: se ti sei già pesato oggi, stasera resta solo quello delle foto'); }
+  { const l = JSON.parse(sw.eval('JSON.stringify(avvLista(new Date(2026,10,17,22,0)))'));
+    ok(new Date(l[0].at).getDate() === 18, 'promemoria: passata l\'ora, si parte da domani'); }
+  sw.eval('avvSalvaConf({on:false, ora:"21:00"})');
+  ok(sw.eval('avvLista(new Date()).length') === 0, 'promemoria: spenti, nessuno');
+  /* APK nuovo nella cartella */
+  C.files.set('apk/versione.json', J({ versione: '1.3.0', file: 'TMS-Scheda-1.3.0.apk', sha256: 'abc123' }));
+  await sw.eval('colApk()');
+  ok(C.installati.length === 1 && C.installati[0][0] === 'apk/TMS-Scheda-1.3.0.apk' && C.installati[0][1] === 'abc123', 'APK nuovo nella cartella condivisa: lo propone e lo installa (con l\'impronta da controllare)');
+  C.files.set('apk/versione.json', J({ versione: '1.2.0', file: 'TMS-Scheda-1.2.0.apk', sha256: 'x' }));
+  await sw.eval('colApk()');
+  ok(C.installati.length === 1 && sw.eval('COL.apk') === null, 'APK della stessa versione: niente da proporre');
+  /* chiusura pulita: niente giri del telefono a finestra chiusa */
+  sw.eval('clearInterval(COL.timer); clearTimeout(COL.prestoT); clearTimeout(COL.bozzaT); clearTimeout(COL.avvisoT); clearTimeout(_avvT);');
+  for (let k = 0; k < 100 && sw.eval('COL.inCorso'); k++) await settle(30);
+  sw.eval('clearTimeout(COL.prestoT); clearTimeout(COL.bozzaT);');
+  sub.window.close();
+  /* senza APK (PWA nel browser) niente collegamento */
+  { const s2 = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html', beforeParse(win){ win.scrollTo = () => {}; } });
+    await settle(200);
+    ok(s2.window.document.getElementById('col-da-ben').hidden === true, 'fuori dall\'APK: niente «Collega al PC»');
+    s2.window.close(); }
+  ok(errors.length === 0, 'telefono collegato: nessun errore runtime sul PC' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   dom.window.close();
 }
 

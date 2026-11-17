@@ -313,6 +313,8 @@ function scaricaSubito(){
 function persist(which){
   if(scrittureBloccate) return;   /* niente cache né disco: lo stato in memoria può essere incompleto */
   undoRegistra(which);   /* Ctrl+Z: mette da parte com'era prima questa parte dei dati */
+  /* telefono collegato: a settimana aperta una modifica della scheda (o della dieta) riparte verso il telefono */
+  if((which==='scheda'||which==='alimentazione') && typeof telSchedaToccata==='function'){ try{ telSchedaToccata(); }catch(e){} }
   saveCache();
   if(suppressSave) return;
   if(!dataDir) return;

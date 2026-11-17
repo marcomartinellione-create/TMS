@@ -188,6 +188,76 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('tmsfs:dataRoot', () => WRITE_ROOT());
 
+  // ── Cartella condivisa col telefono (2026-11-17, window.tmsScambio) ──
+  // Una cartella di Google Drive per desktop (di solito «My Drive\6 - TMS») che un'app di
+  // sincronizzazione tiene uguale a una cartella del telefono. La sceglie l'utente UNA volta con
+  // il selettore di sistema; il percorso resta qui, in userData/scambio.json, e la pagina non lo
+  // passa mai: chiede solo file RELATIVI a quella cartella. Stesse protezioni dei dati: niente
+  // uscite dalla cartella (safeJoin), solo file .json, scrittura atomica (temp + rename).
+  // «Illeggibile» e «assente» si distinguono, così la pagina non scambia un file a metà per uno
+  // che non c'è. I dati dentro sono cifrati dalla pagina (il codice di collegamento non passa di qui).
+  const FILE_SCAMBIO = () => path.join(app.getPath('userData'), 'scambio.json');
+  const cartellaScambio = () => {
+    try {
+      const s = JSON.parse(fsSync.readFileSync(FILE_SCAMBIO(), 'utf8'));
+      return (s && typeof s.cartella === 'string' && path.isAbsolute(s.cartella)) ? path.normalize(s.cartella) : '';
+    } catch (e) { return ''; }
+  };
+  const radiceScambio = () => {
+    const c = cartellaScambio();
+    if (!c) throw new Error('cartella condivisa non scelta');
+    return c.replace(/[\\/]+$/, '');
+  };
+  const soloJson = (rel) => { if (!/\.json$/i.test(String(rel || ''))) throw new Error('nella cartella condivisa solo file .json: ' + rel); };
+  ipcMain.handle('scambio:cartella', () => cartellaScambio());
+  ipcMain.handle('scambio:scegli', async (e) => {
+    const prima = cartellaScambio();
+    const drive = path.join(require('node:os').homedir(), 'My Drive');
+    const suggerita = prima || (fsSync.existsSync(path.join(drive, '6 - TMS')) ? path.join(drive, '6 - TMS') : drive);
+    const r = await dialog.showOpenDialog(BrowserWindow.fromWebContents(e.sender), {
+      title: 'Cartella condivisa col telefono', defaultPath: suggerita,
+      properties: ['openDirectory', 'createDirectory'] });
+    if (r.canceled || !r.filePaths || !r.filePaths[0]) return prima;
+    const scelta = path.normalize(r.filePaths[0]);
+    // mai la cartella dei dati (o una che la contiene): lì scrive solo il ponte dei dati
+    const dati = path.normalize(WRITE_ROOT());
+    if (scelta === dati || dati.startsWith(scelta.replace(/[\\/]+$/, '') + path.sep) || scelta.startsWith(dati + path.sep) || path.parse(scelta).root === scelta)
+      throw new Error('questa cartella non si può usare per lo scambio: ' + scelta);
+    fsSync.writeFileSync(FILE_SCAMBIO(), JSON.stringify({ cartella: scelta }));
+    return scelta;
+  });
+  ipcMain.handle('scambio:scollega', async () => { try { await fs.rm(FILE_SCAMBIO(), { force: true }); } catch (e) {} return ''; });
+  ipcMain.handle('scambio:leggi', async (e, rel) => {
+    const p = safeJoin(radiceScambio(), rel);
+    try { return { stato: 'ok', testo: await fs.readFile(p, 'utf8') }; }
+    catch (err) { return (err && err.code === 'ENOENT') ? { stato: 'assente' } : { stato: 'illeggibile', errore: String((err && err.message) || err) }; }
+  });
+  ipcMain.handle('scambio:elenca', async (e, rel) => {
+    const p = safeJoin(radiceScambio(), rel);
+    try { return (await fs.readdir(p, { withFileTypes: true })).filter(d => d.isFile() && /\.json$/i.test(d.name)).map(d => d.name); }
+    catch (err) { if (err && err.code === 'ENOENT') return []; throw err; }
+  });
+  ipcMain.handle('scambio:scrivi', (e, rel, text) => {
+    const lavoro = (async () => {
+      soloJson(rel);
+      const p = safeJoin(radiceScambio(), rel);
+      await fs.mkdir(path.dirname(p), { recursive: true });
+      const tmp = p + '.tmp-' + process.pid + '-' + Date.now() + '-' + (contaTmp++);
+      try { await fs.writeFile(tmp, String(text), 'utf8'); await fs.rename(tmp, p); }
+      catch (err) { try { await fs.rm(tmp, { force: true }); } catch (e2) {} await fs.writeFile(p, String(text), 'utf8'); }
+    })();
+    scrittureInCorso.add(lavoro);
+    const fine = () => scrittureInCorso.delete(lavoro);
+    lavoro.then(fine, fine);
+    return lavoro;
+  });
+  ipcMain.handle('scambio:togli', async (e, rel) => {
+    soloJson(rel);
+    const root = radiceScambio(), p = safeJoin(root, rel);
+    if (p === root) throw new Error('percorso non consentito: radice');
+    await fs.rm(p, { force: true });
+  });
+
   // Permessi File System Access: Electron non ha la UI permessi di Chrome, quindi
   // queryPermission() sull'handle ripristinato da IndexedDB risponderebbe sempre 'prompt'
   // e l'app si fermerebbe al gate ad ogni avvio. Auto-concediamo il permesso 'fileSystem'

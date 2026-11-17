@@ -579,6 +579,38 @@ nei dispositivi.
    conferma i messaggi alla bilancia e si ricorda la bilancia trovata; fuori dalla pagina il
    Bluetooth si ferma. Permessi: «Dispositivi nelle vicinanze» senza posizione (fino ad
    Android 11 Android pretende la posizione accesa per cercare dispositivi Bluetooth).
+   TELEFONO COLLEGATO (APK 1.2, TMS sul PC: modulo 15c-telefono.js): oltre ai file
+   Scheda/Rientro, PC e app possono scambiarsi tutto da soli attraverso una CARTELLA
+   CONDIVISA, come Movienaitor: sul PC una cartella di Google Drive per desktop (di solito
+   My Drive › 6 - TMS), scelta in ⚙ Impostazioni › 🔗 Telefono collegato (il percorso lo tiene
+   il processo principale di Electron: la pagina chiede solo file .json relativi a quella
+   cartella, con scrittura atomica e senza uscite); sul telefono una cartella tenuta uguale
+   da un'app di sincronizzazione bidirezionale (Autosync, FolderSync…), scelta in «⚙
+   Collegamento e promemoria». Struttura: <profilo>/dal-pc/stato.json e scheda.json (li
+   scrive SOLO il PC), <profilo>/dal-telefono/bozza.json ed eventi/*.json (li scrive SOLO il
+   telefono; il PC toglie un evento DOPO averlo salvato su disco), apk/versione.json +
+   apk/TMS-Scheda-x.y.z.apk (li mette «Crea APK.bat»). Tutto tranne l'APK è CIFRATO con
+   AES-GCM, chiave PBKDF2-SHA256 (150 000 giri) dal CODICE DI COLLEGAMENTO di 16 segni che il
+   PC crea e si scrive una volta sul telefono: Google vede solo file illeggibili, e il
+   sigillo della cifratura scopre anche i file arrivati a metà (si saltano e si riprovano,
+   mai cancellati). Flussi: «🔗 Manda al telefono» (tab Pesi) apre una SETTIMANA (id +
+   revisione) e il telefono chiede se aprire la scheda; quello che si scrive in palestra
+   arriva da solo nella scheda Pesi (la bozza dice per ogni riga quali campi sono stati
+   TOCCATI: RIR e note non toccati restano quelli del coach, recupero e note del coach non
+   si perdono); ogni modifica della scheda fatta sul PC a settimana aperta alza la revisione
+   e riparte verso il telefono, che la unisce tenendo i valori già scritti (solo dal menu);
+   una bozza costruita sulla revisione vecchia non si applica; «💾 Salva nello Storico»
+   chiude la settimana anche sul telefono. Pesate e foto sono un file ciascuna: il PC le
+   importa (pesate come sopra, foto nel tab Corpo con un id che evita i doppioni), le segna
+   fra le «ricevute» e sul telefono compare «✔ al PC». Il PC controlla la cartella ogni 20
+   secondi a TMS aperto, il telefono ogni minuto ad app aperta. Un telefono per profilo.
+   AGGIORNAMENTO DELL'APK: se in apk/versione.json c'è una versione più alta di quella
+   installata, l'app la propone, copia l'APK, ne controlla l'impronta SHA-256 e lo passa
+   all'installer di Android (conferma dell'utente; la prima volta «Installa app sconosciute»).
+   PROMEMORIA (notifiche locali, in «⚙ Collegamento e promemoria»): ogni sera all'ora scelta
+   (predefinita 21:00) la pesata, il lunedì anche le foto; si programmano i 28 giorni
+   successivi e si ricalcolano a ogni apertura, pesata o foto: se quel giorno la pesata (o le
+   foto) c'è già, quello della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
    Nella scheda sceglie il **giorno** da un elenco; ogni giornata è una **seduta in tre
    fasi** (tab): 🔥 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con
    video, stretching o cardio a minuti, NON torna nel rientro), 🏋 Esercizi, ✅ Fine.

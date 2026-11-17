@@ -461,6 +461,7 @@ function renderAllenamento(){
    </div>
    <div class="pag"><div class="pag__main">
    ${statusBanner(DOC.storico,'Storico allenamento')}
+   ${telRigaPesi()}
    <div class="sec">${t('Scheda '+schedaMode)} <span class="pill">${rows.length} ${t('righe-set')}</span><span class="pill" id="hdr-tottl" style="margin-left:6px">${t('TL totale')} ${nfk(totTL)}</span><span id="hdr-delta">${deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px" title="${t('TL totale ultima scheda salvata')}">${t('ultima')} ${nfk(prevTotal)}</span>`}</span><button class="btn btn--sm no-print" id="btn-bilanc" style="margin-left:auto" title="${t('Come è bilanciata la settimana fra i gruppi muscolari')}">${t('⚖ Bilanciamento')}</button><button class="btn btn--sm no-print" id="btn-colonne" style="margin-left:6px" title="${t('Scegli quali colonne mostrare')}">${t('▦ Colonne')}</button></div>
    <div class="tbl-wrap"><table class="${useRirActive()?'':'hide-rir'} ${classiColonnePesi()}">
      <thead><tr><th class="l">${t('Esercizio')}</th><th class="l col-note">${t('Note')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th class="col-rest">${t('Rest')}</th><th class="col-rm">1RM</th><th class="col-rm">%1RM</th><th class="col-tl">TL</th><th class="col-dtl" title="${t('Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda')}">Δ TL set</th><th>${t('Fascia / azioni')}</th></tr></thead>
@@ -486,6 +487,7 @@ function renderAllenamento(){
   document.getElementById('btn-addday').onclick=addDay;
   { const pf=document.getElementById('btn-prefill'); if(pf) pf.onclick=async()=>{ if(await conferma(t('Precompilo peso/rip/RIR dalla scorsa registrazione di ogni esercizio? Sovrascrive i valori attuali della scheda.'))) prefillFromLast(); }; }
   document.getElementById('btn-save-sched').onclick=saveSchedaModal;
+  telAggancia();
   /* anche le textarea: la Nota è una <textarea>, e con il solo selettore «input» ciò che
      si digitava lì non arrivava mai ai dati (restava a video fino al ridisegno successivo) */
   document.querySelectorAll('#panel-allenamento input, #panel-allenamento textarea').forEach(inp=>{
@@ -650,6 +652,7 @@ function saveSchedaModal(){
           DOC.storico_risc.push({scheda:code,giorno:String(r.giorno||''),esercizio:String(r.esercizio||''),min:mn,set:setNome}); });
       persist('corpo'); }
     persist('scheda'); persist('storico'); closeModal();
+    telSettimanaSalvata(code);   /* telefono collegato: la settimana si chiude anche lì */
     const prk=Object.keys(prs);
     let _msg=t('✔ Scheda')+' '+code+' '+t('salvata —')+' '+added+' '+t('esercizi aggiunti allo Storico.');
     if(prk.length) _msg+='\n\n'+t('🎉 Nuovo record:')+' '+prk.map(k=>exName(k)+' '+nf(prs[k],1)+' kg').join(', ');

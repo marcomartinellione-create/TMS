@@ -169,7 +169,11 @@ function caricaRientroInScheda(dati){
 async function importaFotoRientro(foto){
   if(!Array.isArray(foto) || !foto.length || !profileDir) return 0;
   let n=0;
+  /* `id` (dal telefono collegato, 2026-11-17): la stessa foto arrivata due volte non si duplica */
+  const gia=new Set((DOC.foto||[]).map(x=>x&&x.id).filter(Boolean));
   for(const f of foto){
+    const fid=String((f&&f.id)||'').slice(0,80);
+    if(fid && gia.has(fid)) continue;
     const m=String((f&&f.img)||'').match(/^data:image\/([a-z0-9+]+);base64,(.+)$/i);
     if(!m) continue;
     let ext=m[1].toLowerCase(); if(ext==='jpeg') ext='jpg';
@@ -181,9 +185,11 @@ async function importaFotoRientro(foto){
     const fname='f'+Date.now()+'-'+Math.random().toString(36).slice(2,6)+'.'+ext;
     try{ const fh=await fotoHandle(fname,true); const wr=await fh.createWritable(); await wr.write(bytes); await wr.close(); }
     catch(e){ logErrore('importFoto', e); continue; }
-    (DOC.foto=DOC.foto||[]).push({file:fname,
+    const voce={file:fname,
       data:String((f&&f.data)||'').slice(0,10)||new Date().toISOString().slice(0,10),
-      tag:String((f&&f.tag)||'').trim()});
+      tag:String((f&&f.tag)||'').trim()};
+    if(fid){ voce.id=fid; gia.add(fid); }
+    (DOC.foto=DOC.foto||[]).push(voce);
     n++;
   }
   if(n) persist('corpo');

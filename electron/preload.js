@@ -14,6 +14,18 @@ contextBridge.exposeInMainWorld('tmsFS', {
   dataRoot:  ()          => ipcRenderer.invoke('tmsfs:dataRoot')
 });
 
+// Cartella condivisa col telefono (2026-11-17): percorsi RELATIVI alla cartella scelta dall'utente
+// col selettore di sistema; la scelta e i controlli stanno in main.js.
+contextBridge.exposeInMainWorld('tmsScambio', {
+  cartella: ()          => ipcRenderer.invoke('scambio:cartella'),
+  scegli:   ()          => ipcRenderer.invoke('scambio:scegli'),
+  scollega: ()          => ipcRenderer.invoke('scambio:scollega'),
+  leggi:    (rel)       => ipcRenderer.invoke('scambio:leggi', rel),
+  elenca:   (rel)       => ipcRenderer.invoke('scambio:elenca', rel),
+  scrivi:   (rel, text) => ipcRenderer.invoke('scambio:scrivi', rel, text),
+  togli:    (rel)       => ipcRenderer.invoke('scambio:togli', rel)
+});
+
 // Aggiornamenti con l'interfaccia DELL'APP (dal v1.0.73): il main manda gli eventi
 // dell'updater al renderer, che mostra il modale in stile pergamena e risponde.
 contextBridge.exposeInMainWorld('tmsUpdate', {

@@ -22,6 +22,10 @@ const RAPPORTO = process.env.TMS_COLLAUDO_OUT || '';
 
 /* stato della finestra salvato «da una sessione precedente»: massimizzata */
 fs.writeFileSync(path.join(tmpData, 'finestra.json'), JSON.stringify({ bounds: { x: 60, y: 40, width: 1100, height: 720 }, massimizzata: true, schermoIntero: false }));
+/* cartella condivisa col telefono «già scelta» (il selettore di sistema non si può cliccare da qui):
+   una cartella temporanea accanto alla userData, che il collaudo poi toglie */
+const tmpScambio = fs.mkdtempSync(path.join(os.tmpdir(), 'tms-collaudo-scambio-'));
+fs.writeFileSync(path.join(tmpData, 'scambio.json'), JSON.stringify({ cartella: tmpScambio }));
 
 require(path.join(__dirname, '..', 'electron', 'main.js'));
 
@@ -37,6 +41,7 @@ function chiudi() {
   if (RAPPORTO) { try { fs.writeFileSync(RAPPORTO, testo); } catch (e) {} }
   console.log('RISULTATO collaudo Electron: ' + (esiti.length - falliti) + ' OK, ' + falliti + ' FAIL');
   try { fs.rmSync(tmpData, { recursive: true, force: true }); } catch (e) {}
+  try { fs.rmSync(tmpScambio, { recursive: true, force: true }); } catch (e) {}
   process.exitCode = falliti || !esiti.length ? 1 : 0;
 }
 
@@ -79,6 +84,28 @@ app.whenReady().then(async () => {
     if (!pronto) throw new Error('avvio non riuscito');
     await js('conferma=function(){return Promise.resolve(true);}; avviso=function(){return Promise.resolve();}; var _d=document.getElementById("disc-ok"); if(_d) _d.click(); true');
     ok(await js('typeof window.tmsFS.cestina==="function"'), 'ponte dati: canale «cestina» esposto al renderer');
+
+    /* ── cartella condivisa col telefono (window.tmsScambio) ── */
+    ok(await js('window.tmsScambio.cartella()') === tmpScambio, 'cartella condivisa: il percorso scelto lo sa solo il processo principale');
+    await js('window.tmsScambio.scrivi("prova/dal-pc/stato.json", "{\\"a\\":1}")');
+    ok(fs.readFileSync(path.join(tmpScambio, 'prova', 'dal-pc', 'stato.json'), 'utf8') === '{"a":1}' &&
+       !fs.readdirSync(path.join(tmpScambio, 'prova', 'dal-pc')).some(n => n.includes('.tmp-')), 'cartella condivisa: scrittura (atomica, crea le sottocartelle)');
+    ok(JSON.stringify(await js('window.tmsScambio.leggi("prova/dal-pc/stato.json")')) === JSON.stringify({ stato: 'ok', testo: '{"a":1}' }) &&
+       (await js('window.tmsScambio.leggi("prova/manca.json")')).stato === 'assente', 'cartella condivisa: lettura, e «assente» distinto da «illeggibile»');
+    fs.mkdirSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi'), { recursive: true });
+    fs.writeFileSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'pesata-1.json'), '{}');
+    fs.writeFileSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'nota.txt'), 'x');
+    ok(JSON.stringify(await js('window.tmsScambio.elenca("prova/dal-telefono/eventi")')) === '["pesata-1.json"]', 'cartella condivisa: elenco dei soli .json');
+    await js('window.tmsScambio.togli("prova/dal-telefono/eventi/pesata-1.json")');
+    ok(!fs.existsSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'pesata-1.json')), 'cartella condivisa: un file arrivato si toglie');
+    const rifiutato = async code => { try { await js(code); return false; } catch (e) { return true; } };
+    ok(await rifiutato('window.tmsScambio.scrivi("../fuori.json", "x")') && !fs.existsSync(path.join(path.dirname(tmpScambio), 'fuori.json')) &&
+       await rifiutato('window.tmsScambio.leggi("../../x.json")'), 'cartella condivisa: niente uscite dalla cartella');
+    ok(await rifiutato('window.tmsScambio.scrivi("prova/x.exe", "x")') && await rifiutato('window.tmsScambio.togli("prova/dal-telefono/eventi/nota.txt")') &&
+       fs.existsSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'nota.txt')), 'cartella condivisa: si scrivono e si tolgono solo file .json');
+    ok(await js('(async function(){ localStorage.setItem("tms-telefono", JSON.stringify({codice:"K7QM3XRPA9TB4WZC", profili:{}})); TEL=null; _telChiave=null;' +
+      ' var c=await telCifra({prova:"Squat"}); var r=await telDecifra(c); localStorage.removeItem("tms-telefono"); TEL=null; _telChiave=null;' +
+      ' return r.prova==="Squat" && c.indexOf("Squat")<0; })()'), 'cifratura dello scambio (AES-GCM) disponibile nella pagina dell\'app');
 
     /* ── profilo di prova: creato, scritto, eliminato, ricreato ── */
     await js('createProfile("Prova Collaudo")');

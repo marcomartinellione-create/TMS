@@ -34,7 +34,9 @@ function impAnteprima(c){
     `<span class="imp-ant__card" style="background:${c.card}"><span class="imp-ant__riga" style="background:${c.testo}"></span><span class="imp-ant__riga imp-ant__riga--corta" style="background:${c.testo}"></span>`+
     `<span class="imp-ant__barre"><i style="background:${c.acc};height:62%"></i><i style="background:${c.acc2};height:88%"></i><i style="background:#62b483;height:46%"></i><i style="background:#b48fdc;height:72%"></i></span></span></span>`;
 }
-function impostazioniModal(){
+async function impostazioniModal(){
+  /* telefono collegato: la cartella la sa il processo principale (solo app desktop) */
+  let cartella=''; if(typeof telDisponibile==='function' && telDisponibile()){ try{ cartella=await window.tmsScambio.cartella(); }catch(e){} }
   /* si legge dall'<html>, cioè da ciò che si vede, non solo da ciò che è salvato */
   const h=document.documentElement, md=h.getAttribute('data-theme')==='notte'? 'notte' : 'giorno';
   const st=TEMI_NOTTE.some(x=>x.id===h.getAttribute('data-notte'))? h.getAttribute('data-notte') : notteGet();
@@ -48,6 +50,7 @@ function impostazioniModal(){
       <div class="imp-temi">${TEMI_NOTTE.map(x=>`<button type="button" class="imp-tema${x.id===st?' is-on':''}" data-imp-notte="${x.id}">${impAnteprima(x.c)}<b>${esc(t(x.nome))}</b><span>${esc(t(x.desc))}</span></button>`).join('')}</div>
       <div class="lat-nota">${t('Il pulsante 🌙 in alto passa da giorno a notte; di notte usa lo stile scelto qui.')}</div>
     </div>
+    ${telSezioneImpostazioni(cartella)}
     <div class="imp-sez">
       <h4>${t('Aiuto')}</h4>
       <div class="imp-aiuto">
@@ -63,4 +66,5 @@ function impostazioniModal(){
   document.getElementById('fab-guida').onclick=()=>{ closeModal(); showTab('guida'); };
   document.getElementById('fab-segnala').onclick=()=>segnalaModal();   /* prende il posto delle impostazioni */
   document.getElementById('imp-ok').onclick=closeModal;
+  telAgganciaImpostazioni(()=>impostazioniModal());
 }
