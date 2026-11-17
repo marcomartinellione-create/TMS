@@ -612,6 +612,7 @@ function saveSchedaModal(){
     <div class="row"><div class="field"><label>${t('Anno')}</label><input id="m-anno" type="number" value="${w.anno}"></div>
       <div class="field"><label>${t('Settimana ISO')}</label><input id="m-sett" type="number" min="1" max="53" value="${w.sett}"></div></div>
     <p class="muted" style="font-size:13px;margin:6px 0 0">${t('Codice scheda:')} <b id="m-codeprev">${schedaCode(w.anno,w.sett)}</b></p>
+    ${telRigaSalva()}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button>
       <button class="btn btn--ember" id="m-ok">${t('Salva')}</button></div>`);
   const _upd=()=>{ const a=+document.getElementById('m-anno').value, st=+document.getElementById('m-sett').value; const cp=document.getElementById('m-codeprev'); if(cp&&a&&st>=1&&st<=53) cp.textContent=schedaCode(a,st); };

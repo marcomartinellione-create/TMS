@@ -3285,7 +3285,7 @@ console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---'
   dom.window.close();
 }
 
-console.log('--- T14: telefono collegato (cartella condivisa cifrata PC ↔ app del telefono, promemoria, APK nuovo) ---');
+console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivisa cifrata), pesate e foto, promemoria, APK nuovo ---');
 {
   const PWA = path.join(ROOT, 'docs', 'app', 'index.html');
   const J = o => JSON.stringify(o), CODICE = 'K7QM3XRPA9TB4WZC';
@@ -3296,14 +3296,15 @@ console.log('--- T14: telefono collegato (cartella condivisa cifrata PC ↔ app 
     { giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 80, rest: '2:00', rir: 2, note: 'fermo in basso', test: false },
     { giorno: 'Lunedì', esercizio: 'Panca piana con bilanciere', serie: 3, rip: 8, peso: 60, rest: '1:30', rir: 2, note: '', test: false }], mensile: [] }));
   await fsmem.writeFile('TMS_Dati/prova/storico.json', '[]');
-  await fsmem.writeFile('TMS_Dati/prova/corpo.json', J({ dati_utente: { nome: 'Cliente Prova', sesso: 'M', altezza: 180, nascita: '1995-03-01' }, storico_io: [] }));
+  await fsmem.writeFile('TMS_Dati/prova/corpo.json', J({ dati_utente: { nome: 'Cliente Prova', sesso: 'M', altezza: 180, nascita: '1995-03-01', useRpe: true }, storico_io: [] }));
   await fsmem.writeFile('TMS_Dati/prova/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
   const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true, scambio: C.pc });
   await settleConnect(dom, fsmem); await settle(200);
   const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
-  const giroPC = () => w.eval('(async function(){ while(_telGiroIn) await new Promise(function(r){ setTimeout(r,20); }); await telGiro(); })()');
+  const giroPC = () => w.eval('(async function(){ clearTimeout(_telModT); while(_telGiroIn) await new Promise(function(r){ setTimeout(r,20); }); await telGiro(); })()');
+  const righePC = () => JSON.parse(w.eval('JSON.stringify(DOC.scheda.settimanale)'));
   /* cifratura */
-  w.eval('localStorage.setItem("tms-telefono", ' + J(J({ codice: CODICE, profili: { prova: { ricevute: [] } } })) + '); TEL=null; _telChiave=null;');
+  w.eval('localStorage.setItem("tms-telefono", ' + J(J({ codice: CODICE, profili: {} })) + '); TEL=null; _telChiave=null;');
   { const c = await w.eval('telCifra({a:"Squat 80 kg"})');
     ok(!/Squat/.test(c) && JSON.parse(c).tms === 'scambio', 'cifratura: nel file non si legge niente (solo busta «scambio» + dati cifrati)');
     ok(J(await w.eval('telDecifra(' + J(c) + ')')) === J({ a: 'Squat 80 kg' }), 'cifratura: si rilegge col codice giusto');
@@ -3312,20 +3313,25 @@ console.log('--- T14: telefono collegato (cartella condivisa cifrata PC ↔ app 
     w.eval('TEL.codice=' + J(CODICE));
     ok(rotta && altro, 'cifratura: un file arrivato a metà o un codice diverso vengono rifiutati (sigillo)');
     ok(/^[A-HJ-NP-Z2-9]{16}$/.test(w.eval('telNuovoCodice()')) && w.eval('telCodiceBello("k7qm3xrpa9tb4wzc")') === 'K7QM-3XRP-A9TB-4WZC', 'codice di collegamento: 16 segni senza I, O, 0, 1, mostrato a gruppi di quattro'); }
+  /* unione campo per campo (funzioni pure) */
+  { const r = JSON.parse(w.eval('JSON.stringify(telUnisci(' +
+      'telTimbra([{uid:"a",giorno:"L",esercizio:"X",serie:3,rip:5,peso:80}], {}, {righe:[{uid:"a",giorno:"L",esercizio:"X",serie:3,rip:5,peso:70,rir:null,note:"",rest:"",test:false,pos:0,del:0,t:{giorno:1,esercizio:1,serie:1,rip:1,peso:1,rir:1,note:1,rest:1,test:1,pos:1,del:1}}],sedute:{}}, 100),' +
+      '{righe:[{uid:"a",giorno:"L",esercizio:"X",serie:3,rip:8,peso:70,rir:null,note:"",rest:"",test:false,pos:0,del:0,t:{giorno:1,esercizio:1,serie:1,rip:50,peso:1,rir:1,note:1,rest:1,test:1,pos:1,del:1}},' +
+      '{uid:"b",giorno:"L",esercizio:"Y",serie:1,rip:1,peso:1,rir:null,note:"",rest:"",test:false,pos:1,del:0,t:{}}],sedute:{}}))'));
+    ok(r.righe.length === 2 && r.righe[0].peso === 80 && r.righe[0].rip === 8 && r.righe[1].uid === 'b',
+       'unione: campo per campo vince l\'ultima modifica (peso cambiato qui, ripetizioni là: restano tutti e due) e le righe nuove dell\'altro entrano'); }
   /* interfaccia del PC */
   w.eval('showTab("allenamento")');
-  ok(d.getElementById('tel-riga') && d.getElementById('tel-manda'), 'tab Pesi: riga «telefono collegato» con «🔗 Manda al telefono»');
+  ok(!d.getElementById('tel-riga'), 'tab Pesi: finché il profilo non è collegato, nessuna riga del telefono');
   await w.eval('impostazioniModal()'); await settle(30);
-  ok(d.querySelector('#imp-tel .tel-codice') && d.querySelector('#imp-tel .tel-codice').textContent === 'K7QM-3XRP-A9TB-4WZC' && /6 - TMS/.test(d.getElementById('imp-tel').textContent),
-     '⚙ Impostazioni: cartella condivisa e codice di collegamento');
-  w.eval('closeModal()');
-  /* «🔗 Manda al telefono» */
-  w.eval('chiediModalitaScheda=function(){ return Promise.resolve("fissa"); };');
-  await w.eval('telMandaScheda()'); await settle(30);
+  ok(d.querySelector('#imp-tel .tel-codice') && d.querySelector('#imp-tel .tel-codice').textContent === 'K7QM-3XRP-A9TB-4WZC' && d.getElementById('imp-tel-prof'),
+     '⚙ Impostazioni: cartella condivisa, codice e «Collega la scheda di questo profilo»');
+  d.getElementById('imp-tel-prof').click(); await settle(400); for (let k = 0; k < 40 && !C.files.has('prova/dal-pc/scheda.json'); k++) await settle(100);
+  w.eval('closeModal(); showTab("allenamento")');
   ok(C.files.has('prova/dal-pc/scheda.json') && C.files.has('prova/dal-pc/stato.json') && !/Squat/.test(C.files.get('prova/dal-pc/scheda.json')),
-     'Manda al telefono: scheda e stato nella cartella del profilo, cifrati');
-  const p0 = JSON.parse(w.eval('JSON.stringify(telProf())'));
-  ok(p0.id && p0.rev === 1 && !p0.chiusa, 'Manda al telefono: settimana aperta (id, revisione 1)');
+     'collega: la scheda dei Pesi va nella cartella del profilo, cifrata (senza «Manda al telefono»)');
+  { const r = righePC(); ok(r.length === 2 && r[0].uid && r[1].uid && r[0].uid !== r[1].uid, 'collega: ogni riga della scheda Pesi prende un id suo'); }
+  ok(d.getElementById('tel-riga') && /collegata/.test(d.getElementById('tel-riga').textContent) && !d.getElementById('tel-manda'), 'tab Pesi: riga «Scheda collegata al telefono», nessun pulsante da premere');
 
   /* il telefono */
   const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
@@ -3333,35 +3339,50 @@ console.log('--- T14: telefono collegato (cartella condivisa cifrata PC ↔ app 
       win.localStorage.setItem('tms-col', J({ codice: CODICE, slug: 'prova', nome: 'Cliente Prova' }));
       win.TMS_APK_VERSIONE = '1.2.0'; win.tmsCartella = C.tel; } });
   const sw = sub.window, sd = sw.document;
-  const giroTel = () => sw.eval('(async function(){ while(COL.inCorso) await new Promise(function(r){ setTimeout(r,20); }); await colGiro(); })()');
-  for (let k = 0; k < 60 && !sw.eval('!!(SCHEDA&&SCHEDA.sync)'); k++) await settle(100);
-  ok(sw.eval('!!(SCHEDA && SCHEDA.sync && SCHEDA.sync.id===' + J(p0.id) + ')') && sd.getElementById('menu').hidden === false,
-     'telefono: vede la scheda nuova dal PC, la propone e la apre');
-  ok(sd.getElementById('vai-col').hidden === false && /collegato/.test(sd.getElementById('meta-col').textContent), 'telefono: voce «⚙ Collegamento e promemoria» nel menu, collegato');
-  ok(sd.getElementById('col-home').hidden === false, 'telefono: sotto i giorni dice che quello che scrivi arriva da solo al PC');
-  /* in palestra: 4 serie di squat invece di 3 */
-  { const el = sd.getElementById('s-0'); el.value = '4'; el.dispatchEvent(new sw.Event('input', { bubbles: true })); }
-  await sw.eval('colScriviBozza()');
-  ok(C.files.has('prova/dal-telefono/bozza.json') && !/Squat/.test(C.files.get('prova/dal-telefono/bozza.json')), 'telefono: la bozza va nella cartella, cifrata');
-  await giroPC(); await settle(30);
-  { const r = JSON.parse(w.eval('JSON.stringify(DOC.scheda.settimanale)'));
-    ok(r.length === 2 && r[0].serie === 4 && r[0].note === 'fermo in basso' && r[0].rir === 2 && r[0].rest === '2:00' && r[1].peso === 60,
-       'PC: l\'allenamento arriva da solo nella scheda Pesi; RIR, note e recupero non toccati sul telefono restano quelli del coach'); }
-  await settle(4300);   /* il controllo «scheda cambiata qui» scatta 4 s dopo l'ultimo salvataggio */
-  ok(JSON.parse(fsmem._files.get('TMS_Dati/prova/scheda.json')).settimanale[0].serie === 4, 'PC: e si salva su disco come ogni modifica');
-  ok(w.eval('telAperta(telProf()) && telProf().rev===1'), 'PC: la bozza del telefono non fa ripartire la scheda verso il telefono (niente eco)');
-  /* il coach cambia la panca a metà settimana */
-  w.eval('DOC.scheda.settimanale[1].peso=62.5;');
-  ok(await w.eval('telRimanda()') === true && w.eval('telProf().rev') === 2, 'PC: una modifica della scheda a settimana aperta riparte (revisione 2)');
-  /* il telefono scrive ancora sulla revisione 1: il PC aspetta */
-  { const el = sd.getElementById('r-0'); el.value = '6'; el.dispatchEvent(new sw.Event('input', { bubbles: true })); }
-  await sw.eval('colScriviBozza()'); await giroPC();
-  ok(w.eval('DOC.scheda.settimanale[1].peso') === 62.5 && w.eval('telProf().bozzaAttesa') === true, 'PC: una bozza fatta sulla scheda vecchia non copre la modifica del coach (aspetta il telefono)');
-  await giroTel(); await settle(500);
-  ok(sw.eval('SCHEDA.sync.rev') === 2 && sd.getElementById('s-0').value === '4' && sd.getElementById('r-0').value === '6' && sd.getElementById('p-1').value === '62.5',
-     'telefono: unisce la scheda cambiata — tiene quello che hai scritto, prende il peso nuovo della panca');
-  await giroPC();
-  ok(w.eval('DOC.scheda.settimanale[0].rip') === 6 && w.eval('DOC.scheda.settimanale[1].peso') === 62.5 && w.eval('telProf().bozzaAttesa') === false, 'PC: dopo l\'unione la bozza torna a entrare');
+  const giroTel = () => sw.eval('(async function(){ clearTimeout(COL.modT); while(COL.inCorso) await new Promise(function(r){ setTimeout(r,20); }); await colGiro(); })()');
+  const scrivi = (id, v) => { const el = sd.getElementById(id); el.value = v; el.dispatchEvent(new sw.Event('input', { bubbles: true })); };
+  for (let k = 0; k < 60 && !sw.eval('!!(SCHEDA&&SCHEDA.collegata)'); k++) await settle(100);
+  ok(sw.eval('!!(SCHEDA && SCHEDA.collegata)') && sd.getElementById('menu').hidden === false, 'telefono: senza scheda prende da solo quella collegata del PC');
+  ok(sd.getElementById('s-0').value === '3' && sd.getElementById('rir-0').value === '2' && sd.getElementById('n-0').value === 'fermo in basso' && !sd.querySelector('#ex-0 .ex-coach'),
+     'telefono: i campi sono la scheda (anche RIR e note), senza «previsto» ripetuto');
+  ok(/collegata/.test(sd.getElementById('scheda-info').textContent) && sd.getElementById('invia').hidden === true && sd.getElementById('col-home').hidden === false,
+     'telefono: «Scheda collegata al TMS sul PC», niente file da mandare al coach');
+  await giroTel();
+  ok(C.files.has('prova/dal-telefono/scheda.json') && !/Squat/.test(C.files.get('prova/dal-telefono/scheda.json')), 'telefono: scrive la sua copia della scheda, cifrata');
+  /* in palestra: 4 serie di squat */
+  scrivi('s-0', '4'); await giroTel(); await giroPC();
+  { const r = righePC(); ok(r[0].serie === 4 && r[0].note === 'fermo in basso' && r[0].rir === 2 && r[0].rest === '2:00' && r[1].peso === 60,
+       'telefono → PC: le 4 serie arrivano da sole nella scheda Pesi; il resto non cambia'); }
+  /* dal PC: panca a 62,5 */
+  w.eval('DOC.scheda.settimanale[1].peso=62.5;'); await giroPC(); await giroTel(); await settle(50);
+  ok(sd.getElementById('p-1').value === '62.5' && sd.getElementById('s-0').value === '4', 'PC → telefono: il peso nuovo della panca compare nel campo, le 4 serie restano');
+  /* campi diversi della stessa riga cambiati sui due: restano tutti e due */
+  w.eval('DOC.scheda.settimanale[0].rip=6;'); scrivi('p-0', '85');
+  await giroPC(); await giroTel(); await giroPC(); await settle(50);
+  ok(righePC()[0].rip === 6 && righePC()[0].peso === 85 && sd.getElementById('r-0').value === '6' && sd.getElementById('p-0').value === '85',
+     'modifiche a campi diversi (ripetizioni sul PC, peso sul telefono): restano tutte e due, da tutte e due le parti');
+  /* lo stesso campo cambiato sui due: vince l'ultima modifica */
+  w.eval('DOC.scheda.settimanale[1].rip=10;'); await giroPC(); await settle(15);
+  scrivi('r-1', '12'); await giroTel(); await giroPC(); await settle(50);
+  ok(righePC()[1].rip === 12 && sd.getElementById('r-1').value === '12', 'stesso campo cambiato sui due: vince l\'ultima modifica (12 ripetizioni dal telefono)');
+  /* mentre si scrive nella tabella dei Pesi il PC aspetta, poi unisce senza perdere niente */
+  scrivi('r-0', '7'); await giroTel();
+  { const inp = d.querySelector('#panel-allenamento input'); inp.focus();
+    await giroPC(); const fermo = righePC()[0].rip === 6;
+    inp.blur(); await giroPC();
+    ok(fermo && righePC()[0].rip === 7, 'PC: con un campo dei Pesi sotto le dita aspetta il giro dopo, e poi la modifica del telefono entra lo stesso'); }
+  /* esercizio aggiunto sul telefono, panca tolta sul PC */
+  { const nome = sw.eval('(SCHEDA.catalogo||[]).map(function(e){return e.n;}).filter(function(n){return !/Squat con bilanciere|Panca piana con bilanciere/.test(n);})[0]') || 'Rematore con bilanciere';
+    sw.eval('navEntra(); mostra("home"); addEsercizio(0);'); await settle(30);
+    const rid = sw.eval('WROWS[WROWS.length-1].rid');
+    sd.getElementById('ename-' + rid).value = nome; sw.eval('saveEdit(' + rid + ')'); await settle(30);
+    await giroTel(); await giroPC();
+    ok(righePC().some(r => r.esercizio === nome && r.giorno === righePC()[0].giorno), 'esercizio aggiunto sul telefono: compare nella scheda Pesi del PC');
+    w.eval('DOC.scheda.settimanale=DOC.scheda.settimanale.filter(function(r){ return !/Panca/.test(r.esercizio); });');
+    await giroPC(); await giroTel(); await settle(50);
+    ok(!sw.eval('WROWS.some(function(r){ return /Panca/.test(r.esercizio); })') && sw.eval('WROWS.some(function(r){ return r.esercizio===' + J(nome) + '; })') && righePC().length === 2,
+       'esercizio tolto sul PC: sparisce anche dal telefono (e non torna indietro)'); }
+  sw.eval('risali(); risali();'); await settle(30);
   /* pesata e foto dal telefono */
   sw.eval('PESATE.push({id:"2026-11-17T21:00:00|72.4", data:"2026-11-17", ora:"21:00:00", peso:72.4}); FOTO.fronte={id:"fprova1", img:"data:image/jpeg;base64,/9j/AAAA", data:"2026-11-17"};');
   await sw.eval('colEventi()');
@@ -3377,21 +3398,27 @@ console.log('--- T14: telefono collegato (cartella condivisa cifrata PC ↔ app 
   sw.eval('navEntra(); mostra("bil"); renderBil();');
   ok(/al PC/.test(sd.getElementById('bil-lista').textContent), 'telefono: nell\'elenco delle pesate compare «✔ al PC»');
   sw.eval('risali();');
-  /* 💾 Salva nello Storico chiude la settimana anche sul telefono */
-  w.eval('telSettimanaSalvata(202647)'); await settle(50);
-  ok(w.eval('!telAperta(telProf()) && telProf().chiusa.codice===202647'), 'PC: «Salva nello Storico» chiude la settimana del telefono');
-  await giroTel();
-  ok(sw.eval('!!SCHEDA.sync.chiusa') && /salvata nello Storico/.test(sd.getElementById('col-avvisi').textContent), 'telefono: «✔ Settimana salvata nello Storico sul PC»');
-  C.files.delete('prova/dal-telefono/bozza.json'); await sw.eval('colScriviBozza()');
-  ok(!C.files.has('prova/dal-telefono/bozza.json'), 'telefono: a settimana chiusa la bozza non parte più');
+  /* fine seduta sul telefono, poi «💾 Salva nello Storico» sul PC: la settimana si cristallizza */
+  scrivi('rpe-0', '7'); scrivi('min-0', '60'); await giroTel(); await giroPC();
+  ok(J(w.eval('JSON.stringify(DOC.scheda.rpe.settimanale)')) === J(J({ [righePC()[0].giorno]: { rpe: 7, min: 60 } })), 'fatica e durata della seduta scritte sul telefono arrivano sul PC');
+  ok(sd.getElementById('ck-0').textContent === '✔', 'telefono: la riga dello squat è spuntata ✔ (toccata questa settimana)');
+  w.eval('telSettimanaSalvata(202647)'); await settle(20); await giroPC(); await giroTel(); await settle(50);
+  ok(w.eval('telProf().settimana') === 2 && sw.eval('SCHEDA.sync.settimana') === 2, 'Salva nello Storico: la settimana sale a 2 sul PC e sul telefono');
+  ok(sd.getElementById('rpe-0').value === '' && sd.getElementById('min-0').value === '' && sd.getElementById('ck-0').textContent === '' && sd.getElementById('s-0').value === '4',
+     'telefono: fatica, durata e spunte ripartono da zero; la scheda resta quella (4 serie) ed è ancora collegata');
+  ok(/Settimana salvata/.test(sd.getElementById('col-avvisi').textContent), 'telefono: «✔ Settimana salvata nello Storico sul PC»');
+  scrivi('s-0', '5'); await giroTel(); await giroPC();
+  ok(righePC()[0].serie === 5, 'dopo il salvataggio la scheda resta collegata: la settimana dopo si modifica come prima');
   /* collegamento: il codice si scrive come si vuole; sbagliato non collega */
   sw.eval('colStacca(); navEntra(); mostra("col"); colRender();');
-  ok(sd.getElementById('col').hidden === false && sd.getElementById('col-codice-box').hidden === false, 'telefono: schermata Collegamento con il campo del codice');
+  ok(sw.eval('SCHEDA.collegata') === false && sd.getElementById('col').hidden === false && sd.getElementById('col-codice-box').hidden === false,
+     'telefono: «Scollega» lascia la scheda come scheda normale; schermata col campo del codice');
   sd.getElementById('col-codice').value = 'zzzz-zzzz-zzzz-zzzz'; await sw.eval('colCollega()');
   ok(!sw.eval('colConf().slug') && /codice/.test(sd.getElementById('col-stato').textContent), 'telefono: con un codice sbagliato non si collega e lo dice');
   sd.getElementById('col-codice').value = 'k7qm-3xrp-a9tb-4wzc'; await sw.eval('colCollega()');
   ok(sw.eval('colConf().slug') === 'prova' && sw.eval('colConf().codice') === CODICE, 'telefono: col codice giusto (anche minuscolo, coi trattini) trova il profilo e si collega');
-  sw.eval('risali();');
+  sw.eval('risali();'); await giroTel(); await settle(50);
+  ok(sw.eval('!!SCHEDA.collegata'), 'telefono: ricollegato, con una scheda già sul telefono chiede e riprende quella del PC');
   /* promemoria */
   sw.eval('avvSalvaConf({on:true, ora:"21:00"}); PESATE=[];');
   { const l = JSON.parse(sw.eval('JSON.stringify(avvLista(new Date(2026,10,16,8,0)))'));
@@ -3412,15 +3439,16 @@ console.log('--- T14: telefono collegato (cartella condivisa cifrata PC ↔ app 
   await sw.eval('colApk()');
   ok(C.installati.length === 1 && sw.eval('COL.apk') === null, 'APK della stessa versione: niente da proporre');
   /* chiusura pulita: niente giri del telefono a finestra chiusa */
-  sw.eval('clearInterval(COL.timer); clearTimeout(COL.prestoT); clearTimeout(COL.bozzaT); clearTimeout(COL.avvisoT); clearTimeout(_avvT);');
+  sw.eval('clearInterval(COL.timer); clearTimeout(COL.prestoT); clearTimeout(COL.modT); clearTimeout(COL.avvisoT); clearTimeout(_avvT);');
   for (let k = 0; k < 100 && sw.eval('COL.inCorso'); k++) await settle(30);
-  sw.eval('clearTimeout(COL.prestoT); clearTimeout(COL.bozzaT);');
+  sw.eval('clearTimeout(COL.prestoT); clearTimeout(COL.modT);');
   sub.window.close();
   /* senza APK (PWA nel browser) niente collegamento */
   { const s2 = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html', beforeParse(win){ win.scrollTo = () => {}; } });
     await settle(200);
     ok(s2.window.document.getElementById('col-da-ben').hidden === true, 'fuori dall\'APK: niente «Collega al PC»');
     s2.window.close(); }
+  w.eval('clearInterval(_telTimer); clearTimeout(_telModT);');
   ok(errors.length === 0, 'telefono collegato: nessun errore runtime sul PC' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   dom.window.close();
 }

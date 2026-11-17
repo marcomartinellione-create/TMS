@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.24 (2026-11-16). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.25 (2026-11-17). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -586,21 +586,28 @@ nei dispositivi.
    il processo principale di Electron: la pagina chiede solo file .json relativi a quella
    cartella, con scrittura atomica e senza uscite); sul telefono una cartella tenuta uguale
    da un'app di sincronizzazione bidirezionale (Autosync, FolderSync…), scelta in «⚙
-   Collegamento e promemoria». Struttura: <profilo>/dal-pc/stato.json e scheda.json (li
-   scrive SOLO il PC), <profilo>/dal-telefono/bozza.json ed eventi/*.json (li scrive SOLO il
-   telefono; il PC toglie un evento DOPO averlo salvato su disco), apk/versione.json +
+   Collegamento e promemoria». Struttura: <profilo>/dal-pc/stato.json, scheda.json e
+   video.json (li scrive SOLO il PC), <profilo>/dal-telefono/scheda.json ed eventi/*.json (li
+   scrive SOLO il telefono; il PC toglie un evento DOPO averlo salvato su disco), apk/versione.json +
    apk/TMS-Scheda-x.y.z.apk (li mette «Crea APK.bat»). Tutto tranne l'APK è CIFRATO con
    AES-GCM, chiave PBKDF2-SHA256 (150 000 giri) dal CODICE DI COLLEGAMENTO di 16 segni che il
    PC crea e si scrive una volta sul telefono: Google vede solo file illeggibili, e il
    sigillo della cifratura scopre anche i file arrivati a metà (si saltano e si riprovano,
-   mai cancellati). Flussi: «🔗 Manda al telefono» (tab Pesi) apre una SETTIMANA (id +
-   revisione) e il telefono chiede se aprire la scheda; quello che si scrive in palestra
-   arriva da solo nella scheda Pesi (la bozza dice per ogni riga quali campi sono stati
-   TOCCATI: RIR e note non toccati restano quelli del coach, recupero e note del coach non
-   si perdono); ogni modifica della scheda fatta sul PC a settimana aperta alza la revisione
-   e riparte verso il telefono, che la unisce tenendo i valori già scritti (solo dal menu);
-   una bozza costruita sulla revisione vecchia non si applica; «💾 Salva nello Storico»
-   chiude la settimana anche sul telefono. Pesate e foto sono un file ciascuna: il PC le
+   mai cancellati). SCHEDA COLLEGATA (richiesta dell'utente: «le modifiche di uno modificano
+   l'altra e solo a Salva si cristallizza»): collegato il profilo («Collega la scheda di
+   questo profilo»), la scheda settimanale del tab Pesi e quella del telefono sono la stessa,
+   modificabile dalle due parti (valori, note, recupero, ★ test, esercizi aggiunti, tolti,
+   rinominati o spostati, fatica e durata). Ogni riga ha un id stabile (campo uid, anche nella
+   scheda Pesi) e ogni campo l'ora dell'ultima modifica; a ogni giro ognuno data i campi
+   cambiati da sé rispetto all'ultima scheda unita, legge il file dell'altro e unisce campo per
+   campo: VINCE L'ORA PIÙ RECENTE (una riga tolta lascia un segno per un mese). Sul telefono i
+   campi sono la scheda (RIR e note già scritti, niente «previsto» ripetuto); se c'era una
+   scheda caricata da file chiede una volta se sostituirla. Mentre si scrive in un campo
+   l'unione aspetta il giro dopo. Le righe del PC senza esercizio (giorno appena aggiunto)
+   restano solo sul PC. «💾 Salva nello Storico» CRISTALLIZZA: la settimana va nello Storico,
+   il numero della settimana sale, fatica, durata e spunte ✔ si azzerano anche sul telefono;
+   la scheda resta collegata e fa da base alla settimana dopo. Dieta, riscaldamento, «ultima
+   volta», catalogo e video vanno solo dal PC al telefono. Pesate e foto sono un file ciascuna: il PC le
    importa (pesate come sopra, foto nel tab Corpo con un id che evita i doppioni), le segna
    fra le «ricevute» e sul telefono compare «✔ al PC». Il PC controlla la cartella ogni 20
    secondi a TMS aperto, il telefono ogni minuto ad app aperta. Un telefono per profilo.
