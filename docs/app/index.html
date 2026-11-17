@@ -193,6 +193,22 @@
  .dove-btn .ic{font-size:22px;flex:0 0 auto}
  .dove-btn small{display:block;color:#8a7455;font-size:12px;margin-top:2px}
  #bozza-stato{color:#7a6648;font-size:11.5px;text-align:center;margin:6px 0;min-height:14px}
+ /* fotocamera con la sagoma (foto progressi) */
+ #cam{position:fixed;inset:0;background:#0d0b08;z-index:24;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 10px calc(10px + env(safe-area-inset-bottom))}
+ #cam[hidden]{display:none!important}
+ .cam-titolo{color:#f4ead8;font-size:15px;font-weight:bold;margin:0 0 6px;text-align:center}
+ .cam-quadro{position:relative;width:min(100%,calc((100vh - 190px)*.75));aspect-ratio:3/4;overflow:hidden;border-radius:var(--r-sm);background:#000}
+ .cam-quadro video,.cam-quadro img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+ .cam-quadro video.specchio{transform:scaleX(-1)}
+ .cam-quadro img{opacity:.38;pointer-events:none}
+ .cam-quadro .cam-sagoma{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+ #cam-conto{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:96px;font-weight:bold;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8)}
+ .cam-aiuto{color:#d9c8a6;font-size:12px;line-height:1.4;text-align:center;margin:6px 4px 0;max-width:420px}
+ .cam-barra{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px}
+ .cam-barra button{font:inherit;font-size:14px;color:#f4ead8;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;min-width:46px;height:46px;padding:0 10px;cursor:pointer}
+ .cam-barra button.on{background:#9a5b1f;border-color:#d9a35f}
+ .cam-barra button[disabled]{opacity:.35}
+ .cam-barra .cam-scatta{width:72px;height:72px;min-width:72px;border-radius:50%;background:#fff;border:5px solid #9a5b1f;padding:0}
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:15;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:var(--r-sm);background:#000}
  #vclose{position:absolute;top:14px;right:18px;font-size:30px;color:#fff;background:none;border:0;cursor:pointer}
@@ -358,6 +374,19 @@
 </div>
 
 <input id="foto-file" type="file" accept="image/*" style="display:none">
+<!-- ── FOTOCAMERA con la sagoma (foto progressi): sempre la stessa inquadratura ── -->
+<div id="cam" hidden>
+  <div class="cam-titolo" id="cam-titolo"></div>
+  <div class="cam-quadro"><video id="cam-video" autoplay playsinline muted></video><img id="cam-prima" alt="" hidden><div id="cam-sagoma"></div><div id="cam-conto" hidden></div></div>
+  <div class="cam-aiuto" data-i18n>Mettiti dentro la sagoma: la testa sulla riga in alto, metà coscia sulla riga in basso.</div>
+  <div class="cam-barra">
+    <button type="button" id="cam-chiudi" aria-label="Chiudi">✕</button>
+    <button type="button" id="cam-prima-btn" aria-label="Foto di prima">👻</button>
+    <button type="button" class="cam-scatta" id="cam-scatta" aria-label="Scatta"></button>
+    <button type="button" id="cam-timer" aria-label="Autoscatto">⏱ 0</button>
+    <button type="button" id="cam-gira" aria-label="Cambia fotocamera">🔄</button>
+  </div>
+</div>
 <div id="vov"><button id="vclose" type="button">✕</button><video controls playsinline></video></div>
 <footer>TMS Scheda · <span data-i18n>app del</span> <a href="../index.html" style="color:#9a5b1f">Training Monitor System</a> · <span id="cver"></span></footer>
 
@@ -370,7 +399,7 @@
    v2.0 — la giornata è una SEDUTA in fasi: 🔥 riscaldamento (sola lettura) · 🏋 esercizi ·
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. Nessun server: si passa solo dalla cartella. */
-const CVER='3.0';
+const CVER='3.1';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -539,6 +568,11 @@ const TT={en:{
   "pesata della bilancia":"scale weigh-in",
   "pesate della bilancia":"scale weigh-ins",
   /* collegamento col PC, promemoria, aggiornamento dell'APK */
+  "Foto di prima in trasparenza":"Previous photo, see-through",
+  "Autoscatto":"Self-timer",
+  "Cambia fotocamera":"Switch camera",
+  "Non riesco ad aprire questa fotocamera.":"I can’t open this camera.",
+  "Mettiti dentro la sagoma: la testa sulla riga in alto, metà coscia sulla riga in basso.":"Stand inside the silhouette: head on the top line, mid-thigh on the bottom line.",
   "Il collegamento c’è nell’app Android «TMS Scheda».":"The link is in the «TMS Scheda» Android app.",
   "Le foto vengono rimpicciolite prima di partire.":"Photos are shrunk before they leave.",
   "Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> e arrivano qui da sole; in palestra annoti quello che fai, e torna al PC da solo.":"This app is the <b>digital notebook</b> of the <b>Training Monitor System</b>: program and diet <b>are created in the TMS on the PC</b> and arrive here by themselves; at the gym you log what you do, and it goes back to the PC by itself.",
@@ -852,9 +886,111 @@ async function fotoAggiungi(vista,file){
   if(!file) return;
   let img=null;
   try{ img=await fotoRidimensiona(file); }catch(e){ alert(tt('Non riesco a leggere questa immagine.')); return; }
+  await fotoMetti(vista, img);
+}
+async function fotoMetti(vista, img){
   FOTO[vista]={id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), img:img, data:dataLoc(new Date())};
   await fotoSalva(); renderFoto(); colPresto(); avvPianifica();
 }
+
+/* ── SAGOMA e FOTOCAMERA dentro l'app (richiesta di Marco, 17/11/2026: «una silhouette, così che siano
+      sempre inquadrate uguali»). La fotocamera del telefono non lascia disegnare niente sopra: qui la
+      foto si fa in un riquadro 3:4 con la sagoma della vista (fronte, lato, retro) e, a richiesta, la
+      foto di prima in trasparenza. Inquadratura ricavata dalle foto di Marco (selfie allo specchio):
+      testa sulla riga in alto (30%), metà coscia sulla riga in basso (78%), al centro; braccio col
+      telefono davanti al viso. Il disegno è generico, non ricalcato. Si salva esattamente il riquadro
+      che si vede. ── */
+function fotoSagoma(vista, suff){
+  const arto=(d,w)=>'<path d="'+d+'" fill="none" stroke="#fff" stroke-width="'+w+'" stroke-linecap="round" stroke-linejoin="round"/>';
+  const forme={
+    fronte:
+      '<ellipse cx="152" cy="141" rx="17" ry="21"/>'+
+      '<rect x="143" y="152" width="18" height="22" rx="7"/>'+
+      '<path d="M150 167C170 167 186 171 192 181L187 202C183 217 175 229 175 241C176 251 181 257 181 267L179 312L155 312L151 285L149 285L145 312L121 312L119 267C119 257 125 251 125 241C125 229 117 217 113 202L108 181C114 171 130 167 150 167Z"/>'+
+      arto('M190 182L197 232L199 280',15)+'<ellipse cx="199" cy="287" rx="7" ry="9"/>'+
+      arto('M111 183L102 207L136 160',14)+'<ellipse cx="139" cy="156" rx="8" ry="9"/>'+
+      '<rect x="128" y="117" width="22" height="40" rx="5"/>',
+    lato:
+      '<ellipse cx="153" cy="143" rx="18" ry="21"/>'+
+      '<rect x="143" y="154" width="18" height="22" rx="7"/>'+
+      '<path d="M146 165C137 172 131 184 133 201C135 221 143 238 141 250C137 260 131 268 135 281L139 312L166 312L168 281C170 267 173 256 173 243C173 229 177 213 176 197C175 181 169 170 161 165Z"/>'+
+      arto('M150 186L157 236L176 266',14)+'<ellipse cx="179" cy="270" rx="7" ry="8"/>'+
+      arto('M163 192L172 211L183 168',13)+'<ellipse cx="184" cy="164" rx="7" ry="8"/>'+
+      '<rect x="177" y="130" width="15" height="38" rx="4"/>',
+    retro:
+      '<ellipse cx="152" cy="141" rx="17" ry="21"/>'+
+      '<rect x="143" y="152" width="18" height="22" rx="7"/>'+
+      '<path d="M150 167C170 167 186 171 192 181L187 202C183 217 175 229 175 241C176 251 181 257 181 267L179 312L155 312L151 285L149 285L145 312L121 312L119 267C119 257 125 251 125 241C125 229 117 217 113 202L108 181C114 171 130 167 150 167Z"/>'+
+      arto('M190 182L197 232L199 280',15)+'<ellipse cx="199" cy="287" rx="7" ry="9"/>'+
+      arto('M111 183L100 208L124 152',14)+'<ellipse cx="126" cy="148" rx="8" ry="9"/>'+
+      '<rect x="117" y="113" width="18" height="34" rx="4"/>'
+  };
+  const f=forme[vista]||forme.fronte, id='sg-'+(forme[vista]?vista:'fronte')+(suff||'');
+  return '<svg class="cam-sagoma" viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'+
+    '<defs><g id="'+id+'" fill="#fff">'+f+'</g>'+
+    '<filter id="'+id+'-b" x="-5%" y="-5%" width="110%" height="110%"><feMorphology in="SourceAlpha" operator="dilate" radius="2.2" result="d"/>'+
+    '<feComposite in="d" in2="SourceAlpha" operator="out" result="b"/><feFlood flood-color="#fff"/><feComposite in2="b" operator="in"/></filter>'+
+    '<filter id="'+id+'-o" x="-5%" y="-5%" width="110%" height="110%"><feMorphology in="SourceAlpha" operator="dilate" radius="3.4" result="d"/>'+
+    '<feComposite in="d" in2="SourceAlpha" operator="out" result="b"/><feFlood flood-color="#000" flood-opacity=".55"/><feComposite in2="b" operator="in"/></filter></defs>'+
+    '<use href="#'+id+'" opacity=".16"/><use href="#'+id+'" filter="url(#'+id+'-o)"/><use href="#'+id+'" filter="url(#'+id+'-b)"/>'+
+    '<g stroke="#fff" stroke-width="1.6" stroke-dasharray="5 5" opacity=".8"><line x1="18" y1="119" x2="62" y2="119"/><line x1="238" y1="119" x2="282" y2="119"/>'+
+    '<line x1="18" y1="312" x2="62" y2="312"/><line x1="238" y1="312" x2="282" y2="312"/></g></svg>';
+}
+const CAM={stream:null, vista:'', facing:'environment', timer:0, prima:false, conto:null};
+function camDisponibile(){ return !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia==='function'); }
+/* il riquadro 3:4 al centro di un'immagine vw×vh (lo stesso che si vede col «cover») */
+function camRitaglio(vw, vh){
+  let w=vw, h=vh; if(vw*4>vh*3) w=Math.round(vh*3/4); else h=Math.round(vw*4/3);
+  return {x:Math.round((vw-w)/2), y:Math.round((vh-h)/2), w:w, h:h}; }
+function camFerma(){ if(CAM.stream){ try{ CAM.stream.getTracks().forEach(t=>t.stop()); }catch(e){} CAM.stream=null; } const v=$('cam-video'); if(v) try{ v.srcObject=null; }catch(e){} }
+async function camAvviaFlusso(){
+  camFerma();
+  const st=await navigator.mediaDevices.getUserMedia({audio:false, video:{facingMode:CAM.facing, width:{ideal:1920}, height:{ideal:1440}}});
+  CAM.stream=st; const v=$('cam-video'); v.srcObject=st; v.classList.toggle('specchio', CAM.facing==='user');
+  try{ await v.play(); }catch(e){}
+}
+function camRender(){
+  const f=FOTO[CAM.vista];
+  $('cam-titolo').textContent='📷 '+tt(FOTO_LAB[CAM.vista]||'Foto progressi');
+  $('cam-sagoma').innerHTML=fotoSagoma(CAM.vista,'-cam');
+  const pr=$('cam-prima'), pb=$('cam-prima-btn');
+  pb.disabled=!(f&&f.img); pb.classList.toggle('on', !!(CAM.prima&&f&&f.img)); pb.title=tt('Foto di prima in trasparenza');
+  if(f&&f.img&&CAM.prima){ pr.src=f.img; pr.hidden=false; } else { pr.hidden=true; pr.removeAttribute('src'); }
+  const tb=$('cam-timer'); tb.textContent='⏱ '+(CAM.timer? CAM.timer+' s' : '0'); tb.classList.toggle('on', !!CAM.timer); tb.title=tt('Autoscatto');
+  $('cam-gira').title=tt('Cambia fotocamera'); $('cam-chiudi').title=tt('Chiudi');
+}
+/* true = fotocamera aperta; false = non c'è o niente permesso (chi chiama ripiega sulla fotocamera del telefono) */
+async function camApri(vista){
+  if(!camDisponibile()) return false;
+  CAM.vista=vista; clearInterval(CAM.conto); $('cam-conto').hidden=true;
+  camRender(); $('cam').hidden=false; navEntra();
+  try{ await camAvviaFlusso(); return true; }
+  catch(e){ camChiudi(); try{ history.back(); }catch(e2){} return false; }
+}
+function camChiudi(){ camFerma(); clearInterval(CAM.conto); CAM.conto=null; const c=$('cam-conto'); if(c) c.hidden=true; const el=$('cam'); if(el) el.hidden=true; }
+function camScatta(){
+  if(CAM.conto) return;
+  if(!CAM.timer){ camFoto(); return; }
+  let n=CAM.timer; const c=$('cam-conto'); c.textContent=String(n); c.hidden=false;
+  CAM.conto=setInterval(()=>{ n--; if(n>0){ c.textContent=String(n); return; } clearInterval(CAM.conto); CAM.conto=null; c.hidden=true; camFoto(); }, 1000);
+}
+async function camFoto(){
+  const v=$('cam-video'), vw=v.videoWidth, vh=v.videoHeight; if(!vw||!vh) return;
+  const r=camRitaglio(vw, vh), k=Math.min(1, FOTO_MAXLATO/Math.max(r.w, r.h));
+  const cv=document.createElement('canvas'); cv.width=Math.round(r.w*k); cv.height=Math.round(r.h*k);
+  const g=cv.getContext('2d');
+  if(CAM.facing==='user'){ g.translate(cv.width,0); g.scale(-1,1); }   /* come si vede nel riquadro */
+  g.drawImage(v, r.x, r.y, r.w, r.h, 0, 0, cv.width, cv.height);
+  const img=cv.toDataURL('image/jpeg', FOTO_Q);
+  try{ if(navigator.vibrate) navigator.vibrate(60); }catch(e){}
+  const vista=CAM.vista; navIndietro();
+  await fotoMetti(vista, img);
+}
+$('cam-chiudi').onclick=()=>navIndietro();
+$('cam-scatta').onclick=camScatta;
+$('cam-timer').onclick=()=>{ CAM.timer=CAM.timer===0?3:(CAM.timer===3?10:0); camRender(); };
+$('cam-prima-btn').onclick=()=>{ CAM.prima=!CAM.prima; camRender(); };
+$('cam-gira').onclick=async()=>{ CAM.facing=CAM.facing==='environment'?'user':'environment'; try{ await camAvviaFlusso(); }catch(e){ alert(tt('Non riesco ad aprire questa fotocamera.')); } };
 async function fotoRimuovi(vista){
   if(!confirm(tt('Vuoi togliere questa foto?'))) return;
   delete FOTO[vista]; await fotoSalva(); renderFoto();
@@ -872,7 +1008,7 @@ function renderFoto(){
         : '<span class="foto-ico">📷</span><span class="foto-lab">'+esc(tt(FOTO_LAB[v]))+'</span>')+
       '</div>'; }).join('');
   box.querySelectorAll('[data-foto]').forEach(b=>{ b.onclick=()=>{ fotoVistaAttesa=b.getAttribute('data-foto');
-    const inp=$('foto-file'); if(inp){ inp.value=''; inp.click(); } }; });
+    const inp=$('foto-file'); if(inp){ inp.value=''; inp.click(); } }; });   /* nell'APK nativo.js chiede «Scatta (con la sagoma)» o «Galleria» */
   box.querySelectorAll('[data-fotox]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); fotoRimuovi(b.getAttribute('data-fotox')); }; });
 }
 
@@ -927,6 +1063,7 @@ function navEntra(){ navLivelli++; try{ history.pushState({tms:navLivelli},''); 
 function navIndietro(){ if(navLivelli>0){ try{ history.back(); return; }catch(e){} } risali(); }
 /* dove si torna: prima si chiudono gli overlay, poi si risale di schermata */
 function risali(){
+  if($('cam') && !$('cam').hidden){ camChiudi(); return true; }
   const vov=$('vov'); if(vov && vov.style.display==='flex'){ chiudiVideo(); return true; }
   const qrov=$('qrov'); if(qrov && qrov.style.display==='flex'){ qrov.style.display='none'; return true; }
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
@@ -1306,7 +1443,7 @@ $('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; 
 $('bil-riprova').onclick=()=>{ bilEsci(); bilAvvia(); };
 $('bil-dimentica').onclick=()=>{ try{ localStorage.removeItem(BIL_KEY_ID); }catch(e){} bilEsci(); renderBil(); bilAvvia(); };
 /* app in secondo piano: il Bluetooth si ferma; tornando sulla pagina Bilancia riparte */
-document.addEventListener('visibilitychange',()=>{ if(document.hidden) bilEsci(); else if(!$('bil').hidden) bilAvvia(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ bilEsci(); if(!$('cam').hidden){ camFerma(); } } else { if(!$('bil').hidden) bilAvvia(); if(!$('cam').hidden) camAvviaFlusso().catch(()=>{}); } });
 /* barra della vista esercizio a schermo pieno */
 /* controlli fissi della barra timer di recupero */
 $('t-pause').onclick=timerToggle;

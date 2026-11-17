@@ -10,7 +10,11 @@ PWA ai clienti. `docs/app/` resta come **sorgente** dell'APK: si modifica lì e 
 
 Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da un browser:
 
-- **Foto progressi**: prima di aprire la fotocamera chiede «Scatta una foto» o «Scegli dalla galleria».
+- **Foto progressi**: chiede «Scatta una foto» o «Scegli dalla galleria». Dalla 1.2.3 lo scatto si fa nella
+  **fotocamera dell'app con la sagoma** della vista (fronte, lato, retro; riquadro 3:4, testa sulla riga in
+  alto, metà coscia su quella in basso), con la foto di prima in trasparenza e l'autoscatto da 3 o 10 s:
+  così le foto sono sempre inquadrate uguali. Serve il permesso «Fotocamera» (Android lo chiede la prima
+  volta); senza, si ripiega sulla fotocamera del telefono.
 - **Avvisi e conferme** in stile app, mai le finestre di sistema.
 - **Tasto indietro** del telefono: risale di una schermata; dal menu chiude l'app.
 - Niente invito a «installare l'app» (lo è già). I link del sito e dei QR si aprono nel browser.
@@ -87,7 +91,7 @@ Funziona solo perché ogni versione è firmata con la **stessa chiave** (vedi so
 | `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, scelta foto, `window.tmsIndietro`, `window.tmsCartella` (cartella condivisa e APK nuovo, plugin `TmsCartella`), `window.tmsAvvisi` (promemoria), `window.tmsBLE` (trasporto Bluetooth della pagina Bilancia: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; il protocollo e la formula stanno nella PWA). Sostituisce funzioni globali della PWA (`isStandalone`, `alert`) e avvolge `avvia` |
 | `nativo/TmsFilePlugin.java` | plugin Capacitor «TmsFile»: `info` (versione di Android) e tasto indietro |
 | `nativo/TmsCartellaPlugin.java` | plugin «TmsCartella»: scelta della cartella condivisa (permesso persistente), lettura, scrittura ed elenco per percorso relativo, installazione dell'APK nuovo con controllo dell'impronta |
-| `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, via «Apri con» dal manifest, fotocamera visibile (`<queries>`), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |
+| `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, via «Apri con» dal manifest, fotocamera visibile (`<queries>`), permesso della fotocamera (sagoma), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |
 | `scripts/immagini.ps1` | icona adattiva, icone e stella d'avvio da `docs/app/icon-512.png` |
 | `test/prova-nativo.js` | prova in jsdom con un plugin finto (`npm run prova`, da questa cartella) |
 

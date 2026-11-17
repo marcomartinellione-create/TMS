@@ -572,8 +572,11 @@ telefono non ha la banca alimenti), riscaldamento, «l'ultima volta», catalogo 
 altezza/età/sesso per la bilancia e video vanno SOLO dal PC al telefono.
 
 **SUL TELEFONO** l'app si apre su un menu: «🏋 Scheda allenamento», «🍖 Alimentazione» (piano in
-sola lettura, grammi in evidenza), «📸 Foto progressi» (fronte/lato/retro, scatto o galleria;
-rimpicciolite a 1280 px JPEG), «⚖ Bilancia» e «⚙ Collegamento e promemoria». Il tasto indietro
+sola lettura, grammi in evidenza), «📸 Foto progressi» (fronte/lato/retro, galleria oppure FOTOCAMERA DELL'APP con la
+SAGOMA della vista: riquadro 3:4, testa sulla riga in alto al 30%, metà coscia su quella in basso al
+78%, inquadratura ricavata dai selfie allo specchio dell'utente ma disegno generico; a richiesta la
+foto di prima in trasparenza e l'autoscatto da 3 o 10 s; si salva esattamente il riquadro visto;
+senza permesso della fotocamera si ripiega su quella del telefono; rimpicciolite a 1280 px JPEG), «⚖ Bilancia» e «⚙ Collegamento e promemoria». Il tasto indietro
 del telefono risale nell'app (video/QR, giorno → lista giorni → menu; solo dal menu l'app si
 chiude). Nella scheda si sceglie il **giorno**; ogni giornata è una **seduta in tre fasi** (tab):
 🔥 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con video, stretching o cardio a

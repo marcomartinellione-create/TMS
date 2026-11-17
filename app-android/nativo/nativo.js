@@ -4,7 +4,7 @@
    un altro modo:
    · avvisi e conferme in stile app (mai le finestre di sistema): window.alert e tmsConferma,
      che scripts/prepara-www.js mette al posto dei confirm() della PWA;
-   · foto progressi: si sceglie se scattarla o prenderla dalla galleria;
+   · foto progressi: si sceglie se scattarla (fotocamera dell'app con la sagoma) o prenderla dalla galleria;
    · tasto indietro del telefono (window.tmsIndietro, chiamata dal plugin);
    · bilancia Bluetooth: window.tmsBLE, il trasporto della pagina «⚖ Bilancia» della PWA;
    · cartella condivisa col TMS sul PC e aggiornamento dell'APK: window.tmsCartella (plugin TmsCartella);
@@ -13,7 +13,7 @@
    I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app). Dal 17/11/2026 la
    scheda arriva solo dalla cartella condivisa (scheda collegata): niente più file Scheda/Rientro. */
 /* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa,
-   avvia, risali, chiudiVideo, mostraInstallHint, bilAggiornaMenu, colRender,
+   avvia, risali, chiudiVideo, mostraInstallHint, camApri, bilAggiornaMenu, colRender,
    avvRender, avvPianifica */
 (function(){
 'use strict';
@@ -25,7 +25,8 @@ const SITO='https://marcomartinellione-create.github.io/TMS/';
 Object.assign(TT.en,{
   'OK':'OK',
   'Scatta una foto':'Take a photo',
-  'con la fotocamera del telefono':'with the phone’s camera',
+  'con la sagoma, sempre inquadrata uguale':'with the silhouette, always framed the same',
+  'Senza il permesso della fotocamera non posso mostrare la sagoma: apro la fotocamera del telefono.':'Without camera permission I can’t show the silhouette: opening the phone’s camera.',
   'Scegli dalla galleria':'Choose from the gallery',
   'una foto che hai già':'a photo you already have',
   'le notifiche di TMS Scheda sono spente nelle impostazioni del telefono':'TMS Scheda notifications are turned off in the phone settings',
@@ -72,18 +73,24 @@ try{ mostraInstallHint(); }catch(e){}
 { const a=document.querySelector('footer a'); if(a){ a.href=SITO; a.target='_blank'; a.rel='noopener'; }
   const v=$('cver'); if(v&&VERSIONE_APK) v.textContent='v'+CVER+' · APK '+VERSIONE_APK; }
 
-/* ── foto progressi: Android non offre la fotocamera nel selettore dei file, quindi si chiede
-      prima da dove prenderla; poi lavora la PWA come sempre (rimpicciolisce e salva) ── */
+/* ── foto progressi: si chiede prima da dove prenderla. «Scatta» apre la fotocamera DENTRO l'app con
+      la sagoma della vista (camApri, nella PWA), così le foto sono sempre inquadrate uguali; se la
+      fotocamera non si apre (permesso negato) si ripiega su quella del telefono. La galleria resta
+      com'era: poi lavora la PWA (rimpicciolisce e salva) ── */
 { const ff=$('foto-file'); let libero=false;
   if(ff) ff.addEventListener('click',e=>{
     if(libero){ libero=false; return; }
     e.preventDefault();
     const voce=(ic,t1,t2)=>'<span class="ic">'+ic+'</span><span>'+esc(t1)+'<small>'+esc(t2)+'</small></span>';
     finestra('<h3 style="margin:2px 0 4px;color:#9a5b1f;text-align:center">'+esc(tt(FOTO_LAB[fotoVistaAttesa]||'Foto progressi'))+'</h3>',[
-      {cls:'dove-btn',html:voce('📷',tt('Scatta una foto'),tt('con la fotocamera del telefono')),valore:'camera'},
+      {cls:'dove-btn',html:voce('📷',tt('Scatta una foto'),tt('con la sagoma, sempre inquadrata uguale')),valore:'camera'},
       {cls:'dove-btn',html:voce('🖼',tt('Scegli dalla galleria'),tt('una foto che hai già')),valore:'galleria'},
       {cls:'btn-lite',html:esc(tt('Annulla')),valore:null}],null)
-    .then(via=>{ if(!via) return;
+    .then(async via=>{ if(!via) return;
+      if(via==='camera' && typeof window.camApri==='function'){
+        let aperta=false; try{ aperta=await window.camApri(fotoVistaAttesa); }catch(e2){ aperta=false; }
+        if(aperta) return;
+        tmsAvviso(tt('Senza il permesso della fotocamera non posso mostrare la sagoma: apro la fotocamera del telefono.')); }
       if(via==='camera') ff.setAttribute('capture','environment'); else ff.removeAttribute('capture');
       libero=true; ff.click(); });
   }); }

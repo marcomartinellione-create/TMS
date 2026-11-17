@@ -97,7 +97,7 @@ async function apri(opz = {}) {
     const { d, w } = a;
     ok(d.getElementById('menu').hidden === false, 'avvio: scheda salvata → menu');
     ok(d.getElementById('install-hint').hidden && d.getElementById('install-hint-2').hidden, 'niente invito a installare (è già un\'app)');
-    ok(d.getElementById('cver').textContent.includes('APK ' + VERSIONE) && /v2\.\d/.test(d.getElementById('cver').textContent), 'piede: versione della PWA + versione dell\'APK');
+    ok(d.getElementById('cver').textContent.includes('APK ' + VERSIONE) && /v\d+\.\d/.test(d.getElementById('cver').textContent), 'piede: versione della PWA + versione dell\'APK');
     { const l = d.querySelector('footer a'); ok(l.href === 'https://marcomartinellione-create.github.io/TMS/' && l.target === '_blank', 'piede: il link al sito si apre nel browser'); }
     ok(!d.getElementById('file-scheda') && !d.getElementById('invia') && !d.getElementById('doveov') && !d.getElementById('bil-invia'), 'niente più file Scheda/Rientro: né «Carica la scheda», né «Crea il file per il coach», né «Manda solo le pesate»');
     ok(w.eval('typeof navigator.serviceWorker === "undefined" || true') && !/serviceWorker\.register/.test(d.documentElement.innerHTML), 'niente service worker nell\'APK');
@@ -152,8 +152,11 @@ async function apri(opz = {}) {
     d.querySelector('[data-foto="lato"]').click(); await attendi();
     ok(passato === false && a.dlg() && /Lato/.test(a.dlg().textContent), 'foto: prima di aprire il selettore chiede da dove (titolo = la vista)');
     ok(a.bottoniDlg().length === 3 && /Scatta una foto/.test(a.bottoniDlg()[0].textContent) && /galleria/.test(a.bottoniDlg()[1].textContent), 'foto: Scatta · Galleria · Annulla');
+    ok(/sagoma/.test(a.bottoniDlg()[0].textContent), 'foto: «Scatta una foto» con la sagoma, sempre inquadrata uguale');
+    a.bottoniDlg()[0].click(); await attendi(120);
+    ok(/permesso della fotocamera/.test(a.testoDlg()) && passato === true && d.getElementById('foto-file').getAttribute('capture') === 'environment',
+       'foto: senza fotocamera nell\'app (o senza permesso) lo dice e ripiega sulla fotocamera del telefono');
     a.bottoniDlg()[0].click(); await attendi();
-    ok(passato === true && d.getElementById('foto-file').getAttribute('capture') === 'environment', 'foto: «Scatta» apre la fotocamera (capture)');
     passato = null; d.querySelector('[data-foto="fronte"]').click(); await attendi();
     a.bottoniDlg()[1].click(); await attendi();
     ok(passato === true && !d.getElementById('foto-file').hasAttribute('capture'), 'foto: «Galleria» apre il selettore delle immagini');
@@ -169,6 +172,32 @@ async function apri(opz = {}) {
     ok(a.d.getElementById('benvenuto').hidden === false && a.d.getElementById('col-da-ben').hidden === false && a.d.getElementById('ben-solo-apk').hidden === true,
        'senza scheda: benvenuto con «🔗 Collega al TMS sul PC»');
     ok(typeof a.reg.ascolti.fileRicevuto === 'undefined', 'niente più «Apri con»: la pagina non ascolta file in arrivo');
+    a.dom.window.close(); }
+
+  /* ── fotocamera dentro l'app con la sagoma (getUserMedia finto) ── */
+  { const a = await apri(), { w, d } = a;
+    const fermate = [];
+    Object.defineProperty(w.navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async vincoli => {
+      a.reg.vincoli = vincoli; return { getTracks: () => [{ stop: () => fermate.push(1) }] }; } } });
+    w.HTMLMediaElement.prototype.play = async function(){};
+    d.getElementById('vai-foto').click();
+    d.querySelector('[data-foto="lato"]').click(); await attendi();
+    a.bottoniDlg()[0].click(); await attendi(150);
+    ok(d.getElementById('cam').hidden === false && /Lato/.test(d.getElementById('cam-titolo').textContent) && d.querySelector('#cam-sagoma svg use[href="#sg-lato-cam"]'),
+       'fotocamera: si apre dentro l\'app con la sagoma della vista (lato)');
+    ok(a.reg.vincoli && a.reg.vincoli.video.facingMode === 'environment' && !a.dlg(), 'fotocamera: parte quella posteriore, nessun avviso');
+    ok(d.getElementById('cam-prima-btn').disabled === true, 'fotocamera: senza una foto di prima, il pulsante «foto di prima» è spento');
+    d.getElementById('cam-timer').click(); ok(/3 s/.test(d.getElementById('cam-timer').textContent), 'fotocamera: autoscatto 0 → 3 s');
+    d.getElementById('cam-timer').click(); d.getElementById('cam-timer').click();
+    ok(JSON.stringify(w.eval('camRitaglio(1920,1080)')) === JSON.stringify({ x: 555, y: 0, w: 810, h: 1080 }) && JSON.stringify(w.eval('camRitaglio(1080,1920)')) === JSON.stringify({ x: 0, y: 240, w: 1080, h: 1440 }),
+       'fotocamera: si salva il riquadro 3:4 al centro, lo stesso che si vede');
+    w.tmsIndietro(); await attendi(80);
+    ok(d.getElementById('cam').hidden === true && fermate.length >= 1 && d.getElementById('foto').hidden === false, 'tasto indietro: chiude la fotocamera (spenta) e torna alle foto');
+    w.eval('FOTO.fronte={img:"data:image/jpeg;base64,AAAA",data:"2026-11-16"}');
+    await w.eval('camApri("fronte")'); await attendi();
+    d.getElementById('cam-prima-btn').click();
+    ok(d.getElementById('cam-prima').hidden === false && /AAAA/.test(d.getElementById('cam-prima').src), 'fotocamera: «foto di prima» la mostra in trasparenza per allinearsi');
+    w.tmsIndietro(); await attendi(80);
     a.dom.window.close(); }
 
   /* ── inglese ── */

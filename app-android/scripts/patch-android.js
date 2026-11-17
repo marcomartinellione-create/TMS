@@ -95,8 +95,13 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
   if (!s.includes('android.permission.REQUEST_INSTALL_PACKAGES')) {
     s = s.replace('</manifest>', '    <!-- TMS: aggiornamento dell\'APK dalla cartella condivisa -->\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n</manifest>');
   }
+  /* foto progressi con la sagoma: la fotocamera si apre DENTRO l'app (getUserMedia della pagina), e
+     Android la concede solo se l'app dichiara la fotocamera; non obbligatoria per installare l'app */
+  if (!s.includes('android.permission.CAMERA')) {
+    s = s.replace('</manifest>', '    <!-- TMS: fotocamera dentro l\'app (foto progressi con la sagoma) -->\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n</manifest>');
+  }
   scrivi(f, s);
-  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK');
+  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera');
   /* icona dei promemoria (barra delle notifiche): una sagoma bianca, Android la colora da sé */
   scrivi(path.join(RES, 'drawable', 'ic_stat_tms.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona dei promemoria (bilancia). Generato da scripts/patch-android.js -->\n' +
