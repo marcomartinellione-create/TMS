@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.25 (2026-11-17). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.26 (2026-11-17). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -96,10 +96,6 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   più qui: si sceglie direttamente nel tab Alimentazione.) Bottoni:
   «Attiva», «✎ Modifica parametri», «✏ Rinomina», «✕ Elimina» (quest'ultimo solo se
   esiste più di un profilo).
-- **Nella riga di ogni profilo**, a destra, due bottoni sempre visibili (senza aprire
-  la tendina): «📲 Esporta scheda» e «🔄 Importa rientro» — lo scambio col cliente,
-  vedi sezione 8. Lavorano sul profilo della riga: se non è quello attivo, l'app lo
-  attiva da sola.
 - In fondo alla pagina: «Backup (tutti i profili insieme)» con «⭳ Backup dati»
   (esporta TUTTO in un file JSON), «⭳ Backup completo (con foto)» e «⭱ Ripristina»
   (reimporta, sostituendo i dati attuali previa conferma). DIFFERENZA: il backup dati
@@ -412,9 +408,9 @@ Due modi per registrare una seduta:
   è in un archivio dedicato (pulsante «📏 Misure» in cima al tab Profilo), con le colonne
   «Acqua %» e «N. pesate».
 - **Pesate della bilancia** (riquadro «⚖ Pesate della bilancia» nel tab Corpo, visibile solo
-  se ce ne sono): pesate di una bilancia Bluetooth arrivate col rientro dell'app del telefono
-  (campo 'pesate' del rientro), salvate in corpo.json (DOC.pesate; gli id tolti a mano in
-  DOC.pesate_scartate, così un rientro successivo non li riporta). Ogni pesata porta data, ora,
+  se ce ne sono): pesate di una bilancia Bluetooth arrivate da sole dall'app del telefono
+  collegata, salvate in corpo.json (DOC.pesate; gli id tolti a mano in DOC.pesate_scartate,
+  così se arrivano di nuovo non tornano). Ogni pesata porta data, ora,
   peso e, se la bilancia ha misurato con le maniglie, la composizione già calcolata dal
   telefono (grasso %, acqua %, muscolo kg, ossa kg, proteine %, viscerale, metabolismo basale,
   età metabolica) più le impedenze grezze, che si conservano soltanto. All'import, per ogni
@@ -518,153 +514,99 @@ fasi del peso, boxplot) · «Carico e correlazioni» (confronto tra fasi del TL,
 correlazione con ritardo temporale, lag). Tutto ricalcolato al volo dai dati, niente da
 configurare.
 
-## 8 · Le due app: TMS (principale) e TMS Scheda (taccuino) — scambio scheda
+## 8 · Le due app: TMS (principale) e TMS Scheda (taccuino) — la scheda collegata
 
 CONCETTO CHIAVE da spiegare all'utente: il TMS desktop è l'**app principale** — il
 centro di comando dove si CREA (scheda pesi, piano alimentare) e si ANALIZZA (storico,
-grafici 1RM/TL/ACWR, misure, foto, report). L'app gratuita **«TMS Scheda»** per
-smartphone è la sua **derivata**: un **taccuino digitale da palestra** che non crea
-nulla — riceve scheda e dieta dal TMS, le mostra DURANTE l'allenamento (esercizi coi
-video, grammi della dieta) e raccoglie le annotazioni sul momento (serie, peso, RIR,
-note, fatica). Il flusso è un cerchio: il PC progetta → il telefono annota → i dati
-tornano al PC e diventano storico e grafici.
-Due modi d'uso: ① **coach + atleta** — il coach ha il TMS completo (un profilo per
-cliente), l'atleta ha SOLO TMS Scheda sul telefono (niente PC, niente TMS); ② **atleta
-autonomo** — la stessa persona usa entrambi: programma sul PC, annota col telefono,
-reimporta su di sé (i passi sotto valgono identici, «cliente» = sé stessi).
-TMS Scheda è un'app Android (APK) che il coach manda al cliente come file: si installa
-toccandolo (fuori dal Play Store: va consentita l'installazione da quella fonte), funziona
-offline e si aggiorna installando sopra l'APK nuovo. Solo Android: gli iPhone non installano
-APK. La scheda viaggia come file via chat/email. Nessun server: i dati restano
-nei dispositivi.
-1. **Esporta** — tab «👤 Profilo», riga del cliente, bottone «📲 Esporta scheda»:
-   nasce «Scheda_profilo_data.json» (tipo interno 'tms-scheda') con la scheda giorno
-   per giorno, il previsto e — se il piano della fase attiva non è vuoto — anche la
-   **dieta** (campo 'dieta': pasti, alimenti, grammi, kcal/macro precalcolati, perché
-   il cliente non ha la banca alimenti). Un popup chiede il TIPO di scheda: FISSA
-   (sola compilazione, come le versioni precedenti) o MODIFICABILE (il cliente può
-   anche aggiungere/eliminare/modificare esercizi e segnare i test del massimale 1RM);
-   la scelta è nel campo 'modificabile' del file (default false = fissa). Con la scheda
-   modificabile il file porta anche il **catalogo del coach** (campo 'catalogo': nome +
-   gruppo dei soli esercizi da pesi, ~750 voci, circa 38 KB): nell app del telefono
-   (dalla v2.5) il nome di un esercizio aggiunto si cerca in quell elenco e al salvataggio
-   viene RIFIUTATO se non c e' — nel TMS del coach si possono importare solo quelli,
-   altrimenti arriverebbero senza muscoli né fattore. Si salva il nome esatto del catalogo
-   (maiuscole comprese), perché è la chiave dei dati. Senza catalogo nel file (export
-   di versioni precedenti) l app lascia il testo libero come prima. Alla domanda
-   sui video: includendoli il cliente vede le esecuzioni offline nell'app ma il file pesa di più.
-2. **Il cliente compila nell'app** — salva il file sul telefono e lo carica in TMS
-   Scheda con «📂 Carica la scheda»: la scheda resta memorizzata nell'app (la ritrova
-   a ogni apertura, con la **bozza salvata da sola** mentre compila; dalla v2.2 il
-   **tasto indietro del telefono** risale nell'app invece di chiuderla — video/QR aperti,
-   poi riepilogo → giorno → lista giorni → menu, solo da lì l'app si chiude davvero).
-   L'app si apre su un **menu con tre sezioni**: «🏋 Scheda allenamento», «🍖 Alimentazione»
-   (piano in sola lettura: pasti coi grammi in evidenza e kcal; se il file non contiene
-   la dieta la sezione appare disattivata) e «📸 Foto progressi» (dalla v2.2: tre riquadri
-   fronte/lato/retro, scatto da fotocamera o scelta da galleria; le foto vengono
-   RIMPICCIOLITE — lato lungo 1280px, JPEG — prima di essere incorporate nel rientro).
-   Solo nell'APK (serve il Bluetooth del telefono) c'è anche «⚖ Bilancia»: bilance a 8
-   elettrodi della famiglia FitDays/iComon (Healthkeep FG2001B-A, Fitdays FG2202WB…). La
-   bilancia manda solo peso e 10 impedenze (tronco, braccia, gambe a 20 e 100 kHz); la
-   composizione la calcola l'app con la formula WLA25 ricostruita da openScale (riscritta da
-   zero), usando altezza, età e sesso che arrivano nella scheda (campo 'corpo'). Il grasso e il
-   muscolo per singolo braccio o gamba NON si calcolano (FitDays usa un algoritmo non pubblico).
-   Confrontata con un rapporto reale di FitDays, tutti i valori dopo il grasso seguono le stesse
-   derivazioni della WLA25, ma il grasso di FitDays era più alto di circa un punto: per quel
-   modello FitDays usa un'altra formula del grasso. La pesata si salva da sola sul
-   telefono (una lista per profilo, che una scheda nuova non cancella), si toglie col 🗑 con
-   conferma sulla riga, e parte nel rientro (campo 'pesate', tutte: il TMS riconosce quelle già
-   arrivate) o da sola con «📤 Manda solo le pesate» (rientro con righe vuote). L'app accetta
-   solo un risultato arrivato dopo il peso in diretta (non quello ripetuto al collegamento),
-   conferma i messaggi alla bilancia e si ricorda la bilancia trovata; fuori dalla pagina il
-   Bluetooth si ferma. Permessi: «Dispositivi nelle vicinanze» senza posizione (fino ad
-   Android 11 Android pretende la posizione accesa per cercare dispositivi Bluetooth).
-   TELEFONO COLLEGATO (APK 1.2, TMS sul PC: modulo 15c-telefono.js): oltre ai file
-   Scheda/Rientro, PC e app possono scambiarsi tutto da soli attraverso una CARTELLA
-   CONDIVISA, come Movienaitor: sul PC una cartella di Google Drive per desktop (di solito
-   My Drive › 6 - TMS), scelta in ⚙ Impostazioni › 🔗 Telefono collegato (il percorso lo tiene
-   il processo principale di Electron: la pagina chiede solo file .json relativi a quella
-   cartella, con scrittura atomica e senza uscite); sul telefono una cartella tenuta uguale
-   da un'app di sincronizzazione bidirezionale (Autosync, FolderSync…), scelta in «⚙
-   Collegamento e promemoria». Struttura: <profilo>/dal-pc/stato.json, scheda.json e
-   video.json (li scrive SOLO il PC), <profilo>/dal-telefono/scheda.json ed eventi/*.json (li
-   scrive SOLO il telefono; il PC toglie un evento DOPO averlo salvato su disco), apk/versione.json +
-   apk/TMS-Scheda-x.y.z.apk (li mette «Crea APK.bat»). Tutto tranne l'APK è CIFRATO con
-   AES-GCM, chiave PBKDF2-SHA256 (150 000 giri) dal CODICE DI COLLEGAMENTO di 16 segni che il
-   PC crea e si scrive una volta sul telefono: Google vede solo file illeggibili, e il
-   sigillo della cifratura scopre anche i file arrivati a metà (si saltano e si riprovano,
-   mai cancellati). SCHEDA COLLEGATA (richiesta dell'utente: «le modifiche di uno modificano
-   l'altra e solo a Salva si cristallizza»): collegato il profilo («Collega la scheda di
-   questo profilo»), la scheda settimanale del tab Pesi e quella del telefono sono la stessa,
-   modificabile dalle due parti (valori, note, recupero, ★ test, esercizi aggiunti, tolti,
-   rinominati o spostati, fatica e durata). Ogni riga ha un id stabile (campo uid, anche nella
-   scheda Pesi) e ogni campo l'ora dell'ultima modifica; a ogni giro ognuno data i campi
-   cambiati da sé rispetto all'ultima scheda unita, legge il file dell'altro e unisce campo per
-   campo: VINCE L'ORA PIÙ RECENTE (una riga tolta lascia un segno per un mese). Sul telefono i
-   campi sono la scheda (RIR e note già scritti, niente «previsto» ripetuto); se c'era una
-   scheda caricata da file chiede una volta se sostituirla. Mentre si scrive in un campo
-   l'unione aspetta il giro dopo. Le righe del PC senza esercizio (giorno appena aggiunto)
-   restano solo sul PC. «💾 Salva nello Storico» CRISTALLIZZA: la settimana va nello Storico,
-   il numero della settimana sale, fatica, durata e spunte ✔ si azzerano anche sul telefono;
-   la scheda resta collegata e fa da base alla settimana dopo. Dieta, riscaldamento, «ultima
-   volta», catalogo e video vanno solo dal PC al telefono. Pesate e foto sono un file ciascuna: il PC le
-   importa (pesate come sopra, foto nel tab Corpo con un id che evita i doppioni), le segna
-   fra le «ricevute» e sul telefono compare «✔ al PC». Il PC controlla la cartella ogni 20
-   secondi a TMS aperto, il telefono ogni minuto ad app aperta. Un telefono per profilo.
-   AGGIORNAMENTO DELL'APK: se in apk/versione.json c'è una versione più alta di quella
-   installata, l'app la propone, copia l'APK, ne controlla l'impronta SHA-256 e lo passa
-   all'installer di Android (conferma dell'utente; la prima volta «Installa app sconosciute»).
-   PROMEMORIA (notifiche locali, in «⚙ Collegamento e promemoria»): ogni sera all'ora scelta
-   (predefinita 21:00) la pesata, il lunedì anche le foto; si programmano i 28 giorni
-   successivi e si ricalcolano a ogni apertura, pesata o foto: se quel giorno la pesata (o le
-   foto) c'è già, quello della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
-   Nella scheda sceglie il **giorno** da un elenco; ogni giornata è una **seduta in tre
-   fasi** (tab): 🔥 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con
-   video, stretching o cardio a minuti, NON torna nel rientro), 🏋 Esercizi, ✅ Fine.
-   Dalla v2.2 (richiesta esplicita dell'utente: «niente sotto-menù, troppi click») i campi
-   di TUTTI gli esercizi della fase sono **già visibili insieme** nella lista — non c'è
-   più una vista a schermo pieno da aprire; sotto ogni esercizio compare **«l'ultima
-   volta»** (ultima prestazione dallo Storico, campo 'ultima' nel file). Una spunta ✔ e
-   una barra di avanzamento segnano gli esercizi toccati. Inserisce ciò che ha fatto
-   davvero (serie, ripetizioni, peso, RIR, note per esercizio). Nella fase Fine: se il
-   profilo usa il Session-RPE (campo 'rpe' del file scheda) trova fatica 0-10 e durata;
-   se NON lo usa, trova solo una **casella «Giorno completato»** (nel rientro diventa
-   {giorno,fatto:true} dentro 'sedute'). Ogni esercizio ha un **timer di recupero**
-   (bottone ⏱ che parte dal tempo di riposo della scheda, con pausa e +15/-15; disponibile
-   in FISSA e MODIFICABILE). Se la scheda è MODIFICABILE il cliente può anche
-   **aggiungere/eliminare/modificare** esercizi (rinomina, sposta di giorno, ritocca il
-   previsto) e segnare i **test del massimale (★)**: aggiunte ed eliminazioni e il flag
-   'test' tornano nel rientro (l'import ricostruisce la scheda Pesi dalle righe). NOTA:
-   il campo **RIR parte sempre vuoto** (non eredita il valore del coach: si inserisce
-   dopo l'allenamento; il previsto resta indicato sopra i campi). Guarda i ▶ video, e
-   preme «📩 Crea il file per il coach» (prima vede un **riepilogo** di quanto ha
-   segnato): nasce «Rientro_profilo_data.json» (formato 'tms-rientro', con in più il
-   campo opzionale 'foto': [{tag,data,img}] se ha scattato foto) da rimandare al coach.
-   Dalla v2.6 un menu **«Dove salvo il rientro?»** lascia scegliere, mostrando solo le
-   strade che quel dispositivo supporta davvero: «Invia o salva con…» (condivisione del
-   telefono: WhatsApp, email, Drive, «Salva in File» su iPhone), «Scegli la cartella…»
-   (dove il browser lo permette, di solito Chrome su PC: si decidono cartella e nome) e
-   «Salva nei Download» (sempre presente). Il tasto indietro del telefono chiude il menu.
-   Il **riscaldamento** viaggia nella scheda (campo 'riscaldamento') ma è solo informativo:
-   NON entra nel rientro e non conta in alcun calcolo.
-3. **Importa** — riga del cliente, «🔄 Importa rientro»: si sceglie il file e l'allenamento
-   del cliente viene **caricato nella scheda 🏋 Pesi** (NON scritto subito nello Storico);
-   se il cliente non usa il Session-RPE, i giorni con 'fatto:true' vengono contati e mostrati
-   nell'avviso come «giorni segnati come completati». Le eventuali **foto** ('foto' nel
-   rientro) vengono decodificate e salvate come file veri in TMS_Dati/<profilo>/foto/ +
-   metadati in DOC.foto (stesso formato delle foto aggiunte a mano dal tab Corpo — tag
-   fronte/lato/retro), tramite 'importaFotoRientro'. Il coach rivede la scheda Pesi,
-   eventualmente corregge, poi preme «💾 Salva nello Storico» scegliendo la settimana: solo
-   allora entra nello Storico (con sedute e RPE) e alimenta TL/ACWR/grafici. Questo dà al
-   coach un controllo manuale prima del salvataggio. Le eventuali **pesate della bilancia**
-   ('pesate' nel rientro) invece vanno da sole nello Storico misure (media per settimana,
-   vedi la voce «Pesate della bilancia» nella sezione dei tab), tramite 'importaPesate'. Un
-   rientro può portare anche SOLO le pesate (righe vuote): allora la scheda Pesi non si tocca
-   e si apre il tab Corpo. La scheda esportata porta 'corpo' (altezza, sesso, età): servono al
-   telefono per calcolare la composizione dalla bilancia.
-Controlli all'import: file non valido → errore chiaro; profilo diverso da quello
-della riga → richiesta conferma; esercizi fuori catalogo → avviso con elenco;
-scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
+grafici 1RM/TL/ACWR, misure, foto, report). **«TMS Scheda»** è l'app Android (APK) per il
+telefono: un **taccuino digitale da palestra** che mostra scheda e dieta DURANTE l'allenamento
+(esercizi coi video, grammi della dieta), raccoglie le annotazioni sul momento (serie, peso,
+RIR, note, fatica), pesa con una bilancia Bluetooth e scatta le foto dei progressi. Il flusso
+è un cerchio: il PC progetta → il telefono annota → tutto torna al PC DA SOLO e diventa
+storico e grafici. Dal 17/11/2026 (richiesta dell'utente: «togliamo importa esporta scheda /
+rientro») NON ci sono più file Scheda_….json / Rientro_….json da passare a mano: niente
+«Esporta scheda», «Importa rientro», «Carica la scheda», «Crea il file per il coach» né
+«Manda solo le pesate». Un telefono per profilo.
+TMS Scheda si installa la prima volta toccando il file APK (cartella app-android › dist del
+progetto, passato via WhatsApp, email o cavo; fuori dal Play Store va consentita
+l'installazione da quella fonte); dopo, gli aggiornamenti arrivano dalla cartella condivisa
+(vedi sotto). Solo Android.
+
+**COLLEGAMENTO** (TMS sul PC: modulo 15c-telefono.js; telefono: blocco «SCHEDA COLLEGATA» della
+PWA + plugin TmsCartella): PC e app si parlano attraverso una CARTELLA CONDIVISA, come
+Movienaitor. Sul PC una cartella di Google Drive per desktop (di solito My Drive › 6 - TMS),
+scelta in ⚙ Impostazioni › 🔗 Telefono collegato (il percorso lo tiene il processo principale di
+Electron: la pagina chiede solo file .json relativi a quella cartella, con scrittura atomica e
+senza uscite); lì si crea il CODICE DI COLLEGAMENTO (16 segni) e si preme «Collega la scheda di
+questo profilo». Sul telefono una cartella tenuta uguale da un'app di sincronizzazione
+bidirezionale (Autosync, FolderSync…), scelta in «⚙ Collegamento e promemoria», dove si scrive il
+codice. Struttura: <profilo>/dal-pc/stato.json, scheda.json e video.json (li scrive SOLO il PC),
+<profilo>/dal-telefono/scheda.json ed eventi/*.json (li scrive SOLO il telefono; il PC toglie un
+evento DOPO averlo salvato su disco), apk/versione.json + apk/TMS-Scheda-x.y.z.apk (li mette
+«Crea APK.bat»). Tutto tranne l'APK è CIFRATO con AES-GCM, chiave PBKDF2-SHA256 (150 000 giri)
+dal codice: Google vede solo file illeggibili, e il sigillo della cifratura scopre anche i file
+arrivati a metà (si saltano e si riprovano, mai cancellati). Il PC controlla la cartella ogni 20
+secondi a TMS aperto (e 2 secondi dopo ogni modifica della scheda), il telefono ogni minuto ad app
+aperta (e pochi secondi dopo ogni modifica). Senza cartella collegata il telefono non riceve la
+scheda (nel browser la PWA mostra solo il benvenuto).
+
+**SCHEDA COLLEGATA** (richiesta dell'utente: «le modifiche di uno modificano l'altra e solo a Salva
+si cristallizza»): la scheda settimanale del tab Pesi e quella del telefono sono la stessa,
+modificabile dalle due parti (serie, ripetizioni, peso, RIR, note, recupero, ★ test, esercizi
+aggiunti, tolti, rinominati o spostati di giorno, fatica e durata delle sedute). Ogni riga ha un id
+stabile (campo uid, anche nella scheda Pesi; il ＋set ne fa uno nuovo) e ogni campo l'ora
+dell'ultima modifica; a ogni giro ognuno data i campi cambiati da sé rispetto all'ultima scheda
+unita, legge il file dell'altro e unisce campo per campo: VINCE L'ORA PIÙ RECENTE (una riga tolta
+lascia un segno per un mese). Mentre si scrive in un campo l'unione aspetta il giro dopo. Le righe
+del PC senza esercizio (giorno appena aggiunto) restano solo sul PC. La prima volta il telefono
+prende la scheda del PC (se aveva una scheda caricata da file in una versione vecchia, chiede una
+volta se sostituirla). «💾 Salva nello Storico» CRISTALLIZZA: la settimana va nello Storico come
+sempre (la finestra dice quando è arrivato l'ultimo aggiornamento dal telefono), il numero della
+settimana sale, fatica, durata e spunte ✔ si azzerano anche sul telefono; la scheda resta
+collegata e fa da base alla settimana dopo. Dieta (pasti, grammi, kcal e macro già calcolati: il
+telefono non ha la banca alimenti), riscaldamento, «l'ultima volta», catalogo degli esercizi,
+altezza/età/sesso per la bilancia e video vanno SOLO dal PC al telefono.
+
+**SUL TELEFONO** l'app si apre su un menu: «🏋 Scheda allenamento», «🍖 Alimentazione» (piano in
+sola lettura, grammi in evidenza), «📸 Foto progressi» (fronte/lato/retro, scatto o galleria;
+rimpicciolite a 1280 px JPEG), «⚖ Bilancia» e «⚙ Collegamento e promemoria». Il tasto indietro
+del telefono risale nell'app (video/QR, giorno → lista giorni → menu; solo dal menu l'app si
+chiude). Nella scheda si sceglie il **giorno**; ogni giornata è una **seduta in tre fasi** (tab):
+🔥 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con video, stretching o cardio a
+minuti), 🏋 Esercizi, ✅ Fine. I campi di TUTTI gli esercizi sono **già visibili insieme**; i campi
+SONO la scheda (RIR e note compresi, come la tabella del PC); sotto ogni esercizio compare
+**«l'ultima volta»** (ultima prestazione dallo Storico). Una spunta ✔ e una barra di avanzamento
+segnano gli esercizi toccati in settimana. Nella fase Fine: se il profilo usa il Session-RPE trova
+fatica 0-10 e durata; se NON lo usa, solo una **casella «Giorno completato»**. Ogni esercizio ha un
+**timer di recupero** (bottone ⏱ che parte dal riposo della scheda, con pausa e +15/-15). Si
+possono **aggiungere/eliminare/modificare** esercizi (il nome si sceglie dal catalogo del coach:
+nel TMS si possono usare solo quelli; si salva il nome esatto) e segnare i **test del massimale
+(★)**.
+**BILANCIA** (solo nell'APK, serve il Bluetooth): bilance a 8 elettrodi della famiglia
+FitDays/iComon (Healthkeep FG2001B-A, Fitdays FG2202WB…). La bilancia manda solo peso e 10
+impedenze (tronco, braccia, gambe a 20 e 100 kHz); la composizione la calcola l'app con la formula
+WLA25 ricostruita da openScale (riscritta da zero), usando altezza, età e sesso che arrivano dal
+PC. Grasso e muscolo per singolo braccio o gamba NON si calcolano (FitDays usa un algoritmo non
+pubblico). Confrontata con un rapporto reale di FitDays, tutti i valori dopo il grasso seguono le
+stesse derivazioni della WLA25, ma il grasso di FitDays era più alto di circa un punto: per quel
+modello FitDays usa un'altra formula del grasso. La pesata si salva sul telefono (una lista per
+profilo), si toglie col 🗑 con conferma sulla riga, e va da sola al PC. L'app accetta solo un
+risultato arrivato dopo il peso in diretta (non quello ripetuto al collegamento), conferma i
+messaggi alla bilancia e si ricorda la bilancia trovata; fuori dalla pagina il Bluetooth si ferma.
+Permessi: «Dispositivi nelle vicinanze» senza posizione (fino ad Android 11 Android pretende la
+posizione accesa per cercare dispositivi Bluetooth).
+**PESATE E FOTO** sono un file ciascuno: il PC le importa (pesate con 'importaPesate': la media di
+ogni settimana va da sola nello Storico misure, vedi la voce «Pesate della bilancia»; foto con
+'importaFotoRientro': file veri in TMS_Dati/<profilo>/foto/ + metadati in DOC.foto, tag
+fronte/lato/retro, con un id che evita i doppioni), le segna fra le «ricevute» e sul telefono
+compare «✔ al PC».
+**AGGIORNAMENTO DELL'APK**: se in apk/versione.json c'è una versione più alta di quella
+installata, l'app la propone, copia l'APK, ne controlla l'impronta SHA-256 e lo passa
+all'installer di Android (conferma dell'utente; la prima volta «Installa app sconosciute»).
+**PROMEMORIA** (notifiche locali, in «⚙ Collegamento e promemoria»): ogni sera all'ora scelta
+(predefinita 21:00) la pesata, il lunedì anche le foto; si programmano i 28 giorni successivi e si
+ricalcolano a ogni apertura, pesata o foto: se quel giorno la pesata (o le foto) c'è già, quello
+della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
 
 ## 9 · Esercizi e video (tab 📖 Esercizi)
 
@@ -829,8 +771,10 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - **Stampa PDF**: senza le impostazioni indicate (A4, margini Nessuno, scala 100%,
   grafica di sfondo) il risultato può uscire tagliato.
 - **Grafici vuoti** finché non ci sono almeno 2-3 settimane salvate nello Storico.
-- **Import rientro**: AGGIUNGE righe alla settimana scelta, non sostituisce quelle
-  esistenti (l'app avvisa prima).
+- **Salva nello Storico su una settimana già salvata**: AGGIUNGE righe, non sostituisce
+  quelle esistenti (l'app avvisa prima).
+- **Telefono collegato**: quanto è «in diretta» dipende dall'app di sincronizzazione del
+  telefono (Autosync, FolderSync…) e da Google Drive per desktop; ci vuole il TMS aperto.
 - **Rinomina profilo**: cambia il nome visualizzato ma non il nome della cartella
   dati su disco (che resta quello originario). È innocuo.
 - **Niente sincronizzazione nativa multi-PC**: i dati si possono spostare con una
@@ -853,9 +797,9 @@ scheda Pesi non vuota → conferma prima di sostituirla con i dati del cliente.
 - «Cambiare formula 1RM, RIR, session-RPE» → Profilo → tendina del profilo → ✎
   Modifica parametri.
 - «Cambiare la fase alimentare (Bulk/Mant/Cut)» → Alimentazione → bottoni in cima al tab.
-- «Mandare la scheda a un cliente» → Profilo → riga del cliente → 📲 Esporta scheda.
-- «Registrare ciò che il cliente ha fatto» → Profilo → riga del cliente → 🔄 Importa
-  rientro (file Rientro_*.json che il cliente rimanda).
+- «Avere la scheda sul telefono» → ⚙ Impostazioni › 🔗 Telefono collegato (cartella, codice,
+  «Collega la scheda di questo profilo») e, sul telefono, ⚙ Collegamento e promemoria. Da lì la
+  scheda è la stessa sui due e quello che si scrive in palestra arriva da solo nei Pesi.
 - «Salvare l'allenamento della settimana» → Pesi → 💾 Salva nello Storico.
 - «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,
   durata, RPE; FC media facoltativa per il TRIMP).

@@ -44,7 +44,7 @@ function preparaIndex() {
     "if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }",
     "/* APK: niente service worker, i file sono già dentro l'app (app-android/scripts/prepara-www.js) */",
     1, 'registrazione del service worker');
-  html = sostituisci(html, /(^|[^.\w])confirm\(/g, '$1await tmsConferma(', 6, 'conferme di sistema confirm()');
+  html = sostituisci(html, /(^|[^.\w])confirm\(/g, '$1await tmsConferma(', 5, 'conferme di sistema confirm()');
   html = sostituisci(html, 'function delEsercizio(rid){', 'async function delEsercizio(rid){', 1, 'funzione delEsercizio');
   const versione = JSON.parse(fs.readFileSync(path.join(QUI, 'package.json'), 'utf8')).version;
   html = sostituisci(html, '</body>',

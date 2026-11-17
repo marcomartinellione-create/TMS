@@ -52,10 +52,6 @@ function renderProfilo(){
           <button class="btn" data-parch="storico" data-pslug="${esc(p.slug)}" ${isAct?'id="lnk-storico"':''} title="${t('Tutte le settimane di allenamento salvate')}">${isAct?'<span id="dot-storico" class="prof-dot">●</span> ':''}📜 ${t('Storico')}</button>
           <button class="btn" data-parch="storicocorpo" data-pslug="${esc(p.slug)}" ${isAct?'id="lnk-misure"':''} title="${t('Tutte le misure corporee salvate')}">${isAct?'<span id="dot-misure" class="prof-dot">●</span> ':''}📏 ${t('Misure')}</button>
         </span>
-        <span class="gruppo no-print" title="${t('Scambio della scheda col cliente (app TMS Scheda sul telefono)')}">
-          <button class="btn" data-pexs="${esc(p.slug)}" title="${t('Crea il file scheda di')} ${esc(p.nome)} ${t('da inviare al cliente (lo apre nell\'app TMS Scheda)')}">${t('📲 Esporta scheda')}</button>
-          <label class="btn" style="cursor:pointer" title="${t('Importa nel profilo di')} ${esc(p.nome)} ${t('il file di rientro compilato dal cliente')}">${t('🔄 Importa rientro')}<input type="file" data-prin="${esc(p.slug)}" accept="application/json,.json" style="display:none"></label>
-        </span>
       </div>${open?`<div style="padding:0 13px 12px">${body}</div>`:''}</div>`;
   }).join('');
   document.getElementById('panel-profilo').innerHTML=`
@@ -78,11 +74,6 @@ function renderProfilo(){
   { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=()=>backupData(false); }
   { const bf=document.getElementById('prof-backup-full'); if(bf) bf.onclick=()=>backupData(true); }
   { const rs=document.getElementById('prof-restore'); if(rs) rs.onchange=e=>{ if(e.target.files&&e.target.files[0]){ restoreData(e.target.files[0]); e.target.value=''; } }; }
-  /* scambio scheda nella riga del profilo: il click non apre/chiude la tendina e,
-     se il profilo non è quello attivo, l'app lo attiva prima */
-  document.querySelectorAll('#panel-profilo [data-pexs]').forEach(b=>b.onclick=async ev=>{ if(ev) ev.stopPropagation(); const slug=b.dataset.pexs; if(slug!==activeProfile){ await switchProfile(slug); } await esportaSchedaCliente(); });
-  document.querySelectorAll('#panel-profilo [data-prin]').forEach(inp=>{ const lab=inp.closest('label'); if(lab) lab.onclick=ev=>ev.stopPropagation();
-    inp.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; e.target.value=''; const slug=inp.dataset.prin; if(slug!==activeProfile){ await switchProfile(slug); } importaRientroFile(f); }; });
   /* backup automatici (e copie fatte prima di un ripristino): un solo pulsante; aperto, mostra
      tutte le copie con il loro «ripristina». Resta aperto/chiuso fra un ridisegno e l'altro. */
   { const ab=document.getElementById('prof-autobk');

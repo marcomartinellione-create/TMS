@@ -254,7 +254,7 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
       'Profilo: Storico e Misure nella riga del profilo attivo, coi pallini di stato');
     ok(d.querySelectorAll('#panel-profilo .prof-item').length === d.querySelectorAll('#panel-profilo .prof-item [data-parch="storico"]').length, 'Profilo: ogni profilo ha i suoi pulsanti Storico e Misure');
     { const g = [...d.querySelectorAll('#panel-profilo .prof-item:first-child .gruppo')];
-      ok(g.length === 2 && g[1].querySelector('[data-pexs]') && g[1].querySelector('[data-prin]'), 'Profilo: Esporta e Importa in un unico blocco di due pulsanti'); }
+      ok(g.length === 1 && !d.querySelector('#panel-profilo [data-pexs]') && !d.querySelector('#panel-profilo [data-prin]'), 'Profilo: niente più Esporta scheda / Importa rientro (la scheda è collegata al telefono)'); }
     ok(!/Il <b>pallino<\/b> accanto al nome/.test(d.getElementById('panel-profilo').innerHTML), 'Profilo: niente guida in cima alla pagina');
     ok(d.getElementById('prof-autobk') !== null && d.querySelector('.topbar .gruppo #btn-impost') && d.querySelector('.topbar .gruppo #btn-lang'), 'barra in alto: ⚙ e la lingua nello stesso blocco');
     d.getElementById('lnk-storico').click();
@@ -683,7 +683,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('showTab("profilo")');
   /* v1.0.75: bottoni di scambio nella riga di ogni profilo, visibili a tendina chiusa */
   w.eval('profOpen = null; renderProfilo()');
-  ok(d.querySelectorAll('#panel-profilo [data-pexs]').length === 2 && d.querySelectorAll('#panel-profilo [data-prin]').length === 2, 'bottoni scambio (export+import) nella riga di ogni profilo, a tendina chiusa');
+  ok(d.querySelectorAll('#panel-profilo [data-pexs]').length === 0 && d.querySelectorAll('#panel-profilo [data-prin]').length === 0, 'niente più pulsanti di scambio della scheda nella riga dei profili (la scheda è collegata al telefono)');
   ok(d.getElementById('prof-exscheda') === null && d.getElementById('prof-rientro') === null, 'bottoni scambio globali rimossi dal fondo pagina');
   ok(d.getElementById('prof-backup') !== null && d.getElementById('panel-profilo').innerHTML.includes('tutti i profili'), 'backup di tutti i profili resta in fondo pagina');
   w.eval('profOpen = activeProfile; renderProfilo()');
@@ -959,11 +959,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const schedaCli = w.eval('costruisciSchedaJSON(' + JSON.stringify(mapCli) + ', true)');
   ok(schedaCli.tipo === 'tms-scheda' && schedaCli.profilo.slug === 'template' && schedaCli.profilo.nome === 'Atleta Template' && schedaCli.righe.length > 0, 'export scheda JSON: meta profilo + righe della scheda del template');
   ok(schedaCli.modificabile === true && w.eval('costruisciSchedaJSON({}).modificabile') === false && w.eval('costruisciSchedaJSON({}, true).modificabile') === true, 'export scheda JSON: flag modificabile (default false = scheda fissa)');
-  /* v1.5: popup all'export che chiede Fissa o Modificabile */
-  w.eval('window.__mp = chiediModalitaScheda();');
-  ok(d.getElementById('ms-fissa') !== null && d.getElementById('ms-mod') !== null && d.getElementById('ms-cancel') !== null, 'export: popup con scelta Fissa / Modificabile');
-  d.getElementById('ms-mod').click();
-  ok((await w.eval('window.__mp')) === 'modificabile', 'export: la scelta «Modificabile» risolve la Promise');
+  ok(w.eval('typeof chiediModalitaScheda') === 'undefined' && w.eval('typeof esportaSchedaCliente') === 'undefined' && w.eval('typeof importaRientroFile') === 'undefined', 'niente più export della scheda né import del rientro come file');
   ok(schedaCli.righe.every(r => r.giorno && r.esercizio && typeof r.serie === 'number') && schedaCli.video[vfileCli].startsWith('data:video/'), 'export scheda JSON: righe complete + video come data-URI');
   ok(schedaCli.righe.every(r => typeof r.test === 'boolean'), 'export scheda JSON: ogni riga porta il flag test (★ 1RM), default false');
   /* v2.0: riscaldamento (sola lettura) + «l'ultima volta» dallo Storico nel file per il cliente */
@@ -990,7 +986,6 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(fs.existsSync(PWA) && fs.existsSync(path.join(ROOT, 'docs', 'app', 'manifest.webmanifest')) && fs.existsSync(path.join(ROOT, 'docs', 'app', 'sw.js')), 'app cliente: index.html + manifest + service worker presenti in docs/app/');
   const giorniCli = [...new Set(schedaCli.righe.map(r => r.giorno))];
   const bozzaKey = 'tms-bozza-template-' + schedaCli.esportata;
-  let rientroApp = null;
   {
     const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
       beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli)); } });
@@ -1051,25 +1046,16 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     sd.getElementById('s-0').dispatchEvent(new sub.window.Event('input', { bubbles: true }));
     const salvata = JSON.parse(sub.window.localStorage.getItem(bozzaKey) || '{}');
     ok(salvata['s-0'] === '5' && salvata['n-0'] === 'fatto tutto', 'app cliente: bozza autosalvata in localStorage al primo input');
-    /* rientro nel formato di sempre */
-    rientroApp = sub.window.eval('costruisciRientro()');
-    ok(rientroApp && rientroApp.tipo === 'tms-rientro' && rientroApp.versione === 1 && rientroApp.profilo.slug === 'template', 'app cliente: rientro nel formato tms-rientro (import TMS invariato)');
-    ok(rientroApp.righe.length === schedaCli.righe.length && rientroApp.righe[0].serie === 5 && rientroApp.righe[0].note === 'fatto tutto', 'app cliente: il rientro riflette ciò che il cliente ha compilato');
-    ok(rientroApp.righe[0].rir === null, 'app cliente: RIR non toccato → null nel rientro (niente valore ereditato dal coach)');
-    /* il riscaldamento NON torna al coach (solo informativo) */
-    ok(rientroApp.riscaldamento === undefined && !rientroApp.righe.some(r => /Allungamento/.test(r.esercizio)), 'app cliente v2: il riscaldamento NON entra nel rientro (solo informativo)');
+    /* quello che il telefono manda al PC (scheda collegata): i campi così come sono */
+    { const loc = JSON.parse(sub.window.eval('JSON.stringify(colLocale())'));
+      ok(loc.righe.length === schedaCli.righe.length && loc.righe[0].serie === 5 && loc.righe[0].note === 'fatto tutto' && loc.righe[0].rir === null && loc.righe[0].uid,
+         'app cliente: la scheda vista dal telefono riflette ciò che è stato scritto (ogni riga con un id suo)');
+      ok(!loc.righe.some(r => /Allungamento/.test(r.esercizio)), 'app cliente v2: il riscaldamento non entra (solo informativo)'); }
     /* avanzamento della seduta + spunta sull'esercizio compilato */
     ok(sd.getElementById('ck-0').textContent === '✔' && /1\//.test(sd.getElementById('plab-0').textContent), 'app cliente v2: spunta ✔ sull\'esercizio e avanzamento «1/n fatti»');
     ok(sd.getElementById('prog-0').style.width !== '' && sd.getElementById('prog-0').style.width !== '0%', 'app cliente v2: la barra di avanzamento si riempie');
-    /* riepilogo prima dell'invio */
-    sd.getElementById('invia').click();
-    ok(sd.getElementById('riepilogo').hidden === false && sd.querySelectorAll('#riep-body .riep-row').length === giorniCli.length, 'app cliente v2: «Crea il file» apre prima il RIEPILOGO (una riga per giorno)');
-    ok(/esercizi segnati/.test(sd.getElementById('riep-body').textContent) && sd.getElementById('invia-ok') !== null, 'app cliente v2: il riepilogo conta gli esercizi segnati e ha il bottone di invio');
-    /* i bottoni «torna» passano dalla cronologia (così il tasto indietro del telefono fa lo
-       stesso percorso): la navigazione avviene al popstate, quindi si attende un istante */
-    sd.querySelector('#riepilogo [data-home]').click();
-    await settle(60);
-    ok(sd.getElementById('home').hidden === false, 'app cliente v2: dal riepilogo si torna ai giorni');
+    ok(!sd.getElementById('invia') && !sd.getElementById('riepilogo'), 'app cliente: niente più «Crea il file per il coach» né riepilogo per il file');
+    sd.querySelector('[data-menu]').click(); await settle(60); sd.getElementById('vai-scheda').click();
     /* v2.2: il tasto INDIETRO del telefono risale nell'app invece di chiuderla */
     sd.querySelector('.day-card').click();                       /* entra nel giorno */
     ok(sd.getElementById('day-0').hidden === false, 'app cliente v2.2: si entra nel giorno');
@@ -1080,7 +1066,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     await settle(60);
     ok(sd.getElementById('menu').hidden === false, 'app cliente v2.2: un altro indietro torna al menu');
     ok(sub.window.eval('risali()') === false, 'app cliente v2.2: al menu non c\'è più nulla sopra (da lì l\'app può chiudersi)');
-    /* v2.2: sezione FOTO — tre riquadri (fronte/lato/retro) che entrano nel rientro */
+    /* v2.2: sezione FOTO — tre riquadri (fronte/lato/retro) che vanno al PC */
     ok(sd.getElementById('vai-foto') !== null && sd.getElementById('foto') !== null, 'app cliente foto: card nel menu + schermata dedicata');
     sd.getElementById('vai-foto').click();
     await settle(30);
@@ -1088,13 +1074,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok([...sd.querySelectorAll('#foto-grid .foto-box')].map(b=>b.dataset.foto).join(',') === 'fronte,lato,retro', 'app cliente foto: i tag sono quelli che il TMS si aspetta');
     ok(sd.getElementById('foto-file') !== null && sd.getElementById('foto-file').accept === 'image/*' && !sd.getElementById('foto-file').hasAttribute('capture'),
        'app cliente foto: il selettore accetta immagini e lascia scegliere fotocamera o galleria');
-    /* simula due scatti già ridimensionati e verifica che finiscano nel rientro */
+    /* simula due scatti già ridimensionati */
     sub.window.eval('FOTO={fronte:{img:"data:image/jpeg;base64,AAAA",data:"2026-08-17"},retro:{img:"data:image/jpeg;base64,BBBB",data:"2026-08-17"}}; renderFoto();');
     ok(sd.querySelectorAll('#foto-grid .foto-box.pieno').length === 2 && sd.querySelectorAll('#foto-grid .foto-x').length === 2, 'app cliente foto: i riquadri pieni mostrano l\'anteprima e il tasto per togliere');
     ok(/2 /.test(sd.getElementById('meta-foto').textContent), 'app cliente foto: il menu conta le foto scattate');
-    { const rr = sub.window.eval('costruisciRientro()');
-      ok(Array.isArray(rr.foto) && rr.foto.length === 2 && rr.foto[0].tag === 'fronte' && rr.foto[0].img.startsWith('data:image/'),
-         'app cliente foto: le foto entrano nel rientro con tag e immagine'); }
+    ok(/arrivano da sole sul PC/.test(sd.getElementById('foto').textContent), 'app cliente foto: le foto vanno da sole al PC (niente file)');
     sub.window.close();
   }
   {
@@ -1115,11 +1099,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     sub.window.close();
   }
   {
-    /* app appena installata, senza scheda: schermata di benvenuto con carica file */
+    /* app appena installata, senza scheda: schermata di benvenuto che porta al collegamento col PC */
     const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html' });
     await settle(300);
     const sd = sub.window.document;
-    ok(sd.getElementById('benvenuto').hidden === false && sd.getElementById('file-scheda') !== null, 'app cliente: senza scheda mostra il benvenuto con «Carica la scheda»');
+    ok(sd.getElementById('benvenuto').hidden === false && sd.getElementById('file-scheda') === null && sd.getElementById('ben-solo-apk').hidden === false, 'app cliente: senza scheda mostra il benvenuto (nel browser: il collegamento c\'è nell\'app Android)');
     ok(sub.window.eval('LANGP') === 'en' && (sd.querySelector('#benvenuto [data-i18n]')||{}).textContent === '👋 Welcome', 'app cliente EN: lingua auto-rilevata + benvenuto tradotto');
     ok(sub.window.eval('validaScheda({tipo:"x"})') === false && sub.window.eval('validaScheda(' + JSON.stringify(schedaCli) + ')') === true, 'app cliente: validazione del file scheda (tipo tms-scheda)');
     sub.window.close();
@@ -1137,10 +1121,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     const box = sd.getElementById('fatto-0');
     box.checked = true; box.dispatchEvent(new sub.window.Event('input', { bubbles: true }));
     ok(sd.getElementById('stato-0').textContent === '✔', 'app cliente senza RPE: la spunta marca il giorno ✔');
-    ok(sub.window.eval('costruisciRientro().sedute').some(s => s.fatto === true), 'app cliente senza RPE: la spunta entra nel rientro come {fatto:true}');
+    ok(sub.window.eval('colLocale().sedute[GIORNI[0]].fatto') === true, 'app cliente senza RPE: la spunta parte verso il PC come «giorno fatto»');
     box.checked = false; box.dispatchEvent(new sub.window.Event('input', { bubbles: true }));
     ok(sd.getElementById('stato-0').textContent === '', 'app cliente senza RPE: TOGLIERE la spunta rimuove il completato (bug corretto)');
-    ok(!sub.window.eval('costruisciRientro().sedute').some(s => s.fatto === true), 'app cliente senza RPE: tolta la spunta, niente {fatto:true} nel rientro');
+    ok(sub.window.eval('colLocale().sedute[GIORNI[0]].fatto') === false, 'app cliente senza RPE: tolta la spunta, il giorno non è più «fatto»');
     sub.window.close();
   }
   /* v1.5: la PWA può aggiungere / eliminare / modificare esercizi + segnare i test 1RM + timer di recupero */
@@ -1204,12 +1188,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       sw.confirm = () => true; sd.querySelector('[data-del="' + rid2 + '"]').click(); }
     sd.getElementById('s-' + newRid).value = '3';
     sd.getElementById('s-' + newRid).dispatchEvent(new sub.window.Event('input', { bubbles: true }));
-    const rientro2 = sw.eval('costruisciRientro()');
-    ok(rientro2.righe.length === before + 1 && rientro2.righe.some(r => r.esercizio === 'Plank'), 'app cliente/esercizi: l\'esercizio aggiunto entra nel rientro');
-    ok(rientro2.righe[0].test === true, 'app cliente/1RM: il flag test torna nel rientro (★ sul 1° esercizio)');
-    /* il recupero (rest) prescritto dal coach torna nel rientro → all'import non va perso */
+    const loc2 = JSON.parse(sw.eval('JSON.stringify(colLocale())'));
+    ok(loc2.righe.length === before + 1 && loc2.righe.some(r => r.esercizio === 'Plank'), 'app cliente/esercizi: l\'esercizio aggiunto parte verso il PC');
+    ok(loc2.righe[0].test === true, 'app cliente/1RM: il flag test parte verso il PC (★ sul 1° esercizio)');
     sw.eval('WROWS[0].rest="2:15";');
-    ok(sw.eval('costruisciRientro().righe[0].rest') === '2:15', 'app cliente/timer: il recupero (rest) torna al coach nel rientro');
+    ok(JSON.parse(sw.eval('JSON.stringify(colLocale())')).righe[0].rest === '2:15', 'app cliente/timer: il recupero (rest) parte verso il PC');
     const bozza2 = JSON.parse(sw.localStorage.getItem(bozzaKey) || '{}');
     ok(Array.isArray(bozza2._wrows) && bozza2._wrows.some(r => r.esercizio === 'Plank') && bozza2._wrows[0].test === true, 'app cliente: la bozza salva la STRUTTURA (_wrows: esercizio aggiunto + ★) → sopravvive al riavvio');
     /* elimina il primo esercizio (confirm stubbato) */
@@ -1217,33 +1200,6 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     const firstRid = sw.eval('WROWS[0].rid');
     sd.querySelector('[data-del="' + firstRid + '"]').click();
     ok(sw.eval('WROWS.some(r=>r.rid===' + firstRid + ')') === false && sw.eval('WROWS.length') === before, 'app cliente/esercizi: 🗑 elimina la riga (dopo +1/−1 il totale torna all\'originale)');
-    /* ── rientro: un menu chiede DOVE salvarlo (v2.6) ── */
-    { sw.navigator.share = () => Promise.resolve(); sw.navigator.canShare = () => true;   /* telefono che sa condividere */
-      delete sw.showSaveFilePicker;
-      await sw.eval('inviaRientro()');
-      const vie = [...sd.querySelectorAll('#dove-lista [data-via]')].map(b => b.getAttribute('data-via'));
-      ok(sd.getElementById('doveov').style.display === 'flex', 'app cliente/rientro: si apre il menu «Dove salvo il rientro?» invece di salvare subito');
-      ok(JSON.stringify(vie) === '["condividi","download"]', 'app cliente/rientro: su un telefono che sa condividere offre condividi + Download (' + vie.join(', ') + ')');
-      ok(/^Rientro_.*\.json$/.test(sd.getElementById('dove-nome').textContent), 'app cliente/rientro: il menu mostra il nome del file');
-      /* tasto indietro del telefono: chiude il menu, non la schermata */
-      ok(sw.eval('risali()') === true && sd.getElementById('doveov').style.display === 'none', 'app cliente/rientro: il tasto indietro chiude il menu');
-      /* PC con Chrome: c'è anche «scegli la cartella» */
-      let salvato = null;
-      sw.showSaveFilePicker = async o => ({ name: o.suggestedName, createWritable: async () => ({ write: async x => { salvato = x; }, close: async () => {} }) });
-      sw.alert = () => {};
-      await sw.eval('inviaRientro()');
-      const vie2 = [...sd.querySelectorAll('#dove-lista [data-via]')].map(b => b.getAttribute('data-via'));
-      ok(vie2.includes('cartella'), 'app cliente/rientro: dove il browser lo permette c\'è anche «Scegli la cartella…»');
-      sd.querySelector('#dove-lista [data-via="cartella"]').click();
-      await settle(50);
-      ok(salvato && JSON.parse(salvato).tipo === 'tms-rientro' && sd.getElementById('doveov').style.display === 'none',
-         'app cliente/rientro: scegliendo la cartella il rientro vero finisce lì e il menu si chiude');
-      /* dispositivo senza condivisione né cartelle: resta solo Download, ma si chiede comunque */
-      delete sw.navigator.share; delete sw.navigator.canShare; delete sw.showSaveFilePicker;
-      await sw.eval('inviaRientro()');
-      const vie3 = [...sd.querySelectorAll('#dove-lista [data-via]')].map(b => b.getAttribute('data-via'));
-      ok(JSON.stringify(vie3) === '["download"]', 'app cliente/rientro: senza altre strade resta «Salva nei Download»');
-      sw.eval('chiudiDove()'); }
     sub.window.close();
   }
   /* v1.5: scheda FISSA (modificabile:false) → niente aggiungi/modifica/elimina/★, ma il timer resta */
@@ -1259,12 +1215,6 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sd.querySelector('[data-rec]') !== null, 'app cliente/fissa: il timer di recupero resta disponibile');
     ok(sd.getElementById('s-0') !== null && +sd.getElementById('s-0').value === schedaFissa.righe[0].serie, 'app cliente/fissa: i campi da compilare restano (sola compilazione, come prima)');
     sub.window.close();
-  }
-  /* GIRO COMPLETO: il rientro generato dall'app entra nella scheda Pesi del TMS */
-  {
-    w.eval('window.__rientro = ' + JSON.stringify(rientroApp));
-    const ris = w.eval('caricaRientroInScheda(window.__rientro)');
-    ok(ris.righe === rientroApp.righe.filter(r => r.esercizio).length && w.eval('DOC.scheda.settimanale[0].serie') === 5 && w.eval('DOC.scheda.settimanale[0].note') === 'fatto tutto', 'giro completo: export TMS → app cliente → rientro → scheda Pesi del coach');
   }
   /* Δ TL per SET (richiesta Marco): ogni set incrementale ha il suo Δ vs il set di pari posizione */
   ok(Array.isArray(w.eval('lastBlockSets("__inesistente__",1)')) && w.eval('lastBlockSets("__inesistente__",1)').length === 0, 'lastBlockSets: array vuoto se l\'esercizio non è nello storico');
@@ -1934,100 +1884,39 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(nessunoStretch, 'Scheda Pesi: il selettore esercizi ESCLUDE lo stretching ('+names.length+' voci)'); }
   w.eval('closeModal();');
   ok(w.eval('schedaCode(isoWeek(new Date("2026-06-11T12:00:00")).anno, isoWeek(new Date("2026-06-11T12:00:00")).sett)') === 202624, 'conversione data -> settimana ISO (11/06/2026 = 202624)');
-  const rientro = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
-    righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:70,rir:2,note:'ok'},
-            {giorno:'Martedì',esercizio:'Squat con bilanciere',serie:4,rip:6,peso:100,rir:null} ],
-    sedute:[ {giorno:'Lunedì',rpe:8,min:75} ] };
-  /* nuovo flusso (richiesta Marco): il rientro entra nella SCHEDA PESI per la revisione,
-     non più diretto allo Storico; il coach controlla e salva a mano */
-  const stoPrima = w.eval('DOC.storico.length');
-  const ris = await w.eval('caricaRientroInScheda(' + JSON.stringify(rientro) + ')');
-  ok(ris.righe === 2 && ris.sedute === 1, 'caricaRientroInScheda: 2 esercizi + 1 seduta nella scheda');
-  ok(w.eval('DOC.scheda.settimanale.length') === 2
-     && w.eval('DOC.scheda.settimanale[0].esercizio.startsWith("Panca")') === true
-     && w.eval('DOC.scheda.settimanale[0].serie') === 3 && w.eval('DOC.scheda.settimanale[0].peso') === 70,
-     'rientro caricato nella scheda Pesi (righe con serie/peso del cliente)');
-  ok(w.eval('DOC.scheda.rpe.settimanale["Lunedì"].rpe') === 8 && w.eval('DOC.scheda.rpe.settimanale["Lunedì"].min') === 75, 'rientro: seduta RPE (fatica+durata) nella bozza della scheda');
-  ok(w.eval('DOC.storico.length') === stoPrima, 'rientro: lo Storico NON cambia finché il coach non salva a mano');
-  /* REGRESSIONE (2026-08-18): il tempo di recupero (rest) NON va perso all'import — il timer
-     sul telefono lo legge da lì. Se il rientro non lo porta (app già in giro), si conserva
-     quello della scheda del coach; se lo porta (app recente), vince quello del rientro. */
-  w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:70,rest:"2:00"}];');
-  w.eval('caricaRientroInScheda(' + JSON.stringify({ tipo:'tms-rientro', versione:1, profilo:{slug:'template'},
-    righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:72,rir:2} ], sedute:[] }) + ')');
-  ok(w.eval('DOC.scheda.settimanale[0].rest') === '2:00', 'rientro: il recupero NON si perde se il rientro non lo porta (conservato dalla scheda del coach → il timer resta)');
-  w.eval('caricaRientroInScheda(' + JSON.stringify({ tipo:'tms-rientro', versione:1, profilo:{slug:'template'},
-    righe:[ {giorno:'Lunedì',esercizio:'Panca piana con bilanciere - presa media',serie:3,rip:8,peso:72,rir:2,rest:'1:45'} ], sedute:[] }) + ')');
-  ok(w.eval('DOC.scheda.settimanale[0].rest') === '1:45', 'rientro: se il cliente rimanda il recupero (app recente), vince quello del rientro');
-  /* v1.5: il flag test (★ massimale) del cliente arriva nella scheda Pesi all'import */
-  const rientroTest = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
-    righe:[ {giorno:'Lunedì',esercizio:'Stacco da terra con bilanciere',serie:1,rip:3,peso:150,rir:0,note:'test max',test:true} ], sedute:[] };
-  await w.eval('caricaRientroInScheda(' + JSON.stringify(rientroTest) + ')');
-  ok(w.eval('DOC.scheda.settimanale[0].test') === true, 'rientro: il flag test (★ 1RM) del cliente arriva nella scheda Pesi del coach');
-  /* v1.1.7: giorni «completati» (cliente senza Session-RPE) e FOTO dal telefono */
-  { const rf = { tipo:'tms-rientro', versione:1, profilo:{slug:'template',nome:'Atleta Template'},
-      righe:[{giorno:'Lunedì',esercizio:'Squat con bilanciere',serie:3,rip:5,peso:100,rir:null}],
-      sedute:[{giorno:'Lunedì',fatto:true},{giorno:'Mercoledì',fatto:true}] };
-    const r2 = await w.eval('caricaRientroInScheda(' + JSON.stringify(rf) + ')');
-    ok(r2.fatti === 2 && r2.sedute === 0, 'rientro senza RPE: conta i giorni spuntati come completati (2) senza inventare sedute');
-    /* foto: dal data-URI al file binario in foto/ + metadati in DOC.foto */
-    const nFotoPre = w.eval('(DOC.foto||[]).length');
+  /* FOTO dal telefono collegato: dal data-URI al file binario in foto/ + metadati in DOC.foto */
+  { const nFotoPre = w.eval('(DOC.foto||[]).length');
     const imgUri = 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT,'docs','img','logo.png')).toString('base64');
     const nSalvate = await w.eval('importaFotoRientro(' + JSON.stringify([{tag:'fronte',data:'2026-08-17',img:imgUri},{tag:'retro',data:'2026-08-17',img:imgUri}]) + ')');
-    ok(nSalvate === 2 && w.eval('(DOC.foto||[]).length') === nFotoPre + 2, 'rientro foto: le due immagini vengono salvate (metadati in DOC.foto)');
+    ok(nSalvate === 2 && w.eval('(DOC.foto||[]).length') === nFotoPre + 2, 'foto dal telefono: le due immagini vengono salvate (metadati in DOC.foto)');
     { const ff = w.eval('DOC.foto[DOC.foto.length-2]');
-      ok(ff.tag === 'fronte' && ff.data === '2026-08-17' && /^f\d+-[a-z0-9]+\.png$/.test(ff.file), 'rientro foto: tag, data e nome file nel formato del tab Corpo (' + ff.file + ')');
-      ok(w.eval('(function(){var n=DOC.foto[DOC.foto.length-2].file; return !!(dirHandle||window.tmsFS);})()'), 'rientro foto: scritte tramite lo stesso canale binario delle altre foto'); }
-    /* l'ordinamento delle viste ora riconosce i tag veri (fronte/lato/retro) */
-    ok(w.eval('fotoViewOrder("fronte")') === 0 && w.eval('fotoViewOrder("lato")') === 1 && w.eval('fotoViewOrder("retro")') === 2, 'foto: ordine viste fronte→lato→retro (prima non combaciava coi tag usati)');
+      ok(ff.tag === 'fronte' && ff.data === '2026-08-17' && /^f\d+-[a-z0-9]+\.png$/.test(ff.file), 'foto dal telefono: tag, data e nome file nel formato del tab Corpo (' + ff.file + ')');
+      ok(w.eval('(function(){var n=DOC.foto[DOC.foto.length-2].file; return !!(dirHandle||window.tmsFS);})()'), 'foto dal telefono: scritte tramite lo stesso canale binario delle altre foto'); }
+    /* l'ordinamento delle viste riconosce i tag veri (fronte/lato/retro) */
+    ok(w.eval('fotoViewOrder("fronte")') === 0 && w.eval('fotoViewOrder("lato")') === 1 && w.eval('fotoViewOrder("retro")') === 2, 'foto: ordine viste fronte→lato→retro');
     ok(w.eval('fotoViewOrder("anteriore")') === 0 && w.eval('fotoViewOrder("posteriore")') === 2, 'foto: riconosciuti anche i sinonimi lunghi (anteriore/posteriore)');
     w.eval('DOC.foto.length=' + nFotoPre + ';');   /* ripulisce: i test foto successivi partono dallo stato del template */
   }
-  /* import e2e: file non valido + file valido -> carica in Pesi, niente scrittura automatica */
-  await w.eval('importaRientroFile(' + JSON.stringify({}) + ')'); /* oggetto non-file: alert "non valido", nessun crash */
-  const fakeFile = { text: async () => JSON.stringify(rientro) };
-  dom.window.__file = fakeFile;
-  w.eval('window.__oc=window.confirm; window.confirm=function(){return true;};');
-  w.eval('showTab("profilo")');
-  await w.eval('importaRientroFile(window.__file)');
-  await settle(200);
-  ok(w.eval('curTab') === 'allenamento', 'import e2e: porta al tab Pesi per la revisione');
-  ok(w.eval('DOC.scheda.settimanale.length') === 2 && w.eval('DOC.storico.length') === stoPrima, 'import e2e: caricato in scheda, Storico invariato (si salva a mano)');
-  w.eval('window.confirm=window.__oc;');
   /* v1.0.67: guida senza link ai PDF locali, footer senza motto, backup col nome del profilo */
   w.eval('showTab("guida")');
   w.eval('guidaMode = "completa"; renderGuida()');
   const guida = d.getElementById('panel-guida').innerHTML;
   ok(!guida.includes('Documentazione/') && guida.includes('doi.org'), 'Guida §12 (completa): niente link locali, restano DOI/Scholar');
-  /* v1.0.71: passo coach ↔ cliente nella Guida (rapida e completa) */
-  ok(guida.includes('Scheda ↔ cliente') && guida.includes('gc-scambio') && guida.includes('Crea il file per il coach') && guida.includes('TMS Scheda'), 'Guida completa: sezione 10 Scheda ↔ cliente (app TMS Scheda)');
+  /* la guida spiega il telefono collegato (rapida e completa) */
+  ok(guida.includes('gc-scambio') && guida.includes('Una scheda sola, due schermi') && guida.includes('TMS Scheda') && !guida.includes('Crea il file per il coach'), 'Guida completa: sezione 10 Scheda ↔ cliente (app TMS Scheda)');
   ok(guida.includes('14 · Licenza'), 'Guida completa: sezioni rinumerate (Licenza = 14)');
   ok(!/class="sec[^"]*"[^>]*>▌/.test(guida), 'Guida: nessun glifo ▌ nelle intestazioni (la barra è quella del CSS, non doppia)');
   w.eval('guidaMode = "rapida"; renderGuida()');
   const rapida = d.getElementById('panel-guida').innerHTML;
-  ok(rapida.includes('Coach ↔ cliente') && rapida.includes('📲 Esporta scheda'), 'Guida rapida: passo coach ↔ cliente');
+  ok(rapida.includes('Telefono collegato') && !rapida.includes('📲 Esporta scheda') && !rapida.includes('Importa rientro'), 'Guida rapida: passo del telefono collegato, niente più file');
   ok(!d.body.innerHTML.includes('Tarnished'), 'nessuna istanza di «Rise, Tarnished»');
   const nomeBk = await w.eval('(async()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ await backupData(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
   ok(typeof nomeBk === 'string' && nomeBk.startsWith('TMS-backup-atleta-template-'), 'backup col nome del profilo attivo (' + nomeBk + ')');
-  /* v1.0.75: il bottone 📤 nella riga di un profilo NON attivo lo attiva e ne esporta la scheda */
-  w.eval('showTab("profilo")');
-  ok(d.querySelector('#panel-profilo [data-pexs="wander"]') !== null, 'bottone 📤 nella riga del profilo non attivo, senza aprire la tendina');
-  /* l'export ora apre il popup Fissa/Modificabile: avvio, aspetto il popup, scelgo «Modificabile» */
-  w.eval('window.__oc2=window.confirm; window.confirm=function(){return false;}; window.__cap=null; window.__oa=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ window.__cap=this.download; }; window.__pexp=document.querySelector(\'#panel-profilo [data-pexs="wander"]\').onclick();');
-  for (let i = 0; i < 40 && !d.getElementById('ms-mod'); i++) { await settle(20); }
-  d.getElementById('ms-mod').click();
-  await w.eval('(async()=>{ try{ await window.__pexp; } finally { HTMLAnchorElement.prototype.click=window.__oa; window.confirm=window.__oc2; } })()');
-  const nomeEx = w.eval('window.__cap');
-  ok(w.eval('activeProfile') === 'wander', 'export dalla riga: profilo attivato da solo');
-  ok(typeof nomeEx === 'string' && nomeEx.startsWith('Scheda_wander_') && nomeEx.endsWith('.json'), 'export dalla riga: file JSON del profilo giusto (' + nomeEx + ')');
-  const apertoPrima = w.eval('profOpen');
-  d.querySelector('#panel-profilo [data-prin="wander"]').closest('label').dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
-  ok(w.eval('profOpen') === apertoPrima, 'click sui bottoni della riga: la tendina non si apre/chiude');
   /* ── Semaforo clienti: triage integrato in ogni riga profilo, SOLA LETTURA ── */
   w.eval('profOpen = null; showTab("profilo")');
   ok(d.getElementById('cr-led-template') !== null && d.getElementById('cr-led-wander') !== null, 'semaforo: pallino in ogni riga profilo (niente box separato che duplica)');
   ok(d.getElementById('cruscotto-box') === null, 'semaforo: nessuna sezione cruscotto separata (unificata nella lista profili)');
-  ok(d.querySelectorAll('#panel-profilo [data-pexs]').length === 2 && d.querySelector('#cr-sum-template') !== null, 'semaforo: la riga conserva 📤 Esporta + la sintesi sotto il nome');
+  ok(d.querySelector('#cr-sum-template') !== null, 'semaforo: la riga del profilo porta la sintesi sotto il nome');
   /* soglie del semaforo (funzione pura, deterministica) */
   ok(w.eval('cruscottoLivello({hasData:true, acwr:1.7, stale:1})') === 'danger', 'semaforo: ACWR > 1.5 → 🔴');
   ok(w.eval('cruscottoLivello({hasData:true, acwr:1.0, stale:3})') === 'danger', 'semaforo: scheda ferma ≥3 settimane → 🔴');
@@ -2226,7 +2115,7 @@ console.log('--- T6: bilingue IT/EN (interruttore lingua, traduzione markup stat
   ok(dEn.querySelector('[data-tab="allenamento"] [data-i18n]').textContent === 'Weights', 'EN: tab «Pesi» → «Weights»');
   ok(dEn.querySelector('[data-tab="alimentazione"] [data-i18n]').textContent === 'Nutrition', 'EN: tab «Alimentazione» → «Nutrition»');
   ok(dEn.getElementById('disc-ok').textContent === 'Got it', 'EN: disclaimer «Ho capito» → «Got it»');
-  ok(wEn.eval("renderProfilo(); document.getElementById('lnk-storico').textContent").includes('History') && dEn.querySelector('[data-pexs]').textContent.includes('Export program'), 'EN: riga del profilo «Storico» → «History», «Esporta scheda» → «Export program»');
+  ok(wEn.eval("renderProfilo(); document.getElementById('lnk-storico').textContent").includes('History') , 'EN: riga del profilo «Storico» → «History»');
   ok(dEn.getElementById('btn-impost').title === 'Settings, guide and reports', 'EN: suggerimento di ⚙ tradotto');
   ok(/select the <strong>TMS<\/strong> folder/i.test(dEn.getElementById('overlay-sub').innerHTML), 'EN: overlay-sub (data-i18n-html) tradotto');
   ok(dEn.getElementById('btn-lang').textContent === 'IT', 'EN: il pulsante lingua propone «IT»');
@@ -2978,9 +2867,9 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
   dom.window.close();
 }
 
-console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
+console.log('--- T11: pesate della bilancia (dal telefono collegato) ---');
 {
-  /* 2026-11-15: la bilancia parla con l'app del telefono; le pesate arrivano col rientro e la
+  /* 2026-11-15: la bilancia parla con l'app del telefono; le pesate arrivano da sole e la
      media di ogni settimana va da sola nello Storico misure (una domanda solo se c'è già una
      misura scritta a mano). Settimane ISO 2026: 45 = 2–8 nov, 46 = 9–15 nov, 47 = 16–22 nov. */
   const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
@@ -2998,7 +2887,7 @@ console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
   const corpoDisco = () => JSON.parse(fsmem._files.get('TMS_Dati/anna/corpo.json'));
   const riga = c => w.eval('JSON.stringify((DOC.storico_io||[]).find(function(r){return +r.scheda===' + c + ';})||null)');
   const R = c => JSON.parse(riga(c));
-  const importa = async obj => { w.__fr = { text: async () => JSON.stringify(obj) }; await w.eval('importaRientroFile(window.__fr)'); await settle(150); };
+  const importa = async obj => { await w.eval('importaPesate(' + J(obj.pesate || []) + ')'); await settle(150); };
   const P = (data, ora, peso, x) => Object.assign({ id: data + 'T' + ora + '|' + peso, data: data, ora: ora, peso: peso }, x || {});
   const comp = (g, ac, mu, bmr) => ({ grasso: g, acqua: ac, muscolo: mu, ossa: 2.5, proteine: 17, visc: 5, bmr: bmr, imp: [500, 480, 300, 310, 20, 450, 430, 280, 290, 18] });
   ok(errors.length === 0 && !w.eval('scrittureBloccate'), 'pesate: avvio senza errori');
@@ -3014,9 +2903,9 @@ console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
 
   /* la scheda per il telefono porta altezza, sesso ed età */
   { const c = JSON.parse(w.eval('JSON.stringify(costruisciSchedaJSON({}).corpo)'));
-    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30, 'export scheda: porta altezza, sesso ed età per la bilancia (e nient\'altro del corpo)'); }
+    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30, 'scheda per il telefono: porta altezza, sesso ed età per la bilancia (e nient\'altro del corpo)'); }
 
-  /* rientro con sole pesate */
+  /* pesate arrivate dal telefono */
   const pesate1 = [
     P('2026-11-09', '07:00', 65.0, comp(24, 52, 46, 1400)),
     P('2026-11-09', '19:00', 66.0, comp(26, 50, 46, 1390)),
@@ -3028,9 +2917,8 @@ console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
   const schedaPrima = w.eval('JSON.stringify(DOC.scheda)');
   domande = []; risposte = [false];   /* «Tienili»: la settimana 45 scritta a mano resta com'è */
   await importa(rientroPesate);
-  ok(domande.length === 1 && /scritti a mano/.test(domande[0]) && /02\/11\/26/.test(domande[0]), 'rientro pesate: UNA domanda, solo per la settimana con la misura scritta a mano');
-  ok(w.eval('DOC.pesate.length') === 5 && w.eval('DOC.scheda && JSON.stringify(DOC.scheda)') === schedaPrima, 'rientro pesate: 5 pesate salvate (1 illeggibile saltata), scheda Pesi intatta');
-  ok(w.eval('curTab') === 'corpo', 'rientro con sole pesate: porta al tab Corpo');
+  ok(domande.length === 1 && /scritti a mano/.test(domande[0]) && /02\/11\/26/.test(domande[0]), 'pesate: UNA domanda, solo per la settimana con la misura scritta a mano');
+  ok(w.eval('DOC.pesate.length') === 5 && w.eval('DOC.scheda && JSON.stringify(DOC.scheda)') === schedaPrima, 'pesate: 5 salvate (1 illeggibile saltata), scheda Pesi intatta');
   { const r = R(202646);
     ok(r && r.n_pesate === 2 && r.peso === 64.8 && r.massa_grassa === 0.238 && r.acqua === 52.2 && r.metab_basale === 1402,
        'settimana 46: media di 2 pesate (la seconda del lunedì non conta) → peso 64,8, grasso 23,8 %, acqua 52,2 %');
@@ -3045,12 +2933,12 @@ console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
     ok(Array.isArray(c.pesate) && c.pesate.length === 5 && c.storico_io.some(r => r.scheda === 202646 && r.n_pesate === 2) && Array.isArray(c.pesate_scartate),
        'corpo.json su disco: pesate e medie salvate'); }
 
-  /* stesso rientro di nuovo: niente doppioni, nessuna domanda */
+  /* le stesse pesate di nuovo: niente doppioni, nessuna domanda */
   const ioPrima = w.eval('JSON.stringify(DOC.storico_io)');
   domande = [];
   await importa(rientroPesate);
   ok(w.eval('DOC.pesate.length') === 5 && w.eval('JSON.stringify(DOC.storico_io)') === ioPrima && domande.length === 0,
-     'stesso rientro due volte: le pesate già arrivate non si doppiano e lo Storico non cambia');
+     'stesse pesate due volte: quelle già arrivate non si doppiano e lo Storico non cambia');
   { const r = JSON.parse(await w.eval('(async function(){ return JSON.stringify(await importaPesate(' + J(pesate1) + ')); })()'));
     ok(r.nuove === 0 && r.gia === 5 && r.nonValide === 1, 'riepilogo: 0 nuove, 5 già arrivate, 1 illeggibile'); }
 
@@ -3078,7 +2966,7 @@ console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
   ok(w.eval('DOC.pesate.length') === 5 && w.eval('DOC.pesate_scartate.indexOf(' + J(id11) + ')') >= 0 && R(202646).n_pesate === 1 && R(202646).peso === 65,
      'tolta una pesata: la settimana 46 si ricalcola (resta il lunedì)');
   await importa(rientroPesate);
-  ok(w.eval('DOC.pesate.length') === 5 && R(202646).n_pesate === 1, 'la pesata tolta non torna col rientro successivo');
+  ok(w.eval('DOC.pesate.length') === 5 && R(202646).n_pesate === 1, 'la pesata tolta non torna se arriva di nuovo dal telefono');
   await settle(1300);
   w.eval('annulla()'); await settle(100);
   ok(w.eval('DOC.pesate.length') === 6 && w.eval('DOC.pesate_scartate.indexOf(' + J(id11) + ')') < 0 && R(202646).n_pesate === 2, 'Ctrl+Z rimette la pesata tolta e la media di prima');
@@ -3089,18 +2977,13 @@ console.log('--- T11: pesate della bilancia (dal telefono, col rientro) ---');
   ok(w.eval('(function(){ var n=DOC.storico_io.length; DOC.storico_io.push({scheda:203001,peso:70}); ricalcolaSettimanaPesate(203001); var ok=DOC.storico_io.length===n+1; DOC.storico_io.pop(); return ok; })()'),
      'una misura scritta a mano non viene mai tolta dal ricalcolo');
 
-  /* rientro con allenamento E pesate; rientro vuoto; profilo diverso */
+  /* una pesata nuova della settimana in corso */
   domande = []; risposte = [];
-  await importa({ tipo: 'tms-rientro', versione: 1, profilo: { slug: 'anna', nome: 'Anna' }, righe: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 105 }], sedute: [],
-    pesate: [P('2026-11-17', '07:00', 64.5, comp(23.5, 52.5, 46.2, 1405))] });
-  ok(w.eval('curTab') === 'allenamento' && w.eval('DOC.scheda.settimanale[0].peso') === 105 && R(202647) && R(202647).n_pesate === 1 && R(202647).peso === 64.5,
-     'rientro con allenamento e pesate: l\'allenamento va nella scheda Pesi, le pesate nello Storico misure');
+  await importa({ pesate: [P('2026-11-17', '07:00', 64.5, comp(23.5, 52.5, 46.2, 1405))] });
+  ok(R(202647) && R(202647).n_pesate === 1 && R(202647).peso === 64.5 && domande.length === 0, 'pesata nuova: la media della settimana va da sola nello Storico misure, senza domande');
   const nPes = w.eval('DOC.pesate.length');
-  await importa({ tipo: 'tms-rientro', versione: 1, profilo: { slug: 'anna' }, righe: [], pesate: [] });
-  ok(w.eval('DOC.pesate.length') === nPes, 'rientro senza esercizi né pesate: rifiutato');
-  domande = []; risposte = [false];
-  await importa({ tipo: 'tms-rientro', versione: 1, profilo: { slug: 'bruno', nome: 'Bruno' }, righe: [], pesate: [P('2026-11-18', '07:00', 80)] });
-  ok(domande.length === 1 && /Bruno/.test(domande[0]) && w.eval('DOC.pesate.length') === nPes, 'pesate di un altro profilo: si chiede, e con «Annulla» non entra nulla');
+  await importa({ pesate: [] });
+  ok(w.eval('DOC.pesate.length') === nPes, 'nessuna pesata: niente cambia');
 
   /* backup e file: le pesate non si perdono */
   ok(w.eval('corpoFile({pesate:[1],pesate_scartate:["x"]}).pesate.length') === 1 && w.eval('corpoFile(corpoDaFile(null)).pesate.length') === 0, 'corpoFile/corpoDaFile: le pesate passano, file assente = elenchi vuoti');
@@ -3197,11 +3080,8 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
   ok(JSON.parse(sw.localStorage.getItem('tms-pesate-prova') || '[]').length === 1, 'pesata salvata sul telefono, nella memoria del profilo');
   ok(/1 pesata questa settimana/.test(sd.getElementById('meta-bil').textContent), 'menu: «1 pesata questa settimana»');
   /* il file per il coach porta le pesate; «Manda solo le pesate» = rientro senza esercizi */
-  const rientro = JSON.parse(sw.eval('JSON.stringify(costruisciRientro())'));
-  ok(Array.isArray(rientro.pesate) && rientro.pesate.length === 1 && rientro.righe.length === 1, 'rientro: porta anche le pesate');
-  const soloPes = JSON.parse(sw.eval('rientroPesate().testo'));
-  ok(soloPes.tipo === 'tms-rientro' && soloPes.righe.length === 0 && soloPes.pesate.length === 1 && /_pesate\.json$/.test(sw.eval('rientroPesate().nome')),
-     '«📤 Manda solo le pesate»: rientro senza esercizi, solo con le pesate');
+  const soloPes = { pesate: JSON.parse(sw.eval('JSON.stringify(PESATE)')) };
+  ok(soloPes.pesate.length === 1 && !sd.getElementById('bil-invia'), 'pesata salvata sul telefono, niente più «📤 Manda solo le pesate» (vanno da sole al PC collegato)');
   /* composizione recuperata: scheda senza altezza → solo peso e misure grezze; poi arriva la scheda giusta */
   { const r = JSON.parse(sw.eval('(function(){ var c=SCHEDA.corpo; SCHEDA.corpo=null; var p=pesComponi({peso:72.4, imp:' + JSON.stringify(IMP) + '}); var a=JSON.stringify(p); SCHEDA.corpo=c; pesComponi(p); return JSON.stringify([JSON.parse(a), p]); })()'));
     ok(!('grasso' in r[0]) && r[1].grasso === 15.8, 'senza altezza ed età si tiene la pesata grezza; con la scheda giusta la composizione si completa'); }
@@ -3225,7 +3105,7 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
     const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
     await settleConnect(dom, fsmem); await settle(300);
     const w = dom.window; w.alert = () => {}; w.confirm = () => true;
-    w.__fr = { text: async () => JSON.stringify(soloPes) }; await w.eval('importaRientroFile(window.__fr)'); await settle(150);
+    await w.eval('importaPesate(' + J(soloPes.pesate) + ')'); await settle(150);
     const p0 = soloPes.pesate[0], code = w.eval('settimanaPesata(' + J(p0) + ')');
     const riga = JSON.parse(w.eval('JSON.stringify(DOC.storico_io.find(function(r){return +r.scheda===' + code + ';})||null)'));
     ok(riga && riga.n_pesate === 1 && riga.peso === 72.4 && riga.massa_grassa === 0.158 && riga.metab_basale === p0.bmr && Math.abs(riga.metabolismo - p0.bmr * 1.4) < 1e-6,
@@ -3345,7 +3225,7 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
   ok(sw.eval('!!(SCHEDA && SCHEDA.collegata)') && sd.getElementById('menu').hidden === false, 'telefono: senza scheda prende da solo quella collegata del PC');
   ok(sd.getElementById('s-0').value === '3' && sd.getElementById('rir-0').value === '2' && sd.getElementById('n-0').value === 'fermo in basso' && !sd.querySelector('#ex-0 .ex-coach'),
      'telefono: i campi sono la scheda (anche RIR e note), senza «previsto» ripetuto');
-  ok(/collegata/.test(sd.getElementById('scheda-info').textContent) && sd.getElementById('invia').hidden === true && sd.getElementById('col-home').hidden === false,
+  ok(/collegata/.test(sd.getElementById('scheda-info').textContent) && !sd.getElementById('invia') && sd.getElementById('col-home').hidden === false,
      'telefono: «Scheda collegata al TMS sul PC», niente file da mandare al coach');
   await giroTel();
   ok(C.files.has('prova/dal-telefono/scheda.json') && !/Squat/.test(C.files.get('prova/dal-telefono/scheda.json')), 'telefono: scrive la sua copia della scheda, cifrata');

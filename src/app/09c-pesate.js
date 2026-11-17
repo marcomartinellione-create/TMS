@@ -1,9 +1,9 @@
-/* ════════════════ PESATE DELLA BILANCIA (dal telefono, col rientro) ════════════════
+/* ════════════════ PESATE DELLA BILANCIA (dal telefono collegato) ════════════════
    2026-11-15, richiesta di Marco: la bilancia Bluetooth (famiglia FitDays/iComon) parla con
-   l'app «TMS Scheda» sul telefono, che registra ogni pesata e la manda nel rientro (campo
-   `pesate`). All'import del rientro, qui:
+   l'app «TMS Scheda» sul telefono, che registra ogni pesata e la manda da sola al PC
+   attraverso la cartella condivisa (15c-telefono.js). Quando arriva, qui:
    - ogni pesata entra in DOC.pesate (corpo.json). Quelle già arrivate (stesso id) non si
-     doppiano; quelle tolte col 🗑 (id in DOC.pesate_scartate) non tornano coi rientri dopo;
+     doppiano; quelle tolte col 🗑 (id in DOC.pesate_scartate) non tornano più;
    - per ogni settimana ISO con almeno una pesata nuova si scrive nello Storico misure
      (storico_io) la MEDIA della settimana, senza passare da «💾 Salva misure»: una pesata per
      giorno, la prima (la prima completa, se quel giorno ce n'è una con la composizione). La
@@ -85,7 +85,7 @@ function applicaUltimaPesata(p, u){
   if(p.visc!=null) u.grasso_viscerale=p.visc;
   if(p.acqua!=null) u.acqua=p.acqua;
 }
-/* import delle pesate di un rientro. Chiede SOLO se una settimana ha già una misura scritta a
+/* import delle pesate arrivate dal telefono. Chiede SOLO se una settimana ha già una misura scritta a
    mano (una domanda per tutte). Restituisce il riepilogo per il messaggio finale. */
 async function importaPesate(arrivate){
   const ris={nuove:0, gia:0, scartate:0, nonValide:0, settimane:[], tenute:[]};
@@ -120,18 +120,6 @@ async function importaPesate(arrivate){
   persist('corpo');
   return ris;
 }
-/* riga del messaggio di fine import: «⚖ 6 pesate nuove · Storico misure: settimana del …» */
-function testoImportPesate(r){
-  if(!r||(!r.nuove&&!r.gia&&!r.scartate&&!r.nonValide)) return '';
-  let s='⚖ '+(r.nuove? r.nuove+' '+(r.nuove===1?t('pesata nuova'):t('pesate nuove')) : t('nessuna pesata nuova'));
-  if(r.gia) s+=' · '+r.gia+' '+t('già arrivate prima');
-  if(r.settimane.length) s+='\n'+t('Storico misure:')+' '+r.settimane.map(x=>t('settimana del')+' '+schedaLabel(x.code)+' ('+t('media di')+' '+x.n+')').join(', ');
-  if(r.tenute.length) s+='\n'+t('Lasciate come le avevi scritte:')+' '+r.tenute.map(c=>t('settimana del')+' '+schedaLabel(c)).join(', ');
-  if(r.scartate) s+='\n'+r.scartate+' '+t('tolte da te in passato: non rientrano');
-  if(r.nonValide) s+='\n'+r.nonValide+' '+t('illeggibili, saltate');
-  return s;
-}
-
 /* ── riquadro «Pesate della bilancia» nel tab Corpo (solo se ce ne sono) ── */
 let pesateTutte=false;
 function giornoPesata(data){ try{ return new Date(data+'T12:00:00').toLocaleDateString(LANG==='en'?'en-GB':'it-IT',{weekday:'short',day:'2-digit',month:'2-digit'}); }catch(e){ return data; } }
@@ -153,7 +141,7 @@ function htmlPesate(){
   return `<div class="sec">${t('⚖ Pesate della bilancia')} <span class="pill">${tutte.length}</span><button class="btn btn--sm no-print" style="margin-left:auto" data-reppes="${esc(tutte.slice().sort(ordinePesate).pop().id)}">${t('📄 Rapporto dell’ultima')}</button></div>
     <div class="tbl-wrap"><table class="tbl-pesate"><thead><tr><th>${t('Giorno')}</th><th>${t('Ora')}</th><th>${t('Peso')}</th><th>${t('Grasso %')}</th><th>${t('Muscolo')}</th><th>${t('Acqua %')}</th><th class="no-print"></th></tr></thead>
     <tbody>${corpo}</tbody></table></div>
-    <div class="muted" style="font-size:11px;margin-top:4px">${t('Arrivano col rientro dall’app del telefono e la media di ogni settimana va da sola nello Storico misure. Nella media conta una pesata al giorno, la prima: le altre sono in grigio.')}</div>
+    <div class="muted" style="font-size:11px;margin-top:4px">${t('Arrivano da sole dall’app del telefono collegata e la media di ogni settimana va da sola nello Storico misure. Nella media conta una pesata al giorno, la prima: le altre sono in grigio.')}</div>
     ${codici.length>4?`<button class="btn btn--sm no-print" id="pesate-tutte" style="margin-top:6px">${pesateTutte?t('Mostra solo le ultime 4 settimane'):t('Mostra tutte le settimane')+' ('+codici.length+')'}</button>`:''}`;
 }
 function legaPesate(){

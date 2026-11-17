@@ -1,18 +1,15 @@
 # TMS Scheda per Android (APK)
 
-L'app del telefono del cliente, «TMS Scheda», come **app Android vera** da installare.
-Ha le **stesse funzioni** della versione web (PWA in `docs/app/`), perché ne contiene una copia:
-riscaldamento, esercizi coi video, timer di recupero, modifica della scheda col catalogo del
-coach, test del massimale, alimentazione, foto progressi, riepilogo e rientro, italiano e inglese.
+L'app del telefono, «TMS Scheda», come **app Android vera** da installare. Contiene una copia della
+PWA in `docs/app/`: riscaldamento, esercizi coi video, timer di recupero, modifica della scheda col
+catalogo del coach, test del massimale, alimentazione, foto progressi, bilancia, italiano e inglese.
+**Dal 17/11/2026 niente più file Scheda/Rientro** (decisione di Marco): la scheda arriva solo dalla
+cartella condivisa ed è collegata al TMS sul PC (vedi sotto).
 **Dal 16/11/2026 è l'unica app del telefono** (decisione di Marco): l'app desktop non indica più la
 PWA ai clienti. `docs/app/` resta come **sorgente** dell'APK: si modifica lì e si rifà l'APK.
 
 Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da un browser:
 
-- **Aprire la scheda**: col pulsante «📂 Carica la scheda» come prima, oppure toccando il file
-  `Scheda_….json` in WhatsApp, nell'email o in File e scegliendo **«Apri con TMS Scheda»**.
-- **Rientro per il coach**: lo stesso menu «Dove salvo il rientro?» (📤 invia con WhatsApp,
-  email, Drive… · 📁 scegli la cartella · ⬇ Download). Il Download c'è da Android 10 in su.
 - **Foto progressi**: prima di aprire la fotocamera chiede «Scatta una foto» o «Scegli dalla galleria».
 - **Avvisi e conferme** in stile app, mai le finestre di sistema.
 - **Tasto indietro** del telefono: risale di una schermata; dal menu chiude l'app.
@@ -20,8 +17,8 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
 - **⚖ Bilancia** (solo nell'APK, dalla 1.1.0): con una bilancia Bluetooth a 8 elettrodi della famiglia
   FitDays/iComon (Healthkeep FG2001B-A, Fitdays FG2202WB…) ci si pesa con la pagina aperta: peso in
   diretta, poi grasso, muscolo, acqua, viscerale, metabolismo, età metabolica. Le pesate restano sul
-  telefono e partono col rientro (o da sole con «📤 Manda solo le pesate»); nel TMS sul PC la media di
-  ogni settimana va da sola nello Storico misure. Android chiede una volta «Dispositivi nelle
+  telefono e vanno da sole al TMS collegato, dove la media di ogni settimana va da sola nello Storico
+  misure. Android chiede una volta «Dispositivi nelle
   vicinanze» (fino ad Android 11 la Posizione: lo pretende Android per cercare dispositivi Bluetooth).
   FitDays sullo stesso telefono può prendersi la bilancia: va chiuso o disinstallato.
 - **🔗 Collegamento col TMS sul PC** (dalla 1.2.0, «⚙ Collegamento e promemoria»): come Movienaitor, una
@@ -40,7 +37,6 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
 - **🔔 Promemoria** (dalla 1.2.0, stessa schermata): ogni sera all'ora scelta (21:00) la pesata, il
   lunedì anche le foto; se quel giorno ci si è già pesati (o si sono fatte le foto) non suona. Plugin
   `@capacitor/local-notifications` (MIT); niente sveglie «esatte»: può suonare qualche minuto dopo.
-- Le schede e il rientro sono **gli stessi file** di sempre: il TMS sul PC non vede differenze.
 
 ## Creare l'APK
 
@@ -71,12 +67,6 @@ Per gli **aggiornamenti**: si alza `version` in `app-android/package.json` (es. 
 si rifà l'APK e il cliente lo installa **sopra** quello vecchio: la scheda, la bozza e le foto restano.
 Funziona solo perché ogni versione è firmata con la **stessa chiave** (vedi sotto).
 
-## Passare dalla PWA all'APK (per i clienti che la usavano)
-
-L'APK e la PWA tengono i dati **separati**: la bozza scritta nella PWA non passa nell'APK.
-Il momento giusto per cambiare è a **scheda nuova**: il cliente manda il rientro dalla PWA, poi
-apre la scheda nuova nell'APK. Gli **iPhone** non installano APK: restano senza app del telefono.
-
 ## Da non fare mai (si perderebbero i dati dei clienti)
 
 - **Perdere la chiave di firma** `firma\tms-scheda.keystore`. Non è su GitHub (il repository è
@@ -93,10 +83,11 @@ apre la scheda nuova nell'APK. Gli **iPhone** non installano APK: restano senza 
 
 | file | cosa |
 |---|---|
-| `scripts/prepara-www.js` | copia `docs/app/` in `www/` (senza `sw.js`) e applica 4 modifiche con **conteggio asserito**: via il service worker, `confirm(` → `await tmsConferma(` (3 punti), `delEsercizio` async, `nativo.js` dopo lo script. Se la PWA cambia lì, si ferma e lo dice. `--verifica` controlla senza scrivere |
-| `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, file in arrivo, scelta foto, rientro via plugin, `window.tmsIndietro`, `window.tmsBLE` (trasporto Bluetooth della pagina Bilancia: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; il protocollo e la formula stanno nella PWA). Sostituisce funzioni globali della PWA (`stradeSalvataggio`, `salvaRientroCome`, `isStandalone`, `alert`) e avvolge `avvia` |
-| `nativo/TmsFilePlugin.java` | plugin Capacitor «TmsFile»: `info`, `condividi`, `salvaInCartella` (ACTION_CREATE_DOCUMENT), `salvaInDownload` (MediaStore, Android 10+), evento `fileRicevuto` (VIEW/SEND copiati nella cache), tasto indietro |
-| `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, «Apri con» nel manifest, fotocamera visibile (`<queries>`), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |
+| `scripts/prepara-www.js` | copia `docs/app/` in `www/` (senza `sw.js`) e applica 4 modifiche con **conteggio asserito**: via il service worker, `confirm(` → `await tmsConferma(` (5 punti), `delEsercizio` async, `nativo.js` dopo lo script. Se la PWA cambia lì, si ferma e lo dice. `--verifica` controlla senza scrivere |
+| `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, scelta foto, `window.tmsIndietro`, `window.tmsCartella` (cartella condivisa e APK nuovo, plugin `TmsCartella`), `window.tmsAvvisi` (promemoria), `window.tmsBLE` (trasporto Bluetooth della pagina Bilancia: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; il protocollo e la formula stanno nella PWA). Sostituisce funzioni globali della PWA (`isStandalone`, `alert`) e avvolge `avvia` |
+| `nativo/TmsFilePlugin.java` | plugin Capacitor «TmsFile»: `info` (versione di Android) e tasto indietro |
+| `nativo/TmsCartellaPlugin.java` | plugin «TmsCartella»: scelta della cartella condivisa (permesso persistente), lettura, scrittura ed elenco per percorso relativo, installazione dell'APK nuovo con controllo dell'impronta |
+| `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, via «Apri con» dal manifest, fotocamera visibile (`<queries>`), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |
 | `scripts/immagini.ps1` | icona adattiva, icone e stella d'avvio da `docs/app/icon-512.png` |
 | `test/prova-nativo.js` | prova in jsdom con un plugin finto (`npm run prova`, da questa cartella) |
 
@@ -110,7 +101,7 @@ Lo dice subito `npm run verifica` dalla radice del progetto (comprende `prepara-
 
 Due cose scoperte sull'emulatore, da non togliere: il manifest dichiara `<queries>` per
 `IMAGE_CAPTURE` (senza, da Android 11 «Scatta una foto» apre la galleria invece della fotocamera)
-e la condivisione esclude TMS Scheda stessa dalle app proposte (registra «Condividi» per i .json).
+(la condivisione dei .json e «Apri con» non ci sono più dal 17/11/2026).
 
 La bilancia NON si prova sull'emulatore (niente Bluetooth vero): si prova sul telefono con la bilancia.
 Note sul protocollo, sulla formula e sul confronto con FitDays: `Doc/bilancia/NOTE_TECNICHE.md` (fuori da git).

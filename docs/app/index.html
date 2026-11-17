@@ -147,12 +147,6 @@
  .f.fatto{justify-content:flex-start;gap:10px;cursor:pointer;padding:8px 0}
  .f.fatto input{width:22px;height:22px;flex:0 0 auto}
  .f.fatto span{font-size:15px;font-weight:bold;color:#5b4a30}
- /* riepilogo prima dell'invio */
- .riep-row{display:flex;align-items:baseline;gap:9px;padding:6px 0;border-bottom:1px solid #f0e6cf}
- .riep-row:last-child{border-bottom:0}
- .riep-g{flex:1;min-width:0;font-size:14px;font-weight:bold}
- .riep-n{font-size:13px;color:#5b4a30;white-space:nowrap}
- .riep-s{font-size:12px;color:#7a6648;white-space:nowrap;min-width:74px;text-align:right}
  /* barra del timer di recupero, fissa in basso */
  #tbar{position:fixed;left:0;right:0;bottom:0;z-index:14;background:#2b1d10;color:#f4ead8;display:none;align-items:center;gap:9px;padding:9px 13px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -3px 14px rgba(0,0,0,.35);max-width:620px;margin-inline:auto}
  #tbar.show{display:flex}
@@ -193,6 +187,11 @@
  .col-avviso>span{flex:1;min-width:0}
  .col-avviso>button{flex:none;font:inherit;font-weight:bold;font-size:13px;padding:7px 12px;border:0;border-radius:var(--r-sm);background:#9a5b1f;color:#fff;cursor:pointer}
  .pc-ok{color:#2f7d4f;font-weight:bold} .pc-via{color:#9b8a6e}
+ /* scelte grandi a tutta riga (es. «Scatta una foto» / «Scegli dalla galleria» nell'APK) */
+ .dove-btn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:0 0 9px;padding:12px 14px;font:inherit;font-size:15px;background:#fff;color:#2c1e0c;border:1px solid #cdb889;border-radius:var(--r-sm);cursor:pointer}
+ .dove-btn:active{background:#fbf4e6}
+ .dove-btn .ic{font-size:22px;flex:0 0 auto}
+ .dove-btn small{display:block;color:#8a7455;font-size:12px;margin-top:2px}
  #bozza-stato{color:#7a6648;font-size:11.5px;text-align:center;margin:6px 0;min-height:14px}
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:15;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:var(--r-sm);background:#000}
@@ -214,12 +213,6 @@
  .qr-item img{width:150px;height:150px;max-width:38vw;border-radius:var(--r-sm);border:1px solid #cdb889;background:#fff}
  .qr-item a{display:inline-block;margin-top:7px;background:#c89b3c;color:#2b1d10;text-decoration:none;font-weight:bold;font-size:13px;padding:6px 14px;border-radius:var(--r-sm)}
  #qrclose{position:absolute;top:8px;right:12px;font-size:26px;color:#7a6648;background:none;border:0;cursor:pointer;line-height:1}
- #doveov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:17;padding:16px}
- .dove-btn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:0 0 9px;padding:12px 14px;font:inherit;font-size:15px;background:#fff;color:#2c1e0c;border:1px solid #cdb889;border-radius:var(--r-sm);cursor:pointer}
- .dove-btn:active{background:#fbf4e6}
- .dove-btn .ic{font-size:22px;flex:0 0 auto}
- .dove-btn small{display:block;color:#8a7455;font-size:12px;margin-top:2px}
- .dove-nome{font-family:monospace;font-size:12px;color:#7a6648;text-align:center;margin:-4px 0 12px;word-break:break-all}
 </style>
 </head>
 <body>
@@ -240,24 +233,17 @@
   </div>
 </div></div>
 
-<div id="doveov"><div class="qr-panel">
-  <button type="button" id="doveclose" style="position:absolute;top:8px;right:12px;font-size:26px;color:#7a6648;background:none;border:0;cursor:pointer;line-height:1">✕</button>
-  <h3 data-i18n>Dove salvo il rientro?</h3>
-  <div class="dove-nome" id="dove-nome"></div>
-  <div id="dove-lista"></div>
-</div></div>
-
 <!-- ── schermata BENVENUTO: nessuna scheda caricata ── -->
 <div id="benvenuto" hidden>
   <div class="box">
     <div class="pick-title" data-i18n>👋 Benvenuto</div>
-    <p style="font-size:13.5px;line-height:1.45;margin:5px 0" data-i18n-html>Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> — dal tuo coach, o da te se ti alleni in autonomia — e qui le <b>annoti in palestra</b>.</p>
-    <p style="font-size:13.5px;line-height:1.45;margin:5px 0" data-i18n-html>Dal TMS arriva un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai riscaldamento, allenamenti coi video e la dieta, annoti ciò che fai davvero e rimandi il risultato al TMS con un tocco.</p>
-    <label class="btn-big" style="cursor:pointer"><span data-i18n>📂 Carica la scheda</span><input id="file-scheda" type="file" accept="application/json,.json" style="display:none"></label>
-    <button type="button" class="btn-lite" id="col-da-ben" hidden data-i18n>🔗 Collega al TMS sul PC</button>
+    <p style="font-size:13.5px;line-height:1.45;margin:5px 0" data-i18n-html>Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> e arrivano qui da sole; in palestra annoti quello che fai, e torna al PC da solo.</p>
+    <p style="font-size:13.5px;line-height:1.45;margin:5px 0" data-i18n-html>Per cominciare <b>collega l’app al TMS</b>: serve la cartella <b>«6 - TMS»</b> di Google Drive tenuta uguale sul telefono da un’app di sincronizzazione (Autosync, FolderSync…) e il <b>codice</b> che il PC mostra in ⚙ Impostazioni › Telefono collegato.</p>
+    <button type="button" class="btn-big" id="col-da-ben" hidden data-i18n>🔗 Collega al TMS sul PC</button>
+    <div class="fine" id="ben-solo-apk" data-i18n>Il collegamento c’è nell’app Android «TMS Scheda».</div>
   </div>
   <div id="col-avvisi-ben"></div>
-  <div class="privacy" data-i18n-html>🔒 Tutto resta <b>sul tuo telefono</b>: questa app non invia niente a nessun server. Funziona anche offline.</div>
+  <div class="privacy" data-i18n-html>🔒 L’app non parla con nessun server: scheda, allenamenti, pesate e foto passano solo dalla tua cartella condivisa, <b>cifrati</b> col tuo codice. Funziona anche offline.</div>
   <div class="install" id="install-hint" hidden></div>
 </div>
 
@@ -287,7 +273,6 @@
       <span class="macro-l"><span class="macro-name" data-i18n>Collegamento e promemoria</span><span class="macro-meta" id="meta-col"></span></span>
       <span class="chev">›</span></button>
   </div>
-  <label class="btn-lite" style="cursor:pointer"><span data-i18n>📂 Carica una nuova scheda</span><input id="file-scheda-2" type="file" accept="application/json,.json" style="display:none"></label>
   <div class="install" id="install-hint-2" hidden></div>
 </div>
 
@@ -298,32 +283,22 @@
   <div class="days" id="days"></div>
   <div id="bozza-stato"></div>
   <div class="avviso" id="col-home" hidden></div>
-  <button type="button" class="btn-big" id="invia" data-i18n>📩 Crea il file per il coach</button>
-  <div class="fine" id="invia-nota" data-i18n-html>Quando hai finito premi il bottone: vedrai un riepilogo e poi nasce un file <b>Rientro_….json</b> da rimandare al coach, e scegli tu <b>dove salvarlo</b>. Quello che scrivi <b>si salva da solo</b> su questo telefono.</div>
-</div>
-
-<!-- ── schermata RIEPILOGO: controllo prima di creare il file ── -->
-<div id="riepilogo" hidden>
-  <button type="button" class="back-btn" data-home data-i18n>‹ Torna ai giorni</button>
-  <div class="pick-title" data-i18n>✅ Controlla e invia</div>
-  <div id="riep-body"></div>
-  <button type="button" class="btn-big" id="invia-ok" data-i18n>📩 Crea il file per il coach</button>
 </div>
 
 <!-- ── schermata FOTO PROGRESSI: tre viste (fronte/lato/retro), da fotocamera o galleria.
-       Restano sul telefono e viaggiano nel file di rientro, per finire nel tab Corpo del TMS. ── -->
+       Restano sul telefono e vanno da sole al TMS collegato, nel tab Corpo. ── -->
 <div id="foto" hidden>
   <button type="button" class="back-btn" data-menu data-i18n>‹ Torna al menu</button>
   <div class="sez-t" data-i18n>▌ Foto progressi</div>
-  <div class="avviso" data-i18n-html>Scatta o scegli una foto per ogni vista: finiscono nel file per il coach e da lì nel <b>tuo storico foto</b> sul PC. 🔒 Restano sul telefono fino a quando invii il file.</div>
+  <div class="avviso" data-i18n-html>Scatta o scegli una foto per ogni vista: arrivano da sole sul PC, nel <b>tuo storico foto</b> (tab Corpo).</div>
   <div class="foto-grid" id="foto-grid"></div>
-  <div class="fine" id="foto-nota" data-i18n>Le foto vengono rimpicciolite per non appesantire il file.</div>
+  <div class="fine" id="foto-nota" data-i18n>Le foto vengono rimpicciolite prima di partire.</div>
   <button type="button" class="back-btn bottom" data-menu data-i18n>‹ Torna al menu</button>
 </div>
 
 <!-- ── schermata BILANCIA (solo nell'APK: serve il Bluetooth del telefono). Le pesate restano
-       sul telefono e partono col file per il coach; nel TMS la media di ogni settimana va da
-       sola nello Storico misure. ── -->
+       sul telefono e vanno da sole al TMS collegato; lì la media di ogni settimana va da sola
+       nello Storico misure. ── -->
 <div id="bil" hidden>
   <button type="button" class="back-btn" data-menu data-i18n>‹ Torna al menu</button>
   <div class="sez-t" data-i18n>▌ Bilancia</div>
@@ -332,8 +307,7 @@
     <button type="button" class="btn-lite" id="bil-riprova" hidden data-i18n>🔄 Riprova</button></div>
   <div id="bil-ris"></div>
   <div class="box"><div class="pick-title" data-i18n>Le tue pesate</div><div id="bil-lista"></div></div>
-  <button type="button" class="btn-lite" id="bil-invia" data-i18n>📤 Manda solo le pesate</button>
-  <div class="fine" data-i18n-html>Le pesate restano su <b>questo telefono</b> e partono anche col file per il coach: nel TMS la media di ogni settimana va da sola nello storico delle misure.</div>
+  <div class="fine" data-i18n-html>Le pesate restano su <b>questo telefono</b> e arrivano da sole sul PC: nel TMS la media di ogni settimana va da sola nello Storico misure.</div>
   <button type="button" class="btn-lite" id="bil-dimentica" hidden data-i18n>Usa un’altra bilancia</button>
   <button type="button" class="back-btn bottom" data-menu data-i18n>‹ Torna al menu</button>
 </div>
@@ -389,15 +363,14 @@
 
 <script>
 'use strict';
-/* ════ TMS Scheda — app del cliente (PWA) ════
-   Legge il file Scheda_*.json esportato dal TMS del coach (tipo 'tms-scheda'),
-   mostra riscaldamento/esercizi/video, il cliente compila e riesporta il Rientro_*.json
-   (tipo 'tms-rientro', identico al formato storico: l'import nel TMS non cambia).
-   v2.0 — la giornata è una SEDUTA in fasi: 🔥 riscaldamento (sola lettura, NON torna al
-   coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
-   Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
-   localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.9';
+/* ════ TMS Scheda — il taccuino del TMS sul telefono (PWA impacchettata nell'APK) ════
+   La scheda arriva dal TMS sul PC attraverso la cartella condivisa ed è COLLEGATA: la si modifica
+   qui o sul PC e l'altro si aggiorna da solo (blocco «SCHEDA COLLEGATA» più sotto). Dal 17/11/2026
+   niente più file Scheda_….json / Rientro_….json da passare a mano.
+   v2.0 — la giornata è una SEDUTA in fasi: 🔥 riscaldamento (sola lettura) · 🏋 esercizi ·
+   ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
+   fallback localStorage; i campi in localStorage. Nessun server: si passa solo dalla cartella. */
+const CVER='3.0';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -566,6 +539,13 @@ const TT={en:{
   "pesata della bilancia":"scale weigh-in",
   "pesate della bilancia":"scale weigh-ins",
   /* collegamento col PC, promemoria, aggiornamento dell'APK */
+  "Il collegamento c’è nell’app Android «TMS Scheda».":"The link is in the «TMS Scheda» Android app.",
+  "Le foto vengono rimpicciolite prima di partire.":"Photos are shrunk before they leave.",
+  "Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> e arrivano qui da sole; in palestra annoti quello che fai, e torna al PC da solo.":"This app is the <b>digital notebook</b> of the <b>Training Monitor System</b>: program and diet <b>are created in the TMS on the PC</b> and arrive here by themselves; at the gym you log what you do, and it goes back to the PC by itself.",
+  "Per cominciare <b>collega l’app al TMS</b>: serve la cartella <b>«6 - TMS»</b> di Google Drive tenuta uguale sul telefono da un’app di sincronizzazione (Autosync, FolderSync…) e il <b>codice</b> che il PC mostra in ⚙ Impostazioni › Telefono collegato.":"To start, <b>link the app to the TMS</b>: you need the Google Drive <b>«6 - TMS»</b> folder kept identical on the phone by a sync app (Autosync, FolderSync…) and the <b>code</b> the PC shows in ⚙ Settings › Linked phone.",
+  "🔒 L’app non parla con nessun server: scheda, allenamenti, pesate e foto passano solo dalla tua cartella condivisa, <b>cifrati</b> col tuo codice. Funziona anche offline.":"🔒 The app talks to no server: program, workouts, weigh-ins and photos only pass through your shared folder, <b>encrypted</b> with your code. Works offline too.",
+  "Scatta o scegli una foto per ogni vista: arrivano da sole sul PC, nel <b>tuo storico foto</b> (tab Corpo).":"Take or choose a photo for each view: they reach the PC by themselves, in <b>your photo history</b> (Body tab).",
+  "Le pesate restano su <b>questo telefono</b> e arrivano da sole sul PC: nel TMS la media di ogni settimana va da sola nello Storico misure.":"Weigh-ins stay on <b>this phone</b> and reach the PC by themselves: in the TMS each week's average goes by itself into the measurement History.",
   "al PC":"on PC",
   "manca il codice di collegamento":"the pairing code is missing",
   "arrivata al PC":"arrived on the PC",
@@ -664,15 +644,6 @@ const stOk=(()=>{ try{ localStorage.setItem('t','1'); localStorage.removeItem('t
 function validaScheda(d){ return d && d.tipo==='tms-scheda' && Array.isArray(d.righe) && d.righe.length>0; }
 function giorniDi(righe){ const seen=[]; righe.forEach(r=>{ const g=String(r.giorno||''); if(g&&seen.indexOf(g)<0) seen.push(g); }); return seen; }
 
-/* ── caricamento file scheda ── */
-async function caricaFile(file){
-  let dati=null; try{ dati=JSON.parse(await file.text()); }catch(e){}
-  if(!validaScheda(dati)){ alert(tt('Questo file non è una scheda del TMS (serve il file Scheda_….json che ti manda il coach).')); return; }
-  if(SCHEDA && !confirm(tt('Hai già una scheda caricata («')+((SCHEDA.profilo||{}).nome||'')+tt('», del')+' '+(SCHEDA.esportata||'?')+').\n'+tt('La sostituisco con quella nuova? (La bozza della vecchia resta salvata sul telefono.)'))) return;
-  await salvaScheda(dati);
-  SCHEDA=dati; avvia();
-}
-
 /* ── modello di lavoro (WROWS): righe MODIFICABILI con id STABILE (rid). Parte dalle
       righe del coach (rid = indice) e, se la bozza contiene la struttura salvata
       (_wrows: aggiunte/eliminazioni/rinomine/spostamenti/★ test), riprende quella.
@@ -702,7 +673,7 @@ function ultimaDi(nome){ const u=(SCHEDA&&SCHEDA.ultima)||null; return (u&&u[Str
 function avvia(){
   const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
-  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','riepilogo','foto','bil','col'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); colRender(); avvPianifica(); return; }
+  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','foto','bil','col'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); colRender(); avvPianifica(); return; }
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
@@ -710,7 +681,7 @@ function avvia(){
   WROWS.forEach(r=>{ if(r.giorno && GIORNI.indexOf(r.giorno)<0) GIORNI.push(r.giorno); });
   $('sub').textContent=tt('Ciao')+' '+(((SCHEDA.profilo||{}).nome)||'')+tt('! Il tuo taccuino: scheda e alimentazione dal TMS, da annotare in palestra.');
   $('scheda-info').innerHTML=tt('📋 Scheda del')+' <b>'+esc((SCHEDA.profilo||{}).nome||'')+'</b> · '+tt('esportata il')+' <b>'+esc(SCHEDA.esportata||'?')+'</b>'+(SCHEDA.app?' · TMS v'+esc(SCHEDA.app):'');
-  ['invia','invia-nota'].forEach(id=>{ const el=$(id); if(el) el.hidden=false; }); colIntestazione();
+  colIntestazione();
   const dieta=SCHEDA.dieta, haDieta=!!(dieta&&Array.isArray(dieta.righe)&&dieta.righe.length);
   $('meta-alim').textContent=haDieta? (tt(dieta.label||dieta.fase||'piano')+(dieta.tot?(' · '+(dieta.tot.kcal||0)+' '+tt('kcal/giorno')):'')) : tt('non inclusa in questo file');
   $('vai-alim').disabled=!haDieta;
@@ -813,7 +784,7 @@ function rigaEsercizio(r){
       (ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':'')+
     '</div></div>';
 }
-function mostra(id){ ['menu','home','alim','riepilogo','foto','bil','col'].forEach(s=>{ $(s).hidden=(id!==s); });
+function mostra(id){ ['menu','home','alim','foto','bil','col'].forEach(s=>{ $(s).hidden=(id!==s); });
   if(id!=='bil') bilEsci();   /* fuori dalla pagina Bilancia il Bluetooth si ferma */
   if(id==='menu') colPresto();   /* di nuovo al menu: è il momento giusto per gli aggiornamenti dal PC */
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
@@ -958,8 +929,6 @@ function navIndietro(){ if(navLivelli>0){ try{ history.back(); return; }catch(e)
 function risali(){
   const vov=$('vov'); if(vov && vov.style.display==='flex'){ chiudiVideo(); return true; }
   const qrov=$('qrov'); if(qrov && qrov.style.display==='flex'){ qrov.style.display='none'; return true; }
-  const dov=$('doveov'); if(dov && dov.style.display==='flex'){ chiudiDove(); return true; }
-  if(!$('riepilogo').hidden){ aggiornaStato(); mostra('home'); return true; }
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
   if(giorno){ aggiornaStato(); mostra('home'); return true; }
   if(!$('col').hidden){ colEsci(); return true; }
@@ -967,25 +936,6 @@ function risali(){
   return false;   /* siamo al menu: non c'è più nulla sopra, l'app può chiudersi */
 }
 window.addEventListener('popstate',()=>{ if(navLivelli>0) navLivelli--; risali(); });
-
-/* ── riepilogo prima dell'invio ── */
-function renderRiepilogo(){
-  const box=$('riep-body'); if(!box) return;
-  let righe='', totEx=0, totF=0, sed=0;
-  GIORNI.forEach((g,gi)=>{
-    const rows=wrowsDelGiorno(g), f=rows.filter(r=>exFatto(r.rid)).length;
-    totEx+=rows.length; totF+=f;
-    const rp=num('rpe-'+gi), mn=num('min-'+gi), haS=!!(rp&&mn); if(haS) sed++;
-    righe+='<div class="riep-row"><span class="riep-g">'+esc(g)+'</span>'+
-      '<span class="riep-n">'+f+'/'+rows.length+'</span>'+
-      '<span class="riep-s">'+(haS?('RPE '+rp+' · '+mn+' min'):('— '+tt('da compilare')))+'</span></div>';
-  });
-  box.innerHTML='<div class="avviso">'+tt('Stai per creare il file da rimandare al coach: ecco cosa contiene.')+'</div>'+
-    '<div class="box">'+righe+'</div>'+
-    '<div class="fine"><b>'+totF+'/'+totEx+'</b> '+tt('esercizi segnati')+' · <b>'+sed+'</b> '+tt('sedute con fatica e durata')+'</div>'+
-    (PESATE.length?'<div class="fine">⚖ <b>'+PESATE.length+'</b> '+(PESATE.length===1?tt('pesata della bilancia'):tt('pesate della bilancia'))+'</div>':'')+
-    (totF===0?'<div class="avviso">'+tt('⚠ Non hai ancora segnato nessun esercizio: il file sarebbe vuoto.')+'</div>':'');
-}
 
 /* ── BILANCIA Bluetooth (solo nell'APK: il trasporto è window.tmsBLE, in nativo.js) ──
       Bilance della famiglia FitDays/iComon a 8 elettrodi (Healthkeep FG2001B-A, Fitdays
@@ -1202,99 +1152,11 @@ function renderBil(){
   lista.querySelectorAll('[data-pesno]').forEach(b=>{ b.onclick=()=>{ PES_TOGLI=''; renderBil(); }; });
   lista.querySelectorAll('[data-pesok]').forEach(b=>{ b.onclick=async()=>{ const id=b.getAttribute('data-pesok');
     PESATE=PESATE.filter(p=>p.id!==id); PES_TOGLI=''; await pesSalva(); renderBil(); }; });
-  const inv=$('bil-invia'); if(inv) inv.disabled=!PESATE.length;
   const dim=$('bil-dimentica'); if(dim) dim.hidden=!bilIdNoto();
   if(BIL.stato) bilStato(BIL.stato);
 }
-/* «📤 Manda solo le pesate»: un rientro senza esercizi, solo con le pesate */
-function rientroPesate(){
-  const out={tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
-    esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:[], sedute:[], foto:[], pesate:PESATE.slice()};
-  return {nome:'Rientro_'+(((SCHEDA.profilo||{}).slug)||'cliente')+'_'+out.compilata+'_pesate.json', testo:JSON.stringify(out,null,1)};
-}
-
-/* ── rientro per il coach: STESSO formato (tipo tms-rientro, import TMS invariato).
-      Scorre WROWS (include gli esercizi aggiunti, salta quelli eliminati) e porta il
-      flag `test` (★ massimale). Il riscaldamento NON entra: è solo informativo. ── */
+/* valore di un campo numerico (vuoto → null) */
 function num(id){ const el=$(id); const v=el?el.value:''; return v===''?null:+v; }
-function costruisciRientro(){
-  const righe=WROWS.map(r=>({giorno:r.giorno, esercizio:String(r.esercizio||'').trim(),
-    serie:num('s-'+r.rid)||0, rip:num('r-'+r.rid)||0, peso:num('p-'+r.rid)||0,
-    rir:num('rir-'+r.rid), note:(($('n-'+r.rid)&&$('n-'+r.rid).value)||'').trim(),
-    rest:r.rest||'', test:!!r.test}))   /* il recupero torna al coach: non va perso all'import */
-    .filter(x=>x.esercizio);
-  const sedute=[]; GIORNI.forEach((g,gi)=>{ const rp=num('rpe-'+gi), mn=num('min-'+gi);
-    if(rp&&mn){ sedute.push({giorno:g, rpe:rp, min:mn}); return; }
-    const c=$('fatto-'+gi); if(c&&c.checked) sedute.push({giorno:g, fatto:true}); });
-  /* foto progressi (se scattate): tag fronte/lato/retro + immagine incorporata → il TMS le
-     salva nel tab Corpo con la data dello scatto */
-  const foto=FOTO_VISTE.filter(v=>FOTO[v]&&FOTO[v].img).map(v=>({id:FOTO[v].id||'', tag:v, data:FOTO[v].data||new Date().toISOString().slice(0,10), img:FOTO[v].img}));
-  return {tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
-    esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:righe, sedute:sedute, foto:foto,
-    pesate:PESATE.slice()};   /* pesate della bilancia: tutte (il TMS riconosce quelle già arrivate) */
-}
-/* ── RIENTRO: dove salvarlo lo decide il cliente (richiesta di Marco 2026-09-29) ──
-   Prima: se il telefono sapeva condividere si apriva DIRETTAMENTE il pannello di
-   condivisione, altrimenti il file finiva nei Download senza chiedere. Ora un menu offre
-   solo le strade che quel dispositivo supporta davvero:
-   · 📤 condividi (navigator.share con file: WhatsApp, email, Drive, «Salva in File» su iPhone)
-   · 📁 scegli la cartella (showSaveFilePicker: Chrome su PC; sui telefoni di solito manca)
-   · ⬇ Download (sempre disponibile, ripiego universale) */
-function rientroPronto(){
-  const out=costruisciRientro();
-  const nome='Rientro_'+(((SCHEDA.profilo||{}).slug)||'cliente')+'_'+out.compilata+'.json';
-  return {nome:nome, testo:JSON.stringify(out,null,1)};
-}
-function stradeSalvataggio(nome, testo){
-  const vie=[];
-  try{
-    if(navigator.share && navigator.canShare){
-      const f=new File([testo],nome,{type:'application/json'});
-      if(navigator.canShare({files:[f]})) vie.push('condividi');
-    }
-  }catch(e){}
-  if(typeof window.showSaveFilePicker==='function') vie.push('cartella');
-  vie.push('download');
-  return vie;
-}
-function chiudiDove(){ const o=$('doveov'); if(o) o.style.display='none'; }
-async function salvaRientroCome(via, nome, testo){
-  chiudiDove();
-  try{
-    if(via==='condividi'){
-      const f=new File([testo],nome,{type:'application/json'});
-      await navigator.share({files:[f],title:nome}); return true;
-    }
-    if(via==='cartella'){
-      const h=await window.showSaveFilePicker({suggestedName:nome,
-        types:[{description:'Rientro TMS',accept:{'application/json':['.json']}}]});
-      const wr=await h.createWritable(); await wr.write(testo); await wr.close();
-      alert(tt('File salvato:')+' '+(h.name||nome)); return true;
-    }
-    const blob=new Blob([testo],{type:'application/json'});
-    const u=URL.createObjectURL(blob); const a=document.createElement('a');
-    a.href=u; a.download=nome; document.body.appendChild(a); a.click();
-    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(u); },800);
-    alert(tt('File creato:')+' '+nome+'\n'+tt('Lo trovi nei Download — rimandalo al tuo coach.'));
-    return true;
-  }catch(e){
-    if(e && e.name==='AbortError') return false;   /* annullato dal cliente: nessun messaggio */
-    alert(tt('Salvataggio non riuscito:')+' '+((e&&e.message)||e)); return false;
-  }
-}
-async function inviaRientro(pronto){
-  const {nome, testo}=pronto||rientroPronto();
-  const vie=stradeSalvataggio(nome, testo);
-  const voci={
-    condividi:['📤', tt('Invia o salva con…'), tt('WhatsApp, email, Drive, File… — scegli tu nella schermata che si apre')],
-    cartella: ['📁', tt('Scegli la cartella…'), tt('decidi tu cartella e nome del file')],
-    download: ['⬇', tt('Salva nei Download'), tt('la cartella predefinita del telefono')]
-  };
-  $('dove-nome').textContent=nome;
-  $('dove-lista').innerHTML=vie.map(v=>'<button type="button" class="dove-btn" data-via="'+v+'"><span class="ic">'+voci[v][0]+'</span><span>'+esc(voci[v][1])+'<small>'+esc(voci[v][2])+'</small></span></button>').join('');
-  $('dove-lista').querySelectorAll('[data-via]').forEach(b=>{ b.onclick=()=>salvaRientroCome(b.getAttribute('data-via'), nome, testo); });
-  $('doveov').style.display='flex';
-}
 
 /* ── eventi (data URI video incorporati nel file scheda) ── */
 function wire(){
@@ -1439,14 +1301,8 @@ $('vclose').onclick=chiudiVideo;
 /* pannello QR «By Wander» (Instagram / YouTube / GitHub), come nel TMS desktop */
 $('qr-btn').onclick=()=>{ $('qrov').style.display='flex'; };
 $('qrclose').onclick=()=>{ $('qrov').style.display='none'; };
-$('doveclose').onclick=chiudiDove;
-$('doveov').onclick=e=>{ if(e.target===$('doveov')) chiudiDove(); };
 $('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; };
-/* invio: prima il riepilogo, poi il file */
-$('invia').onclick=()=>{ renderRiepilogo(); navEntra(); mostra('riepilogo'); };
-$('invia-ok').onclick=()=>inviaRientro();
-/* bilancia: solo le pesate, riprova, un'altra bilancia */
-$('bil-invia').onclick=()=>{ if(PESATE.length) inviaRientro(rientroPesate()); };
+/* bilancia: riprova, un'altra bilancia */
 $('bil-riprova').onclick=()=>{ bilEsci(); bilAvvia(); };
 $('bil-dimentica').onclick=()=>{ try{ localStorage.removeItem(BIL_KEY_ID); }catch(e){} bilEsci(); renderBil(); bilAvvia(); };
 /* app in secondo piano: il Bluetooth si ferma; tornando sulla pagina Bilancia riparte */
@@ -1458,8 +1314,6 @@ $('t-p15').onclick=()=>timerAdjust(15);
 $('t-m15').onclick=()=>timerAdjust(-15);
 $('t-x').onclick=timerClose;
 { const fi=$('foto-file'); if(fi) fi.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f&&fotoVistaAttesa) fotoAggiungi(fotoVistaAttesa,f); }; }
-[['file-scheda'],['file-scheda-2']].forEach(([id])=>{ const inp=$(id);
-  inp.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) caricaFile(f); }; });
 /* autosalvataggio: solo sui campi «fatto» del cliente (non sui campi del pannello Modifica) */
 document.addEventListener('input',e=>{ const id=e.target&&e.target.id;
   if(id && /^(s|r|p|rir|n|rpe|min|fatto)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); } });
@@ -1650,7 +1504,6 @@ function colRidisegna(){
 function colIntestazione(){
   if(!colCollegata()) return;
   const si=$('scheda-info'); if(si) si.innerHTML=esc(tt('🔗 Scheda collegata al TMS sul PC'))+' · '+esc(tt('settimana'))+' <b>'+(+((SCHEDA.sync||{}).settimana)||1)+'</b>';
-  ['invia','invia-nota'].forEach(id=>{ const el=$(id); if(el) el.hidden=true; });
 }
 /* un giro sulla scheda: data le modifiche fatte qui, unisce quelle del PC, applica, scrive */
 async function colSincronizza(){
@@ -1784,11 +1637,12 @@ function colStacca(){
   if(colCollegata()){ SCHEDA.collegata=false; salvaScheda(SCHEDA); }
   COL.msg=c.nome? tt('Scollegato da')+' «'+c.nome+'».' : ''; colRender();
 }
-function colApri(){ navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','riepilogo','foto','bil'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
+function colApri(){ navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
 function colEsci(){ if(SCHEDA){ aggiornaStato(); mostra('menu'); } else { $('col').hidden=true; avvia(); } }
 function colRender(){
   const T=colT(), conf=colConf(), att=colAttivo();
   ['vai-col','col-da-ben'].forEach(id=>{ const b=$(id); if(b) b.hidden=!T; });
+  { const n=$('ben-solo-apk'); if(n) n.hidden=!!T; }
   const avv=$('avv-box'); if(avv) avv.hidden=!window.tmsAvvisi;
   if(!T) return;
   const meta=$('meta-col');
@@ -1873,7 +1727,7 @@ async function avvCambia(){
 /* tocco sul promemoria: si apre la pagina giusta */
 function apriDaAvviso(pagina){
   if(!SCHEDA) return;
-  chiudiDove(); navLivelli=0; mostra('menu');
+  navLivelli=0; mostra('menu');
   if(pagina==='foto'){ navEntra(); mostra('foto'); }
   else if(window.tmsBLE){ navEntra(); mostra('bil'); renderBil(); bilAvvia(); }
 }

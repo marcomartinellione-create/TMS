@@ -1288,7 +1288,7 @@ const EN={
   'non è nello Storico misure':'not in the measurement history', 'media nello Storico misure':'average in the measurement history',
   'nello Storico c’è la misura scritta a mano':'the history has the measurement typed by hand',
   'Togli questa pesata':'Remove this weigh-in', 'Ora':'Time', 'Grasso %':'Fat %', 'Muscolo':'Muscle',
-  'Arrivano col rientro dall’app del telefono e la media di ogni settimana va da sola nello Storico misure. Nella media conta una pesata al giorno, la prima: le altre sono in grigio.':'They arrive with the log from the phone app, and the average of each week goes into the measurement history by itself. One weigh-in per day counts towards the average, the first one: the others are greyed out.',
+  'Arrivano da sole dall’app del telefono collegata e la media di ogni settimana va da sola nello Storico misure. Nella media conta una pesata al giorno, la prima: le altre sono in grigio.':"They arrive by themselves from the linked phone app and each week's average goes by itself into the measurement History. One weigh-in per day counts towards the average, the first: the others are greyed out.",
   'Mostra solo le ultime 4 settimane':'Show only the last 4 weeks', 'Mostra tutte le settimane':'Show all weeks',
   'Tolgo la pesata di':'Remove the weigh-in of', 'Togli':'Remove',
   'Non tornerà con i prossimi rientri, e la media della sua settimana nello Storico misure si ricalcola.':'It will not come back with the next logs, and the average of its week in the measurement history is recalculated.',

@@ -5,7 +5,7 @@
    1. local.properties: dove sta l'Android SDK (sennò Gradle lo cerca nelle variabili d'ambiente,
       che un .bat lanciato col doppio clic può non vedere);
    2. sorgenti nativi (MainActivity + plugin TmsFile e TmsCartella) da nativo/;
-   3. AndroidManifest: «Apri con» e «Condividi» per i file .json, permesso di vibrare (timer),
+   3. AndroidManifest: permesso di vibrare (timer), niente più «Apri con» per i .json,
       fotocamera visibile all'app (per «Scatta una foto»), Bluetooth della bilancia senza posizione,
       installazione dell'APK nuovo dalla cartella condivisa; icona bianca dei promemoria;
    4. stile: barra di stato scura come la PWA, schermata d'avvio nera con la stella
@@ -61,26 +61,11 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
 {
   const f = path.join(MAIN, 'AndroidManifest.xml');
   let s = leggi(f);
-  if (!s.includes('<!-- TMS: apri con -->')) {
-    const filtri =
-      '            <!-- TMS: apri con -->\n' +
-      '            <intent-filter>\n' +
-      '                <action android:name="android.intent.action.VIEW" />\n' +
-      '                <category android:name="android.intent.category.DEFAULT" />\n' +
-      '                <data android:mimeType="application/json" />\n' +
-      '                <data android:mimeType="application/octet-stream" />\n' +
-      '            </intent-filter>\n' +
-      '            <intent-filter>\n' +
-      '                <action android:name="android.intent.action.SEND" />\n' +
-      '                <category android:name="android.intent.category.DEFAULT" />\n' +
-      '                <data android:mimeType="application/json" />\n' +
-      '                <data android:mimeType="application/octet-stream" />\n' +
-      '            </intent-filter>\n' +
-      '            <!-- TMS: fine -->\n';
-    const n = s.split('        </activity>').length - 1;
-    if (n !== 1) { console.error('patch-android: AndroidManifest inatteso (</activity> × ' + n + ')'); process.exit(1); }
-    s = s.replace('        </activity>', filtri + '        </activity>');
-  }
+  /* «Apri con» / «Condividi» per i .json: tolti dal 17/11/2026 (la scheda arriva solo dalla cartella
+     condivisa, niente più file Scheda/Rientro). Un progetto Android già generato li ha ancora: si
+     tolgono, così TMS Scheda non compare più fra le app che aprono i .json */
+  { const a = s.indexOf('            <!-- TMS: apri con -->'), fine = '            <!-- TMS: fine -->\n', b = s.indexOf(fine);
+    if (a >= 0 && b > a) s = s.slice(0, a) + s.slice(b + fine.length); }
   if (!s.includes('android.permission.VIBRATE')) {
     s = s.replace('<uses-permission android:name="android.permission.INTERNET" />',
       '<uses-permission android:name="android.permission.INTERNET" />\n    <!-- TMS: vibrazione a fine recupero (timer) -->\n    <uses-permission android:name="android.permission.VIBRATE" />');
@@ -111,7 +96,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
     s = s.replace('</manifest>', '    <!-- TMS: aggiornamento dell\'APK dalla cartella condivisa -->\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n</manifest>');
   }
   scrivi(f, s);
-  console.log('AndroidManifest: «Apri con» / «Condividi» per i .json, vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK');
+  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK');
   /* icona dei promemoria (barra delle notifiche): una sagoma bianca, Android la colora da sé */
   scrivi(path.join(RES, 'drawable', 'ic_stat_tms.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona dei promemoria (bilancia). Generato da scripts/patch-android.js -->\n' +
