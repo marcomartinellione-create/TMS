@@ -13,10 +13,10 @@
    solo ascoltatore sul documento apre la nota, anche nei pannelli che si ridisegnano. */
 const SPIEG={
 'distribuzione':{t:'Distribuzione del lavoro fra i gruppi muscolari',
-  dove:'Pesi (pannello laterale) · ⚖ Bilanciamento · Progressi · Report',
+  dove:'Pesi (pannello laterale) · Bilanciamento · Progressi · Report',
   a:`La ragnatela descrive la <b>forma</b> della settimana di allenamento coi pesi: quale quota delle serie va a ciascuno dei sei gruppi (Gambe, Pettorali, Schiena, Spalle, Braccia, Core). È una misura di <b>proporzione</b>, indipendente dal volume totale. La fascia verde è la forma tipica di un riferimento scelto per esperienza e tipo di allenamento; la didascalia dice su quante schede o studi si regge.`,
-  s:[['Cosa mostra',`Ogni asse è la quota percentuale di un gruppo sul totale delle serie coi pesi. In <b>Pesi</b> e nel <b>⚖ Bilanciamento</b> si usa la scheda che stai scrivendo; in <b>Progressi</b> e nel <b>Report</b> l'ultima settimana salvata nello Storico. Il cardio non entra: cambierebbe la quota di tutti gli altri gruppi.`],
-   ['Dati di partenza',`Per ogni riga: esercizio e numero di serie. Dal catalogo: muscoli primari e secondari dell'esercizio, ricondotti ai sei gruppi (17 muscoli → 6 gruppi). In alternativa, se scelto in ⚙ Riferimento, la mappa muscolare esterna (smyrdev, 1,0 diretto / 0,5 indiretto per schema di movimento).`],
+  s:[['Cosa mostra',`Ogni asse è la quota percentuale di un gruppo sul totale delle serie coi pesi. In <b>Pesi</b> e nel <b>Bilanciamento</b> si usa la scheda che stai scrivendo; in <b>Progressi</b> e nel <b>Report</b> l'ultima settimana salvata nello Storico. Il cardio non entra: cambierebbe la quota di tutti gli altri gruppi.`],
+   ['Dati di partenza',`Per ogni riga: esercizio e numero di serie. Dal catalogo: muscoli primari e secondari dell'esercizio, ricondotti ai sei gruppi (17 muscoli → 6 gruppi). In alternativa, se scelto in Riferimento, la mappa muscolare esterna (smyrdev, 1,0 diretto / 0,5 indiretto per schema di movimento).`],
    ['Metodo e formule',`Una serie è <b>diretta</b> sul gruppo di un muscolo primario, <b>indiretta</b> su quello di un muscolo solo secondario (un gruppo con un primario resta diretto). Con pesi <i>w</i><sub>d</sub> = 1,0 e <i>w</i><sub>i</sub> = 0,5 (predefiniti, provvisori):
      <div class="spf">S<sub>g</sub> = <i>w</i><sub>d</sub> · D<sub>g</sub> + <i>w</i><sub>i</sub> · I<sub>g</sub><span class="spn">(1)</span></div>
      <div class="spf">q<sub>g</sub> = <span class="fr"><i>S<sub>g</sub></i><i>Σ<sub>k</sub> S<sub>k</sub></i></span> × 100<span class="spn">(2)</span></div>
@@ -29,12 +29,12 @@ const SPIEG={
   b:['Schoenfeld BJ, Grgic J, Haun C, Itagaki T, Helms ER (2019). Calculating set-volume for the limb muscles with the performance of multi-joint exercises. <i>Sports</i> 7(7):177.',
      'Pelland JC et al. (2025). The resistance training dose response: meta-regressions exploring the effects of weekly volume and frequency on hypertrophy and strength. <i>Sports Medicine</i>, doi:10.1007/s40279-025-02344-w.',
      'Hyndman RJ, Fan Y (1996). Sample quantiles in statistical packages. <i>The American Statistician</i> 50(4):361–365.',
-     'Riferimenti TMS: schede StrengthLog, Muscle &amp; Strength, depot.fitness (CC BY 4.0), Liftosaur e altre schede pubbliche di 30 siti; corpus di protocolli v0.7 e articoli ad accesso aperto. Elenco completo in ⚙ Riferimento.']},
+     'Riferimenti TMS: schede StrengthLog, Muscle &amp; Strength, depot.fitness (CC BY 4.0), Liftosaur e altre schede pubbliche di 30 siti; corpus di protocolli v0.7 e articoli ad accesso aperto. Elenco completo in Riferimento.']},
 
 'serie-gruppo':{t:'Serie per gruppo muscolare e zona utile',
-  dove:'Pesi (pannello laterale) · ⚖ Bilanciamento · Storico · Progressi',
+  dove:'Pesi (pannello laterale) · Bilanciamento · Storico · Progressi',
   a:`L'elenco (e in Progressi il grafico a barre) dice la <b>quantità</b> di lavoro settimanale di ciascun gruppo, in serie, separando la parte diretta da quella indiretta, e la confronta con una zona utile ricavata da schede pubblicate equilibrate.`,
-  s:[['Cosa mostra',`Per ogni gruppo le serie della settimana: in <b>Pesi</b> e nel <b>⚖ Bilanciamento</b> quelle della scheda in scrittura, nello <b>Storico</b> la media a settimana delle righe filtrate, in <b>Progressi</b> l'ultima settimana salvata, con in più il Cardio. La barra è piena per la parte diretta e chiara per l'indiretta; le tacche verdi segnano la zona utile del gruppo.`],
+  s:[['Cosa mostra',`Per ogni gruppo le serie della settimana: in <b>Pesi</b> e nel <b>Bilanciamento</b> quelle della scheda in scrittura, nello <b>Storico</b> la media a settimana delle righe filtrate, in <b>Progressi</b> l'ultima settimana salvata, con in più il Cardio. La barra è piena per la parte diretta e chiara per l'indiretta; le tacche verdi segnano la zona utile del gruppo.`],
    ['Dati di partenza',`Esercizio e serie di ogni riga; muscoli primari e secondari dal catalogo; per il Cardio i minuti delle attività (tab Cardio) e del cardio di riscaldamento.`],
    ['Metodo e formule',`Stesso conteggio della ragnatela:
      <div class="spf">S<sub>g</sub> = <i>w</i><sub>d</sub> · D<sub>g</sub> + <i>w</i><sub>i</sub> · I<sub>g</sub>, &nbsp; <i>w</i><sub>d</sub> = 1,0 · <i>w</i><sub>i</sub> = 0,5<span class="spn">(1)</span></div>
@@ -87,7 +87,7 @@ const SPIEG={
   dove:'Progressi',
   a:`Il Training Load (TL) riassume in un numero il lavoro coi pesi di una settimana, combinando volume e intensità relativa. La media mobile sulle ultime quattro settimane rappresenta il carico a cui l'atleta è abituato (carico cronico).`,
   s:[['Cosa mostra',`Una linea con il TL di ogni settimana salvata e una seconda linea con la media mobile di 4 settimane.`],
-   ['Dati di partenza',`Le righe dello Storico (esclusi i test del massimale ★), filtrate per Training Set se scelto in «Dati da analizzare».`],
+   ['Dati di partenza',`Le righe dello Storico (esclusi i test del massimale), filtrate per Training Set se scelto in «Dati da analizzare».`],
    ['Metodo e formule',`<div class="spf">TL<sub>sett</sub> = Σ<sub>righe</sub> serie × rip × <i>C</i> × <span class="fr"><i>%1RM</i><i>100</i></span> × <i>f</i><span class="spn">(1)</span></div>
      Poiché %1RM = <i>C</i>/1RM, il prodotto <i>C</i> × %1RM/100 vale <i>C</i>²/1RM: a parità di ripetizioni pesa di più il lavoro vicino al massimale.
      <div class="spf">Cronico<sub>t</sub> = <span class="fr"><i>Σ TL delle settimane t−3 … t</i><i>n</i></span><span class="spn">(2)</span></div>
@@ -116,7 +116,7 @@ const SPIEG={
   dove:'Progressi',
   a:`Il tonnellaggio (volume load) è la massa totale sollevata in una settimana: serie × ripetizioni × carico. È la misura di volume più semplice e diffusa.`,
   s:[['Cosa mostra',`Una linea con i chilogrammi totali sollevati in ogni settimana salvata.`],
-   ['Dati di partenza',`Serie, ripetizioni e peso delle righe dello Storico (esclusi i test ★); per trazioni, dip e leg raise anche il peso corporeo della settimana.`],
+   ['Dati di partenza',`Serie, ripetizioni e peso delle righe dello Storico (esclusi i test); per trazioni, dip e leg raise anche il peso corporeo della settimana.`],
    ['Metodo e formule',`<div class="spf">Tonnellaggio = Σ<sub>righe</sub> serie × rip × <i>C</i>, &nbsp; <i>C</i> = zavorra + peso corporeo × quota<span class="spn">(1)</span></div>
      La quota è 1 per trazioni e dip, 0,40 (uomo) o 0,42 (donna) per i leg raise a gambe tese, 0,25 a ginocchia piegate, 0 per gli altri esercizi. Il peso corporeo è quello misurato nella stessa settimana, altrimenti il più vicino.`],
    ['Esempio svolto',`Squat 4 × 5 a 100 kg = 2 000 kg; panca 3 × 8 a 70 kg = 1 680 kg; trazioni 3 × 8 con 10 kg di zavorra e corpo di 80 kg = 3 × 8 × 90 = 2 160 kg. Totale = <b>5 840 kg</b>.`],
@@ -220,7 +220,7 @@ const SPIEG={
      <li><b>TL a parità di esercizi</b>, tratteggiata: il TL per serie degli esercizi ripetuti.</li>
      <li><b>Forza a parità di esercizi</b>, la linea piena: il massimale stimato (1RM) degli esercizi ripetuti. È la principale.</li></ul>
      Sopra ogni linea il numero grande è la variazione da inizio a fine periodo; sotto, la pendenza in % al mese degli ultimi 3 mesi (o di tutto il periodo, se è più corto). Il cerchietto vuoto segna le settimane di cambio scheda saltate.`],
-   ['Dati di partenza',`Le righe dello Storico (esclusi i test del massimale ★): per ogni esercizio e settimana il TL, il numero di serie e il 1RM stimato più alto, calcolati come nel resto dell'app (corpo libero compreso). Segue il filtro «Dati da analizzare».`],
+   ['Dati di partenza',`Le righe dello Storico (esclusi i test del massimale): per ogni esercizio e settimana il TL, il numero di serie e il 1RM stimato più alto, calcolati come nel resto dell'app (corpo libero compreso). Segue il filtro «Dati da analizzare».`],
    ['Metodo e formule',`Per ogni coppia di settimane salvate consecutive, anche con una pausa in mezzo, si prendono gli esercizi <i>e</i> presenti in tutte e due. Per ognuno il rapporto:
      <div class="spf">r<sub>e</sub> = <span class="fr"><i>1RM<sub>e,t</sub></i><i>1RM<sub>e,t−1</sub></i></span> &nbsp;(forza) &nbsp;oppure&nbsp; r<sub>e</sub> = <span class="fr"><i>TL<sub>e,t</sub> / serie<sub>e,t</sub></i><i>TL<sub>e,t−1</sub> / serie<sub>e,t−1</sub></i></span> &nbsp;(TL)<span class="spn">(1)</span></div>
      Il passo della settimana è la media <b>geometrica</b> dei rapporti, pesata sul TL medio dell'esercizio nelle due settimane (<i>p<sub>e</sub></i>), e l'indice è il prodotto dei passi:
@@ -244,7 +244,7 @@ const SPIEG={
   dove:'Storico (pannello laterale)',
   a:`Riassume il Training Load delle righe attualmente filtrate nello Storico, settimana per settimana, per vedere a colpo d'occhio come si è distribuito il carico.`,
   s:[['Cosa mostra',`Le ultime 12 settimane (dalla più recente), ciascuna con una barra proporzionale al suo TL; in alto il numero di settimane e il TL medio.`],
-   ['Dati di partenza',`Le righe dello Storico che passano i filtri della tabella (esercizio, gruppo, scheda), esclusi i test ★.`],
+   ['Dati di partenza',`Le righe dello Storico che passano i filtri della tabella (esercizio, gruppo, scheda), esclusi i test.`],
    ['Metodo e formule',`<div class="spf">TL<sub>sett</sub> = Σ<sub>righe filtrate</sub> TL<sub>riga</sub> · TL medio = <span class="fr"><i>Σ<sub>sett</sub> TL<sub>sett</sub></i><i>numero di settimane</i></span><span class="spn">(1)</span></div>
      La barra è TL<sub>sett</sub> ÷ TL<sub>max</sub> delle 12 mostrate.`],
    ['Esempio svolto',`Filtrando «Squat con bilanciere»: tre settimane con TL 1 629, 1 800, 1 700 → media 1 710; la seconda è la barra piena.`],
@@ -378,7 +378,7 @@ const SPIEG={
   dove:'Corpo',
   a:`Segue il peso corporeo misura dopo misura. È il dato più semplice per seguire una fase di massa, mantenimento o definizione.`,
   s:[['Cosa mostra',`Una linea con il peso di ogni misura salvata nello storico delle misure, datata per settimana.`],
-   ['Dati di partenza',`Il peso salvato con «💾 Salva misure nello Storico».`],
+   ['Dati di partenza',`Il peso salvato con «Salva misure nello Storico».`],
    ['Metodo e formule',`Valore registrato: <div class="spf">y<sub>sett</sub> = peso [kg]</div> Il peso di ogni settimana serve anche per il carico degli esercizi a corpo libero di quella settimana.`],
    ['Esempio svolto',`80,0 → 80,4 → 80,9 → 81,1 kg in 4 settimane: circa +0,37 kg a settimana, ritmo tipico di una fase di massa.`],
    ['Come leggerlo',`Contano le tendenze di più settimane: le oscillazioni giornaliere (acqua, glicogeno, sale) arrivano a 1–2 kg. Pesarsi nelle stesse condizioni (mattino, a digiuno).`],
@@ -455,7 +455,7 @@ const SPIEG={
    ['Metodo e formule',`<div class="spf">Indice = <span class="fr"><i>quantità giornaliera nel piano</i><i>riferimento</i></span> × 100<span class="spn">(1)</span></div>
      Riferimenti (E = fabbisogno, o 2 000 kcal se manca): energia E; proteine 0,83 g/kg; carboidrati 55% E; fibre 25 g (obiettivi, in regola da 90%); grassi totali ≤ 30% E; saturi ≤ 10% E; zuccheri ≤ 10% E; colesterolo ≤ 300 mg; sodio ≤ 2 000 mg (limiti, in regola fino a 100%); vitamine e minerali secondo i valori FAO/OMS.`],
    ['Esempio svolto',`Fibre 18 g su 25 → <b>72%</b> (giallo, sotto obiettivo); sodio 2 600 mg su 2 000 → <b>130%</b> (rosso, limite superato).`],
-   ['Come leggerlo',`Sono riferimenti di popolazione per la salute, non obiettivi sportivi: le proteine a 0,83 g/kg sono il minimo per un adulto sedentario. Il 💡 accanto a un nutriente scarso elenca gli alimenti che ne sono più ricchi, per 100 g o per 100 kcal.`],
+   ['Come leggerlo',`Sono riferimenti di popolazione per la salute, non obiettivi sportivi: le proteine a 0,83 g/kg sono il minimo per un adulto sedentario. Il accanto a un nutriente scarso elenca gli alimenti che ne sono più ricchi, per 100 g o per 100 kcal.`],
    ['Limiti',`Riferimenti indicativi, non un parere medico o nutrizionale; la qualità dei valori dipende dalla banca dati degli alimenti.`]],
   b:['WHO/FAO (2003). <i>Diet, nutrition and the prevention of chronic diseases</i>. WHO Technical Report Series 916. Ginevra: WHO.',
      'WHO/FAO/UNU (2007). <i>Protein and amino acid requirements in human nutrition</i>. WHO Technical Report Series 935.',

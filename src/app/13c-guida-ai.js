@@ -17,16 +17,16 @@ ufficiale e completa dell'app: basa le risposte su quanto scritto qui.
   in alto (accanto alla luna) che traduce tutta l'app, guide comprese. In questo documento
   i nomi di tab e bottoni sono in italiano; se l'utente ha scelto l'inglese, cita l'equivalente.
 - Se la domanda non trova risposta in questo documento, dillo chiaramente e suggerisci
-  la Guida interna dell'app (tab «📕 Guida», versioni Rapida e Completa) o una
-  segnalazione col pulsante 🐞 in ⚙ Impostazioni (vedi sotto).
-- **⚙ Impostazioni** (ingranaggio in alto a destra, in un blocco di tre comandi uguali con la
-  lingua EN/IT e il pulsante 🌙/☀): impostazioni generali dell'app, valide su quel computer per
+  la Guida interna dell'app (tab «Guida», versioni Rapida e Completa) o una
+  segnalazione col pulsante in Impostazioni (vedi sotto).
+- **Impostazioni** (ingranaggio in alto a destra, in un blocco di tre comandi uguali con la
+  lingua EN/IT e il pulsante luna/sole): impostazioni generali dell'app, valide su quel computer per
   tutti i profili (stanno nel localStorage, non nei dati del profilo). Dentro ci sono anche
-  **📕 Guida** e **🐞 Segnala** (sezione «Aiuto»). Oggi le impostazioni contengono l'aspetto: tema giorno o notte e lo stile della notte fra Notte calda
+  **Guida** e **Segnala** (sezione «Aiuto»). Oggi le impostazioni contengono l'aspetto: tema giorno o notte e lo stile della notte fra Notte calda
   (pergamena e brace, predefinito), Grafite (grigio neutro) e Blu notte (blu ardesia), ognuno con
-  la sua anteprima; la scelta si applica subito. Il pulsante 🌙/☀ della barra passa da giorno a
+  la sua anteprima; la scelta si applica subito. Il pulsante/della barra passa da giorno a
   notte e di notte usa lo stile scelto.
-- **Pulsante 🐞 Segnala** (in ⚙ Impostazioni, sezione «Aiuto», accanto a 📕 Guida): apre un modulo per
+- **Pulsante Segnala** (in Impostazioni, sezione «Aiuto», accanto a Guida): apre un modulo per
   bug e idee. Si sceglie il tipo (qualcosa non funziona / proposta), si racconta cosa
   succede e come rifarlo accadere, e per i bug quanto pesa (blocca / dà fastidio /
   dettaglio). L app allega DA SOLA una scheda tecnica: versione, modalità dati, sistema,
@@ -42,14 +42,14 @@ ufficiale e completa dell'app: basa le risposte su quanto scritto qui.
   profilo dopo aver copiato il testo negli appunti, perché Instagram non accetta un
   messaggio nell indirizzo). In più: copia negli appunti e salvataggio su file .md.
 - **Taccuino dell autore** (non è una funzione per l utente: NON proporla): 5 click
-  ravvicinati sul simbolo ✦ accanto al titolo aprono il quaderno di lavoro di Marco.
+  ravvicinati sul simbolo accanto al titolo aprono il quaderno di lavoro di Marco.
   Due elenchi separati: le sue note scritte a mano (salvate in TMS_Dati/taccuino.json,
   quindi funzionano offline) e le issue aperte del repo, lette da GitHub SOLO su
   richiesta e in sola lettura. Lo stato delle issue si cambia su GitHub, non nell app:
   un elenco che rispecchia e basta non può divergere dalla realtà. L ultima lettura
   resta salvata, così la lista si vede anche senza rete. Da ogni nota si può aprire la
   issue GitHub già compilata. Se un utente qualunque chiede del taccuino, spiega che è
-  uno strumento dell autore e indirizzalo al pulsante 🐞 Segnala.
+  uno strumento dell autore e indirizzalo al pulsante Segnala.
 - L'app NON fornisce consigli medici: i suoi calcoli sono strumenti di monitoraggio.
   Se l'utente chiede indicazioni mediche o nutrizionali personalizzate, ricordagli di
   rivolgersi a un professionista.
@@ -62,7 +62,7 @@ di non venderla) per atleti e coach. In un'unica finestra: scheda di allenamento
 storico, progressi (1RM, Training Load, ACWR…), misure corporee, piani alimentari su
 banca dati USAV, catalogo di 883 esercizi con video, report PDF e mobile, scambio
 scheda coach-cliente. Tema «pergamena»; modalità notte col bottone luna/sole in alto, in tre
-stili (Notte calda, Grafite, Blu notte) da scegliere in ⚙ Impostazioni.
+stili (Notte calda, Grafite, Blu notte) da scegliere in Impostazioni.
 Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTube
 @TrainingMonitorSystem.
 
@@ -82,7 +82,7 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   cartella dati (File System Access). Firefox e Safari NON sono supportati. Gli
   archivi della modalità browser e di quella desktop sono separati.
 
-## 3 · Profili (tab 👤 Profilo)
+## 3 · Profili (tab Profilo)
 
 - **Multi-profilo**: ogni atleta/cliente ha scheda, storico, misure e alimentazione
   propri; il catalogo esercizi è condiviso. Il tab mostra il nome del profilo attivo.
@@ -98,7 +98,7 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   tendina con i parametri: sesso, data di nascita, altezza, «RIR nei calcoli» (sì/no),
   «Session-RPE» (sì/no), formula 1RM preferita. (La fase del piano alimentare NON è
   più qui: si sceglie direttamente nel tab Alimentazione.) Bottoni:
-  «Attiva», «✎ Modifica parametri», «✏ Rinomina», «✕ Elimina» (quest'ultimo solo se
+  «Attiva», «Modifica parametri», «Rinomina», «Elimina» (quest'ultimo solo se
   esiste più di un profilo).
 - In fondo alla pagina: «Backup (tutti i profili insieme)» con «⭳ Backup dati»
   (esporta TUTTO in un file JSON), «⭳ Backup completo (con foto)» e «⭱ Ripristina»
@@ -106,18 +106,18 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   porta solo i METADATI delle foto, quindi ripristinandolo altrove le immagini mancano;
   il backup completo incorpora le immagini come data-URI (file molto più grande, chiede
   conferma mostrando numero di foto e MB) e al ripristino le riscrive in
-  TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, il pulsante **🛟 Backup automatici** (si apre e mostra le copie): l'app ne crea
+  TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, il pulsante **Backup automatici** (si apre e mostra le copie): l'app ne crea
   uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5
   copie) con link «ripristina» accanto a ciascuno.
-- **Correggere una riga già salvata**: nello **Storico** (tab 👤 Profilo, in cima alla pagina) ogni riga
-  ha a destra una **matita ✎**: apre un riquadro dove si cambiano serie, ripetizioni, peso,
-  RIR e il segno ★ di test, oppure si elimina quella riga soltanto. Esercizio e settimana non
+- **Correggere una riga già salvata**: nello **Storico** (tab Profilo, in cima alla pagina) ogni riga
+  ha a destra una **matita**: apre un riquadro dove si cambiano serie, ripetizioni, peso,
+  RIR e il segno di test, oppure si elimina quella riga soltanto. Esercizio e settimana non
   si cambiano da lì. 1RM, %1RM e TL si ricalcolano da soli.
 - **Annulla / rifai**: Ctrl+Z annulla l'ultima modifica ai dati del profilo aperto (scheda, Storico,
   misure, cardio, alimentazione, catalogo esercizi) e Ctrl+Y (o Ctrl+Maiusc+Z) la rifà; un avviso in
   basso dice cosa è tornato indietro. Vale finché non si cambia profilo; le foto ne restano fuori.
   Dentro una finestra aperta o in un campo di ricerca Ctrl+Z annulla solo il testo scritto.
-- **Eliminare una settimana già salvata**: nello **Storico** (tab 👤 Profilo, in cima alla pagina) ogni
+- **Eliminare una settimana già salvata**: nello **Storico** (tab Profilo, in cima alla pagina) ogni
   settimana ha la sua barra scura con, a destra, un pulsante **cestino rosso** che toglie tutte
   le righe di QUELLA settimana. Stesso pulsante su ogni rilevazione dello storico **Misure**.
   In entrambi i casi viene chiesta conferma con un riquadro dell'app (non la finestra di
@@ -128,7 +128,7 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   cardio, foto, pesate della bilancia), alimentazione.json. I valori derivati (1RM, TL, ACWR…) NON vengono mai salvati:
   si ricalcolano al volo dai dati grezzi.
 
-## 4 · Pesi (tab 🏋 Pesi)
+## 4 · Pesi (tab Pesi)
 
 NB: questo tab si chiamava «Allenamento» fino alla v1.0.77; ora è «Pesi» e affianca il
 nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano nel tab Cardio).
@@ -141,8 +141,8 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   esercizio. Per scegliere l'esercizio si tocca la cella «＋ scegli esercizio»: si apre
   un **selettore in sovraimpressione con barra di ricerca e lista per categoria** (si
   digita il nome o si scorre per gruppo muscolare; Invio sceglie il primo risultato). A
-  ricerca vuota, in cima ci sono i **★ Preferiti** e i **🕐 Recenti** (gli esercizi usati di
-  recente); la stellina ☆/★ accanto a ogni esercizio lo aggiunge/toglie dai preferiti.
+  ricerca vuota, in cima ci sono i **Preferiti** e i **Recenti** (gli esercizi usati di
+  recente); la stellina accanto a ogni esercizio lo aggiunge/toglie dai preferiti.
   Anche CERCANDO, i preferiti che corrispondono compaiono in cima: premendo Invio si sceglie
   quindi quello che si usa davvero.
   La ricerca (exMatch in 12-esercizi.js, condivisa col tab Esercizi) e' **a parole**: servono
@@ -169,7 +169,7 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   formule, esempio svolto, lettura, limiti, bibliografia). Le note stanno in SPIEG (italiano)
   e SPIEG_EN (inglese), una per grafico; le formule sono quelle del codice e vanno
   aggiornate quando un calcolo cambia.
-- **⚖ Bilanciamento** (bottone a sinistra di ▦ Colonne): apre un radar delle
+- **Bilanciamento** (bottone a sinistra di ▦ Colonne): apre un radar delle
   SERIE per gruppo muscolare della scheda che si sta scrivendo — non dell'ultima settimana
   salvata: serve mentre si costruisce. Accanto al disegno c'è l'elenco in chiaro, gruppo per
   gruppo. Il **cardio è escluso** di proposito: qui si guarda come è distribuito
@@ -212,7 +212,7 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
     che e' della scheda e sta nel Training Set (scheda.tipoAllenamento, selettore nella barra
     Pesi; ogni set salvato tiene il suo). In Progressi, filtrando un Training Set, vale il
     tipo di quel set. Sesso, eta', agonismo, attrezzatura e qualita' della fonte sono solo
-    FILTRI di contesto. Tutto si regola dal pulsante «⚙ Riferimento» sotto la ragnatela
+    FILTRI di contesto. Tutto si regola dal pulsante «Riferimento» sotto la ragnatela
     (Pesi, Bilanciamento, Progressi): raccolta, tabella esperienza × tipo con il numero di
     voci in ogni casella, filtri, pesi delle serie, elenco di fonti (con licenza) e voci
     (con indirizzo), e cio' che resta fuori col motivo. Le scelte stanno nel profilo
@@ -287,9 +287,9 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   alternative dell'intera scheda Pesi (settimanale + mensile) — es. «Palestra» e «Casa» —
   e passare dall'una all'altra. Il set su cui si stava lavorando si salva da solo al
   cambio. Le azioni (nuovo/rinomina/elimina) sono voci dentro il menù a tendina stesso,
-  sotto un separatore «Azioni», e compaiono solo aprendolo: «➕ Nuovo Training Set…»
-  (chiede il nome e se partire da zero o copiare un set esistente), «✎ Rinomina»,
-  «🗑 Elimina» (solo se resta almeno un altro set). Dati: campo 'setAttivo' (nome attivo),
+  sotto un separatore «Azioni», e compaiono solo aprendolo: «Nuovo Training Set…»
+  (chiede il nome e se partire da zero o copiare un set esistente), «Rinomina»,
+  «Elimina» (solo se resta almeno un altro set). Dati: campo 'setAttivo' (nome attivo),
   'setsSalvati' (mappa nome→scheda dei set inattivi), 'setsOrdine' in scheda.json; le
   schede preesistenti diventano da sole il set «Base» al primo avvio dopo l'aggiornamento.
   Ogni Training Set ha anche il suo **tipo di allenamento** ('tipoAllenamento': forza,
@@ -297,7 +297,7 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   allenamento» accanto: viaggia col set nei cambi e nelle copie, e sceglie il riferimento
   della ragnatela insieme all'esperienza dell'anagrafica.
 
-- **🔥 Riscaldamento** (dal v1.1.3, video+cardio dal v1.1.6): pulsante arancione accanto a
+- **Riscaldamento** (dal v1.1.3, video+cardio dal v1.1.6): pulsante arancione accanto a
   Training Set, cambia vista e mostra i riscaldamenti **giorno per giorno del Training Set
   attivo** (i giorni sono ripresi dalla scheda Pesi). Il selettore esercizio mostra **stretching
   E cardio di base** dal catalogo (corsa/camminata su tapis roulant, cyclette, ellittica,
@@ -311,29 +311,29 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   SOLO il radar Volume/Equilibrio (vedi §5), nessun'altra metrica. Il pulsante diventa
   «◂ Scheda» per tornare.
 
-## 4-bis · Cardio (tab 🏃 Cardio)
+## 4-bis · Cardio (tab Cardio)
 
 Le attività cardio (corsa, bici, nuoto, ellittica, vogatore, salto della corda…) non hanno
 serie/ripetizioni/peso: si misurano col **carico interno**. Ogni seduta si registra con
-«＋ Aggiungi attività»: data, **sport** (scelto da un elenco; con «➕ Altro…» se ne aggiungono),
+«＋ Aggiungi attività»: data, **sport** (scelto da un elenco; con «Altro…» se ne aggiungono),
 durata (min), fatica RPE (0–10) e, secondo lo sport, distanza, dislivello D+ e FC media.
 **Lo sport scelto decide quali dati hanno senso**: per la corsa appaiono distanza, passo e
 dislivello; per la bici distanza e velocità; per HIIT/salto corda niente distanza. L'app calcola:
 - **sRPE (Foster)** = RPE × durata in minuti → unità arbitrarie (AU). Sempre disponibile.
 - **TRIMP (Banister)** dalla **frequenza cardiaca** media: compare solo se inserisci la FC
-  media. Per renderlo più preciso, in **👤 Profilo → ✎ Modifica parametri** puoi impostare la
+  media. Per renderlo più preciso, in **Profilo → Modifica parametri** puoi impostare la
   **FC a riposo** e la **FC max** (se non le imposti, FC riposo = 60 bpm e FC max stimata
   dall'età con Tanaka 208 − 0,7×età). La tabella mostra anche il totale sRPE della settimana.
 
 Due modi per registrare una seduta:
 - **Semplice** (manuale): «＋ Aggiungi attività» — scrivi durata e RPE (FC media/max e distanza
   facoltative). Sempre possibile, senza attrezzatura.
-- **Avanzato** (da dispositivo): «📥 Importa attività» — carichi un file **.FIT, .TCX o .GPX**
+- **Avanzato** (da dispositivo): «Importa attività» — carichi un file **.FIT, .TCX o .GPX**
   esportato da orologio/fascia (Garmin Connect, Polar Flow, Coros, Strava, app per Apple Watch…):
   l'app legge durata, FC media, FC max, distanza e **dislivello D+** e apre il modulo già
   compilato (resta solo da aggiungere la fatica RPE). Il **.FIT** è il formato binario nativo
   Garmin (dal messaggio «session»); .TCX/.GPX sono XML. Tutto in locale, offline, nessun account.
-- **Progressione per sport** (tab 📈 Progressi): in fondo c'è «Cardio · progressione per sport»
+- **Progressione per sport** (tab Progressi): in fondo c'è «Cardio · progressione per sport»
   con un selettore; per lo sport scelto mostra l'andamento nel tempo di sRPE, FC media e — dove
   ha senso — distanza, passo (min/km, più basso = meglio) o velocità, dislivello. Così vedi se
   in una specifica attività (es. la corsa) stai migliorando passo/distanza o calando di FC.
@@ -355,21 +355,21 @@ Due modi per registrare una seduta:
 - **Co-pilota LED passivo**: un pallino verde/giallo/rosso nella riga di servizio sotto il nome
   dell'esercizio valuta se il peso digitato è una progressione sensata, confrontandolo col set di pari posizione
   della scorsa scheda e coi segnali di affaticamento (ACWR, monotonia, RIR ultima volta).
-  Soglie: 🟢 da −5% a +10%; 🟡 +10%…+20%, oppure calo oltre −5%, oppure aumento con RIR≤1
-  alla scorsa, oppure monotonia alta; 🔴 oltre +20% (probabile errore/troppo) oppure aumento
-  con ACWR>1.5 (meglio scaricare). Niente pallino se manca lo storico del set o per i test ★.
+  Soglie: verde da −5% a +10%; giallo +10%…+20%, oppure calo oltre −5%, oppure aumento con RIR≤1
+  alla scorsa, oppure monotonia alta; rosso oltre +20% (probabile errore/troppo) oppure aumento
+  con ACWR>1.5 (meglio scaricare). Niente pallino se manca lo storico del set o per i test.
   È SOLO un suggerimento visivo (tooltip col motivo): non modifica né scrive nulla.
-- «💾 Salva nello Storico» registra la settimana (anno + numero settimana ISO,
+- «Salva nello Storico» registra la settimana (anno + numero settimana ISO,
   proposti in automatico); se il Session-RPE è abilitato si registrano anche fatica
   (RPE 0-10) e durata in minuti per seduta. Un pallino/banner verde o rosso (qui, in Corpo e in cima al tab Profilo) avvisa se
   la settimana corrente non è ancora registrata.
 
-## 5 · Progressi, Storico, Corpo (tab 📈 Progressi · 🜂 Corpo; archivi dal tab 👤 Profilo)
+## 5 · Progressi, Storico, Corpo (tab Progressi · Corpo; archivi dal tab Profilo)
 
 - **Progressi**: grafici piccoli e affiancati in una griglia compatta (fino a quattro per
   riga su schermo largo, uno per riga in una finestra stretta), divisi per argomento in
-  quest'ordine: «Segnali» automatici (🎉 record al salvataggio, ⏸ esercizi in stallo con TL
-  fermo da 3+ schede, ⚠ suggerimento deload se ACWR alto, ⚠ monotonia alta) · «Carico e
+  quest'ordine: «Segnali» automatici (record al salvataggio, esercizi in stallo con TL
+  fermo da 3+ schede, suggerimento deload se ACWR alto, monotonia alta) · «Carico e
   volume» (TL totale con media mobile, ACWR con la zona sicura evidenziata, tonnellaggio,
   variazione % del TL) · «Carico interno · session-RPE» (se abilitato: carico interno sRPE,
   monotonia, strain, interno contro esterno) · «Forza e record»: a sinistra, grande, il
@@ -379,7 +379,7 @@ Due modi per registrare una seduta:
   personali per esercizio (carico massimo) e sotto la progressione del singolo esercizio (1RM e
   peso max nel tempo; cliccando la card di un record il grafico passa a quell'esercizio) ·
   «Equilibrio e distribuzione» (ragnatela della distribuzione fra i gruppi con
-  sotto la didascalia del riferimento e il pulsante ⚙ Riferimento, serie per gruppo,
+  sotto la didascalia del riferimento e il pulsante Riferimento, serie per gruppo,
   distribuzione delle intensità %1RM, TL per gruppo muscolare) · «Cardio · progressione per
   sport». Ogni grafico ha il suo «?» con la spiegazione. Sui grafici a linee (anche la Timeline
   dell'Analisi, il Corpo, il Cardio e gli Esercizi) passando col mouse in un punto qualsiasi del
@@ -406,12 +406,12 @@ Due modi per registrare una seduta:
   spiegarlo. Le barre «Serie per gruppo» sommano sulla barra Cardio anche i
   minuti di cardio registrati nel Riscaldamento (oltre a quelli del tab Cardio), min÷10 —
   vedi §4 per i dettagli su cosa NON tocca (TL/ACWR/monotonia restano intatti).
-- **Storico** (pulsante «📜 Storico» in cima al tab Profilo): archivio completo delle registrazioni, in codici
+- **Storico** (pulsante «Storico» in cima al tab Profilo): archivio completo delle registrazioni, in codici
   settimana ISO formato AAAASS (es. 202624 = settimana 24 del 2026).
 - **Corpo**: peso e misure corporee con BMI e stime masse (anche Acqua %); lo storico misure
-  è in un archivio dedicato (pulsante «📏 Misure» in cima al tab Profilo), con le colonne
+  è in un archivio dedicato (pulsante «Misure» in cima al tab Profilo), con le colonne
   «Acqua %» e «N. pesate».
-- **Pesate della bilancia** (riquadro «⚖ Pesate della bilancia» nel tab Corpo, visibile solo
+- **Pesate della bilancia** (riquadro «Pesate della bilancia» nel tab Corpo, visibile solo
   se ce ne sono): pesate di una bilancia Bluetooth arrivate da sole dall'app del telefono
   collegata, salvate in corpo.json (DOC.pesate; gli id tolti a mano in DOC.pesate_scartate,
   così se arrivano di nuovo non tornano). Ogni pesata porta data, ora,
@@ -419,15 +419,15 @@ Due modi per registrare una seduta:
   telefono (grasso %, acqua %, muscolo kg, ossa kg, proteine %, viscerale, metabolismo basale,
   età metabolica) più le impedenze grezze, che si conservano soltanto. All'import, per ogni
   settimana ISO con almeno una pesata NUOVA, la MEDIA va da sola nello Storico misure, senza
-  «💾 Salva misure»: una pesata al giorno, la prima (la prima completa, se quel giorno ce n'è
+  «Salva misure»: una pesata al giorno, la prima (la prima completa, se quel giorno ce n'è
   una con la composizione); BMI dall'altezza del profilo, fabbisogno = basale medio × livello
   di attività del profilo; la riga porta 'n_pesate'. Se la settimana ha già una misura scritta
   a mano (senza 'n_pesate') il TMS chiede una volta sola («Sostituisci» / «Tienili»). I campi
   del tab Corpo prendono i valori dell'ultima pesata, se è la più recente. Le pesate già
-  arrivate (stesso id) non si doppiano. Il 🗑 su una pesata la toglie e ricalcola la media
+  arrivate (stesso id) non si doppiano. Il su una pesata la toglie e ricalcola la media
   della sua settimana (una misura scritta a mano non viene mai toccata); Ctrl+Z la rimette.
-  Il 📄 su ogni pesata (e «📄 Rapporto dell'ultima» nel titolo del riquadro) apre il RAPPORTO DI
-  COMPOSIZIONE CORPOREA: una pagina A4 (anteprima + «📄 Scarica PDF», file
+  Il su ogni pesata (e «Rapporto dell'ultima» nel titolo del riquadro) apre il RAPPORTO DI
+  COMPOSIZIONE CORPOREA: una pagina A4 (anteprima + «Scarica PDF», file
   Composizione_<nome>_<data>.pdf, fatto come il PDF del Report). Contiene: figura del corpo
   (disegno del TMS: sagoma sfumata con gli 8 elettrodi e otto valori collegati da linee: peso,
   BMI, grasso, viscerale, acqua, massa muscolare, muscolo scheletrico, ossa), tabella della
@@ -443,13 +443,13 @@ Due modi per registrare una seduta:
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
   video, play/pausa; con la vista «tutti» ogni passo è una data con le viste affiancate, con
-  una vista specifica una foto per volta) e «⚖ Confronto» (due date scelte da un calendario,
+  una vista specifica una foto per volta) e «Confronto» (due date scelte da un calendario,
   vecchia sopra/recente sotto, con data e peso; «tutti» = viste affiancate). Filtro per vista
   (tag), gestione raggruppata per data. Il backup dati
   include solo i metadati; per portarsi dietro anche le immagini serve «Backup completo
   (con foto)» oppure copiare la cartella TMS_Dati (come per i video). Si può inserire un confronto prima/dopo anche nel Report.
 
-## 6 · Alimentazione (tab 🍖 Alimentazione)
+## 6 · Alimentazione (tab Alimentazione)
 
 - Tre **fasi**: Bulk, Mantenimento, Cut. La fase attiva si sceglie con i **bottoni in
   cima al tab** (Bulk / Mantenimento / Cut): si vede SOLO quella, le altre restano
@@ -457,14 +457,14 @@ Due modi per registrare una seduta:
 - Pasti personalizzabili e **riordinabili per trascinamento**: si prende il manico «⠿»
   accanto al nome del pasto e lo si rilascia su un altro pasto (si porta dietro tutti i
   suoi alimenti); allo stesso modo si trascina un singolo alimento, anche in un altro
-  pasto. «✎» rinomina, «🗑» elimina. In ogni pasto «＋ scegli alimento…» apre la banca
+  pasto. «matita» rinomina, «cestino» elimina. In ogni pasto «＋ scegli alimento…» apre la banca
   dati: oltre 4500 alimenti dalla banca svizzera USAV e dalla tabella francese Ciqual
   2025 (ANSES), coi nomi in italiano, divisi in tre categorie selezionabili in cima al
   riquadro — **alimenti semplici** (come si comprano o crudi), **ricette** (cucinati,
-  conditi o composti: anche il semplice «pollo cotto») e **💊 integratori** (proteine in
+  conditi o composti: anche il semplice «pollo cotto») e **integratori** (proteine in
   polvere, coi valori dell'etichetta del prodotto). Valori per 100 g scalati sui
   grammi inseriti. Col «▸» si vedono tutti i micro e macro nutrienti.
-- **👨‍🍳 Le mie ricette** (11c-ricette.js): quarta categoria del selettore (pulsante «👨‍🍳 Ricette»
+- **Le mie ricette** (11c-ricette.js): quarta categoria del selettore (pulsante «Ricette»
   nella barra). Una ricetta ha nome, porzioni, tempi di preparazione e cottura, descrizione,
   procedimento, note e ingredienti (solo alimenti della banca dati, niente ricette dentro
   ricette). E' CONDIVISA fra i profili come il catalogo esercizi: DOC.ricette <-> TMS_Dati/ricette.json
@@ -476,14 +476,14 @@ Due modi per registrare una seduta:
   dei grammi; un nutriente che nessun ingrediente riporta resta vuoto. Nel piano si usa per
   nome come un alimento; rinominandola, righe del piano e preferiti seguono; i periodi
   registrati ne tengono una copia (p.ricette) e restano una fotografia.
-- **💡 Suggerimenti**: accanto ai nutrienti «obiettivo» sotto il riferimento (non ai limiti
+- **Suggerimenti**: accanto ai nutrienti «obiettivo» sotto il riferimento (non ai limiti
   ne' all'energia), nel pannello «Fuori dai riferimenti» e nell'indice OMS/FAO. Apre i 20
   alimenti piu' ricchi per 100 g o per 100 kcal (con almeno 20 kcal); esclusi spezie, erbe e
   alghe secche, condimenti, lievito, te' in foglie, gomme, alimenti per l'infanzia; piatti e
   integratori su richiesta. «＋» aggiunge 100 g al pasto scelto della fase attiva.
 - Nel selettore alimenti: la **ricerca è «a parole»** (digitando più parole le trova
   anche non contigue, in qualsiasi ordine). A ricerca vuota, in cima ci sono i
-  **★ Preferiti** e i **🕐 Recenti** (alimenti già usati nel piano); la stellina ☆/★
+  **Preferiti** e i **Recenti** (alimenti già usati nel piano); la stellina
   accanto a ogni alimento lo aggiunge/toglie dai preferiti.
 - **Indice settimanale OMS/FAO**: confronta l'intake (piano × 7) coi riferimenti per
   adulto — grassi ≤30% dell'energia, saturi ≤10%, zuccheri ≤10% (ideale <5%), sale
@@ -491,24 +491,24 @@ Due modi per registrare una seduta:
   OMS/FAO. I nutrienti marcati «(max)» sono limiti da non superare. Limiti noti:
   usa gli zuccheri TOTALI come proxy degli zuccheri liberi; i grassi trans non sono
   nel dataset (soglia indicata ma non calcolata).
-- **Stampa dieta**: bottone «🍽 Stampa dieta» in cima al tab — apre a schermo intero lo
+- **Stampa dieta**: bottone «Stampa dieta» in cima al tab — apre a schermo intero lo
   **stesso motore a blocchi** del Report (13-report.js: repCtx, repImpagina, buildReportUnits),
   applicato al piano della fase attiva: un blocco fisso «Intestazione» (titolo, fase, data), un
   blocco per ogni **pasto** presente (trascinabile, nascondibile, con le stesse impostazioni dei
   blocchi del Report — titolo, nuova pagina, testo, colore — e modificabile sul posto con
   doppio clic), un blocco fisso «Totale giornaliero» con le schede dei valori del giorno.
   L'ordine e le impostazioni si salvano per profilo **e per fase** (DOC.alimentazione.stampa);
-  i ritocchi a mano solo per il documento aperto. «⬇ Scarica PDF (A4 orizzontale)» genera il
+  i ritocchi a mano solo per il documento aperto. «Scarica PDF (A4 orizzontale)» genera il
   PDF **A4 orizzontale** (297×210mm) con la stessa impaginazione dell'anteprima; «← Chiudi»
   torna al tab Alimentazione. Lo fa l'app, senza la stampa del browser.
 - **Periodi**: il piano di una fase seguito per un certo tempo, che alimenta il tab Analisi.
   «▶ Avvia un periodo…» lo fa partire (oggi o da una data passata) e resta IN CORSO, senza
-  data di fine, finché non si preme «⏹ Termina» nella sua riga; nei grafici arriva fino a
+  data di fine, finché non si preme «Termina» nella sua riga; nei grafici arriva fino a
   oggi. Uno solo in corso alla volta (avviandone un altro, il precedente si chiude il giorno
   prima). La fotografia del piano si prende all'avvio e terminando si può aggiornare.
   «Registra il piano attuale come periodo…» registra invece un periodo con inizio e fine.
 
-## 7 · Analisi (tab 📊 Analisi)
+## 7 · Analisi (tab Analisi)
 
 Incrocia dieta e allenamento nel tempo (servono periodi alimentari registrati). I grafici
 stanno in tre sezioni, su una griglia compatta, con accanto il pannello dei periodi:
@@ -539,7 +539,7 @@ l'installazione da quella fonte); dopo, gli aggiornamenti arrivano dalla cartell
 **COLLEGAMENTO** (TMS sul PC: modulo 15c-telefono.js; telefono: blocco «SCHEDA COLLEGATA» della
 PWA + plugin TmsCartella): PC e app si parlano attraverso una CARTELLA CONDIVISA, come
 Movienaitor. Sul PC una cartella di Google Drive per desktop (di solito My Drive › 6 - TMS),
-scelta in ⚙ Impostazioni › 🔗 Telefono collegato (il percorso lo tiene il processo principale di
+scelta in Impostazioni › Telefono collegato (il percorso lo tiene il processo principale di
 Electron: la pagina chiede solo file .json relativi a quella cartella, con scrittura atomica e
 senza uscite); lì si crea il CODICE DI COLLEGAMENTO (16 segni) e si preme «Collega la scheda di
 questo profilo». Sul telefono una cartella tenuta uguale da un'app di sincronizzazione
@@ -556,7 +556,7 @@ scheda (nel browser la PWA mostra solo il benvenuto).
 
 **SCHEDA COLLEGATA** (richiesta dell'utente: «le modifiche di uno modificano l'altra e solo a Salva
 si cristallizza»): la scheda settimanale del tab Pesi e quella del telefono sono la stessa,
-modificabile dalle due parti (serie, ripetizioni, peso, RIR, note, recupero, ★ test, esercizi
+modificabile dalle due parti (serie, ripetizioni, peso, RIR, note, recupero, test, esercizi
 aggiunti, tolti, rinominati o spostati di giorno, fatica e durata delle sedute). Ogni riga ha un id
 stabile (campo uid, anche nella scheda Pesi; il ＋set ne fa uno nuovo) e ogni campo l'ora
 dell'ultima modifica; a ogni giro ognuno data i campi cambiati da sé rispetto all'ultima scheda
@@ -564,15 +564,15 @@ unita, legge il file dell'altro e unisce campo per campo: VINCE L'ORA PIÙ RECEN
 lascia un segno per un mese). Mentre si scrive in un campo l'unione aspetta il giro dopo. Le righe
 del PC senza esercizio (giorno appena aggiunto) restano solo sul PC. La prima volta il telefono
 prende la scheda del PC (se aveva una scheda caricata da file in una versione vecchia, chiede una
-volta se sostituirla). «💾 Salva nello Storico» CRISTALLIZZA: la settimana va nello Storico come
+volta se sostituirla). «Salva nello Storico» CRISTALLIZZA: la settimana va nello Storico come
 sempre (la finestra dice quando è arrivato l'ultimo aggiornamento dal telefono), il numero della
-settimana sale, fatica, durata e spunte ✔ si azzerano anche sul telefono; la scheda resta
+settimana sale, fatica, durata e spunte si azzerano anche sul telefono; la scheda resta
 collegata e fa da base alla settimana dopo. Dieta (pasti, grammi, kcal e macro già calcolati: il
 telefono non ha la banca alimenti), riscaldamento, «l'ultima volta», catalogo degli esercizi,
 altezza/età/sesso per la bilancia e video vanno SOLO dal PC al telefono.
 
-**SUL TELEFONO** l'app si apre su un menu: «🏋 Scheda allenamento», «🍖 Alimentazione» (piano in
-sola lettura, grammi in evidenza), «📸 Foto progressi» (fronte/lato/retro, galleria oppure FOTOCAMERA DELL'APP con la
+**SUL TELEFONO** l'app si apre su un menu: «Scheda allenamento», «Alimentazione» (piano in
+sola lettura, grammi in evidenza), «Foto progressi» (fronte/lato/retro, galleria oppure FOTOCAMERA DELL'APP con la
 SAGOMA della vista: riquadro 3:4, testa sulla riga in alto al 30%, metà coscia su quella in basso al
 78%, inquadratura ricavata dai selfie allo specchio dell'utente ma disegno generico; a richiesta la
 foto di prima in trasparenza e l'autoscatto da 3 o 10 s; si salva esattamente il riquadro visto;
@@ -585,13 +585,13 @@ chiude). Nella scheda si sceglie il **giorno**; ogni giornata è una **seduta in
 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con video, stretching o cardio a
 minuti), Esercizi, Fine. I campi di TUTTI gli esercizi sono **già visibili insieme**; i campi
 SONO la scheda (RIR e note compresi, come la tabella del PC); sotto ogni esercizio compare
-**«l'ultima volta»** (ultima prestazione dallo Storico). Una spunta ✔ e una barra di avanzamento
+**«l'ultima volta»** (ultima prestazione dallo Storico). Una spunta e una barra di avanzamento
 segnano gli esercizi toccati in settimana. Nella fase Fine: se il profilo usa il Session-RPE trova
 fatica 0-10 e durata; se NON lo usa, solo una **casella «Giorno completato»**. Ogni esercizio ha un
-**timer di recupero** (bottone ⏱ che parte dal riposo della scheda, con pausa e +15/-15). Si
+**timer di recupero** (bottone che parte dal riposo della scheda, con pausa e +15/-15). Si
 possono **aggiungere/eliminare/modificare** esercizi (il nome si sceglie dal catalogo del coach:
 nel TMS si possono usare solo quelli; si salva il nome esatto) e segnare i **test del massimale
-(★)**.
+(stella)**.
 **BILANCIA** (solo nell'APK, serve il Bluetooth): bilance a 8 elettrodi della famiglia
 FitDays/iComon (Healthkeep FG2001B-A, Fitdays FG2202WB…). La bilancia manda solo peso e 10
 impedenze (tronco, braccia, gambe a 20 e 100 kHz); la composizione la calcola l'app con la formula
@@ -600,7 +600,7 @@ PC. Grasso e muscolo per singolo braccio o gamba NON si calcolano (FitDays usa u
 pubblico). Confrontata con un rapporto reale di FitDays, tutti i valori dopo il grasso seguono le
 stesse derivazioni della WLA25, ma il grasso di FitDays era più alto di circa un punto: per quel
 modello FitDays usa un'altra formula del grasso. La pesata si salva sul telefono (una lista per
-profilo), si toglie col 🗑 con conferma sulla riga, e va da sola al PC. L'app accetta solo un
+profilo), si toglie col con conferma sulla riga, e va da sola al PC. L'app accetta solo un
 risultato arrivato dopo il peso in diretta (non quello ripetuto al collegamento), conferma i
 messaggi alla bilancia e si ricorda la bilancia trovata; fuori dalla pagina il Bluetooth si ferma.
 Permessi: «Dispositivi nelle vicinanze» senza posizione (fino ad Android 11 Android pretende la
@@ -609,7 +609,7 @@ posizione accesa per cercare dispositivi Bluetooth).
 ogni settimana va da sola nello Storico misure, vedi la voce «Pesate della bilancia»; foto con
 'importaFotoRientro': file veri in TMS_Dati/<profilo>/foto/ + metadati in DOC.foto, tag
 fronte/lato/retro, con un id che evita i doppioni), le segna fra le «ricevute» e sul telefono
-compare «✔ al PC».
+compare «al PC».
 **AGGIORNAMENTO DELL'APK**: se in apk/versione.json c'è una versione più alta di quella
 installata, l'app la propone, copia l'APK, ne controlla l'impronta SHA-256 e lo passa
 all'installer di Android (conferma dell'utente; la prima volta «Installa app sconosciute»).
@@ -618,10 +618,10 @@ all'installer di Android (conferma dell'utente; la prima volta «Installa app sc
 ricalcolano a ogni apertura, pesata o foto: se quel giorno la pesata (o le foto) c'è già, quello
 della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
 
-## 9 · Esercizi e video (tab 📖 Esercizi)
+## 9 · Esercizi e video (tab Esercizi)
 
 - Catalogo di 883 esercizi per gruppo muscolare e sottocategoria (tendine chiuse di
-  default, click per aprirle). «＋ Nuovo» aggiunge un esercizio personalizzato; «✎»
+  default, click per aprirle). «＋ Nuovo» aggiunge un esercizio personalizzato; «matita»
   modifica. L'editor (exEdit in 12-esercizi.js) ha questi vincoli:
   - **Gruppo** e **Tipo** da elenco (Tipo: Multi-articolare, Isolamento, Stretching,
     Pliometria, Cardio, Accessorio; un valore non standard già presente resta selezionabile).
@@ -636,18 +636,18 @@ della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
     mostra (istruzioni, livello, attrezzatura, categoria, id) restano com'erano. Fino alla
     v1.1.13 compresa, aprire un esercizio e premere Salva senza toccare nulla li cancellava
     tutti e sette — muscoli inclusi, quindi l'esercizio spariva dal conteggio del volume.
-  - **⧉ Duplica** (nel pannello ✎): apre l'editor in modalità nuovo su una copia integrale
+  - **⧉ Duplica** (nel pannello della matita): apre l'editor in modalità nuovo su una copia integrale
     dell'esercizio (muscoli, istruzioni, video), col nome «… (copia)»; l'originale resta
     intatto. Per creare un esercizio quasi uguale a uno esistente si parte da qui.
   - Gli esercizi creati dall'app portano il campo custom = true. Elimina chiede conferma in stile app.
 - **Video**: ogni esercizio ha un video dimostrativo integrato. ATTENZIONE, limite
   noto: nelle versioni attuali la maggior parte dei video integrati è un segnaposto
   identico (882 su 883) — verranno sostituiti progressivamente con le registrazioni
-  reali. Dal pannello «✎» si possono caricare **video personali** che sostituiscono
+  reali. Dal pannello della matita si possono caricare **video personali** che sostituiscono
   quelli integrati (toggle «Video personali»; fallback automatico al video integrato
   se il personale manca).
 
-## 10 · Report (tab 🖨 Report)
+## 10 · Report (tab Report)
 
 - **Sezioni personalizzabili**: nell'elenco «Blocchi» la casella decide QUALI blocchi
   entrano nel report (Profilo & corpo, Foto progressi, Riepilogo, Scheda, Andamento,
@@ -655,10 +655,10 @@ della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
   trascinamento o le frecce ▲▼ ne decidono l'ORDINE. La scelta si salva per profilo e vale sia
   per il PDF sia per il report digitale. Obiettivo, note del coach e foto prima/dopo si
   scrivono nel riquadro «Documento».
-- **Foto prima/dopo nel report**: se ci sono foto (tab Corpo), due selettori nel riquadro «Documento» («📸 Foto prima» e «Dopo»)
+- **Foto prima/dopo nel report**: se ci sono foto (tab Corpo), due selettori nel riquadro «Documento» («Foto prima» e «Dopo»)
   scelgono la foto «Prima» e «Dopo»; con la sezione «Foto progressi» attiva entrano nel report
   (incorporate, quindi funzionano anche offline nel PDF e nel digitale).
-- **PDF A4**: bottone «⬇ Scarica PDF (A4)» — l'app impagina e genera il PDF da sola
+- **PDF A4**: bottone «Scarica PDF (A4)» — l'app impagina e genera il PDF da sola
   (download diretto, senza passare dalla stampa del browser).
 - **Pagina a due colonne**: a sinistra l'anteprima in fogli A4 veri (stessa impaginazione del
   PDF: quello che si vede è il PDF), a destra gli strumenti (documento, elenco dei blocchi,
@@ -669,8 +669,8 @@ della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
   foglio viene diviso comunque), testo piccolo/normale/grande, colore del titolo, grafici
   affiancati o uno sotto l'altro.
 - **Elementi e testi**: un clic su un elemento nel foglio (schede, grafico, tabella, testo) lo
-  sceglie: «▲ Su», «▼ Giù», «✕ Togli elemento». Doppio clic o «✎ Modifica testo» rende il blocco
-  scrivibile nel foglio, con «＋ Riga sopra/sotto» e «✕ Togli riga» per le tabelle. Questi
+  sceglie: «▲ Su», «▼ Giù», «Togli elemento». Doppio clic o «Modifica testo» rende il blocco
+  scrivibile nel foglio, con «＋ Riga sopra/sotto» e «Togli riga» per le tabelle. Questi
   ritocchi valgono solo per il documento aperto (non toccano i dati salvati); «↺ Rifai dai dati»
   riporta il blocco ai dati aggiornati.
 - **Report digitale**: pagina HTML per smartphone con i video incorporati, da inviare
@@ -745,7 +745,7 @@ della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
   Il carico effettivo e' zavorra + peso corporeo x quota (caricoEff, tramite corpoNelCarico);
   vale per %1RM, TL e record; il 1RM mostrato toglie solo la quota di corpo (rmMostrato),
   cosi' si legge la zavorra massima alle caviglie. Nella scheda la pillola dice
-  "🧍 +28 kg (40%)": quanto corpo entra davvero e in che proporzione. E' un
+  "+28 kg (40%)": quanto corpo entra davvero e in che proporzione. E' un
   APPROSSIMAZIONE dichiarata (gambe medie, leva media), accettata da Marco.
 - **TL (Training Load)**: volume × intensità, sommato su serie e righe, con un
   fattore per esercizio (esercizi più sistemici pesano di più). Conta soprattutto il
@@ -804,18 +804,18 @@ della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
 - «Vedere a colpo d'occhio quali clienti sono a rischio / non aggiornano» → Profilo: il
   semaforo accanto al nome di ogni profilo (verde/giallo/rosso) con ACWR, settimane
   dall'ultimo aggiornamento e PR recenti sotto al nome.
-- «Cambiare formula 1RM, RIR, session-RPE» → Profilo → tendina del profilo → ✎
+- «Cambiare formula 1RM, RIR, session-RPE» → Profilo → tendina del profilo → 
   Modifica parametri.
 - «Cambiare la fase alimentare (Bulk/Mant/Cut)» → Alimentazione → bottoni in cima al tab.
-- «Avere la scheda sul telefono» → ⚙ Impostazioni › 🔗 Telefono collegato (cartella, codice,
+- «Avere la scheda sul telefono» → Impostazioni › Telefono collegato (cartella, codice,
   «Collega la scheda di questo profilo») e, sul telefono, Collegamento e promemoria. Da lì la
   scheda è la stessa sui due e quello che si scrive in palestra arriva da solo nei Pesi.
-- «Salvare l'allenamento della settimana» → Pesi → 💾 Salva nello Storico.
+- «Salvare l'allenamento della settimana» → Pesi → Salva nello Storico.
 - «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,
   durata, RPE; FC media facoltativa per il TRIMP).
 - «Correggere un dato sbagliato» → nella scheda corrente si corregge direttamente; per una
-  settimana già salvata si apre lo Storico e si usa la matita ✎ sulla riga sbagliata (serie,
-  ripetizioni, peso, RIR, ★). Per rifare tutta la settimana: cestino rosso nella sua barra,
+  settimana già salvata si apre lo Storico e si usa la matita sulla riga sbagliata (serie,
+  ripetizioni, peso, RIR, stella). Per rifare tutta la settimana: cestino rosso nella sua barra,
   poi si risalva.
 - «Vedere i progressi / il rischio di sovraccarico» → Progressi (record, TL, ACWR).
 - «Impostare la dieta» → Alimentazione (fase attiva scelta coi bottoni in cima al tab);
@@ -842,6 +842,6 @@ function scaricaGuidaAI(){
     a.href=u; a.download='TMS-guida-AI-v'+APP_VERSION+'.md';
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ try{URL.revokeObjectURL(u);}catch(e){} a.remove(); },800);
-    avviso(t('✔ Scaricato')+' '+a.download+'.\n'+t('Caricalo nella chat di un assistente AI (ChatGPT, Claude, Gemini…) e fagli le tue domande sul TMS.'));
+    avviso(t('Scaricato')+' '+a.download+'.\n'+t('Caricalo nella chat di un assistente AI (ChatGPT, Claude, Gemini…) e fagli le tue domande sul TMS.'));
   }catch(e){ avviso(t('Errore nel download:')+' '+e.message); logErrore('guidaAI', e); }
 }

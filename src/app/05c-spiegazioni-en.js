@@ -2,10 +2,10 @@
    stesse chiavi e stessa struttura di SPIEG. Una voce che manca ricade sull'italiano. */
 const SPIEG_EN={
 'distribuzione':{t:'Distribution of work across muscle groups',
-  dove:'Weights (side panel) · ⚖ Balance · Progress · Report',
+  dove:'Weights (side panel) · Balance · Progress · Report',
   a:`The radar chart describes the <b>shape</b> of the weekly weight-training load: what share of the sets goes to each of the six groups (Legs, Chest, Back, Shoulders, Arms, Core). It is a measure of <b>proportion</b>, independent of total volume. The green band is the typical shape of a reference chosen by experience and training type; the caption states how many programs or studies it rests on.`,
-  s:[['What it shows',`Each axis is the percentage share of one group in the total weight-training sets. In <b>Weights</b> and in <b>⚖ Balance</b> the program being written is used; in <b>Progress</b> and in the <b>Report</b>, the last week saved in History. Cardio is excluded: it would change the share of every other group.`],
-   ['Input data',`For each row: exercise and number of sets. From the catalog: the exercise’s primary and secondary muscles, mapped to the six groups (17 muscles → 6 groups). Alternatively, if selected in ⚙ Reference, the external muscle map (smyrdev, 1.0 direct / 0.5 indirect per movement pattern).`],
+  s:[['What it shows',`Each axis is the percentage share of one group in the total weight-training sets. In <b>Weights</b> and in <b>Balance</b> the program being written is used; in <b>Progress</b> and in the <b>Report</b>, the last week saved in History. Cardio is excluded: it would change the share of every other group.`],
+   ['Input data',`For each row: exercise and number of sets. From the catalog: the exercise’s primary and secondary muscles, mapped to the six groups (17 muscles → 6 groups). Alternatively, if selected in Reference, the external muscle map (smyrdev, 1.0 direct / 0.5 indirect per movement pattern).`],
    ['Method and formulas',`A set is <b>direct</b> for the group of a primary muscle and <b>indirect</b> for the group of a muscle that is only secondary (a group with a primary muscle stays direct). With weights <i>w</i><sub>d</sub> = 1.0 and <i>w</i><sub>i</sub> = 0.5 (defaults, provisional):
      <div class="spf">S<sub>g</sub> = <i>w</i><sub>d</sub> · D<sub>g</sub> + <i>w</i><sub>i</sub> · I<sub>g</sub><span class="spn">(1)</span></div>
      <div class="spf">q<sub>g</sub> = <span class="fr"><i>S<sub>g</sub></i><i>Σ<sub>k</sub> S<sub>k</sub></i></span> × 100<span class="spn">(2)</span></div>
@@ -18,12 +18,12 @@ const SPIEG_EN={
   b:['Schoenfeld BJ, Grgic J, Haun C, Itagaki T, Helms ER (2019). Calculating set-volume for the limb muscles with the performance of multi-joint exercises. <i>Sports</i> 7(7):177.',
      'Pelland JC et al. (2025). The resistance training dose response: meta-regressions exploring the effects of weekly volume and frequency on hypertrophy and strength. <i>Sports Medicine</i>, doi:10.1007/s40279-025-02344-w.',
      'Hyndman RJ, Fan Y (1996). Sample quantiles in statistical packages. <i>The American Statistician</i> 50(4):361–365.',
-     'TMS references: StrengthLog, Muscle &amp; Strength, depot.fitness (CC BY 4.0), Liftosaur and other public programs from 30 websites; protocol corpus v0.7 and open-access articles. Full list in ⚙ Reference.']},
+     'TMS references: StrengthLog, Muscle &amp; Strength, depot.fitness (CC BY 4.0), Liftosaur and other public programs from 30 websites; protocol corpus v0.7 and open-access articles. Full list in Reference.']},
 
 'serie-gruppo':{t:'Sets per muscle group and useful zone',
-  dove:'Weights (side panel) · ⚖ Balance · History · Progress',
+  dove:'Weights (side panel) · Balance · History · Progress',
   a:`The list (and, in Progress, the bar chart) gives the <b>quantity</b> of weekly work for each group, in sets, separating the direct part from the indirect one, and compares it with a useful zone derived from balanced published programs.`,
-  s:[['What it shows',`For each group, the sets of the week: in <b>Weights</b> and in <b>⚖ Balance</b> those of the program being written, in <b>History</b> the weekly average of the filtered rows, in <b>Progress</b> the last saved week, with Cardio in addition. The bar is solid for the direct part and light for the indirect one; the green ticks mark the group’s useful zone.`],
+  s:[['What it shows',`For each group, the sets of the week: in <b>Weights</b> and in <b>Balance</b> those of the program being written, in <b>History</b> the weekly average of the filtered rows, in <b>Progress</b> the last saved week, with Cardio in addition. The bar is solid for the direct part and light for the indirect one; the green ticks mark the group’s useful zone.`],
    ['Input data',`Exercise and sets of each row; primary and secondary muscles from the catalog; for Cardio, the minutes of the activities (Cardio tab) and of warm-up cardio.`],
    ['Method and formulas',`Same count as the radar chart:
      <div class="spf">S<sub>g</sub> = <i>w</i><sub>d</sub> · D<sub>g</sub> + <i>w</i><sub>i</sub> · I<sub>g</sub>, &nbsp; <i>w</i><sub>d</sub> = 1.0 · <i>w</i><sub>i</sub> = 0.5<span class="spn">(1)</span></div>
@@ -76,7 +76,7 @@ const SPIEG_EN={
   dove:'Progress',
   a:`Training Load (TL) summarizes a week of weight-training work in a single number, combining volume and relative intensity. The moving average over the last four weeks represents the load the athlete is accustomed to (chronic load).`,
   s:[['What it shows',`A line with the TL of each saved week and a second line with the 4-week moving average.`],
-   ['Input data',`The History rows (excluding ★ max tests), filtered by Training Set if chosen in “Data to analyze”.`],
+   ['Input data',`The History rows (excluding max tests), filtered by Training Set if chosen in “Data to analyze”.`],
    ['Method and formulas',`<div class="spf">TL<sub>week</sub> = Σ<sub>rows</sub> sets × reps × <i>C</i> × <span class="fr"><i>%1RM</i><i>100</i></span> × <i>f</i><span class="spn">(1)</span></div>
      Since %1RM = <i>C</i>/1RM, the product <i>C</i> × %1RM/100 equals <i>C</i>²/1RM: for equal repetitions, work close to the maximum weighs more.
      <div class="spf">Chronic<sub>t</sub> = <span class="fr"><i>Σ TL of weeks t−3 … t</i><i>n</i></span><span class="spn">(2)</span></div>
@@ -105,7 +105,7 @@ const SPIEG_EN={
   dove:'Progress',
   a:`Tonnage (volume load) is the total mass lifted in a week: sets × repetitions × load. It is the simplest and most widespread volume measure.`,
   s:[['What it shows',`A line with the total kilograms lifted in each saved week.`],
-   ['Input data',`Sets, repetitions and weight of the History rows (excluding ★ tests); for pull-ups, dips and leg raises also the body weight of the week.`],
+   ['Input data',`Sets, repetitions and weight of the History rows (excluding tests); for pull-ups, dips and leg raises also the body weight of the week.`],
    ['Method and formulas',`<div class="spf">Tonnage = Σ<sub>rows</sub> sets × reps × <i>C</i>, &nbsp; <i>C</i> = added weight + body weight × share<span class="spn">(1)</span></div>
      The share is 1 for pull-ups and dips, 0.40 (men) or 0.42 (women) for straight-leg raises, 0.25 with bent knees, 0 for the other exercises. Body weight is the one measured in the same week, otherwise the nearest.`],
    ['Worked example',`Squat 4 × 5 at 100 kg = 2,000 kg; bench press 3 × 8 at 70 kg = 1,680 kg; pull-ups 3 × 8 with 10 kg added weight and a body weight of 80 kg = 3 × 8 × 90 = 2,160 kg. Total = <b>5,840 kg</b>.`],
@@ -209,7 +209,7 @@ const SPIEG_EN={
      <li><b>TL, like-for-like exercises</b>, dashed: the TL per set of the repeated exercises.</li>
      <li><b>Strength, like-for-like exercises</b>, the solid line: the estimated maximum (1RM) of the repeated exercises. It is the main one.</li></ul>
      Above each line the big number is the change from the start to the end of the period; below it, the slope in % per month over the last 3 months (or over the whole period, if shorter). The hollow circle marks the program-change weeks that were skipped.`],
-   ['Input data',`The History rows (1RM tests ★ excluded): for each exercise and week the TL, the number of sets and the highest estimated 1RM, computed as in the rest of the app (bodyweight exercises included). It follows the “Data to analyze” filter.`],
+   ['Input data',`The History rows (1RM tests excluded): for each exercise and week the TL, the number of sets and the highest estimated 1RM, computed as in the rest of the app (bodyweight exercises included). It follows the “Data to analyze” filter.`],
    ['Method and formulas',`For each pair of consecutive saved weeks, even with a break in between, the exercises <i>e</i> present in both are taken. For each one the ratio:
      <div class="spf">r<sub>e</sub> = <span class="fr"><i>1RM<sub>e,t</sub></i><i>1RM<sub>e,t−1</sub></i></span> &nbsp;(strength) &nbsp;or&nbsp; r<sub>e</sub> = <span class="fr"><i>TL<sub>e,t</sub> / sets<sub>e,t</sub></i><i>TL<sub>e,t−1</sub> / sets<sub>e,t−1</sub></i></span> &nbsp;(TL)<span class="spn">(1)</span></div>
      The week's step is the <b>geometric</b> mean of the ratios, weighted by the exercise's average TL over the two weeks (<i>p<sub>e</sub></i>), and the index is the product of the steps:
@@ -233,7 +233,7 @@ const SPIEG_EN={
   dove:'History (side panel)',
   a:`Summarizes the Training Load of the rows currently filtered in History, week by week, to see at a glance how the load has been distributed.`,
   s:[['What it shows',`The last 12 weeks (from the most recent), each with a bar proportional to its TL; at the top the number of weeks and the mean TL.`],
-   ['Input data',`The History rows that pass the table filters (exercise, group, program), excluding ★ tests.`],
+   ['Input data',`The History rows that pass the table filters (exercise, group, program), excluding tests.`],
    ['Method and formulas',`<div class="spf">TL<sub>week</sub> = Σ<sub>filtered rows</sub> TL<sub>row</sub> · mean TL = <span class="fr"><i>Σ<sub>week</sub> TL<sub>week</sub></i><i>number of weeks</i></span><span class="spn">(1)</span></div>
      The bar is TL<sub>week</sub> ÷ TL<sub>max</sub> of the 12 shown.`],
    ['Worked example',`Filtering “Barbell squat”: three weeks with TL 1,629, 1,800, 1,700 → mean 1,710; the second is the full bar.`],
@@ -367,7 +367,7 @@ const SPIEG_EN={
   dove:'Body',
   a:`Tracks body weight measurement after measurement. It is the simplest data for following a bulk, maintenance or cut phase.`,
   s:[['What it shows',`A line with the weight of each measurement saved in the measurement history, dated by week.`],
-   ['Input data',`The weight saved with “💾 Save measurements to History”.`],
+   ['Input data',`The weight saved with “Save measurements to History”.`],
    ['Method and formulas',`Recorded value: <div class="spf">y<sub>week</sub> = weight [kg]</div> The weight of each week is also used for the load of bodyweight exercises of that week.`],
    ['Worked example',`80.0 → 80.4 → 80.9 → 81.1 kg in 4 weeks: about +0.37 kg per week, a typical pace for a bulk phase.`],
    ['How to read it',`Trends over several weeks matter: daily fluctuations (water, glycogen, salt) reach 1–2 kg. Weigh yourself under the same conditions (morning, fasted).`],
@@ -444,7 +444,7 @@ const SPIEG_EN={
    ['Method and formulas',`<div class="spf">Index = <span class="fr"><i>daily amount in the plan</i><i>reference</i></span> × 100<span class="spn">(1)</span></div>
      References (E = requirement, or 2,000 kcal if missing): energy E; protein 0.83 g/kg; carbohydrates 55% E; fiber 25 g (targets, met from 90%); total fat ≤ 30% E; saturated ≤ 10% E; sugars ≤ 10% E; cholesterol ≤ 300 mg; sodium ≤ 2,000 mg (limits, met up to 100%); vitamins and minerals according to FAO/WHO values.`],
    ['Worked example',`Fiber 18 g out of 25 → <b>72%</b> (yellow, below target); sodium 2,600 mg out of 2,000 → <b>130%</b> (red, limit exceeded).`],
-   ['How to read it',`These are population references for health, not sports targets: protein at 0.83 g/kg is the minimum for a sedentary adult. The 💡 next to a low nutrient lists the foods richest in it, per 100 g or per 100 kcal.`],
+   ['How to read it',`These are population references for health, not sports targets: protein at 0.83 g/kg is the minimum for a sedentary adult. The next to a low nutrient lists the foods richest in it, per 100 g or per 100 kcal.`],
    ['Limitations',`Indicative references, not medical or nutritional advice; the quality of the values depends on the food database.`]],
   b:['WHO/FAO (2003). <i>Diet, nutrition and the prevention of chronic diseases</i>. WHO Technical Report Series 916. Geneva: WHO.',
      'WHO/FAO/UNU (2007). <i>Protein and amino acid requirements in human nutrition</i>. WHO Technical Report Series 935.',
