@@ -4,9 +4,10 @@
 
    1. local.properties: dove sta l'Android SDK (sennò Gradle lo cerca nelle variabili d'ambiente,
       che un .bat lanciato col doppio clic può non vedere);
-   2. sorgenti nativi (MainActivity + plugin TmsFile) da nativo/;
+   2. sorgenti nativi (MainActivity + plugin TmsFile e TmsCartella) da nativo/;
    3. AndroidManifest: «Apri con» e «Condividi» per i file .json, permesso di vibrare (timer),
-      fotocamera visibile all'app (per «Scatta una foto»), Bluetooth della bilancia senza posizione;
+      fotocamera visibile all'app (per «Scatta una foto»), Bluetooth della bilancia senza posizione,
+      installazione dell'APK nuovo dalla cartella condivisa; icona bianca dei promemoria;
    4. stile: barra di stato scura come la PWA, schermata d'avvio nera con la stella
       (le immagini le fa scripts/immagini.ps1);
    5. build.gradle: versione dall'package.json, firma con la chiave del progetto (firma/),
@@ -50,7 +51,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
 {
   const dest = path.join(MAIN, 'java', ...PKG.split('.'));
   fs.mkdirSync(dest, { recursive: true });
-  for (const f of ['MainActivity.java', 'TmsFilePlugin.java']) {
+  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java']) {
     fs.copyFileSync(path.join(QUI, 'nativo', f), path.join(dest, f));
   }
   console.log('sorgenti nativi copiati in ' + path.relative(QUI, dest));
@@ -104,8 +105,19 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
     if (s.split('    <application').length !== 2) { console.error('patch-android: AndroidManifest inatteso (<application>)'); process.exit(1); }
     s = s.replace('    <application', q + '    <application');
   }
+  /* aggiornamento dalla cartella condivisa: l'app passa l'APK nuovo all'installer di Android
+     (che chiede sempre conferma; la prima volta va concesso «Installa app sconosciute») */
+  if (!s.includes('android.permission.REQUEST_INSTALL_PACKAGES')) {
+    s = s.replace('</manifest>', '    <!-- TMS: aggiornamento dell\'APK dalla cartella condivisa -->\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n</manifest>');
+  }
   scrivi(f, s);
-  console.log('AndroidManifest: «Apri con» / «Condividi» per i .json, vibrazione, bilancia Bluetooth senza posizione');
+  console.log('AndroidManifest: «Apri con» / «Condividi» per i .json, vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK');
+  /* icona dei promemoria (barra delle notifiche): una sagoma bianca, Android la colora da sé */
+  scrivi(path.join(RES, 'drawable', 'ic_stat_tms.xml'),
+    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona dei promemoria (bilancia). Generato da scripts/patch-android.js -->\n' +
+    '<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">\n' +
+    '    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:pathData="M6,3h12a3,3 0,0 1,3 3v12a3,3 0,0 1,-3 3H6a3,3 0,0 1,-3 -3V6a3,3 0,0 1,3 -3zM12,6a5,5 0,0 0,-4.6 3h2.3l1.3,-1.5 0.8,0.6 -0.8,0.9h3.6a5,5 0,0 0,-2.6 -3zM7,14v4h10v-4z" />\n' +
+    '</vector>\n');
 }
 
 /* 4) stile, colori, schermata d'avvio */
@@ -160,6 +172,11 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
   const [ma, mi, pa] = String(pkg.version).split('.').map(n => parseInt(n, 10) || 0);
   const codice = ma * 10000 + mi * 100 + pa;
   s = s.replace(/versionCode \d+/, 'versionCode ' + codice).replace(/versionName "[^"]*"/, 'versionName "' + pkg.version + '"');
+  /* la cartella condivisa (TmsCartellaPlugin) si gira con DocumentFile */
+  if (!s.includes('androidx.documentfile')) {
+    if (!/dependencies \{\n/.test(s)) { console.error('patch-android: app/build.gradle senza dependencies'); process.exit(1); }
+    s = s.replace(/dependencies \{\n/, 'dependencies {\n    implementation "androidx.documentfile:documentfile:1.0.1"   // TMS: cartella condivisa\n');
+  }
   if (!s.includes('// TMS: firma')) {
     const firma =
       '    // TMS: firma — SEMPRE la stessa chiave (firma/tms-scheda.keystore, fuori da git): con una chiave\n' +

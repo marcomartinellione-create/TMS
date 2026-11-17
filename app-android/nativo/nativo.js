@@ -10,11 +10,14 @@
    · rientro per il coach: condividi, scegli la cartella, Download, fatti da Android;
    · tasto indietro del telefono (window.tmsIndietro, chiamata dal plugin);
    · bilancia Bluetooth: window.tmsBLE, il trasporto della pagina «⚖ Bilancia» della PWA;
+   · cartella condivisa col TMS sul PC e aggiornamento dell'APK: window.tmsCartella (plugin TmsCartella);
+   · promemoria della sera: window.tmsAvvisi (plugin LocalNotifications);
    · niente invito a installare (è già un'app) e link del sito nel browser.
    I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app): stesse chiavi,
    stesso formato del rientro. */
 /* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa,
-   avvia, caricaFile, risali, chiudiDove, chiudiVideo, mostraInstallHint, bilAggiornaMenu */
+   avvia, caricaFile, risali, chiudiDove, chiudiVideo, mostraInstallHint, bilAggiornaMenu, colRender,
+   avvRender, avvPianifica */
 (function(){
 'use strict';
 const N=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TmsFile)||null;
@@ -29,6 +32,9 @@ Object.assign(TT.en,{
   'Scegli dalla galleria':'Choose from the gallery',
   'una foto che hai già':'a photo you already have',
   'Non riesco ad aprire questo file:':'I can’t open this file:',
+  'le notifiche di TMS Scheda sono spente nelle impostazioni del telefono':'TMS Scheda notifications are turned off in the phone settings',
+  'Promemoria':'Reminders',
+  'Pesata della sera e foto del lunedì':'Evening weigh-in and Monday photos',
   'Oppure tocca il file <b>Scheda_….json</b> in WhatsApp, nell’email o in File e scegli <b>«Apri con TMS Scheda»</b>.':'Or tap the <b>Scheda_….json</b> file in WhatsApp, in the email or in Files and choose <b>«Open with TMS Scheda»</b>.'
 });
 
@@ -191,6 +197,56 @@ if(BLE){
     async stacca(id){ const a=ascolti; ascolti=[]; a.forEach(togli); try{ await BLE.disconnect({deviceId:id}); }catch(e){} }
   };
   try{ bilAggiornaMenu(); }catch(e){}     /* la voce «⚖ Bilancia» del menu compare solo adesso */
+}
+
+/* ── CARTELLA CONDIVISA col TMS sul PC (plugin TmsCartella): il TRASPORTO del «🔗 Collegamento»
+      della PWA, che fa tutto il resto (cifratura, scheda, bozza, pesate, foto). La cartella si
+      sceglie una volta; il suo indirizzo (con il permesso persistente di Android) resta qui. ── */
+const CART=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TmsCartella)||null;
+if(CART){
+  const K='tms-col-cartella';
+  const conf=()=>{ try{ return JSON.parse(localStorage.getItem(K)||'{}')||{}; }catch(e){ return {}; } };
+  const uri=()=>conf().uri||'';
+  window.tmsCartella={
+    pronta(){ return !!uri(); },
+    nome(){ return conf().nome||''; },
+    async scegli(){ const r=await CART.scegli(); if(!r||!r.uri) return null;
+      localStorage.setItem(K, JSON.stringify({uri:r.uri, nome:r.nome||''})); return {nome:r.nome||''}; },
+    dimentica(){ try{ localStorage.removeItem(K); }catch(e){} },
+    async leggi(percorso){ const r=await CART.leggi({uri:uri(), percorso:percorso}); return (r&&typeof r.data==='string')? r.data : null; },
+    async scrivi(percorso, testo){ await CART.scrivi({uri:uri(), percorso:percorso, data:String(testo)}); },
+    async elenca(cartella){ const r=await CART.elenca({uri:uri(), cartella:cartella||''}); return (r&&Array.isArray(r.voci))? r.voci : []; },
+    installaApk(percorso, sha256){ return CART.installaApk({uri:uri(), percorso:percorso, sha256:sha256||''}); }
+  };
+  try{ colRender(); }catch(e){}
+}
+
+/* ── 🔔 PROMEMORIA (@capacitor/local-notifications): il TRASPORTO dei promemoria della PWA, che
+      decide quando (ogni sera la pesata, il lunedì anche le foto). Niente sveglie «esatte»: Android
+      li fa suonare all'ora giusta o pochi minuti dopo. Toccandone uno si apre la pagina giusta. ── */
+const LN=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications)||null;
+if(LN){
+  let canale=false;
+  window.tmsAvvisi={
+    async permesso(chiedi){ let p=await LN.checkPermissions();
+      if((!p||p.display!=='granted') && chiedi) p=await LN.requestPermissions();
+      return !!(p && p.display==='granted'); },
+    async pianifica(lista){
+      const pend=await LN.getPending();
+      const nostri=((pend&&pend.notifications)||[]).filter(n=>+n.id>=7000 && +n.id<7100).map(n=>({id:+n.id}));
+      if(nostri.length) await LN.cancel({notifications:nostri});
+      if(!lista || !lista.length) return 0;
+      if(!(await this.permesso(false))) throw new Error(tt('le notifiche di TMS Scheda sono spente nelle impostazioni del telefono'));
+      if(!canale){ try{ await LN.createChannel({id:'promemoria', name:tt('Promemoria'), description:tt('Pesata della sera e foto del lunedì'), importance:4, visibility:1, vibration:true}); }catch(e){} canale=true; }
+      await LN.schedule({notifications:lista.map(x=>({id:x.id, title:x.titolo, body:x.testo, channelId:'promemoria',
+        smallIcon:'ic_stat_tms', iconColor:'#9A5B1F', schedule:{at:x.at, allowWhileIdle:true}, extra:{pagina:x.pagina}}))});
+      return lista.length;
+    }
+  };
+  LN.addListener('localNotificationActionPerformed', ev=>{
+    const pg=ev && ev.notification && ev.notification.extra && ev.notification.extra.pagina;
+    pronto.then(()=>{ try{ window.apriDaAvviso(pg); }catch(e){} }); });
+  try{ avvRender(); avvPianifica(); colRender(); }catch(e){}
 }
 
 /* ── tasto INDIETRO del telefono (lo chiama il plugin): true = gestito qui, false = Android

@@ -182,6 +182,17 @@
  .bil-g{flex:1;min-width:0;line-height:1.35}
  .bil-row.fuori{color:#9b8a6e}
  .bil-media{font-size:12.5px;color:#5b4a30;margin-top:8px;line-height:1.4}
+ /* collegamento col PC e promemoria (solo nell'APK) */
+ .col-in{width:100%;font:inherit;font-size:17px;letter-spacing:.08em;text-transform:uppercase;padding:9px 10px;border:1px solid #cdb889;border-radius:var(--r-sm);background:#fff;color:#2b1d10;margin:4px 0 8px}
+ .col-stato{font-size:13px;color:#5b4a30;line-height:1.45;margin:2px 0 8px}
+ .col-stato.ok{color:#2f7d4f} .col-stato.err{color:#991b1b}
+ .col-riga{display:flex;align-items:center;gap:10px;font-size:14px;margin:6px 0}
+ .col-riga input[type=checkbox]{width:22px;height:22px;flex:none}
+ .col-riga input[type=time]{font:inherit;font-size:16px;padding:5px 8px;border:1px solid #cdb889;border-radius:var(--r-sm);background:#fff}
+ .col-avviso{display:flex;align-items:center;gap:9px}
+ .col-avviso>span{flex:1;min-width:0}
+ .col-avviso>button{flex:none;font:inherit;font-weight:bold;font-size:13px;padding:7px 12px;border:0;border-radius:var(--r-sm);background:#9a5b1f;color:#fff;cursor:pointer}
+ .pc-ok{color:#2f7d4f;font-weight:bold} .pc-via{color:#9b8a6e}
  #bozza-stato{color:#7a6648;font-size:11.5px;text-align:center;margin:6px 0;min-height:14px}
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:15;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:var(--r-sm);background:#000}
@@ -243,13 +254,16 @@
     <p style="font-size:13.5px;line-height:1.45;margin:5px 0" data-i18n-html>Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> — dal tuo coach, o da te se ti alleni in autonomia — e qui le <b>annoti in palestra</b>.</p>
     <p style="font-size:13.5px;line-height:1.45;margin:5px 0" data-i18n-html>Dal TMS arriva un file <b>Scheda_….json</b> (via chat o email). <b>Salvalo sul telefono</b> (es. nei Download) e caricalo qui: vedrai riscaldamento, allenamenti coi video e la dieta, annoti ciò che fai davvero e rimandi il risultato al TMS con un tocco.</p>
     <label class="btn-big" style="cursor:pointer"><span data-i18n>📂 Carica la scheda</span><input id="file-scheda" type="file" accept="application/json,.json" style="display:none"></label>
+    <button type="button" class="btn-lite" id="col-da-ben" hidden data-i18n>🔗 Collega al TMS sul PC</button>
   </div>
+  <div id="col-avvisi-ben"></div>
   <div class="privacy" data-i18n-html>🔒 Tutto resta <b>sul tuo telefono</b>: questa app non invia niente a nessun server. Funziona anche offline.</div>
   <div class="install" id="install-hint" hidden></div>
 </div>
 
 <!-- ── schermata MENU: due macro-sezioni (Allenamento / Alimentazione) ── -->
 <div id="menu" hidden>
+  <div id="col-avvisi"></div>
   <div class="avviso" id="scheda-info"></div>
   <div class="days">
     <button type="button" class="macro-card" id="vai-scheda">
@@ -268,6 +282,10 @@
       <span class="macro-ico">⚖</span>
       <span class="macro-l"><span class="macro-name" data-i18n>Bilancia</span><span class="macro-meta" id="meta-bil"></span></span>
       <span class="chev">›</span></button>
+    <button type="button" class="macro-card" id="vai-col" hidden>
+      <span class="macro-ico">⚙</span>
+      <span class="macro-l"><span class="macro-name" data-i18n>Collegamento e promemoria</span><span class="macro-meta" id="meta-col"></span></span>
+      <span class="chev">›</span></button>
   </div>
   <label class="btn-lite" style="cursor:pointer"><span data-i18n>📂 Carica una nuova scheda</span><input id="file-scheda-2" type="file" accept="application/json,.json" style="display:none"></label>
   <div class="install" id="install-hint-2" hidden></div>
@@ -279,6 +297,7 @@
   <div class="pick-title" data-i18n>📋 Seleziona il giorno da compilare</div>
   <div class="days" id="days"></div>
   <div id="bozza-stato"></div>
+  <div class="avviso" id="col-home" hidden></div>
   <button type="button" class="btn-big" id="invia" data-i18n>📩 Crea il file per il coach</button>
   <div class="fine" data-i18n-html>Quando hai finito premi il bottone: vedrai un riepilogo e poi nasce un file <b>Rientro_….json</b> da rimandare al coach, e scegli tu <b>dove salvarlo</b>. Quello che scrivi <b>si salva da solo</b> su questo telefono.</div>
 </div>
@@ -319,6 +338,31 @@
   <button type="button" class="back-btn bottom" data-menu data-i18n>‹ Torna al menu</button>
 </div>
 
+<!-- ── schermata COLLEGAMENTO E PROMEMORIA (solo nell'APK): cartella condivisa col TMS sul PC,
+       codice di collegamento, promemoria della sera. ── -->
+<div id="col" hidden>
+  <button type="button" class="back-btn" data-col-esci data-i18n>‹ Torna indietro</button>
+  <div class="sez-t" data-i18n>▌ Collegamento e promemoria</div>
+  <div class="box">
+    <div class="pick-title" data-i18n>🔗 Collegamento col TMS sul PC</div>
+    <div class="fine" style="text-align:left" data-i18n-html>La scheda arriva da sola dal PC e quello che scrivi, le pesate e le foto ci tornano da sole, attraverso una <b>cartella del telefono</b> che un'app di sincronizzazione (Autosync, FolderSync…) tiene uguale alla cartella <b>«6 - TMS»</b> di Google Drive. I file sono <b>cifrati</b> col codice che vedi sul PC (⚙ Impostazioni › Telefono collegato): Google vede solo file illeggibili.</div>
+    <div class="col-stato" id="col-stato"></div>
+    <button type="button" class="btn-lite" id="col-cartella" data-i18n>📁 Scegli la cartella</button>
+    <div id="col-codice-box"><label style="font-size:13px;color:#5b4a30" for="col-codice" data-i18n>Codice di collegamento</label>
+      <input id="col-codice" class="col-in" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX">
+      <button type="button" class="btn-big" id="col-collega" data-i18n>🔗 Collega</button></div>
+    <button type="button" class="btn-lite" id="col-ora" hidden data-i18n>🔄 Controlla adesso</button>
+    <button type="button" class="btn-lite" id="col-stacca" hidden data-i18n>Scollega</button>
+  </div>
+  <div class="box" id="avv-box" hidden>
+    <div class="pick-title" data-i18n>🔔 Promemoria</div>
+    <label class="col-riga"><input type="checkbox" id="avv-on"><span data-i18n>Ogni sera la pesata, il lunedì anche le foto</span></label>
+    <label class="col-riga"><span data-i18n>Alle ore</span><input type="time" id="avv-ora" value="21:00"></label>
+    <div class="fine" style="text-align:left" id="avv-stato"></div>
+  </div>
+  <button type="button" class="back-btn bottom" data-col-esci data-i18n>‹ Torna indietro</button>
+</div>
+
 <!-- ── schermata ALIMENTAZIONE: piano del coach, sola lettura ── -->
 <div id="alim" hidden>
   <button type="button" class="back-btn" data-menu data-i18n>‹ Torna al menu</button>
@@ -353,7 +397,7 @@
    coach) · 🏋 esercizi (lista compatta, si aprono a schermo pieno) · ✅ fine (RPE, durata).
    Persistenza: scheda in IndexedDB (i video base64 possono pesare) con fallback
    localStorage; bozza in localStorage. ZERO rete: nessun dato lascia il telefono. */
-const CVER='2.7';
+const CVER='2.8';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -520,7 +564,71 @@ const TT={en:{
   "nessuna pesata questa settimana":"no weigh-ins this week",
   "pesati e il peso va al coach":"weigh yourself and the weight goes to the coach",
   "pesata della bilancia":"scale weigh-in",
-  "pesate della bilancia":"scale weigh-ins"
+  "pesate della bilancia":"scale weigh-ins",
+  /* collegamento col PC, promemoria, aggiornamento dell'APK */
+  "al PC":"on PC",
+  "manca il codice di collegamento":"the pairing code is missing",
+  "🔗 È arrivata una scheda nuova dal TMS":"🔗 A new program arrived from the TMS",
+  "mandata il":"sent on",
+  "La apro al posto di quella di adesso? (Quello che hai scritto resta salvato sul telefono.)":"Shall I open it instead of the current one? (What you wrote stays saved on the phone.)",
+  "La apro?":"Shall I open it?",
+  "🔗 Scheda aggiornata dal PC: quello che avevi già scritto è rimasto.":"🔗 Program updated from the PC: what you had already written is still there.",
+  "arrivata al PC":"arrived on the PC",
+  "in viaggio verso il PC":"on its way to the PC",
+  "⬆ C'è TMS Scheda":"⬆ TMS Scheda is available:",
+  "(adesso hai la":"(you have",
+  "La installo? Android ti chiede di confermare; scheda, bozza e pesate restano.":"Shall I install it? Android asks you to confirm; program, draft and weigh-ins stay.",
+  "Android chiede il permesso: consenti a TMS Scheda di «installare app sconosciute», poi torna qui e tocca di nuovo «Installa».":"Android asks for permission: allow TMS Scheda to «install unknown apps», then come back here and tap «Install» again.",
+  "Aggiornamento non riuscito:":"Update failed:",
+  "Prima scegli la cartella condivisa.":"First choose the shared folder.",
+  "Il codice ha 16 lettere e numeri: lo trovi sul PC, in ⚙ Impostazioni › Telefono collegato.":"The code has 16 letters and digits: you find it on the PC, in ⚙ Settings › Linked phone.",
+  "Controllo la cartella…":"Checking the folder…",
+  "Non trovo i file del PC in questa cartella, oppure il codice non è quello giusto. Controlla che sia la cartella sincronizzata con «6 - TMS», che sul PC il profilo sia collegato e che la sincronizzazione sia già passata.":"I can't find the PC's files in this folder, or the code isn't the right one. Check that it's the folder synced with «6 - TMS», that the profile is linked on the PC and that the sync has already run.",
+  "✔ Collegato a":"✔ Linked to",
+  "Scollegato da":"Unlinked from",
+  "collegato al PC":"linked to the PC",
+  "controllato alle":"checked at",
+  "scheda dal PC, pesate e foto al PC, promemoria":"program from the PC, weigh-ins and photos to the PC, reminders",
+  "🔗 Scheda nuova dal TMS":"🔗 New program from the TMS",
+  "Apri":"Open",
+  "✔ Settimana salvata nello Storico sul PC il":"✔ Week saved to the History on the PC on",
+  "Quando arriva la scheda nuova te la propongo.":"When the new program arrives I'll offer it to you.",
+  "✔ Settimana salvata nello Storico sul PC.":"✔ Week saved to the History on the PC.",
+  "🔗 Quello che scrivi arriva da solo al TMS sul PC":"🔗 What you write reaches the TMS on the PC by itself",
+  "ultimo invio alle":"last sent at",
+  "1. Scegli la cartella del telefono sincronizzata con «6 - TMS» di Google Drive.":"1. Choose the phone folder synced with «6 - TMS» on Google Drive.",
+  "Cartella:":"Folder:",
+  "2. Scrivi il codice di collegamento che vedi sul PC e tocca «Collega».":"2. Type the pairing code shown on the PC and tap «Link».",
+  "Profilo:":"Profile:",
+  "Collegato":"Linked",
+  "Il PC non ha ancora scritto niente qui (aspetta la sincronizzazione).":"The PC hasn't written anything here yet (wait for the sync).",
+  "Non riesco a leggere i file del PC: il codice è cambiato sul PC, o un file sta ancora arrivando.":"I can't read the PC's files: the code changed on the PC, or a file is still arriving.",
+  "📁 Cambia la cartella":"📁 Change the folder",
+  "📁 Scegli la cartella":"📁 Choose the folder",
+  "⚖ Pesata e 📷 foto del lunedì":"⚖ Weigh-in and 📷 Monday photos",
+  "⚖ Pesata della sera":"⚖ Evening weigh-in",
+  "📷 Foto del lunedì":"📷 Monday photos",
+  "Sali sulla bilancia con TMS Scheda aperta, poi fai le foto dei progressi (fronte, lato, retro).":"Step on the scale with TMS Scheda open, then take the progress photos (front, side, back).",
+  "Sali sulla bilancia con TMS Scheda aperta.":"Step on the scale with TMS Scheda open.",
+  "Fai le foto dei progressi: fronte, lato, retro.":"Take the progress photos: front, side, back.",
+  "Spenti.":"Off.",
+  "Partono quando c'è una scheda.":"They start once there's a program.",
+  "Il prossimo:":"Next:",
+  "Android non permette le notifiche a TMS Scheda: abilitale nelle impostazioni del telefono (App › TMS Scheda › Notifiche) e riprova.":"Android doesn't allow notifications for TMS Scheda: enable them in the phone settings (Apps › TMS Scheda › Notifications) and try again.",
+  "Il telefono smette di scambiare dati col PC (quelli già arrivati restano). Continuo?":"The phone stops exchanging data with the PC (what already arrived stays). Continue?",
+  "🔗 Collega al TMS sul PC":"🔗 Link to the TMS on the PC",
+  "Collegamento e promemoria":"Link and reminders",
+  "‹ Torna indietro":"‹ Go back",
+  "▌ Collegamento e promemoria":"▌ Link and reminders",
+  "🔗 Collegamento col TMS sul PC":"🔗 Link with the TMS on the PC",
+  "Codice di collegamento":"Pairing code",
+  "🔗 Collega":"🔗 Link",
+  "🔄 Controlla adesso":"🔄 Check now",
+  "Scollega":"Unlink",
+  "🔔 Promemoria":"🔔 Reminders",
+  "Ogni sera la pesata, il lunedì anche le foto":"Every evening the weigh-in, on Mondays the photos too",
+  "Alle ore":"At",
+  "La scheda arriva da sola dal PC e quello che scrivi, le pesate e le foto ci tornano da sole, attraverso una <b>cartella del telefono</b> che un'app di sincronizzazione (Autosync, FolderSync…) tiene uguale alla cartella <b>«6 - TMS»</b> di Google Drive. I file sono <b>cifrati</b> col codice che vedi sul PC (⚙ Impostazioni › Telefono collegato): Google vede solo file illeggibili.":"The program arrives from the PC by itself, and what you write, weigh-ins and photos go back by themselves, through a <b>phone folder</b> that a sync app (Autosync, FolderSync…) keeps identical to the <b>«6 - TMS»</b> folder on Google Drive. The files are <b>encrypted</b> with the code shown on the PC (⚙ Settings › Linked phone): Google only sees unreadable files."
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 function applyI18n(){
@@ -596,11 +704,12 @@ function ultimaDi(nome){ const u=(SCHEDA&&SCHEDA.ultima)||null; return (u&&u[Str
 function avvia(){
   const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
-  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','riepilogo','foto','bil'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); return; }
+  if(!SCHEDA){ ben.hidden=false; ['menu','home','alim','riepilogo','foto','bil','col'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); colRender(); avvPianifica(); return; }
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
   buildWrows();
+  WROWS.forEach(r=>{ if(r.giorno && GIORNI.indexOf(r.giorno)<0) GIORNI.push(r.giorno); });
   $('sub').textContent=tt('Ciao')+' '+(((SCHEDA.profilo||{}).nome)||'')+tt('! Il tuo taccuino: scheda e alimentazione dal TMS, da annotare in palestra.');
   $('scheda-info').innerHTML=tt('📋 Scheda del')+' <b>'+esc((SCHEDA.profilo||{}).nome||'')+'</b> · '+tt('esportata il')+' <b>'+esc(SCHEDA.esportata||'?')+'</b>'+(SCHEDA.app?' · TMS v'+esc(SCHEDA.app):'');
   const dieta=SCHEDA.dieta, haDieta=!!(dieta&&Array.isArray(dieta.righe)&&dieta.righe.length);
@@ -614,8 +723,8 @@ function avvia(){
   PESATE=[]; PES_TOGLI=''; bilAggiornaMenu();
   pesLeggi().then(l=>{ PESATE=Array.isArray(l)?l:[]; const prima=JSON.stringify(PESATE);
     PESATE.forEach(p=>{ if(p&&p.imp&&p.grasso==null) pesComponi(p); });
-    if(JSON.stringify(PESATE)!==prima) pesSalva(); renderBil(); }).catch(()=>{ PESATE=[]; renderBil(); });
-  mostra('menu'); mostraInstallHint();
+    if(JSON.stringify(PESATE)!==prima) pesSalva(); renderBil(); avvPianifica(); }).catch(()=>{ PESATE=[]; renderBil(); });
+  mostra('menu'); mostraInstallHint(); colRender(); avvPianifica();
 }
 /* ricostruisce lista giorni e pagine-giorno dal modello WROWS; poi riaggancia gli
    eventi, ricarica i valori compilati (bozza piatta) e gli stati ✔ */
@@ -704,8 +813,9 @@ function rigaEsercizio(r){
       (ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':'')+
     '</div></div>';
 }
-function mostra(id){ ['menu','home','alim','riepilogo','foto','bil'].forEach(s=>{ $(s).hidden=(id!==s); });
+function mostra(id){ ['menu','home','alim','riepilogo','foto','bil','col'].forEach(s=>{ $(s).hidden=(id!==s); });
   if(id!=='bil') bilEsci();   /* fuori dalla pagina Bilancia il Bluetooth si ferma */
+  if(id==='menu') colPresto();   /* di nuovo al menu: è il momento giusto per gli aggiornamenti dal PC */
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
 /* fase visibile dentro la pagina-giorno ('w' riscaldamento · 'e' esercizi · 'f' fine) */
@@ -771,8 +881,8 @@ async function fotoAggiungi(vista,file){
   if(!file) return;
   let img=null;
   try{ img=await fotoRidimensiona(file); }catch(e){ alert(tt('Non riesco a leggere questa immagine.')); return; }
-  FOTO[vista]={img:img, data:new Date().toISOString().slice(0,10)};
-  await fotoSalva(); renderFoto();
+  FOTO[vista]={id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), img:img, data:dataLoc(new Date())};
+  await fotoSalva(); renderFoto(); colPresto(); avvPianifica();
 }
 async function fotoRimuovi(vista){
   if(!confirm(tt('Vuoi togliere questa foto?'))) return;
@@ -786,7 +896,7 @@ function renderFoto(){
   if(!box) return;
   box.innerHTML=FOTO_VISTE.map(v=>{ const f=FOTO[v];
     return '<div class="foto-box'+(f?' pieno':'')+'" data-foto="'+v+'">'+
-      (f? '<img src="'+f.img+'" alt="'+esc(tt(FOTO_LAB[v]))+'"><span class="foto-ok">'+esc(tt(FOTO_LAB[v]))+' ✔</span>'+
+      (f? '<img src="'+f.img+'" alt="'+esc(tt(FOTO_LAB[v]))+'"><span class="foto-ok">'+esc(tt(FOTO_LAB[v]))+' ✔'+(colAttivo()&&f.pc?' · '+esc(tt('al PC')):'')+'</span>'+
           '<button type="button" class="foto-x" data-fotox="'+v+'" title="'+esc(tt('Togli la foto'))+'">✕</button>'
         : '<span class="foto-ico">📷</span><span class="foto-lab">'+esc(tt(FOTO_LAB[v]))+'</span>')+
       '</div>'; }).join('');
@@ -809,7 +919,8 @@ function salvaBozza(){ if(!stOk||!SCHEDA) return;
   idsCampi().forEach(id=>{ const el=$(id); if(el&&el.value!=='') o[id]=el.value; });
   GIORNI.forEach((g,gi)=>{ const c=$('fatto-'+gi); if(c&&c.checked) o['fatto-'+gi]='1'; });
   try{ localStorage.setItem(BK,JSON.stringify(o));
-    const n=$('bozza-stato'); if(n) n.textContent=tt('💾 salvato')+' '+new Date().toLocaleTimeString(LANGP==='en'?'en-GB':'it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){} }
+    const n=$('bozza-stato'); if(n) n.textContent=tt('💾 salvato')+' '+new Date().toLocaleTimeString(LANGP==='en'?'en-GB':'it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){}
+  colBozzaPresto(); }
 function caricaBozza(){ TOCCATI=new Set(); if(!stOk) return; let raw=null; try{ raw=localStorage.getItem(BK); }catch(e){}
   if(!raw) return; try{ const o=JSON.parse(raw);
     Object.keys(o).forEach(id=>{ if(id==='_t'||id==='_wrows') return; const el=$(id); if(!el) return;
@@ -851,6 +962,7 @@ function risali(){
   if(!$('riepilogo').hidden){ aggiornaStato(); mostra('home'); return true; }
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
   if(giorno){ aggiornaStato(); mostra('home'); return true; }
+  if(!$('col').hidden){ colEsci(); return true; }
   if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden || !$('bil').hidden){ aggiornaStato(); mostra('menu'); return true; }
   return false;   /* siamo al menu: non c'è più nulla sopra, l'app può chiudersi */
 }
@@ -983,7 +1095,7 @@ function bilRisultato(p1, imp){
   if(g===BIL.ultimiGrammi) return;       /* la bilancia lo ripete finché non lo confermiamo */
   BIL.ultimiGrammi=g; BIL.fattoConn=true;
   bilScrivi(bilConferma(p1[0], BIL.outSeq++));
-  bilNuovaPesata(g/1000, p1[8]&255, imp).then(()=>{ bilStato('fatto'); renderBil(); bilAggiornaMenu(); });
+  bilNuovaPesata(g/1000, p1[8]&255, imp).then(()=>{ bilStato('fatto'); renderBil(); bilAggiornaMenu(); colPresto(); avvPianifica(); });
 }
 function bilScrivi(f){ if(!window.tmsBLE||!BIL.id) return; try{ Promise.resolve(window.tmsBLE.scrivi(BIL.id,'ffb1',f)).catch(()=>{}); }catch(e){} }
 
@@ -1080,7 +1192,7 @@ function renderBil(){
       '<div class="bil-row"><span class="bil-g">'+tt('Togli la pesata di')+' '+esc(giornoBreve(p.data))+' '+esc(String(p.ora||'').slice(0,5))+'?</span>'+
       '<button type="button" class="mini del" data-pesok="'+esc(p.id)+'">'+tt('Togli')+'</button><button type="button" class="mini" data-pesno="1">'+tt('No')+'</button></div>'
     : '<div class="bil-row'+(contate.has(p.id)?'':' fuori')+'"><span class="bil-g">'+esc(giornoBreve(p.data))+' '+esc(String(p.ora||'').slice(0,5))+' · <b>'+esc(nfP(p.peso,1))+' kg</b>'+
-      (p.grasso!=null?' · '+tt('grasso')+' '+esc(nfP(p.grasso,1))+' %':'')+(p.muscolo!=null?' · '+tt('muscolo')+' '+esc(nfP(p.muscolo,1))+' kg':'')+'</span>'+
+      (p.grasso!=null?' · '+tt('grasso')+' '+esc(nfP(p.grasso,1))+' %':'')+(p.muscolo!=null?' · '+tt('muscolo')+' '+esc(nfP(p.muscolo,1))+' kg':'')+colSegnoPesata(p)+'</span>'+
       '<button type="button" class="mini del" data-pesx="'+esc(p.id)+'" title="'+esc(tt('Togli questa pesata'))+'">🗑</button></div>').join('')
     : '<div class="fine" style="margin:4px 0">'+tt('Ancora nessuna pesata.')+'</div>')+
     (cs.length? '<div class="bil-media"><b>'+tt('Media di questa settimana')+'</b> ('+cs.length+' '+(cs.length===1?tt('giorno'):tt('giorni'))+'): '+esc(nfP(pesMedia(cs,'peso'),1))+' kg'+
@@ -1116,7 +1228,7 @@ function costruisciRientro(){
     const c=$('fatto-'+gi); if(c&&c.checked) sedute.push({giorno:g, fatto:true}); });
   /* foto progressi (se scattate): tag fronte/lato/retro + immagine incorporata → il TMS le
      salva nel tab Corpo con la data dello scatto */
-  const foto=FOTO_VISTE.filter(v=>FOTO[v]&&FOTO[v].img).map(v=>({tag:v, data:FOTO[v].data||new Date().toISOString().slice(0,10), img:FOTO[v].img}));
+  const foto=FOTO_VISTE.filter(v=>FOTO[v]&&FOTO[v].img).map(v=>({id:FOTO[v].id||'', tag:v, data:FOTO[v].data||new Date().toISOString().slice(0,10), img:FOTO[v].img}));
   return {tipo:'tms-rientro', versione:1, app:SCHEDA.app||'', profilo:SCHEDA.profilo||{},
     esportata:SCHEDA.esportata||'', compilata:new Date().toISOString().slice(0,10), righe:righe, sedute:sedute, foto:foto,
     pesate:PESATE.slice()};   /* pesate della bilancia: tutte (il TMS riconosce quelle già arrivate) */
@@ -1351,6 +1463,352 @@ $('t-x').onclick=timerClose;
 document.addEventListener('input',e=>{ const id=e.target&&e.target.id;
   if(id && /^(s|r|p|rir|n|rpe|min|fatto)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); } });
 
+/* ════ 🔗 COLLEGAMENTO COL TMS SUL PC, 🔔 PROMEMORIA, ⬆ AGGIORNAMENTO DELL'APK (solo nell'APK) ════
+   Come Movienaitor: telefono e PC si lasciano file in una CARTELLA CONDIVISA. Qui è una cartella
+   del telefono scelta una volta (il trasporto window.tmsCartella sta in nativo.js), tenuta uguale
+   alla cartella «6 - TMS» di Google Drive da un'app di sincronizzazione.
+     <profilo>/dal-pc/stato.json, scheda.json       li scrive SOLO il PC
+     <profilo>/dal-telefono/bozza.json, eventi/*    li scrive SOLO il telefono
+     apk/versione.json + apk/TMS-Scheda-x.y.z.apk   l'APK nuovo, lo mette «Crea APK» sul PC
+   Tutto cifrato (AES-GCM, chiave dal codice di collegamento: stesso calcolo del TMS) tranne l'APK.
+   · scheda NUOVA dal PC → si chiede se aprirla; la stessa settimana AGGIORNATA dal PC → si unisce
+     tenendo quello che è già stato scritto (si fa quando sei al menu, mai sotto le dita);
+   · quello che scrivi va al PC pochi secondi dopo (bozza.json); «💾 Salva nello Storico» sul PC
+     chiude la settimana anche qui;
+   · ogni pesata e ogni foto diventa un file: il PC la salva, la toglie e la segna fra le
+     «ricevute» → qui compare ✔ «al PC».
+   File a metà o illeggibili si saltano e si riprovano al giro dopo (ogni minuto ad app aperta). */
+const COL_KEY='tms-col', COL_SALE='tms-scambio-v1', COL_GIRI=150000, COL_OGNI=60000;
+const COL={stato:'', ultimo:null, errore:'', inCorso:false, chiesto:{}, nuova:null, apk:null, chiestoApk:'', chiave:null, chiaveDi:'', bozzaT:null, bozzaInviata:null, timer:null, prestoT:null, msg:''};
+function colConf(){ try{ const o=JSON.parse(localStorage.getItem(COL_KEY)||'{}'); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } }
+function colSalvaConf(o){ try{ localStorage.setItem(COL_KEY, JSON.stringify(o||{})); }catch(e){} }
+function colT(){ return window.tmsCartella||null; }
+function colCartellaOk(){ const T=colT(); try{ return !!(T && T.pronta()); }catch(e){ return false; } }
+function colAttivo(){ const c=colConf(); return !!(colCartellaOk() && c.codice && c.slug); }
+function colPulito(c){ return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
+/* cifratura: identica a quella del TMS (src/app/15c-telefono.js) */
+async function colChiave(codice){
+  const c=colPulito(codice||colConf().codice); if(!c) throw new Error(tt('manca il codice di collegamento'));
+  if(COL.chiave && COL.chiaveDi===c) return COL.chiave;
+  const enc=new TextEncoder();
+  const base=await crypto.subtle.importKey('raw', enc.encode(c), 'PBKDF2', false, ['deriveKey']);
+  const k=await crypto.subtle.deriveKey({name:'PBKDF2', salt:enc.encode(COL_SALE), iterations:COL_GIRI, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+  COL.chiave=k; COL.chiaveDi=c; return k;
+}
+function colB64(u8){ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null, Array.from(u8.subarray(i,i+0x8000))); return btoa(s); }
+function colDaB64(s){ const bin=atob(String(s||'')); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out; }
+async function colCifra(obj){
+  const iv=new Uint8Array(12); crypto.getRandomValues(iv); const enc=new TextEncoder();
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM', iv:iv, additionalData:enc.encode(COL_SALE)}, await colChiave(), enc.encode(JSON.stringify(obj)));
+  return JSON.stringify({tms:'scambio', v:1, iv:colB64(iv), dati:colB64(new Uint8Array(ct))});
+}
+async function colDecifra(testo, codice){
+  const env=JSON.parse(testo);
+  if(!env || env.tms!=='scambio' || env.v!==1 || !env.iv || !env.dati) throw new Error('non è un file di scambio del TMS');
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM', iv:colDaB64(env.iv), additionalData:new TextEncoder().encode(COL_SALE)}, await colChiave(codice), colDaB64(env.dati));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function colDir(){ return colConf().slug+'/'; }
+function colNomeFile(tipo,id){ return tipo+'-'+String(id||'').replace(/[^A-Za-z0-9-]+/g,'_').slice(0,80)+'.json'; }
+function colQuando(d){ if(!d) return ''; try{ return new Date(d).toLocaleString(LANGP==='en'?'en-GB':'it-IT',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(d); } }
+function colOraBreve(d){ try{ return new Date(d).toLocaleTimeString(LANGP==='en'?'en-GB':'it-IT',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+
+/* ── il giro: APK nuovo, stato del PC, scheda, ricevute, pesate e foto da mandare ── */
+async function colGiro(){
+  if(COL.inCorso || !colCartellaOk()) return;
+  COL.inCorso=true;
+  try{
+    await colApk();
+    if(!colAttivo()) return;
+    const T=colT(), testo=await T.leggi(colDir()+'dal-pc/stato.json');
+    if(testo==null){ COL.stato='attesa'; return; }
+    let st; try{ st=await colDecifra(testo); }catch(e){ COL.stato='illeggibile'; return; }
+    if(!st || st.tipo!=='tms-stato'){ COL.stato='illeggibile'; return; }
+    COL.stato='ok'; COL.ultimo=new Date(); COL.errore='';
+    await colRicevute(st);
+    await colScheda(st);
+    await colEventi();
+  }catch(e){ COL.stato='errore'; COL.errore=String((e&&e.message)||e); }
+  finally{ COL.inCorso=false; colRender(); }
+}
+function colPresto(){ if(!colCartellaOk()) return; clearTimeout(COL.prestoT); COL.prestoT=setTimeout(()=>{ colGiro(); }, 600); }
+function colAvvia(){
+  if(!colT()) return;
+  clearInterval(COL.timer); COL.timer=setInterval(()=>{ if(!document.hidden) colGiro(); }, COL_OGNI);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ colPresto(); avvPianifica(); } });
+  colPresto();
+}
+
+/* pesate e foto che il PC ha salvato: ✔ */
+async function colRicevute(st){
+  const ric=new Set((st.ricevute||[]).map(String));
+  let cp=false, cf=false;
+  PESATE.forEach(p=>{ if(p && !p.pc && ric.has(String(p.id))){ p.pc=true; cp=true; } });
+  FOTO_VISTE.forEach(v=>{ const f=FOTO[v]; if(f && f.id && !f.pc && ric.has(String(f.id))){ f.pc=true; cf=true; } });
+  if(cp){ await pesSalva(); if(!$('bil').hidden) renderBil(); }
+  if(cf){ await fotoSalva(); renderFoto(); }
+}
+
+/* scheda: nuova (si chiede), aggiornata (si unisce), settimana chiusa sul PC */
+async function colLeggiScheda(sc){
+  const testo=await colT().leggi(colDir()+'dal-pc/scheda.json'); if(testo==null) return null;
+  let d; try{ d=await colDecifra(testo); }catch(e){ return null; }
+  /* la scheda annunciata dallo stato può non essere ancora arrivata: si aspetta il giro dopo */
+  if(!validaScheda(d) || !d.sync || d.sync.id!==sc.id || (+d.sync.rev||1)!==(+sc.rev||1)) return null;
+  return d;
+}
+async function colScheda(st){
+  const sc=st.scheda, mia=(SCHEDA&&SCHEDA.sync)||null;
+  if(mia && st.chiusa && st.chiusa.id===mia.id && !mia.chiusa){ mia.chiusa=st.chiusa; await salvaScheda(SCHEDA); }
+  if(!sc || !sc.id){ COL.nuova=null; return; }
+  if(!mia || mia.id!==sc.id){
+    if(st.chiusa && st.chiusa.id===sc.id){ COL.nuova=null; return; }   /* già chiusa sul PC: niente da proporre */
+    const d=await colLeggiScheda(sc); if(!d) return;
+    COL.nuova=d;
+    if(COL.chiesto[sc.id]) return;
+    COL.chiesto[sc.id]=1; colRender();
+    if(confirm(tt('🔗 È arrivata una scheda nuova dal TMS')+' ('+tt('mandata il')+' '+(d.esportata||'?')+').\n'+(SCHEDA? tt('La apro al posto di quella di adesso? (Quello che hai scritto resta salvato sul telefono.)') : tt('La apro?')))) await colApriNuova();
+    return;
+  }
+  COL.nuova=null;
+  if((+sc.rev||1) > (+mia.rev||1) && !mia.chiusa){
+    if($('menu').hidden) return;          /* solo dal menu: mai mentre stai scrivendo una seduta */
+    const d=await colLeggiScheda(sc); if(!d || $('menu').hidden) return;
+    colUnisci(d);
+  }
+}
+async function colApriNuova(){
+  const d=COL.nuova; if(!d) return;
+  COL.nuova=null;
+  await salvaScheda(d); SCHEDA=d; navLivelli=0; avvia();
+  colBozzaPresto(true);
+}
+/* stessa settimana, scheda cambiata sul PC: la prescrizione è quella nuova, quello che hai già
+   scritto resta (righe abbinate per giorno + esercizio, nell'ordine); le righe aggiunte qui o
+   già compilate che il PC non ha più restano anche loro: un valore fatto non si perde mai. */
+function colUnisci(nuova){
+  const PX=['s-','r-','p-','rir-','n-'];
+  const bkN='tms-bozza-'+(((nuova.profilo||{}).slug)||'cliente')+'-'+(nuova.esportata||'');
+  let o={}; try{ o=JSON.parse(localStorage.getItem(BK)||'{}')||{}; }catch(e){ o={}; }
+  const tocc=new Set(Array.isArray(o._t)? o._t : []);
+  const vecchie=WROWS.slice(), vGiorni=GIORNI.slice();
+  const chiave=r=>String(r.giorno||'')+'|'+String(r.esercizio||'').trim().toLowerCase();
+  const righe=nuova.righe.map((r,i)=>normRow(r,i)), usate=new Set(), n={_t:[]};
+  let seq=righe.length;
+  const porta=(da,a)=>{ PX.forEach(px=>{ if(tocc.has(px+da.rid)){ if(o[px+da.rid]!=null) n[px+a.rid]=o[px+da.rid]; n._t.push(px+a.rid); } }); };
+  righe.forEach(r=>{ const v=vecchie.find(x=>!usate.has(x.rid) && chiave(x)===chiave(r));
+    if(v){ usate.add(v.rid); porta(v,r); if(v.test) r.test=true; } });
+  vecchie.forEach(v=>{ if(usate.has(v.rid)) return;
+    if(v.custom || PX.some(px=>tocc.has(px+v.rid))){ const r=Object.assign({}, v, {rid:seq++, custom:true}); righe.push(r); porta(v,r); } });
+  const nGiorni=giorniDi(nuova.righe); righe.forEach(r=>{ if(r.giorno && nGiorni.indexOf(r.giorno)<0) nGiorni.push(r.giorno); });
+  vGiorni.forEach((g,gi)=>{ const ni=nGiorni.indexOf(g); if(ni<0) return;
+    ['rpe-','min-','fatto-'].forEach(px=>{ if(o[px+gi]!=null) n[px+ni]=o[px+gi]; if(tocc.has(px+gi)) n._t.push(px+ni); }); });
+  n._wrows=righe.map(r=>({rid:r.rid, giorno:r.giorno, esercizio:r.esercizio, note:r.note, video:r.video, serie:r.serie, rip:r.rip,
+    peso:r.peso, rir:r.rir, rest:r.rest, custom:r.custom, test:r.test}));
+  if(!nuova.video || !Object.keys(nuova.video).length) nuova.video=(SCHEDA&&SCHEDA.video)||{};   /* i video arrivano solo col primo invio */
+  try{ localStorage.setItem(bkN, JSON.stringify(n)); }catch(e){}
+  salvaScheda(nuova); SCHEDA=nuova; avvia();
+  colAvvisoMenu(tt('🔗 Scheda aggiornata dal PC: quello che avevi già scritto è rimasto.'));
+  colBozzaPresto(true);
+}
+
+/* ── bozza verso il PC: pochi secondi dopo l'ultima modifica ── */
+function colBozzaPresto(subito){
+  if(!colAttivo() || !SCHEDA || !SCHEDA.sync || SCHEDA.sync.chiusa) return;
+  clearTimeout(COL.bozzaT); COL.bozzaT=setTimeout(()=>{ colScriviBozza(); }, subito? 300 : 3000);
+}
+function colBozza(){
+  const r=costruisciRientro(), PX={s:'s-', r:'r-', p:'p-', rir:'rir-', n:'n-'};
+  /* per ogni riga, quali campi hai toccato: il PC prende solo quelli (RIR e note che non scrivi
+     restano quelli del coach) */
+  const conEs=WROWS.filter(w=>String(w.esercizio||'').trim());
+  const righe=r.righe.map((x,i)=>{ const w=conEs[i]; return Object.assign({}, x, {t:w? Object.keys(PX).filter(k=>TOCCATI.has(PX[k]+w.rid)) : []}); });
+  return {tipo:'tms-bozza', sync:{id:SCHEDA.sync.id, rev:+SCHEDA.sync.rev||1}, profilo:SCHEDA.profilo||{}, aggiornata:new Date().toISOString(), righe:righe, sedute:r.sedute};
+}
+async function colScriviBozza(){
+  if(!colAttivo() || !SCHEDA || !SCHEDA.sync || SCHEDA.sync.chiusa) return;
+  try{ await colT().scrivi(colDir()+'dal-telefono/bozza.json', await colCifra(colBozza())); COL.bozzaInviata=new Date(); }
+  catch(e){ COL.errore=String((e&&e.message)||e); }
+  colRender();
+}
+
+/* ── pesate e foto verso il PC: un file per ciascuna. Rimandata se dopo due giorni non è arrivata. ── */
+async function colEventi(){
+  const T=colT(), dir=colDir()+'dal-telefono/eventi/', vecchio=Date.now()-2*86400000;
+  const daMandare=x=>x && !x.pc && (!x.ev || Date.parse(x.ev)<vecchio);
+  let cp=false, cf=false;
+  for(const p of PESATE){ if(!daMandare(p)) continue;
+    await T.scrivi(dir+colNomeFile('pesata', p.id), await colCifra({tipo:'tms-pesata', pesata:p}));
+    p.ev=new Date().toISOString(); cp=true; }
+  for(const v of FOTO_VISTE){ const f=FOTO[v]; if(!f || !f.img || !daMandare(f)) continue;
+    if(!f.id) f.id='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    await T.scrivi(dir+colNomeFile('foto', f.id), await colCifra({tipo:'tms-foto', foto:{id:f.id, tag:v, data:f.data||dataLoc(new Date()), img:f.img}}));
+    f.ev=new Date().toISOString(); cf=true; }
+  if(cp) await pesSalva();
+  if(cf) await fotoSalva();
+}
+function colSegnoPesata(p){
+  if(!colAttivo()) return '';
+  if(p.pc) return ' <span class="pc-ok" title="'+esc(tt('arrivata al PC'))+'">✔ '+esc(tt('al PC'))+'</span>';
+  if(p.ev) return ' <span class="pc-via" title="'+esc(tt('in viaggio verso il PC'))+'">⏳</span>';
+  return '';
+}
+
+/* ── ⬆ APK nuovo nella cartella condivisa (lo mette «Crea APK» sul PC) ── */
+function colVer(v){ return String(v||'').split('.').map(x=>parseInt(x,10)||0); }
+function colVerMaggiore(a,b){ const x=colVer(a), y=colVer(b); for(let i=0;i<3;i++){ if((x[i]||0)!==(y[i]||0)) return (x[i]||0)>(y[i]||0); } return false; }
+async function colApk(){
+  const T=colT(); if(!T || typeof T.installaApk!=='function') return;
+  let v=null; try{ const testo=await T.leggi('apk/versione.json'); if(testo) v=JSON.parse(testo); }catch(e){ v=null; }
+  const att=String(window.TMS_APK_VERSIONE||'');
+  if(!v || !/^\d+\.\d+\.\d+$/.test(String(v.versione||'')) || !/^[\w.-]+\.apk$/.test(String(v.file||'')) || !att || !colVerMaggiore(v.versione, att)){ COL.apk=null; return; }
+  COL.apk=v; colRender();
+  if(COL.chiestoApk===v.versione) return;
+  COL.chiestoApk=v.versione;
+  if(confirm(tt('⬆ C\'è TMS Scheda')+' '+v.versione+' '+tt('(adesso hai la')+' '+att+').\n'+tt('La installo? Android ti chiede di confermare; scheda, bozza e pesate restano.'))) await colInstallaApk();
+}
+async function colInstallaApk(){
+  const v=COL.apk; if(!v) return;
+  try{ const r=await colT().installaApk('apk/'+v.file, String(v.sha256||''));
+    if(r && r.permesso===false) alert(tt('Android chiede il permesso: consenti a TMS Scheda di «installare app sconosciute», poi torna qui e tocca di nuovo «Installa».')); }
+  catch(e){ alert(tt('Aggiornamento non riuscito:')+' '+((e&&e.message)||e)); }
+}
+
+/* ── schermata «⚙ Collegamento e promemoria» ── */
+function colAvvisoMenu(testo){ COL.avviso=testo; clearTimeout(COL.avvisoT); COL.avvisoT=setTimeout(()=>{ COL.avviso=''; colRender(); }, 15000); colRender(); }
+async function colScegliCartella(){
+  const T=colT(); if(!T) return;
+  try{ const r=await T.scegli(); if(r){ COL.msg=''; COL.chiave=null; } }catch(e){ COL.msg='⚠ '+((e&&e.message)||e); }
+  colRender(); colPresto();
+}
+async function colCollega(){
+  const T=colT(); if(!T) return;
+  if(!colCartellaOk()){ alert(tt('Prima scegli la cartella condivisa.')); return; }
+  const codice=colPulito($('col-codice').value);
+  if(codice.length!==16){ alert(tt('Il codice ha 16 lettere e numeri: lo trovi sul PC, in ⚙ Impostazioni › Telefono collegato.')); return; }
+  COL.msg=tt('Controllo la cartella…'); colRender();
+  const trovati=[];
+  try{
+    for(const v of await T.elenca('')){
+      if(!v || !v.cartella || v.nome==='apk') continue;
+      let testo=null; try{ testo=await T.leggi(v.nome+'/dal-pc/stato.json'); }catch(e){ testo=null; }
+      if(testo==null) continue;
+      try{ const st=await colDecifra(testo, codice); if(st && st.tipo==='tms-stato') trovati.push({slug:v.nome, nome:(st.profilo&&st.profilo.nome)||v.nome}); }catch(e){}
+    }
+  }catch(e){ COL.msg='⚠ '+((e&&e.message)||e); colRender(); return; }
+  if(!trovati.length){ COL.msg='⚠ '+tt('Non trovo i file del PC in questa cartella, oppure il codice non è quello giusto. Controlla che sia la cartella sincronizzata con «6 - TMS», che sul PC il profilo sia collegato e che la sincronizzazione sia già passata.'); colRender(); return; }
+  const mio=SCHEDA&&SCHEDA.profilo&&SCHEDA.profilo.slug;
+  const scelto=trovati.find(x=>x.slug===mio) || trovati[0];
+  colSalvaConf({codice:codice, slug:scelto.slug, nome:scelto.nome});
+  COL.chiave=null; COL.chiesto={}; COL.msg=tt('✔ Collegato a')+' «'+scelto.nome+'».'; $('col-codice').value='';
+  colRender(); colGiro();
+}
+function colStacca(){
+  const c=colConf(); colSalvaConf({}); COL.chiave=null; COL.stato=''; COL.nuova=null;
+  COL.msg=c.nome? tt('Scollegato da')+' «'+c.nome+'».' : ''; colRender();
+}
+function colApri(){ navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','riepilogo','foto','bil'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
+function colEsci(){ if(SCHEDA){ aggiornaStato(); mostra('menu'); } else { $('col').hidden=true; avvia(); } }
+function colRender(){
+  const T=colT(), conf=colConf(), att=colAttivo();
+  ['vai-col','col-da-ben'].forEach(id=>{ const b=$(id); if(b) b.hidden=!T; });
+  const avv=$('avv-box'); if(avv) avv.hidden=!window.tmsAvvisi;
+  if(!T) return;
+  const meta=$('meta-col');
+  if(meta) meta.textContent=att? (tt('collegato al PC')+(COL.ultimo?' · '+tt('controllato alle')+' '+colOraBreve(COL.ultimo):'')) : tt('scheda dal PC, pesate e foto al PC, promemoria');
+  /* avvisi in cima al menu (e al benvenuto) */
+  const pz=[];
+  if(COL.apk) pz.push('<div class="avviso col-avviso"><span>'+esc(tt('⬆ C\'è TMS Scheda'))+' <b>'+esc(COL.apk.versione)+'</b></span><button type="button" data-col-az="apk">'+esc(tt('Installa'))+'</button></div>');
+  if(att && COL.nuova) pz.push('<div class="avviso col-avviso"><span>'+esc(tt('🔗 Scheda nuova dal TMS'))+' ('+esc(COL.nuova.esportata||'')+')</span><button type="button" data-col-az="apri">'+esc(tt('Apri'))+'</button></div>');
+  if(att && SCHEDA && SCHEDA.sync && SCHEDA.sync.chiusa && !COL.nuova) pz.push('<div class="avviso">'+esc(tt('✔ Settimana salvata nello Storico sul PC il'))+' '+esc(colQuando(SCHEDA.sync.chiusa.quando))+'. '+esc(tt('Quando arriva la scheda nuova te la propongo.'))+'</div>');
+  if(COL.avviso) pz.push('<div class="avviso">'+esc(COL.avviso)+'</div>');
+  ['col-avvisi','col-avvisi-ben'].forEach(id=>{ const box=$(id); if(!box) return; box.innerHTML=pz.join('');
+    box.querySelectorAll('[data-col-az]').forEach(b=>{ b.onclick=()=>{ const az=b.getAttribute('data-col-az'); if(az==='apk') colInstallaApk(); else colApriNuova(); }; }); });
+  /* riga sotto i giorni */
+  const ch=$('col-home');
+  if(ch){ const sync=att && SCHEDA && SCHEDA.sync;
+    ch.hidden=!sync;
+    if(sync) ch.textContent=SCHEDA.sync.chiusa? tt('✔ Settimana salvata nello Storico sul PC.') : (tt('🔗 Quello che scrivi arriva da solo al TMS sul PC')+(COL.bozzaInviata?' · '+tt('ultimo invio alle')+' '+colOraBreve(COL.bozzaInviata):'')+'.'); }
+  /* schermata */
+  const stEl=$('col-stato'); if(!stEl) return;
+  let testo, cls='';
+  if(!colCartellaOk()) testo=tt('1. Scegli la cartella del telefono sincronizzata con «6 - TMS» di Google Drive.');
+  else if(!att) testo=tt('Cartella:')+' '+(T.nome()||'?')+'\n'+tt('2. Scrivi il codice di collegamento che vedi sul PC e tocca «Collega».');
+  else { testo=tt('Cartella:')+' '+(T.nome()||'?')+'\n'+tt('Profilo:')+' '+(conf.nome||conf.slug);
+    if(COL.stato==='ok'){ cls='ok'; testo+='\n✔ '+tt('Collegato')+(COL.ultimo?' · '+tt('controllato alle')+' '+colOraBreve(COL.ultimo):''); }
+    else if(COL.stato==='attesa') testo+='\n'+tt('Il PC non ha ancora scritto niente qui (aspetta la sincronizzazione).');
+    else if(COL.stato==='illeggibile'){ cls='err'; testo+='\n⚠ '+tt('Non riesco a leggere i file del PC: il codice è cambiato sul PC, o un file sta ancora arrivando.'); }
+    else if(COL.stato==='errore'){ cls='err'; testo+='\n⚠ '+COL.errore; } }
+  if(COL.msg) testo+='\n'+COL.msg;
+  stEl.className='col-stato'+(cls?' '+cls:''); stEl.textContent=testo; stEl.style.whiteSpace='pre-line';
+  const cb=$('col-codice-box'); if(cb) cb.hidden=!colCartellaOk() || att;
+  const cc=$('col-cartella'); if(cc) cc.textContent=colCartellaOk()? tt('📁 Cambia la cartella') : tt('📁 Scegli la cartella');
+  ['col-ora','col-stacca'].forEach(id=>{ const b=$(id); if(b) b.hidden=!att; });
+}
+
+/* ── 🔔 PROMEMORIA della sera (il trasporto window.tmsAvvisi sta in nativo.js): ogni sera la
+      pesata, il lunedì anche le foto. Si programmano i prossimi 28 giorni e si rifà il conto a
+      ogni apertura, pesata o foto: se oggi ti sei già pesato (o hai già fatto le foto) quello di
+      stasera non suona. ── */
+const AVV_KEY='tms-avvisi', AVV={n:null, err:''};
+function avvConf(){ try{ const o=JSON.parse(localStorage.getItem(AVV_KEY)||'{}')||{}; return {on:!!o.on, ora:/^\d\d:\d\d$/.test(String(o.ora||''))? o.ora : '21:00'}; }catch(e){ return {on:false, ora:'21:00'}; } }
+function avvSalvaConf(c){ try{ localStorage.setItem(AVV_KEY, JSON.stringify(c)); }catch(e){} }
+function avvLista(adesso){
+  const c=avvConf(); if(!c.on || !SCHEDA) return [];
+  const hm=c.ora.split(':').map(Number), oggi=dataLoc(adesso);
+  const pesOggi=PESATE.some(p=>p&&p.data===oggi), fotoOggi=FOTO_VISTE.some(v=>FOTO[v]&&FOTO[v].data===oggi);
+  const out=[];
+  for(let k=0;k<28;k++){
+    const d=new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate()+k, hm[0], hm[1], 0, 0);
+    if(d<=adesso) continue;
+    const pesa=!(k===0 && pesOggi), foto=d.getDay()===1 && !(k===0 && fotoOggi);
+    if(!pesa && !foto) continue;
+    out.push({id:7000+k, at:d.toISOString(), pagina:pesa?'bil':'foto',
+      titolo: pesa&&foto? tt('⚖ Pesata e 📷 foto del lunedì') : pesa? tt('⚖ Pesata della sera') : tt('📷 Foto del lunedì'),
+      testo: pesa&&foto? tt('Sali sulla bilancia con TMS Scheda aperta, poi fai le foto dei progressi (fronte, lato, retro).') :
+             pesa? tt('Sali sulla bilancia con TMS Scheda aperta.') : tt('Fai le foto dei progressi: fronte, lato, retro.')});
+  }
+  return out;
+}
+let _avvT=null;
+function avvPianifica(){
+  if(!window.tmsAvvisi) return;
+  clearTimeout(_avvT); _avvT=setTimeout(async()=>{
+    try{ AVV.n=await window.tmsAvvisi.pianifica(avvLista(new Date())); AVV.err=''; }catch(e){ AVV.err=String((e&&e.message)||e); }
+    avvRender(); }, 400);
+}
+function avvRender(){
+  const c=avvConf(), on=$('avv-on'), ora=$('avv-ora'), st=$('avv-stato'); if(!on) return;
+  on.checked=c.on; if(ora) ora.value=c.ora;
+  if(!st) return;
+  if(AVV.err) st.textContent='⚠ '+AVV.err;
+  else if(!c.on) st.textContent=tt('Spenti.');
+  else if(!SCHEDA) st.textContent=tt('Partono quando c\'è una scheda.');
+  else { const l=avvLista(new Date()); st.textContent=l.length? tt('Il prossimo:')+' '+colQuando(l[0].at)+' — '+l[0].titolo : ''; }
+}
+async function avvCambia(){
+  const c=avvConf(); c.on=!!$('avv-on').checked; c.ora=/^\d\d:\d\d$/.test($('avv-ora').value||'')? $('avv-ora').value : '21:00';
+  if(c.on && window.tmsAvvisi){
+    let ok=false; try{ ok=await window.tmsAvvisi.permesso(true); }catch(e){ ok=false; }
+    if(!ok){ c.on=false; alert(tt('Android non permette le notifiche a TMS Scheda: abilitale nelle impostazioni del telefono (App › TMS Scheda › Notifiche) e riprova.')); }
+  }
+  avvSalvaConf(c); avvRender(); avvPianifica();
+}
+/* tocco sul promemoria: si apre la pagina giusta */
+function apriDaAvviso(pagina){
+  if(!SCHEDA) return;
+  chiudiDove(); navLivelli=0; mostra('menu');
+  if(pagina==='foto'){ navEntra(); mostra('foto'); }
+  else if(window.tmsBLE){ navEntra(); mostra('bil'); renderBil(); bilAvvia(); }
+}
+window.apriDaAvviso=apriDaAvviso;
+$('vai-col').onclick=colApri; $('col-da-ben').onclick=colApri;
+document.querySelectorAll('[data-col-esci]').forEach(b=>{ b.onclick=navIndietro; });
+$('col-cartella').onclick=colScegliCartella; $('col-collega').onclick=colCollega;
+$('col-ora').onclick=()=>{ COL.msg=''; colGiro(); };
+$('col-stacca').onclick=async()=>{ if(confirm(tt('Il telefono smette di scambiare dati col PC (quelli già arrivati restano). Continuo?'))) colStacca(); };
+$('avv-on').onchange=avvCambia; $('avv-ora').onchange=avvCambia;
+
 /* ── suggerimento d'installazione (solo se non già installata) ── */
 let deferredInstall=null;
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredInstall=e; mostraInstallHint(); });
@@ -1369,7 +1827,7 @@ function mostraInstallHint(){
 }
 
 /* ── avvio + service worker (offline & auto-aggiornamento) ── */
-leggiScheda().then(d=>{ SCHEDA=(validaScheda(d)?d:null); avvia(); }).catch(()=>{ SCHEDA=null; avvia(); });
+leggiScheda().then(d=>{ SCHEDA=(validaScheda(d)?d:null); avvia(); }).catch(()=>{ SCHEDA=null; avvia(); }).then(()=>{ colAvvia(); });
 if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
 </script>
 </body>

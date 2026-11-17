@@ -24,6 +24,21 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   ogni settimana va da sola nello Storico misure. Android chiede una volta «Dispositivi nelle
   vicinanze» (fino ad Android 11 la Posizione: lo pretende Android per cercare dispositivi Bluetooth).
   FitDays sullo stesso telefono può prendersi la bilancia: va chiuso o disinstallato.
+- **🔗 Collegamento col TMS sul PC** (dalla 1.2.0, «⚙ Collegamento e promemoria»): come Movienaitor, una
+  cartella del telefono tenuta uguale alla cartella `My Drive\6 - TMS` di Google Drive da un'app di
+  sincronizzazione bidirezionale (Autosync, FolderSync…). Si sceglie la cartella e si scrive il codice
+  di collegamento che il PC mostra in ⚙ Impostazioni › 🔗 Telefono collegato. Da lì la scheda nuova arriva
+  da sola (chiede se aprirla), quello che si scrive va al PC pochi secondi dopo, pesate e foto partono
+  da sole e tornano con «✔ al PC»; «💾 Salva nello Storico» sul PC chiude la settimana anche qui. File
+  **cifrati** (AES-GCM, chiave dal codice): Google vede solo file illeggibili. Plugin `TmsCartella`
+  (`nativo/TmsCartellaPlugin.java`, selettore di cartelle di Android con permesso persistente).
+- **⬆ Aggiornamento da solo** (dalla 1.2.0): `Crea APK.bat` mette l'APK in `6 - TMS\apk\` con
+  `versione.json` (versione, nome, impronta SHA-256); il telefono collegato lo vede, lo propone, ne
+  controlla l'impronta e lo passa all'installer di Android (la prima volta va consentito «Installa app
+  sconosciute» per TMS Scheda). La 1.2.0 stessa va installata a mano, come prima.
+- **🔔 Promemoria** (dalla 1.2.0, stessa schermata): ogni sera all'ora scelta (21:00) la pesata, il
+  lunedì anche le foto; se quel giorno ci si è già pesati (o si sono fatte le foto) non suona. Plugin
+  `@capacitor/local-notifications` (MIT); niente sveglie «esatte»: può suonare qualche minuto dopo.
 - Le schede e il rientro sono **gli stessi file** di sempre: il TMS sul PC non vede differenze.
 
 ## Creare l'APK
@@ -31,6 +46,10 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
 Doppio clic su **`Crea APK.bat`** (in questa cartella). Dopo un minuto circa:
 
     app-android\dist\TMS-Scheda-<versione>.apk
+
+Se c'è la cartella di Google Drive, l'APK va anche in `My Drive\6 - TMS\apk\` con `versione.json`: i
+telefoni collegati lo propongono da soli. Un'altra cartella si scrive in `app-android\cartella-condivisa.txt`;
+per crearlo senza pubblicarlo: `powershell -File scripts\build-apk.ps1 -SoloCrea`.
 
 Serve solo ciò che c'è già sul PC (Node, Java 17, Android SDK in `D:\Android-SDK`). La
 compilazione avviene in `D:\Android-build\TMS-Scheda`, fuori da OneDrive (dentro OneDrive i

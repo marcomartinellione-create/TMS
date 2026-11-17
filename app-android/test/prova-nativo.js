@@ -32,7 +32,7 @@ async function apri(opz = {}) {
   const nativo = fs.readFileSync(path.join(WWW, 'nativo.js'), 'utf8');
   if (html.split('<script src="nativo.js"></script>').length !== 2) throw new Error('www/index.html senza nativo.js: lancia prima scripts/prepara-www.js');
   html = html.replace('<script src="nativo.js"></script>', () => '<script>' + nativo + '</script>');
-  const reg = { chiamate: [], ascolti: {}, file: {}, ble: [], bleAscolti: {} };
+  const reg = { chiamate: [], ascolti: {}, file: {}, ble: [], bleAscolti: {}, cart: [], avv: [], avvAscolti: {}, pendenti: [{ id: 5 }, { id: 7003 }] };
   const dom = new JSDOM(html, {
     runScripts: 'dangerously', url: 'https://localhost/index.html', pretendToBeVisual: true,
     beforeParse(win) {
@@ -60,6 +60,24 @@ async function apri(opz = {}) {
           startNotifications: async o => { reg.ble.push(['startNotifications', o]); },
           write: async o => { reg.ble.push(['write', o]); }, disconnect: async o => { reg.ble.push(['disconnect', o]); },
           addListener: async (ev, cb) => { reg.bleAscolti[ev] = cb; return { remove() { delete reg.bleAscolti[ev]; } }; }
+        } } : {}),
+        /* cartella condivisa finta (plugin TmsCartella): registra e risponde */
+        ...(opz.cartella ? { TmsCartella: {
+          scegli: async () => { reg.cart.push(['scegli']); return { uri: 'content://tree/6-TMS', nome: '6 - TMS' }; },
+          leggi: async o => { reg.cart.push(['leggi', o]); return o.percorso === 'apk/versione.json' ? {} : (o.percorso === 'c/x.json' ? { data: 'TESTO' } : {}); },
+          scrivi: async o => { reg.cart.push(['scrivi', o]); },
+          elenca: async o => { reg.cart.push(['elenca', o]); return { voci: [{ nome: 'prova', cartella: true }] }; },
+          installaApk: async o => { reg.cart.push(['installaApk', o]); return { permesso: true, avviato: true }; }
+        } } : {}),
+        /* promemoria finti (plugin LocalNotifications) */
+        ...(opz.notifiche ? { LocalNotifications: {
+          checkPermissions: async () => ({ display: reg.permesso ? 'granted' : 'prompt' }),
+          requestPermissions: async () => { reg.avv.push(['requestPermissions']); reg.permesso = !opz.notificheNegate; return { display: reg.permesso ? 'granted' : 'denied' }; },
+          getPending: async () => ({ notifications: reg.pendenti }),
+          cancel: async o => { reg.avv.push(['cancel', o]); },
+          createChannel: async o => { reg.avv.push(['createChannel', o]); },
+          schedule: async o => { reg.avv.push(['schedule', o]); },
+          addListener: (ev, cb) => { reg.avvAscolti[ev] = cb; return { remove() {} }; }
         } } : {}) }
       };
       win.fetch = async url => {
@@ -257,6 +275,39 @@ async function apri(opz = {}) {
     a.dom.window.close(); }
   { const a = await apri({ ble: true, bleSpento: true, sdk: 30 }); a.d.getElementById('vai-bil').click(); await attendi(120);
     ok(/spento/.test(a.d.getElementById('bil-stato').textContent) && a.reg.ble.some(x => x[0] === 'requestEnable'), 'Bluetooth spento: chiede di accenderlo e poi lo dice');
+    a.dom.window.close(); }
+
+  /* ── cartella condivisa col PC (plugin TmsCartella) ── */
+  { const a = await apri({ cartella: true }), { w, d, reg } = a;
+    ok(d.getElementById('vai-col').hidden === false && typeof w.tmsCartella === 'object' && w.tmsCartella.pronta() === false, 'cartella: nel menu «⚙ Collegamento e promemoria»; nessuna cartella scelta all’inizio');
+    await w.tmsCartella.scegli();
+    ok(w.tmsCartella.pronta() && w.tmsCartella.nome() === '6 - TMS' && JSON.parse(w.localStorage.getItem('tms-col-cartella')).uri === 'content://tree/6-TMS', 'cartella: scelta una volta, il suo indirizzo resta nell’app');
+    ok(await w.tmsCartella.leggi('c/x.json') === 'TESTO' && await w.tmsCartella.leggi('c/manca.json') === null, 'cartella: lettura (null se il file non c’è)');
+    await w.tmsCartella.scrivi('prova/dal-telefono/bozza.json', 'X');
+    const sc = reg.cart.find(x => x[0] === 'scrivi');
+    ok(sc && sc[1].uri === 'content://tree/6-TMS' && sc[1].percorso === 'prova/dal-telefono/bozza.json' && sc[1].data === 'X', 'cartella: scrittura col percorso relativo alla cartella scelta');
+    ok(JSON.stringify(await w.tmsCartella.elenca('')) === JSON.stringify([{ nome: 'prova', cartella: true }]), 'cartella: elenco di file e sottocartelle');
+    await w.tmsCartella.installaApk('apk/TMS-Scheda-9.9.9.apk', 'ab12');
+    const ia = reg.cart.find(x => x[0] === 'installaApk');
+    ok(ia && ia[1].percorso === 'apk/TMS-Scheda-9.9.9.apk' && ia[1].sha256 === 'ab12' && ia[1].uri === 'content://tree/6-TMS', 'aggiornamento: l’APK si passa al plugin con l’impronta da controllare');
+    ok(w.TMS_APK_VERSIONE === VERSIONE, 'aggiornamento: la pagina sa quale versione dell’APK è installata (' + VERSIONE + ')');
+    a.dom.window.close(); }
+  /* ── promemoria (plugin LocalNotifications) ── */
+  { const a = await apri({ notifiche: true, ble: true }), { w, d, reg } = a;
+    ok(d.getElementById('avv-box').hidden === false, 'promemoria: riquadro «🔔 Promemoria» nella schermata Collegamento');
+    d.getElementById('avv-on').checked = true; d.getElementById('avv-on').dispatchEvent(new w.Event('change')); await attendi(700);
+    const sch = reg.avv.find(x => x[0] === 'schedule'), canc = reg.avv.find(x => x[0] === 'cancel');
+    ok(reg.avv.some(x => x[0] === 'requestPermissions') && sch && sch[1].notifications.length === 28, 'promemoria: acceso, chiede il permesso e programma 28 sere');
+    const n0 = sch && sch[1].notifications[0];
+    ok(n0 && n0.channelId === 'promemoria' && n0.smallIcon === 'ic_stat_tms' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(n0.schedule.at) && n0.schedule.allowWhileIdle === true && n0.extra && n0.extra.pagina,
+       'promemoria: canale, icona, ora nel formato che legge Android, pagina da aprire');
+    ok(canc && JSON.stringify(canc[1].notifications) === JSON.stringify([{ id: 7003 }]), 'promemoria: prima di riprogrammare toglie solo i suoi (non altri)');
+    reg.avvAscolti.localNotificationActionPerformed({ notification: { extra: { pagina: 'foto' } } }); await attendi(80);
+    ok(d.getElementById('foto').hidden === false, 'promemoria: toccandolo si apre la pagina giusta (Foto progressi)');
+    a.dom.window.close(); }
+  { const a = await apri({ notifiche: true, notificheNegate: true }), { w, d } = a;
+    d.getElementById('avv-on').checked = true; d.getElementById('avv-on').dispatchEvent(new w.Event('change')); await attendi(200);
+    ok(d.getElementById('avv-on').checked === false && /notifiche/.test(a.testoDlg()), 'promemoria: se Android li nega restano spenti e lo spiega');
     a.dom.window.close(); }
 
   console.log((falliti ? '✗ ' : '✓ ') + passati + ' verifiche passate' + (falliti ? ', ' + falliti + ' FALLITE' : ''));

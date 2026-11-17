@@ -1,6 +1,9 @@
 ﻿# build-apk.ps1 — costruisce l'APK di TMS Scheda (debug, firmato con la chiave del progetto).
 # Lo lancia «Crea APK.bat» (doppio clic). Tutto ciò che serve è già sul PC: Node, Java 17,
-# Android SDK. Il risultato va in app-android\dist\TMS-Scheda-<versione>.apk.
+# Android SDK. Il risultato va in app-android\dist\TMS-Scheda-<versione>.apk e poi (2026-11-17)
+# nella cartella condivisa col telefono, in «6 - TMS\apk\» con il suo versione.json: l'app la vede
+# da sola e propone l'aggiornamento (come Movienaitor). Con -SoloCrea si ferma a dist\.
+param([switch]$SoloCrea)
 $ErrorActionPreference = 'Stop'
 $QUI = Split-Path -Parent $PSScriptRoot          # cartella app-android
 Set-Location $QUI
@@ -92,6 +95,43 @@ New-Item -ItemType Directory -Force -Path $dest | Out-Null
 $finale = Join-Path $dest "TMS-Scheda-$versione.apk"
 Copy-Item $apk $finale -Force
 
+Passo "Pubblicazione nella cartella condivisa col telefono"
+# la cartella: quella scritta in app-android\cartella-condivisa.txt, se c'è; sennò «My Drive\6 - TMS»
+$condivisa = $null
+$fileC = Join-Path $QUI 'cartella-condivisa.txt'
+if (Test-Path $fileC) { $condivisa = (Get-Content $fileC -Raw).Trim() }
+if (-not $condivisa) { $condivisa = Join-Path $env:USERPROFILE 'My Drive\6 - TMS' }
+$pubblicato = $false
+if ($SoloCrea) { Write-Host "(-SoloCrea: l'APK resta in dist\)" }
+elseif (-not (Test-Path (Split-Path $condivisa -Parent))) {
+  Write-Host "Non trovo $(Split-Path $condivisa -Parent): l'APK resta in dist\." -ForegroundColor Yellow
+} else {
+  $dirApk = Join-Path $condivisa 'apk'
+  New-Item -ItemType Directory -Force -Path $dirApk | Out-Null
+  $nome = "TMS-Scheda-$versione.apk"
+  # prima l'APK, poi versione.json che lo annuncia: il telefono controlla l'impronta, quindi un APK
+  # non ancora sincronizzato del tutto non si installa
+  Copy-Item $finale (Join-Path $dirApk $nome) -Force
+  $info = [ordered]@{
+    versione   = $versione
+    file       = $nome
+    sha256     = (Get-FileHash $finale -Algorithm SHA256).Hash.ToLower()
+    byte       = (Get-Item $finale).Length
+    pubblicato = (Get-Date).ToString('s')
+  }
+  $tmp = Join-Path $dirApk 'versione.json.tmp'
+  [IO.File]::WriteAllText($tmp, ($info | ConvertTo-Json), (New-Object System.Text.UTF8Encoding $false))   # senza BOM
+  Move-Item $tmp (Join-Path $dirApk 'versione.json') -Force
+  # gli APK vecchi non servono più (il telefono guarda solo versione.json)
+  Get-ChildItem $dirApk -Filter 'TMS-Scheda-*.apk' | Where-Object { $_.Name -ne $nome } | Remove-Item -Force
+  $pubblicato = $true
+  Write-Host "Pubblicato in: $dirApk"
+}
+
 Write-Host "`nFATTO." -ForegroundColor Green
 Write-Host "APK pronto: $finale" -ForegroundColor Green
-Write-Host "Mandalo al telefono (WhatsApp, email, cavo) e aprilo: Android chiede di consentire l'installazione."
+if ($pubblicato) {
+  Write-Host "Il telefono collegato alla cartella condivisa lo propone da solo all'apertura dell'app (dopo la sincronizzazione)."
+} else {
+  Write-Host "Mandalo al telefono (WhatsApp, email, cavo) e aprilo: Android chiede di consentire l'installazione."
+}
