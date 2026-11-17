@@ -179,28 +179,28 @@ function repStrumenti(R, ordine, B){
       <span class="rep-li__man" title="${fisso?t('Questo blocco resta al suo posto'):t('Trascina per spostare')}">${fisso?'·':'⠿'}</span>
       ${fisso?'':`<input type="checkbox" data-rep="${b}" ${R[b]?'checked':''} title="${t('Mostra o nascondi il blocco')}">`}
       <span class="rep-li__nome">${esc(repNomi[b]||b)}${vuoto?` <span class="muted" style="font-size:10.5px">${t('(senza dati)')}</span>`:''}</span>
-      ${ed[b]?`<span class="pill pill--avviso" title="${t('Ritoccato a mano in questo documento')}">✎</span>`:''}
-      ${fisso?'':`<button class="rep-li__mv" data-repmove="${b}" data-dir="-1" title="${t('Sposta su')}">▲</button><button class="rep-li__mv" data-repmove="${b}" data-dir="1" title="${t('Sposta giù')}">▼</button>`}</div>`; };
-  const lista=`<div class="lat"><h4>🧱 ${t('Blocchi')} <span class="muted">${t('trascina per riordinare')}</span></h4>
+      ${ed[b]?`<span class="pill pill--avviso" title="${t('Ritoccato a mano in questo documento')}">${ico('matita','p')}</span>`:''}
+      ${fisso?'':`<button class="rep-li__mv" data-repmove="${b}" data-dir="-1" title="${t('Sposta su')}">${ico('su','p')}</button><button class="rep-li__mv" data-repmove="${b}" data-dir="1" title="${t('Sposta giù')}">${ico('giu','p')}</button>`}</div>`; };
+  const lista=`<div class="lat"><h4>${t('Blocchi')} <span class="muted">${t('trascina per riordinare')}</span></h4>
      <div class="rep-lista" id="${ID('lista')}">${riga(primo,true)}${ordine.map(b=>riga(b,false)).join('')}${riga(ultimo,true)}</div>
      <div class="lat-nota">${t('Clicca un blocco (qui o nell\'anteprima) per le sue impostazioni; clicca un elemento nell\'anteprima per spostarlo o toglierlo.')}</div></div>`;
   return repCtx.documento(R)+lista+repPannelloBlocco(R)+repPannelloElemento();
 }
 function repPannelloBlocco(R){
   const k=repSel.blocco;
-  if(!k) return `<div class="lat" id="${ID('imp')}"><h4>⚙ ${t('Blocco')}</h4><div class="lat-nota">${t('Nessun blocco scelto.')}</div></div>`;
+  if(!k) return `<div class="lat" id="${ID('imp')}"><h4>${t('Blocco')}</h4><div class="lat-nota">${t('Nessun blocco scelto.')}</div></div>`;
   const imp=repImp(R,k), ed=repEdits()[k];
   const gen=document.createElement('div'); gen.innerHTML=repGenerati[k]||'';
   const tit0=((gen.querySelector('.rep-tit')||{}).textContent)||'';
   const haDescr=!!gen.querySelector('.rep-descr'), haGraf=gen.querySelectorAll('.chart-box').length>1, haTit=!!tit0;
   const ck=(id,on,lab,tip)=>`<label class="rep-ck" title="${tip||''}"><input type="checkbox" data-imp="${id}" ${on?'checked':''}> ${lab}</label>`;
   const COL=[['',t('Arancio')],['gold',t('Oro')],['ok',t('Verde')],['violet',t('Viola')],['ink',t('Inchiostro')]];
-  if(repInModifica===k) return `<div class="lat rep-imp--modifica" id="${ID('imp')}"><h4>✎ ${esc(repNomi[k]||k)} <span class="muted">${t('in modifica')}</span></h4>
+  if(repInModifica===k) return `<div class="lat rep-imp--modifica" id="${ID('imp')}"><h4>${esc(repNomi[k]||k)} <span class="muted">${t('in modifica')}</span></h4>
      <div class="lat-nota" style="margin:0 0 8px">${t('Scrivi direttamente nel foglio a sinistra. Per le righe di una tabella metti prima il cursore nella riga.')}</div>
      <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap">
-       <span class="gruppo"><button class="btn" data-repop="riga-sopra">${t('＋ Riga sopra')}</button><button class="btn" data-repop="riga-sotto">${t('＋ Riga sotto')}</button><button class="btn" data-repop="riga-via">${t('✕ Togli riga')}</button></span>
-       <button class="btn btn--ember" id="${ID('fine')}">${t('✔ Fine modifica')}</button></div></div>`;
-  return `<div class="lat" id="${ID('imp')}"><h4>⚙ ${esc(repNomi[k]||k)}${ed?` <span class="pill pill--avviso">${t('ritoccato')}</span>`:''}</h4>
+       <span class="gruppo"><button class="btn" data-repop="riga-sopra">${t('＋ Riga sopra')}</button><button class="btn" data-repop="riga-sotto">${t('＋ Riga sotto')}</button><button class="btn" data-repop="riga-via">${ico('x')}${t('Togli riga')}</button></span>
+       <button class="btn btn--ember" id="${ID('fine')}">${ico('check')}${t('Fine modifica')}</button></div></div>`;
+  return `<div class="lat" id="${ID('imp')}"><h4>${esc(repNomi[k]||k)}${ed?` <span class="pill pill--avviso">${t('ritoccato')}</span>`:''}</h4>
      ${haTit?`<div class="field"><label>${t('Titolo')}</label><input id="${ID('imp-titolo')}" value="${esc(imp.titolo)}" placeholder="${esc(tit0)}" style="width:100%"></div>
      <div class="rep-cks">${ck('mostraTitolo',imp.mostraTitolo,t('mostra il titolo'))}${haDescr?ck('mostraDescr',imp.mostraDescr,t('mostra la spiegazione')):''}</div>`:''}
      <div class="sec-mini">${t('Impaginazione')}</div>
@@ -210,9 +210,9 @@ function repPannelloBlocco(R){
      ${haTit?`<div class="rep-opz"><span>${t('Colore del titolo')}</span><span class="rep-colori">${COL.map(([v,l])=>`<button class="rep-col col-${v||'def'}${imp.colore===v?' is-on':''}" data-imp-colore="${v}" title="${l}"></button>`).join('')}</span></div>`:''}
      ${haGraf?`<div class="rep-opz"><span>${t('Grafici')}</span><span class="gruppo">${[['affiancati',t('affiancati')],['colonna',t('uno sotto l\'altro')]].map(([v,l])=>`<button class="btn${imp.grafici===v?' is-on':''}" data-imp-grafici="${v}">${l}</button>`).join('')}</span></div>`:''}
      <div class="bar" style="margin:10px 0 0;gap:6px;flex-wrap:wrap">
-       <button class="btn" id="${ID('modifica')}" title="${t('Scrivi direttamente nel foglio: titoli, testi, celle')}">${t('✎ Modifica testo')}</button>
-       ${ed?`<button class="btn" id="${ID('rifai')}" title="${t('Toglie i ritocchi a mano e riprende i dati aggiornati')}">${t('↺ Rifai dai dati')}</button>`:''}
-       ${repCtx.fissi.indexOf(k)<0?`<button class="btn btn--danger" id="${ID('togli')}" title="${t('Toglie il blocco dal report (lo rimetti spuntandolo nell\'elenco)')}">${t('✕ Togli dal report')}</button>`:''}
+       <button class="btn" id="${ID('modifica')}" title="${t('Scrivi direttamente nel foglio: titoli, testi, celle')}">${ico('matita')}${t('Modifica testo')}</button>
+       ${ed?`<button class="btn" id="${ID('rifai')}" title="${t('Toglie i ritocchi a mano e riprende i dati aggiornati')}">${ico('annulla')}${t('Rifai dai dati')}</button>`:''}
+       ${repCtx.fissi.indexOf(k)<0?`<button class="btn btn--danger" id="${ID('togli')}" title="${t('Toglie il blocco dal report (lo rimetti spuntandolo nell\'elenco)')}">${ico('x')}${t('Togli dal report')}</button>`:''}
        <button class="btn" id="${ID('imp-reset')}" title="${t('Riporta le impostazioni del blocco a quelle iniziali')}">${t('Impostazioni iniziali')}</button></div></div>`;
 }
 function repNomeElemento(el){
@@ -229,9 +229,9 @@ function repPannelloElemento(){
   const k=repSel.blocco, n=repSel.el; if(!k||n==null||repInModifica) return '';
   const el=document.createElement('div'); el.innerHTML=repBaseBlocco(k);
   const x=el.querySelector('[data-el="'+n+'"]'); if(!x) return '';
-  return `<div class="lat" id="${ID('el')}"><h4>◳ ${esc(repNomeElemento(x))} <span class="muted">${t('elemento')}</span></h4>
-     <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap"><span class="gruppo"><button class="btn" data-elop="su">${t('▲ Su')}</button><button class="btn" data-elop="giu">${t('▼ Giù')}</button></span>
-       <button class="btn btn--danger" data-elop="via">${t('✕ Togli elemento')}</button></div>
+  return `<div class="lat" id="${ID('el')}"><h4>${esc(repNomeElemento(x))} <span class="muted">${t('elemento')}</span></h4>
+     <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap"><span class="gruppo"><button class="btn" data-elop="su">${ico('su')}${t('Su')}</button><button class="btn" data-elop="giu">${ico('giu')}${t('Giù')}</button></span>
+       <button class="btn btn--danger" data-elop="via">${ico('x')}${t('Togli elemento')}</button></div>
      <div class="lat-nota">${t('Vale solo per questo documento: «↺ Rifai dai dati» sul blocco lo rimette.')}</div></div>`;
 }
 /* il blocco come base per le modifiche: il ritocco se c'è, altrimenti quello appena generato */
@@ -366,7 +366,7 @@ function repCollega(R){
       const u=document.querySelector('#'+ID('pagine')+' .u[data-blocco="'+k+'"]'); if(u){ try{ u.focus(); u.scrollIntoView({block:'nearest'}); }catch(e){} } };
     const fi=document.getElementById(ID('fine')); if(fi) fi.onclick=()=>{ repBloccoDaFogli(k); repInModifica=null; ctx.render(); };
     const ri=document.getElementById(ID('rifai')); if(ri) ri.onclick=async()=>{
-      if(!(await conferma(t('Il blocco torna com\'è dai dati e i ritocchi a mano si perdono.'), {titolo:t('Rifare dai dati?'), testoOk:t('↺ Rifai dai dati'), pericolo:true}))) return;
+      if(!(await conferma(t('Il blocco torna com\'è dai dati e i ritocchi a mano si perdono.'), {titolo:t('Rifare dai dati?'), testoOk:t('Rifai dai dati'), pericolo:true}))) return;
       delete repEdits()[k]; ctx.render(); };
     const tg=document.getElementById(ID('togli')); if(tg) tg.onclick=()=>{ R[k]=false; persist(ctx.persist); repSel={blocco:null, el:null}; ctx.render(); };
     const rs=document.getElementById(ID('imp-reset')); if(rs) rs.onclick=()=>{ repSalvaImp(R,k,Object.assign({},REP_DEF_IMP)); ctx.render(); };
@@ -393,13 +393,13 @@ const CTX_REPORT={pre:'rep', pannello:'panel-report', fissi:['copertina','piede'
   documento(R){
     const fl=(DOC.foto||[]).slice().sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
     const opts=sel=>fl.map(f=>`<option value="${esc(f.file)}"${f.file===sel?' selected':''}>${esc(fotoDataLabel(f))}</option>`).join('');
-    return `<div class="lat"><h4>📄 ${t('Documento')}</h4>
-     <div class="bar" style="margin:0 0 8px;gap:6px;flex-wrap:wrap"><button class="btn btn--gold" id="rep-pdf-btn" onclick="printReport()">${t('⬇ Scarica PDF (A4)')}</button>
-       <button class="btn" id="rep-html-btn" onclick="exportDigitalReport()" title="${t('HTML per smartphone, con i video incorporati')}">${t('📱 Report digitale')}</button>
+    return `<div class="lat"><h4>${t('Documento')}</h4>
+     <div class="bar" style="margin:0 0 8px;gap:6px;flex-wrap:wrap"><button class="btn btn--gold" id="rep-pdf-btn" onclick="printReport()">${ico('scarica')}${t('Scarica PDF (A4)')}</button>
+       <button class="btn" id="rep-html-btn" onclick="exportDigitalReport()" title="${t('HTML per smartphone, con i video incorporati')}">${ico('telefono')}${t('Report digitale')}</button>
        <label class="pill" style="cursor:pointer;align-self:center;display:inline-flex;align-items:center;gap:5px" title="${t('Incorpora i video nel file (più pesante)')}"><input type="checkbox" id="rep-incl-vid" checked style="width:auto;flex:0 0 auto"> ${t('video')}</label></div>
      <div class="field"><label>${t('Obiettivo del cliente (in copertina)')}</label><input id="rep-goal" value="${esc(R.obiettivo||'')}" placeholder="${t('es. ricomposizione corporea, +forza panca…')}" style="width:100%"></div>
      <div class="field" style="margin-top:6px"><label>${t('Note del coach')}</label><textarea id="rep-nota" placeholder="${t('Commento, indicazioni, prossimi step…')}" style="width:100%;min-height:64px">${esc(R.nota||'')}</textarea></div>
-     ${fl.length?`<div class="bar" style="margin:6px 0 0;gap:8px;align-items:flex-end"><div class="field"><label>${t('📸 Foto prima')}</label><select id="rep-foto-a">${opts(R.fotoPrima)}</select></div><div class="field"><label>${t('Dopo')}</label><select id="rep-foto-b">${opts(R.fotoDopo)}</select></div></div>`:''}</div>`;
+     ${fl.length?`<div class="bar" style="margin:6px 0 0;gap:8px;align-items:flex-end"><div class="field"><label>${ico('camera')}${t('Foto prima')}</label><select id="rep-foto-a">${opts(R.fotoPrima)}</select></div><div class="field"><label>${t('Dopo')}</label><select id="rep-foto-b">${opts(R.fotoDopo)}</select></div></div>`:''}</div>`;
   },
   collegaDocumento(R, P, tardi){
     const goal=document.getElementById('rep-goal'); if(goal) goal.oninput=e=>{ R.obiettivo=e.target.value; DOC.dati_utente.obiettivo=e.target.value; persist('corpo');
@@ -546,7 +546,7 @@ async function exportDigitalReport(){
   if(DOC.dati_utente&&DOC.dati_utente.report&&DOC.dati_utente.report.foto){ try{ await ensureReportFoto(); }catch(e){} renderReport(); }
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ avviso(t('Apri prima il Report.')); return; }
-  const btn=document.getElementById('rep-html-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero…'); btn.disabled=true; }
+  const btn=document.getElementById('rep-html-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('Genero…'); btn.disabled=true; }
   try{
     const inclEl=document.getElementById('rep-incl-vid'); const incl=inclEl?inclEl.checked:true;
     const vids=collectSchedaVideos();
@@ -585,7 +585,7 @@ async function printReport(){
   const src=document.querySelector('#panel-report .rep-doc');
   if(!src){ try{ window.print(); }catch(e){} return; }
   if(typeof html2canvas!=='function'){ avviso(t('Generatore PDF non disponibile in questa copia: uso la stampa del browser.')); try{ window.print(); }catch(e){} return; }
-  const btn=document.getElementById('rep-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero PDF…'); btn.disabled=true; }
+  const btn=document.getElementById('rep-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('Genero PDF…'); btn.disabled=true; }
   const stage=document.createElement('div'); stage.id='pdf-stage';
   try{
     document.body.appendChild(stage);

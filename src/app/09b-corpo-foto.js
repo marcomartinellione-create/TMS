@@ -49,7 +49,7 @@ function fotoDataLabel(f){ if(!f) return '—'; const d=new Date(f.data); const 
 
 function aggiungiFotoModal(file){
   const oggi=new Date().toISOString().slice(0,10);
-  modal(`<h3>${t('📸 Aggiungi foto')}</h3>
+  modal(`<h3>${t('Aggiungi foto')}</h3>
     <div class="row"><div class="field"><label>${t('Data')}</label><input id="fm-data" type="date" value="${oggi}"></div>
       <div class="field"><label>Tag <span class="muted" style="text-transform:none">${t('(fronte/lato/retro o libero)')}</span></label>
         <input id="fm-tag" list="fm-tags" placeholder="fronte" value="fronte">
@@ -88,7 +88,7 @@ async function eliminaFoto(file){
 }
 async function vediFoto(file){ const f=(DOC.foto||[]).find(x=>x.file===file);
   let url; try{ url=await fotoObjUrl(file); }catch(e){ avviso(t('Foto non trovata sul disco.')); return; }
-  modal(`<h3 style="margin-bottom:8px">📸 ${esc(fotoDataLabel(f))}</h3>
+  modal(`<h3 style="margin-bottom:8px">${esc(fotoDataLabel(f))}</h3>
     <img src="${url}" alt="foto" style="width:100%;max-height:74vh;object-fit:contain;border-radius:var(--r-sm);background:var(--paper-3)">
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const mEl=document.getElementById('modal'); if(mEl) mEl.style.maxWidth='720px';
@@ -107,16 +107,16 @@ function mostraFotoPlayer(){
   if(fotoIdx<0) fotoIdx=0; if(fotoIdx>steps.length-1) fotoIdx=steps.length-1;
   const st=steps[fotoIdx]; const peso=fotoPeso(st.data);
   const cap=document.getElementById('foto-pl-cap');
-  if(cap) cap.innerHTML=`<b>${esc(fotoDataIt(st.data))}</b>${fotoTag?' · '+esc(fotoTag):''}${peso?` · ⚖ ${nf(peso,1)} kg`:''} <span class="muted">(${fotoIdx+1}/${steps.length})</span>`;
+  if(cap) cap.innerHTML=`<b>${esc(fotoDataIt(st.data))}</b>${fotoTag?' · '+esc(fotoTag):''}${peso?` · ${nf(peso,1)} kg`:''} <span class="muted">(${fotoIdx+1}/${steps.length})</span>`;
   const rng=document.getElementById('foto-pl-range'); if(rng && +rng.value!==fotoIdx) rng.value=fotoIdx;
   fotoMostraGruppo('foto-pl-imgs', st.foto, '46vh');
 }
 function fotoPlayPause(){
   const btn=document.getElementById('foto-pl-play');
-  if(fotoPlay){ clearInterval(fotoPlay); fotoPlay=null; if(btn) btn.textContent='▶'; return; }
+  if(fotoPlay){ clearInterval(fotoPlay); fotoPlay=null; if(btn) btn.innerHTML=ico('play'); return; }
   if(fotoSteps().length<2) return;
-  if(btn) btn.textContent='⏸';
-  fotoPlay=setInterval(()=>{ const n=fotoSteps().length; if(n<2){ fotoStopPlay(); const b=document.getElementById('foto-pl-play'); if(b)b.textContent='▶'; return; }
+  if(btn) btn.innerHTML=ico('pausa');
+  fotoPlay=setInterval(()=>{ const n=fotoSteps().length; if(n<2){ fotoStopPlay(); const b=document.getElementById('foto-pl-play'); if(b)b.innerHTML=ico('play'); return; }
     fotoIdx=(fotoIdx+1)%n; mostraFotoPlayer(); }, 1100);
 }
 function fotoStopPlay(){ if(fotoPlay){ clearInterval(fotoPlay); fotoPlay=null; } }
@@ -126,7 +126,7 @@ function mostraFotoConfronto(){
   if(ds.indexOf(fotoDopoData)<0) fotoDopoData=ds[ds.length-1];
   [['a',fotoPrimaData],['b',fotoDopoData]].forEach(([k,data])=>{
     const peso=fotoPeso(data);
-    const cap=document.getElementById('foto-cmp-cap-'+k); if(cap) cap.innerHTML=`<b>${esc(fotoDataIt(data))}</b>${peso?` · ⚖ ${nf(peso,1)} kg`:''}`;
+    const cap=document.getElementById('foto-cmp-cap-'+k); if(cap) cap.innerHTML=`<b>${esc(fotoDataIt(data))}</b>${peso?` · ${nf(peso,1)} kg`:''}`;
     const inp=document.getElementById('foto-cmp-'+k); if(inp && inp.value!==data) inp.value=data;
     fotoMostraGruppo('foto-cmp-imgs-'+k, fotoOfDate(data), '40vh');
   });
@@ -136,25 +136,25 @@ function renderFotoSezione(){
   const box=document.getElementById('foto-box'); if(!box) return;
   fotoStopPlay();
   const all=DOC.foto||[]; const tags=fotoTagsPresenti();
-  const addBtn=`<label class="btn btn--ember no-print" style="cursor:pointer" title="${profileDir?t('Aggiungi una foto progressi (resta sul tuo PC)'):t('Connetti i dati per aggiungere foto')}"${profileDir?'':' aria-disabled="true"'}>${t('⭱ Aggiungi foto')}<input type="file" id="foto-file" accept="image/jpeg,image/png,image/webp,image/*" style="display:none"${profileDir?'':' disabled'}></label>`;
+  const addBtn=`<label class="btn btn--ember no-print" style="cursor:pointer" title="${profileDir?t('Aggiungi una foto progressi (resta sul tuo PC)'):t('Connetti i dati per aggiungere foto')}"${profileDir?'':' aria-disabled="true"'}>${ico('carica')}${t('Aggiungi foto')}<input type="file" id="foto-file" accept="image/jpeg,image/png,image/webp,image/*" style="display:none"${profileDir?'':' disabled'}></label>`;
   const tagChips=tags.length?`<span class="muted mono" style="font-size:11px;align-self:center">${t('vista:')}</span>`+
     [['',t('tutti')]].concat(tags.map(x=>[x,x])).map(([v,lab])=>`<button class="pill no-print" data-ftag="${esc(v)}" style="cursor:pointer;${fotoTag===v?'background:var(--gold-t);border-color:var(--gold-2)':''}">${esc(lab)}</button>`).join(''):'';
-  const head=`<div class="sec" style="margin-top:16px">${t('📸 Foto progressi')}</div>
+  const head=`<div class="sec" style="margin-top:16px">${t('Foto progressi')}</div>
     <div class="bar no-print" style="flex-wrap:wrap;gap:6px;align-items:center">${addBtn}<div class="spacer"></div>${tagChips}</div>`;
   if(!all.length){
     box.innerHTML=head+`<div class="callout callout--info"><div>${t('Nessuna foto.')} ${profileDir?t('Aggiungi le prime foto (es. <b>anteriore</b>, <b>laterale</b>, <b>posteriore</b>) per vedere i progressi nel tempo.'):t('Connetti i dati (in alto) per salvare le foto.')} ${t('Restano <b>sul tuo PC</b>, nessun upload.')}</div></div>`;
     wireFoto(box); return;
   }
   const tabs=`<div class="bar no-print" style="gap:6px;margin-top:4px">
-    <button class="btn${fotoMode==='riproduzione'?' btn--ember':''}" data-fmode="riproduzione">${t('▶ Riproduzione')}</button>
-    <button class="btn${fotoMode==='confronto'?' btn--ember':''}" data-fmode="confronto">${t('⚖ Confronto')}</button></div>`;
+    <button class="btn${fotoMode==='riproduzione'?' btn--ember':''}" data-fmode="riproduzione">${ico('play')}${t('Riproduzione')}</button>
+    <button class="btn${fotoMode==='confronto'?' btn--ember':''}" data-fmode="confronto">${ico('equilibrio')}${t('Confronto')}</button></div>`;
   let view='';
   if(fotoMode==='riproduzione'){
     const nSteps=fotoSteps().length; const maxI=Math.max(0,nSteps-1);
     view=`<div style="text-align:center;margin-top:8px">
       <div id="foto-pl-imgs" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:flex-start;min-height:120px"></div>
       <div class="bar no-print" style="justify-content:center;gap:10px;margin-top:8px">
-        <button class="btn" id="foto-pl-play" title="${t('Riproduci / pausa')}" style="min-width:42px">▶</button>
+        <button class="btn" id="foto-pl-play" title="${t('Riproduci / pausa')}" style="min-width:42px">${ico('play')}</button>
         <input type="range" id="foto-pl-range" min="0" max="${maxI}" value="${Math.min(fotoIdx,maxI)}" style="flex:1;max-width:520px"${nSteps<2?' disabled':''}>
       </div>
       <div class="muted" id="foto-pl-cap" style="font-size:13px;margin-top:2px">…</div>
@@ -165,8 +165,8 @@ function renderFotoSezione(){
     if(ds.indexOf(fotoDopoData)<0) fotoDopoData=ds[ds.length-1];
     view=`<div style="margin-top:8px">
       <div class="row no-print" style="gap:10px">
-        <div class="field"><label>${t('📅 Prima (vecchia)')}</label><input type="date" id="foto-cmp-a" min="${dmin}" max="${dmax}" value="${fotoPrimaData}"></div>
-        <div class="field"><label>${t('📅 Dopo (recente)')}</label><input type="date" id="foto-cmp-b" min="${dmin}" max="${dmax}" value="${fotoDopoData}"></div></div>
+        <div class="field"><label>${t('Prima (vecchia)')}</label><input type="date" id="foto-cmp-a" min="${dmin}" max="${dmax}" value="${fotoPrimaData}"></div>
+        <div class="field"><label>${t('Dopo (recente)')}</label><input type="date" id="foto-cmp-b" min="${dmin}" max="${dmax}" value="${fotoDopoData}"></div></div>
       <div class="muted no-print" style="font-size:11px;margin:-2px 0 6px">${t('Scegli due date dal calendario (si aggancia alla sessione più vicina). Con la vista «tutti» vedi le viste affiancate.')}</div>
       <div style="text-align:center"><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:6px 0 2px">${t('Prima')}</div>
         <div id="foto-cmp-imgs-a" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:flex-start"></div>
@@ -179,8 +179,8 @@ function renderFotoSezione(){
   const datesDesc=fotoDates().slice().reverse();
   const gestRows=datesDesc.map(d=>{
     const fotos=(DOC.foto||[]).filter(f=>f.data===d).sort((a,b)=>fotoViewOrder(a.tag)-fotoViewOrder(b.tag));
-    return `<tr class="day-sep"><td colspan="2">📅 ${esc(fotoDataIt(d))} <span class="muted" style="font-weight:400">· ${fotos.length} ${t('foto')}</span></td></tr>`+
-      fotos.map(f=>`<tr><td class="l">${esc(f.tag||'—')}</td><td class="no-print" style="white-space:nowrap;text-align:right"><button class="btn btn--sm" data-fsee="${esc(f.file)}" title="${t('Vedi')}">👁</button> <button class="btn btn--sm" data-fedit="${esc(f.file)}" title="${t('Modifica data/vista')}">✎</button> <button class="btn btn--sm btn--danger" data-fdel="${esc(f.file)}" title="${t('Elimina')}">✕</button></td></tr>`).join('');
+    return `<tr class="day-sep"><td colspan="2">${esc(fotoDataIt(d))} <span class="muted" style="font-weight:400">· ${fotos.length} ${t('foto')}</span></td></tr>`+
+      fotos.map(f=>`<tr><td class="l">${esc(f.tag||'—')}</td><td class="no-print" style="white-space:nowrap;text-align:right"><button class="btn btn--sm" data-fsee="${esc(f.file)}" title="${t('Vedi')}">${ico('occhio','p')}</button> <button class="btn btn--sm" data-fedit="${esc(f.file)}" title="${t('Modifica data/vista')}">${ico('matita','p')}</button> <button class="btn btn--sm btn--danger" data-fdel="${esc(f.file)}" title="${t('Elimina')}">${ico('x','p')}</button></td></tr>`).join('');
   }).join('');
   const gest=`<div class="sec no-print" style="margin-top:14px;font-size:12px">${t('Gestione foto (')}${all.length})</div>
     <div class="tbl-wrap no-print"><table><tbody>${gestRows}</tbody></table></div>`;
@@ -192,7 +192,7 @@ function wireFoto(box){
   const fIn=box.querySelector('#foto-file'); if(fIn) fIn.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) aggiungiFotoModal(f); };
   box.querySelectorAll('[data-ftag]').forEach(b=>b.onclick=()=>{ fotoTag=b.dataset.ftag; fotoIdx=0; renderFotoSezione(); });
   box.querySelectorAll('[data-fmode]').forEach(b=>b.onclick=()=>{ fotoMode=b.dataset.fmode; renderFotoSezione(); });
-  const rng=box.querySelector('#foto-pl-range'); if(rng) rng.oninput=e=>{ fotoStopPlay(); const btn=document.getElementById('foto-pl-play'); if(btn) btn.textContent='▶'; fotoIdx=+e.target.value; mostraFotoPlayer(); };
+  const rng=box.querySelector('#foto-pl-range'); if(rng) rng.oninput=e=>{ fotoStopPlay(); const btn=document.getElementById('foto-pl-play'); if(btn) btn.innerHTML=ico('play'); fotoIdx=+e.target.value; mostraFotoPlayer(); };
   const pl=box.querySelector('#foto-pl-play'); if(pl) pl.onclick=fotoPlayPause;
   const ca=box.querySelector('#foto-cmp-a'); if(ca) ca.onchange=e=>{ fotoPrimaData=fotoSnapDate(e.target.value); mostraFotoConfronto(); };
   const cb=box.querySelector('#foto-cmp-b'); if(cb) cb.onchange=e=>{ fotoDopoData=fotoSnapDate(e.target.value); mostraFotoConfronto(); };

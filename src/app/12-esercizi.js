@@ -90,8 +90,8 @@ function exEdit(name, opt){
     ${isNew?'':`<div class="field"><label>${t('Video personale')} <span class="muted" style="text-transform:none;font-family:var(--font-body)">${t('— un tuo file al posto del predefinito (in')} <span class="mono">TMS_Dati/video/</span>${t('); si attiva col toggle "Video personali" del tab Esercizi')}</span></label>
       <div class="bar" style="margin:0;align-items:center">
         <span class="pill" id="exv-stato">…</span>
-        <label class="btn btn--sm" style="cursor:pointer">${t('⭱ Carica video personale…')}<input type="file" id="exv-file" accept="video/mp4,video/webm,video/*" style="display:none"></label>
-        <button class="btn btn--sm btn--danger" id="exv-del" style="display:none">${t('✕ Rimuovi personale')}</button>
+        <label class="btn btn--sm" style="cursor:pointer">${ico('carica')}${t('Carica video personale…')}<input type="file" id="exv-file" accept="video/mp4,video/webm,video/*" style="display:none"></label>
+        <button class="btn btn--sm btn--danger" id="exv-del" style="display:none">${ico('x')}${t('Rimuovi personale')}</button>
       </div></div>`}
     <div class="ex-err" id="ex-err" hidden></div>
     <div class="modal__actions">
@@ -211,7 +211,7 @@ async function playVideo(nome){
     url=URL.createObjectURL(await s.fh.getFile());
   }catch(e){ avviso(t('Video non trovato: TMS/database/video/')+file); return; }
   if(lastVideoUrl){ try{ URL.revokeObjectURL(lastVideoUrl); }catch(e){} } lastVideoUrl=url;
-  modal(`<h3 style="margin-bottom:8px">▶ ${esc(exName(nome))}${fonte==='personale'?` <span class="pill">${t('video personale')}</span>`:''}</h3>`+
+  modal(`<h3 style="margin-bottom:8px">${esc(exName(nome))}${fonte==='personale'?` <span class="pill">${t('video personale')}</span>`:''}</h3>`+
     `<video src="${url}" controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:var(--r-sm);background:#000"></video>`+
     `<div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='760px';
@@ -269,7 +269,7 @@ function pannelloEsercizio(nome){
   if(!e){
     const uso={}; (DOC.storico||[]).forEach(r=>{ if(r.esercizio&&esLookup(r.esercizio)) uso[r.esercizio]=(uso[r.esercizio]||0)+1; });
     const top=Object.keys(uso).sort((a,b)=>uso[b]-uso[a]).slice(0,10);
-    return `<div class="lat"><h4>🧭 ${t('Scheda dell’esercizio')}</h4><div class="lat-nota" style="margin:0 0 8px">${t('Clicca una riga del catalogo: qui compaiono muscoli, istruzioni e ciò che dice il tuo storico (ultima volta, record, progressione).')}</div>
+    return `<div class="lat"><h4>${t('Scheda dell’esercizio')}</h4><div class="lat-nota" style="margin:0 0 8px">${t('Clicca una riga del catalogo: qui compaiono muscoli, istruzioni e ciò che dice il tuo storico (ultima volta, record, progressione).')}</div>
       ${top.length?`<div class="lat-num"><span class="muted">${t('I più usati in questo profilo')}</span></div>`+top.map(n=>`<div class="lat-num"><a href="#" data-exvai="${esc(n)}" style="color:var(--ember-2)">${esc(exName(n))}</a><span class="mono muted">${uso[n]}</span></div>`).join(''):''}</div>`;
   }
   const chip=(m,c)=>`<span class="mchip ${c}">${esc(t(capitalizza(normMuscolo(m))))}</span>`;
@@ -278,18 +278,18 @@ function pannelloEsercizio(nome){
   const inScheda=elenchiScheda().reduce((a,el)=>a+el.filter(r=>r&&r.esercizio===e.nome).length,0);
   const q=quotaCorpo(e.nome), istr=Array.isArray(e.istruzioni)? e.istruzioni : [];
   return `<div class="lat"><h4 style="font-size:15px">${esc(exName(e.nome))}</h4>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px"><span class="pill">${esc(t(e.macro||e.gruppo||'—'))}</span>${e.tipo?`<span class="pill">${esc(t(e.tipo))}</span>`:''}<span class="pill">${t('Fattore')} ${nf(e.fattore??1,2)}</span>${e.attrezzatura?`<span class="pill">${esc(e.attrezzatura)}</span>`:''}${e.livello?`<span class="pill">${esc(e.livello)}</span>`:''}${q?`<span class="pill">🧍 ${Math.round(q*100)}% ${t('del peso corporeo')}</span>`:''}${e.custom?`<span class="pill">${t('personalizzato')}</span>`:''}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px"><span class="pill">${esc(t(e.macro||e.gruppo||'—'))}</span>${e.tipo?`<span class="pill">${esc(t(e.tipo))}</span>`:''}<span class="pill">${t('Fattore')} ${nf(e.fattore??1,2)}</span>${e.attrezzatura?`<span class="pill">${esc(e.attrezzatura)}</span>`:''}${e.livello?`<span class="pill">${esc(e.livello)}</span>`:''}${q?`<span class="pill">${Math.round(q*100)}% ${t('del peso corporeo')}</span>`:''}${e.custom?`<span class="pill">${t('personalizzato')}</span>`:''}</div>
       <div class="mchips">${(e.muscoli_primari||[]).map(m=>chip(m,'is-p')).join('')}${(e.muscoli_secondari||[]).map(m=>chip(m,'is-s')).join('')}</div>
       <div class="lat-nota">${t('pieno = muscolo primario (una serie intera nel Bilanciamento) · tenue = secondario (mezza)')}</div>
-      <div class="bar" style="margin:10px 0 0">${videoOf(e.nome)?`<button class="btn btn--sm" data-exvid="${esc(e.nome)}">▶ ${t('Video')}</button>`:''}<button class="btn btn--sm" data-exmod="${esc(e.nome)}">✎ ${t('Modifica')}</button></div></div>
-    <div class="lat"><h4>📒 ${t('Nel tuo storico')}${spiegaBtn('progressione')}</h4>
+      <div class="bar" style="margin:10px 0 0">${videoOf(e.nome)?`<button class="btn btn--sm" data-exvid="${esc(e.nome)}">${ico('play','p')}${t('Video')}</button>`:''}<button class="btn btn--sm" data-exmod="${esc(e.nome)}">${ico('matita','p')}${t('Modifica')}</button></div></div>
+    <div class="lat"><h4>${t('Nel tuo storico')}${spiegaBtn('progressione')}</h4>
       ${nSett? `<div class="lat-num"><span>${t('Settimane in cui l’hai fatto')}</span><b>${nSett}</b></div>
         ${lp?`<div class="lat-num"><span>${t('Ultima volta')} <span class="muted">(${esc(schedaLabel(lp.scheda))})</span></span><b>${nf(lp.peso,1)} kg × ${nf(lp.rip,0)}</b></div>`:''}
         ${rec?`<div class="lat-num"><span>${t('Record')} <span class="muted">(${esc(schedaLabel(rec.scheda))})</span></span><b>${nf(rec.peso,1)} kg × ${nf(rec.rip,0)}</b></div>`:''}
         ${prog.length>1? lineChart([{name:t('1RM stimato'),color:'var(--orange-b)',data:prog.map(p=>({x:schedaLabel(p.scheda),y:p.rm||null}))}],{labels:prog.map(p=>schedaLabel(p.scheda)),h:150,w:400}) : ''}`
         : `<div class="lat-nota" style="margin:0">${t('Mai registrato in questo profilo.')}</div>`}
       <div class="lat-num"><span>${t('Righe nelle schede e nei Training Set')}</span><b>${inScheda}</b></div></div>
-    ${istr.length?`<div class="lat"><h4>📖 ${t('Come si esegue')}</h4><ol class="lat-istr">${istr.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`:''}`;
+    ${istr.length?`<div class="lat"><h4>${t('Come si esegue')}</h4><ol class="lat-istr">${istr.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`:''}`;
 }
 function wireExSide(){
   const s=document.getElementById('ex-side'); if(!s) return;
@@ -310,8 +310,8 @@ function renderEsercizi(){
     const s=sottoOf(e), key=g+'::'+s, aperta=!!exFilt||!!exSottoAperte[key];  /* la ricerca apre tutto */
     if(s!==lastS){lastS=s; body+=`<tr data-sub="${esc(key)}" style="cursor:pointer" title="${aperta?t('Chiudi'):t('Apri')} ${esc(t(s))}"><td colspan="6" class="l" style="background:var(--paper-2);color:var(--ink-3);font-size:11px;letter-spacing:.4px;text-transform:uppercase;padding:5px 12px;user-select:none">${aperta?'▾':'▸'} ${esc(t(s))} <span style="opacity:.65;text-transform:none;letter-spacing:0">(${conta[key]})</span></td></tr>`;}
     if(!aperta) return;
-    body+=`<tr data-exrow="${esc(e.nome)}"${exSel===e.nome?' class="is-sel"':''}><td class="l">${esc(exName(e.nome))}${videoOf(e.nome)?`<button class="vidbtn no-print" data-vid="${esc(e.nome)}" title="${t('Guarda il video')}">▶</button>`:''}</td><td class="l">${esc(e.target||'')}</td><td>${esc(t(g))}</td><td class="l">${esc(e.tipo||'')}</td><td class="num cell-out">${nf(e.fattore,2)}</td>
-      <td class="no-print"><button class="btn btn--sm" data-edit="${esc(e.nome)}" title="${t('modifica')}">✎</button></td></tr>`;});
+    body+=`<tr data-exrow="${esc(e.nome)}"${exSel===e.nome?' class="is-sel"':''}><td class="l">${esc(exName(e.nome))}${videoOf(e.nome)?`<button class="vidbtn no-print" data-vid="${esc(e.nome)}" title="${t('Guarda il video')}">${ico('play','p')}</button>`:''}</td><td class="l">${esc(e.target||'')}</td><td>${esc(t(g))}</td><td class="l">${esc(e.tipo||'')}</td><td class="num cell-out">${nf(e.fattore,2)}</td>
+      <td class="no-print"><button class="btn btn--sm" data-edit="${esc(e.nome)}" title="${t('modifica')}">${ico('matita','p')}</button></td></tr>`;});
   document.getElementById('panel-esercizi').innerHTML=`
    <div class="bar"><div class="field"><label>${t('Cerca')}</label><input class="search" id="ex-s" value="${esc(exFilt)}" placeholder="${t('nome, muscolo, gruppo…')}"></div>
      <div class="spacer"></div><label class="pill no-print" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px" title="${t('Se attivo, dove hai caricato un tuo video (TMS_Dati/video/) si usa quello al posto del predefinito; dove non c\'è, resta il predefinito')}"><input type="checkbox" id="ex-vid-pers" style="width:auto;flex:0 0 auto"${videoPersonaliOn()?' checked':''}> ${t('Video personali')}</label><button class="btn btn--ember no-print" id="ex-add">${t('＋ Nuovo esercizio')}</button><span class="pill">${list.length} / ${EX_BASE.length}</span></div>
@@ -350,8 +350,8 @@ function pickExercise(current, onPick, filtro){
   const so=s=>s==='Varie'?'zzz':s.toLowerCase();
   const itemHtml=e=>{ const sel=String(e.nome).trim()===current, fav=!!e.fav;
     return '<div class="exp-it'+(sel?' sel':'')+'" data-nome="'+esc(e.nome)+'">'+
-      '<button type="button" class="exp-star'+(fav?' on':'')+'" data-fav="'+esc(e.nome)+'" title="'+(fav?t('togli dai preferiti'):t('aggiungi ai preferiti'))+'">'+(fav?'★':'☆')+'</button>'+
-      '<span style="flex:1">'+(sel?'✓ ':'')+esc(exName(e.nome))+(e.target?' <span class="muted">· '+esc(e.target)+'</span>':'')+'</span></div>'; };
+      '<button type="button" class="exp-star'+(fav?' on':'')+'" data-fav="'+esc(e.nome)+'" title="'+(fav?t('togli dai preferiti'):t('aggiungi ai preferiti'))+'">'+ico('stella',fav?'p pieno':'p')+'</button>'+
+      '<span style="flex:1">'+(sel?ico('check','p ok')+' ':'')+esc(exName(e.nome))+(e.target?' <span class="muted">· '+esc(e.target)+'</span>':'')+'</span></div>'; };
   const catalogo=list=>{ const arr=list.slice().sort((a,b)=>{const ga=a.macro||a.gruppo||'',gb=b.macro||b.gruppo||'';return gi(ga)-gi(gb)||ga.localeCompare(gb)||so(sottoOf(a)).localeCompare(so(sottoOf(b)))||String(a.nome).localeCompare(String(b.nome));});
     let html='',lastG=null,lastS=null;
     arr.forEach(e=>{ const g=e.macro||e.gruppo||'Altro';
@@ -369,14 +369,14 @@ function pickExercise(current, onPick, filtro){
       const fav=list.filter(e=>e.fav).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
       const resto=list.filter(e=>!e.fav);
       if(!fav.length) return catalogo(list);
-      return '<div class="exp-grp">'+t('★ Preferiti')+'</div>'+fav.map(itemHtml).join('')+
+      return '<div class="exp-grp">'+t('Preferiti')+'</div>'+fav.map(itemHtml).join('')+
              (resto.length? catalogo(resto) : ''); }
     /* query vuota: preferiti + recenti in cima, poi tutto il catalogo */
     let html=''; const favSet=new Set();
     const fav=all.filter(e=>e.fav).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
-    if(fav.length){ html+='<div class="exp-grp">'+t('★ Preferiti')+'</div>'; fav.forEach(e=>{ favSet.add(e.nome); html+=itemHtml(e); }); }
+    if(fav.length){ html+='<div class="exp-grp">'+t('Preferiti')+'</div>'; fav.forEach(e=>{ favSet.add(e.nome); html+=itemHtml(e); }); }
     const rec=[]; exRecentiNomi().forEach(n=>{ if(rec.length>=10)return; const e=esLookup(n); if(e&&(!filtro||filtro(e))&&!favSet.has(n)) rec.push(e); });
-    if(rec.length){ html+='<div class="exp-grp">'+t('🕐 Recenti')+'</div>'; rec.forEach(e=>html+=itemHtml(e)); }
+    if(rec.length){ html+='<div class="exp-grp">'+t('Recenti')+'</div>'; rec.forEach(e=>html+=itemHtml(e)); }
     return html+catalogo(all);
   }
   modal('<h3>'+t('Scegli esercizio')+'</h3>'+

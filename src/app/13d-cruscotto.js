@@ -87,34 +87,34 @@ async function cruscottoDati(){
 }
 
 const CR_COL={danger:'var(--danger)', warn:'var(--warn)', ok:'var(--ok)', none:'var(--ink-3)'};
-const CR_LED={danger:'🔴', warn:'🟡', ok:'🟢', none:'⚪'};
+const CR_LED={danger:'●', warn:'●', ok:'●', none:'●'};   /* pallino colorato (CR_COL) */
 /* riga di sintesi (grigia) sotto il nome del profilo: ACWR · aggiornamento · monotonia · PR */
 function semaforoSummaryHTML(tg){
   if(!tg.hasData) return `<span style="color:var(--ink-3)">${t('nessun dato registrato')}</span>`;
   const acwrCol=tg.acwr==null?'var(--ink-3)':(tg.acwr>1.5?'var(--danger)':((tg.acwr<0.8||tg.acwr>1.3)?'var(--warn)':'var(--ok)'));
   const acwrTxt=tg.acwr==null?'—':nf(tg.acwr,2);
   const stTxt=tg.stale==null?`<span style="color:var(--danger)">${t('mai aggiornata')}</span>`:(tg.stale<=0?`<span style="color:var(--ok)">${t('questa sett.')}</span>`:(tg.stale>=3?`<span style="color:var(--danger)">${tg.stale} ${t('sett. fa')}</span>`:(tg.stale===2?`<span style="color:var(--warn)">2 ${t('sett. fa')}</span>`:`1 ${t('sett. fa')}`)));
-  const monoTxt=tg.hasRpe?` · 📊 mono <b style="color:${tg.monoHigh?'var(--danger)':'inherit'}">${tg.mono==null?'—':nf(tg.mono,2)}</b>`:'';
-  const prTxt=tg.prs&&tg.prs.length?` · <span style="color:var(--ok)" title="${esc(tg.prs.slice(0,5).map(p=>exName(p.nome)+' '+nf(p.peso,0)+' kg').join(' · '))}">🎉 ${tg.prs.length} PR</span>`:'';
-  return `⚖ ACWR <b style="color:${acwrCol}">${acwrTxt}</b> · 🏋 ${stTxt}${monoTxt}${prTxt}`;
+  const monoTxt=tg.hasRpe?` · mono <b style="color:${tg.monoHigh?'var(--danger)':'inherit'}">${tg.mono==null?'—':nf(tg.mono,2)}</b>`:'';
+  const prTxt=tg.prs&&tg.prs.length?` · <span style="color:var(--ok)" title="${esc(tg.prs.slice(0,5).map(p=>exName(p.nome)+' '+nf(p.peso,0)+' kg').join(' · '))}">${tg.prs.length} PR</span>`:'';
+  return `ACWR <b style="color:${acwrCol}">${acwrTxt}</b> · ${t('scheda')} ${stTxt}${monoTxt}${prTxt}`;
 }
 /* testo del tooltip sul pallino: perché è di quel colore */
 function semaforoTitolo(tg){
-  if(!tg.hasData) return t('⚪ Nessun dato registrato per questo profilo');
+  if(!tg.hasData) return t('Nessun dato registrato per questo profilo');
   const m=[];
   if(tg.level==='danger'){
     if(tg.acwr!=null&&tg.acwr>1.5) m.push(t('carico alto (ACWR')+' '+nf(tg.acwr,2)+')');
     if(tg.stale!=null&&tg.stale>=3) m.push(t('scheda ferma da')+' '+tg.stale+' '+t('settimane'));
     if(tg.monoHigh&&tg.acwr!=null&&tg.acwr>1.3) m.push(t('monotonia alta col carico elevato'));
-    return t('🔴 A rischio:')+' '+(m.join(' · ')||t('segnali critici'));
+    return t('A rischio:')+' '+(m.join(' · ')||t('segnali critici'));
   }
   if(tg.level==='warn'){
     if(tg.acwr!=null&&(tg.acwr>1.3||tg.acwr<0.8)) m.push(t('ACWR fuori zona (')+nf(tg.acwr,2)+')');
     if(tg.stale!=null&&tg.stale>=2) m.push(t('scheda ferma da')+' '+tg.stale+' '+t('settimane'));
     if(tg.monoHigh) m.push(t('monotonia alta'));
-    return t('🟡 Attenzione:')+' '+(m.join(' · ')||t('da tenere d\'occhio'));
+    return t('Attenzione:')+' '+(m.join(' · ')||t('da tenere d\'occhio'));
   }
-  return t('🟢 Tutto in zona e aggiornato');
+  return t('Tutto in zona e aggiornato');
 }
 /* riempie i segnaposto (pallino + sintesi) già presenti in ogni riga profilo */
 function applicaSemafori(dati){

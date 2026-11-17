@@ -90,7 +90,7 @@ function figuraCorpo(c, dPeso){
       <path d="${corpo}" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1" stroke-linejoin="round"/>
       <ellipse cx="50" cy="15" rx="9" ry="11.5" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1"/>
       <path d="${corpo}" fill="url(#${g}-l)"/>${el}</g>${testi}
-    <text x="299" y="95" text-anchor="end" font-size="3.4" fill="#a8967a">${esc(t('● gli 8 elettrodi · valori del corpo intero, non per singolo braccio o gamba'))}</text></svg>`;
+    <text x="299" y="95" text-anchor="end" font-size="3.4" fill="#a8967a">${esc(t('gli 8 elettrodi · valori del corpo intero, non per singolo braccio o gamba'))}</text></svg>`;
 }
 function htmlRapportoCorpo(p){
   const u=DOC.dati_utente||{}, c=compDaPesata(p,u), sesso=u.sesso==='F'?'F':'M', eta=etaOf(u), alt=+u.altezza||0;
@@ -153,16 +153,16 @@ function htmlRapportoCorpo(p){
 /* anteprima in un riquadro, con «Scarica PDF» */
 function apriRapportoCorpo(id){
   const p=(DOC.pesate||[]).find(x=>x.id===id); if(!p){ avviso(t('Pesata non trovata.')); return; }
-  modal(`<h3>${t('📄 Rapporto di composizione corporea')}</h3>
+  modal(`<h3>${t('Rapporto di composizione corporea')}</h3>
     <div class="comp-anteprima">${htmlRapportoCorpo(p)}</div>
-    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button><button class="btn btn--ember" id="comp-pdf">${t('📄 Scarica PDF')}</button></div>`);
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button><button class="btn btn--ember" id="comp-pdf">${ico('documento')}${t('Scarica PDF')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='880px';
   document.getElementById('comp-pdf').onclick=()=>pdfRapportoCorpo(id);
 }
 async function pdfRapportoCorpo(id){
   const p=(DOC.pesate||[]).find(x=>x.id===id); if(!p) return;
   if(typeof html2canvas!=='function'){ avviso(t('Generatore PDF non disponibile in questa copia.')); return; }
-  const btn=document.getElementById('comp-pdf'), lab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero PDF…'); btn.disabled=true; }
+  const btn=document.getElementById('comp-pdf'), lab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('Genero PDF…'); btn.disabled=true; }
   const stage=document.createElement('div'); stage.id='pdf-stage';
   try{
     stage.innerHTML=htmlRapportoCorpo(p); document.body.appendChild(stage);

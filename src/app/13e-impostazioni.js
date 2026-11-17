@@ -40,22 +40,22 @@ async function impostazioniModal(){
   /* si legge dall'<html>, cioè da ciò che si vede, non solo da ciò che è salvato */
   const h=document.documentElement, md=h.getAttribute('data-theme')==='notte'? 'notte' : 'giorno';
   const st=TEMI_NOTTE.some(x=>x.id===h.getAttribute('data-notte'))? h.getAttribute('data-notte') : notteGet();
-  modal(`<h3>${t('⚙ Impostazioni')}</h3>
+  modal(`<h3>${t('Impostazioni')}</h3>
     <div class="muted" style="font-size:12.5px;margin:-6px 0 12px">${t('Valgono per tutta l\'app su questo computer, per tutti i profili.')}</div>
     <div class="imp-sez">
       <h4>${t('Aspetto')}</h4>
       <div class="imp-riga"><span>${t('Tema')}</span>
-        <span class="gruppo"><button class="btn btn--sm${md==='giorno'?' is-on':''}" data-imp-tema="giorno">${t('☀ Giorno')}</button><button class="btn btn--sm${md==='notte'?' is-on':''}" data-imp-tema="notte">${t('🌙 Notte')}</button></span></div>
+        <span class="gruppo"><button class="btn btn--sm${md==='giorno'?' is-on':''}" data-imp-tema="giorno">${ico('sole')}${t('Giorno')}</button><button class="btn btn--sm${md==='notte'?' is-on':''}" data-imp-tema="notte">${ico('luna')}${t('Notte')}</button></span></div>
       <div class="imp-etich">${t('Stile della modalità notte')}</div>
       <div class="imp-temi">${TEMI_NOTTE.map(x=>`<button type="button" class="imp-tema${x.id===st?' is-on':''}" data-imp-notte="${x.id}">${impAnteprima(x.c)}<b>${esc(t(x.nome))}</b><span>${esc(t(x.desc))}</span></button>`).join('')}</div>
-      <div class="lat-nota">${t('Il pulsante 🌙 in alto passa da giorno a notte; di notte usa lo stile scelto qui.')}</div>
+      <div class="lat-nota">${t('Il pulsante con la luna in alto passa da giorno a notte; di notte usa lo stile scelto qui.')}</div>
     </div>
     ${telSezioneImpostazioni(cartella)}
     <div class="imp-sez">
       <h4>${t('Aiuto')}</h4>
       <div class="imp-aiuto">
-        <button type="button" class="imp-voce" id="fab-guida" title="${t('Apri la guida')}"><i>📕</i><span><b>${t('Guida')}</b>${t('Come si usa l\'app, le formule e le fonti.')}</span></button>
-        <button type="button" class="imp-voce" id="fab-segnala" title="${t('Segnala un problema o proponi un\'idea')}"><i>🐞</i><span><b>${t('Segnala')}</b>${t('Un problema o un\'idea: la scheda tecnica si allega da sola e vedi il testo prima di mandarlo.')}</span></button>
+        <button type="button" class="imp-voce" id="fab-guida" title="${t('Apri la guida')}"><i>${ico('libro','g')}</i><span><b>${t('Guida')}</b>${t('Come si usa l\'app, le formule e le fonti.')}</span></button>
+        <button type="button" class="imp-voce" id="fab-segnala" title="${t('Segnala un problema o proponi un\'idea')}"><i>${ico('attenzione','g')}</i><span><b>${t('Segnala')}</b>${t('Un problema o un\'idea: la scheda tecnica si allega da sola e vedi il testo prima di mandarlo.')}</span></button>
       </div>
     </div>
     <div class="modal__actions"><button class="btn btn--ember" id="imp-ok">${t('Chiudi')}</button></div>`);

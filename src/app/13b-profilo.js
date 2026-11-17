@@ -4,7 +4,7 @@ function riepilogoProfiloAperto(){
   const st=DOC.storico||[], sett=new Set(st.map(r=>+r.scheda).filter(Boolean));
   const ult=sett.size? Math.max(...sett) : 0, io=DOC.storico_io||[], S=(DOC.scheda&&DOC.scheda.setsOrdine)||[];
   const R=(a,b)=>`<div class="lat-num"><span>${a}</span><b>${b}</b></div>`;
-  return `<div class="lat"><h4>👤 ${esc(profNome()||'—')} <span class="muted">${t('profilo aperto')}</span></h4>
+  return `<div class="lat"><h4>${esc(profNome()||'—')} <span class="muted">${t('profilo aperto')}</span></h4>
     ${R(t('Settimane di allenamento salvate'), sett.size)}
     ${ult? R(t('Ultima settimana salvata'), esc(schedaLabel(ult))) : ''}
     ${R(t('Righe nello Storico'), st.length)}
@@ -33,36 +33,36 @@ function renderProfilo(){
         </div>
         <div class="bar no-print" style="margin-top:8px">
           ${isAct?`<span class="muted" style="align-self:center">${t('profilo attivo')}</span>`:`<button class="btn btn--ember" data-pact="${esc(p.slug)}">${t('Attiva')}</button>`}
-          <button class="btn" data-pedit="${esc(p.slug)}">${t('✎ Modifica parametri')}</button>
-          <button class="btn" data-pren="${esc(p.slug)}">${t('✏ Rinomina')}</button>
-          ${profili.length>1?`<button class="btn btn--danger" data-pdel="${esc(p.slug)}">${t('✕ Elimina')}</button>`:''}
+          <button class="btn" data-pedit="${esc(p.slug)}">${ico('matita')}${t('Modifica parametri')}</button>
+          <button class="btn" data-pren="${esc(p.slug)}">${ico('matita')}${t('Rinomina')}</button>
+          ${profili.length>1?`<button class="btn btn--danger" data-pdel="${esc(p.slug)}">${ico('x')}${t('Elimina')}</button>`:''}
         </div>`;
       } else { body=`<div class="muted" style="padding:8px">${t('Caricamento parametri…')}</div>`; }
     }
     return `<div class="prof-item" style="border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;background:${isAct?'var(--gold-t)':'var(--paper-2)'}">
       <div data-popen="${esc(p.slug)}" style="display:flex;align-items:center;gap:10px;padding:11px 13px;cursor:pointer">
-        <span style="font-family:var(--font-mono)">${open?'▾':'▸'}</span>
-        <span class="cr-led" id="cr-led-${esc(p.slug)}" style="font-size:13px;color:var(--ink-3);flex:0 0 auto" title="Stato in calcolo…">⚪</span>
+        <span style="display:inline-flex;color:var(--ink-3)">${ico(open?'giu':'avanti','p')}</span>
+        <span class="cr-led" id="cr-led-${esc(p.slug)}" style="font-size:13px;color:var(--ink-4);flex:0 0 auto" title="Stato in calcolo…">●</span>
         <div style="flex:1;min-width:0">
-          <div style="font-family:var(--font-disp);font-size:17px">👤 ${esc(p.nome)}${isAct?` <span class="pill">${t('attivo')}</span>`:''}</div>
+          <div style="font-family:var(--font-disp);font-size:17px;display:flex;align-items:center;gap:7px">${ico('utente')}${esc(p.nome)}${isAct?` <span class="pill">${t('attivo')}</span>`:''}</div>
           <div class="muted" id="cr-sum-${esc(p.slug)}" style="font-size:11.5px;margin-top:2px">…</div>
           ${p.creato?`<div class="muted mono" style="font-size:10.5px;margin-top:1px">${t('creato il')} ${esc(p.creato)}</div>`:''}
         </div>
         <span class="gruppo no-print" title="${t('Archivi del profilo')}">
-          <button class="btn" data-parch="storico" data-pslug="${esc(p.slug)}" ${isAct?'id="lnk-storico"':''} title="${t('Tutte le settimane di allenamento salvate')}">${isAct?'<span id="dot-storico" class="prof-dot">●</span> ':''}📜 ${t('Storico')}</button>
-          <button class="btn" data-parch="storicocorpo" data-pslug="${esc(p.slug)}" ${isAct?'id="lnk-misure"':''} title="${t('Tutte le misure corporee salvate')}">${isAct?'<span id="dot-misure" class="prof-dot">●</span> ':''}📏 ${t('Misure')}</button>
+          <button class="btn" data-parch="storico" data-pslug="${esc(p.slug)}" ${isAct?'id="lnk-storico"':''} title="${t('Tutte le settimane di allenamento salvate')}">${isAct?'<span id="dot-storico" class="prof-dot">●</span> ':''}${ico('rotolo','p')}${t('Storico')}</button>
+          <button class="btn" data-parch="storicocorpo" data-pslug="${esc(p.slug)}" ${isAct?'id="lnk-misure"':''} title="${t('Tutte le misure corporee salvate')}">${isAct?'<span id="dot-misure" class="prof-dot">●</span> ':''}${ico('corpo','p')}${t('Misure')}</button>
         </span>
       </div>${open?`<div style="padding:0 13px 12px">${body}</div>`:''}</div>`;
   }).join('');
   document.getElementById('panel-profilo').innerHTML=`
    <div class="bar"><div class="field" style="flex:1"><label>${t('Profili')}</label>
-     <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2)">👤 ${profili.length} ${t(profili.length===1?'profilo':'profili')}</div></div>
+     <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2);display:flex;align-items:center;gap:8px">${ico('utente')}${profili.length} ${t(profili.length===1?'profilo':'profili')}</div></div>
      <button class="btn btn--ember no-print" id="prof-new">${t('＋ Nuovo profilo')}</button></div>
    <div class="pag"><div class="pag__main">
    ${items||`<div class="empty">${t('Nessun profilo.')}</div>`}
    </div><aside class="pag__side no-print">${riepilogoProfiloAperto()}
    <div class="sec no-print" style="margin-top:4px">${t('Backup (tutti i profili insieme)')}</div>
-   <div class="bar no-print"><button class="btn" id="prof-backup" title="${t('Esporta i dati di TUTTI i profili in un file')}">${t('⭳ Backup dati')}</button> <button class="btn" id="prof-backup-full" title="${t('Come il backup dati, ma con dentro anche le immagini delle foto progressi')}">${t('⭳ Backup completo (con foto)')}</button> <label class="btn" style="cursor:pointer" title="${t('Importa un backup')}">${t('⭱ Ripristina')}<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>
+   <div class="bar no-print"><button class="btn" id="prof-backup" title="${t('Esporta i dati di TUTTI i profili in un file')}">${ico('scarica')}${t('Backup dati')}</button> <button class="btn" id="prof-backup-full" title="${t('Come il backup dati, ma con dentro anche le immagini delle foto progressi')}">${ico('scarica')}${t('Backup completo (con foto)')}</button> <label class="btn" style="cursor:pointer" title="${t('Importa un backup')}">${ico('carica')}${t('Ripristina')}<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>
    <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('Il <b>Backup dati</b> contiene schede, storico, misure e alimentazione, ma delle foto progressi porta solo i riferimenti: ripristinandolo su un altro PC le immagini mancherebbero. Usa il <b>Backup completo</b> per portarti dietro anche le foto (file più grande). I <b>video</b> non entrano in nessuno dei due: si riscaricano con l\'app.')}</div></div>
    <div class="no-print" id="prof-autobk" style="margin-top:8px"></div>
    </aside></div>`;
@@ -81,15 +81,15 @@ function renderProfilo(){
       if(!ab.isConnected) return;
       l=l||[]; ls=ls||[];
       const voce=(x,ora)=>`<span class="pill">${esc(x.data||'?')}${ora&&x.ora?' '+esc(x.ora):''} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">${t('ripristina')}</a></span>`;
-      ab.innerHTML=`<button class="btn" id="prof-autobk-btn" aria-expanded="${profBkAperto?'true':'false'}">🛟 ${t('Backup automatici')} <span class="pill">${l.length+ls.length}</span> ${profBkAperto?'▴':'▾'}</button>
+      ab.innerHTML=`<button class="btn" id="prof-autobk-btn" aria-expanded="${profBkAperto?'true':'false'}">${ico('salva','p')}${t('Backup automatici')} <span class="pill">${l.length+ls.length}</span><span class="bk-freccia">${ico(profBkAperto?'su':'giu','p')}</span></button>
         <div id="prof-autobk-lista" class="prof-bk-lista"${profBkAperto?'':' hidden'}>
           <div class="muted" style="font-size:11.5px;margin-bottom:2px;flex-basis:100%">${t('Uno a settimana, fatti dall\'app da sola (ultime')} ${AUTOBK_MAX} ${t('copie in')} <span class="mono">TMS_Dati/${AUTOBK_DIR}/</span>).</div>
           ${l.length? l.map(x=>voce(x,false)).join(' ') : `<span class="muted" style="font-size:12px">${t('Ancora nessuna copia.')}</span>`}
-          ${ls.length?`<div style="margin-top:7px;font-size:12px;flex-basis:100%">${t('↩ <b>Prima dell\'ultimo ripristino</b> (per tornare indietro):')} ${ls.map(x=>voce(x,true)).join(' ')}</div>`:''}
+          ${ls.length?`<div style="margin-top:7px;font-size:12px;flex-basis:100%">${t('<b>Prima dell\'ultimo ripristino</b> (per tornare indietro):')} ${ls.map(x=>voce(x,true)).join(' ')}</div>`:''}
         </div>`;
       const bt=document.getElementById('prof-autobk-btn'), li=document.getElementById('prof-autobk-lista');
       bt.onclick=()=>{ profBkAperto=!profBkAperto; li.hidden=!profBkAperto; bt.setAttribute('aria-expanded', profBkAperto?'true':'false');
-        bt.lastChild.textContent=' '+(profBkAperto?'▴':'▾'); };
+        { const fr=bt.querySelector('.bk-freccia'); if(fr) fr.innerHTML=ico(profBkAperto?'su':'giu','p'); } };
       ab.querySelectorAll('[data-autobk]').forEach(a=>a.onclick=ev=>{ ev.preventDefault(); ripristinaBackupAutomatico(a.dataset.autobk); });
     }); }
   document.querySelectorAll('#panel-profilo [data-popen]').forEach(h=>h.onclick=()=>{
@@ -112,7 +112,7 @@ function anagraficaModal(){
       <div class="field"><label>${t('Altezza (cm)')}</label><input id="m-altezza" type="number" value="${u.altezza??''}"></div></div>
     <div class="field"><label>${t('Data di nascita')}</label><input id="m-nascita" type="date" value="${esc(u.nascita||'')}"></div>
     <div class="field"><label>${t('Esperienza di allenamento')}</label><select id="m-esperienza"><option value="">—</option>${ESPERIENZE.map(e=>`<option value="${e}"${u.esperienza===e?' selected':''}>${esc(t(ESP_NOME[e]))}</option>`).join('')}</select>
-      <div class="lat-nota" style="margin-top:4px">${t('Sceglie il riferimento della ragnatela «distribuzione fra i gruppi», insieme al tipo di allenamento del Training Set (barra 🏋 Pesi).')}</div></div>
+      <div class="lat-nota" style="margin-top:4px">${t('Sceglie il riferimento della ragnatela «distribuzione fra i gruppi», insieme al tipo di allenamento del Training Set (barra Pesi).')}</div></div>
     <div class="field"><label>${t('Calcoli')}</label>
     <label class="optchk" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer"><input type="checkbox" id="m-userir" style="width:auto;flex:0 0 auto;margin-top:2px" ${u.useRir?'checked':''}> <span>${t('Considera il <b>RIR</b> nei calcoli (1RM / %1RM / TL effort-aware)')}</span></label>
     <label class="optchk" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-top:7px"><input type="checkbox" id="m-userpe" style="width:auto;flex:0 0 auto;margin-top:2px" ${u.useRpe?'checked':''}> <span>${t('Abilita il <b>Session-RPE</b> / carico interno (RPE × durata per giorno · Foster)')}</span></label></div>

@@ -237,8 +237,8 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
       'barra in alto: un solo blocco di tre comandi uguali — lingua, giorno/notte, ⚙');
     ok(!bar.querySelector('#fab-guida') && !bar.querySelector('#fab-segnala') && d.getElementById('fab-segnala') === null, 'barra in alto: 📕 e 🐞 non ci sono più, stanno nelle Impostazioni');
     d.getElementById('btn-impost').click();
-    ok(d.querySelector('#modal #fab-guida') && d.querySelector('#modal #fab-segnala') && d.getElementById('fab-guida').textContent.includes('📕') && d.getElementById('fab-segnala').textContent.includes('🐞') && /guida/i.test(d.getElementById('fab-guida').title),
-      'Impostazioni: nella sezione «Aiuto» ci sono 📕 Guida e 🐞 Segnala');
+    ok(d.querySelector('#modal #fab-guida') && d.querySelector('#modal #fab-segnala') && d.querySelector('#fab-guida use[href="#i-libro"]') && /Guida/.test(d.getElementById('fab-guida').textContent) && /Segnala/.test(d.getElementById('fab-segnala').textContent) && /guida/i.test(d.getElementById('fab-guida').title),
+      'Impostazioni: nella sezione «Aiuto» ci sono Guida e Segnala (con le icone disegnate)');
     d.getElementById('fab-segnala').click();
     ok(!d.querySelector('#modal #fab-guida') && /Segnala|scheda tecnica/i.test(d.getElementById('modal').textContent), 'Impostazioni: 🐞 Segnala apre il modulo delle segnalazioni');
     w.eval('closeModal()');
@@ -580,7 +580,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     w.eval('foodToggleFav('+JSON.stringify(nome)+');');
     ok(w.eval('foodIsFav('+JSON.stringify(nome)+')')===true && w.eval('DOC.alimentazione.fav.indexOf('+JSON.stringify(nome)+')>=0'), 'alimenti preferiti: la stellina aggiunge (DOC.alimentazione.fav)');
     w.eval('openFoodPicker("bulk", 0);');
-    ok(d.getElementById('modal').innerHTML.includes('★ Preferiti') && d.getElementById('modal').innerHTML.includes('🕐 Recenti'), 'food picker: gruppi Preferiti e Recenti in cima');
+    ok(d.getElementById('modal').innerHTML.includes('Preferiti') && d.getElementById('modal').innerHTML.includes('Recenti'), 'food picker: gruppi Preferiti e Recenti in cima');
     { const fq=d.getElementById('fp-q'); fq.value='riso secco'; fq.dispatchEvent(new w.Event('input',{bubbles:true})); }
     ok([...d.querySelectorAll('#modal .fp-row')].length>0, 'food picker: ricerca a parole trova risultati');
     w.eval('closeModal(); foodToggleFav('+JSON.stringify(nome)+');'); }
@@ -815,10 +815,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(typeof w.eval('window.__pick')==='string' && w.eval('window.__pick').length>0 && d.getElementById('modal-bk').classList.contains('hidden'), 'picker esercizi: clic seleziona, richiama onPick e chiude il modale');
   /* picker: preferiti + recenti (a query vuota) e stellina che aggiunge/toglie dai preferiti */
   w.eval('pickExercise("", function(){});');
-  ok(d.getElementById('exp-list').innerHTML.includes('🕐 Recenti'), 'picker: gruppo «Recenti» a query vuota (dallo storico)');
+  ok(d.getElementById('exp-list').innerHTML.includes('Recenti'), 'picker: gruppo «Recenti» a query vuota (dallo storico)');
   { const star=d.querySelector('#exp-list .exp-star'), nome=star.dataset.fav; star.click();
     ok(w.eval('!!(esLookup('+JSON.stringify(nome)+')||{}).fav'), 'picker: la stellina aggiunge l\'esercizio ai preferiti (su catalogo)');
-    ok(d.getElementById('exp-list').innerHTML.includes('★ Preferiti'), 'picker: l\'esercizio compare nel gruppo «Preferiti»');
+    ok(d.getElementById('exp-list').innerHTML.includes('Preferiti'), 'picker: l\'esercizio compare nel gruppo «Preferiti»');
     const on=d.querySelector('#exp-list .exp-star.on'); if(on) on.click();
     ok(!w.eval('!!(esLookup('+JSON.stringify(nome)+')||{}).fav'), 'picker: ri-cliccando la stellina si toglie dai preferiti'); }
   w.eval('closeModal()');
@@ -1802,7 +1802,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     { /* la prima riga della tabella è il separatore del giorno: serve quella con i campi */
       const riga = [...d.querySelectorAll('#panel-allenamento tbody tr')].find(tr => tr.querySelector('[data-f="peso"]'));
       const pill = riga.querySelector('.pill');
-      ok(pill !== null && /🧍/.test(pill.textContent) && new RegExp(String(Math.round(pc))).test(pill.textContent),
+      ok(pill !== null && pill.querySelector('use[href="#i-corpo"]') && new RegExp(String(Math.round(pc))).test(pill.textContent),
          'corpo libero: la riga mostra quanto corpo viene sommato (' + (pill ? pill.textContent.trim() : '—') + ')');
       const inPeso = riga.querySelector('[data-f="peso"]');
       ok(/zavorra/i.test(inPeso.getAttribute('title') || ''), 'corpo libero: il campo Peso spiega che lì va solo la zavorra');
@@ -1950,7 +1950,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* render: il pallino e la sintesi vengono dipinti nella riga di ogni profilo */
   await w.eval('aggiornaSemafori(true)');
   await settle(60);
-  ok(['🟢','🟡','🔴','⚪'].includes(d.getElementById('cr-led-template').textContent), 'semaforo: pallino dipinto sulla riga del template');
+  ok(d.getElementById('cr-led-template').textContent === '●' && d.getElementById('cr-led-template').style.color !== '', 'semaforo: pallino dipinto (col suo colore) sulla riga del template');
   ok(d.getElementById('cr-sum-template').innerHTML.includes('ACWR'), 'semaforo: sintesi (ACWR · aggiornamento · monotonia) sotto il nome');
   ok(d.getElementById('cr-led-template').title.length > 10 && d.getElementById('cr-led-template').title !== 'Stato in calcolo…', 'semaforo: il significato del pallino sta nel suo suggerimento');
   /* ── Foto progressi: template demo → player «tutti» a gruppi + confronto a calendario ── */
@@ -2127,7 +2127,7 @@ console.log('--- T6: bilingue IT/EN (interruttore lingua, traduzione markup stat
   ok(dEn.getElementById('btn-lang').textContent === 'IT', 'EN: il pulsante lingua propone «IT»');
   ok(wEn.eval("renderProfilo(); document.getElementById('prof-new').textContent") === '＋ New profile', 'EN: tab Profilo «＋ Nuovo profilo» → «＋ New profile»');
   ok(wEn.eval("renderProfilo(); (document.querySelector('#panel-profilo .sec')||{}).textContent||''").includes('Backup (all profiles together)'), 'EN: tab Profilo sezione Backup tradotta');
-  ok(wEn.eval("renderAllenamento(); document.getElementById('btn-save-sched').textContent") === '💾 Save to History', 'EN: tab Pesi «Salva nello Storico» tradotto');
+  ok(wEn.eval("renderAllenamento(); document.getElementById('btn-save-sched').textContent") === 'Save to History', 'EN: tab Pesi «Salva nello Storico» tradotto');
   ok(wEn.eval("exName('Squat con bilanciere')") === 'Barbell Squat', 'EN: nome esercizio dall\'inglese originale (ESEN per nome)');
   ok(wEn.eval("exName('Panca piana con bilanciere - presa media')") === 'Barbell Bench Press - Medium Grip', 'EN: nome esercizio composto tradotto');
   await settle(400);   /* lascia finire il semaforo del tab Profilo (asincrono) prima di chiudere la finestra */
@@ -2569,7 +2569,7 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
        'Progressi: in «Equilibrio e distribuzione» la ragnatela tiene la didascalia del riferimento, «⚙ Riferimento» e il «?»');
     ok(/Serie per gruppo/.test(equi.textContent) && /Distribuzione intensità/.test(equi.textContent) && /Andamento TL per gruppo/.test(equi.textContent),
        'Progressi: in «Equilibrio e distribuzione» anche serie per gruppo, intensità e TL per gruppo');
-    ok([...pp.querySelectorAll('.chart-grid--compatta svg')].every(x => /--graf-fs/.test(x.getAttribute('style') || '')),
+    ok([...pp.querySelectorAll('.chart-grid--compatta svg:not(.ic)')].every(x => /--graf-fs/.test(x.getAttribute('style') || '')),
        'Progressi: tutti i grafici della griglia sono disegnati per la vista compatta');
     /* schede Fable nella ragnatela dei Progressi: fascia viola e avvertimento sempre presenti */
     w.eval('DOC.dati_utente.rifDistr={raccolta:"schede", esperienza:"", tipo:"resistenza", fable:true}; renderProgressi();');
@@ -2961,7 +2961,7 @@ console.log('--- T11: pesate della bilancia (dal telefono collegato) ---');
        'tab Corpo: riquadro «Pesate della bilancia» per settimana, la seconda pesata del giorno in grigio'); }
   w.eval('showTab("storicocorpo")');
   { const p = d.getElementById('panel-storicocorpo');
-    ok(/N\. pesate/.test(p.textContent) && /Acqua %/.test(p.textContent) && /⚖ 2/.test(p.textContent), 'Storico misure: colonne Acqua % e N. pesate'); }
+    ok(/N\. pesate/.test(p.textContent) && /Acqua %/.test(p.textContent) && [...p.querySelectorAll('td.num')].some(td => td.textContent.trim() === '2'), 'Storico misure: colonne Acqua % e N. pesate'); }
 
   /* togliere una pesata: la media si ricalcola e la pesata non torna; Ctrl+Z la rimette */
   await settle(1300);   /* passo di annullamento separato dall'import */

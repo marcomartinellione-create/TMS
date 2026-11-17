@@ -104,10 +104,10 @@ function timelineChart(sett,opts){
 function renderAnalisi(){
   const sett=serieSettimanali();
   const periodi=((DOC.alimentazione||{}).periodi)||[];
-  const intro=`<div class="callout callout--info"><div>${t('📊 <b>Dieta × allenamento nel tempo.</b> Le analisi incrociano i <b>periodi alimentari</b> registrati (tab 🍖 Alimentazione → "Periodi") con carico (TL), peso e metabolismo settimanali. Tutto è calcolato al volo dai tuoi dati.')}</div></div>`;
+  const intro=`<div class="callout callout--info"><div>${t('<b>Dieta × allenamento nel tempo.</b> Le analisi incrociano i <b>periodi alimentari</b> registrati (tab Alimentazione → "Periodi") con carico (TL), peso e metabolismo settimanali. Tutto è calcolato al volo dai tuoi dati.')}</div></div>`;
   if(!periodi.length){
     document.getElementById('panel-analisi').innerHTML=intro+
-      `<div class="empty" style="padding:28px">${t('Nessun periodo alimentare registrato.<br><br>Vai in <b>🍖 Alimentazione → Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.')}<br><br><button class="btn btn--ember" onclick="showTab('alimentazione')">${t('🍖 Vai all\'Alimentazione')}</button></div>`;
+      `<div class="empty" style="padding:28px">${t('Nessun periodo alimentare registrato.<br><br>Vai in <b>Alimentazione → Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.')}<br><br><button class="btn btn--ember" onclick="showTab('alimentazione')">${t('Vai all\'Alimentazione')}</button></div>`;
     return;
   }
   /* 2 — Δpeso settimana successiva vs bilancio calorico (kcal piano − metabolismo) */
@@ -139,7 +139,7 @@ function renderAnalisi(){
   const boxTL=Object.keys(perFaseTL).map(f=>({x:t(FASE_LAB[f]||f), values:perFaseTL[f], color:FASE_DOT[f]}));
   const boxPeso=Object.keys(perFasePeso).map(f=>({x:t(FASE_LAB[f]||f), values:perFasePeso[f], color:FASE_DOT[f]}));
 
-  const perLat=`<div class="lat"><h4>📅 ${t('Periodi')} <span class="muted">${periodi.length}</span></h4>${periodi.slice().reverse().map(p=>`<div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${FASE_DOT[p.fase]||'var(--orange)'};margin-right:5px"></i>${esc(t(FASE_LAB[p.fase]||p.fase))} <span class="muted">${esc(p.dal)} → ${esc(p.al||t('in corso'))}</span></span><b>${nf(kcalPiano(p.righe),0)} kcal</b></div>`).join('')}
+  const perLat=`<div class="lat"><h4>${t('Periodi')} <span class="muted">${periodi.length}</span></h4>${periodi.slice().reverse().map(p=>`<div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${FASE_DOT[p.fase]||'var(--orange)'};margin-right:5px"></i>${esc(t(FASE_LAB[p.fase]||p.fase))} <span class="muted">${esc(p.dal)} → ${esc(p.al||t('in corso'))}</span></span><b>${nf(kcalPiano(p.righe),0)} kcal</b></div>`).join('')}
       <div class="lat-num" style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px"><span>${t('Settimane con dati')}</span><b>${sett.length}</b></div>
       <div class="lat-num"><span>${t('Settimane utili per il bilancio')}</span><b>${punti.length}</b></div></div>`;
   /* VISTA COMPATTA (2026-11-16): tre sezioni per argomento su una griglia fitta — il quadro nel
@@ -149,23 +149,23 @@ function renderAnalisi(){
   document.getElementById('panel-analisi').innerHTML=intro+`<div class="pag"><div class="pag__main"><div class="graf-pagina">
    <div class="sec">${t('Quadro nel tempo')}</div>
    <div class="chart-grid chart-grid--compatta">
-     <div class="chart-box chart-box--largo graf-tl graf-cont"><h4>${t('🗓 Timeline — periodi alimentari, carico e peso')}${spiegaBtn('timeline')}</h4>${grafVarianti(timelineChart(sett,{w:900,h:230,fs:11}),timelineChart(sett,{w:440,h:230,fs:11}))}</div>
+     <div class="chart-box chart-box--largo graf-tl graf-cont"><h4>${t('Timeline — periodi alimentari, carico e peso')}${spiegaBtn('timeline')}</h4>${grafVarianti(timelineChart(sett,{w:900,h:230,fs:11}),timelineChart(sett,{w:440,h:230,fs:11}))}</div>
    </div>
    <div class="sec">${t('Dieta e peso')}</div>
    <div class="chart-grid chart-grid--compatta">
-     <div class="chart-box"><h4>${t('⚖ Δpeso vs bilancio calorico')} ${rPB!=null?`<span class="pill" title="${t('correlazione di Pearson')}">r = ${nf(rPB,2)}</span>`:''}${spiegaBtn('bilancio-peso')}</h4>
+     <div class="chart-box"><h4>${t('Δpeso vs bilancio calorico')} ${rPB!=null?`<span class="pill" title="${t('correlazione di Pearson')}">r = ${nf(rPB,2)}</span>`:''}${spiegaBtn('bilancio-peso')}</h4>
        ${scatterChart(punti,Object.assign({trend:true,xl:t('bilancio kcal/giorno (piano − metabolismo)'),yl:t('Δpeso kg →sett. dopo')},GA))}
        ${regr?`<div class="graf-nota">${t('Retta: ogni 100 kcal/g di surplus ≈')} ${nf(regr.b*100,2)} ${t('kg/settimana')}${rPB!=null&&Math.abs(rPB)<0.3?' · '+t('correlazione debole: servono più settimane'):''}</div>`:''}</div>
-     <div class="chart-box"><h4>${t('📦 Confronto fasi — Δ peso kg a settimana')}${spiegaBtn('confronto-fasi')}</h4>${boxChart(boxPeso,Object.assign({fmt:x=>nf(x,2)},GA))}</div>
+     <div class="chart-box"><h4>${t('Confronto fasi — Δ peso kg a settimana')}${spiegaBtn('confronto-fasi')}</h4>${boxChart(boxPeso,Object.assign({fmt:x=>nf(x,2)},GA))}</div>
    </div>
    <div class="sec">${t('Carico e correlazioni')}</div>
    <div class="chart-grid chart-grid--compatta">
-     <div class="chart-box"><h4>${t('📦 Confronto fasi — Δ Training Load % a settimana')}${spiegaBtn('confronto-fasi')}</h4>${boxChart(boxTL,Object.assign({fmt:x=>nf(x,0)+'%'},GA))}</div>
-     <div class="chart-box"><h4>${t('⏳ Correlazione con ritardo — TL → Δpeso')} ${lagValidi.length?`<span class="pill">${lagBars[0].n} ${t('settimane')}</span>`:''}${spiegaBtn('ritardo')}</h4>
+     <div class="chart-box"><h4>${t('Confronto fasi — Δ Training Load % a settimana')}${spiegaBtn('confronto-fasi')}</h4>${boxChart(boxTL,Object.assign({fmt:x=>nf(x,0)+'%'},GA))}</div>
+     <div class="chart-box"><h4>${t('Correlazione con ritardo — TL → Δpeso')} ${lagValidi.length?`<span class="pill">${lagBars[0].n} ${t('settimane')}</span>`:''}${spiegaBtn('ritardo')}</h4>
        ${lagValidi.length? barChart(lagBars.filter(b=>b.y!=null),Object.assign({fmt:x=>nf(x,2)},GA,{h:195})) : `<div class="empty">${t('Servono più settimane con TL e peso.')}</div>`}
        <div class="graf-nota">${t('r di Pearson fra il carico della settimana N e la variazione di peso 1–5 settimane dopo: il picco indica con quanto ritardo l\'allenamento "si vede" sulla bilancia.')}</div></div>
    </div>
    </div>
    </div><aside class="pag__side">${perLat}
-   <div class="callout"><div>${t('📐 <b>Come leggere.</b> Timeline: le fasce colorate sono i periodi (con le kcal/giorno del piano); se il TL regge mentre il peso scende, il cut sta funzionando. Scatter: ogni punto è una settimana — la pendenza della retta dice quanto il surplus/deficit si traduce in peso. Boxplot: barra spessa = mediana, scatola = 50% centrale delle settimane.')}</div></div></aside></div>`;
+   <div class="callout"><div>${t('<b>Come leggere.</b> Timeline: le fasce colorate sono i periodi (con le kcal/giorno del piano); se il TL regge mentre il peso scende, il cut sta funzionando. Scatter: ogni punto è una settimana — la pendenza della retta dice quanto il surplus/deficit si traduce in peso. Boxplot: barra spessa = mediana, scatola = 50% centrale delle settimane.')}</div></div></aside></div>`;
 }

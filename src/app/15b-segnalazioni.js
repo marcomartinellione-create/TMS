@@ -87,26 +87,26 @@ function segnalaModal(){
   /* flex-direction:row esplicito: .field impone la colonna e il pallino finirebbe
      SOPRA l'etichetta invece che di fianco */
   const opzTipo=SEGN_TIPI.map(x=>`<label class="field optchk" style="display:flex;flex-direction:row;align-items:center;gap:8px;margin:5px 0">
-      <input type="radio" name="sg-tipo" value="${x.k}"${x.k==='bug'?' checked':''} style="width:auto;flex:0 0 auto"><span>${x.ic} ${t(x.lab)}</span></label>`).join('');
+      <input type="radio" name="sg-tipo" value="${x.k}"${x.k==='bug'?' checked':''} style="width:auto;flex:0 0 auto"><span>${t(x.lab)}</span></label>`).join('');
   const opzGrav=SEGN_GRAVITA.map(x=>`<option value="${x.k}">${t(x.lab)}</option>`).join('');
-  modal(`<h3>🐞 ${t('Segnala')}</h3>
+  modal(`<h3>${t('Segnala')}</h3>
     <div class="muted" style="font-size:12.5px;margin-bottom:10px">${t('Serve a migliorare il TMS. L\'app allega da sola versione, sistema e ultimi errori: sono quelli che permettono di capire il problema. Vedi il testo completo prima di mandarlo — <b>niente parte da solo</b>.')}</div>
     ${opzTipo}
     <div class="field" style="margin-top:10px"><label>${t('Cosa succede')}</label>
       <textarea id="sg-cosa" rows="3" style="width:100%" placeholder="${esc(t('es. Salvo la scheda nello Storico e il TL della settimana resta a zero'))}"></textarea></div>
     <div class="field" style="margin-top:8px"><label>${t('Come farlo succedere di nuovo')}</label>
-      <textarea id="sg-passi" rows="2" style="width:100%" placeholder="${esc(t('es. tab Pesi → compilo 3 righe → 💾 Salva nello Storico'))}"></textarea></div>
+      <textarea id="sg-passi" rows="2" style="width:100%" placeholder="${esc(t('es. tab Pesi → compilo 3 righe → Salva nello Storico'))}"></textarea></div>
     <div class="field" id="sg-grav-box" style="margin-top:8px"><label>${t('Quanto pesa')}</label>
       <select id="sg-gravita" style="width:100%">${opzGrav}</select></div>
     <div class="field" style="margin-top:10px"><label>${t('Testo che verrà mandato (puoi modificarlo)')}</label>
       <textarea id="sg-testo" rows="9" style="width:100%;font-family:var(--font-mono);font-size:11px"></textarea></div>
     <div class="sec" style="margin-top:12px">${t('Dove preferisci mandarmela')}</div>
     <div class="modal__actions" style="flex-wrap:wrap;justify-content:flex-start;margin-top:6px">
-      <button class="btn btn--ember" id="sg-github">🐙 ${t('GitHub')}</button>
-      <button class="btn btn--gold" id="sg-ig">📷 ${t('Instagram')}</button>
+      <button class="btn btn--ember" id="sg-github">${ico('esterno','p')}${t('GitHub')}</button>
+      <button class="btn btn--gold" id="sg-ig">${ico('camera','p')}${t('Instagram')}</button>
       <span style="flex:1"></span>
-      <button class="btn" id="sg-copia">📋 ${t('Copia')}</button>
-      <button class="btn" id="sg-file">💾 ${t('Salva come file')}</button>
+      <button class="btn" id="sg-copia">${ico('appunti','p')}${t('Copia')}</button>
+      <button class="btn" id="sg-file">${ico('salva','p')}${t('Salva come file')}</button>
       <button class="btn" onclick="closeModal()">${t('Annulla')}</button>
     </div>
     <div class="muted" style="font-size:11.5px;margin-top:8px">${t('Su <b>GitHub</b> la segnalazione parte già compilata (serve un account gratuito). Con <b>Instagram</b> si apre il profilo: il testo viene copiato negli appunti, incollalo nel messaggio.')}</div>`);
@@ -131,7 +131,7 @@ function segnalaModal(){
     return (d.tipo==='bug'?'[bug] ':'[idea] ')+(cap.length>70?cap.slice(0,70)+'…':cap); };
   $g('sg-copia').onclick=async()=>{ const b=$g('sg-copia');
     const ok=await copiaTesto($g('sg-testo').value);
-    b.textContent=ok?('✔ '+t('Copiato')):('⚠ '+t('Copia a mano dal riquadro')); };
+    b.innerHTML=ok?(ico('check','p')+esc(t('Copiato'))):(ico('attenzione','p')+esc(t('Copia a mano dal riquadro'))); };
   $g('sg-file').onclick=()=>{
     const blob=new Blob([$g('sg-testo').value],{type:'text/markdown'});
     const u=URL.createObjectURL(blob), a=document.createElement('a');
@@ -144,7 +144,7 @@ function segnalaModal(){
      l'utente deve solo incollarlo — altrimenti arriverebbe al profilo a mani vuote */
   $g('sg-ig').onclick=async()=>{ const b=$g('sg-ig');
     const ok=await copiaTesto($g('sg-testo').value);
-    b.textContent=ok?('✔ '+t('Copiato, apro Instagram')):('📷 '+t('Instagram'));
+    b.innerHTML=ok?(ico('check','p')+esc(t('Copiato, apro Instagram'))):(ico('camera','p')+esc(t('Instagram')));
     setTimeout(()=>window.open('https://instagram.com/marco_the_wander','_blank','noopener'), ok?450:0); };
 }
 /* ════════════════ TACCUINO (solo per l'autore) ════════════════
@@ -193,10 +193,10 @@ async function taccScaricaIssues(){
 function taccRigaNota(n){
   return `<div class="box" style="padding:9px 11px;margin-bottom:7px">
     <div style="display:flex;gap:8px;align-items:flex-start">
-      <span class="pill" style="flex:0 0 auto">${n.tipo==='idea'?'✦':'⚠'} ${esc(n.data||'')}</span>
+      <span class="pill" style="flex:0 0 auto">${n.tipo==='idea'?'Idea':'Problema'} · ${esc(n.data||'')}</span>
       <div style="flex:1;min-width:0;white-space:pre-wrap">${esc(n.testo||'')}</div>
-      <button class="btn btn--sm no-print" data-tacc-gh="${esc(n.id)}" title="Aprila come issue su GitHub">↗</button>
-      <button class="btn btn--sm btn--danger no-print" data-tacc-del="${esc(n.id)}" title="Elimina la nota">✕</button>
+      <button class="btn btn--sm no-print" data-tacc-gh="${esc(n.id)}" title="Aprila come issue su GitHub">${ico('esterno','p')}</button>
+      <button class="btn btn--sm btn--danger no-print" data-tacc-del="${esc(n.id)}" title="Elimina la nota">${ico('x','p')}</button>
     </div></div>`;
 }
 function taccRigaIssue(i){
@@ -214,12 +214,12 @@ function taccModal(){
   const note=TACC.note.slice().reverse();
   const iss=TACC.github.issues||[];
   const quando=TACC.github.aggiornato? new Date(TACC.github.aggiornato).toLocaleString('it-IT') : 'mai';
-  modal(`<h3>📓 Taccuino <span class="pill">${note.length} note</span></h3>
+  modal(`<h3>Taccuino <span class="pill">${note.length} note</span></h3>
     <div class="muted" style="font-size:12px;margin-bottom:10px">Il tuo quaderno di lavoro, dentro la cartella dati. Le note restano qui e funzionano offline; le issue si aprono e si chiudono <b>su GitHub</b> — qui sono solo rispecchiate.</div>
     <div class="field"><label>Nuova nota</label>
       <textarea id="tacc-testo" rows="2" style="width:100%" placeholder="es. il grafico ACWR non si aggiorna cambiando Training Set"></textarea></div>
     <div class="bar" style="margin:8px 0 14px">
-      <select id="tacc-tipo" style="width:auto"><option value="bug">⚠ Non funziona</option><option value="idea">✦ Idea</option></select>
+      <select id="tacc-tipo" style="width:auto"><option value="bug">Non funziona</option><option value="idea">Idea</option></select>
       <button class="btn btn--ember" id="tacc-add">＋ Aggiungi</button>
     </div>
     <div class="sec" style="margin-top:4px">Le mie note</div>

@@ -108,7 +108,7 @@ async function importaPesate(arrivate){
   if(aMano.length) sostituisci=await conferma(
     t('Nello Storico misure ci sono già valori scritti a mano per:')+'\n• '+aMano.map(c=>t('settimana del')+' '+schedaLabel(c)).join('\n• ')+'\n\n'+
     t('Li sostituisco con la media delle pesate? Se scegli «Tienili», le pesate restano salvate ma lo Storico di quelle settimane non cambia.'),
-    {titolo:t('⚖ Pesate della bilancia'), testoOk:t('Sostituisci'), testoNo:t('Tienili')});
+    {titolo:t('Pesate della bilancia'), testoOk:t('Sostituisci'), testoNo:t('Tienili')});
   settimane.forEach(c=>{
     if(!sostituisci && aMano.indexOf(c)>=0){ ris.tenute.push(c); return; }
     const riga=rigaDaPesate(c, pesateDellaSettimana(c), DOC.dati_utente||{}); if(!riga) return;
@@ -135,10 +135,10 @@ function htmlPesate(){
     const M=k=>mediaPesate(contate,k);
     return `<tr class="pesate-sett"><td colspan="7"><b>${t('Settimana del')} ${esc(schedaLabel(c))}</b> <span class="muted">· ${stato}</span></td></tr>`+
       lista.map(p=>`<tr${ids.has(p.id)?'':' class="pesata-fuori"'}><td>${esc(giornoPesata(p.data))}</td><td class="num">${esc((p.ora||'').slice(0,5))}</td><td class="num">${N(p.peso,1)}</td><td class="num">${N(p.grasso,1)}</td><td class="num">${N(p.muscolo,1)}</td><td class="num">${N(p.acqua,1)}</td>
-        <td class="no-print" style="white-space:nowrap"><button class="btn btn--sm" data-reppes="${esc(p.id)}" title="${esc(t('Rapporto di questa pesata'))}" aria-label="${esc(t('Rapporto di questa pesata'))}">📄</button> <button class="btn btn--sm btn--del" data-delpes="${esc(p.id)}" title="${esc(t('Togli questa pesata'))}" aria-label="${esc(t('Togli questa pesata'))}">🗑</button></td></tr>`).join('')+
+        <td class="no-print" style="white-space:nowrap"><button class="btn btn--sm" data-reppes="${esc(p.id)}" title="${esc(t('Rapporto di questa pesata'))}" aria-label="${esc(t('Rapporto di questa pesata'))}">${ico('documento','p')}</button> <button class="btn btn--sm btn--del" data-delpes="${esc(p.id)}" title="${esc(t('Togli questa pesata'))}" aria-label="${esc(t('Togli questa pesata'))}">${ico('cestino','p')}</button></td></tr>`).join('')+
       `<tr class="pesate-media"><td colspan="2"><b>${t('Media')}</b> <span class="muted">(${contate.length})</span></td><td class="num"><b>${N(M('peso'),1)}</b></td><td class="num"><b>${N(M('grasso'),1)}</b></td><td class="num"><b>${N(M('muscolo'),1)}</b></td><td class="num"><b>${N(M('acqua'),1)}</b></td><td></td></tr>`;
   }).join('');
-  return `<div class="sec">${t('⚖ Pesate della bilancia')} <span class="pill">${tutte.length}</span><button class="btn btn--sm no-print" style="margin-left:auto" data-reppes="${esc(tutte.slice().sort(ordinePesate).pop().id)}">${t('📄 Rapporto dell’ultima')}</button></div>
+  return `<div class="sec">${t('Pesate della bilancia')} <span class="pill">${tutte.length}</span><button class="btn btn--sm no-print" style="margin-left:auto" data-reppes="${esc(tutte.slice().sort(ordinePesate).pop().id)}">${ico('documento')}${t('Rapporto dell’ultima')}</button></div>
     <div class="tbl-wrap"><table class="tbl-pesate"><thead><tr><th>${t('Giorno')}</th><th>${t('Ora')}</th><th>${t('Peso')}</th><th>${t('Grasso %')}</th><th>${t('Muscolo')}</th><th>${t('Acqua %')}</th><th class="no-print"></th></tr></thead>
     <tbody>${corpo}</tbody></table></div>
     <div class="muted" style="font-size:11px;margin-top:4px">${t('Arrivano da sole dall’app del telefono collegata e la media di ogni settimana va da sola nello Storico misure. Nella media conta una pesata al giorno, la prima: le altre sono in grigio.')}</div>
@@ -155,7 +155,7 @@ async function eliminaPesata(id){
   const p=(DOC.pesate||[]).find(x=>x.id===id); if(!p) return;
   if(!await conferma(t('Tolgo la pesata di')+' '+giornoPesata(p.data)+(p.ora?' '+p.ora.slice(0,5):'')+' ('+nf(p.peso,1)+' kg)?\n'+
     t('Non tornerà con i prossimi rientri, e la media della sua settimana nello Storico misure si ricalcola.'),
-    {titolo:t('⚖ Pesate della bilancia'), testoOk:t('Togli'), pericolo:true})) return;
+    {titolo:t('Pesate della bilancia'), testoOk:t('Togli'), pericolo:true})) return;
   DOC.pesate=DOC.pesate.filter(x=>x.id!==id);
   if(!Array.isArray(DOC.pesate_scartate)) DOC.pesate_scartate=[];
   if(DOC.pesate_scartate.indexOf(id)<0) DOC.pesate_scartate.push(id);

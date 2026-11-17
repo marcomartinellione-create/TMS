@@ -108,7 +108,7 @@ function bloccaScritture(e){
 function sbloccaScritture(){ scrittureBloccate=null; }
 function mostraBloccoScritture(){
   if(!scrittureBloccate) return;
-  modal(`<h3>⚠ ${t('Un file dei dati non si legge')}</h3>
+  modal(`<h3>${t('Un file dei dati non si legge')}</h3>
    <div class="callout callout--ember" style="margin-top:6px"><div>${t('Non riesco a leggere')} <b class="mono">${esc(scrittureBloccate.file)}</b>. ${t('Per non rovinare nulla ho <b>sospeso il salvataggio</b>: quello che vedi ora può essere incompleto e le modifiche di questa sessione non vengono scritte.')}</div></div>
    <div style="font-size:13px;line-height:1.55;margin-top:8px">${t('Cosa fare, in ordine:')}<br>1. ${t('<b>Chiudi e riapri</b> l’app: se il file era solo occupato da un altro programma (antivirus, sincronizzazione) torna tutto a posto da solo.')}<br>2. ${t('Se succede di nuovo, dal tab <b>Profilo</b> ripristina un <b>backup automatico</b>: il file rotto resta dov’è, non viene cancellato.')}</div>
    <div class="modal__actions"><button class="btn btn--ember" onclick="closeModal()">${t('Ho capito')}</button></div>`);

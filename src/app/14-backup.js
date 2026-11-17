@@ -153,19 +153,19 @@ async function ripristinaBackupAutomatico(nomeFile){
       dell'updater via window.tmsUpdate, qui si mostrano i modali in stile pergamena ── */
 function modalAggiornamento(d){
   const nota=String((d&&d.note)||'').trim();
-  modal(`<h3>${d&&d.maggiore?t('⚠ Aggiornamento MAGGIORE'):t('✦ Aggiornamento disponibile')}</h3>
+  modal(`<h3>${d&&d.maggiore?t('Aggiornamento MAGGIORE'):t('Aggiornamento disponibile')}</h3>
    <div class="callout ${d&&d.maggiore?'callout--ember':'callout--info'}"><div>${t('È pronta la versione')} <b>v${esc(d.versione)}</b> <span class="muted">(${t('hai la v')}${esc(d.attuale)})</span>. ${d&&d.locale? t('L’installatore è nella cartella <b>release</b> del progetto. Confermando, l’app salva, si chiude, installa la nuova versione e si riapre da sola (serve qualche secondo).') : t('Confermando, il download prosegue in background: vedrai la <b>percentuale nel titolo</b> della finestra e sulla taskbar.')}</div></div>
    ${nota?`<div class="sec">${t('Novità di questa versione')}</div>
    <div style="max-height:240px;overflow:auto;white-space:pre-wrap;font-size:12.5px;line-height:1.55;color:var(--ink-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;background:var(--paper-2)">${esc(nota)}</div>`:''}
-   <div class="modal__actions"><button class="btn" id="upd-dopo">${t('Più tardi')}</button><button class="btn btn--ember" id="upd-vai">${d&&d.locale? t('↻ Installa e riavvia') : t('⭳ Scarica e installa')}</button></div>`);
+   <div class="modal__actions"><button class="btn" id="upd-dopo">${t('Più tardi')}</button><button class="btn btn--ember" id="upd-vai">${d&&d.locale? ico('ricarica')+t('Installa e riavvia') : ico('scarica')+t('Scarica e installa')}</button></div>`);
   { const b=document.getElementById('upd-vai'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('scarica'); }catch(e){} }; }
   { const b=document.getElementById('upd-dopo'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('dopo'); }catch(e){} }; }
   { const m=document.getElementById('modal'); if(m) m.style.maxWidth='620px'; }
 }
 function modalRiavvio(d){
-  modal(`<h3>${t('✦ Aggiornamento pronto')}</h3>
+  modal(`<h3>${t('Aggiornamento pronto')}</h3>
    <div class="callout callout--info"><div>${t('La versione')} <b>v${esc(d.versione)}</b> ${t('è scaricata e pronta. Vuoi <b>riavviare ora</b> per installarla? Altrimenti si installa da sola alla prossima chiusura.')}</div></div>
-   <div class="modal__actions"><button class="btn" id="upd-rdopo">${t('Più tardi')}</button><button class="btn btn--ember" id="upd-riavvia">${t('↻ Riavvia ora')}</button></div>`);
+   <div class="modal__actions"><button class="btn" id="upd-rdopo">${t('Più tardi')}</button><button class="btn btn--ember" id="upd-riavvia">${ico('ricarica')}${t('Riavvia ora')}</button></div>`);
   { const b=document.getElementById('upd-riavvia'); if(b) b.onclick=()=>{ try{ window.tmsUpdate.rispondi('riavvia'); }catch(e){} }; }
   { const b=document.getElementById('upd-rdopo'); if(b) b.onclick=()=>{ closeModal(); try{ window.tmsUpdate.rispondi('dopo'); }catch(e){} }; }
 }
@@ -173,12 +173,12 @@ function modalRiavvio(d){
 /* log errori interni: modale di consultazione (5 click sulla scritta «TMS» in alto) */
 function mostraLogErrori(){
   const righe=LOG_ERRORI.slice().reverse().map(v=>v.t+'  ['+v.dove+']  '+v.msg).join('\n');
-  modal(`<h3>🩺 ${t('Log errori interni')} <span class="pill">${LOG_ERRORI.length} ${t('voci')}</span></h3>
+  modal(`<h3>${t('Log errori interni')} <span class="pill">${LOG_ERRORI.length} ${t('voci')}</span></h3>
    <div class="muted" style="font-size:12px;margin-bottom:6px">${t('Diagnostica per l\'assistenza: se qualcosa non funziona, copia questo testo e invialo insieme alla segnalazione.')}</div>
-   <textarea readonly style="width:100%;min-height:260px;font-family:var(--font-mono);font-size:11px">${esc(righe)||t('Nessun errore registrato in questa sessione. 👍')}</textarea>
-   <div class="modal__actions"><button class="btn" id="log-copia">📋 ${t('Copia')}</button><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
+   <textarea readonly style="width:100%;min-height:260px;font-family:var(--font-mono);font-size:11px">${esc(righe)||t('Nessun errore registrato in questa sessione.')}</textarea>
+   <div class="modal__actions"><button class="btn" id="log-copia">${ico('appunti','p')}${t('Copia')}</button><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const c=document.getElementById('log-copia');
-  if(c) c.onclick=()=>{ try{ navigator.clipboard.writeText(righe); c.textContent=t('✔ Copiato'); }catch(e){} };
+  if(c) c.onclick=()=>{ try{ navigator.clipboard.writeText(righe); c.textContent=t('Copiato'); }catch(e){} };
 }
 async function restoreData(file){
   let snap; try{ snap=JSON.parse(await file.text()); }catch(e){ avviso(t('File non leggibile.')); logErrore('ripristino', e); return; }
@@ -217,6 +217,6 @@ async function restoreData(file){
     const data={}; Object.keys(snap.profiles).forEach(s=>data[s]=snap.profiles[s]);
     try{ localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,ricette:DOC.ricette||[],profili:profili,active:activeProfile,data:data})); }catch(e){}
   }
-  saveCache(); avviso(t('✔ Backup ripristinato (')+np+' '+t('profili).')+(fotoRipristinate?' '+fotoRipristinate+' '+t('foto rimesse al loro posto.'):'')); renderAll(); showTab('profilo');
+  saveCache(); avviso(t('Backup ripristinato (')+np+' '+t('profili).')+(fotoRipristinate?' '+fotoRipristinate+' '+t('foto rimesse al loro posto.'):'')); renderAll(); showTab('profilo');
 }
 

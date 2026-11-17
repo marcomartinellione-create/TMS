@@ -54,8 +54,8 @@ function undoPasso(da, verso, verbo){
   undoAvviso(verbo+' '+t(P.nome));
   return true;
 }
-function annulla(){ return undoPasso(undoPila, redoPila, t('↶ Annullata una modifica:')); }
-function ripristina(){ return undoPasso(redoPila, undoPila, t('↷ Rifatta una modifica:')); }
+function annulla(){ return undoPasso(undoPila, redoPila, t('Annullata una modifica:')); }
+function ripristina(){ return undoPasso(redoPila, undoPila, t('Rifatta una modifica:')); }
 let undoAvvisoTimer=null;
 function undoAvviso(testo){
   let el=document.getElementById('undo-avviso');

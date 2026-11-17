@@ -270,10 +270,10 @@ async function telGiro(){
     if(fs!==p.firmaStato) await telScriviStato(slug, p);
     _telUltimoGiro=new Date(); _telErr=''; telSalva();
     const pz=[];
-    if(ev && ev.pesate && ev.pesate.nuove) pz.push('⚖ '+ev.pesate.nuove+' '+(ev.pesate.nuove===1?t('pesata nuova'):t('pesate nuove')));
-    if(ev && ev.foto) pz.push('📷 '+ev.foto+' '+t('foto nel tab Corpo'));
-    if(sc) pz.push('🏋 '+t('scheda aggiornata dal telefono'));
-    if(pz.length) telNotizia(t('🔗 Dal telefono:')+' '+pz.join(' · '));
+    if(ev && ev.pesate && ev.pesate.nuove) pz.push(ev.pesate.nuove+' '+(ev.pesate.nuove===1?t('pesata nuova'):t('pesate nuove')));
+    if(ev && ev.foto) pz.push(ev.foto+' '+t('foto nel tab Corpo'));
+    if(sc) pz.push(t('scheda aggiornata dal telefono'));
+    if(pz.length) telNotizia(t('Dal telefono:')+' '+pz.join(' · '));
   }catch(e){ _telErr=String((e&&e.message)||e); logErrore('telefono/giro', e); }
   finally{ _telGiroIn=false; telAggiornaVista(); }
 }
@@ -297,16 +297,16 @@ function telOra(iso){ if(!iso) return ''; try{ const d=new Date(iso); return d.t
 function telRigaPesi(){
   if(!telDisponibile()) return '';
   const p=telProf(); if(!p) return '';
-  const s=t('🔗 Scheda collegata al telefono')+' · '+t('settimana')+' <b>'+(+p.settimana||1)+'</b>'+
+  const s=t('Scheda collegata al telefono')+' · '+t('settimana')+' <b>'+(+p.settimana||1)+'</b>'+
     ' · '+(p.ultimoTelefono? t('ultimo dal telefono')+' <b>'+esc(telOra(p.ultimoTelefono))+'</b>' : t('il telefono non ha ancora scritto niente'))+
-    '<br><span class="muted">'+t('Quello che cambi qui o sul telefono si allinea da solo. «💾 Salva nello Storico» chiude la settimana anche sul telefono; la scheda resta collegata per la settimana dopo.')+'</span>';
+    '<br><span class="muted">'+t('Quello che cambi qui o sul telefono si allinea da solo. «Salva nello Storico» chiude la settimana anche sul telefono; la scheda resta collegata per la settimana dopo.')+'</span>';
   return `<div class="tel-riga no-print" id="tel-riga"><span>${s}</span></div>`;
 }
 /* riga nella finestra di «Salva nello Storico»: quanto è fresco quello che è arrivato dal telefono */
 function telRigaSalva(){
   if(!telDisponibile()) return '';
   const p=telProf(); if(!p) return '';
-  return `<p class="muted" style="font-size:13px;margin:6px 0 0">🔗 ${p.ultimoTelefono? t('Ultimo aggiornamento dal telefono:')+' <b>'+esc(telOra(p.ultimoTelefono))+'</b>' : t('Dal telefono non è ancora arrivato niente.')} ${t('Salvando, la settimana si chiude anche sul telefono.')}</p>`;
+  return `<p class="muted" style="font-size:13px;margin:6px 0 0">${p.ultimoTelefono? t('Ultimo aggiornamento dal telefono:')+' <b>'+esc(telOra(p.ultimoTelefono))+'</b>' : t('Dal telefono non è ancora arrivato niente.')} ${t('Salvando, la settimana si chiude anche sul telefono.')}</p>`;
 }
 function telAggiornaVista(){
   const r=document.getElementById('tel-riga');
@@ -324,19 +324,19 @@ function telTestoStato(){
   if(p.ultimaSalvata) pz.push(t('ultima settimana salvata il')+' '+telOra(p.ultimaSalvata.quando));
   if((p.ricevute||[]).length) pz.push((p.ricevute||[]).length+' '+t('pesate e foto ricevute'));
   if(_telUltimoGiro) pz.push(t('controllato alle')+' '+_telUltimoGiro.toLocaleTimeString(LANG==='en'?'en-GB':'it-IT',{hour:'2-digit',minute:'2-digit'}));
-  if(_telErr) pz.push('⚠ '+_telErr);
-  return '✔ '+t('Collegato')+' · '+esc(pz.join(' · '));
+  if(_telErr) pz.push(_telErr);
+  return t('Collegato')+' · '+esc(pz.join(' · '));
 }
 function telSezioneImpostazioni(cartella){
   if(!telDisponibile()) return '';
   const st=telStato(), p=telProf(), nome=esc(profNome());
   return `<div class="imp-sez" id="imp-tel">
-      <h4>${t('🔗 Telefono collegato')}</h4>
+      <h4>${t('Telefono collegato')}</h4>
       <div class="lat-nota" style="margin:0 0 8px">${t('Il TMS e l\'app TMS Scheda del telefono condividono la scheda dei Pesi (si modifica da tutte e due le parti) e si passano pesate e foto, attraverso una cartella condivisa (Google Drive per desktop qui, un\'app di sincronizzazione sul telefono). I file sono cifrati col codice qui sotto: Google vede solo file illeggibili.')}</div>
-      <div class="imp-riga"><span>${t('Cartella condivisa')}</span><span class="gruppo"><button class="btn btn--sm" id="imp-tel-cartella">📁 ${cartella?t('Cambia…'):t('Scegli…')}</button>${cartella?`<button class="btn btn--sm" id="imp-tel-scollega">${t('Scollega')}</button>`:''}</span></div>
+      <div class="imp-riga"><span>${t('Cartella condivisa')}</span><span class="gruppo"><button class="btn btn--sm" id="imp-tel-cartella">${ico('cartella','p')}${cartella?t('Cambia…'):t('Scegli…')}</button>${cartella?`<button class="btn btn--sm" id="imp-tel-scollega">${t('Scollega')}</button>`:''}</span></div>
       <div class="lat-nota imp-tel-percorso">${cartella?esc(cartella):t('Nessuna cartella scelta (di solito «My Drive\\6 - TMS»).')}</div>
       ${cartella?`<div class="imp-riga"><span>${t('Codice di collegamento')}</span><span class="gruppo">${st.codice?`<code class="tel-codice" id="imp-tel-codice">${esc(telCodiceBello(st.codice))}</code><button class="btn btn--sm" id="imp-tel-copia">${t('Copia')}</button><button class="btn btn--sm" id="imp-tel-nuovo">${t('Nuovo codice')}</button>`:`<button class="btn btn--sm btn--ember" id="imp-tel-nuovo">${t('Crea il codice')}</button>`}</span></div>
-      ${st.codice?`<div class="lat-nota">${t('Sul telefono: TMS Scheda › ⚙ Collegamento e promemoria › scegli la cartella sincronizzata con questa e scrivi il codice. Si fa una volta sola.')}</div>
+      ${st.codice?`<div class="lat-nota">${t('Sul telefono: TMS Scheda › Collegamento e promemoria › scegli la cartella sincronizzata con questa e scrivi il codice. Si fa una volta sola.')}</div>
       <div class="imp-riga"><span>${t('Profilo')} «${nome}»</span><span class="gruppo">${p?`<button class="btn btn--sm" id="imp-tel-togli">${t('Scollega il profilo')}</button>`:`<button class="btn btn--sm btn--ember" id="imp-tel-prof">${t('Collega la scheda di questo profilo')}</button>`}</span></div>
       <div class="lat-nota" id="imp-tel-stato">${telTestoStato()}</div>`:''}`:''}
     </div>`;

@@ -110,10 +110,10 @@ function disegnaRicetta(){
     return `<tr><td class="l">${esc(x.alimento)}${f?'':` <span class="pill" style="color:var(--danger)">${t('non in banca dati')}</span>`}</td>
       <td><input class="cell-in" type="number" min="0" data-ring="${i}" value="${x.grammi??''}" style="width:64px"></td>
       <td class="num">${v(q('kcal'),0)}</td><td class="num">${v(q('proteine'),1)}</td><td class="num">${v(q('grassi'),1)}</td><td class="num">${v(q('zuccheri'),1)}</td><td class="num">${v(q('fibre'),1)}</td>
-      <td><button class="btn btn--sm btn--danger" data-rdel="${i}" title="${t('togli ingrediente')}">✕</button></td></tr>`; }).join('');
+      <td><button class="btn btn--sm btn--danger" data-rdel="${i}" title="${t('togli ingrediente')}">${ico('x','p')}</button></td></tr>`; }).join('');
   const riga=(lab,div,cl)=>`<tr class="${cl||''}"><td class="l"><b>${lab}</b></td><td class="num">${div===1?nf(pIng,0)+' g':''}</td>${['kcal','proteine','grassi','zuccheri','fibre'].map((k,j)=>`<td class="num"><b>${tot[k]==null?'—':nf(tot[k]/div,j?1:0)}</b></td>`).join('')}<td></td></tr>`;
   const per100=k=>tot[k]==null||pf<=0? null : tot[k]/pf*100;
-  modal(`<h3>👨‍🍳 ${B.orig? t('Modifica ricetta') : t('Nuova ricetta')}</h3>
+  modal(`<h3>${B.orig? t('Modifica ricetta') : t('Nuova ricetta')}</h3>
     <div class="row">
       <div class="field" style="flex:2"><label>${t('Nome della ricetta')}</label><input id="ric-nome" value="${esc(r.nome)}" placeholder="${t('es. Porridge proteico ai frutti rossi')}"></div>
       <div class="field"><label>${t('Porzioni')}</label><input id="ric-porz" type="number" min="1" step="1" value="${r.porzioni??1}"></div></div>
@@ -131,7 +131,7 @@ function disegnaRicetta(){
         <tr><td class="l"><b>${t('Per 100 g')}</b> <span class="muted">(${t('su')} ${nf(pf,0)} g)</span></td><td></td>${['kcal','proteine','grassi','zuccheri','fibre'].map((k,j)=>`<td class="num"><b>${per100(k)==null?'—':nf(per100(k),j?1:0)}</b></td>`).join('')}<td></td></tr></tfoot>`:''}</table></div>
     <div class="field" style="margin-top:10px"><label>${t('Procedimento')}</label><textarea id="ric-proc" rows="5" placeholder="${t('un passaggio per riga')}">${esc(r.procedimento||'')}</textarea></div>
     <div class="field"><label>${t('Note')}</label><input id="ric-note" value="${esc(r.note||'')}" placeholder="${t('varianti, conservazione, consigli')}"></div>
-    <div class="modal__actions">${B.orig?`<button class="btn btn--danger" id="ric-del">${t('🗑 Elimina')}</button>`:''}<span class="spacer"></span>
+    <div class="modal__actions">${B.orig?`<button class="btn btn--danger" id="ric-del">${ico('cestino')}${t('Elimina')}</button>`:''}<span class="spacer"></span>
       <button class="btn" id="ric-no">${t('Annulla')}</button><button class="btn btn--ember" id="ric-ok">${t('Salva ricetta')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='820px';
   m.querySelectorAll('[data-ring]').forEach(inp=>{ inp.onchange=()=>{ leggiCampiRicetta(); disegnaRicetta(); }; });
@@ -181,8 +181,8 @@ async function eliminaRicetta(){
 function ricettaScheda(r){
   const tempi=[r.tempoPrep?t('preparazione')+' '+r.tempoPrep+' min':'', r.tempoCottura?t('cottura')+' '+r.tempoCottura+' min':''].filter(Boolean).join(' · ');
   const passi=String(r.procedimento||'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
-  return `<div class="ric-scheda"><div class="ric-scheda__testa"><b>👨‍🍳 ${esc(r.nome)}</b>${r.descrizione?` — <span>${esc(r.descrizione)}</span>`:''}
-      <button class="btn btn--sm" data-ricedit="${esc(r.nome)}" style="margin-left:auto">✎ ${t('Modifica ricetta')}</button></div>
+  return `<div class="ric-scheda"><div class="ric-scheda__testa"><b>${esc(r.nome)}</b>${r.descrizione?` — <span>${esc(r.descrizione)}</span>`:''}
+      <button class="btn btn--sm" data-ricedit="${esc(r.nome)}" style="margin-left:auto">${ico('matita','p')}${t('Modifica ricetta')}</button></div>
     <div class="muted" style="font-size:12px">${[tempi, (+r.porzioni>1? r.porzioni+' '+t('porzioni'):''), t('peso finale')+' '+nf(ricettaPesoFinale(r),0)+' g'].filter(Boolean).join(' · ')}</div>
     <div class="ric-scheda__ing">${(r.ingredienti||[]).map(x=>`<span class="pill">${esc(x.alimento)} · ${nf(x.grammi,0)} g</span>`).join(' ')}</div>
     ${passi.length?`<ol class="ric-scheda__passi">${passi.map(p=>`<li>${esc(p)}</li>`).join('')}</ol>`:''}
@@ -191,12 +191,12 @@ function ricettaScheda(r){
 /* elenco delle ricette (pulsante nella barra di Alimentazione) */
 function ricetteModal(){
   const L=ricetteComeAlimenti();
-  modal(`<h3>👨‍🍳 ${t('Le mie ricette')} <span class="pill" style="font-weight:400">${L.length}</span></h3>
+  modal(`<h3>${t('Le mie ricette')} <span class="pill" style="font-weight:400">${L.length}</span></h3>
     <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Le ricette sono comuni a tutti i profili: si usano nel piano come un alimento (categoria «Le mie ricette» nel selettore) e i loro valori sono la somma degli ingredienti. «usata» conta le righe del profilo aperto.')}</div>
     ${L.length?`<div class="tbl-wrap"><table><thead><tr><th class="l">${t('Ricetta')}</th><th>${t('ingredienti')}</th><th>${t('peso')}</th><th>Kcal/100 g</th><th>Prot/100 g</th><th>${t('usata')}</th><th></th></tr></thead><tbody>
       ${L.map(f=>{ const r=f.ricetta, u=ricettaUsi(f.nome); return `<tr><td class="l"><b>${esc(f.nome)}</b>${r.descrizione?`<div class="muted" style="font-size:11.5px">${esc(r.descrizione)}</div>`:''}</td>
         <td class="num">${(r.ingredienti||[]).length}</td><td class="num">${nf(ricettaPesoFinale(r),0)} g</td><td class="num">${f.per100.kcal==null?'—':nf(f.per100.kcal,0)}</td><td class="num">${f.per100.proteine==null?'—':nf(f.per100.proteine,1)}</td>
-        <td class="num">${u.righe}</td><td><button class="btn btn--sm" data-riclist="${esc(f.nome)}">✎</button></td></tr>`; }).join('')}</tbody></table></div>`
+        <td class="num">${u.righe}</td><td><button class="btn btn--sm" data-riclist="${esc(f.nome)}">${ico('matita','p')}</button></td></tr>`; }).join('')}</tbody></table></div>`
       : `<div class="empty" style="padding:22px">${t('Nessuna ricetta. Creane una: scegli gli ingredienti dalla banca dati e i valori nutritivi si sommano da soli.')}</div>`}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button><button class="btn btn--ember" id="ric-nuova">${t('＋ Nuova ricetta')}</button></div>`);
   document.getElementById('ric-nuova').onclick=()=>apriRicetta('', ricetteModal);
@@ -228,7 +228,7 @@ function suggerisciAlimenti(key){
   const [lab,,,val,unit]=ref, giorno=rows.reduce((a,r)=>a+foodVal(r.alimento,r.grammi,key),0), manca=Math.max(0,val-giorno), dec=val<10?1:0;
   const pasti=[]; ((DOC.alimentazione||{})[fase]||[]).forEach(r=>{ const p=_pastoDi(r); if(!pasti.includes(p)) pasti.push(p); });
   const L=suggerimenti(key);
-  modal(`<h3>💡 ${t('Alimenti ricchi di')} ${esc(t(lab))}</h3>
+  modal(`<h3>${t('Alimenti ricchi di')} ${esc(t(lab))}</h3>
     <div class="callout callout--info" style="margin-top:4px"><div>${t('Nel piano')} <b>${esc(t(FASE_LAB[fase]||fase))}</b>: <b>${nf(giorno,dec)} ${unit}</b> ${t('al giorno su')} ${nf(val,dec)} ${unit} (${nf(val>0?giorno/val*100:0,0)}%). ${t('Mancano circa')} <b>${nf(manca,dec)} ${unit}</b>.</div></div>
     <div class="bar" style="margin:8px 0;gap:6px;flex-wrap:wrap">
       <button class="btn btn--sm${suggStato.ordine==='g'?' btn--ember':''}" data-sord="g">${t('per 100 g')}</button>

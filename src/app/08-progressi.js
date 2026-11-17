@@ -305,7 +305,7 @@ function pctSegno(v,dec){ if(v==null||!isFinite(v)) return '—'; const r=+(+v).
    indiceProgresso(); il grafico «Δ Variazione TL %» resta dov'è. */
 function boxProgressoReale(sf,f){
   const ip=indiceProgresso(sf,f);
-  const tit=`<h4>📐 ${t('Progresso reale · a parità di esercizi')}${ip?` <span class="muted" style="font-size:11px">(${t('base 100 al')} ${schedaLabel(ip.sett[0])})</span>`:''}${spiegaBtn('progresso-reale')}</h4>`;
+  const tit=`<h4>${t('Progresso reale · a parità di esercizi')}${ip?` <span class="muted" style="font-size:11px">(${t('base 100 al')} ${schedaLabel(ip.sett[0])})</span>`:''}${spiegaBtn('progresso-reale')}</h4>`;
   if(!ip) return `<div class="chart-box prog-reale">${tit}<div class="empty">${t('Servono almeno due settimane salvate per misurare il progresso.')}</div></div>`;
   const lab=ip.sett.map(schedaLabel);
   const COL={tot:'var(--ink-3)', tl:'var(--violet)', forza:'var(--orange-b)'};
@@ -340,11 +340,11 @@ function renderProgressi(){
      mobile restano calcolati su tutta la storia (agTutte), i Segnali e i Record pure */
   const ag=f? agTutte.filter(a=>f.passa(a.scheda)) : agTutte;
   if(!ag.length){ document.getElementById('panel-progressi').innerHTML=barraSetProgressi()+
-      `<div class="empty"><span class="empty__ico">📈</span>${agTutte.length
+      `<div class="empty"><span class="empty__ico">${ico('andamento')}</span>${agTutte.length
         ? t('<b>Nessuna settimana salvata nel periodo o nella fase alimentare scelti.</b><br>Cambia il periodo o l\'alimentazione qui sopra.')
         : sf==='__tutti__'
-        ?t('<b>Ancora nessun progresso da mostrare.</b><br>I grafici si accendono quando salvi la prima scheda nello Storico: compila la scheda in <b>🏋 Pesi</b> e premi «💾 Salva nello Storico».')+
-         `<br><button class="btn btn--ember" onclick="showTab('allenamento')">${t('🏋 Vai alla scheda Pesi')}</button>`
+        ?t('<b>Ancora nessun progresso da mostrare.</b><br>I grafici si accendono quando salvi la prima scheda nello Storico: compila la scheda in <b>Pesi</b> e premi «Salva nello Storico».')+
+         `<br><button class="btn btn--ember" onclick="showTab('allenamento')">${t('Vai alla scheda Pesi')}</button>`
         :t('<b>Nessuna scheda salvata con questo Training Set.</b><br>Cambia Training Set qui sopra, oppure salva una scheda mentre questo è attivo.')}</div>`;
     bindFiltriProgressi(); return; }
   const labels=ag.map(a=>schedaLabel(a.scheda));
@@ -365,7 +365,7 @@ function renderProgressi(){
      avrebbe niente da mostrare. La card dell'esercizio nel grafico resta evidenziata.
      Impaginazione della sezione (stessa sera): a sinistra, grande, il Progresso reale; a destra
      le card dei record con sotto la progressione dell'esercizio (02-stili.css, .chart-grid--forza). */
-  const cards=`<div class="chart-box rec-box"><h4>🏆 ${t('Record personali · carico massimo')}${(sf!=='__tutti__'||f)?`<span class="pill muted" style="text-transform:none">${t('su tutto il percorso')}</span>`:''}</h4><div class="cards rec-cards">${MAINLIFTS.map(L=>{ const n=nomeAttuale(L.nome), r=realMax(n), vai=exs.includes(n);
+  const cards=`<div class="chart-box rec-box"><h4>${t('Record personali · carico massimo')}${(sf!=='__tutti__'||f)?`<span class="pill muted" style="text-transform:none">${t('su tutto il percorso')}</span>`:''}</h4><div class="cards rec-cards">${MAINLIFTS.map(L=>{ const n=nomeAttuale(L.nome), r=realMax(n), vai=exs.includes(n);
     const att=vai? ` role="button" tabindex="0" data-rec-ex="${esc(n)}" title="${t('Mostra la progressione di questo esercizio nel grafico qui sotto')}"` : (r? ` title="${t('Nessuna serie di questo esercizio nei dati scelti')}"` : '');
     return `<div class="card pr-card${vai?' pr-card--vai':''}${vai&&n===progEx?' is-sel':''}"${att}><div class="pr-ex">${esc(t(L.label))}</div><div class="pr-val">${r?nf(r.peso,0):'—'}<span>kg</span></div><div class="pr-sub">${r?(t('record')+(r.rip?(' · ×'+nf(r.rip,0)):'')):t('nessun dato')}</div></div>`; }).join('')}</div></div>`;
   const tlSeries=[{name:'TL',color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:a.tl||null}))},{name:t('Media mobile 4'),color:'var(--ink-3)',data:ag.map((a,i)=>({x:labels[i],y:mavg[i]}))}];
@@ -396,45 +396,45 @@ function renderProgressi(){
   const lf=foster[foster.length-1];
   let fosterSignal='';
   if(hasRpe && lf){
-    if(lf.monotony!=null && lf.monotony>2 && lf.load>0) fosterSignal=`<div class="callout" style="background:var(--danger-t);border-color:#e6b8b8;border-left-color:var(--danger)"><div>⚠️ ${t('<b>Monotonia alta</b> (')}${nf(lf.monotony,2)}${t('): settimana poco variata. Foster associa <b>monotonia + carico elevati</b> a maggior rischio di sovraccarico/malattia — varia i carichi giornalieri o inserisci un riposo.')}</div></div>`;
+    if(lf.monotony!=null && lf.monotony>2 && lf.load>0) fosterSignal=`<div class="callout" style="background:var(--danger-t);border-color:#e6b8b8">${ico('attenzione','err')}<div>${t('<b>Monotonia alta</b> (')}${nf(lf.monotony,2)}${t('): settimana poco variata. Foster associa <b>monotonia + carico elevati</b> a maggior rischio di sovraccarico/malattia — varia i carichi giornalieri o inserisci un riposo.')}</div></div>`;
     else fosterSignal=`<div class="callout callout--info"><div>${t('Carico interno ultima settimana:')} <b>${nfk(lf.load)} AU</b>${lf.monotony!=null?` · ${t('monotonia')} <b>${nf(lf.monotony,2)}</b>`:''}${lf.strain!=null?` · ${t('strain')} <b>${nfk(lf.strain)}</b>`:''}.</div></div>`;
   }
   let segnali='';
-  if(lastAcwr!=null && lastAcwr>1.5) segnali+=`<div class="callout" style="background:var(--danger-t);border-color:#e6b8b8;border-left-color:var(--danger)"><div>⚠️ ${t('<b>Carico molto alto</b> (ACWR')} ${nf(lastAcwr,2)}${t('): valuta una <b>settimana di scarico (deload)</b>.')}</div></div>`;
-  else if(lastAcwr!=null && lastAcwr<0.8) segnali+=`<div class="callout callout--info"><div>🛌 ${t('<b>Carico basso</b> (ACWR')} ${nf(lastAcwr,2)}${t('): fase di scarico/ripresa. Se non voluto, aumenta gradualmente.')}</div></div>`;
-  if(plats.length) segnali+=`<div class="callout"><div>⏸ ${t('<b>In stallo</b> (TL fermo da ≥3 schede):')} ${plats.slice(0,6).map(p=>esc(exName(p.nome))+' <span class="muted">('+p.since+' '+t('sett.')+')</span>').join(' · ')}. ${t('Valuta variazione di carico, volume o esercizio.')}</div></div>`;
-  if(!segnali) segnali=`<div class="callout" style="background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ ${t('Nessun segnale critico: carico e progressione regolari.')}</div></div>`;
+  if(lastAcwr!=null && lastAcwr>1.5) segnali+=`<div class="callout" style="background:var(--danger-t);border-color:#e6b8b8">${ico('attenzione','err')}<div>${t('<b>Carico molto alto</b> (ACWR')} ${nf(lastAcwr,2)}${t('): valuta una <b>settimana di scarico (deload)</b>.')}</div></div>`;
+  else if(lastAcwr!=null && lastAcwr<0.8) segnali+=`<div class="callout callout--info">${ico('info')}<div>${t('<b>Carico basso</b> (ACWR')} ${nf(lastAcwr,2)}${t('): fase di scarico/ripresa. Se non voluto, aumenta gradualmente.')}</div></div>`;
+  if(plats.length) segnali+=`<div class="callout">${ico('pausa','avv')}<div>${t('<b>In stallo</b> (TL fermo da ≥3 schede):')} ${plats.slice(0,6).map(p=>esc(exName(p.nome))+' <span class="muted">('+p.since+' '+t('sett.')+')</span>').join(' · ')}. ${t('Valuta variazione di carico, volume o esercizio.')}</div></div>`;
+  if(!segnali) segnali=`<div class="callout" style="background:var(--ok-t);border-color:#bcdcc6">${ico('check','ok')}<div>${t('Nessun segnale critico: carico e progressione regolari.')}</div></div>`;
   document.getElementById('panel-progressi').innerHTML=`<div class="graf-pagina">`+barraSetProgressi()+`
    <div class="sec">${t('Segnali')}${f?` <span class="sec-nota">· ${t('situazione attuale, su tutto il percorso')}</span>`:''}</div>${segnali}
    <div class="sec">${t('Carico e volume')}</div>
    <div class="chart-grid chart-grid--compatta">
-     <div class="chart-box"><h4>${t('📈 TL totale + media mobile')}${spiegaBtn('tl')}</h4>${lineChart(tlSeries,gc({labels,fmt:nfk}))}</div>
-     <div class="chart-box"><h4>${t('⚖ ACWR (acuto:cronico) · zona 0.8–1.3')}${spiegaBtn('acwr')}</h4>${lineChart(acwrSeries,gc({labels,band:[0.8,1.3,'rgba(47,125,79,.13)']}))}</div>
-     <div class="chart-box"><h4>${t('🏋 Tonnellaggio per scheda (kg)')}${spiegaBtn('tonnellaggio')}</h4>${lineChart(tonnSeries,gc({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('TL totale + media mobile')}${spiegaBtn('tl')}</h4>${lineChart(tlSeries,gc({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('ACWR (acuto:cronico) · zona 0.8–1.3')}${spiegaBtn('acwr')}</h4>${lineChart(acwrSeries,gc({labels,band:[0.8,1.3,'rgba(47,125,79,.13)']}))}</div>
+     <div class="chart-box"><h4>${t('Tonnellaggio per scheda (kg)')}${spiegaBtn('tonnellaggio')}</h4>${lineChart(tonnSeries,gc({labels,fmt:nfk}))}</div>
      <div class="chart-box"><h4>${t('Δ Variazione TL %')}${spiegaBtn('delta-tl')}</h4>${lineChart(dSeries,gc({labels}))}</div>
    </div>
    ${hasRpe?`<div class="sec">${t('Carico interno · session-RPE (Foster 2001)')}</div>
    ${fosterSignal}
    <div class="chart-grid chart-grid--compatta">
-     <div class="chart-box"><h4>${t('🔥 Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span>${spiegaBtn('srpe')}</h4>${lineChart(sRpeSeries,gc({labels,fmt:nfk}))}</div>
-     <div class="chart-box"><h4>${t('📊 Monotonia')} <span class="muted" style="font-size:11px">${t('(media7÷SD7 · zona ≤2)')}</span>${spiegaBtn('monotonia')}</h4>${lineChart(monoSeries,gc({labels,band:[0,2,'rgba(47,125,79,.10)']}))}</div>
-     <div class="chart-box"><h4>${t('⚡ Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span>${spiegaBtn('strain')}</h4>${lineChart(strainSeries,gc({labels,fmt:nfk}))}</div>
-     <div class="chart-box"><h4>${t('📈 Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span>${spiegaBtn('interno-esterno')}</h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],gc({labels}))})()}</div>
+     <div class="chart-box"><h4>${t('Carico interno settimanale')} <span class="muted" style="font-size:11px">${t('(sRPE = RPE×min, AU)')}</span>${spiegaBtn('srpe')}</h4>${lineChart(sRpeSeries,gc({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('Monotonia')} <span class="muted" style="font-size:11px">${t('(media7÷SD7 · zona ≤2)')}</span>${spiegaBtn('monotonia')}</h4>${lineChart(monoSeries,gc({labels,band:[0,2,'rgba(47,125,79,.10)']}))}</div>
+     <div class="chart-box"><h4>${t('Strain')} <span class="muted" style="font-size:11px">${t('(settimanale × monotonia)')}</span>${spiegaBtn('strain')}</h4>${lineChart(strainSeries,gc({labels,fmt:nfk}))}</div>
+     <div class="chart-box"><h4>${t('Interno vs esterno')} <span class="muted" style="font-size:11px">${t('(indice, base 100)')}</span>${spiegaBtn('interno-esterno')}</h4>${(()=>{const bI=(ag.map((a,i)=>foster[i].load).find(v=>v>0))||0,bE=(ag.map(a=>a.tl).find(v=>v>0))||0;return lineChart([{name:'sRPE',color:'var(--gold-2)',data:ag.map((a,i)=>({x:labels[i],y:bI&&foster[i].load?foster[i].load/bI*100:null}))},{name:t('TL esterno'),color:'var(--orange-b)',data:ag.map((a,i)=>({x:labels[i],y:bE&&a.tl?a.tl/bE*100:null}))}],gc({labels}))})()}</div>
    </div>`:''}
    <div class="sec">${t('Forza e record')}</div>
    <div class="chart-grid chart-grid--compatta chart-grid--forza">
      ${boxProgressoReale(sf,f)}
      ${cards}
-     <div class="chart-box graf-cont graf-prog-ex"><h4>📈 ${t('Progressione per esercizio')}${spiegaBtn('progressione')}</h4>
+     <div class="chart-box graf-cont graf-prog-ex"><h4>${t('Progressione per esercizio')}${spiegaBtn('progressione')}</h4>
        <div class="graf-scelta"><label for="prog-ex">${t('Esercizio')}</label><select id="prog-ex">${exs.map(e=>`<option value="${esc(e)}"${e===progEx?' selected':''}>${esc(exName(e))}</option>`).join('')}</select></div>
        ${prog.length?grafVarianti(lineChart(exSeries,grafC({labels:plab,w:780,h:175,stacchi:stProg})),lineChart(exSeries,grafC({labels:plab,w:440,h:190,stacchi:stProg}))):`<div class="empty">${t('Nessun dato per questo esercizio.')}</div>`}
      </div>
    </div>
    <div class="sec">${t('Equilibrio e distribuzione')}${f?` <span class="sec-nota">· ${t('ultima settimana scelta:')} ${schedaLabel(last.scheda)}</span>`:''}</div>
    <div class="chart-grid chart-grid--compatta">
-     <div class="chart-box chart-box--radar"><h4>${t('🕸 Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = riferimento scelto)')}</span>${spiegaBtn('distribuzione')}</h4>${radarChart(radarItems,{w:320,h:262,fs:11})}${rifDidascalia(rifC,{dopo:'tab'})}</div>
-     <div class="chart-box"><h4>${t('🔢 Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span>${spiegaBtn('serie-gruppo')}</h4>${barChart(setsData,grafC({h:250}))}</div>
-     <div class="chart-box"><h4>${t('🎯 Distribuzione intensità · ultima (serie per fascia)')}${spiegaBtn('intensita')}</h4>${barChart(intData,grafC({h:270}))}</div>
+     <div class="chart-box chart-box--radar"><h4>${t('Equilibrio · distribuzione fra i gruppi')} <span class="muted" style="font-size:11px">${t('(quota di ogni gruppo sul lavoro coi pesi · verde = riferimento scelto)')}</span>${spiegaBtn('distribuzione')}</h4>${radarChart(radarItems,{w:320,h:262,fs:11})}${rifDidascalia(rifC,{dopo:'tab'})}</div>
+     <div class="chart-box"><h4>${t('Serie per gruppo · ultima settimana')} <span class="muted" style="font-size:11px">${t('(in rosso chi è fuori dalla sua zona utile · Cardio: min÷10, anche dal riscaldamento)')}</span>${spiegaBtn('serie-gruppo')}</h4>${barChart(setsData,grafC({h:250}))}</div>
+     <div class="chart-box"><h4>${t('Distribuzione intensità · ultima (serie per fascia)')}${spiegaBtn('intensita')}</h4>${barChart(intData,grafC({h:270}))}</div>
      <div class="chart-box"><h4>${t('Andamento TL per gruppo')}${spiegaBtn('tl-gruppo')}</h4>${lineChart(grpSeries,gc({labels,fmt:nfk,h:250}))}</div>
    </div>
    ${cardioProgressBlock(f)}

@@ -4,7 +4,7 @@ let stFilt={esercizio:'',macro:'',scheda:''};
       righe ATTUALMENTE filtrate — carico per settimana, serie medie per gruppo, esercizi più pesanti */
 function pannelloStorico(rows){
   rows=(rows||[]).filter(r=>!r.test);
-  if(!rows.length) return `<div class="lat"><h4>🧭 ${t('In sintesi')}</h4><div class="empty">${t('Nessuna riga con questi filtri.')}</div></div>`;
+  if(!rows.length) return `<div class="lat"><h4>${t('In sintesi')}</h4><div class="empty">${t('Nessuna riga con questi filtri.')}</div></div>`;
   const sett={}, perEx={}, per={}, D={}, I={}; GRUPPI_PESI.forEach(g=>{ per[g]=0; D[g]=0; I[g]=0; });
   rows.forEach(r=>{ const s=+r.scheda||0, x=sTL(r); sett[s]=(sett[s]||0)+x; perEx[r.esercizio]=(perEx[r.esercizio]||0)+x;
     const acc=accumulaSerie({}, r.esercizio, +r.serie||0, r.macro||'');
@@ -13,11 +13,11 @@ function pannelloStorico(rows){
   const maxS=Math.max(1,...ult.map(c=>sett[c])), totTL=codici.reduce((a,c)=>a+sett[c],0);
   GRUPPI_PESI.forEach(g=>{ per[g]=per[g]/nS; D[g]=D[g]/nS; I[g]=I[g]/nS; });
   const top=Object.keys(perEx).sort((a,b)=>perEx[b]-perEx[a]).slice(0,7), maxE=Math.max(1,...top.map(n=>perEx[n]));
-  return `<div class="lat"><h4>📈 ${t('Carico per settimana')} <span class="muted">${nS} ${t('settimane')} · ${t('media')} ${nfk(totTL/nS)}</span>${spiegaBtn('storico-carico')}</h4>
+  return `<div class="lat"><h4>${t('Carico per settimana')} <span class="muted">${nS} ${t('settimane')} · ${t('media')} ${nfk(totTL/nS)}</span>${spiegaBtn('storico-carico')}</h4>
       <div class="lat-giorni">${ult.slice().reverse().map(c=>`<span class="mono">${esc(schedaLabel(c))}</span><span class="lat-barra" style="margin:0"><span style="width:${(sett[c]/maxS*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${nfk(sett[c])}</span>`).join('')}</div>
       ${codici.length>12?`<div class="lat-nota">${t('le ultime 12 di')} ${codici.length}</div>`:''}</div>
-    <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${t('media a settimana')}</span>${spiegaBtn('serie-gruppo')}</h4>${bilRigheHTML(per,{D:D,I:I})}${bilLegendaDI()}</div>
-    <div class="lat"><h4>🏋 ${t('Esercizi che pesano di più')} <span class="muted">${t('quota del TL')}</span>${spiegaBtn('storico-esercizi')}</h4>
+    <div class="lat"><h4>${t('Serie per gruppo')} <span class="muted">${t('media a settimana')}</span>${spiegaBtn('serie-gruppo')}</h4>${bilRigheHTML(per,{D:D,I:I})}${bilLegendaDI()}</div>
+    <div class="lat"><h4>${t('Esercizi che pesano di più')} <span class="muted">${t('quota del TL')}</span>${spiegaBtn('storico-esercizi')}</h4>
       <div class="lat-giorni">${top.map(n=>`<span title="${esc(exName(n))}" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(exName(n))}</span><span class="lat-barra" style="margin:0"><span style="width:${(perEx[n]/maxE*100).toFixed(1)}%;background:var(--gold-2)"></span></span><span class="mono">${Math.round(perEx[n]/totTL*100)}%</span>`).join('')}</div></div>`;
 }
 function renderStorico(){
@@ -34,13 +34,13 @@ function renderStorico(){
        prende il posto del vecchio «Annulla ultimo», che sapeva togliere solo l'ultima */
     if(r.scheda!==last){last=r.scheda; body+=`<tr class="day-sep"><td colspan="12"><div style="display:flex;align-items:center;gap:10px">
       <span>▌ ${t('Scheda')} ${r.scheda} <span style="opacity:.7;font-weight:400">· ${esc(schedaLabel(r.scheda))}</span></span><span style="flex:1"></span>
-      <button class="btn btn--sm btn--del no-print" data-delsched="${r.scheda}" title="${esc(t('Elimina tutte le righe di questa settimana'))}" aria-label="${esc(t('Elimina tutte le righe di questa settimana'))}">🗑</button></div></td></tr>`;}
+      <button class="btn btn--sm btn--del no-print" data-delsched="${r.scheda}" title="${esc(t('Elimina tutte le righe di questa settimana'))}" aria-label="${esc(t('Elimina tutte le righe di questa settimana'))}">${ico('cestino','p')}</button></div></td></tr>`;}
     const [fl,fc]=fascia(sPct(r));
-    body+=`<tr${r.test?' style="background:rgba(122,62,168,.06)"':''}><td class="l">${esc(exName(r.esercizio))}</td><td>${esc(t(r.macro)||'')}</td><td class="num">${(+r.seduta||1)}${r.test?' ★':''}</td>
+    body+=`<tr${r.test?' style="background:rgba(122,62,168,.06)"':''}><td class="l">${esc(exName(r.esercizio))}</td><td>${esc(t(r.macro)||'')}</td><td class="num">${(+r.seduta||1)}${r.test?' '+ico('stella','p pieno'):''}</td>
       <td class="num">${nf(r.serie,0)}</td><td class="num">${nf(r.rip,0)}</td><td class="num">${nf(r.peso,1)}</td>
       <td class="num">${(r.rir==null||r.rir==='')?'–':r.rir}</td><td class="num cell-calc">${nf(rmMostrato(r),1)}</td><td class="num cell-calc">${nf(sPct(r),1)}</td>
       <td class="num cell-out">${nfk(sTL(r))}</td><td><span class="fascia ${fc}">${t(fl)}</span></td>
-      <td class="no-print"><button class="btn btn--sm" data-edrow="${posizione.get(r)}" title="${esc(t('correggi questa riga'))}" aria-label="${esc(t('correggi questa riga'))}">✎</button></td></tr>`;
+      <td class="no-print"><button class="btn btn--sm" data-edrow="${posizione.get(r)}" title="${esc(t('correggi questa riga'))}" aria-label="${esc(t('correggi questa riga'))}">${ico('matita','p')}</button></td></tr>`;
   });
   document.getElementById('panel-storico').innerHTML=`
    <div class="bar">
@@ -69,7 +69,7 @@ function renderStorico(){
 function modificaRigaStorico(i){
   const r=DOC.storico[i]; if(!r) return;
   const clib=isCorpoLibero(r.esercizio);
-  modal(`<h3>✎ ${t('Correggi una riga dello Storico')}</h3>
+  modal(`<h3>${t('Correggi una riga dello Storico')}</h3>
     <div class="muted" style="font-size:12.5px;margin-bottom:8px"><b>${esc(exName(r.esercizio))}</b> · ${t('Scheda')} ${esc(r.scheda)} · ${esc(schedaLabel(r.scheda))}</div>
     <div class="row">
       <div class="field"><label>${t('Serie')}</label><input id="rs-serie" type="number" min="0" step="1" value="${r.serie??''}"></div>
@@ -77,9 +77,9 @@ function modificaRigaStorico(i){
       <div class="field"><label>${t('Peso')}${clib?' <span class="muted" style="text-transform:none">('+t('zavorra')+')</span>':''}</label><input id="rs-peso" type="number" min="0" step="0.5" value="${r.peso??''}"></div>
       <div class="field"><label>RIR</label><input id="rs-rir" type="number" min="0" max="10" value="${r.rir??''}" placeholder="–"></div>
     </div>
-    <label class="optchk" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px"><input type="checkbox" id="rs-test" style="width:auto;flex:0 0 auto"${r.test?' checked':''}> <span>${t('★ Test del massimale (escluso dalla progressione)')}</span></label>
+    <label class="optchk" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px"><input type="checkbox" id="rs-test" style="width:auto;flex:0 0 auto"${r.test?' checked':''}> <span>${t('Test del massimale (escluso dalla progressione)')}</span></label>
     <div class="ex-err" id="rs-err" hidden></div>
-    <div class="modal__actions"><button class="btn btn--danger" id="rs-del">${t('🗑 Elimina riga')}</button><span style="flex:1"></span>
+    <div class="modal__actions"><button class="btn btn--danger" id="rs-del">${ico('cestino')}${t('Elimina riga')}</button><span style="flex:1"></span>
       <button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="rs-ok">${t('Salva')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='560px';
   const num=id=>{ const v=document.getElementById(id).value; return v===''? null : +v; };

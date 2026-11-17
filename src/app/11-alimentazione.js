@@ -47,8 +47,8 @@ function renderFoodPicker(){
   const O=fpOpz||{}, q=fpFilter, cap=400;
   const rowHtml=fo=>{ const fav=foodIsFav(fo.nome), tp=foodTipo(fo);
     return `<tr class="fp-row" data-nome="${esc(fo.nome)}" style="cursor:pointer">
-      <td class="no-print" style="text-align:center;padding:2px;width:24px"><button class="exp-star${fav?' on':''}" data-fav="${esc(fo.nome)}" title="${fav?t('togli dai preferiti'):t('aggiungi ai preferiti')}">${fav?'★':'☆'}</button></td>
-      <td class="l">${tp==='M'?'👨‍🍳 ':''}${esc(fo.nome)}${tp==='R'?` <span class="pill fp-ric" title="${t('Ricetta: cucinato, condito o composto')}">${t('ricetta')}</span>`:tp==='I'?` <span class="pill fp-ric" title="${t('Integratore: valori dall’etichetta')}">${t('integratore')}</span>`:tp==='M'?` <button class="btn btn--sm" data-fpedit="${esc(fo.nome)}" title="${t('modifica la ricetta')}">✎</button>`:''}</td>
+      <td class="no-print" style="text-align:center;padding:2px;width:24px"><button class="exp-star${fav?' on':''}" data-fav="${esc(fo.nome)}" title="${fav?t('togli dai preferiti'):t('aggiungi ai preferiti')}">${ico('stella',fav?'p pieno':'p')}</button></td>
+      <td class="l">${esc(fo.nome)}${tp==='R'?` <span class="pill fp-ric" title="${t('Ricetta: cucinato, condito o composto')}">${t('ricetta')}</span>`:tp==='I'?` <span class="pill fp-ric" title="${t('Integratore: valori dall’etichetta')}">${t('integratore')}</span>`:tp==='M'?` <button class="btn btn--sm" data-fpedit="${esc(fo.nome)}" title="${t('modifica la ricetta')}">${ico('matita','p')}</button>`:''}</td>
       <td class="l muted" style="font-size:11.5px">${esc(tp==='M'?t(RIC_CATEGORIA):(fo.categoria||''))}</td>
       <td class="num">${fo.per100.kcal==null?'—':nf(fo.per100.kcal,0)}</td><td class="num">${fo.per100.proteine==null?'—':nf(fo.per100.proteine,1)}</td>
       <td class="num">${fo.per100.grassi==null?'—':nf(fo.per100.grassi,1)}</td><td class="num">${fo.per100.zuccheri==null?'—':nf(fo.per100.zuccheri,1)}</td><td class="num">${fo.per100.fibre==null?'—':nf(fo.per100.fibre,1)}</td></tr>`; };
@@ -64,12 +64,12 @@ function renderFoodPicker(){
     const favFoods=foodFavList().map(n=>foodLookup(n)).filter(Boolean).filter(delTipo);
     const rec=[]; foodRecenti().forEach(n=>{ if(rec.length>=12)return; if(!favSet.has(n)){ const fo=foodLookup(n); if(fo&&delTipo(fo)) rec.push(fo); } });
     if(fpTipo==='M') body+=`<tr><td colspan="8" style="padding:8px 10px"><button class="btn btn--ember btn--sm" id="fp-nuova-ric">${t('＋ Nuova ricetta')}</button> <span class="muted" style="font-size:11.5px">${t('gli ingredienti si scelgono dalla banca dati e i valori si sommano da soli')}</span></td></tr>`;
-    if(favFoods.length){ body+=grp(t('★ Preferiti'))+favFoods.map(rowHtml).join(''); }
-    if(rec.length){ body+=grp(t('🕐 Recenti'))+rec.map(rowHtml).join(''); }
+    if(favFoods.length){ body+=grp(t('Preferiti'))+favFoods.map(rowHtml).join(''); }
+    if(rec.length){ body+=grp(t('Recenti'))+rec.map(rowHtml).join(''); }
     if(favFoods.length||rec.length) body+=grp(fpTipo==='M'?t('Le mie ricette'):t('Tutti gli alimenti'));
     body+=TUTTI.slice(0,cap).map(rowHtml).join(''); count=TUTTI.length;
   }
-  const tipi=[['',t('Tutti')],['S',t('🥕 Alimenti semplici')],['R',t('🍲 Ricette')],['I',t('💊 Integratori')]].concat(O.senzaMie?[]:[['M',t('👨‍🍳 Le mie ricette')]]);
+  const tipi=[['',t('Tutti')],['S',t('Alimenti semplici')],['R',t('Ricette')],['I',t('Integratori')]].concat(O.senzaMie?[]:[['M',t('Le mie ricette')]]);
   const m=document.getElementById('modal'); m.style.maxWidth='820px';
   m.innerHTML=`<h3>${esc(O.titolo||t('Scegli un alimento'))} <span class="pill" style="font-weight:400">${count} ${t('risultati')}${count>cap?' · '+t('primi')+' '+cap:''}</span></h3>
     <div class="fp-tipi no-print">${tipi.map(([k,l])=>`<button type="button" class="btn btn--sm${fpTipo===k?' btn--ember':''}" data-fptipo="${k}">${l}</button>`).join('')}
@@ -78,7 +78,7 @@ function renderFoodPicker(){
     <div style="max-height:52vh;overflow:auto;border:1px solid var(--border);border-radius:var(--r-sm)">
     <table><thead><tr><th class="no-print"></th><th class="l">${t('Alimento')}</th><th class="l">${t('Categoria')}</th><th>Kcal</th><th>Prot</th><th>${t('Grassi')}</th><th>Carbo</th><th>${t('Fibre')}</th></tr></thead>
     <tbody>${body||`<tr><td colspan="8" class="empty">${fpTipo==='M'?t('Nessuna ricetta: creane una con «＋ Nuova ricetta».'):t('Nessun alimento.')}</td></tr>`}</tbody></table></div>
-    <div class="muted" style="font-size:11px;margin-top:6px">${t('Valori per 100 g · clicca una riga per selezionare · ☆/★ per i preferiti')}</div>
+    <div class="muted" style="font-size:11px;margin-top:6px">${t('Valori per 100 g · clicca una riga per selezionare · la stella per i preferiti')}</div>
     <div class="modal__actions"><button class="btn" id="fp-chiudi">${t('Chiudi')}</button></div>`;
   document.getElementById('modal-bk').classList.remove('hidden');
   document.getElementById('fp-chiudi').onclick=()=>{ m.style.maxWidth=''; if(O.chiudi) O.chiudi(); else closeModal(); };
@@ -127,7 +127,7 @@ function omsRef(u){ const c=bodyCalc(u); const en=c.metab||2000, peso=+u.peso||7
 }
 /* 💡 accanto a un nutriente sotto il riferimento: suggerisce gli alimenti che ne sono ricchi
    (11c-ricette.js). Solo per gli obiettivi, non per i limiti né per l'energia. */
-function suggBtn(x){ return (x.type==='target' && x.key!=='kcal')? ` <button type="button" class="sugg-btn no-print" data-sugg="${esc(x.key)}" title="${esc(t('Alimenti ricchi di')+' '+t(x.lab))}" aria-label="${esc(t('Suggerisci alimenti'))}">💡</button>` : ''; }
+function suggBtn(x){ return (x.type==='target' && x.key!=='kcal')? ` <button type="button" class="sugg-btn no-print" data-sugg="${esc(x.key)}" title="${esc(t('Alimenti ricchi di')+' '+t(x.lab))}" aria-label="${esc(t('Suggerisci alimenti'))}">${ico('lampadina','p')}</button>` : ''; }
 function omsRenderSection(){
   const u=DOC.dati_utente; const refs=omsRef(u); const fase=omsFase;
   const rows=DOC.alimentazione[fase]||[];
@@ -144,7 +144,7 @@ function omsRenderSection(){
       <td style="width:80px;min-width:60px"><div style="background:var(--paper-3);border-radius:var(--r-pill);height:9px;overflow:hidden"><div style="width:${barw}%;height:100%;background:${col}"></div></div></td></tr>`;
   });
   return `<div class="tbl-wrap"><table><thead><tr><th class="l">${t('Nutriente')}</th><th>${t('Settimana')}</th><th>${t('Riferimento')}</th><th>${t('Indice')}</th><th>—</th></tr></thead><tbody>${body}</tbody></table></div>
-    <div class="callout callout--info"><div>${t('📐 Valori settimanali = piano giornaliero × 7, confrontati con i riferimenti <b>OMS/FAO</b> per adulto (energia e proteine personalizzati su fabbisogno e peso). I nutrienti <b>(max)</b> sono limiti da non superare. Riferimenti indicativi: non sostituiscono un parere medico/nutrizionale.')}</div></div>`;
+    <div class="callout callout--info"><div>${t('Valori settimanali = piano giornaliero × 7, confrontati con i riferimenti <b>OMS/FAO</b> per adulto (energia e proteine personalizzati su fabbisogno e peso). I nutrienti <b>(max)</b> sono limiti da non superare. Riferimenti indicativi: non sostituiscono un parere medico/nutrizionale.')}</div></div>`;
 }
 /* ── PANNELLO LATERALE DEL PIANO (2026-11, schermo intero) ────────────────────────
    Accanto alla tabella dei pasti: quanta energia porta il piano rispetto al fabbisogno,
@@ -152,7 +152,7 @@ function omsRenderSection(){
    fuori dai riferimenti. Tutto calcolato al volo dal piano della fase attiva. */
 function pannelloPiano(fase){
   const rows=((DOC.alimentazione||{})[fase]||[]).filter(r=>r&&r.alimento);
-  if(!rows.length) return `<div class="lat"><h4>🧭 ${t('Il piano in sintesi')}</h4><div class="empty">${t('Aggiungi un pasto e i suoi alimenti: qui vedrai energia, macronutrienti e ripartizione fra i pasti.')}</div></div>`;
+  if(!rows.length) return `<div class="lat"><h4>${t('Il piano in sintesi')}</h4><div class="empty">${t('Aggiungi un pasto e i suoi alimenti: qui vedrai energia, macronutrienti e ripartizione fra i pasti.')}</div></div>`;
   const u=DOC.dati_utente||{}, tot=faseTot(rows), fabb=bodyCalc(u).metab||0, peso=+u.peso||0;
   const kP=tot.proteine*4, kC=tot.zuccheri*4, kG=tot.grassi*9, kM=(kP+kC+kG)||1;
   const pct=x=>Math.round(x/kM*100);
@@ -162,25 +162,25 @@ function pannelloPiano(fase){
   const fuori=omsRef(u).map(([lab,key,type,val,unit])=>{ const day=rows.reduce((a,r)=>a+foodVal(r.alimento,r.grammi,key),0), q=val>0? day/val*100 : 0;
       return {lab:lab,key:key,type:type,q:q,ok: type==='limit'? q<=100 : q>=90}; }).filter(x=>!x.ok).sort((a,b)=>(a.type==='limit'?-a.q:a.q)-(b.type==='limit'?-b.q:b.q));
   const nRic=rows.filter(r=>{ const f=foodLookup(r.alimento); return f&&(f.tipo==='R'||f.tipo==='M'); }).length;
-  return `<div class="lat"><h4>🔥 ${t('Energia')} <span class="muted">${t('piano contro fabbisogno')}</span>${spiegaBtn('energia')}</h4>
+  return `<div class="lat"><h4>${t('Energia')} <span class="muted">${t('piano contro fabbisogno')}</span>${spiegaBtn('energia')}</h4>
       <div class="lat-num"><span>${t('Piano')}</span><b>${nf(tot.kcal,0)} kcal</b></div>
       <div class="lat-barra"><span style="width:${(tot.kcal/scala*100).toFixed(1)}%;background:var(--orange)"></span></div>
       ${fabb?`<div class="lat-num"><span>${t('Fabbisogno')}</span><b>${nf(fabb,0)} kcal</b></div>
       <div class="lat-barra"><span style="width:${(fabb/scala*100).toFixed(1)}%;background:var(--ink-4)"></span></div>
       <div class="lat-num" style="margin-top:4px"><span>${d>=0?t('Surplus'):t('Deficit')}</span><b style="color:${Math.abs(d)<50?'var(--ok)':(d>0?'var(--orange)':'var(--violet)')}">${d>=0?'+':'−'}${nf(Math.abs(d),0)} kcal/${t('giorno')}</b></div>`
       :`<div class="lat-nota">${t('Per il confronto col fabbisogno inserisci metabolismo basale e livello di attività nel tab Corpo.')}</div>`}</div>
-    <div class="lat"><h4>🥩 ${t('Macronutrienti')} <span class="muted">${t('quota dell’energia')}</span>${spiegaBtn('macro')}</h4>
+    <div class="lat"><h4>${t('Macronutrienti')} <span class="muted">${t('quota dell’energia')}</span>${spiegaBtn('macro')}</h4>
       <div class="lat-barra"><span style="width:${pct(kP)}%;background:var(--danger)"></span><span style="width:${pct(kC)}%;background:var(--gold-2)"></span><span style="width:${pct(kG)}%;background:var(--violet)"></span></div>
       <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--danger);margin-right:5px"></i>${t('Proteine')}</span><span><b>${nf(tot.proteine,0)} g</b> · ${pct(kP)}%${peso?` · ${nf(tot.proteine/peso,1)} g/kg`:''}</span></div>
       <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--gold-2);margin-right:5px"></i>${t('Carboidrati')}</span><span><b>${nf(tot.zuccheri,0)} g</b> · ${pct(kC)}%${peso?` · ${nf(tot.zuccheri/peso,1)} g/kg`:''}</span></div>
       <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--violet);margin-right:5px"></i>${t('Grassi')}</span><span><b>${nf(tot.grassi,0)} g</b> · ${pct(kG)}%${peso?` · ${nf(tot.grassi/peso,1)} g/kg`:''}</span></div>
       <div class="lat-num"><span>${t('Fibre')}</span><span><b>${nf(tot.fibre,0)} g</b></span></div></div>
-    <div class="lat"><h4>🍽 ${t('Energia per pasto')}${spiegaBtn('energia-pasti')}</h4>
+    <div class="lat"><h4>${t('Energia per pasto')}${spiegaBtn('energia-pasti')}</h4>
       <div class="lat-giorni">${pasti.map(x=>`<span>${esc(t(x.p))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.k/maxP*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${nf(x.k,0)} kcal · ${tot.kcal?Math.round(x.k/tot.kcal*100):0}%</span>`).join('')}</div>
       <div class="lat-nota">${rows.length} ${t('alimenti')}${nRic?` · ${nRic} ${t('ricette')}`:''}</div></div>
-    <div class="lat"><h4>📐 ${t('Fuori dai riferimenti')} <span class="muted">OMS/FAO</span>${spiegaBtn('nutrienti')}</h4>
+    <div class="lat"><h4>${t('Fuori dai riferimenti')} <span class="muted">OMS/FAO</span>${spiegaBtn('nutrienti')}</h4>
       ${fuori.length? fuori.slice(0,8).map(x=>`<div class="lat-num"><span>${esc(t(x.lab))}${x.type==='limit'?` <span class="muted">${t('(max)')}</span>`:''}${suggBtn(x)}</span><b style="color:${x.type==='limit'||x.q<60?'var(--danger)':'var(--gold-2)'}">${nf(x.q,0)}%</b></div>`).join('')+(fuori.length>8?`<div class="lat-nota">+ ${fuori.length-8} ${t('altri nella tabella qui sotto')}</div>`:'')
-        : `<div class="lat-num"><span style="color:var(--ok)">✓ ${t('Tutti i nutrienti nei riferimenti')}</span></div>`}</div>`;
+        : `<div class="lat-num"><span style="color:var(--ok);display:inline-flex;align-items:center;gap:6px">${ico('check','p')}${t('Tutti i nutrienti nei riferimenti')}</span></div>`}</div>`;
 }
 function renderAlimentazione(){
   const A=DOC.alimentazione; A.bulk=A.bulk||[]; A.mant=A.mant||[]; A.cut=A.cut||[];
@@ -192,18 +192,18 @@ function renderAlimentazione(){
       const idxs=rows.map((r,i)=>i).filter(i=>((((rows[i].pasto||'').trim())||'Senza pasto')===meal));
       let mk=0; idxs.forEach(i=>mk+=foodVal(rows[i].alimento,rows[i].grammi,'kcal'));
       body+=`<tr class="day-sep" data-mealrow="${esc(meal)}" data-fase="${fase}"><td colspan="7"><span class="drag-h no-print" title="${t('trascina per spostare il pasto')}">⠿</span> ▌ ${esc(t(meal))} <span style="opacity:.85;font-family:var(--font-mono);font-size:11px">· ${nf(mk,0)} kcal</span>
-        <button class="btn btn--sm no-print" data-mealedit data-fase="${fase}" data-meal="${esc(meal)}" title="${t('rinomina pasto')}" style="margin-left:8px">✎</button>
+        <button class="btn btn--sm no-print" data-mealedit data-fase="${fase}" data-meal="${esc(meal)}" title="${t('rinomina pasto')}" style="margin-left:8px">${ico('matita','p')}</button>
         <button class="btn btn--sm no-print" data-mealadd data-fase="${fase}" data-meal="${esc(meal)}" title="${t('aggiungi alimento a questo pasto')}">＋</button>
-        <button class="btn btn--sm btn--danger no-print" data-mealdel data-fase="${fase}" data-meal="${esc(meal)}" title="${t('elimina pasto')}">🗑</button></td></tr>`;
+        <button class="btn btn--sm btn--danger no-print" data-mealdel data-fase="${fase}" data-meal="${esc(meal)}" title="${t('elimina pasto')}">${ico('cestino','p')}</button></td></tr>`;
       idxs.forEach(i=>{ const r=rows[i]; const fo=foodLookup(r.alimento), known=!!fo, mia=!!(fo&&fo.ricetta);
         body+=`<tr data-fase="${fase}" data-i="${i}">
-          <td class="l"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span> <button class="btn btn--sm no-print food-pick" data-fase="${fase}" data-i="${i}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${r.alimento?'':'color:var(--ink-4)'}">${r.alimento?(mia?'👨‍🍳 ':'')+esc(r.alimento):t('＋ scegli alimento…')}</button>${r.alimento&&!known?` <span class="pill" title="${t('non nella banca dati')}">?</span>`:''}</td>
+          <td class="l"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span> <button class="btn btn--sm no-print food-pick" data-fase="${fase}" data-i="${i}" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${r.alimento?'':'color:var(--ink-4)'}">${r.alimento?(mia?ico('libro','p')+' ':'')+esc(r.alimento):t('＋ scegli alimento…')}</button>${r.alimento&&!known?` <span class="pill" title="${t('non nella banca dati')}">?</span>`:''}</td>
           <td><input class="cell-in" type="number" min="0" data-f="grammi" value="${r.grammi??''}" style="width:62px"></td>
           <td class="num cell-out">${nf(foodVal(r.alimento,r.grammi,'kcal'),0)}</td>
           <td class="num cell-calc">${nf(foodVal(r.alimento,r.grammi,'proteine'),1)}</td>
           <td class="num cell-calc">${nf(foodVal(r.alimento,r.grammi,'grassi'),1)}</td>
           <td class="num cell-calc">${nf(foodVal(r.alimento,r.grammi,'zuccheri'),1)}</td>
-          <td style="white-space:nowrap">${r.alimento?`<button class="btn btn--sm no-print food-det" data-fase="${fase}" data-i="${i}" title="${t('micro e macro')}">${alimDet===fase+':'+i?'▾':'▸'}</button>`:''}<button class="btn btn--sm btn--danger no-print" data-del="${fase}:${i}" title="${t('elimina alimento')}">✕</button></td></tr>`;
+          <td style="white-space:nowrap">${r.alimento?`<button class="btn btn--sm no-print food-det" data-fase="${fase}" data-i="${i}" title="${t('micro e macro')}">${ico(alimDet===fase+':'+i?'giu':'avanti','p')}</button>`:''}<button class="btn btn--sm btn--danger no-print" data-del="${fase}:${i}" title="${t('elimina alimento')}">${ico('x','p')}</button></td></tr>`;
         if(alimDet===fase+':'+i && r.alimento){
           body+=`<tr><td colspan="7" style="background:var(--paper-2);padding:11px 14px">${foodDetail(r.alimento,r.grammi)}</td></tr>`;
         }
@@ -223,16 +223,16 @@ function renderAlimentazione(){
   const periodi=A.periodi||[];
   const perRows=periodi.map((p,i)=>`<tr${periodoInCorso(p)?' class="per-riga-live"':''}><td><span class="pill">${esc(t(FASE_LAB[p.fase]||p.fase))}</span></td>
      <td>${esc(p.dal||'')}</td><td>${periodoInCorso(p)? `<span class="pill per-live">● ${t('in corso')}</span> <span class="muted">${esc(periodoDurata(p))}</span>` : esc(p.al||'')}</td><td class="num">${nf(kcalPiano(p.righe,p.ricette),0)}</td><td class="num">${(p.righe||[]).length}</td>
-     <td class="no-print">${periodoInCorso(p)?`<button class="btn btn--sm btn--ember" data-perstop="${i}" title="${t('Metti la data di fine al periodo in corso')}">⏹ ${t('Termina')}</button> `:''}<button class="btn btn--sm btn--danger" data-perdel="${i}" title="${t('elimina periodo')}">✕</button></td></tr>`).join('');
+     <td class="no-print">${periodoInCorso(p)?`<button class="btn btn--sm btn--ember" data-perstop="${i}" title="${t('Metti la data di fine al periodo in corso')}">${ico('stop','p')}${t('Termina')}</button> `:''}<button class="btn btn--sm btn--danger" data-perdel="${i}" title="${t('elimina periodo')}">${ico('x','p')}</button></td></tr>`).join('');
   const aperto=periodoAperto();
   const perSection=`
    <div class="sec" style="margin-top:18px">${t('Periodi')} <span class="pill">${periodi.length}</span>${aperto?` <span class="pill per-live">● ${esc(t(FASE_LAB[aperto.fase]||aperto.fase))} ${t('in corso dal')} ${esc(aperto.dal)}</span>`:''}</div>
-   <div class="callout callout--info no-print"><div>${t('📅 Un periodo è il piano seguito per un certo tempo. Con <b>▶ Avvia un periodo</b> parte (da oggi o da una data passata) e resta <b>in corso</b> finché non premi <b>⏹ Termina</b>: non serve sapere prima quanto durerà. Se conosci già le date, registralo con <b>dal → al</b>. I periodi alimentano i grafici del tab <b>📊 Analisi</b> (timeline, bilancio calorico, confronto fasi); quello in corso arriva fino a oggi. Ogni periodo salva una <b>fotografia</b> del piano: modificare il piano dopo non cambia i periodi già registrati (terminando un periodo in corso puoi aggiornarla).')}</div></div>
+   <div class="callout callout--info no-print"><div>${t('Un periodo è il piano seguito per un certo tempo. Con <b>▶ Avvia un periodo</b> parte (da oggi o da una data passata) e resta <b>in corso</b> finché non premi <b>Termina</b>: non serve sapere prima quanto durerà. Se conosci già le date, registralo con <b>dal → al</b>. I periodi alimentano i grafici del tab <b>Analisi</b> (timeline, bilancio calorico, confronto fasi); quello in corso arriva fino a oggi. Ogni periodo salva una <b>fotografia</b> del piano: modificare il piano dopo non cambia i periodi già registrati (terminando un periodo in corso puoi aggiornarla).')}</div></div>
    <div class="tbl-wrap"><table><thead><tr><th>${t('Fase')}</th><th>${t('Dal')}</th><th>${t('Al')}</th><th>${t('kcal/giorno')}</th><th>${t('alimenti')}</th><th class="no-print"></th></tr></thead>
      <tbody>${perRows||`<tr><td colspan="6" class="empty">${t('Nessun periodo registrato.')}</td></tr>`}</tbody></table></div>
-   <div class="bar no-print"><button class="btn btn--ember" id="per-start">${t('▶ Avvia un periodo…')}</button> <button class="btn" id="per-add">${t('📅 Registra il piano attuale come periodo…')}</button> <button class="btn" onclick="showTab('analisi')">${t('📊 Vai all\'Analisi')}</button></div>`;
+   <div class="bar no-print"><button class="btn btn--ember" id="per-start">${ico('play')}${t('Avvia un periodo…')}</button> <button class="btn" id="per-add">${t('Registra il piano attuale come periodo…')}</button> <button class="btn" onclick="showTab('analisi')">${t('Vai all\'Analisi')}</button></div>`;
   document.getElementById('panel-alimentazione').innerHTML=`
-   <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--sm" id="ricette-btn" style="margin-left:auto" title="${t('Le ricette, comuni a tutti i profili: ingredienti, tempi, procedimento e valori sommati')}">${t('👨‍🍳 Ricette')}</button><button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="apriStampaDieta()" title="${t('Apri l\'anteprima per sistemare la stampa del piano della fase attiva (PDF A4 orizzontale, da dare al cliente)')}">${t('🍽 Stampa dieta')}</button></div>
+   <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--sm" id="ricette-btn" style="margin-left:auto" title="${t('Le ricette, comuni a tutti i profili: ingredienti, tempi, procedimento e valori sommati')}">${t('Ricette')}</button><button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="apriStampaDieta()" title="${t('Apri l\'anteprima per sistemare la stampa del piano della fase attiva (PDF A4 orizzontale, da dare al cliente)')}">${ico('stampa')}${t('Stampa dieta')}</button></div>
    <div class="pag pag--tre"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}</div>
    <aside class="pag__side no-print" id="alim-side">${pannelloPiano(fase)}</aside>
    <div class="pag__terza" id="alim-oms">${omsSection}</div></div>`;
@@ -342,9 +342,9 @@ function abilitaRiordinoPasti(){
 const CTX_DIETA={pre:'dre', pannello:'panel-dieta', fissi:['intro','totale'], grandi:[], persist:'alimentazione',
   R:()=>DOC.alimentazione.stampa[faseAlimActive()], chiave:()=>'dieta:'+faseAlimActive(), render:()=>renderDietaCC(),
   documento(R){
-    return `<div class="lat"><h4>📄 ${t('Documento')}</h4>
+    return `<div class="lat"><h4>${t('Documento')}</h4>
      <div class="muted" style="font-size:12px;margin-bottom:8px">${t('Fase')} <b>${esc(t(FASE_LAB[faseAlimActive()]||faseAlimActive()))}</b></div>
-     <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap"><button class="btn btn--gold" id="dre-pdf-btn" onclick="stampaDietaPDF()">${t('⬇ Scarica PDF (A4 orizzontale)')}</button></div></div>`;
+     <div class="bar" style="margin:0;gap:6px;flex-wrap:wrap"><button class="btn btn--gold" id="dre-pdf-btn" onclick="stampaDietaPDF()">${ico('scarica')}${t('Scarica PDF (A4 orizzontale)')}</button></div></div>`;
   },
   collegaDocumento(){ /* niente da collegare: il pulsante PDF basta da solo */ }};
 function renderDieta(){
@@ -395,7 +395,7 @@ function renderDieta(){
   const sorgente=visibili.map(k=>repBloccoHTML(R,k,B[k])).join('');
   if(repSel.blocco && visibili.indexOf(repSel.blocco)<0) repSel={blocco:null, el:null};
   if(repInModifica && visibili.indexOf(repInModifica)<0) repInModifica=null;
-  document.getElementById('dieta-ov-tit').textContent='🍽 '+t('Stampa dieta')+' · '+esc(t(FASE_LAB[fase]||fase));
+  document.getElementById('dieta-ov-tit').textContent=t('Stampa dieta')+' · '+esc(t(FASE_LAB[fase]||fase));
   document.getElementById(repCtx.pannello).innerHTML=`<div class="pag pag--report">
      <div class="pag__main" id="${ID('anteprima')}"><div class="rep-pagine orizzontale" id="${ID('pagine')}"></div></div>
      <aside class="pag__side no-print" id="${ID('strumenti')}">${repStrumenti(R, ordine, B)}</aside></div>
@@ -421,7 +421,7 @@ function chiudiStampaDieta(){
 }
 async function stampaDietaPDF(){
   if(typeof html2canvas!=='function'){ avviso(t('Generatore PDF non disponibile in questa copia.')); return; }
-  const btn=document.getElementById('dre-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('⏳ Genero PDF…'); btn.disabled=true; }
+  const btn=document.getElementById('dre-pdf-btn'); const blab=btn?btn.innerHTML:''; if(btn){ btn.innerHTML=t('Genero PDF…'); btn.disabled=true; }
   const stage=document.createElement('div'); stage.id='pdf-stage'; stage.className='land';
   try{
     if(repInModifica){ repBloccoDaFogli(repInModifica); repInModifica=null; renderDietaCC(); }
@@ -475,13 +475,13 @@ function opzioniFase(sel){ return ['bulk','mant','cut'].map(f=>`<option value="$
 /* ▶ avvia un periodo IN CORSO dalla data scelta (oggi o passata) */
 function avviaPeriodo(){
   const faseAtt=(DOC.dati_utente&&DOC.dati_utente.faseAlim)||'bulk', oggi=dataOggi(), ap=periodoAperto();
-  modal(`<h3>${t('▶ Avvia un periodo')}</h3>
-   <div class="callout callout--info"><div>${t('Il periodo parte e resta <b>in corso</b> finché non premi <b>⏹ Termina</b>: non serve sapere oggi quanto durerà. All’avvio si salva una <b>fotografia</b> del piano della fase scelta; nei grafici del tab <b>📊 Analisi</b> il periodo arriva fino a oggi.')}</div></div>
-   ${ap?`<div class="callout"><div>⚠ ${t('C’è già un periodo in corso:')} <b>${esc(t(FASE_LAB[ap.fase]||ap.fase))}</b> ${t('dal')} ${esc(ap.dal)}. ${t('Avviando il nuovo, quello si chiude il giorno prima della data di inizio.')}</div></div>`:''}
+  modal(`<h3>${t('Avvia un periodo')}</h3>
+   <div class="callout callout--info"><div>${t('Il periodo parte e resta <b>in corso</b> finché non premi <b>Termina</b>: non serve sapere oggi quanto durerà. All’avvio si salva una <b>fotografia</b> del piano della fase scelta; nei grafici del tab <b>Analisi</b> il periodo arriva fino a oggi.')}</div></div>
+   ${ap?`<div class="callout">${ico('attenzione','avv')}<div>${t('C’è già un periodo in corso:')} <b>${esc(t(FASE_LAB[ap.fase]||ap.fase))}</b> ${t('dal')} ${esc(ap.dal)}. ${t('Avviando il nuovo, quello si chiude il giorno prima della data di inizio.')}</div></div>`:''}
    <div class="row">
     <div class="field"><label>${t('Fase')}</label><select id="per-fase">${opzioniFase(faseAtt)}</select></div>
     <div class="field"><label>${t('Dal')}</label><input type="date" id="per-dal" value="${oggi}" max="${oggi}"></div></div>
-   <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="per-avvia">${t('▶ Avvia')}</button></div>`);
+   <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="per-avvia">${ico('play')}${t('Avvia')}</button></div>`);
   document.getElementById('per-avvia').onclick=async()=>{
     const fase=document.getElementById('per-fase').value, dal=document.getElementById('per-dal').value;
     if(!dal){ avviso(t('Serve la data di inizio.')); return; }
@@ -493,12 +493,12 @@ function avviaPeriodo(){
     if(aperto && giornoPrima(dal)<aperto.dal){ avviso(t('Il periodo in corso è iniziato il')+' '+aperto.dal+': '+t('scegli una data di inizio successiva, oppure terminalo o eliminalo prima.')); return; }
     /* periodi chiusi che finiscono dopo l'inizio del nuovo: vale l'ultimo, ma lo si dice */
     const overlap=P.filter(p=>p!==aperto && periodoFine(p)>=dal);
-    if(overlap.length && !await conferma(t('⚠ Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
+    if(overlap.length && !await conferma(t('Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
     if(aperto) aperto.al=giornoPrima(dal);
     P.push(Object.assign({id:Date.now().toString(36), fase:fase, dal:dal, al:'', righe:foto.righe}, foto.ricette.length?{ricette:foto.ricette}:{}));
     P.sort((a,b)=>a.dal<b.dal?-1:1);
     persist('alimentazione'); closeModal(); renderAlimentazione();
-    avviso(t('▶ Periodo avviato:')+' '+t(FASE_LAB[fase]||fase)+' '+t('dal')+' '+dal+'. '+t('Quando finisce, premi ⏹ Termina nella tabella dei periodi.')+(aperto? ' '+t('Il periodo precedente è stato chiuso il')+' '+aperto.al+'.' : ''));
+    avviso(t('Periodo avviato:')+' '+t(FASE_LAB[fase]||fase)+' '+t('dal')+' '+dal+'. '+t('Quando finisce, premi Termina nella tabella dei periodi.')+(aperto? ' '+t('Il periodo precedente è stato chiuso il')+' '+aperto.al+'.' : ''));
   };
 }
 
@@ -507,11 +507,11 @@ function terminaPeriodo(i){
   const p=((DOC.alimentazione||{}).periodi||[])[i]; if(!periodoInCorso(p)) return;
   const oggi=dataOggi(), foto=fotografiaPiano(p.fase);
   const cambiato=foto.righe.length>0 && JSON.stringify(foto.righe)!==JSON.stringify(p.righe||[]);
-  modal(`<h3>${t('⏹ Termina il periodo')}</h3>
+  modal(`<h3>${t('Termina il periodo')}</h3>
    <div class="muted" style="margin-bottom:8px"><b>${esc(t(FASE_LAB[p.fase]||p.fase))}</b> ${t('dal')} ${esc(p.dal)} · ${t('in corso')} · ${esc(periodoDurata(p))}</div>
    <div class="row"><div class="field"><label>${t('Al')}</label><input type="date" id="per-al" value="${oggi}" min="${esc(p.dal)}" max="${oggi}"></div></div>
    ${cambiato?`<label class="optchk"><input type="checkbox" id="per-foto"> <span>${t('Il piano di questa fase è cambiato dall’avvio: aggiorna la fotografia del periodo con il piano di oggi')} (${nf(kcalPiano(p.righe,p.ricette),0)} → ${nf(kcalPiano(foto.righe,foto.ricette),0)} ${t('kcal/giorno')})</span></label>`:''}
-   <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="per-stop">⏹ ${t('Termina')}</button></div>`);
+   <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="per-stop">${ico('stop','p')}${t('Termina')}</button></div>`);
   document.getElementById('per-stop').onclick=()=>{
     const al=document.getElementById('per-al').value;
     if(!al){ avviso(t('Serve la data di fine.')); return; }
@@ -521,7 +521,7 @@ function terminaPeriodo(i){
     const aggiorna=document.getElementById('per-foto');
     if(cambiato && aggiorna && aggiorna.checked){ p.righe=foto.righe; if(foto.ricette.length) p.ricette=foto.ricette; else delete p.ricette; }
     persist('alimentazione'); closeModal(); renderAlimentazione();
-    avviso(t('⏹ Periodo terminato:')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+p.al+'.');
+    avviso(t('Periodo terminato:')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+p.al+'.');
   };
 }
 
@@ -531,7 +531,7 @@ function registraPeriodo(){
   const fmt=dataLocale;
   const oggi=new Date(), fa=new Date(); fa.setDate(fa.getDate()-28);
   modal(`<h3>${t('Registra periodo alimentare')}</h3>
-   <div class="callout callout--info"><div>${t('📸 Salva una <b>fotografia</b> del piano della fase scelta con le date in cui lo segui. I periodi alimentano i grafici del tab <b>📊 Analisi</b>.')}</div></div>
+   <div class="callout callout--info"><div>${t('Salva una <b>fotografia</b> del piano della fase scelta con le date in cui lo segui. I periodi alimentano i grafici del tab <b>Analisi</b>.')}</div></div>
    <div class="row">
     <div class="field"><label>${t('Fase')}</label><select id="per-fase">${['bulk','mant','cut'].map(f=>`<option value="${f}"${f===faseAtt?' selected':''}>${t(FASE_LAB[f]||f)}</option>`).join('')}</select></div>
     <div class="field"><label>${t('Dal')}</label><input type="date" id="per-dal" value="${fmt(fa)}"></div>
@@ -548,11 +548,11 @@ function registraPeriodo(){
     if(!Array.isArray(DOC.alimentazione.periodi)) DOC.alimentazione.periodi=[];
     /* safe check: sovrapposizione date con periodi già registrati */
     const overlap=DOC.alimentazione.periodi.filter(p=>!(al<p.dal || dal>periodoFine(p)));   /* in corso = fino a oggi */
-    if(overlap.length && !await conferma(t('⚠ Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
+    if(overlap.length && !await conferma(t('Le date si sovrappongono a')+' '+overlap.length+' '+t('periodo/i già registrati (nelle settimane in comune vale l\'ultimo registrato). Continuo?'))) return;
     const ricP=ricetteUsateIn(righe);   /* le ricette personali usate: copia, così il periodo resta una fotografia */
     DOC.alimentazione.periodi.push(Object.assign({id:Date.now().toString(36), fase:fase, dal:dal, al:al, righe:righe}, ricP.length?{ricette:ricP}:{}));
     DOC.alimentazione.periodi.sort((a,b)=>a.dal<b.dal?-1:1);
     persist('alimentazione'); closeModal(); renderAlimentazione();
-    avviso(t('✔ Periodo registrato:')+' '+t(FASE_LAB[fase]||fase)+' '+dal+' → '+al+' ('+righe.length+' '+t('alimenti,')+' '+nf(kcalPiano(righe),0)+' '+t('kcal/giorno).'));
+    avviso(t('Periodo registrato:')+' '+t(FASE_LAB[fase]||fase)+' '+dal+' → '+al+' ('+righe.length+' '+t('alimenti,')+' '+nf(kcalPiano(righe),0)+' '+t('kcal/giorno).'));
   };
 }

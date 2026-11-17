@@ -176,7 +176,7 @@ function rifNome(rc){
 /* riga sotto la ragnatela: con chi ci si confronta, su quanti dati, e se bastano */
 function rifDidascalia(rc, opt){
   opt=opt||{}; rc=rc||rifCalcola();
-  const btn=opt.dopo? ` <button class="btn btn--sm rif-cambia no-print" data-rif-apri="${esc(opt.dopo)}" data-rif-set="${esc((rc.ctx&&rc.ctx.set)||'')}">${t('⚙ Riferimento')}</button>` : '';
+  const btn=opt.dopo? ` <button class="btn btn--sm rif-cambia no-print" data-rif-apri="${esc(opt.dopo)}" data-rif-set="${esc((rc.ctx&&rc.ctx.set)||'')}">${ico('ingranaggio')}${t('Riferimento')}</button>` : '';
   if(rc.stato==='storico') return `<div class="rif-nota">${t('Riferimento: schede equilibrate pubblicate (fascia storica).')}${btn}</div>`;
   const fonti=rc.fonti.length+' '+(rc.fonti.length===1? t('fonte') : t('fonti'));
   const orig=rc.o.raccolta==='studi'? rifOrigineStudi(rc) : '';
@@ -185,9 +185,9 @@ function rifDidascalia(rc, opt){
     `<div class="rif-pesi">${rc.o.metodo==='esterna'? t('Conteggio con la mappa esterna (proposta da convalidare)') : t('Conteggio col catalogo TMS')} · ${t('dirette')} ×${nfPeso(rc.o.diretta)} · ${t('indirette')} ×${nfPeso(rc.o.indiretta)} <span class="pill rif-provv">${t('provvisori')}</span></div>`;
   /* fascia presa dalle schede Fable: l'avvertimento c'è SEMPRE, ovunque si disegni la ragnatela */
   if(rc.fable)
-    return `<div class="rif-nota is-fable"><b>⚠ ${t('Fascia ipotizzata da Fable: schede generate, non reali')}</b> · ${esc(rifNome(rc))}: ${rc.nReali} ${t('voci reali')} (${t('ne servono almeno')} ${RIF_MIN_VOCI}), ${t('fascia viola tratteggiata da')} ${rc.n} ${t('schede generate da Fable')}.${btn}${pesi}</div>`;
+    return `<div class="rif-nota is-fable"><b>${t('Fascia ipotizzata da Fable: schede generate, non reali')}</b> · ${esc(rifNome(rc))}: ${rc.nReali} ${t('voci reali')} (${t('ne servono almeno')} ${RIF_MIN_VOCI}), ${t('fascia viola tratteggiata da')} ${rc.n} ${t('schede generate da Fable')}.${btn}${pesi}</div>`;
   if(rc.stato==='insufficiente')
-    return `<div class="rif-nota is-poco"><b>⚠ ${t('Dati insufficienti')}</b> ${t('per')} ${esc(rifNome(rc))}: ${esc(base)} (${t('ne servono almeno')} ${RIF_MIN_VOCI}). ${t('Nessuna fascia disegnata.')}${btn}${pesi}</div>`;
+    return `<div class="rif-nota is-poco"><b>${t('Dati insufficienti')}</b> ${t('per')} ${esc(rifNome(rc))}: ${esc(base)} (${t('ne servono almeno')} ${RIF_MIN_VOCI}). ${t('Nessuna fascia disegnata.')}${btn}${pesi}</div>`;
   const avv=rc.stato==='indicativo'? ` <span class="rif-indic">${t('pochi dati: fascia indicativa, tratteggiata')}</span>` : '';
   return `<div class="rif-nota">${t('Riferimento')}: <b>${esc(rifNome(rc))}</b> · <span class="mono">${esc(base)}</span>${avv}${btn}${pesi}</div>`;
 }
@@ -245,7 +245,7 @@ function rifDistrModal(dopo, ctx){
     const elencoFonti=fontiUsate.map(x=>`<li><b>${esc(x.nome)}</b>${x.url?` · <a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.url.replace(/^https?:\/\//,'').slice(0,60))}</a>`:''}${x.doi?` · DOI ${esc(x.doi)}`:''}<div class="muted">${esc(x.licenza||'')}</div></li>`).join('');
     const elencoVoci=rc.voci.map(v=>`<li>${v.url?`<a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.titolo)}</a>`:esc(v.titolo)}${v.generata?` <span class="pill rif-fable">${t('generata da Fable')}</span>`:''} <span class="muted">· ${esc(v.esperienza? t(ESP_NOME[v.esperienza]) : t('esperienza non indicata'))} · ${esc((v.tipi||[]).map(x=>t(TIPO_NOME[x])).join(', '))}${v.stato?' · '+esc(v.stato):''}</span></li>`).join('');
     const riepilogo= rc.fable
-      ? `<div class="callout rif-fable-box"><div><b>⚠ ${t('Schede generate da Fable, non reali')}</b>: ${t('qui le schede reali sono')} ${rc.nReali} (${t('ne servono almeno')} ${RIF_MIN_VOCI}), ${t('quindi la fascia viene da')} <b>${rc.n} ${t('schede generate alla cieca da Fable')}</b>. ${t('Sono un’ipotesi, non dati: dove i dati reali ci sono, Fable li segue bene per tipo di allenamento, ma in qualche casella sbaglia fino a 15 punti.')}</div></div>`
+      ? `<div class="callout rif-fable-box">${ico('attenzione')}<div><b>${t('Schede generate da Fable, non reali')}</b>: ${t('qui le schede reali sono')} ${rc.nReali} (${t('ne servono almeno')} ${RIF_MIN_VOCI}), ${t('quindi la fascia viene da')} <b>${rc.n} ${t('schede generate alla cieca da Fable')}</b>. ${t('Sono un’ipotesi, non dati: dove i dati reali ci sono, Fable li segue bene per tipo di allenamento, ma in qualche casella sbaglia fino a 15 punti.')}</div></div>`
       : rc.stato==='insufficiente'
       ? `<div class="callout" style="background:var(--danger-t);border-color:var(--danger-bd);border-left-color:var(--danger)"><div><b>${t('Dati insufficienti')}</b>: ${rc.n} ${rifUnita(bozza.raccolta,rc.n)} ${t('da')} ${rc.fonti.length} ${rc.fonti.length===1?t('fonte'):t('fonti')} (${t('ne servono almeno')} ${RIF_MIN_VOCI}). ${t('La ragnatela non disegnerà la fascia: scegli una casella con più voci o allarga i filtri.')}</div></div>`
       : `<div class="callout ${rc.stato==='solido'?'callout--info':''}"><div>${t('Il confronto si regge su')} <b>${rc.n} ${rifUnita(bozza.raccolta,rc.n)}</b>${bozza.raccolta==='studi'&&rifOrigineStudi(rc)?` (${rifOrigineStudi(rc)})`:''} ${t('da')} <b>${rc.fonti.length} ${rc.fonti.length===1?t('fonte'):t('fonti')}</b>.${rc.stato==='indicativo'?' '+t('Sono pochi: la fascia sarà tratteggiata, da leggere come indicativa.'):''}</div></div>`;
@@ -285,7 +285,7 @@ function rifDistrModal(dopo, ctx){
     });
     corpo.querySelectorAll('.rif-cella[data-e]').forEach(td=>{ td.onclick=()=>{ bozza.esperienza=td.dataset.e; bozza.tipo=td.dataset.x; disegna(); }; });
   };
-  modal(`<h3>🕸 ${t('Riferimento della distribuzione')}</h3>
+  modal(`<h3>${t('Riferimento della distribuzione')}</h3>
     <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('La fascia verde della ragnatela è la forma tipica (dal 10° al 90° percentile) delle voci scelte qui. Due assi: l’esperienza (dall’anagrafica dell’atleta) e il tipo di allenamento (dal Training Set); il resto sono filtri di contesto. La scelta vale per questo profilo.')}</div>
     <div id="rif-corpo"></div>
     <div class="modal__actions"><button class="btn" id="rif-def">${t('Ripristina predefiniti')}</button><span class="spacer"></span><button class="btn" id="rif-no">${t('Annulla')}</button><button class="btn btn--ember" id="rif-ok">${t('Applica')}</button></div>`);

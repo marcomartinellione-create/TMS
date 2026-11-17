@@ -12,7 +12,7 @@ function composizioneLat(u,c){
   const peso=+u.peso||0; if(!peso) return '';
   const gr=c.grassaKg||0, mu=+u.massa_muscolare||0, os=+u.massa_ossea||0, al=Math.max(0,peso-gr-mu-os);
   const P=x=>(x/peso*100).toFixed(1);
-  return `<div class="lat"><h4>🧬 ${t('Composizione')} <span class="muted">${nf(peso,1)} kg</span>${spiegaBtn('composizione')}</h4>
+  return `<div class="lat"><h4>${t('Composizione')} <span class="muted">${nf(peso,1)} kg</span>${spiegaBtn('composizione')}</h4>
     <div class="lat-barra"><span style="width:${P(mu)}%;background:var(--orange)"></span><span style="width:${P(gr)}%;background:var(--danger)"></span><span style="width:${P(os)}%;background:var(--ink-4)"></span><span style="width:${P(al)}%;background:var(--paper-3)"></span></div>
     <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--orange);margin-right:5px"></i>${t('Massa muscolare')}</span><span><b>${nf(mu,1)} kg</b> · ${nf(mu/peso*100,0)}%</span></div>
     <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--danger);margin-right:5px"></i>${t('Massa grassa')}</span><span><b>${nf(gr,1)} kg</b> · ${nf(gr/peso*100,1)}%</span></div>
@@ -42,7 +42,7 @@ function renderCorpo(){
      <div class="card k--danger"><div class="card__k">${t('Massa grassa')}</div><div class="card__v">${nf(c.grassaKg,1)}<small> kg</small></div><div class="card__sub">${nf((u.massa_grassa||0)*100,1)}%</div></div>
      <div class="card k--violet"><div class="card__k">${t('Fabbisogno')}</div><div class="card__v">${nf(c.metab,0)}<small> kcal</small></div><div class="card__sub">${t('basale·PAL')}</div></div>
    </div>
-   <div class="bar no-print"><div class="spacer"></div><button class="btn btn--ember" id="btn-save-io">${t('💾 Salva misure nello Storico')}</button><button class="btn btn--danger" id="btn-undo-io">${t('↶ Annulla ultimo')}</button></div>
+   <div class="bar no-print"><div class="spacer"></div><button class="btn btn--ember" id="btn-save-io">${ico('salva')}${t('Salva misure nello Storico')}</button><button class="btn btn--danger" id="btn-undo-io">${ico('annulla')}${t('Annulla ultimo')}</button></div>
    <div class="pag pag--corpo"><div class="pag__main">
        <div class="sec">${t('Dati corporei')}</div>
        <div class="corpo-form">
@@ -52,14 +52,14 @@ function renderCorpo(){
          ${F('grasso_viscerale','Grasso viscerale','0.1','indice')}${F('acqua','Acqua','0.1','%')}
        </div>
        <div class="muted" style="font-size:11px;margin-top:6px">${t('Altezza, data di nascita, sesso e nome sono nel tab <b>Profilo</b> (dati invariati).')}</div>
-   <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('📜 Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», che si apre dal tab Profilo.')}</div></div>
+   <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('Lo storico completo delle misure (')}${io.length}${t(' rilevazioni) è nella sezione «Misure», che si apre dal tab Profilo.')}</div></div>
    <div id="pesate-box">${htmlPesate()}</div>
    <div id="foto-box"></div>
      </div>
      <aside class="pag__side">
        <div class="chart-grid chart-grid--corpo">
          ${composizioneLat(u,c)}
-         <div class="chart-box"><h4>${t('⚖ Peso')}${spiegaBtn('peso')}</h4>${lineChart(wSeries,{labels:lbl,h:130})}</div>
+         <div class="chart-box"><h4>${t('Peso')}${spiegaBtn('peso')}</h4>${lineChart(wSeries,{labels:lbl,h:130})}</div>
          <div class="chart-box"><h4>BMI${spiegaBtn('bmi')}</h4>${lineChart(bmiSeries,{labels:lbl,h:130})}</div>
          <div class="chart-box"><h4>${t('Massa magra / muscolare')}${spiegaBtn('massa')}</h4>${lineChart(massSeries,{labels:lbl,h:130})}</div>
        </div>
@@ -81,7 +81,7 @@ function renderCorpo(){
 }
 function saveIoModal(){
   const w=isoWeek(new Date()); const u=DOC.dati_utente; const c=bodyCalc(u);
-  modal(`<h3>${t('💾 Salva misure')}</h3>
+  modal(`<h3>${t('Salva misure')}</h3>
     <div class="row"><div class="field"><label>${t('Anno')}</label><input id="m-anno" type="number" value="${w.anno}"></div>
       <div class="field"><label>${t('Settimana')}</label><input id="m-sett" type="number" min="1" max="53" value="${w.sett}"></div></div>
     <p class="muted" style="font-size:12.5px">${t('Verranno salvati: Peso')} ${nf(u.peso,1)} kg · BMI ${nf(c.bmi,1)} · ${t('Massa magra')} ${nf(c.magraKg,1)} kg.</p>

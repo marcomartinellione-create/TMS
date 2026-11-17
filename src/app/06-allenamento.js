@@ -171,10 +171,10 @@ function barSelettori(S){ return `
          <option value="mensile"${schedaMode==='mensile'?' selected':''}>${t('Mensile')}</option>
        </select></div>
      <div class="field"><label>Training Set</label>
-       <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, rinominarle o eliminarle')}">${S.setsOrdine.map(n=>`<option value="${esc(n)}"${n===S.setAttivo?' selected':''}>${esc(n)}</option>`).join('')}<optgroup label="${t('Azioni')}"><option value="__new__">${t('➕ Nuovo Training Set…')}</option><option value="__rename__">${t('✎ Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('🗑 Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
+       <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, rinominarle o eliminarle')}">${S.setsOrdine.map(n=>`<option value="${esc(n)}"${n===S.setAttivo?' selected':''}>${esc(n)}</option>`).join('')}<optgroup label="${t('Azioni')}"><option value="__new__">${t('Nuovo Training Set…')}</option><option value="__rename__">${t('Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
      <div class="field"><label>${t('Tipo di allenamento')}</label>
        <select id="tipo-allen" title="${t('Tipo di allenamento di questo Training Set: sceglie il riferimento della ragnatela «distribuzione fra i gruppi»')}"><option value="">—</option>${TIPI_ALLEN.map(x=>`<option value="${x}"${S.tipoAllenamento===x?' selected':''}>${esc(t(TIPO_NOME[x]))}</option>`).join('')}</select></div>
-     <button class="btn btn--ember" id="btn-warm" title="${t('Apri i riscaldamenti giorno per giorno di questo Training Set')}">${pesiView==='riscaldamento'?('◂ '+t('Scheda')):('🔥 '+t('Riscaldamento'))}</button>`; }
+     <button class="btn btn--ember" id="btn-warm" title="${t('Apri i riscaldamenti giorno per giorno di questo Training Set')}">${pesiView==='riscaldamento'?(ico('indietro')+t('Scheda')):(ico('fiamma')+t('Riscaldamento'))}</button>`; }
 function wireBarSelettori(){
   const sm=document.getElementById('sched-mode'); if(sm) sm.onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
   { const ts=document.getElementById('training-set');
@@ -204,13 +204,13 @@ function renderRiscaldamento(S){
       body+=`<tr data-wi="${i}">`+
         /* il ▶ sta ACCANTO al nome, non sotto: su una riga di riscaldamento la seconda
            riga faceva crescere la tabella per un solo bottoncino */
-        `<td class="l"><div class="warm-cell"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span><button type="button" class="cell-in txt warm-pick" style="min-width:130px;flex:1;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>`+
-          (videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button>`:'')+`</div></td>`+
+        `<td class="l"><div class="warm-cell"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span><button type="button" class="cell-in txt warm-pick" style="min-width:130px;flex:1;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.55;display:inline-flex">${ico('giu','p')}</span></button>`+
+          (videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">${ico('play','p')}</button>`:'')+`</div></td>`+
         `<td>${aTempo?`<span class="muted">—</span>`:`<input class="cell-in" data-wf="serie" type="number" min="0" step="1" value="${r.serie??''}" style="width:52px">`}</td>`+
         `<td>${aTempo?`<span class="muted">—</span>`:`<input class="cell-in" data-wf="rip" type="number" min="0" step="1" value="${r.rip??''}" style="width:56px">`}</td>`+
         `<td><input class="cell-in" data-wf="min" type="number" min="0" step="1" value="${r.min??''}" style="width:58px" placeholder="–" title="${t('Durata in minuti (per cardio e per gli esercizi a tempo)')}"></td>`+
         `<td><input class="cell-in" data-wf="note" value="${esc(r.note||'')}" style="width:100%"></td>`+
-        `<td><button class="btn btn--sm btn--danger no-print" data-wdel="${i}" title="${t('elimina')}">✕</button></td></tr>`; });
+        `<td><button class="btn btn--sm btn--danger no-print" data-wdel="${i}" title="${t('elimina')}">${ico('x','p')}</button></td></tr>`; });
     content+=`<div class="sec">${esc(giornoNome(g))}</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th class="l">${t('Esercizio')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Min')}</th><th class="l">${t('Note')}</th><th></th></tr></thead>
@@ -220,7 +220,7 @@ function renderRiscaldamento(S){
   });
   document.getElementById('panel-allenamento').innerHTML=`
    <div class="bar bar--bottom no-print">${barSelettori(S)}<div class="spacer"></div></div>
-   <div class="callout callout--info"><div>${t('🔥 <b>Riscaldamento</b> del Training Set «')}${esc(S.setAttivo)}${t('». Scegli esercizi di <b>stretching</b> oppure <b>cardio di base</b> (corsa sul tapis roulant, cyclette, ellittica, vogatore…): il cardio non ha serie e ripetizioni, solo i <b>minuti</b>. Il ▶ mostra il video. Serve a prepararsi: <b>non conta nel TL né in alcun calcolo</b>. I giorni sono ripresi dalla scheda.')}</div></div>
+   <div class="callout callout--info"><div>${t('<b>Riscaldamento</b> del Training Set «')}${esc(S.setAttivo)}${t('». Scegli esercizi di <b>stretching</b> oppure <b>cardio di base</b> (corsa sul tapis roulant, cyclette, ellittica, vogatore…): il cardio non ha serie e ripetizioni, solo i <b>minuti</b>. Il ▶ mostra il video. Serve a prepararsi: <b>non conta nel TL né in alcun calcolo</b>. I giorni sono ripresi dalla scheda.')}</div></div>
    ${content}`;
   wireBarSelettori();
   document.querySelectorAll('#panel-allenamento [data-vid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.vid));
@@ -261,7 +261,7 @@ function colonnePesi(){
 function colonnaPesiVisibile(k){ const v=colonnePesi()[k]; return v===undefined?true:!!v; }  /* di default si vede tutto, come prima */
 function classiColonnePesi(){ return COLONNE_PESI.filter(c=>!colonnaPesiVisibile(c.k)).map(c=>'hide-'+c.k).join(' '); }
 function colonnePesiModal(){
-  modal(`<h3>${t('▦ Colonne della scheda')}</h3>
+  modal(`<h3>${t('Colonne della scheda')}</h3>
    <div class="muted" style="font-size:12.5px;margin-bottom:10px">${t('Togli il segno di spunta alle colonne che non guardi: la tabella diventa più stretta e leggibile. I valori restano calcolati e salvati — cambia solo cosa vedi.')}</div>
    ${COLONNE_PESI.map(c=>`<label class="field optchk" style="display:flex;align-items:center;gap:8px;margin:7px 0"><input type="checkbox" data-col="${c.k}"${colonnaPesiVisibile(c.k)?' checked':''}><span>${t(c.lab)}</span></label>`).join('')}
    <div class="modal__actions"><button class="btn" id="col-tutte">${t('Mostra tutte')}</button><button class="btn btn--ember" onclick="closeModal()">${t('Fatto')}</button></div>`);
@@ -330,7 +330,7 @@ const FASCE_ORD=['Forza','Forza+Iper','Ipertrofia','Resistenza','Metabolico'];
 const FASCE_COL={'Forza':'var(--c-rosso)','Forza+Iper':'var(--c-arancio)','Ipertrofia':'var(--c-oro)','Resistenza':'var(--c-verde)','Metabolico':'var(--c-viola)'};   /* variabili: di notte si schiariscono */
 function pannelloCostruzione(){
   const bil=bilanciamentoSerie(), rows=schedaRows();
-  if(!bil.tot) return `<div class="lat"><h4>🧭 ${t('Come sta venendo la scheda')}</h4><div class="empty">${t('Aggiungi qualche esercizio: qui vedrai in tempo reale com’è distribuito il lavoro fra gruppi muscolari, giorni e intensità.')}</div></div>`;
+  if(!bil.tot) return `<div class="lat"><h4>${t('Come sta venendo la scheda')}</h4><div class="empty">${t('Aggiungi qualche esercizio: qui vedrai in tempo reale com’è distribuito il lavoro fra gruppi muscolari, giorni e intensità.')}</div></div>`;
   const sp=bil.dir.spinta, tr=bil.dir.trazione, totDir=sp+tr;
   /* per giorno: serie, esercizi diversi, TL */
   const gg=schedaDays(rows).map(g=>{ let s=0,tl=0; const n=new Set();
@@ -343,16 +343,16 @@ function pannelloCostruzione(){
   const fasceBarra=FASCE_ORD.filter(b=>band[b]).map(b=>`<span style="width:${(band[b]/conPct*100).toFixed(1)}%;background:${FASCE_COL[b]}" title="${esc(t(b))}: ${bilNum(band[b])} ${t('serie')}"></span>`).join('');
   const fasceLeg=FASCE_ORD.filter(b=>band[b]).map(b=>`<span><i style="background:${FASCE_COL[b]}"></i>${esc(t(b))} ${Math.round(band[b]/conPct*100)}%</span>`).join('');
   const rc=rifCalcola();
-  return `<div class="lat"><h4>🕸 ${t('Distribuzione fra i gruppi')} <span class="muted">${t('verde = riferimento scelto')}</span>${spiegaBtn('distribuzione')}</h4>
+  return `<div class="lat"><h4>${t('Distribuzione fra i gruppi')} <span class="muted">${t('verde = riferimento scelto')}</span>${spiegaBtn('distribuzione')}</h4>
       ${radarChart(vociDistribuzione(bil.per,bil,rc),{w:360,h:270})}${rifDidascalia(rc,{dopo:'tab'})}</div>
-    <div class="lat"><h4>🔢 ${t('Serie per gruppo')} <span class="muted">${bil.tot} ${t('serie in scheda')}</span>${spiegaBtn('serie-gruppo')}</h4>
+    <div class="lat"><h4>${t('Serie per gruppo')} <span class="muted">${bil.tot} ${t('serie in scheda')}</span>${spiegaBtn('serie-gruppo')}</h4>
       ${bilRigheHTML(bil.per,bil)}${bilLegendaDI()}
       ${totDir?`<div class="lat-num" style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px"><span>${t('Spinta · Trazione')}</span><span><b>${bilNum(sp)} · ${bilNum(tr)}</b> <span class="muted">${esc(verdettoDir(sp,tr))}</span></span></div>
       <div class="lat-barra"><span style="width:${(sp/totDir*100).toFixed(1)}%;background:var(--orange)"></span><span style="width:${(tr/totDir*100).toFixed(1)}%;background:var(--violet)"></span></div>`:''}
       <div class="lat-nota">${t('Serie dirette sui muscoli principali, indirette su quelli coinvolti di striscio. La tacca verde è la zona utile del gruppo; in rosso chi ne è nettamente fuori.')}</div></div>
-    <div class="lat"><h4>📅 ${t('Carico per giorno')} <span class="muted">TL ${nfk(totTL)}</span>${spiegaBtn('carico-giorno')}</h4>
+    <div class="lat"><h4>${t('Carico per giorno')} <span class="muted">TL ${nfk(totTL)}</span>${spiegaBtn('carico-giorno')}</h4>
       <div class="lat-giorni">${gg.map(x=>`<span>${esc(giornoNome(x.g))}</span><span class="lat-barra" style="margin:0"><span style="width:${(x.tl/maxTL*100).toFixed(1)}%;background:var(--orange)"></span></span><span class="mono">${bilNum(x.s)} ${t('serie')} · ${x.n} ${t('es.')} · ${nfk(x.tl)}</span>`).join('')}</div></div>
-    ${conPct?`<div class="lat"><h4>🎯 ${t('Intensità')} <span class="muted">${t('serie per fascia di %1RM')}</span>${spiegaBtn('intensita')}</h4>
+    ${conPct?`<div class="lat"><h4>${t('Intensità')} <span class="muted">${t('serie per fascia di %1RM')}</span>${spiegaBtn('intensita')}</h4>
       <div class="lat-barra">${fasceBarra}</div><div class="lat-leg">${fasceLeg}</div></div>`:''}`;
 }
 function bilanciamentoModal(){
@@ -380,7 +380,7 @@ function bilanciamentoModal(){
   const rigaDir = (sp||tr) ? `<div class="bil-dir">
       <span>${t('Spinta · Trazione')}</span>
       <span><b class="mono">${bilNum(sp)} · ${bilNum(tr)}</b> <span class="muted">${esc(verdetto)}</span></span></div>` : '';
-  modal(`<h3>⚖ ${t('Bilanciamento della settimana')}</h3>
+  modal(`<h3>${t('Bilanciamento della settimana')}</h3>
     <div class="muted" style="font-size:12.5px;margin-bottom:8px">${t('Serie per gruppo muscolare nella scheda che stai scrivendo: <b>dirette</b> sui muscoli principali, <b>indirette</b> (mezza serie) su quelli coinvolti di striscio — la panca allena anche spalle e tricipiti. Il <b>cardio è escluso</b>: qui si guarda il lavoro coi pesi.')}</div>
     ${bil.tot? `<div class="bil-wrap">
         <div class="bil-radar">${spiegaBtn('distribuzione','bilanciamento')}${radarChart(items,{w:360,h:290})}${rifDidascalia(rc,{dopo:'bilanciamento'})}</div>
@@ -392,7 +392,7 @@ function bilanciamentoModal(){
           <div class="bil-dir"><span>${t('serie in scheda')}</span><span class="mono"><b>${bil.tot}</b></span></div>
         </div>
       </div>
-      <div class="bil-nota muted">${t('La <b>ragnatela</b> mostra la <b>distribuzione</b>: quanta parte del lavoro va a ogni gruppo, in percentuale. La fascia verde è il <b>riferimento scelto</b> (scritto sotto il disegno, con quante schede o studi lo reggono): si cambia con ⚙ Riferimento, per esperienza e tipo di allenamento. Non dipende da quante serie fai: una settimana leggera e una pesante distribuite allo stesso modo hanno lo stesso disegno. L\u2019<b>elenco</b> accanto dice invece la <b>quantità</b>, con le tacche verdi della zona utile di ogni gruppo. In rosso chi ne sta nettamente fuori.')}</div>`
+      <div class="bil-nota muted">${t('La <b>ragnatela</b> mostra la <b>distribuzione</b>: quanta parte del lavoro va a ogni gruppo, in percentuale. La fascia verde è il <b>riferimento scelto</b> (scritto sotto il disegno, con quante schede o studi lo reggono): si cambia con Riferimento, per esperienza e tipo di allenamento. Non dipende da quante serie fai: una settimana leggera e una pesante distribuite allo stesso modo hanno lo stesso disegno. L\u2019<b>elenco</b> accanto dice invece la <b>quantità</b>, con le tacche verdi della zona utile di ogni gruppo. In rosso chi ne sta nettamente fuori.')}</div>`
       : `<div class="empty" style="padding:26px">${t('Nessuna serie da mostrare: la scheda è vuota (o contiene solo cardio).')}</div>`}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
   const m=document.getElementById('modal'); if(m) m.style.maxWidth='720px';
@@ -433,8 +433,8 @@ function renderAllenamento(){
     const clibTip= clibQ>=1? t('A corpo libero: al peso scritto (la zavorra) si somma il tuo peso corporeo per 1RM, TL e record. Lo aggiorni dal tab Corpo.')
       : t('Solleva solo una parte del corpo: al peso scritto si somma il')+' '+Math.round(clibQ*100)+'% '+t('del tuo peso corporeo (massa delle gambe, tabelle di de Leva; a ginocchia piegate la leva conta meno). Lo aggiorni dal tab Corpo.');
     body+=`<tr data-i="${i}"${r.test?' style="background:rgba(122,62,168,.07)"':''}>
-      <td class="l"><div class="ex-cell"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span><button type="button" class="cell-in txt ex-pick" style="min-width:150px;flex:1;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.5">▾</span></button>${sdBadge}</div>
-        <div class="ex-sub-row">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">▶</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="${t('ultima registrazione (scheda')} ${lp.scheda})">${t('ult:')} ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}${clib?`<span class="pill" style="font-size:9.5px;padding:1px 7px;white-space:nowrap" title="${esc(clibTip)}">🧍 +${nf(clibKg,0)} kg${clibQ<1?` <span style="opacity:.7">(${Math.round(clibQ*100)}%)</span>`:''}</span>`:''}<span style="flex:1"></span>${caricoLedHTML(ledCarico)}</div></td>
+      <td class="l"><div class="ex-cell"><span class="drag-h no-print" title="${t('trascina per spostare')}">⠿</span><button type="button" class="cell-in txt ex-pick" style="min-width:150px;flex:1;text-align:left;cursor:pointer">${r.esercizio?esc(exName(r.esercizio)):`<span class="muted">${t('＋ scegli esercizio')}</span>`} <span style="opacity:.55;display:inline-flex">${ico('giu','p')}</span></button>${sdBadge}</div>
+        <div class="ex-sub-row">${videoOf(r.esercizio)?`<button class="vidbtn no-print" data-vid="${esc(r.esercizio)}" title="${t('Guarda il video')}">${ico('play','p')}</button>`:''}${(()=>{const lp=lastPerf(r.esercizio);return lp?`<span class="muted" style="font-size:10px;line-height:1.2" title="${t('ultima registrazione (scheda')} ${lp.scheda})">${t('ult:')} ${nf(lp.peso,1)}×${nf(lp.rip,0)}${(lp.rir!==''&&lp.rir!=null)?(' · RIR '+lp.rir):''}</span>`:'';})()}${clib?`<span class="pill" style="font-size:9.5px;padding:1px 7px;white-space:nowrap" title="${esc(clibTip)}">${ico('corpo','p')} +${nf(clibKg,0)} kg${clibQ<1?` <span style="opacity:.7">(${Math.round(clibQ*100)}%)</span>`:''}</span>`:''}<span style="flex:1"></span>${caricoLedHTML(ledCarico)}</div></td>
       <td class="l col-note"><textarea class="cell-in txt note-area" data-f="note" placeholder="${t('note')}" style="min-width:90px">${esc(r.note||'')}</textarea></td>
       <td><input class="cell-in" type="number" min="0" value="${r.serie??''}" data-f="serie" style="width:48px"></td>
       <td><input class="cell-in" type="number" min="0" value="${r.rip??''}" data-f="rip" style="width:52px"></td>
@@ -447,8 +447,8 @@ function renderAllenamento(){
       <td class="col-dtl num ${dperc==null?'muted':dperc>=0?'delta-up':'delta-dn'}" title="${t('Δ TL del set vs il set di pari posizione della scorsa scheda')}">${dperc==null?'—':(dperc>=0?'▲':'▼')+' '+nf(Math.abs(dperc)*100,1)+'%'}</td>
       <td style="white-space:nowrap"><span class="fascia ${fc}">${t(fl)}</span>
         <button class="btn btn--sm no-print" data-set="${i}" title="${t('aggiungi un set a questo esercizio')}">${t('＋set')}</button>
-        <button class="btn btn--sm no-print" data-test="${i}" title="${t('segna/togli test 1RM (escluso dalla progressione)')}" style="${r.test?'color:var(--violet);border-color:var(--violet)':''}">★</button>
-        <button class="btn btn--sm btn--danger no-print" data-del="${i}" title="${t('elimina')}">✕</button></td>
+        <button class="btn btn--sm no-print" data-test="${i}" title="${t('segna/togli test 1RM (escluso dalla progressione)')}" style="${r.test?'color:var(--violet);border-color:var(--violet)':''}">${ico('stella',r.test?'p pieno':'p')}</button>
+        <button class="btn btn--sm btn--danger no-print" data-del="${i}" title="${t('elimina')}">${ico('x','p')}</button></td>
     </tr>`;
   });
   document.getElementById('panel-allenamento').innerHTML=`
@@ -456,18 +456,18 @@ function renderAllenamento(){
      <div class="spacer"></div>
      <button class="btn" id="btn-addrow">${t('＋ Esercizio')}</button>
      <button class="btn" id="btn-addday">${t('＋ Giorno')}</button>
-     <button class="btn" id="btn-prefill" title="${t('Riprendi peso/rip/RIR dalla scorsa registrazione')}">${t('↧ Dalla scorsa')}</button>
-     <button class="btn btn--ember" id="btn-save-sched">${t('💾 Salva nello Storico')}</button>
+     <button class="btn" id="btn-prefill" title="${t('Riprendi peso/rip/RIR dalla scorsa registrazione')}">${ico('copia')}${t('Dalla scorsa')}</button>
+     <button class="btn btn--ember" id="btn-save-sched">${ico('salva')}${t('Salva nello Storico')}</button>
    </div>
    <div class="pag"><div class="pag__main">
    ${statusBanner(DOC.storico,'Storico allenamento')}
    ${telRigaPesi()}
-   <div class="sec">${t('Scheda '+schedaMode)} <span class="pill">${rows.length} ${t('righe-set')}</span><span class="pill" id="hdr-tottl" style="margin-left:6px">${t('TL totale')} ${nfk(totTL)}</span><span id="hdr-delta">${deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px" title="${t('TL totale ultima scheda salvata')}">${t('ultima')} ${nfk(prevTotal)}</span>`}</span><button class="btn btn--sm no-print" id="btn-bilanc" style="margin-left:auto" title="${t('Come è bilanciata la settimana fra i gruppi muscolari')}">${t('⚖ Bilanciamento')}</button><button class="btn btn--sm no-print" id="btn-colonne" style="margin-left:6px" title="${t('Scegli quali colonne mostrare')}">${t('▦ Colonne')}</button></div>
+   <div class="sec">${t('Scheda '+schedaMode)} <span class="pill">${rows.length} ${t('righe-set')}</span><span class="pill" id="hdr-tottl" style="margin-left:6px">${t('TL totale')} ${nfk(totTL)}</span><span id="hdr-delta">${deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px" title="${t('TL totale ultima scheda salvata')}">${t('ultima')} ${nfk(prevTotal)}</span>`}</span><button class="btn btn--sm no-print" id="btn-bilanc" style="margin-left:auto" title="${t('Come è bilanciata la settimana fra i gruppi muscolari')}">${ico('equilibrio')}${t('Bilanciamento')}</button><button class="btn btn--sm no-print" id="btn-colonne" style="margin-left:6px" title="${t('Scegli quali colonne mostrare')}">${ico('colonne')}${t('Colonne')}</button></div>
    <div class="tbl-wrap"><table class="${useRirActive()?'':'hide-rir'} ${classiColonnePesi()}">
      <thead><tr><th class="l">${t('Esercizio')}</th><th class="l col-note">${t('Note')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th class="col-rest">${t('Rest')}</th><th class="col-rm">1RM</th><th class="col-rm">%1RM</th><th class="col-tl">TL</th><th class="col-dtl" title="${t('Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda')}">Δ TL set</th><th>${t('Fascia / azioni')}</th></tr></thead>
-     <tbody>${body||`<tr><td colspan="12" class="empty"><span class="empty__ico">🏋</span>${t('<b>La scheda è vuota.</b><br>Aggiungi il primo esercizio: scegli il giorno e poi l\'esercizio dal catalogo.')}<br><button class="btn btn--ember" onclick="aggiungiEsercizioModal()">${t('＋ Aggiungi il primo esercizio')}</button></td></tr>`}</tbody>
+     <tbody>${body||`<tr><td colspan="12" class="empty"><span class="empty__ico">${ico('manubrio')}</span>${t('<b>La scheda è vuota.</b><br>Aggiungi il primo esercizio: scegli il giorno e poi l\'esercizio dal catalogo.')}<br><button class="btn btn--ember" onclick="aggiungiEsercizioModal()">${t('＋ Aggiungi il primo esercizio')}</button></td></tr>`}</tbody>
    </table></div>
-   <div class="callout callout--info"><div>${t('🧮 <b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b>★</b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> nella cella dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)">🟢</span> progressione sensata · <span style="color:var(--warn)">🟡</span> attenzione · <span style="color:var(--danger)">🔴</span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>
+   <div class="callout callout--info"><div>${t('<b>1RM</b>=Peso·(1+Rip/30) · <b>%1RM</b>=Peso/1RM · <b>TL</b>=Serie·Rip·Peso·(%1RM/100)·Fattore · <b>ΔTL set</b>: ogni set confrontato col set di pari posizione (1° vs 1°, 2° vs 2°…) della stessa seduta nella scorsa scheda. Ripeti lo stesso esercizio con <b>＋set</b> per i set incrementali; se compare in un secondo giorno della settimana diventa automaticamente <b>S2</b>. <b></b>=test 1RM (escluso dalla progressione). Il <b>pallino</b> nella cella dell\'esercizio è un suggerimento del co-pilota sul Peso (<span style="color:var(--ok)"></span> progressione sensata · <span style="color:var(--warn)"></span> attenzione · <span style="color:var(--danger)"></span> salto troppo grande o meglio scaricare): passaci sopra per il perché. <b>Non scrive nulla</b>, decidi tu.')}</div></div>
    </div><aside class="pag__side no-print" id="pesi-side">${pannelloCostruzione()}</aside></div>`;
   wireBarSelettori();
   // auto-resize note textareas
@@ -534,9 +534,9 @@ function aggStatus(arr){ const codes=(arr||[]).map(r=>+r.scheda||0).filter(x=>x>
 /* «202619» da solo non dice quando: accanto al codice va la data del lunedì di quella settimana */
 function settConData(code){ return code+' <span style="font-weight:400;opacity:.8">· '+esc(schedaLabel(code))+'</span>'; }
 function statusBanner(arr,label){ const s=aggStatus(arr);
-  if(s.ok) return `<div class="callout no-print" style="margin:0 0 12px;background:var(--ok-t);border-color:#bcdcc6;border-left-color:var(--ok)"><div>✓ <b>${t(label)} ${t('aggiornato')}</b> · ${t('ultima registrazione: settimana')} <b>${settConData(s.last)}</b> (${t('corrente')} ${s.cur}).</div></div>`;
+  if(s.ok) return `<div class="callout no-print" style="margin:0 0 12px;background:var(--ok-t);border-color:#bcdcc6">${ico('check','ok')}<div><b>${t(label)} ${t('aggiornato')}</b> · ${t('ultima registrazione: settimana')} <b>${settConData(s.last)}</b> (${t('corrente')} ${s.cur}).</div></div>`;
   const what=s.last?`${t('l\'ultima è la settimana')} <b>${settConData(s.last)}</b>`:t('non ci sono ancora registrazioni');
-  return `<div class="callout no-print" style="margin:0 0 12px;background:var(--danger-t);border-color:#e6b8b8;border-left-color:var(--danger)"><div>⚠ <b>${t(label)} ${t('da aggiornare')}</b> · ${what}; ${t('manca almeno la settimana precedente')} (<b>${settConData(s.prev)}</b>). ${t('Ricordati di salvare.')}</div></div>`;
+  return `<div class="callout no-print" style="margin:0 0 12px;background:var(--danger-t);border-color:#e6b8b8">${ico('attenzione','err')}<div><b>${t(label)} ${t('da aggiornare')}</b> · ${what}; ${t('manca almeno la settimana precedente')} (<b>${settConData(s.prev)}</b>). ${t('Ricordati di salvare.')}</div></div>`;
 }
 function updateStatusDots(){ const so=aggStatus(DOC.storico), bo=aggStatus(DOC.storico_io);
   const ds=document.getElementById('dot-storico'), dm=document.getElementById('dot-misure');
@@ -606,7 +606,7 @@ function addDay(){
 function saveSchedaModal(){
   const w=isoWeek(new Date());
   const _pad=n=>String(n).padStart(2,'0'); const wk=w.anno+'-W'+_pad(w.sett);
-  modal(`<h3>${t('💾 Salva scheda nello Storico')}</h3>
+  modal(`<h3>${t('Salva scheda nello Storico')}</h3>
     <p class="muted" style="font-size:13px;margin:0 0 8px">${t('Scegli la <b>settimana</b> dal calendario (oppure regola Anno/Settimana). Codice = Anno·100 + Settimana.')}</p>
     <div class="field"><label>${t('Settimana (calendario)')}</label><input id="m-week" type="week" value="${wk}" style="width:100%"></div>
     <div class="row"><div class="field"><label>${t('Anno')}</label><input id="m-anno" type="number" value="${w.anno}"></div>
@@ -655,8 +655,8 @@ function saveSchedaModal(){
     persist('scheda'); persist('storico'); closeModal();
     telSettimanaSalvata(code);   /* telefono collegato: la settimana si chiude anche lì */
     const prk=Object.keys(prs);
-    let _msg=t('✔ Scheda')+' '+code+' '+t('salvata —')+' '+added+' '+t('esercizi aggiunti allo Storico.');
-    if(prk.length) _msg+='\n\n'+t('🎉 Nuovo record:')+' '+prk.map(k=>exName(k)+' '+nf(prs[k],1)+' kg').join(', ');
+    let _msg=t('Scheda')+' '+code+' '+t('salvata —')+' '+added+' '+t('esercizi aggiunti allo Storico.');
+    if(prk.length) _msg+='\n\n'+t('Nuovo record:')+' '+prk.map(k=>exName(k)+' '+nf(prs[k],1)+' kg').join(', ');
     avviso(_msg);
     if(curTab==='storico')renderStorico(); else renderAllenamento(); updateStatusDots();
   };
