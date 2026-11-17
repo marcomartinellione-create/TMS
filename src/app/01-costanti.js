@@ -1,4 +1,6 @@
 /* ════════════════ COSTANTI / LOOKUP ════════════════ */
+/* icone disegnate (simboli SVG in cima al <body>, 03-corpo.html): ico('utente'), ico('check','p') = piccola */
+function ico(n,c){ return '<svg class="ic'+(c?' '+c:'')+'" aria-hidden="true"><use href="#i-'+n+'"/></svg>'; }
 const GIORNI = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
 /* GIORNI DELLA SCHEDA (2026-11-14, Marco: «i giorni segnati in maniera progressiva, 1 2 3»):
    la scheda non è legata al calendario, i suoi giorni sono «Giorno 1», «Giorno 2»… — salvati

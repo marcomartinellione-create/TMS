@@ -22,7 +22,7 @@ function applicaTema(md, stile){
   h.setAttribute('data-theme', notte? 'notte' : 'giorno');
   h.setAttribute('data-notte', stile||notteGet());
   const bt=document.getElementById('btn-theme');
-  if(bt){ bt.textContent=notte? '☀' : '🌙'; bt.title=notte? t('Modalità giorno') : t('Modalità notte'); }
+  if(bt){ bt.innerHTML=ico(notte? 'sole' : 'luna'); bt.title=notte? t('Modalità giorno') : t('Modalità notte'); }
 }
 function temaSalva(md, stile){
   try{ localStorage.setItem('tms-theme', md==='notte'? 'notte' : 'giorno'); if(stile) localStorage.setItem('tms-notte', stile); }catch(e){}

@@ -19,7 +19,7 @@ function profiloDemo(){ return {slug:PROFILO_DEMO.slug, nome:PROFILO_DEMO.nome, 
 function pslug(n){ return String(n||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,32)||'profilo'; }
 function profNome(){ const p=profili.find(x=>x.slug===activeProfile); return p?p.nome:''; }
 /* il tab "Profilo" mostra il nome del profilo attivo (richiesta Marco, v1.0.66) */
-function aggiornaTabProfilo(){ const b=document.querySelector('.tab[data-tab="profilo"]'); if(b) b.innerHTML='<span class="ico">👤</span> '+esc(profNome()||t('Profilo')); }
+function aggiornaTabProfilo(){ const b=document.querySelector('.tab[data-tab="profilo"]'); if(b) b.innerHTML='<span class="ico">'+ico('utente')+'</span> '+esc(profNome()||t('Profilo')); }
 
 function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open(IDB_NAME,1);r.onupgradeneeded=()=>r.result.createObjectStore(IDB_STORE);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});}
 async function idbSet(k,v){const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(v,k);tx.oncomplete=()=>{db.close();res()};tx.onerror=()=>{db.close();rej(tx.error)}});}
