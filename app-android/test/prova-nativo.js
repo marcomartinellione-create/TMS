@@ -13,6 +13,20 @@ const VERSIONE = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.
 let passati = 0, falliti = 0;
 function ok(cond, nome) { if (cond) { passati++; } else { falliti++; console.log('  ✗ ' + nome); } }
 const attendi = (ms = 60) => new Promise(r => setTimeout(r, ms));
+/* IndexedDB finto (una Map che sopravvive ai «riavvii» dell'app): put/get/openCursor, la
+   transazione finisce quando non ha più richieste in sospeso */
+function fintoIDB(m) {
+  const transaction = () => { const tx = {}; let pend = 0, chiusa = false;
+    const dopo = fn => { pend++; setTimeout(() => { fn(); pend--; if (!pend && !chiusa) { chiusa = true; setTimeout(() => tx.oncomplete && tx.oncomplete(), 0); } }, 0); };
+    const st = {
+      put(v, k) { const q = {}; dopo(() => { m.set(k, v); q.onsuccess && q.onsuccess(); }); return q; },
+      get(k) { const q = {}; dopo(() => { q.result = m.get(k); q.onsuccess && q.onsuccess(); }); return q; },
+      openCursor(r) { const q = {}, ks = [...m.keys()].filter(k => k >= r.lower && k <= r.upper).sort(); let i = 0;
+        const passo = () => { q.result = i < ks.length ? { key: ks[i], value: m.get(ks[i]), continue() { i++; dopo(passo); } } : null; q.onsuccess && q.onsuccess(); };
+        dopo(passo); return q; } };
+    tx.objectStore = () => st; return tx; };
+  return { open() { const r = {}; setTimeout(() => { r.result = { transaction, close() {}, createObjectStore() {} }; r.onsuccess && r.onsuccess(); }, 0); return r; } };
+}
 
 const SCHEDA = {
   tipo: 'tms-scheda', versione: 1, app: '1.1.21', modificabile: true, rpe: true,
@@ -38,6 +52,8 @@ async function apri(opz = {}) {
     beforeParse(win) {
       win.localStorage.setItem('tms-scheda-lang', opz.lingua || 'it');
       if (opz.scheda !== null) win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(opz.scheda || SCHEDA));
+      Object.entries(opz.ls || {}).forEach(([k, v]) => win.localStorage.setItem(k, v));
+      if (opz.idb) { win.indexedDB = opz.idb; win.IDBKeyRange = { bound: (a, b) => ({ lower: a, upper: b }) }; }
       win.scrollTo = () => {};
       win.Capacitor = {
         convertFileSrc: p => 'https://localhost/_capacitor_file_' + p,
@@ -198,6 +214,48 @@ async function apri(opz = {}) {
     d.getElementById('cam-prima-btn').click();
     ok(d.getElementById('cam-prima').hidden === false && /AAAA/.test(d.getElementById('cam-prima').src), 'fotocamera: «foto di prima» la mostra in trasparenza per allinearsi');
     w.tmsIndietro(); await attendi(80);
+    a.dom.window.close(); }
+
+  /* ── sposta e ritaglia sulla sagoma ── */
+  { const a = await apri(), { w, d } = a;
+    w.HTMLCanvasElement.prototype.getContext = function(){ const c = this; c.__op = []; return { fillStyle: '', fillRect(){ c.__op.push('fill'); }, drawImage(...x){ c.__op.push(['draw'].concat(x.slice(1))); } }; };
+    w.HTMLCanvasElement.prototype.toDataURL = function(){ return 'data:image/jpeg;base64,RITAGLIO'; };
+    w.eval('FOTO.fronte={id:"fvecchia", img:"data:image/jpeg;base64,AAAA", data:"2026-11-10", pc:true}; renderFoto();');
+    d.getElementById('vai-foto').click();
+    ok(d.querySelector('[data-fotoed="fronte"]') && !d.querySelector('[data-fotoed="lato"]'), 'ritaglio: il ✥ c\'è solo sulle foto già fatte');
+    d.querySelector('[data-fotoed="fronte"]').click(); await attendi(20);
+    d.getElementById('rit-img').dispatchEvent(new w.Event('load')); await attendi(40);
+    ok(d.getElementById('rit').hidden === false && d.querySelector('#rit-sagoma svg use[href="#sg-fronte-rit"]') && /Fronte/.test(d.getElementById('rit-titolo').textContent),
+       'ritaglio: si apre con la foto e la sagoma della vista');
+    ok(w.eval('RIT.z') === 1 && Math.abs(w.eval('RIT.x')) < 1e-9 && Math.abs(w.eval('RIT.y')) < 1e-9, 'ritaglio: parte con la foto che riempie il riquadro, al centro');
+    w.eval('RIT.x=-30; RIT.y=12; ritZoomA(2, 150, 200);');
+    ok(Math.abs(w.eval('RIT.x') - (150 - 180 * 2)) < 1e-9 && Math.abs(w.eval('RIT.y') - (200 - 188 * 2)) < 1e-9, 'ritaglio: ingrandire tiene fermo il punto toccato');
+    { const p = JSON.parse(w.eval('JSON.stringify(ritParametri(RIT, 960, 1280))'));
+      ok(Math.abs(p.dx - (-210 * 3.2)) < 1e-6 && Math.abs(p.dw - 960 * 2 * 3.2 * (300 / 960)) < 1e-6, 'ritaglio: si salva esattamente quello che si vede (riquadro 960×1280)'); }
+    d.getElementById('rit-ok').click(); await attendi(120);
+    const f = JSON.parse(w.eval('JSON.stringify(FOTO.fronte)'));
+    ok(d.getElementById('rit').hidden === true && f.img === 'data:image/jpeg;base64,RITAGLIO' && f.orig === 'data:image/jpeg;base64,AAAA' && f.data === '2026-11-10' && f.sostituisce === 'fvecchia' && f.id !== 'fvecchia' && f.taglio && f.taglio.z === 2,
+       'ritaglio: salvata la foto nuova, tiene l\'originale e la data dello scatto, e sostituisce sul PC quella già arrivata');
+    d.querySelector('[data-fotoed="fronte"]').click(); await attendi(20);
+    d.getElementById('rit-img').dispatchEvent(new w.Event('load')); await attendi(40);
+    ok(/AAAA/.test(d.getElementById('rit-img').src) && w.eval('RIT.z') === 2, 'ritaglio di nuovo: riparte dall\'originale con lo spostamento di prima');
+    w.tmsIndietro(); await attendi(60);
+    ok(d.getElementById('rit').hidden === true && w.eval('FOTO.fronte.img') === 'data:image/jpeg;base64,RITAGLIO', 'tasto indietro: chiude senza salvare');
+    a.dom.window.close(); }
+
+  /* ── dati durevoli: Android, chiudendo l'app di forza, perde localStorage ma non IndexedDB ── */
+  { const m = new Map();
+    let a = await apri({ idb: fintoIDB(m), ls: { 'tms-col': '{"slug":"wander"}' } }); await attendi(150);
+    ok(m.get('ls:tms-col') === '{"slug":"wander"}' && m.get('ls:tms-durevole') === '1' && !m.has('ls:tms-scheda-corrente'),
+       "durevole: al primo avvio copia in IndexedDB le impostazioni che c'erano (la scheda no: sta già lì)");
+    a.w.localStorage.setItem('tms-avvisi', '{"on":true,"ora":"21:00"}'); a.w.localStorage.setItem('tms-bozza-wander-collegata', '{"x":1}');
+    a.w.localStorage.removeItem('tms-col'); a.w.sessionStorage.setItem('tms-prova', '1'); await attendi(80);
+    ok(m.get('ls:tms-avvisi') === '{"on":true,"ora":"21:00"}' && m.get('ls:tms-bozza-wander-collegata') === '{"x":1}' && m.get('ls:tms-col') === null && !m.has('ls:tms-prova'),
+       'durevole: ogni scrittura o cancellazione va subito anche in IndexedDB');
+    a.dom.window.close();
+    a = await apri({ idb: fintoIDB(m), ls: { 'tms-col': '{"slug":"vecchio"}' } }); await attendi(150);
+    ok(a.w.localStorage.getItem('tms-avvisi') === '{"on":true,"ora":"21:00"}' && a.w.localStorage.getItem('tms-bozza-wander-collegata') === '{"x":1}' && a.w.localStorage.getItem('tms-col') === null,
+       "durevole: dopo una chiusura forzata l'app riparte con le impostazioni giuste (e senza quelle tolte)");
     a.dom.window.close(); }
 
   /* ── inglese ── */

@@ -41,6 +41,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.List;
 
 @CapacitorPlugin(name = "TmsCartella")
 public class TmsCartellaPlugin extends Plugin {
@@ -156,12 +158,35 @@ public class TmsCartellaPlugin extends Plugin {
             call.resolve(r);
             return;
         }
-        final DocumentFile f;
+        /* l'APK si cerca nella sua cartella (di solito apk/): prima quello col nome giusto, poi lo stesso
+           nome con maiuscole diverse, poi QUALUNQUE altro .apk (dal più recente). Vale il primo che ha
+           l'impronta attesa: un'app di sincronizzazione può rinominarlo («… (1).apk») o lasciarne una
+           copia a metà. Se nessuno va bene, il messaggio dice cosa c'è davvero nella cartella. */
+        final List<DocumentFile> candidati = new ArrayList<>();
+        final String nomeAtteso;
+        final StringBuilder visti = new StringBuilder();
         try {
             String percorso = call.getString("percorso", "");
             if (!percorso.toLowerCase().endsWith(".apk")) throw new IOException("non è un APK");
-            f = risolvi(radice(call), percorso, false);
-            if (f == null || !f.isFile()) throw new IOException("l'APK non c'è (ancora) nella cartella");
+            int barra = percorso.lastIndexOf('/');
+            nomeAtteso = barra >= 0 ? percorso.substring(barra + 1) : percorso;
+            DocumentFile root = radice(call);
+            DocumentFile dir = barra > 0 ? cammina(root, percorso.substring(0, barra)) : root;
+            if (dir == null || !dir.isDirectory()) throw new IOException("sul telefono, nella cartella condivisa, non c'è la cartella «" + (barra > 0 ? percorso.substring(0, barra) : "") + "»: la sincronizzazione non l'ha ancora portata");
+            List<DocumentFile> altri = new ArrayList<>();
+            for (DocumentFile x : dir.listFiles()) {
+                String n = x.getName();
+                if (n == null) continue;
+                if (visti.length() > 0) visti.append(", ");
+                visti.append(n).append(x.isFile() ? " (" + String.format(java.util.Locale.ITALY, "%.1f", x.length() / 1048576.0) + " MB)" : " (cartella)");
+                if (!x.isFile() || !n.toLowerCase().endsWith(".apk")) continue;
+                if (n.equals(nomeAtteso)) candidati.add(0, x);
+                else if (n.equalsIgnoreCase(nomeAtteso)) candidati.add(candidati.isEmpty() ? 0 : 1, x);
+                else altri.add(x);
+            }
+            altri.sort((a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+            if (atteso != null && !atteso.isEmpty()) candidati.addAll(altri);
+            if (candidati.isEmpty()) throw new IOException("sul telefono non trovo " + nomeAtteso + ". Nella cartella del telefono ci sono: " + (visti.length() > 0 ? visti : "nessun file") + ". Aspetta che la sincronizzazione finisca e riprova.");
         } catch (Exception e) {
             call.reject(String.valueOf(e.getMessage()));
             return;
@@ -174,23 +199,26 @@ public class TmsCartellaPlugin extends Plugin {
                 if (vecchi != null) for (File v : vecchi) //noinspection ResultOfMethodCallIgnored
                     v.delete();
                 File apk = new File(dir, "tms-scheda-aggiornamento.apk");
-                MessageDigest md = MessageDigest.getInstance("SHA-256");
-                try (InputStream in = getContext().getContentResolver().openInputStream(f.getUri());
-                     OutputStream out = new FileOutputStream(apk)) {
-                    if (in == null) throw new IOException("APK non leggibile");
-                    byte[] buf = new byte[65536];
-                    int n;
-                    while ((n = in.read(buf)) > 0) { out.write(buf, 0, n); md.update(buf, 0, n); }
-                }
-                /* un file a metà (la sincronizzazione non ha finito) non si installa */
-                if (atteso != null && !atteso.isEmpty()) {
+                boolean trovato = false;
+                for (DocumentFile f : candidati) {
+                    MessageDigest md = MessageDigest.getInstance("SHA-256");
+                    try (InputStream in = getContext().getContentResolver().openInputStream(f.getUri());
+                         OutputStream out = new FileOutputStream(apk)) {
+                        if (in == null) continue;
+                        byte[] buf = new byte[65536];
+                        int n;
+                        while ((n = in.read(buf)) > 0) { out.write(buf, 0, n); md.update(buf, 0, n); }
+                    } catch (Exception lettura) { continue; }
+                    /* un file a metà (la sincronizzazione non ha finito) non si installa */
+                    if (atteso == null || atteso.isEmpty()) { trovato = true; break; }
                     StringBuilder hex = new StringBuilder();
                     for (byte b : md.digest()) hex.append(String.format("%02x", b));
-                    if (!hex.toString().equalsIgnoreCase(atteso.trim())) {
-                        //noinspection ResultOfMethodCallIgnored
-                        apk.delete();
-                        throw new IOException("l'APK nella cartella non è completo: aspetta che la sincronizzazione finisca e riprova");
-                    }
+                    if (hex.toString().equalsIgnoreCase(atteso.trim())) { trovato = true; break; }
+                }
+                if (!trovato) {
+                    //noinspection ResultOfMethodCallIgnored
+                    apk.delete();
+                    throw new IOException("sul telefono c'è un APK ma non è ancora completo (" + visti + "): aspetta che la sincronizzazione finisca e riprova");
                 }
                 Uri content = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", apk);
                 Intent i = new Intent(Intent.ACTION_VIEW);

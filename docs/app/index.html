@@ -196,6 +196,12 @@
  /* fotocamera con la sagoma (foto progressi) */
  #cam{position:fixed;inset:0;background:#0d0b08;z-index:24;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 10px calc(10px + env(safe-area-inset-bottom))}
  #cam[hidden]{display:none!important}
+ #rit{position:fixed;inset:0;background:#0d0b08;z-index:24;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 10px calc(10px + env(safe-area-inset-bottom))}
+ #rit[hidden]{display:none!important}
+ #rit-quadro{touch-action:none;cursor:grab}
+ #rit-quadro #rit-img{inset:auto;left:0;top:0;width:auto;height:auto;max-width:none;opacity:1;object-fit:fill;transform-origin:0 0}
+ #rit-zoom{width:min(86%,380px);margin:10px 0 0;accent-color:#d9a35f}
+ .foto-ed{position:absolute;top:4px;left:4px;z-index:2;border:0;background:rgba(20,10,2,.72);color:#fff;width:26px;height:26px;border-radius:50%;font-size:14px;line-height:1;cursor:pointer;padding:0}
  .cam-titolo{color:#f4ead8;font-size:15px;font-weight:bold;margin:0 0 6px;text-align:center}
  .cam-quadro{position:relative;width:min(100%,calc((100vh - 190px)*.75));aspect-ratio:3/4;overflow:hidden;border-radius:var(--r-sm);background:#000}
  .cam-quadro video,.cam-quadro img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -209,6 +215,7 @@
  .cam-barra button.on{background:#9a5b1f;border-color:#d9a35f}
  .cam-barra button[disabled]{opacity:.35}
  .cam-barra .cam-scatta{width:72px;height:72px;min-width:72px;border-radius:50%;background:#fff;border:5px solid #9a5b1f;padding:0}
+ #rit-ok{color:#5c3410;font-size:30px;font-weight:700}
  #vov{position:fixed;inset:0;background:rgba(20,10,2,.82);display:none;align-items:center;justify-content:center;z-index:15;padding:16px}
  #vov video{width:100%;max-width:760px;max-height:78vh;border-radius:var(--r-sm);background:#000}
  #vclose{position:absolute;top:14px;right:18px;font-size:30px;color:#fff;background:none;border:0;cursor:pointer}
@@ -374,6 +381,18 @@
 </div>
 
 <input id="foto-file" type="file" accept="image/*" style="display:none">
+<!-- ── SPOSTA E RITAGLIA una foto sulla sagoma (anche dopo lo scatto, e per quelle della galleria) ── -->
+<div id="rit" hidden>
+  <div class="cam-titolo" id="rit-titolo"></div>
+  <div class="cam-quadro" id="rit-quadro"><img id="rit-img" alt="" draggable="false"><div id="rit-sagoma"></div></div>
+  <input type="range" id="rit-zoom" min="50" max="400" value="100" aria-label="Ingrandimento">
+  <div class="cam-aiuto" data-i18n>Trascina col dito per spostare la foto, allarga con due dita (o con la barra) per ingrandire: mettiti dentro la sagoma.</div>
+  <div class="cam-barra">
+    <button type="button" id="rit-annulla" aria-label="Annulla">✕</button>
+    <button type="button" id="rit-reset" aria-label="Rimetti al centro">↺</button>
+    <button type="button" class="cam-scatta" id="rit-ok" aria-label="Salva">✔</button>
+  </div>
+</div>
 <!-- ── FOTOCAMERA con la sagoma (foto progressi): sempre la stessa inquadratura ── -->
 <div id="cam" hidden>
   <div class="cam-titolo" id="cam-titolo"></div>
@@ -399,7 +418,7 @@
    v2.0 — la giornata è una SEDUTA in fasi: 🔥 riscaldamento (sola lettura) · 🏋 esercizi ·
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. Nessun server: si passa solo dalla cartella. */
-const CVER='3.1';
+const CVER='3.2';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -568,6 +587,8 @@ const TT={en:{
   "pesata della bilancia":"scale weigh-in",
   "pesate della bilancia":"scale weigh-ins",
   /* collegamento col PC, promemoria, aggiornamento dell'APK */
+  "Sposta e ritaglia sulla sagoma":"Move and crop onto the silhouette",
+  "Trascina col dito per spostare la foto, allarga con due dita (o con la barra) per ingrandire: mettiti dentro la sagoma.":"Drag with your finger to move the photo, spread two fingers (or use the bar) to zoom: put yourself inside the silhouette.",
   "Foto di prima in trasparenza":"Previous photo, see-through",
   "Autoscatto":"Self-timer",
   "Cambia fotocamera":"Switch camera",
@@ -663,6 +684,41 @@ function idbReq(mode,fn){ return new Promise((res,rej)=>{
     tx.oncomplete=()=>{ db.close(); res(rq&&rq.result); };
     tx.onerror=()=>{ db.close(); rej(tx.error); } };
 });}
+/* ── copia durevole delle chiavi 'tms-*' di localStorage. Nell'app Android, se il sistema
+   chiude l'app di forza, localStorage perde le scritture recenti (anche di minuti prima);
+   IndexedDB no. Ogni scrittura/cancellazione di una chiave 'tms-*' va anche in IndexedDB
+   ('ls:'+chiave; null = cancellata) e all'avvio, prima di tutto, localStorage si rimette
+   come in IndexedDB. La prima volta si copia in IndexedDB quello che c'è già. ── */
+const DUR={coda:new Map(), timer:0, catena:Promise.resolve(), pronta:false};
+function durChiave(k){ return typeof k==='string' && k.indexOf('tms-')===0 && !/^tms-(scheda-corrente|foto-|pesate-)/.test(k); }  /* quelle stanno già in IndexedDB */
+function durLS(){ try{ return window.localStorage; }catch(e){ return null; } }
+function durScarica(){ DUR.timer=0; if(!DUR.coda.size) return DUR.catena;
+  const voci=[...DUR.coda]; DUR.coda.clear();
+  return DUR.catena=DUR.catena.then(()=>idbReq('readwrite',st=>{ voci.forEach(([k,v])=>st.put(v,'ls:'+k)); })).catch(()=>{}); }
+(function(){
+  if(typeof indexedDB==='undefined' || typeof Storage==='undefined') return;
+  const P=Storage.prototype, set0=P.setItem, del0=P.removeItem;
+  const metti=(st,k,v)=>{ if(st===durLS() && durChiave(k)){ DUR.coda.set(k,v); if(!DUR.timer) DUR.timer=setTimeout(durScarica,0); } };
+  P.setItem=function(k,v){ set0.call(this,k,v); metti(this,String(k),String(v)); };
+  P.removeItem=function(k){ del0.call(this,k); metti(this,String(k),null); };
+  DUR.set0=set0; DUR.del0=del0;
+})();
+async function durRipristina(){
+  const ls=durLS(); if(!ls || !DUR.set0) return false;
+  let cambiaLingua=false;
+  try{
+    const voci=[];
+    await idbReq('readonly',st=>{ const c=st.openCursor(IDBKeyRange.bound('ls:','ls:￿'));
+      c.onsuccess=()=>{ const cur=c.result; if(cur){ voci.push([String(cur.key).slice(3), cur.value]); cur.continue(); } }; return null; });
+    if(!voci.some(([k])=>k==='tms-durevole')){
+      for(let i=0;i<ls.length;i++){ const k=ls.key(i); if(durChiave(k)) DUR.coda.set(k, ls.getItem(k)); }
+      DUR.coda.set('tms-durevole','1'); await durScarica();
+    } else voci.forEach(([k,v])=>{
+      if(!durChiave(k) || k==='tms-durevole' || ls.getItem(k)===v) return;
+      try{ if(v==null) DUR.del0.call(ls,k); else DUR.set0.call(ls,k,String(v)); }catch(e){}
+      if(k==='tms-scheda-lang' && ls.getItem(k)===v) cambiaLingua=true; });
+  }catch(e){}
+  DUR.pronta=true; return cambiaLingua; }
 async function salvaScheda(dati){ memScheda=dati; const s=JSON.stringify(dati);
   try{ if(typeof indexedDB!=='undefined'){ await idbReq('readwrite',st=>st.put(s,SKEY)); return; } }catch(e){}
   try{ localStorage.setItem(SKEY,s); }catch(e){} }
@@ -886,7 +942,7 @@ async function fotoAggiungi(vista,file){
   if(!file) return;
   let img=null;
   try{ img=await fotoRidimensiona(file); }catch(e){ alert(tt('Non riesco a leggere questa immagine.')); return; }
-  await fotoMetti(vista, img);
+  await ritApri(vista, img, {nuova:true});   /* prima di salvarla la si mette sulla sagoma */
 }
 async function fotoMetti(vista, img){
   FOTO[vista]={id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), img:img, data:dataLoc(new Date())};
@@ -986,6 +1042,72 @@ async function camFoto(){
   const vista=CAM.vista; navIndietro();
   await fotoMetti(vista, img);
 }
+/* ── SPOSTA E RITAGLIA (richiesta di Marco, 17/11/2026: «permetti di spostare e ritagliare le foto per
+      centrarle rispetto alla sagoma anche dopo averle scattate»). La foto si trascina col dito e si
+      ingrandisce con due dita o con la barra; si salva il riquadro 3:4 che si vede (960×1280). Si parte
+      sempre dalla foto originale (orig), così ritagliare più volte non la rovina. Se la foto vecchia era
+      già partita verso il PC, la nuova porta «sostituisce»: lì prende il suo posto invece di aggiungersi. ── */
+const RIT={vista:'', src:'', iw:0, ih:0, F:300, H:400, base:1, z:1, x:0, y:0, nuova:false, punti:new Map()};
+/* dove disegnare l'immagine in una tela W×Hc, dato quello che si vede nel riquadro F×H (funzione pura) */
+function ritParametri(st, W, Hc){
+  const k=W/st.F, sc=st.base*st.z*k;
+  return {dx:st.x*k, dy:st.y*k, dw:st.iw*sc, dh:st.ih*sc, W:W, H:Hc}; }
+function ritCentra(){ RIT.z=1; RIT.base=Math.max(RIT.F/RIT.iw, RIT.H/RIT.ih); RIT.x=(RIT.F-RIT.iw*RIT.base)/2; RIT.y=(RIT.H-RIT.ih*RIT.base)/2; }
+function ritDisegna(){
+  const im=$('rit-img'), sc=RIT.base*RIT.z;
+  im.style.width=(RIT.iw*sc)+'px'; im.style.height=(RIT.ih*sc)+'px';
+  im.style.transform='translate('+RIT.x+'px,'+RIT.y+'px)';
+  $('rit-zoom').value=String(Math.round(RIT.z*100)); }
+function ritZoomA(z, cx, cy){
+  z=Math.max(.5, Math.min(4, z)); const s0=RIT.base*RIT.z, s1=RIT.base*z;
+  RIT.x=cx-(cx-RIT.x)*s1/s0; RIT.y=cy-(cy-RIT.y)*s1/s0; RIT.z=z; ritDisegna(); }
+async function ritApri(vista, src, opz){
+  opz=opz||{};
+  const im=$('rit-img');
+  try{ await new Promise((ok,ko)=>{ im.onload=ok; im.onerror=ko; im.src=src; if(im.complete&&im.naturalWidth) ok(); }); }
+  catch(e){ alert(tt('Non riesco a leggere questa immagine.')); return; }
+  RIT.vista=vista; RIT.src=src; RIT.nuova=!!opz.nuova; RIT.punti.clear();
+  RIT.iw=im.naturalWidth||960; RIT.ih=im.naturalHeight||1280;
+  $('rit-titolo').textContent='✥ '+tt(FOTO_LAB[vista]||'Foto progressi');
+  $('rit-sagoma').innerHTML=fotoSagoma(vista,'-rit');
+  $('rit').hidden=false; navEntra();
+  const q=$('rit-quadro').getBoundingClientRect(); RIT.F=q.width||300; RIT.H=q.height||400;
+  ritCentra();
+  const t=opz.taglio; if(t && isFinite(t.z) && isFinite(t.fx) && isFinite(t.fy)){ RIT.z=t.z; RIT.x=t.fx*RIT.F; RIT.y=t.fy*RIT.H; }
+  ritDisegna();
+}
+function ritChiudi(){ const el=$('rit'); if(el) el.hidden=true; RIT.punti.clear(); }
+async function ritSalva(){
+  const W=Math.round(FOTO_MAXLATO*3/4), Hc=FOTO_MAXLATO, p=ritParametri(RIT, W, Hc);
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=Hc;
+  const g=cv.getContext('2d'); g.fillStyle='#000'; g.fillRect(0,0,W,Hc); g.drawImage($('rit-img'), p.dx, p.dy, p.dw, p.dh);
+  const img=cv.toDataURL('image/jpeg', FOTO_Q), vista=RIT.vista, vecchia=FOTO[vista];
+  const nuova={id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), img:img,
+    data:(!RIT.nuova && vecchia && vecchia.data) || dataLoc(new Date()), orig:RIT.src,
+    taglio:{z:RIT.z, fx:RIT.x/RIT.F, fy:RIT.y/RIT.H}};
+  /* ritaglio di una foto già partita (o arrivata) al PC: lì la sostituisce */
+  if(!RIT.nuova && vecchia){ if(vecchia.ev||vecchia.pc) nuova.sostituisce=vecchia.id; else if(vecchia.sostituisce) nuova.sostituisce=vecchia.sostituisce; }
+  FOTO[vista]=nuova; navIndietro();
+  await fotoSalva(); renderFoto(); colPresto(); avvPianifica();
+}
+{ const q=$('rit-quadro');
+  const pos=e=>{ const r=q.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; };
+  q.addEventListener('pointerdown',e=>{ try{ q.setPointerCapture(e.pointerId); }catch(e2){} RIT.punti.set(e.pointerId, pos(e)); });
+  q.addEventListener('pointermove',e=>{
+    if(!RIT.punti.has(e.pointerId)) return;
+    const p=pos(e), prima=RIT.punti.get(e.pointerId);
+    if(RIT.punti.size===1){ RIT.x+=p.x-prima.x; RIT.y+=p.y-prima.y; RIT.punti.set(e.pointerId,p); ritDisegna(); return; }
+    const altri=[...RIT.punti.entries()].filter(([id])=>id!==e.pointerId); if(!altri.length) return;
+    const o=altri[0][1], d0=Math.hypot(prima.x-o.x, prima.y-o.y), d1=Math.hypot(p.x-o.x, p.y-o.y);
+    const m0={x:(prima.x+o.x)/2, y:(prima.y+o.y)/2}, m1={x:(p.x+o.x)/2, y:(p.y+o.y)/2};
+    RIT.x+=m1.x-m0.x; RIT.y+=m1.y-m0.y;
+    if(d0>4) ritZoomA(RIT.z*d1/d0, m1.x, m1.y); else ritDisegna();
+    RIT.punti.set(e.pointerId,p); });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(n=>q.addEventListener(n,e=>{ RIT.punti.delete(e.pointerId); }));
+  $('rit-zoom').oninput=e=>ritZoomA((+e.target.value||100)/100, RIT.F/2, RIT.H/2);
+  $('rit-reset').onclick=()=>{ ritCentra(); ritDisegna(); };
+  $('rit-annulla').onclick=()=>navIndietro();
+  $('rit-ok').onclick=()=>{ ritSalva(); }; }
 $('cam-chiudi').onclick=()=>navIndietro();
 $('cam-scatta').onclick=camScatta;
 $('cam-timer').onclick=()=>{ CAM.timer=CAM.timer===0?3:(CAM.timer===3?10:0); camRender(); };
@@ -1004,12 +1126,15 @@ function renderFoto(){
   box.innerHTML=FOTO_VISTE.map(v=>{ const f=FOTO[v];
     return '<div class="foto-box'+(f?' pieno':'')+'" data-foto="'+v+'">'+
       (f? '<img src="'+f.img+'" alt="'+esc(tt(FOTO_LAB[v]))+'"><span class="foto-ok">'+esc(tt(FOTO_LAB[v]))+' ✔'+(colAttivo()&&f.pc?' · '+esc(tt('al PC')):'')+'</span>'+
-          '<button type="button" class="foto-x" data-fotox="'+v+'" title="'+esc(tt('Togli la foto'))+'">✕</button>'
+          '<button type="button" class="foto-x" data-fotox="'+v+'" title="'+esc(tt('Togli la foto'))+'">✕</button>'+
+          '<button type="button" class="foto-ed" data-fotoed="'+v+'" title="'+esc(tt('Sposta e ritaglia sulla sagoma'))+'">✥</button>'
         : '<span class="foto-ico">📷</span><span class="foto-lab">'+esc(tt(FOTO_LAB[v]))+'</span>')+
       '</div>'; }).join('');
   box.querySelectorAll('[data-foto]').forEach(b=>{ b.onclick=()=>{ fotoVistaAttesa=b.getAttribute('data-foto');
     const inp=$('foto-file'); if(inp){ inp.value=''; inp.click(); } }; });   /* nell'APK nativo.js chiede «Scatta (con la sagoma)» o «Galleria» */
   box.querySelectorAll('[data-fotox]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); fotoRimuovi(b.getAttribute('data-fotox')); }; });
+  box.querySelectorAll('[data-fotoed]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); const v=b.getAttribute('data-fotoed'), f=FOTO[v];
+    if(f&&f.img) ritApri(v, f.orig||f.img, {taglio:f.taglio}); }; });
 }
 
 /* ── bozza autosalvata (localStorage, per scheda). I campi partono precompilati col
@@ -1064,6 +1189,7 @@ function navIndietro(){ if(navLivelli>0){ try{ history.back(); return; }catch(e)
 /* dove si torna: prima si chiudono gli overlay, poi si risale di schermata */
 function risali(){
   if($('cam') && !$('cam').hidden){ camChiudi(); return true; }
+  if($('rit') && !$('rit').hidden){ ritChiudi(); return true; }
   const vov=$('vov'); if(vov && vov.style.display==='flex'){ chiudiVideo(); return true; }
   const qrov=$('qrov'); if(qrov && qrov.style.display==='flex'){ qrov.style.display='none'; return true; }
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
@@ -1707,7 +1833,7 @@ async function colEventi(){
     p.ev=new Date().toISOString(); cp=true; }
   for(const v of FOTO_VISTE){ const f=FOTO[v]; if(!f || !f.img || !daMandare(f)) continue;
     if(!f.id) f.id='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-    await T.scrivi(dir+colNomeFile('foto', f.id), await colCifra({tipo:'tms-foto', foto:{id:f.id, tag:v, data:f.data||dataLoc(new Date()), img:f.img}}));
+    await T.scrivi(dir+colNomeFile('foto', f.id), await colCifra({tipo:'tms-foto', foto:{id:f.id, tag:v, data:f.data||dataLoc(new Date()), img:f.img, sostituisce:f.sostituisce||undefined}}));
     f.ev=new Date().toISOString(); cf=true; }
   if(cp) await pesSalva();
   if(cf) await fotoSalva();
@@ -1894,7 +2020,8 @@ function mostraInstallHint(){
 }
 
 /* ── avvio + service worker (offline & auto-aggiornamento) ── */
-leggiScheda().then(d=>{ SCHEDA=(validaScheda(d)?d:null); avvia(); }).catch(()=>{ SCHEDA=null; avvia(); }).then(()=>{ colAvvia(); });
+durRipristina().then(lingua=>{ if(lingua){ location.reload(); return new Promise(()=>{}); } })
+  .then(()=>leggiScheda()).then(d=>{ SCHEDA=(validaScheda(d)?d:null); avvia(); }).catch(()=>{ SCHEDA=null; avvia(); }).then(()=>{ colAvvia(); });
 if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
 </script>
 </body>

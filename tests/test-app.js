@@ -3272,7 +3272,11 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
   await giroPC(); await settle(450);
   ok(w.eval('DOC.pesate.length') === 1 && w.eval('DOC.pesate[0].peso') === 72.4 && w.eval('DOC.foto.some(function(f){ return f.id==="fprova1"; })'), 'PC: pesata (Storico misure) e foto (tab Corpo) importate da sole');
   ok(!C.files.has(ev[0]) && !C.files.has(ev[1]) && C.files.has('prova/dal-telefono/eventi/pesata-rotta.json'), 'PC: dopo il salvataggio toglie i file arrivati; quello a metà resta lì (mai cancellato)');
-  ok(await w.eval('importaFotoRientro([{id:"fprova1", tag:"fronte", data:"2026-11-17", img:"data:image/jpeg;base64,/9j/AAAA"}])') === 0, 'PC: la stessa foto arrivata di nuovo (es. anche col file di rientro) non si duplica');
+  ok(await w.eval('importaFotoRientro([{id:"fprova1", tag:"fronte", data:"2026-11-17", img:"data:image/jpeg;base64,/9j/AAAA"}])') === 0, 'PC: la stessa foto arrivata di nuovo non si duplica');
+  { const n = w.eval('DOC.foto.length'), file = w.eval('DOC.foto.find(function(f){ return f.id==="fprova1"; }).file');
+    ok(await w.eval('importaFotoRientro([{id:"fprova2", sostituisce:"fprova1", tag:"fronte", data:"2026-11-17", img:"data:image/jpeg;base64,/9j/BBBB"}])') === 1 &&
+       w.eval('DOC.foto.length') === n && w.eval('DOC.foto.some(function(f){ return f.id==="fprova2" && f.file!==' + J(file) + ' && f.tag==="fronte"; })') && !w.eval('DOC.foto.some(function(f){ return f.id==="fprova1"; })'),
+       'PC: una foto ritagliata sul telefono prende il posto di quella già arrivata (non se ne aggiunge una)'); }
   await giroTel();
   ok(sw.eval('PESATE[0].pc===true && FOTO.fronte.pc===true'), 'telefono: pesata e foto segnate «✔ al PC»');
   sw.eval('navEntra(); mostra("bil"); renderBil();');

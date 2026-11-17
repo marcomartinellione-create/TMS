@@ -572,7 +572,10 @@ sola lettura, grammi in evidenza), «📸 Foto progressi» (fronte/lato/retro, g
 SAGOMA della vista: riquadro 3:4, testa sulla riga in alto al 30%, metà coscia su quella in basso al
 78%, inquadratura ricavata dai selfie allo specchio dell'utente ma disegno generico; a richiesta la
 foto di prima in trasparenza e l'autoscatto da 3 o 10 s; si salva esattamente il riquadro visto;
-senza permesso della fotocamera si ripiega su quella del telefono; rimpicciolite a 1280 px JPEG), «⚖ Bilancia» e «⚙ Collegamento e promemoria». Il tasto indietro
+senza permesso della fotocamera si ripiega su quella del telefono; col ✥ su una foto fatta, e da
+sola per quelle della galleria, si SPOSTA E RITAGLIA sulla sagoma (dito, due dita o barra; si parte
+sempre dall'originale; se la foto era già arrivata al PC la nuova porta «sostituisce» e lì prende
+il posto della vecchia, il file vecchio resta su disco); rimpicciolite a 1280 px JPEG), «⚖ Bilancia» e «⚙ Collegamento e promemoria». Il tasto indietro
 del telefono risale nell'app (video/QR, giorno → lista giorni → menu; solo dal menu l'app si
 chiude). Nella scheda si sceglie il **giorno**; ogni giornata è una **seduta in tre fasi** (tab):
 🔥 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con video, stretching o cardio a

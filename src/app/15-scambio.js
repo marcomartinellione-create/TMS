@@ -105,6 +105,12 @@ async function importaFotoRientro(foto){
     const fname='f'+Date.now()+'-'+Math.random().toString(36).slice(2,6)+'.'+ext;
     try{ const fh=await fotoHandle(fname,true); const wr=await fh.createWritable(); await wr.write(bytes); await wr.close(); }
     catch(e){ logErrore('importFoto', e); continue; }
+    /* `sostituisce` (2026-11-17): la foto è stata spostata o ritagliata sul telefono dopo che la vecchia era
+       già partita. Prende il posto della vecchia (stessa data e vista), senza aggiungersi; il file vecchio
+       resta su disco, non si cancella niente. */
+    const sost=String((f&&f.sostituisce)||'').slice(0,80);
+    const vecchia=sost? (DOC.foto||[]).find(x=>x&&x.id===sost) : null;
+    if(vecchia){ vecchia.file=fname; if(fid){ vecchia.id=fid; gia.add(fid); } n++; continue; }
     const voce={file:fname,
       data:String((f&&f.data)||'').slice(0,10)||new Date().toISOString().slice(0,10),
       tag:String((f&&f.tag)||'').trim()};
