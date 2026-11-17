@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-11-17 — TMS v1.1.27: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.26
+**Descrizione**:
+- Telefono: foto da spostare e ritagliare sulla sagoma, APK trovato anche col nome cambiato, impostazioni che non si perdono (APK 1.2.4)
+- App del telefono (APK 1.2.3): foto progressi con la SAGOMA — «Scatta una foto» apre una fotocamera dentro l'app con la sagoma della vista (fronte, lato, retro) sopra l'immagine, la foto di prima in trasparenza a richiesta e l'autoscatto da 3 o 10 secondi, così le foto sono sempre inquadrate uguali; si salva esattamente il riquadro 3:4 che si vede
+- Via i file Scheda/Rientro: la scheda passa solo dal collegamento col telefono — tolti «📲 Esporta scheda» e «🔄 Importa rientro» dal Profilo e, nell'app del telefono (APK 1.2.2), «📂 Carica la scheda», «📩 Crea il file per il coach» col suo riepilogo, «📤 Manda solo le pesate» e «Apri con TMS Scheda»; il benvenuto porta al collegamento col PC, pesate e foto arrivano solo da sole
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-17)
+
+---
+
 ### 2026-11-17 — TMS v1.1.26: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.25
