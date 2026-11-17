@@ -27,9 +27,10 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
 - **🔗 Collegamento col TMS sul PC** (dalla 1.2.0, «⚙ Collegamento e promemoria»): come Movienaitor, una
   cartella del telefono tenuta uguale alla cartella `My Drive\6 - TMS` di Google Drive da un'app di
   sincronizzazione bidirezionale (Autosync, FolderSync…). Si sceglie la cartella e si scrive il codice
-  di collegamento che il PC mostra in ⚙ Impostazioni › 🔗 Telefono collegato. Da lì la scheda nuova arriva
-  da sola (chiede se aprirla), quello che si scrive va al PC pochi secondi dopo, pesate e foto partono
-  da sole e tornano con «✔ al PC»; «💾 Salva nello Storico» sul PC chiude la settimana anche qui. File
+  di collegamento che il PC mostra in ⚙ Impostazioni › 🔗 Telefono collegato. Da lì (dalla 1.2.1) la
+  **scheda è collegata**: una sola, modificabile qui e sul PC (vince l'ultima modifica, campo per campo);
+  «💾 Salva nello Storico» sul PC la cristallizza (fatica, durata e spunte ripartono da zero, la scheda
+  resta collegata). Pesate e foto partono da sole e tornano con «✔ al PC». File
   **cifrati** (AES-GCM, chiave dal codice): Google vede solo file illeggibili. Plugin `TmsCartella`
   (`nativo/TmsCartellaPlugin.java`, selettore di cartelle di Android con permesso persistente).
 - **⬆ Aggiornamento da solo** (dalla 1.2.0): `Crea APK.bat` mette l'APK in `6 - TMS\apk\` con
