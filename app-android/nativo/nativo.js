@@ -1,5 +1,5 @@
 /* ════ TMS Scheda (APK) — strato nativo della pagina ════
-   L'APK contiene una COPIA della PWA di docs/app/ (stesse funzioni, stesso codice): questo file
+   L'APK contiene una COPIA della pagina di app-android/web/ (stesse funzioni, stesso codice): questo file
    si carica subito DOPO il suo script e cambia solo ciò che dentro un'app Android va fatto in
    un altro modo:
    · avvisi e conferme in stile app (mai le finestre di sistema): window.alert e tmsConferma,

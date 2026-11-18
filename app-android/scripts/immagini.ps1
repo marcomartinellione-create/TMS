@@ -1,5 +1,5 @@
 ﻿# immagini.ps1 — icona dell'app e stella della schermata d'avvio, dall'icona della PWA
-# (docs/app/icon-512.png: stella arancione su fondo nero). Scrive nelle risorse del progetto
+# (app-android/web/icon-512.png: stella arancione su fondo nero). Scrive nelle risorse del progetto
 # Android generato. Lo lancia build-apk.ps1; usa System.Drawing di Windows, niente da installare.
 #   -Icona  percorso di icon-512.png      -Res  cartella android/app/src/main/res
 param([Parameter(Mandatory=$true)][string]$Icona, [Parameter(Mandatory=$true)][string]$Res)

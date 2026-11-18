@@ -1,12 +1,13 @@
 # TMS Scheda per Android (APK)
 
-L'app del telefono, «TMS Scheda», come **app Android vera** da installare. Contiene una copia della
-PWA in `docs/app/`: riscaldamento, esercizi coi video, timer di recupero, modifica della scheda col
+L'app del telefono, «TMS Scheda», come **app Android vera** da installare. La sua pagina (una PWA)
+sta in `web/`: riscaldamento, esercizi coi video, timer di recupero, modifica della scheda col
 catalogo del coach, test del massimale, alimentazione, foto progressi, bilancia, italiano e inglese.
 **Dal 17/11/2026 niente più file Scheda/Rientro** (decisione di Marco): la scheda arriva solo dalla
 cartella condivisa ed è collegata al TMS sul PC (vedi sotto).
 **Dal 16/11/2026 è l'unica app del telefono** (decisione di Marco): l'app desktop non indica più la
-PWA ai clienti. `docs/app/` resta come **sorgente** dell'APK: si modifica lì e si rifà l'APK.
+PWA ai clienti. Il **sorgente** dell'APK è `web/` (fino al 18/11/2026 era `docs/app/`, pubblicata su
+GitHub Pages; spostata qui perché non torni online): si modifica lì e si rifà l'APK.
 
 Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da un browser:
 
@@ -56,7 +57,7 @@ Serve solo ciò che c'è già sul PC (Node, Java 17, Android SDK in `D:\Android-
 compilazione avviene in `D:\Android-build\TMS-Scheda`, fuori da OneDrive (dentro OneDrive i
 file bloccati dalla sincronizzazione la fanno fallire).
 
-L'APK prende la PWA **com'è in quel momento** in `docs/app/`: se la PWA cambia, basta rifare l'APK.
+L'APK prende la pagina **com'è in quel momento** in `web/`: se la PWA cambia, basta rifare l'APK.
 
 ## Installarlo sul telefono
 
@@ -87,12 +88,12 @@ Funziona solo perché ogni versione è firmata con la **stessa chiave** (vedi so
 
 | file | cosa |
 |---|---|
-| `scripts/prepara-www.js` | copia `docs/app/` in `www/` (senza `sw.js`) e applica 4 modifiche con **conteggio asserito**: via il service worker, `confirm(` → `await tmsConferma(` (5 punti), `delEsercizio` async, `nativo.js` dopo lo script. Se la PWA cambia lì, si ferma e lo dice. `--verifica` controlla senza scrivere |
+| `scripts/prepara-www.js` | copia `web/` in `www/` (senza `sw.js`) e applica 4 modifiche con **conteggio asserito**: via il service worker, `confirm(` → `await tmsConferma(` (5 punti), `delEsercizio` async, `nativo.js` dopo lo script. Se la PWA cambia lì, si ferma e lo dice. `--verifica` controlla senza scrivere |
 | `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, scelta foto, `window.tmsIndietro`, `window.tmsCartella` (cartella condivisa e APK nuovo, plugin `TmsCartella`), `window.tmsAvvisi` (promemoria), `window.tmsBLE` (trasporto Bluetooth della pagina Bilancia: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; il protocollo e la formula stanno nella PWA). Sostituisce funzioni globali della PWA (`isStandalone`, `alert`) e avvolge `avvia` |
 | `nativo/TmsFilePlugin.java` | plugin Capacitor «TmsFile»: `info` (versione di Android) e tasto indietro |
 | `nativo/TmsCartellaPlugin.java` | plugin «TmsCartella»: scelta della cartella condivisa (permesso persistente), lettura, scrittura ed elenco per percorso relativo, installazione dell'APK nuovo con controllo dell'impronta |
 | `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, via «Apri con» dal manifest, fotocamera visibile (`<queries>`), permesso della fotocamera (sagoma), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |
-| `scripts/immagini.ps1` | icona adattiva, icone e stella d'avvio da `docs/app/icon-512.png` |
+| `scripts/immagini.ps1` | icona adattiva, icone e stella d'avvio da `web/icon-512.png` |
 | `test/prova-nativo.js` | prova in jsdom con un plugin finto (`npm run prova`, da questa cartella) |
 
 Generati, fuori da git: `node_modules/`, `www/`, `android/` (si rigenera cancellandolo: utile se

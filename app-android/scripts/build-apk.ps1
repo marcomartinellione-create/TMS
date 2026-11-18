@@ -44,7 +44,7 @@ if (-not (Test-Path $firma)) {
   throw "chiave di firma mancante"
 }
 
-Passo "PWA dentro l'app (docs\app -> www)"
+Passo "Pagina dentro l'app (web -> www)"
 node scripts/prepara-www.js
 Assicura $LASTEXITCODE "prepara-www.js fallito"
 
@@ -61,7 +61,7 @@ if (-not (Test-Path 'android')) {
 } else { Write-Host "cartella android\ già presente, la riuso" }
 node scripts/patch-android.js
 Assicura $LASTEXITCODE "patch-android.js fallito"
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\immagini.ps1 -Icona ..\docs\app\icon-512.png -Res android\app\src\main\res
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\immagini.ps1 -Icona web\icon-512.png -Res android\app\src\main\res
 Assicura $LASTEXITCODE "immagini.ps1 fallito"
 
 Passo "Sync (www e plugin dentro il progetto Android)"

@@ -17,7 +17,7 @@ const APP_VERSION='1.1.28', APP_DATE='2026-11-17';
 const RELEASE_NOTE='Novità: Dizionario inglese del PC: tolte 48 voci vecchie con emoji non più usate; App del PC, rifinitura grafica (tappa 3): via le emoji anche dalla Guida, dalla guida per l’AI e dalle note dei grafici; App del PC, rifinitura grafica (tappa 2): via le emoji da pulsanti, titoli, avvisi e tabelle di tutti i tab; App del PC, rifinitura grafica (tappa 1): caratteri, icone disegnate nella barra e nei tab, pulsanti, campi e riquadri più puliti; App del telefono (APK 1.2.5): grafica rifatta da capo, più pulita e della stessa famiglia del TMS sul PC.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
-   Il sorgente resta in docs/app/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */
+   Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */
 /* ── mini-log errori interni (P4): ring buffer in memoria + scrittura best-effort in
       TMS_Dati/log_errori.json. Si consulta con 5 click sulla scritta «TMS» in alto. ── */
 const LOG_ERRORI=[], LOG_ERRORI_MAX=200; let _logT=null;

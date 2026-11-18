@@ -944,7 +944,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('showTab("esercizi")');
   /* v1.0.66: il tab Profilo mostra il nome del profilo attivo */
   ok(d.querySelector('.tab[data-tab="profilo"]').textContent.includes('Atleta Template'), 'tab Profilo = nome del profilo attivo');
-  /* v1.0.85: scambio scheda trainer ↔ cliente via APP CLIENTE (PWA in docs/app/) + file JSON */
+  /* v1.0.85: scambio scheda trainer ↔ cliente via APP CLIENTE (pagina in app-android/web/, impacchettata nell'APK) + file JSON */
   const vfileCli = w.eval('(costruisciSchedaJSON({}).righe.find(r => r.video) || {}).video || ""');
   ok(vfileCli !== '', 'export scheda JSON: almeno un esercizio del template ha il video associato');
   const mapCli = {}; if (vfileCli) mapCli[vfileCli] = 'data:video/mp4;base64,AAAA';
@@ -982,8 +982,8 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(schedaCli.dieta && schedaCli.dieta.fase === 'bulk' && Array.isArray(schedaCli.dieta.righe) && schedaCli.dieta.righe.length > 0, 'export scheda JSON: piano alimentare della fase attiva incluso (' + (schedaCli.dieta ? schedaCli.dieta.righe.length : 0) + ' righe)');
   ok(schedaCli.dieta.tot.kcal > 1000 && schedaCli.dieta.righe.every(r => r.alimento && typeof r.kcal === 'number' && typeof r.grammi === 'number'), 'export scheda JSON: kcal/macro precalcolate per riga + totale giornaliero (' + schedaCli.dieta.tot.kcal + ' kcal)');
   /* l'app cliente (PWA) viene caricata in un jsdom dedicato come farebbe il telefono del cliente */
-  const PWA = path.join(ROOT, 'docs', 'app', 'index.html');
-  ok(fs.existsSync(PWA) && fs.existsSync(path.join(ROOT, 'docs', 'app', 'manifest.webmanifest')) && fs.existsSync(path.join(ROOT, 'docs', 'app', 'sw.js')), 'app cliente: index.html + manifest + service worker presenti in docs/app/');
+  const PWA = path.join(ROOT, 'app-android', 'web', 'index.html');
+  ok(fs.existsSync(PWA) && fs.existsSync(path.join(ROOT, 'app-android', 'web', 'manifest.webmanifest')) && fs.existsSync(path.join(ROOT, 'app-android', 'web', 'sw.js')), 'app cliente: index.html + manifest + service worker presenti in docs/app/');
   const giorniCli = [...new Set(schedaCli.righe.map(r => r.giorno))];
   const bozzaKey = 'tms-bozza-template-' + schedaCli.esportata;
   {
@@ -3007,7 +3007,7 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
   /* Messaggi COSTRUITI qui (valori inventati, nel formato della famiglia FitDays/iComon a 8
      elettrodi): 72,40 kg e 10 impedenze; a 180 cm la formula WLA25 deve dare 15,8 % di grasso e,
      per una donna di 31 anni, età metabolica 28 — gli stessi numeri attesi da openScale. */
-  const PWA = path.join(ROOT, 'docs', 'app', 'index.html');
+  const PWA = path.join(ROOT, 'app-android', 'web', 'index.html');
   const fr = (seq, len, b2, tipo, dati) => { const b = new Array(20).fill(0); b[0] = seq; b[1] = len; b[2] = b2;
     let i = 3; if (tipo != null) b[i++] = tipo; dati.forEach(x => { b[i++] = x & 255; });
     let s = 0; for (let k = 3; k <= 18; k++) s += b[k]; b[19] = s & 0x1F; return b; };
@@ -3173,7 +3173,7 @@ console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---'
 
 console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivisa cifrata), pesate e foto, promemoria, APK nuovo ---');
 {
-  const PWA = path.join(ROOT, 'docs', 'app', 'index.html');
+  const PWA = path.join(ROOT, 'app-android', 'web', 'index.html');
   const J = o => JSON.stringify(o), CODICE = 'K7QM3XRPA9TB4WZC';
   const C = makeCartella();
   const fsmem = makeTmsFS();

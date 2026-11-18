@@ -1,4 +1,4 @@
-/* genera-icone-app.js — icone PWA (docs/app/icon-192.png, icon-512.png).
+/* genera-icone-app.js — icone dell'app del telefono (app-android/web/icon-192.png, icon-512.png).
  *
  * Su richiesta di Marco (2026-07-05): icona TUTTA NERA con il simbolo ✦ del TMS,
  * senza cornice/margine pergamena. La stella a 4 punte (verticale più lunga, come
@@ -14,7 +14,7 @@ const path = require('node:path');
 
 app.disableHardwareAcceleration();
 
-const OUT = path.join(__dirname, '..', 'docs', 'app');
+const OUT = path.join(__dirname, '..', 'app-android', 'web');
 
 app.whenReady().then(async () => {
   const win = new BrowserWindow({ show: false, width: 600, height: 600, webPreferences: { offscreen: true } });

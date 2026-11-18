@@ -1,4 +1,4 @@
-/* prepara-www.js — porta la PWA di docs/app/ dentro l'APK (cartella www/, che Capacitor impacchetta).
+/* prepara-www.js — porta la pagina dell'app (app-android/web/) dentro l'APK (cartella www/, che Capacitor impacchetta).
 
    L'APK NON riscrive la PWA: ne prende i file così come sono e fa solo poche modifiche,
    ognuna cercata con un conteggio ASSERITO (se la PWA cambia in quel punto, lo script si
@@ -19,7 +19,7 @@ const path = require('path');
 const vm = require('vm');
 
 const QUI = path.join(__dirname, '..');
-const PWA = path.join(QUI, '..', 'docs', 'app');
+const PWA = path.join(QUI, 'web');          /* fino al 18/11/2026 era docs/app/ (GitHub Pages) */
 const WWW = path.join(QUI, 'www');
 const NATIVO = path.join(QUI, 'nativo', 'nativo.js');
 const VERIFICA = process.argv.includes('--verifica');
@@ -28,7 +28,7 @@ const FILE = ['index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.pn
 
 function ferma(msg) {
   console.error('\nprepara-www: ' + msg);
-  console.error('La PWA (docs/app/index.html) è cambiata in un punto che l\'APK modifica:');
+  console.error('La pagina dell\'app (app-android/web/index.html) è cambiata in un punto che l\'APK modifica:');
   console.error('aggiorna app-android/scripts/prepara-www.js (e se serve nativo/nativo.js), poi riprova.\n');
   process.exit(1);
 }
@@ -76,4 +76,4 @@ fs.mkdirSync(WWW, { recursive: true });
 for (const f of FILE) if (f !== 'index.html') fs.copyFileSync(path.join(PWA, f), path.join(WWW, f));
 fs.writeFileSync(path.join(WWW, 'index.html'), html, 'utf8');
 fs.writeFileSync(path.join(WWW, 'nativo.js'), js, 'utf8');
-console.log('prepara-www: www/ pronta (PWA di docs/app/ + nativo.js, APK ' + versione + ')');
+console.log('prepara-www: www/ pronta (pagina di app-android/web/ + nativo.js, APK ' + versione + ')');
