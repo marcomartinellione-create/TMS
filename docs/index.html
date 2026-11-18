@@ -79,7 +79,7 @@
   <div class="cta-sub">Installer Windows (~90 MB, catalogo esercizi e video inclusi) ·
    <a href="https://github.com/marcomartinellione-create/TMS">codice sorgente</a><br>
    SmartScreen può avvisare al primo avvio (eseguibile non firmato): «Ulteriori informazioni → Esegui comunque».<br><br>
-   📱 <b>TMS Scheda</b>, il taccuino digitale da palestra: se sei seguito da un coach ti basta <b>quella</b>, un'app Android che ti manda il coach (apri la scheda che ti manda, annota in palestra, rimandagliela); se ti alleni in autonomia la usi <b>insieme al TMS</b> — programmi sul PC, annoti dal telefono. Gratis e offline.</div>
+   📱 <b>TMS Scheda</b>, il taccuino digitale da palestra: se sei seguito da un coach ti basta <b>quella</b>: la tua scheda è collegata a quella del coach, annoti in palestra e lui vede tutto sul PC. Se ti alleni in autonomia la usi <b>insieme al TMS</b> — programmi sul PC, annoti dal telefono. App per <b>Android</b>, gratis: il file <i>TMS-Scheda-….apk</i> è nelle <a href="https://github.com/marcomartinellione-create/TMS/releases/latest">Release</a> e poi si aggiorna da sola.</div>
  </div>
 </header>
 
@@ -97,22 +97,45 @@
    <h3>📱 TMS Scheda — la derivata (il taccuino digitale)</h3>
    <p>Sul telefono, <b>durante l'allenamento</b>: la scheda con i video sotto gli occhi, la dieta da
    seguire, e le annotazioni sul momento — serie, peso, RIR, note, fatica — che si salvano da sole.
-   A fine settimana il «taccuino» si consegna: il rientro torna al TMS e diventa storico e grafici.
-   È un'app per <b>Android</b>: il file da installare te lo manda il coach.</p>
+   Non si spedisce niente: la scheda del telefono è <b>collegata</b> a quella del PC, quello che annoti compare
+   sul PC e viceversa; a fine settimana il TMS la salva nello Storico e diventa grafici. È un'app per
+   <b>Android</b>: si scarica dalle <a href="https://github.com/marcomartinellione-create/TMS/releases/latest">Release GitHub</a> (file <i>TMS-Scheda-….apk</i>).</p>
   </div>
  </div>
  <div class="feat" style="margin-top:16px">
   <div class="card">
    <h3>👥 Coach + atleta</h3>
    <p>Il coach ha il <b>TMS desktop completo</b> (un profilo per cliente); l'atleta ha <b>solo
-   TMS Scheda</b> sul telefono: riceve la scheda in chat, annota in palestra, rimanda il rientro.
-   Niente PC, niente installazioni complicate.</p>
+   TMS Scheda</b> sul telefono: la scheda gli arriva da sola, annota in palestra e il coach vede tutto
+   sul PC. Niente PC, niente file da mandare avanti e indietro.</p>
   </div>
   <div class="card">
    <h3>🏋 Atleta autonomo</h3>
    <p>La stessa persona usa <b>entrambi gli strumenti</b>: programma e analizza sul PC, annota in
    palestra col telefono, reimporta su di sé. Il telefono sostituisce il taccuino cartaceo.</p>
   </div>
+ </div>
+</section>
+
+<section class="wrap">
+ <h2>Come viaggiano i dati fra coach e cliente</h2>
+ <p class="sub">Non si spedisce più niente: la scheda del PC e quella del telefono sono la stessa scheda, collegata.</p>
+ <div class="feat">
+  <div class="card"><h3>🔗 Si collega una volta</h3><p>Il coach, sul PC, in <b>Impostazioni › Telefono collegato</b> sceglie una
+   cartella di Google Drive (di solito <i>My Drive › 6 - TMS</i>), crea un <b>codice</b> e collega la scheda del cliente. Il cliente
+   tiene quella cartella sincronizzata sul telefono con un'app di sincronizzazione (Autosync, FolderSync…) e in TMS Scheda,
+   <b>Collegamento e promemoria</b>, la sceglie e scrive il codice.</p></div>
+  <div class="card"><h3>✍️ Una scheda, due schermi</h3><p>Serie, ripetizioni, pesi, RIR, note, esercizi aggiunti o tolti: quello che
+   cambia uno compare sull'altro da solo, al giro successivo (il TMS controlla ogni 20 secondi, il telefono ogni minuto ad app aperta;
+   il resto dipende da quanto spesso sincronizza). Se lo stesso campo cambia da tutte e due le parti vince l'ultima modifica, campo per campo.</p></div>
+  <div class="card"><h3>💾 A fine settimana si salva</h3><p>Sul PC <b>Salva nello Storico</b> «cristallizza» la settimana: diventa storico,
+   Training Load e grafici. Sul telefono fatica, durata e spunte ripartono da zero e la scheda resta collegata per la settimana dopo.</p></div>
+  <div class="card"><h3>⚖️ Pesate e foto arrivano da sole</h3><p>Le pesate della <b>bilancia Bluetooth</b> a 8 elettrodi (famiglia FitDays)
+   e le <b>foto dei progressi</b> passano dalla stessa cartella e finiscono nel profilo del cliente sul PC, settimana per settimana.</p></div>
+  <div class="card"><h3>🔒 Cifrato, senza server</h3><p>I file nella cartella sono <b>cifrati</b> (AES-GCM) con il codice di collegamento:
+   Google e l'app di sincronizzazione vedono solo file illeggibili. Il TMS non ha server: i dati stanno sul PC del coach e sul telefono del cliente.</p></div>
+  <div class="card"><h3>⭳ Aggiornamenti da GitHub</h3><p>Il TMS desktop e TMS Scheda trovano da soli le versioni nuove nelle
+   <a href="https://github.com/marcomartinellione-create/TMS/releases/latest">Release GitHub</a> e chiedono prima di installarle. Su GitHub ci sono solo le app, mai i dati.</p></div>
  </div>
 </section>
 
@@ -135,7 +158,7 @@
  <h2>Cosa sa fare</h2>
  <p class="sub">Strumenti da preparatore, interfaccia da manuale tecnico.</p>
  <div class="feat">
-  <div class="card"><h3>👤 Multi-profilo, pensata per i coach</h3><p>Più atleti/clienti, ognuno con scheda, storico, misure e dieta propri. La scheda viaggia come file: il cliente la compila nell'app Android <b>TMS Scheda</b> sul telefono e ti rimanda il rientro, che riesamini e salvi nello Storico.</p></div>
+  <div class="card"><h3>👤 Multi-profilo, pensata per i coach</h3><p>Più atleti/clienti, ognuno con scheda, storico, misure e dieta propri. La scheda di ogni cliente è collegata al suo telefono (app Android <b>TMS Scheda</b>): lui annota in palestra, tu vedi tutto sul PC, ritocchi e salvi nello Storico.</p></div>
   <div class="card"><h3>📖 883 esercizi con video</h3><p>Catalogo per gruppo muscolare e sottocategoria, video dimostrativi inclusi e sostituibili coi tuoi. Derivato da free-exercise-db, tradotto e adattato.</p></div>
   <div class="card"><h3>🧮 Numeri da letteratura, mai salvati</h3><p>1RM stimato (Epley, Brzycki, Lombardi), Training Load, ACWR, monotonia e strain: ricalcolati al volo dai dati grezzi, sulle formule della letteratura peer-reviewed.</p></div>
   <div class="card"><h3>🍖 Nutrizione con le fonti giuste</h3><p>Banca dati svizzera dei valori nutritivi (USAV) e riferimenti OMS/FAO: piani per fase con kcal, macro, micro e indice settimanale.</p></div>

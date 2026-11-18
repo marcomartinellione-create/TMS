@@ -7,7 +7,7 @@ lavorano insieme**: il **TMS desktop** (Windows), dove si crea e si analizza —
 settimanale/mensile, storico con carichi e RPE, progressi (1RM stimato, Training Load,
 ACWR, monotonia), misure corporee, piani alimentari su banca dati USAV (~900 alimenti),
 catalogo di 883 esercizi con video dimostrativi, report PDF A4 — e **TMS Scheda**
-(web-app per smartphone), il taccuino digitale con cui si annota l'allenamento in
+(app Android), il taccuino digitale con cui si annota l'allenamento in
 palestra. Tema pergamena/ember, modalità notte. *By Wander.*
 
 [![CI](https://github.com/marcomartinellione-create/TMS/actions/workflows/ci.yml/badge.svg)](https://github.com/marcomartinellione-create/TMS/actions/workflows/ci.yml)
@@ -28,25 +28,47 @@ Il TMS è pensato come **un'app principale e una derivata**, con un flusso a cer
 sul PC si **progetta** (scheda e dieta), in palestra si **annota** (col telefono),
 e i dati **tornano al PC** che li trasforma in storico, grafici e decisioni.
 
-| | 🖥 **TMS** (desktop, Windows) | 📱 **TMS Scheda** ([web-app](https://marcomartinellione-create.github.io/TMS/app/), smartphone) |
+| | 🖥 **TMS** (desktop, Windows) | 📱 **TMS Scheda** (app Android) |
 |---|---|---|
 | Ruolo | **App principale** — il centro di comando | **App derivata** — il taccuino digitale da palestra |
 | Cosa fa | Crea la scheda e il piano alimentare; analizza storico, grafici (1RM/TL/ACWR), misure, foto, report | Mostra scheda (con video) e dieta; **annota sul momento** ciò che fai davvero: serie, peso, RIR, note, fatica |
 | Quando si usa | A casa: programmazione e analisi | **Durante l'allenamento** |
-| Installazione | Installer Windows | Dal browser: «Aggiungi alla schermata Home» — gratis, offline, si aggiorna da sola |
+| Installazione | Installer Windows dalle [Release](https://github.com/marcomartinellione-create/TMS/releases) | APK `TMS-Scheda-….apk` dalle stesse Release — gratis, offline, si aggiorna da sola |
 
 Questa divisione permette **due modi d'uso**:
 
 - **Coach + atleta** — il coach ha il TMS desktop completo (un profilo per ogni cliente)
-  e programma/analizza; l'atleta ha **solo TMS Scheda** sul telefono: riceve il file
-  della scheda in chat, annota in palestra, rimanda il rientro. Non deve installare
-  il TMS né avere un PC.
+  e programma/analizza; l'atleta ha **solo TMS Scheda** sul telefono: la sua scheda è
+  collegata a quella del coach, annota in palestra e il coach vede tutto sul PC. Non deve
+  installare il TMS né avere un PC.
 - **Atleta autonomo** — la stessa persona usa **entrambi gli strumenti**: programma
   e analizza sul PC, annota in palestra col telefono, reimporta su di sé. Il telefono
   sostituisce il taccuino cartaceo.
 
-I file (scheda e rientro) viaggiano via chat/email: **nessun server, nessun cloud** —
-i dati vivono solo nei dispositivi di chi li usa.
+### Come viaggiano i dati fra coach e cliente
+
+Non si spedisce più niente: la scheda del PC e quella del telefono sono **la stessa scheda, collegata**.
+
+1. **Si collega una volta.** Il coach, sul PC, in *Impostazioni › Telefono collegato* sceglie una
+   cartella di Google Drive (di solito *My Drive › 6 - TMS*), crea un **codice** e collega la scheda
+   del cliente. Il cliente tiene quella cartella sincronizzata sul telefono con un'app di
+   sincronizzazione (Autosync, FolderSync…) e in TMS Scheda, *Collegamento e promemoria*, la sceglie
+   e scrive il codice.
+2. **Una scheda, due schermi.** Serie, ripetizioni, pesi, RIR, note, esercizi aggiunti o tolti: quello
+   che cambia uno compare sull'altro da solo, al giro successivo (il TMS controlla ogni 20 secondi, il
+   telefono ogni minuto ad app aperta; il resto dipende da quanto spesso sincronizza). Se lo stesso
+   campo cambia da tutte e due le parti vince l'ultima modifica, campo per campo.
+3. **A fine settimana si salva.** Sul PC *Salva nello Storico* «cristallizza» la settimana: diventa
+   storico, Training Load e grafici. Sul telefono fatica, durata e spunte ripartono da zero e la scheda
+   resta collegata per la settimana dopo.
+4. **Pesate e foto arrivano da sole.** Le pesate della bilancia Bluetooth a 8 elettrodi (famiglia
+   FitDays) e le foto dei progressi passano dalla stessa cartella e finiscono nel profilo del cliente.
+5. **Cifrato, senza server.** I file nella cartella sono cifrati (AES-GCM) con il codice di
+   collegamento: Google e l'app di sincronizzazione vedono solo file illeggibili. Il TMS non ha
+   server: i dati vivono solo sul PC del coach e sul telefono del cliente.
+6. **Aggiornamenti da GitHub.** Il TMS desktop e TMS Scheda trovano da soli le versioni nuove nelle
+   [Release](https://github.com/marcomartinellione-create/TMS/releases) e chiedono prima di
+   installarle. Su GitHub ci sono solo le app, mai i dati.
 
 ## Caratteristiche
 
@@ -79,7 +101,13 @@ Il profilo dimostrativo **Atleta Template** (incluso nell'installer) in azione:
 1. Scarica `TMS-Setup-<versione>.exe` dall'ultima [Release](https://github.com/marcomartinellione-create/TMS/releases).
 2. Eseguilo (installer assistito, percorso modificabile). SmartScreen può avvisare al
    primo avvio (eseguibile non firmato): **Ulteriori informazioni → Esegui comunque**.
-3. L'app parte già pronta, con catalogo esercizi e video inclusi.
+3. L'app parte già pronta, con catalogo esercizi e video inclusi. Gli aggiornamenti li
+   trova da sola nelle Release e chiede prima di installarli.
+
+**TMS Scheda (Android)**: scarica `TMS-Scheda-<versione>.apk` dalla stessa
+[Release](https://github.com/marcomartinellione-create/TMS/releases), toccalo sul telefono,
+consenti l'installazione da quella fonte e, se compare Play Protect, scegli «Installa comunque»
+(l'app non viene dal Play Store). Poi si aggiorna da sola. Gli iPhone non installano APK.
 
 ## Sviluppo
 
@@ -100,6 +128,7 @@ npm start            # avvia l'app in sviluppo
 
 Struttura: `src/` sorgente (pagina, stili, dati, moduli app) · `tools/` build e release ·
 `tests/` suite jsdom · `electron/` wrapper desktop (NSIS + auto-update) ·
+`app-android/` TMS Scheda per Android (pagina in `app-android/web/`, impacchettata con Capacitor) ·
 `Changelog/` registro modifiche.
 
 *Nota: le cartelle dati (`database/` col catalogo e i video, `TMS_Dati/` col seed) non
