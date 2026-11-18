@@ -2419,6 +2419,15 @@ console.log('--- T9: dati incorporati dimostrativi, correzione di una riga, Brzy
   ok(w.eval('activeProfile') === 'template' && w.eval('profNome()') === 'Atleta Template', 'primo avvio: il profilo creato è «Atleta Template» (non più «Wander»)');
   ok(fsmem._files.has('TMS_Dati/template/storico.json') && ![...fsmem._files.keys()].some(k => /wander/i.test(k)), 'primo avvio: dati scritti in TMS_Dati/template/, nessuna cartella «wander»');
   ok(w.eval('DOC.dati_utente.nome') === 'Atleta' && w.eval('DOC.storico.length') > 100 && w.eval('cardioList().length') > 0, 'primo avvio: storico, anagrafica e cardio dimostrativi caricati');
+  /* 18/11/2026: una foto scelta per il report che manca dal disco faceva ridisegnare il report senza fine */
+  { const salva = w.eval('JSON.stringify({f:DOC.foto, r:DOC.dati_utente.report})');
+    w.eval('DOC.foto=[{file:"manca-prima.jpg",data:"2026-01-05",tag:"fronte"},{file:"manca-dopo.jpg",data:"2026-06-01",tag:"fronte"}];' +
+      'DOC.dati_utente.report=Object.assign({},DOC.dati_utente.report,{foto:true,fotoPrima:"manca-prima.jpg",fotoDopo:"manca-dopo.jpg"});' +
+      'window.__nRep=0; window.__rr=renderReport; renderReport=function(){ window.__nRep++; return window.__rr.apply(this,arguments); }; showTab("report");');
+    await settle(400);
+    const n = w.eval('window.__nRep');
+    ok(n <= 3 && /foto non trovata/.test(d.getElementById('panel-report').textContent), 'report: una foto assente dal disco dice «foto non trovata» e non fa ridisegnare il report all\'infinito (' + n + ' disegni)');
+    w.eval('renderReport=window.__rr; (function(o){ DOC.foto=o.f; DOC.dati_utente.report=o.r; })(' + salva + '); showTab("profilo");'); }
 
   /* correzione di una riga dello Storico */
   w.eval('showTab("storico")');

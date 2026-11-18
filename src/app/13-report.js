@@ -96,7 +96,7 @@ function renderReport(){
   if(R.foto){ const fp=(DOC.foto||[]).find(x=>x.file===R.fotoPrima), fd=(DOC.foto||[]).find(x=>x.file===R.fotoDopo);
     if(fp||fd){ const cell=(f,lab)=>{ if(!f) return `<div style="flex:1;text-align:center"><div style="font-weight:700;color:var(--ember-2)">${lab}</div><div class="muted" style="padding:16px">—</div></div>`;
         const du=fotoReportUri[f.file], pz=fotoPeso(f.data);
-        return `<div style="flex:1;text-align:center;min-width:0"><div style="font-weight:700;color:var(--ember-2)">${lab}</div>${du?`<img src="${du}" alt="${lab}" style="max-width:100%;max-height:240px;border-radius:var(--r-sm);border:1px solid var(--border)">`:`<div class="muted" style="padding:16px">${t('(caricamento foto…)')}</div>`}<div class="muted" style="font-size:12px;margin-top:3px">${esc(fotoDataLabel(f))}${pz?' · '+nf(pz,1)+' kg':''}</div></div>`; };
+        return `<div style="flex:1;text-align:center;min-width:0"><div style="font-weight:700;color:var(--ember-2)">${lab}</div>${du?`<img src="${du}" alt="${lab}" style="max-width:100%;max-height:240px;border-radius:var(--r-sm);border:1px solid var(--border)">`:`<div class="muted" style="padding:16px">${fotoReportMancanti[f.file]? t('foto non trovata') : t('(caricamento foto…)')}</div>`}<div class="muted" style="font-size:12px;margin-top:3px">${esc(fotoDataLabel(f))}${pz?' · '+nf(pz,1)+' kg':''}</div></div>`; };
       B.foto=`<div class="rep-sec"><div class="sec">${t('Foto progressi — prima / dopo')}</div>
        <div style="display:flex;gap:14px;align-items:flex-start">${cell(fp,t('Prima'))}${cell(fd,t('Dopo'))}</div></div>`; } }
   if(R.riepilogo && last){ B.riepilogo=`<div class="rep-sec"><div class="sec">${t('Riepilogo allenamento')}</div>
@@ -154,7 +154,7 @@ function renderReport(){
   repUltimo={ordine, B};
   repImpaginaAnteprima();
   repCollega(R);
-  if(R.foto && [R.fotoPrima,R.fotoDopo].some(f=>f && !fotoReportUri[f])) ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); });
+  if(R.foto && [R.fotoPrima,R.fotoDopo].some(f=>f && !fotoReportUri[f] && !fotoReportMancanti[f])) ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); });
 }
 /* cambia la selezione senza rifare i fogli: si aggiornano solo gli strumenti e i contorni */
 let repUltimo=null;
@@ -409,12 +409,16 @@ const CTX_REPORT={pre:'rep', pannello:'panel-report', fissi:['copertina','piede'
     const nota=document.getElementById('rep-nota'); if(nota) nota.oninput=e=>{ R.nota=e.target.value; persist('corpo');
       repTestoLive('note', '.rep-nota', e.target.value);
       tardi(700); };
-    const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
-    const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+    const fa=document.getElementById('rep-foto-a'); if(fa) fa.onchange=e=>{ R.fotoPrima=e.target.value; fotoReportMancanti={}; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
+    const fb=document.getElementById('rep-foto-b'); if(fb) fb.onchange=e=>{ R.fotoDopo=e.target.value; fotoReportMancanti={}; persist('corpo'); ensureReportFoto().then(()=>{ if(curTab==='report') renderReport(); }); };
   }};
 
 /* embedding base64 delle due foto del report (così entrano sia nel PDF sia nel report digitale) */
 let fotoReportUri={};
+/* foto scelte per il report ma assenti dal disco (backup senza immagini, file tolto a mano): si
+   ricordano, così il report mostra «foto non trovata» invece di riprovare e ridisegnarsi senza fine.
+   Si riprova quando nel riquadro «Documento» si sceglie di nuovo una foto. */
+let fotoReportMancanti={};
 async function fotoReportDataUri(file){
   if(fotoReportUri[file]) return fotoReportUri[file];
   const fh=await fotoHandle(file,false); const f=await fh.getFile();
@@ -424,7 +428,7 @@ async function fotoReportDataUri(file){
 }
 async function ensureReportFoto(){
   const R=(DOC.dati_utente&&DOC.dati_utente.report)||{};
-  for(const file of [R.fotoPrima,R.fotoDopo]){ if(file && !fotoReportUri[file]){ try{ await fotoReportDataUri(file); }catch(e){} } }
+  for(const file of [R.fotoPrima,R.fotoDopo]){ if(file && !fotoReportUri[file] && !fotoReportMancanti[file]){ try{ await fotoReportDataUri(file); }catch(e){ fotoReportMancanti[file]=true; } } }
 }
 function splitTable(D, tblWrap, headingEl){
   const table=tblWrap.querySelector('table');
