@@ -32,11 +32,20 @@ for (const f of FILES) {
   if (!fs.existsSync(da)) { console.error('ERRORE: manca ' + da + ' — esegui prima tools/genera-profilo-template.py'); process.exit(1); }
   fs.copyFileSync(da, path.join(OUT, 'template', f));
 }
+// foto dimostrative: corpo.json le elenca, quindi i file devono esserci (altrimenti «foto non trovata»)
+const FOTO = path.join(SRC, 'template', 'foto');
+const foto = fs.existsSync(FOTO) ? fs.readdirSync(FOTO).filter(n => /^demo-.*\.jpg$/i.test(n)) : [];
+if (foto.length) {
+  fs.mkdirSync(path.join(OUT, 'template', 'foto'), { recursive: true });
+  foto.forEach(n => fs.copyFileSync(path.join(FOTO, n), path.join(OUT, 'template', 'foto', n)));
+}
+const elencate = (JSON.parse(fs.readFileSync(path.join(SRC, 'template', 'corpo.json'), 'utf8')).foto || []).map(f => f.file);
+const mancanti = elencate.filter(n => !foto.includes(n));
+if (mancanti.length) { console.error('ERRORE: corpo.json elenca ' + mancanti.length + ' foto che non ci sono (es. ' + mancanti[0] + ') — esegui tools/genera-foto-demo.js'); process.exit(1); }
 
 // anagrafica profili: SOLO il template, attivo
 const profiliSrc = JSON.parse(fs.readFileSync(path.join(SRC, 'profili.json'), 'utf8'));
 const tpl = (profiliSrc.list || []).find(p => p.slug === 'template') || { slug: 'template', nome: 'Atleta Template', creato: '2026-06-10' };
 fs.writeFileSync(path.join(OUT, 'profili.json'), JSON.stringify({ list: [tpl], active: 'template' }, null, 2) + '\n');
 
-const tot = fs.readdirSync(path.join(OUT, 'template')).length;
-console.log('Seed installer pronto in seed/TMS_Dati: profilo "' + tpl.nome + '" (' + tot + ' file) + esercizi.json — nessun dato personale.');
+console.log('Seed installer pronto in seed/TMS_Dati: profilo "' + tpl.nome + '" (' + FILES.length + ' file, ' + foto.length + ' foto dimostrative) + esercizi.json — nessun dato personale.');

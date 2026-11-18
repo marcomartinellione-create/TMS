@@ -469,17 +469,31 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   try { await w.eval('switchProfile("template")'); } catch(e){ swErr = e.message; }
   ok(!swErr, 'switchProfile("template") senza eccezioni' + (swErr ? ' -> ' + swErr : ''));
   ok(w.eval('activeProfile') === 'template', 'profilo attivo: template');
-  ok(w.eval('DOC.scheda.settimanale.length') === 40, 'scheda template caricata (40 righe)');
-  ok(w.eval('DOC.storico.length') === 896, 'storico template caricato (896 righe)');
-  ok(w.eval('DOC.storico_rpe.length') === 125, 'storico_rpe popolato (125 sedute durata+intensità)');
-  ok(w.eval('Array.isArray(DOC.cardio) && DOC.cardio.length') === 17, 'template: 17 sedute cardio demo caricate (Corsa/Bici/HIIT)');
+  /* profilo dimostrativo del 18/11/2026 (tools/genera-profilo-template.py): 62 settimane, cinque Training Set */
+  ok(w.eval('DOC.scheda.settimanale.length') === 24, 'scheda template caricata (24 righe, Training Set «Ipertrofia B»)');
+  ok(w.eval('DOC.storico.length') === 1134, 'storico template caricato (1134 righe)');
+  ok(w.eval('DOC.storico_rpe.length') === 257, 'storico_rpe popolato (257 sedute durata+intensità)');
+  ok(w.eval('Array.isArray(DOC.cardio) && DOC.cardio.length') === 75, 'template: 75 sedute cardio demo caricate (Corsa/Bici/HIIT)');
+  ok(w.eval('ensureSets().setsOrdine.join("|")') === 'Ipertrofia A|Forza|Powerlifting|Casa · manubri|Ipertrofia B' &&
+     w.eval('Object.keys(DOC.scheda.setsSalvati).map(function(n){ return DOC.scheda.setsSalvati[n].tipoAllenamento; }).concat(DOC.scheda.tipoAllenamento).join(",")') === 'ipertrofia,forza,powerlifting,generale,ipertrofia',
+     'template: cinque Training Set, ognuno col suo tipo di allenamento');
+  ok(w.eval('DOC.pesate.length') === 56 && w.eval('DOC.storico_io.filter(rigaIoDaPesate).length') === 8 && w.eval('DOC.foto.length') === 45,
+     'template: 56 pesate della bilancia (8 settimane nello Storico misure) e 45 foto segnaposto');
+  ok(TD && JSON.parse(fs.readFileSync(path.join(TD, 'template', 'corpo.json'), 'utf8')).foto.every(f => fs.existsSync(path.join(TD, 'template', 'foto', f.file))),
+     'template: ogni foto elencata in corpo.json ha il suo file');
   ok(w.eval('DOC.dati_utente.useRpe') === true && w.eval('DOC.dati_utente.altezza') === 178, 'dati utente template (useRpe, 178 cm)');
   const tabs = ['profilo','allenamento','cardio','progressi','corpo','storicocorpo','alimentazione','analisi','report'];
   let tabErr = null;
   for(const t of tabs){ try { w.eval('showTab(' + JSON.stringify(t) + ')'); } catch(e){ tabErr = t + ': ' + e.message; break; } }
   ok(!tabErr, 'tab sul profilo template senza eccezioni' + (tabErr ? ' -> ' + tabErr : ''));
   /* v1.0.68: periodi alimentari + tab Analisi */
-  ok(w.eval('DOC.alimentazione.periodi.length') === 3, 'template con 3 periodi alimentari (bulk/cut/mant)');
+  ok(w.eval('DOC.alimentazione.periodi.map(function(p){ return p.fase; }).join(",")') === 'bulk,cut,mant,cut,bulk' &&
+     w.eval('DOC.alimentazione.periodi.filter(periodoInCorso).length') === 1 && w.eval('periodoInCorso(DOC.alimentazione.periodi[4])'),
+     'template con 5 periodi alimentari (bulk/cut/mant/cut/bulk), l\'ultimo in corso');
+  ok(w.eval('plateauList("").map(function(p){ return p.nome; }).sort().join("|")') === 'Alzate laterali|French press',
+     'template: «In stallo» segnala solo i due stalli voluti (Alzate laterali, French press)');
+  { const ip = JSON.parse(w.eval('JSON.stringify(indiceProgresso(""))'));
+    ok(ip && ip.salti.length === 3 && ip.var.forza > 5 && ip.var.forza < 40, 'template: «Progresso reale» salta 3 cambi scheda e la forza cresce in modo credibile (+' + (ip ? ip.var.forza.toFixed(0) : '?') + ' %)'); }
   ok(w.eval('settimaneTra("2025-11-03","2025-11-17").join(",")') === '202545,202546,202547', 'settimaneTra: intervallo date -> settimane ISO');
   ok(w.eval('settConsecutive(202552,202601)') === true && w.eval('settConsecutive(202545,202547)') === false, 'settConsecutive: cambio anno e buchi gestiti');
   ok(Math.abs(w.eval('pearson([1,2,3,4],[2,4,6,8])') - 1) < 1e-9, 'pearson: correlazione perfetta = 1');
@@ -557,7 +571,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
       d.querySelector('#modal [data-fptipo="S"]').click();
       ok([...d.querySelectorAll('#modal .fp-row')].length>0 && [...d.querySelectorAll('#modal .fp-row')].every(tr=>w.eval('FOODBYNAME['+JSON.stringify(tr.dataset.nome)+'].tipo')==='S'), 'selettore alimenti: il filtro «Alimenti semplici» mostra solo quelli');
       d.querySelector('#modal [data-fptipo="I"]').click();
-      ok([...d.querySelectorAll('#modal .fp-row')].map(tr=>tr.dataset.nome).join('|')==='Whey Protein PBN' && d.querySelector('#modal .fp-row .fp-ric') && w.eval('foodTipo(FOODBYNAME["Whey Protein PBN"])')==='I', 'selettore alimenti: terza macro categoria «Integratori» con la whey (e il bollino «integratore»)');
+      ok([...new Set([...d.querySelectorAll('#modal .fp-row')].map(tr=>tr.dataset.nome))].join('|')==='Whey Protein PBN' && d.querySelector('#modal .fp-row .fp-ric') && w.eval('foodTipo(FOODBYNAME["Whey Protein PBN"])')==='I', 'selettore alimenti: terza macro categoria «Integratori» con la whey (e il bollino «integratore»; la whey del piano compare anche fra i recenti)');
       w.eval('fpTipo=""; closeModal(); showTab("alimentazione")');
       ok(d.querySelector('#panel-alimentazione .pag__main').getAttribute('data-titolo') === 'Piano alimentare' && d.querySelector('#panel-alimentazione .pag__side').getAttribute('data-titolo') === 'Sintesi del piano',
         'colonne: ogni colonna ha il suo titolo fisso in cima');
@@ -645,7 +659,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(port.includes('595.2756 841.8898'), 'imagesToPdf(default): MediaBox A4 verticale invariato (Report)'); }
   w.eval('showTab("report")');
   ok(d.getElementById('panel-report').innerHTML.includes('Dieta × allenamento'), 'report con la sezione Dieta × allenamento');
-  /* il Report include la sezione Cardio (il template ha 17 sedute) + la casella sezione */
+  /* il Report include la sezione Cardio (il template ha 75 sedute) + la casella sezione */
   ok(d.querySelector('#panel-report .rep-doc').innerHTML.includes('Cardio · attività e carico interno'), 'report: sezione Cardio (attività + sRPE) presente');
   ok(d.querySelector('#panel-report [data-rep="cardio"]') !== null, 'report: casella sezione Cardio nei toggle');
   /* riordino sezioni del report (richiesta Marco): ordine di default + frecce + applicazione + handler */
@@ -915,7 +929,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(w.eval('setDiStorico().indexOf("Palestra")>=0 && setDiStorico().indexOf("Casa")>=0', 'setDiStorico'), 'Progressi/filtro: i Training Set presenti nello storico compaiono tra le scelte');
     ok(w.eval('schedeAggr("Palestra").length') === 1 && w.eval('schedeAggr("Palestra")[0].scheda') === 202701, 'Progressi/filtro: scegliendo «Palestra» resta solo la sua settimana');
     ok(w.eval('schedeAggr("Casa").length') === 1 && w.eval('schedeAggr("Casa")[0].scheda') === 202702, 'Progressi/filtro: scegliendo «Casa» resta solo la sua settimana');
-    ok(w.eval('senzaEtichetta()') === true, 'Progressi/filtro: rileva le settimane vecchie senza etichetta (avviso all\'utente)');
+    /* il profilo dimostrativo ha ogni settimana etichettata: per la prova se ne aggiunge una vecchia senza set */
+    ok(w.eval('senzaEtichetta()') === false && (w.eval('DOC.storico.push({scheda:202703,esercizio:"Panca piana con bilanciere - presa media",seduta:1,macro:"Pettorali",serie:3,rip:8,peso:60,rir:null,test:false}); 1'), w.eval('senzaEtichetta()')) === true,
+       'Progressi/filtro: rileva le settimane vecchie senza etichetta (avviso all\'utente)');
+    w.eval('DOC.storico.pop()');
     w.eval('progSetSet("Palestra"); showTab("progressi");');
     ok(d.getElementById('prog-set') !== null && d.getElementById('prog-set').value === 'Palestra', 'Progressi/filtro: selettore in pagina con il set attivo selezionato');
     ok(d.getElementById('panel-progressi').textContent.includes('Tutto il percorso'), 'Progressi/filtro: tra le opzioni c\'è «Tutto il percorso»');
@@ -1596,6 +1613,8 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
        'Selettore degli ingredienti: niente ricette personali (niente ricette dentro ricette)');
     w.eval('closeModal()');
     /* periodi: fotografia anche della ricetta */
+    /* senza altri periodi: il periodo dimostrativo in corso arriva fino a oggi e si sovrapporrebbe */
+    const perPrima = w.eval('JSON.stringify(DOC.alimentazione.periodi)'); w.eval('DOC.alimentazione.periodi=[]');
     w.eval('registraPeriodo()'); d.getElementById('per-fase').value = 'bulk'; d.getElementById('per-ok').click();
     await new Promise(r => setTimeout(r, 30));
     const kPer = w.eval('kcalPiano(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].righe, DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette)');
@@ -1603,7 +1622,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(w.eval('(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette||[]).length') === 1 &&
        Math.abs(w.eval('kcalPiano(DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].righe, DOC.alimentazione.periodi[DOC.alimentazione.periodi.length-1].ricette)') - kPer) < 1e-9,
        'Periodi: conservano la ricetta di allora, cambiarla dopo non cambia le kcal del periodo');
-    w.eval('closeModal()');
+    w.eval('closeModal(); DOC.alimentazione.periodi=' + perPrima);
     /* suggerimenti */
     const sf = J('suggerimenti("ferro",{ordine:"g"}).map(function(x){ return {n:x.f.nome,c:x.f.categoria||"",v:x.v}; })');
     ok(sf.length === 20 && sf.every((x, i) => i === 0 || sf[i - 1].v >= x.v), 'Suggerimenti: i 20 alimenti più ricchi, in ordine decrescente');
@@ -1975,10 +1994,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* ── Foto progressi: template demo → player «tutti» a gruppi + confronto a calendario ── */
   w.eval('switchProfile("template")'); await settle(300);
   w.eval('showTab("corpo")');
-  ok(w.eval('(DOC.foto||[]).length') >= 18, 'foto: template con le foto demo caricate (≥18)');
-  ok(w.eval('fotoDates().length') === 6, 'foto: 6 date distinte (fotoDates)');
-  ok(w.eval('fotoTag="", fotoSteps().length') === 6 && w.eval('fotoSteps()[0].foto.length') === 3, 'foto: vista «tutti» = un passo per data con 3 viste affiancate');
-  ok(w.eval('fotoTag="anteriore", fotoSteps().length') === 6 && w.eval('fotoSteps()[0].foto.length') === 1, 'foto: vista specifica = una foto per passo');
+  ok(w.eval('(DOC.foto||[]).length') === 45, 'foto: template con le foto demo caricate (45: 15 date × 3 viste)');
+  ok(w.eval('fotoDates().length') === 15, 'foto: 15 date distinte (fotoDates), una al mese');
+  ok(w.eval('fotoTag="", fotoSteps().length') === 15 && w.eval('fotoSteps()[0].foto.length') === 3, 'foto: vista «tutti» = un passo per data con 3 viste affiancate');
+  ok(w.eval('fotoTag="anteriore", fotoSteps().length') === 15 && w.eval('fotoSteps()[0].foto.length') === 1, 'foto: vista specifica = una foto per passo');
   ok(w.eval('fotoSnapDate("2026-03-15")') === '2026-03-02', 'foto: il calendario aggancia alla sessione foto più vicina');
   w.eval('fotoTag=""; fotoMode="confronto"; renderFotoSezione();'); await settle(40);
   ok(d.getElementById('foto-cmp-a') && d.getElementById('foto-cmp-a').type === 'date', 'foto: confronto con selettore a calendario (input date)');
@@ -2419,6 +2438,21 @@ console.log('--- T9: dati incorporati dimostrativi, correzione di una riga, Brzy
   ok(w.eval('activeProfile') === 'template' && w.eval('profNome()') === 'Atleta Template', 'primo avvio: il profilo creato è «Atleta Template» (non più «Wander»)');
   ok(fsmem._files.has('TMS_Dati/template/storico.json') && ![...fsmem._files.keys()].some(k => /wander/i.test(k)), 'primo avvio: dati scritti in TMS_Dati/template/, nessuna cartella «wander»');
   ok(w.eval('DOC.dati_utente.nome') === 'Atleta' && w.eval('DOC.storico.length') > 100 && w.eval('cardioList().length') > 0, 'primo avvio: storico, anagrafica e cardio dimostrativi caricati');
+  /* 18/11/2026: profilo dimostrativo più ricco — Training Set col loro tipo, esperienza, periodo in corso, pesate */
+  { const ts = JSON.parse(w.eval('JSON.stringify((function(){ var s=ensureSets(); return {att:s.setAttivo, tipo:s.tipoAllenamento, ord:s.setsOrdine, tipi:Object.keys(s.setsSalvati).map(function(n){ return s.setsSalvati[n].tipoAllenamento; })}; })())'));
+    ok(ts.ord.length === 5 && ts.att === 'Ipertrofia B' && ts.tipo === 'ipertrofia' && ts.tipi.length === 4 && ts.tipi.every(x => ['forza','ipertrofia','powerlifting','generale'].includes(x)),
+       'primo avvio: cinque Training Set dimostrativi, ognuno col suo tipo di allenamento');
+    ok(w.eval('DOC.dati_utente.esperienza') === 'intermedio' && w.eval('new Set(DOC.storico.map(function(r){ return r.set; })).size') === 5,
+       'primo avvio: esperienza nell\'anagrafica e ogni settimana dello Storico col suo Training Set');
+    ok(w.eval('DOC.alimentazione.periodi.length') >= 5 && w.eval('DOC.alimentazione.periodi.filter(periodoInCorso).length') === 1 && w.eval('["bulk","mant","cut"].every(function(f){ return DOC.alimentazione[f].length >= 12; })'),
+       'primo avvio: tre piani alimentari completi e periodi registrati, uno in corso');
+    ok(w.eval('(DOC.pesate||[]).length') > 30 && w.eval('DOC.storico_io.filter(rigaIoDaPesate).length') >= 4 && w.eval('DOC.storico_risc.length') > 0,
+       'primo avvio: pesate della bilancia (con le loro medie nello Storico misure) e minuti di riscaldamento');
+    ok(w.eval('DOC.storico.filter(function(r){ return r.test; }).length') >= 6, 'primo avvio: qualche test del massimale nello Storico');
+    w.eval('showTab("corpo")');
+    ok(/Pesate della bilancia/.test(d.getElementById('panel-corpo').textContent), 'primo avvio: nel tab Corpo c\'è il riquadro delle pesate');
+    await settle(600);
+    ok(/"pesate":\s*\[\s*\{/.test(fsmem._files.get('TMS_Dati/template/corpo.json') || ''), 'primo avvio: le pesate dimostrative finiscono in corpo.json'); }
   /* 18/11/2026: una foto scelta per il report che manca dal disco faceva ridisegnare il report senza fine */
   { const salva = w.eval('JSON.stringify({f:DOC.foto, r:DOC.dati_utente.report})');
     w.eval('DOC.foto=[{file:"manca-prima.jpg",data:"2026-01-05",tag:"fronte"},{file:"manca-dopo.jpg",data:"2026-06-01",tag:"fronte"}];' +

@@ -10,8 +10,9 @@
  * «Atleta Template», lo stesso del seed dell'installer (tools/genera-seed.js): un atleta
  * fittizio, generato da tools/genera-profilo-template.py.
  *
- * Sorgente: TMS_Dati/template/ (cartella locale, non in git). Le foto dimostrative non
- * entrano: sono file, e in una cartella nuova non ci sarebbero.
+ * Sorgente: TMS_Dati/template/ (cartella locale, non in git). Entrano anche le pesate della
+ * bilancia e i minuti di riscaldamento; le foto dimostrative no: sono file, e in una cartella
+ * nuova non ci sarebbero (il seed dell'installer invece le porta).
  *
  *   node tools/genera-seed-incorporato.js              riscrive src/dati/03-seed.js
  *   node tools/genera-seed-incorporato.js --verifica   controlla che sia allineato (non scrive)
@@ -33,13 +34,21 @@ if (!fs.existsSync(path.join(SRC, 'storico.json'))) {
 }
 const J = f => JSON.parse(fs.readFileSync(path.join(SRC, f), 'utf8'));
 const corpo = J('corpo.json');
+/* qui le foto non ci sono: il report non deve proporre il blocco «Foto progressi» né sceglierne una */
+function senzaFoto(u) {
+  const c = JSON.parse(JSON.stringify(u));
+  if (c.report) { c.report.foto = false; delete c.report.fotoPrima; delete c.report.fotoDopo; }
+  return c;
+}
 const seed = {
   scheda: J('scheda.json'),
   storico: J('storico.json'),
   storico_io: corpo.storico_io || [],
   storico_rpe: corpo.storico_rpe || [],
+  storico_risc: corpo.storico_risc || [],
   cardio: corpo.cardio || [],
-  dati_utente: corpo.dati_utente || {},
+  pesate: corpo.pesate || [],
+  dati_utente: senzaFoto(corpo.dati_utente || {}),
   alimentazione: J('alimentazione.json')
 };
 /* niente backtick né sequenze che chiudano lo <script> dentro l'HTML */

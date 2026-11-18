@@ -1,10 +1,13 @@
 /* genera-foto-demo.js — foto progressi DEMO per il profilo "Atleta Template".
  *
- * Genera immagini placeholder (sfondo nero + data e vista in bianco) per provare la
- * sezione 📸 Foto progressi del tab Corpo, e aggiunge i metadati a template/corpo.json.
- * NON sono foto reali: solo segnaposto per il collaudo della funzione.
+ * Disegna le immagini segnaposto elencate in template/corpo.json (voci `foto` coi file
+ * «demo-…», scritte da tools/genera-profilo-template.py): una sagoma stilizzata che segue
+ * peso e massa grassa dello Storico misure di quella settimana (vita più larga col grasso,
+ * spalle più larghe con la massa magra), con data, vista e la scritta FOTO DEMO.
+ * NON sono foto reali: servono a far vedere Riproduzione e Confronto del tab Corpo.
+ * Toglie i vecchi file «demo-…» che l'elenco non contiene più.
  *
- * Uso (dalla root del progetto):
+ * Uso (dalla root del progetto, DOPO genera-profilo-template.py):
  *   electron\node_modules\.bin\electron.cmd tools\genera-foto-demo.js [TMS_Dati ...]
  * Senza argomenti usa TMS_Dati del progetto. Si possono passare più cartelle TMS_Dati
  * (es. anche quella dell'app installata in %APPDATA%\Training Monitor System\TMS\TMS_Dati).
@@ -15,9 +18,16 @@ const path = require('node:path');
 
 app.disableHardwareAcceleration();
 
-const DATE = ['2026-01-05', '2026-02-02', '2026-03-02', '2026-04-06', '2026-05-04', '2026-06-01'];
-const VISTE = [['anteriore', 'Anteriore'], ['laterale', 'Laterale'], ['posteriore', 'Posteriore']];
-const fmtIt = d => { const [y, m, g] = d.split('-'); return g + '/' + m + '/' + y.slice(2); };
+const VISTE = { anteriore: 'Anteriore', laterale: 'Laterale', posteriore: 'Posteriore' };
+const fmtIt = d => { const [y, m, g] = d.split('-'); return g + '/' + m + '/' + y; };
+/* codice settimana ISO AAAASS di una data 'AAAA-MM-GG' */
+function codiceSett(iso) {
+  const d = new Date(iso + 'T12:00:00Z'); const g = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - g + 3);
+  const anno = d.getUTCFullYear(), primo = new Date(Date.UTC(anno, 0, 4));
+  const sett = 1 + Math.round(((d - primo) / 86400000 - 3 + ((primo.getUTCDay() + 6) % 7)) / 7);
+  return anno * 100 + sett;
+}
 
 const targets = (process.argv.slice(2).filter(a => !a.startsWith('--')));
 if (!targets.length) targets.push(path.join(__dirname, '..', 'TMS_Dati'));
@@ -26,46 +36,68 @@ app.whenReady().then(async () => {
   const win = new BrowserWindow({ show: false, width: 360, height: 480, webPreferences: { offscreen: true } });
   await win.loadURL('data:text/html,<body style="margin:0"><canvas id="c"></canvas></body>');
 
-  async function disegna(dataIt, vista) {
-    return await win.webContents.executeJavaScript(`(function(){
-      var W=720,H=960,c=document.getElementById('c'); c.width=W; c.height=H;
+  async function disegna(o) {
+    return await win.webContents.executeJavaScript(`(function(o){
+      var W=540,H=720,c=document.getElementById('c'); c.width=W; c.height=H;
       var x=c.getContext('2d');
-      x.fillStyle='#000'; x.fillRect(0,0,W,H);
-      x.strokeStyle='#3a3a3a'; x.lineWidth=6; x.strokeRect(24,24,W-48,H-48);
-      x.fillStyle='#fff'; x.textAlign='center';
-      x.font='bold 72px sans-serif'; x.fillText(${JSON.stringify(dataIt)}, W/2, H/2-18);
-      x.font='44px sans-serif'; x.fillText(${JSON.stringify(vista)}, W/2, H/2+52);
-      x.fillStyle='#8a8a8a'; x.font='28px sans-serif'; x.fillText('FOTO DEMO', W/2, H-70);
-      return c.toDataURL('image/jpeg', 0.85);
-    })()`);
-  }
-
-  let totImg = 0;
-  const meta = [];
-  for (const d of DATE) {
-    for (const [tag, label] of VISTE) {
-      const dataUrl = await disegna(fmtIt(d) + ' ·', label);
-      const bytes = Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64');
-      const file = 'demo-' + d + '-' + tag + '.jpg';
-      meta.push({ file, data: d, tag });
-      for (const td of targets) {
-        const dir = path.join(td, 'template', 'foto');
-        fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(path.join(dir, file), bytes);
+      var sf=x.createLinearGradient(0,0,0,H); sf.addColorStop(0,'#26211d'); sf.addColorStop(1,'#0e0c0b');
+      x.fillStyle=sf; x.fillRect(0,0,W,H);
+      x.strokeStyle='#3a332d'; x.lineWidth=4; x.strokeRect(14,14,W-28,H-28);
+      /* proporzioni: spalle dalla massa magra, vita e fianchi dal grasso */
+      var cx=W/2, sp=96+(o.magra-60)*2.6, vi=50+(o.mg-0.10)*300, fi=64+(o.mg-0.10)*170;
+      var pelle=x.createLinearGradient(cx-sp-30,0,cx+sp+30,0);
+      pelle.addColorStop(0,'#5f5750'); pelle.addColorStop(0.5,'#a49686'); pelle.addColorStop(1,'#5f5750');
+      x.fillStyle=pelle;
+      function ellisse(px,py,rx,ry){ x.beginPath(); x.ellipse(px,py,rx,ry,0,0,Math.PI*2); x.fill(); }
+      function poli(p){ x.beginPath(); x.moveTo(p[0][0],p[0][1]); for(var i=1;i<p.length;i++){ var q=p[i];
+        if(q.length===4) x.quadraticCurveTo(q[0],q[1],q[2],q[3]); else x.lineTo(q[0],q[1]); } x.closePath(); x.fill(); }
+      if(o.tag==='laterale'){
+        var pe=30+(o.magra-60)*0.9, pa=16+(o.mg-0.10)*260;      /* petto e pancia, di profilo */
+        ellisse(cx+4,150,28,35);
+        poli([[cx-8,180],[cx+12,180],[cx+14,210],[cx-12,210]]);
+        poli([[cx-24,206],[cx+10,204, cx+pe,236],[cx+pe+2,262, cx+pe-6,300],[cx+pa+10,340, cx+pa,392],
+              [cx+pa-6,430, cx+24,456],[cx-42,456],[cx-50,430, cx-36,392],[cx-30,330, cx-36,262],[cx-36,222, cx-24,206]]);
+        poli([[cx-18,222],[cx+6,226, cx+4,300],[cx+6,380, cx+2,432],[cx-18,432],[cx-22,380, cx-22,300],[cx-26,240, cx-18,222]]);
+        poli([[cx-42,450],[cx+24,450],[cx+18,560, cx+16,642],[cx-22,642],[cx-30,560, cx-42,450]]);
+      } else {
+        ellisse(cx,150,30,36);
+        poli([[cx-13,180],[cx+13,180],[cx+15,212],[cx-15,212]]);
+        poli([[cx-22,206],[cx-sp+8,206, cx-sp,228],[cx-sp+16,268],[cx-vi-6,330, cx-vi,392],[cx-fi,430, cx-fi,458],
+              [cx+fi,458],[cx+fi,430, cx+vi,392],[cx+vi+6,330, cx+sp-16,268],[cx+sp,228],[cx+sp-8,206, cx+22,206]]);
+        [-1,1].forEach(function(l){
+          poli([[cx+l*sp,222],[cx+l*(sp+16),300, cx+l*(sp+12),430],[cx+l*(sp-8),432],[cx+l*(sp-4),330, cx+l*(sp-18),262]]);
+          poli([[cx+l*3,474],[cx+l*fi,456],[cx+l*(fi+2),540, cx+l*(fi-14),642],[cx+l*12,642],[cx+l*10,560, cx+l*3,474]]);
+        });
       }
-      totImg++;
-    }
+      x.textAlign='center';
+      x.fillStyle='#f3ead9'; x.font='bold 30px Georgia, serif'; x.fillText(o.data, W/2, 54);
+      x.fillStyle='#d8c6a8'; x.font='20px sans-serif'; x.fillText(o.vista, W/2, 84);
+      if(o.peso){ x.fillStyle='#bfb3a3'; x.font='20px sans-serif';
+        x.fillText(o.peso.toFixed(1).replace('.',',')+' kg · grasso '+(o.mg*100).toFixed(1).replace('.',',')+' %', W/2, H-46); }
+      x.fillStyle='#7d7268'; x.font='bold 16px sans-serif'; x.fillText('FOTO DEMO · Atleta Template', W/2, H-24);
+      return c.toDataURL('image/jpeg', 0.82);
+    })(${JSON.stringify(o)})`);
   }
 
   for (const td of targets) {
     const corpoP = path.join(td, 'template', 'corpo.json');
     if (!fs.existsSync(corpoP)) { console.log('  (salto, manca: ' + corpoP + ')'); continue; }
-    let obj; try { obj = JSON.parse(fs.readFileSync(corpoP, 'utf8')); } catch (e) { console.log('  ERRORE leggendo ' + corpoP + ': ' + e.message); continue; }
-    obj.foto = (obj.foto || []).filter(f => !/^demo-/.test(String(f.file || ''))).concat(meta);
-    fs.writeFileSync(corpoP, JSON.stringify(obj, null, 2), 'utf8');
-    console.log('  OK  ' + corpoP + '  (foto: ' + obj.foto.length + ')');
+    const corpo = JSON.parse(fs.readFileSync(corpoP, 'utf8'));
+    const elenco = (corpo.foto || []).filter(f => /^demo-/.test(String(f.file || '')));
+    const io = (corpo.storico_io || []).slice().sort((a, b) => a.scheda - b.scheda);
+    const dir = path.join(td, 'template', 'foto');
+    fs.mkdirSync(dir, { recursive: true });
+    for (const f of elenco) {
+      const c = codiceSett(f.data);
+      const m = io.filter(r => r.scheda <= c).pop() || io[0] || {};
+      const peso = +m.peso || 0, mg = +m.massa_grassa || 0.15;
+      const dataUrl = await disegna({ data: fmtIt(f.data), vista: VISTE[f.tag] || f.tag, tag: f.tag, peso, mg, magra: peso * (1 - mg) || 62 });
+      fs.writeFileSync(path.join(dir, f.file), Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'));
+    }
+    const tenuti = new Set(elenco.map(f => f.file));
+    const tolti = fs.readdirSync(dir).filter(n => /^demo-.*\.jpg$/i.test(n) && !tenuti.has(n));
+    tolti.forEach(n => fs.unlinkSync(path.join(dir, n)));
+    console.log('  OK  ' + dir + '  (' + elenco.length + ' foto disegnate, ' + tolti.length + ' vecchie tolte)');
   }
-
-  console.log('Generate ' + totImg + ' immagini demo (' + DATE.length + ' date × ' + VISTE.length + ' viste) in ' + targets.length + ' cartella/e.');
   app.quit();
 }).catch(e => { console.error('ERRORE:', e); app.exit(1); });
