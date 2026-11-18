@@ -102,11 +102,10 @@ if (senzaExe) {
   }
 }
 
-/* 6 ── come arriva all'app (niente GitHub dal 2026-11-12) */
+/* 6 ── come arriva all'app (dal 18/11/2026 di nuovo da GitHub: push e release le fa tools/pubblica.js) */
 console.log(`
 ═══ Release pronta in release/v${VER}/ ═══
 
-L'app installata su questo PC la trova da sola: al prossimo avvio propone
-«↻ Installa e riavvia» (controlla l'exe contro latest.yml, poi installa e si riapre).
-Niente pubblicazione su GitHub finché Marco non lo richiede.
+Su GitHub la manda tools/pubblica.js (PUBBLICA.bat): push di main e release v${VER} con
+installer, blockmap e latest.yml. L'app installata la trova da sola nelle Release GitHub.
 `);
