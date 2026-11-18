@@ -3,9 +3,12 @@
 /*
  * pubblica.js — la pubblicazione che Marco lancia da solo con PUBBLICA.bat (dal 2026-11-12).
  *
- * «Pubblicare» oggi vuol dire: mettere l'installer nuovo in release/v<x.y.z>/. L'app installata
- * sul PC, al prossimo avvio, lo trova e propone «↻ Installa e riavvia» (electron/main.js).
- * Niente GitHub.
+ * «Pubblicare» vuol dire: costruire l'installer nuovo in release/v<x.y.z>/ e, dal 18/11/2026 (Marco:
+ * «rimettere online su git il tutto»), mandarlo su GitHub: push di main (sito su GitHub Pages compreso)
+ * e release v<x.y.z> con installer, blockmap e latest.yml. L'app installata la trova da sola all'avvio
+ * (electron-updater, electron/main.js). Se in app-android/dist c'è un APK di TMS Scheda più nuovo di
+ * quello pubblicato, va nella stessa release e docs/scheda/versione.json lo annuncia ai telefoni.
+ * Con --senza-github si ferma al commit locale (come dal 12 al 18/11/2026).
  *
  * Cosa fa:
  *   1. legge APP_VERSION. Se l'installer di quella versione c'è GIÀ in release/, alza la terza
@@ -17,11 +20,17 @@
  *      Changelog/PROSSIMA_NOTA.txt (scritto da Claude durante il lavoro) la nota di rilascio è
  *      quella, e il file viene consumato. Se non c'è nulla di nuovo si ferma senza toccare niente.
  *   3. node tools/release.js: build, test, installer. Se fallisce, rimette i file com'erano.
- *   4. commit locale «Pubblicazione v<x.y.z>» (nessun push).
+ *   4. APK: se app-android/dist ha un TMS-Scheda-<a.b.c>.apk più nuovo di docs/scheda/versione.json,
+ *      ne calcola lo SHA-256 e riscrive versione.json (versione, file, sha256, url della release).
+ *   5. commit locale «Pubblicazione v<x.y.z>».
+ *   6. GitHub (salvo --senza-github): git push origin main, poi gh release create v<x.y.z> con
+ *      installer, blockmap, latest.yml e l'APK nuovo. Se qualcosa non va, la pubblicazione locale resta
+ *      valida e il messaggio dice cosa rifare.
  */
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
 const P = (...a) => path.join(ROOT, ...a);
@@ -112,10 +121,55 @@ for (const f of ['TMS-Setup-' + NUOVA + '.exe', 'latest.yml'])
   if (!fs.existsSync(P('release', 'v' + NUOVA, f))) ferma('Manca release/v' + NUOVA + '/' + f + ' dopo il build.');
 
 if (alzata && fs.existsSync(P(F_NOTA))) fs.rmSync(P(F_NOTA));
+
+// APK di TMS Scheda: il più nuovo in app-android/dist, se è più nuovo di quello già annunciato
+const REPO = 'marcomartinellione-create/TMS', F_APK_JSON = 'docs/scheda/versione.json';
+const verNum = v => String(v || '').split('.').map(n => parseInt(n, 10) || 0);
+const verMaggiore = (a, b) => { const x = verNum(a), y = verNum(b); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
+let apkNuovo = null;
+{ const dist = P('app-android', 'dist');
+  const apk = (fs.existsSync(dist) ? fs.readdirSync(dist) : []).map(f => /^TMS-Scheda-(\d+\.\d+\.\d+)\.apk$/.exec(f)).filter(Boolean)
+    .sort((a, b) => verMaggiore(a[1], b[1]) ? -1 : verMaggiore(b[1], a[1]) ? 1 : 0)[0];
+  let annunciata = '';
+  try { annunciata = JSON.parse(leggi(F_APK_JSON)).versione || ''; } catch (e) {}
+  if (apk && (!annunciata || verMaggiore(apk[1], annunciata))) {
+    const file = path.join(dist, apk[0]);
+    const sha256 = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    apkNuovo = { versione: apk[1], file: apk[0], percorso: file, sha256 };
+    fs.mkdirSync(path.dirname(P(F_APK_JSON)), { recursive: true });
+    scrivi(F_APK_JSON, JSON.stringify({ versione: apk[1], file: apk[0], sha256,
+      url: 'https://github.com/' + REPO + '/releases/download/v' + NUOVA + '/' + apk[0], pubblicata: oggi }, null, 1) + '\n');
+    console.log('APK di TMS Scheda ' + apk[1] + ' (' + (fs.statSync(file).size / 1048576).toFixed(1) + ' MB): lo pubblico con questa versione.');
+  }
+}
+
 git('add -A');
 git('commit -q -m "Pubblicazione v' + NUOVA + '" -m "Installer in release/v' + NUOVA + ' (PUBBLICA.bat)."');
 
 const mb = (fs.statSync(exeDi(NUOVA)).size / 1048576).toFixed(1);
-console.log('\n═══ Fatto: TMS v' + NUOVA + ' pubblicata ═══');
-console.log('Installer: release\\v' + NUOVA + '\\TMS-Setup-' + NUOVA + '.exe (' + mb + ' MB)');
-console.log('Chiudi e riapri l\'app: ti proporrà «↻ Installa e riavvia».');
+console.log('\nInstaller: release\\v' + NUOVA + '\\TMS-Setup-' + NUOVA + '.exe (' + mb + ' MB)');
+
+if (process.argv.includes('--senza-github')) {
+  console.log('\n═══ Fatto: TMS v' + NUOVA + ' pronta in locale (--senza-github: niente GitHub) ═══');
+  process.exit(0);
+}
+// GitHub: prima il push (sito e versione.json dell'APK), poi la release con gli allegati
+const esegui = (cmd) => execSync(cmd, { cwd: ROOT, stdio: 'inherit' });
+try {
+  esegui('git push origin main');
+} catch (e) {
+  ferma('Pubblicata in locale, ma il push su GitHub non è riuscito (rete? accesso?).\nPer riprovare: git push origin main, poi rilancia PUBBLICA.bat (non rifà la build).');
+}
+const DIR = 'release/v' + NUOVA + '/';
+const allegati = [DIR + 'TMS-Setup-' + NUOVA + '.exe', DIR + 'TMS-Setup-' + NUOVA + '.exe.blockmap', DIR + 'latest.yml']
+  .concat(apkNuovo ? [path.relative(ROOT, apkNuovo.percorso).replace(/\\/g, '/')] : []);
+try {
+  esegui('gh release create v' + NUOVA + ' ' + allegati.map(a => '"' + a + '"').join(' ') +
+    ' --title "TMS v' + NUOVA + '" --notes-file "' + DIR + 'RELEASE_NOTES.md" -R ' + REPO);
+} catch (e) {
+  ferma('Il push è fatto, ma la release v' + NUOVA + ' su GitHub non è riuscita.\nPer riprovare: gh release create v' + NUOVA + ' ' + allegati.map(a => '"' + a + '"').join(' ') + ' --title "TMS v' + NUOVA + '" --notes-file "' + DIR + 'RELEASE_NOTES.md" -R ' + REPO);
+}
+console.log('\n═══ Fatto: TMS v' + NUOVA + ' pubblicata su GitHub ═══');
+console.log('Release: https://github.com/' + REPO + '/releases/tag/v' + NUOVA);
+if (apkNuovo) console.log('TMS Scheda ' + apkNuovo.versione + ': i telefoni la trovano da soli (docs/scheda/versione.json).');
+console.log('L\'app installata, al prossimo avvio, propone di scaricare e installare la v' + NUOVA + '.');

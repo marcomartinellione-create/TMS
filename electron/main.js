@@ -7,6 +7,7 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const fsSync = require('node:fs');
 const { pathToFileURL } = require('node:url');
+const { autoUpdater } = require('electron-updater');
 
 // ── Ponte dati locali (window.tmsFS, via preload.js) ─────────────────────────
 // SCRITTURE: sempre in userData/TMS (sopravvive ad aggiornamenti e reinstallazioni).
@@ -275,55 +276,43 @@ app.whenReady().then(() => {
     return PERMESSI_OK.includes(permission);
   });
 
-  // Aggiornamento dalla CARTELLA RELEASE LOCALE (dal 2026-11-12, su indicazione di Marco:
-  // l'app per ora vive solo sul suo PC, niente più release su GitHub).
-  // Solo nell'app installata (non in `npm start`). All'avvio guarda in
-  //   <home>\OneDrive\Personale\Claude\TMS\Training Monitor System\release\v<x.y.z>\
-  // (o nella cartella scritta in userData\cartella-release.txt, se c'è) la versione più alta
-  // che abbia il suo TMS-Setup-<x.y.z>.exe. Se è più nuova di quella installata lo chiede
-  // con il modale dell'app; confermando controlla l'impronta sha512 dell'installer contro il
-  // latest.yml accanto (un file a metà, per esempio non ancora sincronizzato da OneDrive, non
-  // parte), lo copia nella cartella temporanea, chiude l'app (i dati in sospeso si salvano
-  // come in ogni chiusura) e lo lancia in modalità silenziosa: a fine installazione l'app si
-  // riapre da sola. Eventi in TMS/update.log.
+  // Aggiornamento dalle RELEASE GITHUB (electron-updater + target NSIS, github.com/marcomartinellione-create/TMS).
+  // Dal 12 al 18/11/2026 l'app guardava la cartella release/ del PC (TMS solo locale); il 18/11/2026 Marco ha
+  // chiesto di «rimettere online su git il tutto»: si torna al flusso usato fino alla v1.1.17.
+  // Solo nell'app installata (non in `npm start`):
+  //  1. all'avvio controlla l'ultima release; se è più nuova CHIEDE prima di scaricare, con le novità
+  //     (corpo della release) e l'avviso di AGGIORNAMENTO MAGGIORE se sale la prima o la seconda cifra;
+  //  2. durante il download: percentuale nel titolo + barra sulla taskbar, chiusura trattenuta (vedi
+  //     createWindow), errori a video solo se il download l'aveva chiesto l'utente;
+  //  3. a download finito propone il riavvio (oppure installa alla prossima chiusura). L'impronta sha512
+  //     dell'installer la controlla electron-updater contro il latest.yml della release.
+  // L'ultimo avviso resta in memoria: la pagina, appena pronta, lo richiede con l'azione 'chiedi' (un
+  // controllo arrivato prima che si mettesse in ascolto andava perso). Eventi in TMS/update.log.
   if (app.isPackaged) {
+    autoUpdater.autoDownload = false;
+
     const updLog = (...m) => { fs.appendFile(path.join(WRITE_ROOT(), 'update.log'),
       new Date().toISOString() + '  ' + m.join(' ') + '\n').catch(() => {}); };
+    const setProgress = (frazione, titolo) => {
+      for (const w of BrowserWindow.getAllWindows()) {
+        try { w.setProgressBar(frazione); w.setTitle(titolo || 'Training Monitor System'); } catch (e) {}
+      }
+    };
     const versioni = v => String(v || '').split('.').map(n => parseInt(n, 10) || 0);
-    const confronta = (a, b) => { const x = versioni(a), y = versioni(b);
-      for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); } return 0; };
     const isMaggiore = (attuale, nuova) => {
       const [aM, am] = versioni(attuale), [nM, nm] = versioni(nuova);
       return nM > aM || (nM === aM && nm > am);
     };
-    const anteprimaNote = (s) => {
-      s = String(s || '').replace(/<[^>]+>/g, '').replace(/^#+\s*/gm, '').replace(/\*\*?|__|`/g, '')
-        .replace(/^>\s?/gm, '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
+    const anteprimaNote = (rn) => {
+      let s = Array.isArray(rn) ? rn.map(n => (n && n.note) || '').join('\n') : String(rn || '');
+      s = s.replace(/<[^>]+>/g, '').replace(/^#+\s*/gm, '').replace(/\*\*?|__|`/g, '')
+           .replace(/^>\s?/gm, '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
       if (s.length > 900) s = s.slice(0, 900).trimEnd() + '\n…';
       return s || 'Nessuna nota di rilascio disponibile.';
     };
-    const cartellaRelease = () => {
-      try { const p = fsSync.readFileSync(path.join(app.getPath('userData'), 'cartella-release.txt'), 'utf8').trim(); if (p) return p; } catch (e) {}
-      return path.join(require('node:os').homedir(), 'OneDrive', 'Personale', 'Claude', 'TMS', 'Training Monitor System', 'release');
-    };
-    // la versione più alta presente nella cartella, con il suo installer
-    const cercaRelease = async () => {
-      const dir = cartellaRelease();
-      let voci = [];
-      try { voci = await fs.readdir(dir, { withFileTypes: true }); } catch (e) { updLog('cartella release non leggibile:', dir); return null; }
-      const trovate = [];
-      for (const v of voci) {
-        const m = v.isDirectory() && /^v(\d+\.\d+\.\d+)$/.exec(v.name);
-        if (!m) continue;
-        const exe = path.join(dir, v.name, 'TMS-Setup-' + m[1] + '.exe');
-        if (await fileExists(exe)) trovate.push({ versione: m[1], exe, cartella: path.join(dir, v.name) });
-      }
-      trovate.sort((a, b) => confronta(b.versione, a.versione));
-      return trovate[0] || null;
-    };
-    // l'ultimo avviso resta in memoria: il controllo nella cartella è così veloce che può arrivare
-    // prima che la pagina si metta in ascolto (v1.1.18-19: avviso perso). La pagina, appena pronta,
-    // lo richiede con l'azione 'chiedi'.
+
+    /* i dialoghi dell'updater li disegna l'app (modali in stile pergamena): il main manda l'evento
+       al renderer e riceve la decisione via 'tms-update-azione' */
     let ultimoAvviso = null;
     const inviaUpdate = (dati) => {
       ultimoAvviso = dati;
@@ -332,64 +321,67 @@ app.whenReady().then(() => {
       if (!w) { setTimeout(manda, 1500); return; }
       if (w.webContents.isLoading()) w.webContents.once('did-finish-load', manda); else manda();
     };
-    let disponibile = null, installerPronto = null;
+    let infoDisponibile = null, scaricatoPronto = false;
 
-    // impronta dell'installer contro latest.yml (se c'è): niente installazioni di file a metà
-    const verificaInstaller = async (r) => {
-      let atteso = null;
-      try { const yml = await fs.readFile(path.join(r.cartella, 'latest.yml'), 'utf8');
-            const m = /^sha512:\s*(\S+)/m.exec(yml); if (m) atteso = m[1]; } catch (e) {}
-      if (!atteso) { updLog('latest.yml assente: installer non verificato', r.exe); return true; }
-      const hash = require('node:crypto').createHash('sha512');
-      await new Promise((ok, ko) => fsSync.createReadStream(r.exe).on('data', d => hash.update(d)).on('end', ok).on('error', ko));
-      return hash.digest('base64') === atteso;
-    };
+    autoUpdater.on('update-available', (info) => {
+      const attuale = app.getVersion();
+      const maggiore = isMaggiore(attuale, info.version);
+      infoDisponibile = info;
+      updLog('disponibile', info.version, '(attuale ' + attuale + (maggiore ? ', MAGGIORE' : '') + ')');
+      inviaUpdate({ tipo: 'disponibile', versione: info.version, attuale: attuale,
+        maggiore: maggiore, note: anteprimaNote(info.releaseNotes) });
+    });
+    autoUpdater.on('update-not-available', (info) => {
+      updLog('nessuna versione nuova (GitHub: v' + ((info && info.version) || '?') + ', installata: v' + app.getVersion() + ')');
+    });
 
-    ipcMain.on('tms-update-azione', async (e, azione) => {
-      if (azione === 'dopo') { updLog('rimandato dall\'utente'); return; }
+    ipcMain.on('tms-update-azione', (e, azione) => {
       if (azione === 'chiedi') {
-        if (ultimoAvviso && !installerPronto) { try { e.sender.send('tms-update', ultimoAvviso); updLog('avviso rimandato alla pagina'); } catch (err) {} }
+        if (ultimoAvviso && !aggiornamento.inCorso) { try { e.sender.send('tms-update', ultimoAvviso); updLog('avviso rimandato alla pagina'); } catch (err) {} }
         return;
       }
-      if ((azione !== 'scarica' && azione !== 'installa') || !disponibile || installerPronto) return;
-      updLog('installazione richiesta', disponibile.versione, disponibile.exe);
-      try {
-        if (!(await verificaInstaller(disponibile))) throw new Error('l\'impronta dell\'installer non corrisponde a latest.yml (file incompleto o ancora in sincronizzazione)');
-        const copia = path.join(app.getPath('temp'), 'TMS-Setup-' + disponibile.versione + '.exe');
-        await fs.copyFile(disponibile.exe, copia);
-        installerPronto = copia;
-        updLog('installer pronto', copia, '— chiudo l\'app e installo');
-        for (const w of BrowserWindow.getAllWindows()) { try { w.close(); } catch (err) {} }
-      } catch (err) {
-        updLog('ERRORE', (err && err.message) || String(err));
-        dialog.showMessageBox({
-          type: 'error', title: 'Aggiornamento TMS',
-          message: 'Non riesco a installare la versione ' + disponibile.versione + '.',
-          detail: 'Controlla che il file sia completo in ' + disponibile.cartella + ' (OneDrive deve averlo scaricato del tutto) e riavvia l\'app per riprovare.\n\nDettaglio tecnico: ' + ((err && err.message) || err),
-          buttons: ['OK']
-        }).catch(() => {});
+      if ((azione === 'scarica' || azione === 'installa') && infoDisponibile && !aggiornamento.inCorso && !scaricatoPronto) {
+        aggiornamento.inCorso = true; aggiornamento.percento = 0;
+        setProgress(0, 'Training Monitor System — scarico l\'aggiornamento… 0%');
+        updLog('download avviato', infoDisponibile.version);
+        autoUpdater.downloadUpdate().catch(() => { /* gestito da on(error) */ });
+      } else if (azione === 'dopo') {
+        updLog('rimandato dall\'utente');
+      } else if (azione === 'riavvia' && scaricatoPronto) {
+        updLog('riavvio per installare');
+        autoUpdater.quitAndInstall();
       }
     });
-    // l'installer parte quando l'app è già chiusa e ha salvato tutto (vedi window-all-closed)
-    app.on('will-quit', () => {
-      if (!installerPronto) return;
-      try {
-        require('node:child_process').spawn(installerPronto, ['--updated', '/S', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
-        updLog('installer avviato', installerPronto);
-      } catch (err) { updLog('ERRORE avvio installer', (err && err.message) || String(err)); }
+
+    autoUpdater.on('download-progress', (p) => {
+      aggiornamento.percento = Math.round(p.percent || 0);
+      setProgress((p.percent || 0) / 100,
+        `Training Monitor System — scarico l'aggiornamento… ${aggiornamento.percento}%`);
     });
 
-    cercaRelease().then(async (r) => {
-      const attuale = app.getVersion();
-      if (!r) return;
-      if (confronta(r.versione, attuale) <= 0) { updLog('nessuna versione nuova (cartella: v' + r.versione + ', installata: v' + attuale + ')'); return; }
-      let note = '';
-      try { note = await fs.readFile(path.join(r.cartella, 'RELEASE_NOTES.md'), 'utf8'); } catch (e) {}
-      disponibile = r;
-      const maggiore = isMaggiore(attuale, r.versione);
-      updLog('disponibile', r.versione, '(attuale ' + attuale + (maggiore ? ', MAGGIORE' : '') + ')', r.exe);
-      inviaUpdate({ tipo: 'disponibile', locale: true, versione: r.versione, attuale, maggiore, note: anteprimaNote(note) });
-    }).catch(err => updLog('ERRORE controllo', (err && err.message) || String(err)));
+    autoUpdater.on('update-downloaded', (info) => {
+      aggiornamento.inCorso = false;
+      scaricatoPronto = true;
+      setProgress(-1);
+      updLog('scaricato', info.version);
+      inviaUpdate({ tipo: 'pronto', versione: info.version });
+    });
+
+    autoUpdater.on('error', (err) => {
+      updLog('ERRORE', (err && err.message) || String(err));
+      const eraInCorso = aggiornamento.inCorso;
+      aggiornamento.inCorso = false;
+      setProgress(-1);
+      /* silenzio per i controlli all'avvio (offline ecc.); a video solo se l'utente aveva avviato il download */
+      if (eraInCorso) dialog.showMessageBox({
+        type: 'error',
+        title: 'Aggiornamento TMS',
+        message: 'Il download dell\'aggiornamento non è riuscito.',
+        detail: 'Controlla la connessione: riproverò al prossimo avvio (il download riprende da dove si era fermato).\n\nDettaglio tecnico: ' + ((err && err.message) || err),
+        buttons: ['OK']
+      }).catch(() => {});
+    });
+    autoUpdater.checkForUpdates().catch(() => {});
   }
 
   // serve i file della cartella renderer/ sotto app://tms/...

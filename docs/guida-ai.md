@@ -67,10 +67,10 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
 - Si scarica «TMS-Setup-versione.exe» dalle Release GitHub (~90 MB, catalogo e video
   inclusi). L'eseguibile non è firmato: al primo avvio Windows SmartScreen può
   avvisare — «Ulteriori informazioni → Esegui comunque». È normale e atteso.
-- **Aggiornamenti**: all'avvio l'app guarda nella cartella delle versioni preparate sul PC
-  (la cartella «release» del progetto); se ce n'è una più nuova CHIEDE, mostrando le novità.
-  Confermando, controlla che l'installatore sia integro, salva, si chiude, installa la nuova
-  versione e si riapre da sola.
+- **Aggiornamenti**: all'avvio l'app controlla le Release GitHub; se c'è una versione più nuova
+  CHIEDE, mostrando le novità. Confermando scarica in background (percentuale nel titolo della
+  finestra), controlla che l'installatore sia integro e propone di riavviare per installarla
+  (altrimenti si installa da sola alla chiusura). Senza internet il controllo tace.
 - **Dati**: in locale, nella cartella utente di Windows (percorso tipico
   «%APPDATA%\\Training Monitor System\\TMS»). Sopravvivono ad aggiornamenti e
   reinstallazioni. Niente account, niente telemetria.
