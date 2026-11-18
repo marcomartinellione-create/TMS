@@ -4,6 +4,23 @@
 
 ---
 
+### 2026-11-18 — TMS v1.1.30: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.29
+**Descrizione**:
+- Sito e README: screenshot rifatti col nuovo profilo dimostrativo (Pesi, Progressi, Alimentazione, Analisi) e didascalie allineate all'app di oggi
+- Profilo dimostrativo «Atleta Template» rifatto da zero: 14 mesi, cinque Training Set, fasi alimentari con un periodo in corso, pesate della bilancia e foto
+- Report: una foto prima/dopo che manca dal disco non fa più ridisegnare il report all'infinito
+- Traduzioni: tolte 18 chiavi doppie del riquadro «Tipo di corpo» (il lint fermava npm test; a video non cambia nulla)
+- Pesi, rapporto corporeo e tab Corpo: via il pulsante Bilanciamento, «Rinumera da 1» per i giorni che partono dal 6, PDF della composizione impaginato meglio, e il tipo di corpo grande nel tab Corpo
+- Telefono collegato: le ripetizioni segnate sul telefono non arrivavano al PC — il PC ora legge tutte le copie della scheda del telefono («scheda.json», «scheda (1).json»…) e le unisce
+- release.js: il messaggio finale dice che su GitHub pubblica PUBBLICA.bat (non più «niente GitHub»)
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-18)
+
+---
+
 ### 2026-11-18 — TMS v1.1.29: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.28
