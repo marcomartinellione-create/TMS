@@ -91,8 +91,8 @@ Il profilo dimostrativo **Atleta Template** (incluso nell'installer) in azione:
 
 | | |
 |---|---|
-| [![Allenamento](docs/img/allenamento.png)](docs/img/allenamento.png) ⚔ **Allenamento** — scheda settimanale, 1RM/%1RM/TL al volo | [![Progressi](docs/img/progressi.png)](docs/img/progressi.png) 📈 **Progressi** — record, segnali, TL e ACWR |
-| [![Alimentazione](docs/img/alimentazione.png)](docs/img/alimentazione.png) 🍖 **Alimentazione** — piani per fase su banca USAV, indice OMS | [![Analisi](docs/img/analisi.png)](docs/img/analisi.png) 📊 **Analisi** — dieta × allenamento nel tempo |
+| [![Pesi](docs/img/allenamento.png)](docs/img/allenamento.png) ⚔ **Pesi** — scheda del Training Set, 1RM/%1RM/TL al volo | [![Progressi](docs/img/progressi.png)](docs/img/progressi.png) 📈 **Progressi** — filtri, segnali, TL e ACWR |
+| [![Alimentazione](docs/img/alimentazione.png)](docs/img/alimentazione.png) 🍖 **Alimentazione** — piani a pasti per fase, indice OMS/FAO | [![Analisi](docs/img/analisi.png)](docs/img/analisi.png) 📊 **Analisi** — dieta × allenamento nel tempo |
 
 ## Installazione
 
