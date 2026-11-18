@@ -531,10 +531,11 @@ storico e grafici. Dal 17/11/2026 (richiesta dell'utente: «togliamo importa esp
 rientro») NON ci sono più file Scheda_….json / Rientro_….json da passare a mano: niente
 «Esporta scheda», «Importa rientro», «Carica la scheda», «Crea il file per il coach» né
 «Manda solo le pesate». Un telefono per profilo.
-TMS Scheda si installa la prima volta toccando il file APK (cartella app-android › dist del
-progetto, passato via WhatsApp, email o cavo; fuori dal Play Store va consentita
-l'installazione da quella fonte); dopo, gli aggiornamenti arrivano dalla cartella condivisa
-(vedi sotto). Solo Android.
+TMS Scheda si installa la prima volta toccando il file APK, scaricato dalle Release GitHub
+(https://github.com/marcomartinellione-create/TMS/releases, allegato TMS-Scheda-x.y.z.apk)
+oppure passato dal coach via WhatsApp, email o cavo; fuori dal Play Store va consentita
+l'installazione da quella fonte. Dopo, gli aggiornamenti li trova da solo su GitHub, anche
+senza cartella collegata (vedi sotto). Solo Android.
 
 **COLLEGAMENTO** (TMS sul PC: modulo 15c-telefono.js; telefono: blocco «SCHEDA COLLEGATA» della
 PWA + plugin TmsCartella): PC e app si parlano attraverso una CARTELLA CONDIVISA, come
@@ -546,8 +547,9 @@ questo profilo». Sul telefono una cartella tenuta uguale da un'app di sincroniz
 bidirezionale (Autosync, FolderSync…), scelta in «Collegamento e promemoria», dove si scrive il
 codice. Struttura: <profilo>/dal-pc/stato.json, scheda.json e video.json (li scrive SOLO il PC),
 <profilo>/dal-telefono/scheda.json ed eventi/*.json (li scrive SOLO il telefono; il PC toglie un
-evento DOPO averlo salvato su disco), apk/versione.json + apk/TMS-Scheda-x.y.z.apk (li mette
-«Crea APK.bat»). Tutto tranne l'APK è CIFRATO con AES-GCM, chiave PBKDF2-SHA256 (150 000 giri)
+evento DOPO averlo salvato su disco); la cartella apk/ che «Crea APK.bat» riempie ancora serve
+solo ai telefoni con TMS Scheda 1.2.5 o prima, per passare una volta alla 1.2.6 (dalla 1.2.6
+gli aggiornamenti vengono da GitHub). Tutto il resto è CIFRATO con AES-GCM, chiave PBKDF2-SHA256 (150 000 giri)
 dal codice: Google vede solo file illeggibili, e il sigillo della cifratura scopre anche i file
 arrivati a metà (si saltano e si riprovano, mai cancellati). Il PC controlla la cartella ogni 20
 secondi a TMS aperto (e 2 secondi dopo ogni modifica della scheda), il telefono ogni minuto ad app
@@ -610,9 +612,15 @@ ogni settimana va da sola nello Storico misure, vedi la voce «Pesate della bila
 'importaFotoRientro': file veri in TMS_Dati/<profilo>/foto/ + metadati in DOC.foto, tag
 fronte/lato/retro, con un id che evita i doppioni), le segna fra le «ricevute» e sul telefono
 compare «al PC».
-**AGGIORNAMENTO DELL'APK**: se in apk/versione.json c'è una versione più alta di quella
-installata, l'app la propone, copia l'APK, ne controlla l'impronta SHA-256 e lo passa
-all'installer di Android (conferma dell'utente; la prima volta «Installa app sconosciute»).
+**AGGIORNAMENTO DELL'APK** (dalla 1.2.6): l'app legge scheda/versione.json dal sito su GitHub
+Pages (https://marcomartinellione-create.github.io/TMS/scheda/versione.json: versione, file,
+sha256 e url dell'allegato della Release; lo scrive «PUBBLICA.bat») all'avvio e poi al massimo
+ogni 6 ore, anche senza cartella collegata; senza rete tace. Se la versione è più alta di
+quella installata la propone, scarica l'APK dalla Release (solo da
+github.com/marcomartinellione-create/TMS, via https), ne controlla l'impronta SHA-256 e lo
+passa all'installer di Android (conferma dell'utente; la prima volta «Installa app
+sconosciute»). Su GitHub viaggia solo l'APK: scheda, pesate e foto restano nella cartella
+condivisa.
 **PROMEMORIA** (notifiche locali, in «Collegamento e promemoria»): ogni sera all'ora scelta
 (predefinita 21:00) la pesata, il lunedì anche le foto; si programmano i 28 giorni successivi e si
 ricalcolano a ogni apertura, pesata o foto: se quel giorno la pesata (o le foto) c'è già, quello
