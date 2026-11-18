@@ -5,13 +5,13 @@ package com.trainingmonitorsystem.scheda;
    volta col selettore di Android (permesso persistente), che un'app di sincronizzazione (Autosync,
    FolderSync…) tiene uguale alla cartella «6 - TMS» di Google Drive. Il plugin legge e scrive
    solo lì dentro, per percorsi relativi («marco/dal-pc/stato.json»); i dati li cifra la pagina.
-   In più installa l'APK nuovo che «Crea APK» mette in apk/ (Android chiede sempre conferma).
+   In più scarica da GitHub e installa l'APK nuovo (dal 18/11/2026; Android chiede sempre conferma).
      scegli()                          → { uri, nome }       (annullato: {})
      leggi({uri, percorso})            → { data | null }     (null = il file non c'è)
      scrivi({uri, percorso, data})     → {}                  (crea le sottocartelle)
      elenca({uri, cartella})           → { voci:[{nome, cartella}] }
      verifica({uri})                   → { ok, nome }        (il permesso c'è ancora?)
-     installaApk({uri, percorso, sha256}) → { permesso, avviato }
+     scaricaApk({url, sha256})         → { permesso, avviato }
    Il sorgente vero sta in app-android/nativo/: scripts/patch-android.js lo copia nel progetto. */
 
 import android.app.Activity;
@@ -39,10 +39,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
 
 @CapacitorPlugin(name = "TmsCartella")
 public class TmsCartellaPlugin extends Plugin {
@@ -145,10 +145,93 @@ public class TmsCartellaPlugin extends Plugin {
         }
     }
 
-    /* ── ⬆ APK nuovo dalla cartella: copia nella cache, controllo dell'impronta, installer di Android ── */
+    /* ── ⬆ APK nuovo da GitHub (dal 18/11/2026; prima stava nella cartella condivisa) ──────────────────
+       scaricaApk({url, sha256}): scarica l'APK allegato alla release del TMS, ne controlla l'impronta
+       SHA-256 e lo passa all'installer di Android (che chiede sempre conferma). Protezioni:
+         · solo da https://github.com/marcomartinellione-create/TMS/… ; i redirect (GitHub manda i file
+           su objects.githubusercontent.com) si seguono a mano, al massimo 5 e solo verso https;
+         · tempi massimi di collegamento e lettura, dimensione massima 100 MB;
+         · l'impronta deve essere quella di versione.json e il file deve essere un pacchetto (zip «PK»):
+           un file a metà o diverso si butta e non si installa;
+         · Android installa sopra solo un APK firmato con la stessa chiave dell'app. */
+    private static final String APK_ORIGINE = "https://github.com/marcomartinellione-create/TMS/";
+    private static final long APK_MAX = 100L * 1024 * 1024;
+
     @PluginMethod
-    public void installaApk(PluginCall call) {
-        final String atteso = call.getString("sha256", "");
+    public void scaricaApk(PluginCall call) {
+        final String url = call.getString("url", "");
+        final String atteso = call.getString("sha256", "").trim().toLowerCase(java.util.Locale.ROOT);
+        if (url == null || !url.startsWith(APK_ORIGINE)) { call.reject("indirizzo dell'aggiornamento non valido"); return; }
+        if (!atteso.matches("[0-9a-f]{64}")) { call.reject("manca l'impronta dell'aggiornamento"); return; }
+        if (!permessoInstallazione(call)) return;
+        new Thread(() -> {
+            HttpURLConnection c = null;
+            try {
+                File apk = fileAggiornamento();
+                URL u = new URL(url);
+                int salti = 0;
+                while (true) {
+                    c = (HttpURLConnection) u.openConnection();
+                    c.setInstanceFollowRedirects(false);
+                    c.setConnectTimeout(15000);
+                    c.setReadTimeout(30000);
+                    c.setRequestProperty("User-Agent", "TMS-Scheda");
+                    int codice = c.getResponseCode();
+                    if (codice >= 300 && codice < 400) {
+                        String dove = c.getHeaderField("Location");
+                        c.disconnect(); c = null;
+                        if (dove == null || ++salti > 5) throw new IOException("GitHub non dice dove sta il file");
+                        u = new URL(u, dove);
+                        if (!"https".equalsIgnoreCase(u.getProtocol())) throw new IOException("indirizzo non sicuro");
+                        continue;
+                    }
+                    if (codice != 200) throw new IOException("GitHub ha risposto " + codice + ": il file della versione nuova non c'è ancora, riprova più tardi");
+                    break;
+                }
+                if (c.getContentLengthLong() > APK_MAX) throw new IOException("file troppo grande");
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                byte[] testa = new byte[4];
+                long letti = 0;
+                try (InputStream in = c.getInputStream(); OutputStream out = new FileOutputStream(apk)) {
+                    byte[] buf = new byte[65536];
+                    int n;
+                    while ((n = in.read(buf)) > 0) {
+                        if (letti < 4) System.arraycopy(buf, 0, testa, (int) letti, (int) Math.min(n, 4 - letti));
+                        letti += n;
+                        if (letti > APK_MAX) throw new IOException("file troppo grande");
+                        out.write(buf, 0, n);
+                        md.update(buf, 0, n);
+                    }
+                }
+                StringBuilder hex = new StringBuilder();
+                for (byte b : md.digest()) hex.append(String.format("%02x", b));
+                if (!hex.toString().equals(atteso)) {
+                    //noinspection ResultOfMethodCallIgnored
+                    apk.delete();
+                    throw new IOException("il file scaricato non è quello giusto (impronta diversa): riprova più tardi");
+                }
+                if (testa[0] != 'P' || testa[1] != 'K') {
+                    //noinspection ResultOfMethodCallIgnored
+                    apk.delete();
+                    throw new IOException("il file scaricato non è un APK");
+                }
+                avviaInstaller(apk);
+                JSObject r = new JSObject();
+                r.put("permesso", true);
+                r.put("avviato", true);
+                call.resolve(r);
+            } catch (java.net.UnknownHostException | java.net.SocketTimeoutException | java.net.ConnectException e) {
+                call.reject("niente rete o GitHub non risponde: riprova quando sei connesso");
+            } catch (Exception e) {
+                call.reject(String.valueOf(e.getMessage()));
+            } finally {
+                if (c != null) c.disconnect();
+            }
+        }).start();
+    }
+
+    /* Android 8+: serve il permesso «installa app sconosciute»; se manca si apre la sua schermata */
+    private boolean permessoInstallazione(PluginCall call) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !getContext().getPackageManager().canRequestPackageInstalls()) {
             Intent perm = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getContext().getPackageName()));
             perm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -156,83 +239,26 @@ public class TmsCartellaPlugin extends Plugin {
             JSObject r = new JSObject();
             r.put("permesso", false);
             call.resolve(r);
-            return;
+            return false;
         }
-        /* l'APK si cerca nella sua cartella (di solito apk/): prima quello col nome giusto, poi lo stesso
-           nome con maiuscole diverse, poi QUALUNQUE altro .apk (dal più recente). Vale il primo che ha
-           l'impronta attesa: un'app di sincronizzazione può rinominarlo («… (1).apk») o lasciarne una
-           copia a metà. Se nessuno va bene, il messaggio dice cosa c'è davvero nella cartella. */
-        final List<DocumentFile> candidati = new ArrayList<>();
-        final String nomeAtteso;
-        final StringBuilder visti = new StringBuilder();
-        try {
-            String percorso = call.getString("percorso", "");
-            if (!percorso.toLowerCase().endsWith(".apk")) throw new IOException("non è un APK");
-            int barra = percorso.lastIndexOf('/');
-            nomeAtteso = barra >= 0 ? percorso.substring(barra + 1) : percorso;
-            DocumentFile root = radice(call);
-            DocumentFile dir = barra > 0 ? cammina(root, percorso.substring(0, barra)) : root;
-            if (dir == null || !dir.isDirectory()) throw new IOException("sul telefono, nella cartella condivisa, non c'è la cartella «" + (barra > 0 ? percorso.substring(0, barra) : "") + "»: la sincronizzazione non l'ha ancora portata");
-            List<DocumentFile> altri = new ArrayList<>();
-            for (DocumentFile x : dir.listFiles()) {
-                String n = x.getName();
-                if (n == null) continue;
-                if (visti.length() > 0) visti.append(", ");
-                visti.append(n).append(x.isFile() ? " (" + String.format(java.util.Locale.ITALY, "%.1f", x.length() / 1048576.0) + " MB)" : " (cartella)");
-                if (!x.isFile() || !n.toLowerCase().endsWith(".apk")) continue;
-                if (n.equals(nomeAtteso)) candidati.add(0, x);
-                else if (n.equalsIgnoreCase(nomeAtteso)) candidati.add(candidati.isEmpty() ? 0 : 1, x);
-                else altri.add(x);
-            }
-            altri.sort((a, b) -> Long.compare(b.lastModified(), a.lastModified()));
-            if (atteso != null && !atteso.isEmpty()) candidati.addAll(altri);
-            if (candidati.isEmpty()) throw new IOException("sul telefono non trovo " + nomeAtteso + ". Nella cartella del telefono ci sono: " + (visti.length() > 0 ? visti : "nessun file") + ". Aspetta che la sincronizzazione finisca e riprova.");
-        } catch (Exception e) {
-            call.reject(String.valueOf(e.getMessage()));
-            return;
-        }
-        new Thread(() -> {
-            try {
-                File dir = new File(getContext().getCacheDir(), "aggiornamenti");
-                if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("cache non scrivibile");
-                File[] vecchi = dir.listFiles();
-                if (vecchi != null) for (File v : vecchi) //noinspection ResultOfMethodCallIgnored
-                    v.delete();
-                File apk = new File(dir, "tms-scheda-aggiornamento.apk");
-                boolean trovato = false;
-                for (DocumentFile f : candidati) {
-                    MessageDigest md = MessageDigest.getInstance("SHA-256");
-                    try (InputStream in = getContext().getContentResolver().openInputStream(f.getUri());
-                         OutputStream out = new FileOutputStream(apk)) {
-                        if (in == null) continue;
-                        byte[] buf = new byte[65536];
-                        int n;
-                        while ((n = in.read(buf)) > 0) { out.write(buf, 0, n); md.update(buf, 0, n); }
-                    } catch (Exception lettura) { continue; }
-                    /* un file a metà (la sincronizzazione non ha finito) non si installa */
-                    if (atteso == null || atteso.isEmpty()) { trovato = true; break; }
-                    StringBuilder hex = new StringBuilder();
-                    for (byte b : md.digest()) hex.append(String.format("%02x", b));
-                    if (hex.toString().equalsIgnoreCase(atteso.trim())) { trovato = true; break; }
-                }
-                if (!trovato) {
-                    //noinspection ResultOfMethodCallIgnored
-                    apk.delete();
-                    throw new IOException("sul telefono c'è un APK ma non è ancora completo (" + visti + "): aspetta che la sincronizzazione finisca e riprova");
-                }
-                Uri content = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", apk);
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setDataAndType(content, "application/vnd.android.package-archive");
-                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-                getContext().startActivity(i);
-                JSObject r = new JSObject();
-                r.put("permesso", true);
-                r.put("avviato", true);
-                call.resolve(r);
-            } catch (Exception e) {
-                call.reject(String.valueOf(e.getMessage()));
-            }
-        }).start();
+        return true;
+    }
+
+    private File fileAggiornamento() throws IOException {
+        File dir = new File(getContext().getCacheDir(), "aggiornamenti");
+        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("cache non scrivibile");
+        File[] vecchi = dir.listFiles();
+        if (vecchi != null) for (File v : vecchi) //noinspection ResultOfMethodCallIgnored
+            v.delete();
+        return new File(dir, "tms-scheda-aggiornamento.apk");
+    }
+
+    private void avviaInstaller(File apk) {
+        Uri content = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", apk);
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setDataAndType(content, "application/vnd.android.package-archive");
+        i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(i);
     }
 
     /* ── utilità ── */

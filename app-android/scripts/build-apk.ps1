@@ -1,8 +1,11 @@
 ﻿# build-apk.ps1 — costruisce l'APK di TMS Scheda (debug, firmato con la chiave del progetto).
 # Lo lancia «Crea APK.bat» (doppio clic). Tutto ciò che serve è già sul PC: Node, Java 17,
-# Android SDK. Il risultato va in app-android\dist\TMS-Scheda-<versione>.apk e poi (2026-11-17)
-# nella cartella condivisa col telefono, in «6 - TMS\apk\» con il suo versione.json: l'app la vede
-# da sola e propone l'aggiornamento (come Movienaitor). Con -SoloCrea si ferma a dist\.
+# Android SDK. Il risultato va in app-android\dist\TMS-Scheda-<versione>.apk.
+# Dal 18/11/2026 (APK 1.2.6) l'app prende gli aggiornamenti da GitHub: li pubblica PUBBLICA.bat
+# (l'APK allegato alla release del TMS + scheda/versione.json sul sito). Per la TRANSIZIONE questo
+# script continua a copiare APK e versione.json anche nella cartella condivisa «6 - TMS\apk\»:
+# i telefoni con la 1.2.5 o prima guardano ancora lì, e da lì devono ricevere la 1.2.6 una volta.
+# Quando tutti i telefoni hanno la 1.2.6 il passo si può togliere. Con -SoloCrea si ferma a dist\.
 param([switch]$SoloCrea)
 $ErrorActionPreference = 'Stop'
 $QUI = Split-Path -Parent $PSScriptRoot          # cartella app-android
@@ -95,7 +98,9 @@ New-Item -ItemType Directory -Force -Path $dest | Out-Null
 $finale = Join-Path $dest "TMS-Scheda-$versione.apk"
 Copy-Item $apk $finale -Force
 
-Passo "Pubblicazione nella cartella condivisa col telefono"
+Passo "Transizione: copia nella cartella condivisa per i telefoni con la 1.2.5 o prima"
+# i telefoni con la 1.2.6 o dopo cercano gli aggiornamenti su GitHub (PUBBLICA.bat) e questa copia
+# non la guardano più; quelli più vecchi la trovano qui e passano alla 1.2.6 una volta sola.
 # la cartella: quella scritta in app-android\cartella-condivisa.txt, se c'è; sennò «My Drive\6 - TMS»
 $condivisa = $null
 $fileC = Join-Path $QUI 'cartella-condivisa.txt'
@@ -131,7 +136,8 @@ elseif (-not (Test-Path (Split-Path $condivisa -Parent))) {
 Write-Host "`nFATTO." -ForegroundColor Green
 Write-Host "APK pronto: $finale" -ForegroundColor Green
 if ($pubblicato) {
-  Write-Host "Il telefono collegato alla cartella condivisa lo propone da solo all'apertura dell'app (dopo la sincronizzazione)."
+  Write-Host "Copiato anche nella cartella condivisa: i telefoni con la 1.2.5 o prima lo trovano lì (dopo la sincronizzazione)."
+  Write-Host "Ai telefoni con la 1.2.6 o dopo arriva da GitHub, quando pubblichi con PUBBLICA.bat."
 } else {
   Write-Host "Mandalo al telefono (WhatsApp, email, cavo) e aprilo: Android chiede di consentire l'installazione."
 }

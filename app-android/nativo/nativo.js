@@ -7,7 +7,8 @@
    · foto progressi: si sceglie se scattarla (fotocamera dell'app con la sagoma) o prenderla dalla galleria;
    · tasto indietro del telefono (window.tmsIndietro, chiamata dal plugin);
    · bilancia Bluetooth: window.tmsBLE, il trasporto della pagina «⚖ Bilancia» della PWA;
-   · cartella condivisa col TMS sul PC e aggiornamento dell'APK: window.tmsCartella (plugin TmsCartella);
+   · cartella condivisa col TMS sul PC: window.tmsCartella; aggiornamento dell'APK da GitHub:
+     window.tmsAggiorna (tutti e due dal plugin TmsCartella);
    · promemoria della sera: window.tmsAvvisi (plugin LocalNotifications);
    · niente invito a installare (è già un'app) e link del sito nel browser.
    I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app). Dal 17/11/2026 la
@@ -173,8 +174,13 @@ if(CART){
     dimentica(){ try{ localStorage.removeItem(K); }catch(e){} },
     async leggi(percorso){ const r=await CART.leggi({uri:uri(), percorso:percorso}); return (r&&typeof r.data==='string')? r.data : null; },
     async scrivi(percorso, testo){ await CART.scrivi({uri:uri(), percorso:percorso, data:String(testo)}); },
-    async elenca(cartella){ const r=await CART.elenca({uri:uri(), cartella:cartella||''}); return (r&&Array.isArray(r.voci))? r.voci : []; },
-    installaApk(percorso, sha256){ return CART.installaApk({uri:uri(), percorso:percorso, sha256:sha256||''}); }
+    async elenca(cartella){ const r=await CART.elenca({uri:uri(), cartella:cartella||''}); return (r&&Array.isArray(r.voci))? r.voci : []; }
+  };
+  /* ── ⬆ AGGIORNAMENTO dell'app (dal 18/11/2026 da GitHub, non più dalla cartella): il plugin scarica l'APK
+        dall'indirizzo della release (solo github.com/marcomartinellione-create/TMS, redirect compresi),
+        controlla l'impronta SHA-256 e lo passa all'installer di Android. Non serve la cartella. ── */
+  window.tmsAggiorna={
+    scarica(url, sha256){ return CART.scaricaApk({url:String(url||''), sha256:String(sha256||'')}); }
   };
   try{ colRender(); }catch(e){}
 }

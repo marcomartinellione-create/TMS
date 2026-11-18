@@ -75,10 +75,10 @@ async function apri(opz = {}) {
         /* cartella condivisa finta (plugin TmsCartella): registra e risponde */
         ...(opz.cartella ? { TmsCartella: {
           scegli: async () => { reg.cart.push(['scegli']); return { uri: 'content://tree/6-TMS', nome: '6 - TMS' }; },
-          leggi: async o => { reg.cart.push(['leggi', o]); return o.percorso === 'apk/versione.json' ? {} : (o.percorso === 'c/x.json' ? { data: 'TESTO' } : {}); },
+          leggi: async o => { reg.cart.push(['leggi', o]); return o.percorso === 'c/x.json' ? { data: 'TESTO' } : {}; },
           scrivi: async o => { reg.cart.push(['scrivi', o]); },
           elenca: async o => { reg.cart.push(['elenca', o]); return { voci: [{ nome: 'prova', cartella: true }] }; },
-          installaApk: async o => { reg.cart.push(['installaApk', o]); return { permesso: true, avviato: true }; }
+          scaricaApk: async o => { reg.cart.push(['scaricaApk', o]); return { permesso: true, avviato: true }; }
         } } : {}),
         /* promemoria finti (plugin LocalNotifications) */
         ...(opz.notifiche ? { LocalNotifications: {
@@ -311,9 +311,24 @@ async function apri(opz = {}) {
     const sc = reg.cart.find(x => x[0] === 'scrivi');
     ok(sc && sc[1].uri === 'content://tree/6-TMS' && sc[1].percorso === 'prova/dal-telefono/bozza.json' && sc[1].data === 'X', 'cartella: scrittura col percorso relativo alla cartella scelta');
     ok(JSON.stringify(await w.tmsCartella.elenca('')) === JSON.stringify([{ nome: 'prova', cartella: true }]), 'cartella: elenco di file e sottocartelle');
-    await w.tmsCartella.installaApk('apk/TMS-Scheda-9.9.9.apk', 'ab12');
-    const ia = reg.cart.find(x => x[0] === 'installaApk');
-    ok(ia && ia[1].percorso === 'apk/TMS-Scheda-9.9.9.apk' && ia[1].sha256 === 'ab12' && ia[1].uri === 'content://tree/6-TMS', 'aggiornamento: l’APK si passa al plugin con l’impronta da controllare');
+    ok(typeof w.tmsCartella.installaApk === 'undefined' && typeof w.tmsAggiorna === 'object', 'aggiornamento: non passa più dalla cartella condivisa (c’è tmsAggiorna)');
+    /* versione.json su GitHub (fetch finto): più nuova → domanda in stile app → sì → il plugin scarica url + impronta */
+    const VJ = { versione: '9.9.9', file: 'TMS-Scheda-9.9.9.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v9.9.9/TMS-Scheda-9.9.9.apk', pubblicata: '2026-11-18' };
+    const chiesti = []; w.fetch = async (u) => { chiesti.push(String(u)); return { ok: true, json: async () => VJ }; };
+    w.eval('colApk(true)'); await attendi(60);
+    ok(chiesti.length === 1 && chiesti[0].indexOf('https://marcomartinellione-create.github.io/TMS/scheda/versione.json') === 0 && /9\.9\.9/.test(a.testoDlg()),
+       'aggiornamento: legge versione.json da GitHub e chiede se installare la 9.9.9');
+    a.bottoniDlg().find(b => /OK/.test(b.textContent)).click(); await attendi(60);
+    const sa = reg.cart.find(x => x[0] === 'scaricaApk');
+    ok(sa && sa[1].url === VJ.url && sa[1].sha256 === VJ.sha256, 'aggiornamento: al sì il plugin scarica l’APK dalla release, con l’impronta da controllare');
+    w.eval('colApk()'); await attendi(30);
+    ok(chiesti.length === 1, 'aggiornamento: non ricontrolla a ogni giro (al massimo ogni 6 ore)');
+    w.fetch = async () => { throw new Error('offline'); };
+    w.eval('COL.apk=null; COL.chiestoApk=""; colApk(true)'); await attendi(30);
+    ok(!a.dlg() && w.eval('COL.apk') === null, 'aggiornamento: senza rete, silenzio');
+    w.fetch = async () => ({ ok: true, json: async () => Object.assign({}, VJ, { url: 'https://altro.example/TMS-Scheda-9.9.9.apk' }) });
+    w.eval('colApk(true)'); await attendi(30);
+    ok(!a.dlg() && w.eval('COL.apk') === null, 'aggiornamento: un indirizzo che non è la release del TMS si ignora');
     ok(w.TMS_APK_VERSIONE === VERSIONE, 'aggiornamento: la pagina sa quale versione dell’APK è installata (' + VERSIONE + ')');
     a.dom.window.close(); }
   /* ── promemoria (plugin LocalNotifications) ── */

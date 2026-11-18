@@ -111,7 +111,8 @@ function makeCartella(){
     scrivi: async (rel, t) => { files.set(norm(rel), String(t)); }, togli: async rel => { files.delete(norm(rel)); } };
   C.tel = { pronta: () => true, nome: () => '6 - TMS', scegli: async () => ({ nome: '6 - TMS' }), dimentica(){},
     leggi: async p => files.has(norm(p)) ? files.get(norm(p)) : null, scrivi: async (p, t) => { files.set(norm(p), String(t)); },
-    elenca: async c => figli(c), installaApk: async (p, sha) => { C.installati.push([p, sha]); return { permesso: true, avviato: true }; } };
+    elenca: async c => figli(c) };
+  C.agg = { scarica: async (url, sha) => { C.installati.push([url, sha]); return { permesso: true, avviato: true }; } };
   return C;
 }
 function load(opts){
@@ -3223,7 +3224,8 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
   const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
     beforeParse(win){ conCrypto(win); win.localStorage.setItem('tms-scheda-lang', 'it'); win.scrollTo = () => {}; win.confirm = () => true; win.alert = () => {};
       win.localStorage.setItem('tms-col', J({ codice: CODICE, slug: 'prova', nome: 'Cliente Prova' }));
-      win.TMS_APK_VERSIONE = '1.2.0'; win.tmsCartella = C.tel; } });
+      win.TMS_APK_VERSIONE = '1.2.0'; win.tmsCartella = C.tel; win.tmsAggiorna = C.agg;
+      win.fetch = async u => { C.chiesti = (C.chiesti || 0) + 1; if (!C.versioneApk) throw new Error('offline'); return { ok: true, json: async () => C.versioneApk }; }; } });
   const sw = sub.window, sd = sw.document;
   const giroTel = () => sw.eval('(async function(){ clearTimeout(COL.modT); while(COL.inCorso) await new Promise(function(r){ setTimeout(r,20); }); await colGiro(); })()');
   const scrivi = (id, v) => { const el = sd.getElementById(id); el.value = v; el.dispatchEvent(new sw.Event('input', { bubbles: true })); };
@@ -3321,12 +3323,13 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
     ok(new Date(l[0].at).getDate() === 18, 'promemoria: passata l\'ora, si parte da domani'); }
   sw.eval('avvSalvaConf({on:false, ora:"21:00"})');
   ok(sw.eval('avvLista(new Date()).length') === 0, 'promemoria: spenti, nessuno');
-  /* APK nuovo nella cartella */
-  C.files.set('apk/versione.json', J({ versione: '1.3.0', file: 'TMS-Scheda-1.3.0.apk', sha256: 'abc123' }));
-  await sw.eval('colApk()');
-  ok(C.installati.length === 1 && C.installati[0][0] === 'apk/TMS-Scheda-1.3.0.apk' && C.installati[0][1] === 'abc123', 'APK nuovo nella cartella condivisa: lo propone e lo installa (con l\'impronta da controllare)');
-  C.files.set('apk/versione.json', J({ versione: '1.2.0', file: 'TMS-Scheda-1.2.0.apk', sha256: 'x' }));
-  await sw.eval('colApk()');
+  /* APK nuovo su GitHub (versione.json del sito; la cartella non c'entra più) */
+  C.files.set('apk/versione.json', J({ versione: '9.0.0', file: 'TMS-Scheda-9.0.0.apk', sha256: 'x' }));   /* quello vecchio nella cartella si ignora */
+  C.versioneApk = { versione: '1.3.0', file: 'TMS-Scheda-1.3.0.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v1.1.29/TMS-Scheda-1.3.0.apk', pubblicata: '2026-11-18' };
+  await sw.eval('colApk(true)');
+  ok(C.installati.length === 1 && C.installati[0][0] === C.versioneApk.url && C.installati[0][1] === C.versioneApk.sha256, 'APK nuovo su GitHub: lo propone e lo scarica dalla release (con l\'impronta da controllare)');
+  C.versioneApk = { versione: '1.2.0', file: 'TMS-Scheda-1.2.0.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v1.1.28/TMS-Scheda-1.2.0.apk' };
+  await sw.eval('colApk(true)');
   ok(C.installati.length === 1 && sw.eval('COL.apk') === null, 'APK della stessa versione: niente da proporre');
   /* chiusura pulita: niente giri del telefono a finestra chiusa */
   sw.eval('clearInterval(COL.timer); clearTimeout(COL.prestoT); clearTimeout(COL.modT); clearTimeout(COL.avvisoT); clearTimeout(_avvT);');

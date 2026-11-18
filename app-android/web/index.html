@@ -456,7 +456,7 @@
     <div class="fine" id="ben-solo-apk" data-i18n>Il collegamento c’è nell’app Android «TMS Scheda».</div>
   </div>
   <div id="col-avvisi-ben"></div>
-  <div class="privacy"><svg class="ic"><use href="#i-lucchetto"/></svg><span data-i18n-html>L’app non parla con nessun server: scheda, allenamenti, pesate e foto passano solo dalla tua cartella condivisa, <b>cifrati</b> col tuo codice. Funziona anche offline.</span></div>
+  <div class="privacy"><svg class="ic"><use href="#i-lucchetto"/></svg><span data-i18n-html>Scheda, allenamenti, pesate e foto non passano da nessun server: solo dalla tua cartella condivisa, <b>cifrati</b> col tuo codice. L’app chiede a GitHub soltanto se c’è una versione nuova. Funziona anche offline.</span></div>
   <div class="install" id="install-hint" hidden></div>
 </div>
 
@@ -598,8 +598,8 @@
    niente più file Scheda_….json / Rientro_….json da passare a mano.
    v2.0 — la giornata è una SEDUTA in fasi: 🔥 riscaldamento (sola lettura) · 🏋 esercizi ·
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
-   fallback localStorage; i campi in localStorage. Nessun server: si passa solo dalla cartella. */
-const CVER='3.3';
+   fallback localStorage; i campi in localStorage. Nessun server per i dati: si passa solo dalla cartella (a GitHub si chiede solo se c'è un APK nuovo). */
+const CVER='3.4';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -650,7 +650,7 @@ const TT={en:{
   'salvato':'saved',
   'Ho ricaricato quello che avevi scritto.':'I reloaded what you had written.',
   '<b>Installa l’app sul telefono</b> per averla sempre a portata di mano: ':'<b>Install the app on your phone</b> to always have it at hand: ',
-  'Installa':'Install',
+  'Installa':'Install', 'Scarico…':'Downloading…',
   '<b>Aggiungi l’app alla schermata Home</b>: tocca <b>Condividi</b> (il quadrato con la freccia) e poi <b>«Aggiungi alla schermata Home»</b>. Da lì funziona anche offline.':'<b>Add the app to the Home screen</b>: tap <b>Share</b> (the square with an arrow) then <b>«Add to Home Screen»</b>. From there it works offline too.',
   '<b>Aggiungi l’app alla schermata Home</b>: menu del browser (⋮) → <b>«Installa app»</b> o <b>«Aggiungi a schermata Home»</b>. Da lì funziona anche offline.':'<b>Add the app to the Home screen</b>: browser menu (⋮) → <b>«Install app»</b> or <b>«Add to Home Screen»</b>. From there it works offline too.',
   /* v1.5 — aggiungere/eliminare/modificare esercizi + test massimale (1RM) + timer di recupero */
@@ -766,7 +766,7 @@ const TT={en:{
   "Le foto vengono rimpicciolite prima di partire.":"Photos are shrunk before they leave.",
   "Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> e arrivano qui da sole; in palestra annoti quello che fai, e torna al PC da solo.":"This app is the <b>digital notebook</b> of the <b>Training Monitor System</b>: program and diet <b>are created in the TMS on the PC</b> and arrive here by themselves; at the gym you log what you do, and it goes back to the PC by itself.",
   "Per cominciare <b>collega l’app al TMS</b>: serve la cartella <b>«6 - TMS»</b> di Google Drive tenuta uguale sul telefono da un’app di sincronizzazione (Autosync, FolderSync…) e il <b>codice</b> che il PC mostra in ⚙ Impostazioni › Telefono collegato.":"To start, <b>link the app to the TMS</b>: you need the Google Drive <b>«6 - TMS»</b> folder kept identical on the phone by a sync app (Autosync, FolderSync…) and the <b>code</b> the PC shows in ⚙ Settings › Linked phone.",
-  "L’app non parla con nessun server: scheda, allenamenti, pesate e foto passano solo dalla tua cartella condivisa, <b>cifrati</b> col tuo codice. Funziona anche offline.":"The app talks to no server: program, workouts, weigh-ins and photos only pass through your shared folder, <b>encrypted</b> with your code. Works offline too.",
+  "Scheda, allenamenti, pesate e foto non passano da nessun server: solo dalla tua cartella condivisa, <b>cifrati</b> col tuo codice. L’app chiede a GitHub soltanto se c’è una versione nuova. Funziona anche offline.":"Program, workouts, weigh-ins and photos go through no server: only your shared folder, <b>encrypted</b> with your code. The app only asks GitHub whether there is a new version. It works offline too.",
   "Scatta o scegli una foto per ogni vista: arrivano da sole sul PC, nel <b>tuo storico foto</b> (tab Corpo).":"Take or choose a photo for each view: they reach the PC by themselves, in <b>your photo history</b> (Body tab).",
   "Le pesate restano su <b>questo telefono</b> e arrivano da sole sul PC: nel TMS la media di ogni settimana va da sola nello Storico misure.":"Weigh-ins stay on <b>this phone</b> and reach the PC by themselves: in the TMS each week's average goes by itself into the measurement History.",
   "al PC":"on PC",
@@ -1836,7 +1836,6 @@ async function colGiro(){
   if(COL.inCorso || !colCartellaOk()) return;
   COL.inCorso=true;
   try{
-    await colApk();
     if(!colAttivo()) return;
     const T=colT(), testo=await T.leggi(colDir()+'dal-pc/stato.json');
     if(testo==null){ COL.stato='attesa'; return; }
@@ -1851,9 +1850,11 @@ async function colGiro(){
 }
 function colPresto(){ if(!colCartellaOk()) return; clearTimeout(COL.prestoT); COL.prestoT=setTimeout(()=>{ colGiro(); }, 600); }
 function colAvvia(){
+  /* aggiornamenti dell'app da GitHub: non servono la cartella né il collegamento col PC */
+  if(window.tmsAggiorna){ colApk(); clearInterval(COL.apkTimer); COL.apkTimer=setInterval(()=>{ if(!document.hidden) colApk(); }, APK_RIPROVA); }
   if(!colT()) return;
   clearInterval(COL.timer); COL.timer=setInterval(()=>{ if(!document.hidden) colGiro(); }, COL_OGNI);
-  document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ colPresto(); avvPianifica(); } });
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ colPresto(); avvPianifica(); colApk(); } });
   colPresto();
 }
 
@@ -2042,24 +2043,48 @@ function colSegnoPesata(p){
   return '';
 }
 
-/* ── ⬆ APK nuovo nella cartella condivisa (lo mette «Crea APK» sul PC) ── */
+/* ── ⬆ APK nuovo: dal 18/11/2026 su GitHub, non più nella cartella condivisa. «PUBBLICA» sul PC mette
+      l'APK fra gli allegati della release del TMS e scrive scheda/versione.json sul sito (GitHub Pages):
+      {versione, file, sha256, url, pubblicata}. L'app lo legge all'avvio e poi al massimo ogni 6 ore
+      (APK_OGNI); senza rete tace e riprova dopo mezz'ora. Al sì scarica il plugin nativo (tmsAggiorna,
+      in nativo.js): solo da https://github.com/marcomartinellione-create/TMS/…, con l'impronta SHA-256
+      controllata prima di passarlo all'installer di Android, che chiede comunque conferma. Su GitHub
+      viaggia SOLO l'APK: scheda, pesate e foto restano nella cartella condivisa. ── */
+const APK_FONTE='https://marcomartinellione-create.github.io/TMS/scheda/versione.json';
+const APK_URL_OK='https://github.com/marcomartinellione-create/TMS/';
+const APK_OGNI=6*3600*1000, APK_RIPROVA=30*60*1000;
 function colVer(v){ return String(v||'').split('.').map(x=>parseInt(x,10)||0); }
 function colVerMaggiore(a,b){ const x=colVer(a), y=colVer(b); for(let i=0;i<3;i++){ if((x[i]||0)!==(y[i]||0)) return (x[i]||0)>(y[i]||0); } return false; }
-async function colApk(){
-  const T=colT(); if(!T || typeof T.installaApk!=='function') return;
-  let v=null; try{ const testo=await T.leggi('apk/versione.json'); if(testo) v=JSON.parse(testo); }catch(e){ v=null; }
+function apkValido(v){ return !!(v && /^\d+\.\d+\.\d+$/.test(String(v.versione||'')) && /^[\w.-]+\.apk$/.test(String(v.file||''))
+  && /^[0-9a-f]{64}$/i.test(String(v.sha256||'')) && String(v.url||'').indexOf(APK_URL_OK)===0); }
+async function colApk(forza){
+  const A=window.tmsAggiorna; if(!A || typeof fetch!=='function') return;
+  const ora=Date.now();
+  if(COL.apkInCorso || (!forza && COL.apkControllo && ora-COL.apkControllo<APK_OGNI)) return;
+  COL.apkInCorso=true;
+  let v=null;
+  try{
+    const ctrl=(typeof AbortController==='function')? new AbortController() : null, to=setTimeout(()=>{ if(ctrl) ctrl.abort(); }, 12000);
+    const fonte=String(window.TMS_APK_FONTE||APK_FONTE);
+    const r=await fetch(fonte+(fonte.indexOf('?')<0 && /^https:/.test(fonte)?'?t='+Math.floor(ora/600000):''), {cache:'no-store', signal:ctrl?ctrl.signal:undefined});
+    clearTimeout(to);
+    if(r && r.ok){ v=await r.json(); COL.apkControllo=ora; }   /* senza rete: niente, si riprova al prossimo giro */
+  }catch(e){ v=null; }
+  finally{ COL.apkInCorso=false; }
   const att=String(window.TMS_APK_VERSIONE||'');
-  if(!v || !/^\d+\.\d+\.\d+$/.test(String(v.versione||'')) || !/^[\w.-]+\.apk$/.test(String(v.file||'')) || !att || !colVerMaggiore(v.versione, att)){ COL.apk=null; return; }
+  if(!apkValido(v) || !att || !colVerMaggiore(v.versione, att)){ if(v) COL.apk=null; colRender(); return; }
   COL.apk=v; colRender();
   if(COL.chiestoApk===v.versione) return;
   COL.chiestoApk=v.versione;
   if(confirm(tt('C\'è TMS Scheda')+' '+v.versione+' '+tt('(adesso hai la')+' '+att+').\n'+tt('La installo? Android ti chiede di confermare; scheda, bozza e pesate restano.'))) await colInstallaApk();
 }
 async function colInstallaApk(){
-  const v=COL.apk; if(!v) return;
-  try{ const r=await colT().installaApk('apk/'+v.file, String(v.sha256||''));
+  const v=COL.apk; if(!v || COL.apkScarico || !window.tmsAggiorna) return;
+  COL.apkScarico=true; colRender();
+  try{ const r=await window.tmsAggiorna.scarica(String(v.url), String(v.sha256));
     if(r && r.permesso===false) alert(tt('Android chiede il permesso: consenti a TMS Scheda di «installare app sconosciute», poi torna qui e tocca di nuovo «Installa».')); }
   catch(e){ alert(tt('Aggiornamento non riuscito:')+' '+((e&&e.message)||e)); }
+  finally{ COL.apkScarico=false; colRender(); }
 }
 
 /* ── schermata «⚙ Collegamento e promemoria» ── */
@@ -2109,7 +2134,7 @@ function colRender(){
   if(meta) meta.textContent=att? (tt('collegato al PC')+(COL.ultimo?' · '+tt('controllato alle')+' '+colOraBreve(COL.ultimo):'')) : tt('scheda dal PC, pesate e foto al PC, promemoria');
   /* avvisi in cima al menu (e al benvenuto) */
   const pz=[];
-  if(COL.apk) pz.push('<div class="avviso col-avviso">'+ico('freccia-su')+'<span>'+esc(tt('C\'è TMS Scheda'))+' <b>'+esc(COL.apk.versione)+'</b></span><button type="button" data-col-az="apk">'+esc(tt('Installa'))+'</button></div>');
+  if(COL.apk) pz.push('<div class="avviso col-avviso">'+ico('freccia-su')+'<span>'+esc(tt('C\'è TMS Scheda'))+' <b>'+esc(COL.apk.versione)+'</b></span><button type="button" data-col-az="apk"'+(COL.apkScarico?' disabled':'')+'>'+esc(COL.apkScarico? tt('Scarico…') : tt('Installa'))+'</button></div>');
   if(att && COL.rifiutata && !colCollegata()) pz.push('<div class="avviso col-avviso">'+ico('link')+'<span>'+esc(tt('Il TMS sul PC ha collegato la sua scheda: la usi al posto di questa?'))+'</span><button type="button" data-col-az="collega">'+esc(tt('Usala'))+'</button></div>');
   if(COL.avviso) pz.push('<div class="avviso ok riga-ic">'+ico('check')+'<span>'+esc(COL.avviso)+'</span></div>');
   ['col-avvisi','col-avvisi-ben'].forEach(id=>{ const box=$(id); if(!box) return; box.innerHTML=pz.join('');
