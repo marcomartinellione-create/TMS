@@ -175,14 +175,34 @@ async function telScriviStato(slug, p){
   await window.tmsScambio.scrivi(telBase(slug)+'dal-pc/stato.json', await telCifra(s));
   p.firmaStato=telHash(JSON.stringify([s.settimana, s.ricevute, s.profilo.nome]));
 }
+/* tutte le copie di un file scritto dall'altra parte: «scheda.json», «scheda (1).json», «scheda (2).json»…
+   (le crea la sincronizzazione quando su Google Drive finiscono due file con lo stesso nome). Torna i
+   contenuti decifrati e validi; le copie a metà o illeggibili si saltano e si riprovano al giro dopo. */
+function telNomeCopia(nome, base){ return new RegExp('^'+base+'(?: \\(\\d+\\))?\\.json$', 'i').test(String(nome||'')); }
+async function telLeggiCopie(dir, base, valida){
+  let nomi=[];
+  try{ nomi=(await window.tmsScambio.elenca(dir)||[]).filter(n=>telNomeCopia(n, base)); }catch(e){ nomi=[]; }
+  if(!nomi.length) nomi=[base+'.json'];
+  const out=[];
+  for(const n of nomi){
+    const r=await window.tmsScambio.leggi(dir+'/'+n);
+    if(!r || r.stato!=='ok') continue;
+    try{ const d=await telDecifra(r.testo); if(valida(d)) out.push(d); }catch(e){ /* a metà: al giro dopo */ }
+  }
+  return out;
+}
 /* un giro sulla scheda: data le modifiche fatte qui, unisce quelle del telefono, applica, scrive */
 async function telSincronizza(slug, p){
   const adesso=Date.now(), loc=telLocale(p);
   const timbrata=telTimbra(loc.righe, loc.sedute, p.ombra, adesso);
-  let remota=null;
-  const r=await window.tmsScambio.leggi(telBase(slug)+'dal-telefono/scheda.json');
-  if(r && r.stato==='ok'){ try{ const d=await telDecifra(r.testo); if(d && d.tipo==='tms-collegata' && Array.isArray(d.righe)) remota=d; }catch(e){ /* a metà: al giro dopo */ } }
+  /* COPIE DOPPIE (18/11/2026, la scheda del telefono non arrivava): Google Drive ammette due file con lo
+     stesso nome nella stessa cartella e Drive per desktop chiama il secondo «scheda (1).json». Si leggono
+     TUTTE le copie e si uniscono una dopo l'altra: l'unione è campo per campo e vince l'ora più recente,
+     quindi una copia vecchia non cancella mai quella nuova. */
+  const remote=await telLeggiCopie(telBase(slug)+'dal-telefono', 'scheda', d=>d && d.tipo==='tms-collegata' && Array.isArray(d.righe));
+  const remota=remote.length? remote.reduce((acc,d)=>Object.assign(telUnisci(acc,d), {aggiornata:[acc.aggiornata,d.aggiornata].filter(Boolean).sort().pop()})) : null;
   if(remota && remota.aggiornata) p.ultimoTelefono=String(remota.aggiornata);
+  p.copieTelefono=remote.length;
   const unita=telPota(telUnisci(timbrata, remota), adesso);
   const cambia=telValori(unita)!==telValori(timbrata);
   if(cambia){

@@ -3259,6 +3259,20 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
     await giroPC(); const fermo = righePC()[0].rip === 6;
     inp.blur(); await giroPC();
     ok(fermo && righePC()[0].rip === 7, 'PC: con un campo dei Pesi sotto le dita aspetta il giro dopo, e poi la modifica del telefono entra lo stesso'); }
+  /* 18/11/2026: Google Drive ha DUE file «scheda.json» e Drive per desktop chiama il nuovo «scheda (1).json»:
+     il PC leggeva solo il vecchio e le ripetizioni del telefono non arrivavano */
+  { const vecchia = C.files.get('prova/dal-telefono/scheda.json');
+    scrivi('rir-0', '4'); await giroTel();
+    const nuova = C.files.get('prova/dal-telefono/scheda.json');
+    C.files.set('prova/dal-telefono/scheda (1).json', nuova); C.files.set('prova/dal-telefono/scheda.json', vecchia);
+    await giroPC();
+    ok(righePC()[0].rir === 4 && righePC()[0].rip === 7, 'copie doppie della scheda del telefono («scheda (1).json»): il PC le legge tutte e vince la modifica più recente');
+    C.files.set('prova/dal-telefono/scheda.json', nuova); C.files.set('prova/dal-telefono/scheda (1).json', vecchia);
+    await giroPC();
+    ok(righePC()[0].rir === 4, 'copie doppie al contrario (la vecchia col nome numerato): il valore nuovo resta');
+    C.files.delete('prova/dal-telefono/scheda (1).json');
+    ok(w.eval('telNomeCopia("scheda (12).json","scheda") && telNomeCopia("Scheda.JSON","scheda") && !telNomeCopia("scheda-vecchia.json","scheda") && !telNomeCopia("stato.json","scheda")'),
+       'copie doppie: si riconoscono «scheda.json» e «scheda (N).json», non altri file'); }
   /* esercizio aggiunto sul telefono, panca tolta sul PC */
   { const nome = sw.eval('(SCHEDA.catalogo||[]).map(function(e){return e.n;}).filter(function(n){return !/Squat con bilanciere|Panca piana con bilanciere/.test(n);})[0]') || 'Rematore con bilanciere';
     sw.eval('navEntra(); mostra("home"); addEsercizio(0);'); await settle(30);
