@@ -169,8 +169,8 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   formule, esempio svolto, lettura, limiti, bibliografia). Le note stanno in SPIEG (italiano)
   e SPIEG_EN (inglese), una per grafico; le formule sono quelle del codice e vanno
   aggiornate quando un calcolo cambia.
-- **Bilanciamento** (bottone a sinistra di ▦ Colonne): apre un radar delle
-  SERIE per gruppo muscolare della scheda che si sta scrivendo — non dell'ultima settimana
+- **Come sta venendo la scheda** (pannello accanto alla scheda dei Pesi; il vecchio pulsante
+  «Bilanciamento» non c'è più): radar delle SERIE per gruppo muscolare della scheda che si sta scrivendo — non dell'ultima settimana
   salvata: serve mentre si costruisce. Accanto al disegno c'è l'elenco in chiaro, gruppo per
   gruppo. Il **cardio è escluso** di proposito: qui si guarda come è distribuito
   il lavoro coi pesi, e i minuti di cardio convertiti in serie equivalenti gonfierebbero un
@@ -342,7 +342,10 @@ Due modi per registrare una seduta:
   piena zona di volume equilibrato, per vedere a colpo d'occhio se il cardio è bilanciato
   rispetto al lavoro coi pesi.
 - «＋ Esercizio» chiede in quale giorno aggiungerlo (lo inserisce in quel giorno);
-  «＋ Giorno» crea un nuovo giorno. Per riordinare si **trascina la riga dal manico ⠿**
+  «＋ Giorno» crea un nuovo giorno (il primo numero libero dopo l'ultimo). Se i giorni non
+  partono da 1 o hanno buchi, un avviso propone «Rinumera da 1»: 1, 2, 3… nello stesso ordine,
+  col riscaldamento e la fatica delle sedute (legati al nome del giorno); il telefono collegato
+  riceve i nomi nuovi da solo. Per riordinare si **trascina la riga dal manico ⠿**
   a sinistra del nome (solo dal manico: trascinando da tutta la riga non si potrebbe piu'
   selezionare il testo di una nota). Vale anche per il riscaldamento. Trascinare una riga
   sotto l'intestazione di un altro giorno le cambia anche il giorno: e' voluto, altrimenti

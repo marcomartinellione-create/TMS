@@ -12,6 +12,19 @@
    Il pulsante si crea con spiegaBtn(id) dentro l'h4 del grafico (o nel suo riquadro): un
    solo ascoltatore sul documento apre la nota, anche nei pannelli che si ridisegnano. */
 const SPIEG={
+'tipocorpo':{t:'Tipo di corpo: BMI × grasso',
+  dove:'Corpo',
+  a:`Incrocia due misure, il BMI (il peso rispetto alla statura) e la percentuale di grasso, per dire in una parola che tipo di corpo hai: per esempio «Robusto» (BMI alto ma grasso nella norma) o «Grasso nascosto» (BMI normale ma grasso alto). Sopra, la figura riassume i valori di oggi.`,
+  s:[['Cosa mostra',`Una griglia 3 × 3: le righe sono le classi di BMI (da 25 in su, 18,5–25, sotto 18,5), le colonne il grasso (basso, nella norma, alto). La casella evidenziata, ripetuta accanto al titolo, è la tua. Sopra, la figura del corpo con peso, BMI, grasso, acqua, grasso viscerale, massa muscolare, muscolo scheletrico e massa ossea.`],
+   ['Dati di partenza',`I campi «Dati corporei» del tab (peso, massa grassa, massa muscolare, massa ossea, grasso viscerale, acqua) e l'anagrafica del profilo (altezza, sesso, età): gli stessi valori delle schede in alto.`],
+   ['Metodo e formule',`<div class="spf">BMI = <span class="fr"><i>peso [kg]</i><i>altezza [m]²</i></span><span class="spn">(1)</span></div>
+     Righe: BMI ≥ 25, 18,5–25, sotto 18,5 (classi OMS). Colonne: grasso sotto la fascia «nella norma», dentro o sopra; le fasce dipendono da sesso ed età (Gallagher e coll., 2000: per un uomo di 20–39 anni è nella norma fra 8 e 20 %). Se l'acqua manca si stima dalla massa magra (acqua = magra × 0,733) e il muscolo scheletrico dall'acqua (acqua × 0,834 − 2,627), come nel rapporto della bilancia.`],
+   ['Esempio svolto',`168 cm e 72 kg: BMI = 72 / 2,82 = <b>25,5</b>, riga «≥ 25». Grasso 15 % per un uomo di 30 anni: nella norma. Risultato: <b>Robusto</b>.`],
+   ['Come leggerlo',`Per chi si allena coi pesi «Robusto» o «Muscoloso» è spesso un BMI alzato dal muscolo e non dal grasso: è proprio la differenza che il solo BMI non vede. «Grasso nascosto» segnala grasso alto con un peso normale.`],
+   ['Limiti',`Le classi sono convenzioni: un confine (BMI 25, grasso 20 %) separa due caselle anche per pochi decimali. Il grasso misurato con la bioimpedenza cambia con l'acqua bevuta, i pasti e l'ora. Sono valori del corpo intero, non per singolo braccio o gamba.`]],
+  b:['World Health Organization (2000). <i>Obesity: preventing and managing the global epidemic</i>. WHO Technical Report Series 894. Ginevra: WHO.',
+     'Gallagher D, Heymsfield SB, Heo M, et al. (2000). Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. <i>Am J Clin Nutr</i> 72(3):694–701.']},
+
 'distribuzione':{t:'Distribuzione del lavoro fra i gruppi muscolari',
   dove:'Pesi (pannello laterale) · Bilanciamento · Progressi · Report',
   a:`La ragnatela descrive la <b>forma</b> della settimana di allenamento coi pesi: quale quota delle serie va a ciascuno dei sei gruppi (Gambe, Pettorali, Schiena, Spalle, Braccia, Core). È una misura di <b>proporzione</b>, indipendente dal volume totale. La fascia verde è la forma tipica di un riferimento scelto per esperienza e tipo di allenamento; la didascalia dice su quante schede o studi si regge.`,

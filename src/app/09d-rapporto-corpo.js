@@ -32,10 +32,12 @@ function compDaPesata(p, u){
 function pesataPrima(p){
   const prima=(DOC.pesate||[]).filter(x=>x&&x.id!==p.id&&ordinePesate(x,p)<0);
   return prima.filter(x=>x.grasso!=null).pop() || prima.pop() || null; }
-/* barra a fasce con il segno del valore: fasce=[[da,a,colore,etichetta]…] su una scala [min,max] */
+/* barra a fasce con il segno del valore: fasce=[[da,a,colore,etichetta]…] su una scala [min,max].
+   Il numero sta sopra e la freccetta sotto, centrati tutti e due sul punto (18/11/2026: «25,2 ▾» su una
+   riga metteva la freccetta a destra del valore vero) */
 function barraFasce(valore, min, max, fasce, dec){
   const pos=x=>Math.max(0,Math.min(100,(x-min)/(max-min)*100));
-  return `<div class="comp-barra-w">${valore!=null?`<span class="comp-segno" style="left:${pos(valore).toFixed(1)}%">${nf(valore,dec)} ▾</span>`:''}
+  return `<div class="comp-barra-w">${valore!=null?`<span class="comp-segno" style="left:${pos(valore).toFixed(1)}%">${nf(valore,dec)}<i></i></span>`:''}
     <div class="comp-barra">${fasce.map(f=>`<span style="width:${(pos(f[1])-pos(f[0])).toFixed(2)}%;background:${f[2]}"></span>`).join('')}</div>
     <div class="comp-leg">${fasce.map(f=>`<span style="width:${(pos(f[1])-pos(f[0])).toFixed(2)}%">${esc(t(f[3]))}</span>`).join('')}</div></div>`;
 }
@@ -64,8 +66,11 @@ function pathLiscio(P){
   for(let i=0;i<n;i++){ const p0=q(i-1), p1=q(i), p2=q(i+1), p3=q(i+2);
     d+=' C'+r(p1[0]+(p2[0]-p0[0])/6)+' '+r(p1[1]+(p2[1]-p0[1])/6)+' '+r(p2[0]-(p3[0]-p1[0])/6)+' '+r(p2[1]-(p3[1]-p1[1])/6)+' '+p2[0]+' '+p2[1]; }
   return d+'Z'; }
-function figuraCorpo(c, dPeso){
+/* tema=true (tab Corpo): i testi prendono i colori del tema (giorno e notte); senza (rapporto e PDF) i
+   colori restano scritti nel disegno, l'unico modo che html2canvas riporta fedelmente */
+function figuraCorpo(c, dPeso, tema){
   const g='comp-fig-'+(++figuraSeq), S=0.44, X=v=>150+(v-50)*S, Y=v=>3+v*S, N=(v,dec)=>v!=null? nf(v,dec) : '—';
+  const colV=tema? ' style="fill:var(--ink)"' : ' fill="#1c1208"', colE=tema? ' style="fill:var(--ink-3)"' : ' fill="#7a6a50"', colP=tema? ' style="fill:var(--ink-2)"' : ' fill="#3d2e1a"';
   const L=SAGOMA_DX.slice().reverse().map(p=>[100-p[0],p[1]]), corpo=pathLiscio(SAGOMA_DX.concat([[50,114]],L));
   const el=[[76.5,116],[74.5,120.5],[23.5,116],[25.5,120.5],[55,206],[58.5,206],[45,206],[41.5,206]]
     .map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="1.9" fill="#d4a017" stroke="#fff" stroke-width=".6"/>`).join('');
@@ -79,9 +84,9 @@ function figuraCorpo(c, dPeso){
     ['d',56,N(c.scheletrico,1)+' kg',t('Muscolo scheletrico'),[60,138]],
     ['d',78,N(c.ossa,1)+' kg',t('Massa ossea'),[57,182]]];
   const testi=voci.map(v=>{ const sx=v[0]==='s', xt=sx?116:184, xl=sx?119:181, xg=sx?127:173, px=X(v[4][0]).toFixed(1), py=Y(v[4][1]).toFixed(1);
-    return `<polyline points="${xl},${v[1]-2.4} ${xg},${v[1]-2.4} ${px},${py}" fill="none" stroke="#9b8a6e" stroke-width=".45"/><circle cx="${px}" cy="${py}" r="1.1" fill="#3d2e1a"/>
-      <text x="${xt}" y="${v[1]}" text-anchor="${sx?'end':'start'}" font-size="7.2" font-weight="bold" fill="#1c1208">${esc(v[2])}</text>
-      <text x="${xt}" y="${v[1]+6}" text-anchor="${sx?'end':'start'}" font-size="4.6" fill="#7a6a50">${esc(v[3])}</text>`; }).join('');
+    return `<polyline points="${xl},${v[1]-2.4} ${xg},${v[1]-2.4} ${px},${py}" fill="none" stroke="#9b8a6e" stroke-width=".45"/><circle cx="${px}" cy="${py}" r="1.1"${colP}/>
+      <text x="${xt}" y="${v[1]}" text-anchor="${sx?'end':'start'}" font-size="7.2" font-weight="bold"${colV}>${esc(v[2])}</text>
+      <text x="${xt}" y="${v[1]+6}" text-anchor="${sx?'end':'start'}" font-size="4.6"${colE}>${esc(v[3])}</text>`; }).join('');
   return `<svg viewBox="0 0 300 96" class="comp-figura" role="img" aria-label="${esc(t('Composizione corporea'))}"><defs>
     <radialGradient id="${g}" gradientUnits="userSpaceOnUse" cx="50" cy="82" r="112"><stop offset="0" stop-color="#1f9e96"/><stop offset=".42" stop-color="#7cc79a"/><stop offset=".86" stop-color="#f0cf63"/></radialGradient>
     <radialGradient id="${g}-l" gradientUnits="userSpaceOnUse" cx="44" cy="58" r="46"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
@@ -89,8 +94,35 @@ function figuraCorpo(c, dPeso){
     <g transform="translate(${(150-50*S).toFixed(2)} 3) scale(${S})">
       <path d="${corpo}" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1" stroke-linejoin="round"/>
       <ellipse cx="50" cy="15" rx="9" ry="11.5" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1"/>
-      <path d="${corpo}" fill="url(#${g}-l)"/>${el}</g>${testi}
-    <text x="299" y="95" text-anchor="end" font-size="3.4" fill="#a8967a">${esc(t('gli 8 elettrodi · valori del corpo intero, non per singolo braccio o gamba'))}</text></svg>`;
+      <path d="${corpo}" fill="url(#${g}-l)"/>${el}</g>${testi}</svg>`;
+}
+/* la nota sotto la figura sta FUORI dal disegno: nel PDF il disegno usa un carattere più largo e la scritta
+   allineata al bordo destro usciva tagliata («… non per singolo bra») */
+function notaFigura(){ return `<div class="comp-fig-nota">${t('gli 8 elettrodi · valori del corpo intero, non per singolo braccio o gamba')}</div>`; }
+/* tipo di corpo: righe BMI (alto → basso), colonne grasso (basso, nella norma, alto); torna anche il nome */
+const TIPI_CORPO=[['Muscoloso','Robusto','Sovrappeso'],['Atletico','Equilibrato','Grasso nascosto'],['Sottopeso','Esile','Esile con grasso alto']];
+function tipoCorpo(c, sesso, eta){
+  const fg=fasceGrasso(sesso,eta);
+  const rB=c.bmi==null?-1 : c.bmi>=25?0 : c.bmi>=18.5?1 : 2, cG=c.grasso==null?-1 : c.grasso<fg[0]?0 : c.grasso<fg[1]?1 : 2;
+  return {riga:rB, col:cG, nome:(rB>=0&&cG>=0)? TIPI_CORPO[rB][cG] : ''};
+}
+function grigliaTipoCorpo(c, sesso, eta){
+  const tc=tipoCorpo(c, sesso, eta);
+  return `<div class="comp-griglia">${TIPI_CORPO.map((r,i)=>`<span class="comp-asse">BMI ${['≥ 25','18,5–25','&lt; 18,5'][i]}</span>`+r.map((x,j)=>`<div class="${i===tc.riga&&j===tc.col?'on':''}">${esc(t(x))}</div>`).join('')).join('')}
+      <span></span><span class="comp-asse2">${t('grasso basso')}</span><span class="comp-asse2">${t('nella norma')}</span><span class="comp-asse2">${t('alto')}</span></div>`;
+}
+/* RIQUADRO «TIPO DI CORPO» DEL TAB CORPO (Marco, 18/11/2026: «il grafico del tipo di corpo che compare nel
+   pdf voglio che compaia anche nel tab Corpo, grande, alla destra dei quattro grafici»): la figura coi
+   valori di oggi (i campi «Dati corporei», come le schede in alto) e la griglia del tipo di corpo. */
+function tipoCorpoLat(u){
+  u=u||{}; const num=v=>(v===''||v==null||!isFinite(+v))? null : +v;
+  const p={peso:num(u.peso)||0, grasso:num(u.massa_grassa)!=null&&+u.massa_grassa>0? +u.massa_grassa*100 : null,
+    muscolo:num(u.massa_muscolare), ossa:num(u.massa_ossea), visc:num(u.grasso_viscerale), acqua:num(u.acqua), bmr:num(u.metab_basale)};
+  const c=compDaPesata(p,u), sesso=u.sesso==='F'?'F':'M', eta=etaOf(u), tc=tipoCorpo(c, sesso, eta);
+  return `<div class="chart-box tipo-corpo"><h4>${t('Tipo di corpo')}${tc.nome?` <span class="pill tipo-corpo__nome">${esc(t(tc.nome))}</span>`:''}${spiegaBtn('tipocorpo')}</h4>
+    ${p.peso? figuraCorpo(c, '', true)+notaFigura() : `<div class="empty">${t('Scrivi il peso nei «Dati corporei» per vedere la figura.')}</div>`}
+    <div class="tipo-corpo__griglia">${grigliaTipoCorpo(c, sesso, eta)}</div>
+    <div class="muted tipo-corpo__nota">${c.grasso==null? t('Senza la massa grassa la colonna del grasso resta vuota.') : t('Fasce del grasso per')+' '+(sesso==='F'?t('donne'):t('uomini'))+' '+(eta<40?'20–39':eta<60?'40–59':'60–79')+' '+t('anni')+' · '+t('valori dei «Dati corporei»')}</div></div>`;
 }
 function htmlRapportoCorpo(p){
   const u=DOC.dati_utente||{}, c=compDaPesata(p,u), sesso=u.sesso==='F'?'F':'M', eta=etaOf(u), alt=+u.altezza||0;
@@ -101,9 +133,6 @@ function htmlRapportoCorpo(p){
     ['Massa muscolare',c.muscolo,pct(c.muscolo),'muscolo'],['Muscolo scheletrico',c.scheletrico,pct(c.scheletrico),'scheletrico'],
     ['Acqua',c.acquaKg,c.acqua!=null?nf(c.acqua,1):'—','acquaKg'],['Proteine',c.proteineKg,c.proteine!=null?nf(c.proteine,1):'—','proteineKg'],['Massa ossea',c.ossa,pct(c.ossa),'ossa']];
   const fg=fasceGrasso(sesso,eta);
-  /* tipo di corpo: righe BMI (alto → basso), colonne grasso (basso, nella norma, alto) */
-  const rB=c.bmi==null?-1 : c.bmi>=25?0 : c.bmi>=18.5?1 : 2, cG=c.grasso==null?-1 : c.grasso<fg[0]?0 : c.grasso<fg[1]?1 : 2;
-  const TIPI=[['Muscoloso','Robusto','Sovrappeso'],['Atletico','Equilibrato','Grasso nascosto'],['Sottopeso','Esile','Esile con grasso alto']];
   /* andamento: la pesata del giorno (come nella media) degli ultimi 10 giorni con pesate, fino a questa */
   const fino=(DOC.pesate||[]).filter(x=>ordinePesate(x,p)<=0), giorni=pesateContate(fino).slice(-10);
   const imp=c.imp, okImp=imp&&imp.length===10;
@@ -116,7 +145,7 @@ function htmlRapportoCorpo(p){
   return `<div class="comp-pg">
   <div class="comp-tit"><h1>${t('Composizione corporea')}</h1><div class="comp-brand">TRAINING MONITOR SYSTEM<br><span>${t('pesata del')} ${esc(dataStr)}${p.ora?' · '+esc(String(p.ora).slice(0,5)):''}</span></div></div>
   <div class="comp-chi"><span><b>${esc(u.nome||profNome()||'')}</b></span><span>${t('Sesso')}: ${sesso==='F'?t('donna'):t('uomo')}</span>${eta?`<span>${t('Età')}: ${eta} ${t('anni')}</span>`:''}${alt?`<span>${t('Altezza')}: ${alt} cm</span>`:''}<span>${t('Bilancia a 8 elettrodi')}</span></div>
-  <div class="comp-hero">${figuraCorpo(c, D('peso',1))}</div>
+  <div class="comp-hero">${figuraCorpo(c, D('peso',1))}${notaFigura()}</div>
   <div class="comp-col"><div>
     <div class="sec">${t('Composizione')}</div>
     <table class="comp-tab"><thead><tr><th></th><th>kg</th><th>${t('% del peso')}</th><th>${pr?t('dal')+' '+esc(giornoPesata(pr.data)):''}</th></tr></thead>
@@ -129,8 +158,7 @@ function htmlRapportoCorpo(p){
     ${barraFasce(c.grasso,0,50,[[0,fg[0],'#d9c58a','Basso'],[fg[0],fg[1],'#7fb38f','Nella norma'],[fg[1],fg[2],'#e0b25a','Alto'],[fg[2],50,'#d0776a','Molto alto']],1)}
     <div class="comp-nota-r">${t('Fasce per')} ${sesso==='F'?t('donne'):t('uomini')} ${eta<40?'20–39':eta<60?'40–59':'60–79'} ${t('anni')}</div>
     <div class="sec">${t('Tipo di corpo')}</div>
-    <div class="comp-griglia">${TIPI.map((r,i)=>`<span class="comp-asse">BMI ${['≥ 25','18,5–25','&lt; 18,5'][i]}</span>`+r.map((x,j)=>`<div class="${i===rB&&j===cG?'on':''}">${esc(t(x))}</div>`).join('')).join('')}
-      <span></span><span class="comp-asse2">${t('grasso basso')}</span><span class="comp-asse2">${t('nella norma')}</span><span class="comp-asse2">${t('alto')}</span></div>
+    ${grigliaTipoCorpo(c, sesso, eta)}
   </div><div>
     <div class="sec">${t('Altri indicatori')}</div>
     ${ind.map(x=>`<div class="comp-ind"><span>${t(x[0])}</span><b>${x[1]} <small>${esc(x[2])}</small></b></div>`).join('')}

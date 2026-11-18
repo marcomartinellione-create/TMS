@@ -1,6 +1,19 @@
 /* SPIEG_EN — versione inglese delle note metodologiche dei grafici (05b-spiegazioni.js):
    stesse chiavi e stessa struttura di SPIEG. Una voce che manca ricade sull'italiano. */
 const SPIEG_EN={
+'tipocorpo':{t:'Body type: BMI × fat',
+  dove:'Body',
+  a:`It crosses two measures, the BMI (weight relative to height) and the fat percentage, to say in one word what kind of body you have: for instance «Sturdy» (high BMI but normal fat) or «Hidden fat» (normal BMI but high fat). Above, the figure sums up today's values.`,
+  s:[['What it shows',`A 3 × 3 grid: rows are the BMI classes (25 and over, 18.5–25, below 18.5), columns the fat (low, normal, high). The highlighted box, repeated next to the title, is yours. Above, the body figure with weight, BMI, fat, water, visceral fat, muscle mass, skeletal muscle and bone mass.`],
+   ['Input data',`The «Body data» fields of the tab (weight, fat mass, muscle mass, bone mass, visceral fat, water) and the profile's personal data (height, sex, age): the same values as the cards at the top.`],
+   ['Method and formulas',`<div class="spf">BMI = <span class="fr"><i>weight [kg]</i><i>height [m]²</i></span><span class="spn">(1)</span></div>
+     Rows: BMI ≥ 25, 18.5–25, below 18.5 (WHO classes). Columns: fat below the «normal» range, inside it or above it; the ranges depend on sex and age (Gallagher et al., 2000: for a man aged 20–39 normal is between 8 and 20 %). If water is missing it is estimated from lean mass (water = lean × 0.733) and skeletal muscle from water (water × 0.834 − 2.627), as in the scale report.`],
+   ['Worked example',`168 cm and 72 kg: BMI = 72 / 2.82 = <b>25.5</b>, row «≥ 25». Fat 15 % for a 30-year-old man: normal. Result: <b>Sturdy</b>.`],
+   ['How to read it',`For people who lift weights «Sturdy» or «Muscular» is often a BMI raised by muscle rather than fat: exactly the difference the BMI alone cannot see. «Hidden fat» flags high fat with a normal weight.`],
+   ['Limitations',`The classes are conventions: a boundary (BMI 25, fat 20 %) separates two boxes even by a few decimals. Fat measured by bioimpedance changes with the water you drank, meals and the time of day. These are whole-body values, not per single arm or leg.`]],
+  b:['World Health Organization (2000). <i>Obesity: preventing and managing the global epidemic</i>. WHO Technical Report Series 894. Geneva: WHO.',
+     'Gallagher D, Heymsfield SB, Heo M, et al. (2000). Healthy percentage body fat ranges: an approach for developing guidelines based on body mass index. <i>Am J Clin Nutr</i> 72(3):694–701.']},
+
 'distribuzione':{t:'Distribution of work across muscle groups',
   dove:'Weights (side panel) · Balance · Progress · Report',
   a:`The radar chart describes the <b>shape</b> of the weekly weight-training load: what share of the sets goes to each of the six groups (Legs, Chest, Back, Shoulders, Arms, Core). It is a measure of <b>proportion</b>, independent of total volume. The green band is the typical shape of a reference chosen by experience and training type; the caption states how many programs or studies it rests on.`,

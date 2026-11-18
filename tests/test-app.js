@@ -1291,7 +1291,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
        'Riordino: nessuna freccia ▲▼ rimasta in giro'); }
   /* ── ⚖ Bilanciamento della settimana in costruzione (cardio escluso) ── */
   { w.eval('DOC.scheda.settimanale=[{giorno:"Lunedì",esercizio:"Squat con bilanciere",serie:4,rip:5,peso:100},{giorno:"Lunedì",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:70}]; renderAllenamento();');
-    ok(d.getElementById('btn-bilanc') !== null, 'Pesi: pulsante ⚖ Bilanciamento accanto a ▦ Colonne');
+    ok(d.getElementById('btn-bilanc') === null && d.getElementById('btn-colonne') !== null, 'Pesi: niente più pulsante Bilanciamento (la ragnatela è nel pannello accanto alla scheda), resta Colonne');
     const bil = JSON.parse(w.eval('JSON.stringify(bilanciamentoSerie())'));
     const o = bil.per;
     ok(o['Gambe'] === 4 && o['Pettorali'] === 3, 'Bilanciamento: serie piene sui muscoli primari (Gambe 4, Pettorali 3)');
@@ -1320,12 +1320,30 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
          'spostaRiga: portando una riga in un altro giorno le cambia anche il giorno');
       ok(w.eval('JSON.stringify(spostaRiga([{n:"a"},{n:"b"}],0,5,true).map(function(x){return x.n;}))') === '["a","b"]',
          'spostaRiga: indice fuori portata → array intatto'); }
-    d.getElementById('btn-bilanc').click();
+    w.eval('bilanciamentoModal()');
     const hb = d.getElementById('modal').innerHTML;
     ok(/Bilanciamento|Balance/.test(hb) && d.querySelector('#modal svg') !== null,
        'Bilanciamento: si apre col radar delle serie per gruppo');
     ok(/fill-rule="evenodd"/.test(hb), 'Bilanciamento: il radar disegna la fascia di riferimento 10-20 serie');
     ok(/lbl-fuori/.test(hb), 'Bilanciamento: i gruppi fuori fascia hanno l\'etichetta in rosso');
+    /* 18/11/2026: giorni che partono dal 6 (set copiato, giorni aggiunti dopo e vecchi tolti) → «Rinumera da 1» */
+    { const salva = w.eval('JSON.stringify({s:DOC.scheda.settimanale, r:DOC.scheda.rpe, w:DOC.scheda.riscaldamento})');
+      w.eval('closeModal(); schedaMode="settimanale"; DOC.scheda.settimanale=[' +
+        '{giorno:"Giorno 6",esercizio:"Squat con bilanciere",serie:3,rip:5,peso:80},{giorno:"Giorno 6",esercizio:"Panca piana con bilanciere - presa media",serie:3,rip:8,peso:60},' +
+        '{giorno:"Giorno 8",esercizio:"Stacco da terra con bilanciere",serie:3,rip:5,peso:100},{giorno:"Giorno 9",esercizio:"Military press in piedi",serie:3,rip:8,peso:40}];' +
+        'DOC.scheda.rpe=DOC.scheda.rpe||{}; DOC.scheda.rpe.settimanale={"Giorno 6":{rpe:7,min:60},"Giorno 8":{rpe:8,min:55},"Giorno 1":{rpe:9,min:10}};' +
+        'DOC.scheda.riscaldamento=DOC.scheda.riscaldamento||{}; DOC.scheda.riscaldamento.settimanale=[{giorno:"Giorno 9",esercizio:"Cyclette",serie:1,rip:5}];' +
+        'renderAllenamento();');
+      ok(d.getElementById('giorni-avviso') !== null && /6, 8, 9/.test(d.getElementById('giorni-avviso').textContent),
+         'giorni che non partono da 1: nei Pesi l\'avviso li elenca (6, 8, 9) con «Rinumera da 1»');
+      d.getElementById('btn-rinumera').click(); await settle(20);
+      const sc = JSON.parse(w.eval('JSON.stringify({g:DOC.scheda.settimanale.map(function(r){return r.giorno;}), r:DOC.scheda.rpe.settimanale, w:DOC.scheda.riscaldamento.settimanale[0].giorno})'));
+      ok(sc.g.join(',') === 'Giorno 1,Giorno 1,Giorno 2,Giorno 3' && sc.w === 'Giorno 3',
+         'Rinumera da 1: i giorni diventano 1, 2, 3 nello stesso ordine, riscaldamento compreso');
+      ok(sc.r['Giorno 1'] && sc.r['Giorno 1'].rpe === 7 && sc.r['Giorno 2'].rpe === 8 && !sc.r['Giorno 6'] && !sc.r['Giorno 8'],
+         'Rinumera da 1: la fatica delle sedute segue il suo giorno (e un vecchio «Giorno 1» rimasto senza righe non la copre)');
+      ok(d.getElementById('giorni-avviso') === null && w.eval('giorniDaRinumerare()') === null, 'Rinumera da 1: poi l\'avviso sparisce');
+      w.eval('(function(o){ DOC.scheda.settimanale=o.s; DOC.scheda.rpe=o.r; DOC.scheda.riscaldamento=o.w; renderAllenamento(); })(' + salva + ')'); }
     ok(!/fill-rule="evenodd"/.test(w.eval('radarChart([{label:"A",value:3},{label:"B",value:9}])')),
        'radarChart: senza opts.rif nessuna fascia, il radar di Progressi resta com\'è');
     /* ── ragnatela = DISTRIBUZIONE, non quantità (Marco 2026-09-29: «forma e proporzione») ── */
@@ -3155,12 +3173,25 @@ console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---'
     ok(!/punteggio/i.test(box.textContent) && box.querySelectorAll('.comp-linea').length === 2, 'rapporto: andamento di peso e grasso; niente punteggio inventato');
     { const fig = box.querySelector('.comp-figura');
       ok(fig && fig.querySelectorAll('circle[fill="#d4a017"]').length === 8 && fig.querySelectorAll('polyline').length === 8 && /72,4 kg/.test(fig.textContent) && /BMI 22,3/.test(fig.textContent) && /Muscolo scheletrico/.test(fig.textContent),
-         'rapporto: figura del corpo con gli 8 elettrodi e otto valori collegati da linee (peso, BMI, grasso, muscolo…)'); } }
+         'rapporto: figura del corpo con gli 8 elettrodi e otto valori collegati da linee (peso, BMI, grasso, muscolo…)');
+      /* impaginazione (18/11/2026): la nota sotto la figura sta fuori dal disegno (nel PDF usciva tagliata),
+         la freccetta del valore è sotto il numero, la nota a piè di pagina segue il contenuto */
+      ok(!/elettrodi/.test(fig.textContent) && /elettrodi/.test(box.querySelector('.comp-hero .comp-fig-nota').textContent) &&
+         [...box.querySelectorAll('.comp-segno')].every(s => s.querySelector('i') && !/▾/.test(s.textContent)) && box.querySelector('.comp-pg > .comp-nota') !== null,
+         'rapporto: nota della figura fuori dal disegno, freccetta del valore sotto il numero, nota a piè di pagina in fondo al contenuto'); } }
   { const h = w.eval('htmlRapportoCorpo(DOC.pesate.find(function(p){return p.data==="2026-11-17";}))');
     ok(/solo il peso/.test(h) && /72,2/.test(h), 'rapporto di una pesata col solo peso: lo dice, senza errori'); }
   /* dal tab Corpo: 📄 sulla riga → anteprima → PDF */
   w.eval('showTab("corpo")');
   ok(d.querySelectorAll('#pesate-box [data-reppes]').length === 4, 'tab Corpo: 📄 su ogni pesata e «Rapporto dell\'ultima»');
+  /* 18/11/2026: il tipo di corpo del rapporto anche nel tab Corpo, grande, a destra dei quattro grafici */
+  { w.eval('DOC.dati_utente.peso=80; DOC.dati_utente.massa_grassa=0.15; DOC.dati_utente.massa_muscolare=64; renderCorpo();');
+    const tc = d.querySelector('#panel-corpo .corpo-graf > .tipo-corpo');
+    const on = tc && tc.querySelector('.comp-griglia div.on'), nome = tc && tc.querySelector('.tipo-corpo__nome');
+    ok(tc && d.querySelector('#panel-corpo .corpo-graf > .chart-grid--corpo') && tc.querySelector('svg.comp-figura') && on && nome && on.textContent === nome.textContent && /80,0 kg/.test(tc.textContent),
+       'tab Corpo: riquadro «Tipo di corpo» accanto ai 4 grafici, con la figura coi valori di oggi e la casella giusta (' + (on ? on.textContent : '—') + ')');
+    ok(/style="fill:var\(--ink\)"/.test(tc.querySelector('svg.comp-figura').outerHTML) && tc.querySelector('[data-spieg="tipocorpo"]'),
+       'tab Corpo: la figura prende i colori del tema (leggibile anche di notte) e ha il suo «?»'); }
   d.querySelector('#pesate-box [data-reppes="2026-11-16T07:00|72.4"]').click(); await settle(30);
   ok(d.querySelector('#modal .comp-anteprima .comp-pg') !== null && d.getElementById('comp-pdf') !== null, '📄: anteprima del rapporto con «Scarica PDF»');
   w.eval('window.html2canvas=function(){ return Promise.resolve({width:16,height:22,toDataURL:function(){ return "data:image/jpeg;base64,/9j/AAAA"; }}); };' +
@@ -3325,6 +3356,17 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
   ok(sw.eval('colConf().slug') === 'prova' && sw.eval('colConf().codice') === CODICE, 'telefono: col codice giusto (anche minuscolo, coi trattini) trova il profilo e si collega');
   sw.eval('risali();'); await giroTel(); await settle(50);
   ok(sw.eval('!!SCHEDA.collegata'), 'telefono: ricollegato, con una scheda già sul telefono chiede e riprende quella del PC');
+  /* 18/11/2026: «Rinumera da 1» sul PC col telefono collegato → anche il telefono passa ai nomi nuovi e la
+     fatica della seduta segue il suo giorno, senza tornare indietro dal telefono */
+  { w.eval('DOC.scheda.settimanale.forEach(function(r){ if(r.esercizio) r.giorno="Giorno 6"; }); DOC.scheda.rpe=DOC.scheda.rpe||{}; DOC.scheda.rpe.settimanale={"Giorno 6":{rpe:7,min:50}}; persist("scheda");');
+    await giroPC(); await giroTel(); await giroPC(); await settle(50);
+    const prima = sw.eval('WROWS.every(function(r){ return r.giorno==="Giorno 6"; })') && sw.eval('colLocale().sedute["Giorno 6"].rpe') === 7;
+    w.eval('rinumeraGiorni(); persist("scheda");');
+    await giroPC(); await giroTel(); await giroPC(); await giroTel(); await giroPC(); await settle(50);
+    const rp = JSON.parse(w.eval('JSON.stringify(DOC.scheda.rpe.settimanale)'));
+    ok(prima && righePC().every(r => r.giorno === 'Giorno 1') && sw.eval('WROWS.every(function(r){ return r.giorno==="Giorno 1"; })') &&
+       rp['Giorno 1'] && rp['Giorno 1'].rpe === 7 && !rp['Giorno 6'] && sw.eval('colLocale().sedute["Giorno 1"].rpe') === 7,
+       'Rinumera da 1 col telefono collegato: anche il telefono passa a «Giorno 1» e la fatica resta sulla seduta giusta, da tutte e due le parti'); }
   /* promemoria */
   sw.eval('avvSalvaConf({on:true, ora:"21:00"}); PESATE=[];');
   { const l = JSON.parse(sw.eval('JSON.stringify(avvLista(new Date(2026,10,16,8,0)))'));

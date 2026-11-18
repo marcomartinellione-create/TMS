@@ -462,7 +462,8 @@ function renderAllenamento(){
    <div class="pag"><div class="pag__main">
    ${statusBanner(DOC.storico,'Storico allenamento')}
    ${telRigaPesi()}
-   <div class="sec">${t('Scheda '+schedaMode)} <span class="pill">${rows.length} ${t('righe-set')}</span><span class="pill" id="hdr-tottl" style="margin-left:6px">${t('TL totale')} ${nfk(totTL)}</span><span id="hdr-delta">${deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px" title="${t('TL totale ultima scheda salvata')}">${t('ultima')} ${nfk(prevTotal)}</span>`}</span><button class="btn btn--sm no-print" id="btn-bilanc" style="margin-left:auto" title="${t('Come è bilanciata la settimana fra i gruppi muscolari')}">${ico('equilibrio')}${t('Bilanciamento')}</button><button class="btn btn--sm no-print" id="btn-colonne" style="margin-left:6px" title="${t('Scegli quali colonne mostrare')}">${ico('colonne')}${t('Colonne')}</button></div>
+   ${avvisoGiorni()}
+   <div class="sec">${t('Scheda '+schedaMode)} <span class="pill">${rows.length} ${t('righe-set')}</span><span class="pill" id="hdr-tottl" style="margin-left:6px">${t('TL totale')} ${nfk(totTL)}</span><span id="hdr-delta">${deltaW==null?'':`<span class="pill" style="margin-left:6px;border-color:${deltaW>=0?'var(--ok)':'var(--danger)'};color:${deltaW>=0?'var(--ok)':'var(--danger)'}">Δ ${t(schedaMode==='mensile'?'mese':'settimana')} ${deltaW>=0?'▲':'▼'} ${nf(Math.abs(deltaW)*100,1)}%</span><span class="pill muted" style="margin-left:6px" title="${t('TL totale ultima scheda salvata')}">${t('ultima')} ${nfk(prevTotal)}</span>`}</span><button class="btn btn--sm no-print" id="btn-colonne" style="margin-left:auto" title="${t('Scegli quali colonne mostrare')}">${ico('colonne')}${t('Colonne')}</button></div>
    <div class="tbl-wrap"><table class="${useRirActive()?'':'hide-rir'} ${classiColonnePesi()}">
      <thead><tr><th class="l">${t('Esercizio')}</th><th class="l col-note">${t('Note')}</th><th>${t('Serie')}</th><th>${t('Rip.')}</th><th>${t('Peso')}</th><th class="rir-col" title="Reps In Reserve (RPE=10−RIR)">RIR</th><th class="col-rest">${t('Rest')}</th><th class="col-rm">1RM</th><th class="col-rm">%1RM</th><th class="col-tl">TL</th><th class="col-dtl" title="${t('Δ del carico del set vs lo stesso set (pari posizione) della scorsa scheda')}">Δ TL set</th><th>${t('Fascia / azioni')}</th></tr></thead>
      <tbody>${body||`<tr><td colspan="12" class="empty"><span class="empty__ico">${ico('manubrio')}</span>${t('<b>La scheda è vuota.</b><br>Aggiungi il primo esercizio: scegli il giorno e poi l\'esercizio dal catalogo.')}<br><button class="btn btn--ember" onclick="aggiungiEsercizioModal()">${t('＋ Aggiungi il primo esercizio')}</button></td></tr>`}</tbody>
@@ -482,7 +483,7 @@ function renderAllenamento(){
   // init height on existing note textareas
   document.querySelectorAll('.note-area').forEach(t=>{ t.style.height='auto'; t.style.height=t.scrollHeight+'px'; });
   { const b=document.getElementById('btn-colonne'); if(b) b.onclick=colonnePesiModal; }
-  { const b=document.getElementById('btn-bilanc'); if(b) b.onclick=bilanciamentoModal; }
+  { const b=document.getElementById('btn-rinumera'); if(b) b.onclick=()=>{ if(rinumeraGiorni()){ persist('scheda'); renderAllenamento(); } }; }
   document.getElementById('btn-addrow').onclick=aggiungiEsercizioModal;
   document.getElementById('btn-addday').onclick=addDay;
   { const pf=document.getElementById('btn-prefill'); if(pf) pf.onclick=async()=>{ if(await conferma(t('Precompilo peso/rip/RIR dalla scorsa registrazione di ogni esercizio? Sovrascrive i valori attuali della scheda.'))) prefillFromLast(); }; }
@@ -585,6 +586,28 @@ function aggiungiEsercizioModal(){
     if(last>=0) r.splice(last+1,0,nuova); else inserisciGiorno(r,nuova);
     persist('scheda'); renderAllenamento(); };
 }
+/* GIORNI CHE NON PARTONO DA 1 (Marco, 18/11/2026: «il numero dei giorni della mia scheda parte dal 6»).
+   Succede con un Training Set copiato da uno di 5 giorni: i giorni nuovi prendono il numero dopo l'ultimo
+   (6, 7…) e poi i vecchi si tolgono. Nei Pesi compare un avviso con «Rinumera da 1»: i giorni numerati
+   diventano 1, 2, 3… nello stesso ordine, insieme al riscaldamento e alla fatica delle sedute (rpe), che
+   sono legati al nome del giorno. Il telefono collegato riceve i nomi nuovi al giro successivo. */
+function giorniDaRinumerare(md){ const s=DOC.scheda||{}; md=md||schedaMode;
+  const righe=(s[md]||[]).concat((s.riscaldamento&&Array.isArray(s.riscaldamento[md]))? s.riscaldamento[md] : []);
+  const nn=[...new Set(righe.map(r=>giornoNumero(r&&r.giorno)).filter(Boolean))].sort((a,b)=>a-b);
+  return nn.some((n,i)=>n!==i+1)? nn : null; }
+function rinumeraGiorni(md){ const s=DOC.scheda; md=md||schedaMode; const nn=giorniDaRinumerare(md); if(!nn) return null;
+  const mappa={}; nn.forEach((n,i)=>{ mappa[giornoScheda(n)]=giornoScheda(i+1); });
+  const righe=(s[md]||[]).concat((s.riscaldamento&&Array.isArray(s.riscaldamento[md]))? s.riscaldamento[md] : []);
+  righe.forEach(r=>{ if(r && mappa[r.giorno]) r.giorno=mappa[r.giorno]; });
+  const rp=s.rpe&&s.rpe[md];
+  if(rp && typeof rp==='object'){ const arrivi=new Set(Object.values(mappa)), nuovo={};
+    Object.keys(rp).forEach(g=>{ if(!mappa[g] && !arrivi.has(g)) nuovo[g]=rp[g]; });   /* un vecchio «Giorno 1» rimasto senza righe non copre quello nuovo */
+    Object.keys(rp).forEach(g=>{ if(mappa[g]) nuovo[mappa[g]]=rp[g]; });
+    s.rpe[md]=nuovo; }
+  if(md==='settimanale' && typeof telRinominaGiorni==='function') telRinominaGiorni(mappa);
+  return mappa; }
+function avvisoGiorni(){ const nn=giorniDaRinumerare(); if(!nn) return '';
+  return `<div class="callout no-print" id="giorni-avviso"><div>${t('I giorni di questa scheda sono numerati')} <b>${nn.join(', ')}</b>. ${t('Li rinumero 1, 2, 3… nello stesso ordine? Riscaldamento e fatica delle sedute seguono il loro giorno; il telefono collegato si aggiorna da solo.')} <button class="btn btn--sm btn--ember" id="btn-rinumera">${t('Rinumera da 1')}</button></div></div>`; }
 /* giorni numerati: nel menù i giorni già in scheda più il successivo, «nuovo» */
 function opzioniGiorni(def){
   const gg=schedaDays(schedaRows()), nuovo=giornoScheda(Math.max(0,...gg.map(giornoNumero))+1);

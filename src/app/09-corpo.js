@@ -57,12 +57,15 @@ function renderCorpo(){
    <div id="foto-box"></div>
      </div>
      <aside class="pag__side">
+      <div class="corpo-graf">
        <div class="chart-grid chart-grid--corpo">
          ${composizioneLat(u,c)}
          <div class="chart-box"><h4>${t('Peso')}${spiegaBtn('peso')}</h4>${lineChart(wSeries,{labels:lbl,h:130})}</div>
          <div class="chart-box"><h4>BMI${spiegaBtn('bmi')}</h4>${lineChart(bmiSeries,{labels:lbl,h:130})}</div>
          <div class="chart-box"><h4>${t('Massa magra / muscolare')}${spiegaBtn('massa')}</h4>${lineChart(massSeries,{labels:lbl,h:130})}</div>
        </div>
+       ${tipoCorpoLat(u)}
+      </div>
      </aside>
    </div>`;
   document.querySelectorAll('#panel-corpo [data-u]').forEach(inp=>inp.addEventListener('input',e=>{

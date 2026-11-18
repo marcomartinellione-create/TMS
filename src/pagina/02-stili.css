@@ -443,7 +443,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .comp-brand span{font-family:var(--font-body); letter-spacing:0; font-size:11px; color:var(--ink-2)}
 .comp-chi{display:flex; flex-wrap:wrap; gap:3px 16px; font-size:11px; color:var(--ink-2); background:var(--paper-2); border:1px solid var(--border); border-radius:8px; padding:5px 10px; margin-bottom:2mm}
 .comp-hero{margin:0 0 1mm}
-.comp-figura{width:165mm; height:auto; display:block; margin:0 auto}
+.comp-figura{width:152mm; height:auto; display:block; margin:0 auto}
+.comp-fig-nota{font-size:8px; color:var(--ink-4); text-align:center; margin-top:-1mm}
 .comp-pg .card{background:var(--paper); border:1px solid var(--border); color:var(--ink); box-shadow:none}
 .comp-pg .card__k{font-size:9.5px; color:var(--ink-3)} .comp-pg .card__v{font-size:19px; color:var(--ink)} .comp-pg .card__sub{font-size:10px; color:var(--ink-3)}
 .comp-col{display:grid; grid-template-columns:1.2fr 1fr; gap:6mm}
@@ -456,8 +457,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .comp-tab td.muted{color:var(--ink-3)}
 .comp-imp td, .comp-pg .comp-imp th{text-align:center}
 .comp-voce{font-size:10.5px; color:var(--ink-2); margin:6px 0 0; font-weight:bold}
-.comp-barra-w{position:relative; padding-top:13px}
-.comp-segno{position:absolute; top:0; transform:translateX(-50%); font-size:10px; font-weight:bold; color:var(--ink); white-space:nowrap}
+.comp-barra-w{position:relative; padding-top:17px}
+.comp-segno{position:absolute; top:0; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; line-height:1;
+  font-size:10px; font-weight:bold; color:var(--ink); white-space:nowrap}
+.comp-segno i{width:0; height:0; margin-top:2px; border-left:4px solid transparent; border-right:4px solid transparent; border-top:5px solid var(--ink)}
 .comp-barra{display:flex; height:9px; border-radius:5px; overflow:hidden}
 .comp-leg{display:flex; font-size:8.5px; color:var(--ink-3); margin-top:2px}
 .comp-leg span{text-align:center; overflow:hidden; white-space:nowrap}
@@ -466,7 +469,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .comp-asse{font-size:9px; color:var(--ink-3); text-align:right; align-self:center; padding-right:3px; white-space:nowrap}
 .comp-asse2{font-size:9px; color:var(--ink-3); text-align:center}
 .comp-griglia{display:grid; grid-template-columns:52px repeat(3,1fr); gap:3px}
-.comp-griglia div{background:var(--paper-2); border:1px solid var(--border); border-radius:5px; padding:9px 3px; font-size:10px; text-align:center; color:var(--ink-3)}
+.comp-griglia div{background:var(--paper-2); border:1px solid var(--border); border-radius:5px; padding:7px 3px; font-size:10px; text-align:center; color:var(--ink-3)}
 .comp-tab td:first-child{text-align:left}
 .comp-sett td, .comp-pg .comp-sett th{text-align:right} .comp-sett td:first-child, .comp-pg .comp-sett th:first-child{text-align:left}
 .comp-sett tr.comp-qui td{background:var(--paper-2); font-weight:bold}
@@ -474,8 +477,19 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .comp-ind{display:flex; justify-content:space-between; align-items:baseline; gap:8px; border-bottom:1px solid var(--paper-3); padding:3.5px 2px; font-size:11px; color:var(--ink-2)}
 .comp-ind b{color:var(--ink); white-space:nowrap} .comp-ind small{font-weight:normal; color:var(--ink-3); font-size:9.5px}
 .comp-linea{width:100%; height:auto; display:block}
-.comp-nota{position:absolute; left:12mm; right:12mm; bottom:9mm; font-size:8.5px; color:var(--ink-3); line-height:1.4; border-top:1px solid var(--border); padding-top:2mm}
-.comp-pg{position:relative}
+/* la nota a piè di pagina segue il contenuto (margin-top:auto la porta in fondo se c'è posto): agganciata
+   al bordo del foglio finiva sopra la tabella delle medie settimanali (18/11/2026) */
+.comp-nota{margin-top:auto; padding-top:2mm; font-size:8.5px; color:var(--ink-3); line-height:1.4; border-top:1px solid var(--border)}
+.comp-pg{position:relative; display:flex; flex-direction:column}
+/* tab Corpo: i 4 grafici in griglia e alla loro destra, grande, il tipo di corpo; su schermo stretto va sotto */
+.corpo-graf{display:grid; grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr); gap:12px; align-items:stretch}
+.corpo-graf > .chart-box{margin:0; min-width:0}
+.tipo-corpo .comp-figura{width:100%}
+.tipo-corpo .comp-fig-nota{margin:2px 0 8px}
+.tipo-corpo__nome{margin-left:6px; text-transform:none; letter-spacing:0; background:var(--orange); border-color:var(--orange); color:#fff}
+.tipo-corpo__griglia .comp-griglia div{padding:9px 3px; font-size:11px}
+.tipo-corpo__nota{font-size:10.5px; margin-top:6px}
+@media (max-width:1400px){ .corpo-graf{grid-template-columns:1fr} }
 .comp-anteprima{max-height:72vh; overflow:auto; background:#cfc6b3; padding:12px; border-radius:var(--r-sm)}
 .comp-anteprima .comp-pg{margin:0 auto; box-shadow:0 2px 10px rgba(0,0,0,.25)}
 /* ── ⚙ IMPOSTAZIONI (13e-impostazioni.js) ── */

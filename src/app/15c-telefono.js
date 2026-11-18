@@ -191,6 +191,13 @@ async function telLeggiCopie(dir, base, valida){
   }
   return out;
 }
+/* giorni rinumerati sul PC (rinumeraGiorni, 06-allenamento.js): la seduta di ogni giorno (fatica, durata,
+   «giorno fatto») segue il suo giorno anche nell'ombra, così non si perde e il telefono la riceve col nome
+   nuovo; quella col nome vecchio, senza più righe, si svuota al giro dopo */
+function telRinominaGiorni(mappa){ const p=telProf(); if(!p || !p.ombra || !p.ombra.sedute) return;
+  const os=p.ombra.sedute, copia={};
+  Object.keys(mappa||{}).forEach(v=>{ if(os[v]) copia[mappa[v]]=JSON.parse(JSON.stringify(os[v])); });
+  Object.assign(os, copia); telSalva(); }
 /* un giro sulla scheda: data le modifiche fatte qui, unisce quelle del telefono, applica, scrive */
 async function telSincronizza(slug, p){
   const adesso=Date.now(), loc=telLocale(p);
