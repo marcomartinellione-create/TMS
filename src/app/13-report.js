@@ -54,6 +54,17 @@ function repBloccoHTML(R, k, html){
   if(ed) sec.setAttribute('data-ritoccato','1');
   return sec.outerHTML;
 }
+/* i fondamentali del blocco «Progressione esercizi»: per ognuno il primo nome che lo Storico usa,
+   prima quello del catalogo di oggi e poi i nomi di una volta (storici vecchi). Fino al 18/11/2026
+   c'erano solo i nomi vecchi («Squat bilanciere»…) e il blocco restava sempre «senza dati». */
+const FONDAMENTALI_REPORT=[
+  ['Panca piana con bilanciere - presa media','Panca piana bilanciere'],
+  ['Squat con bilanciere','Squat bilanciere'],
+  ['Stacco da terra con bilanciere','Stacco da terra'],
+  ['Military press in piedi','Military press / Overhead press'],
+  ['Trazioni alla sbarra (pull-up)','Trazioni alla sbarra con peso','Trazioni alla sbarra']];
+function fondamentaliReport(){ const usati=new Set((DOC.storico||[]).map(r=>r&&r.esercizio));
+  return FONDAMENTALI_REPORT.map(nomi=>nomi.find(n=>usati.has(n))).filter(Boolean); }
 function renderReport(){
   repCtx=CTX_REPORT;
   const u=DOC.dati_utente; const c=bodyCalc(u);
@@ -69,7 +80,7 @@ function renderReport(){
   let progBody='',lastDay=null; prog.forEach(r=>{ if(!r.esercizio)return; if(r.giorno&&r.giorno!==lastDay){lastDay=r.giorno; progBody+=`<tr class="day-sep"><td colspan="6">▌ ${esc(giornoNome(r.giorno))}</td></tr>`;} const p=sPct(r),fa=fascia(p),sd=rowSeduta(smap,r),tgt=(esLookup(r.esercizio)||{}).target||''; progBody+=`<tr><td class="l">${esc(exName(r.esercizio))}${sd>1?` <span class="pill">S${sd}</span>`:''}</td><td class="l muted" style="font-size:11px">${esc(tgt)}</td><td class="num">${nf(r.serie,0)}×${nf(r.rip,0)}</td><td class="num">${nf(r.peso,1)}</td><td class="num">${esc(r.rest||'')}</td><td><span class="fascia ${fa[1]}">${t(fa[0])}</span></td></tr>`; });
   const A=DOC.alimentazione; const faseR=faseAlimActive(), tR=faseTot(A[faseR]||[]);
   const io=DOC.storico_io; const prs=prList().slice(0,8);
-  const mainLifts=['Panca piana bilanciere','Squat bilanciere','Stacco da terra','Military press / Overhead press','Trazioni alla sbarra'].filter(n=>DOC.storico.some(r=>r.esercizio===n));
+  const mainLifts=fondamentaliReport();
   const toggles=[['profilo','Profilo & corpo'],['foto','Foto progressi (prima/dopo)'],['riepilogo','Riepilogo allenamento'],['scheda','Scheda di allenamento'],['andamento','Grafici di andamento'],['progressione','Progressione esercizi'],['record','Record personali'],['cardio','Cardio (attività)'],['alimentazione','Alimentazione'],['analisi','Dieta × allenamento'],['note','Note del coach']].map(x=>[x[0],t(x[1])]);
   repNomi={copertina:t('Copertina'), piede:t('Piè di pagina')}; toggles.forEach(x=>{ repNomi[x[0]]=x[1]; });
   /* ordine personalizzabile delle sezioni (per profilo): parte dal default, completa con eventuali sezioni nuove */

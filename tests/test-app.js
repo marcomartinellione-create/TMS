@@ -2462,6 +2462,17 @@ console.log('--- T9: dati incorporati dimostrativi, correzione di una riga, Brzy
     const n = w.eval('window.__nRep');
     ok(n <= 3 && /foto non trovata/.test(d.getElementById('panel-report').textContent), 'report: una foto assente dal disco dice «foto non trovata» e non fa ridisegnare il report all\'infinito (' + n + ' disegni)');
     w.eval('renderReport=window.__rr; (function(o){ DOC.foto=o.f; DOC.dati_utente.report=o.r; })(' + salva + '); showTab("profilo");'); }
+  /* 18/11/2026: «Progressione esercizi» cercava i fondamentali coi nomi vecchi e restava sempre «senza dati» */
+  { ok(w.eval('fondamentaliReport().join("|")') === 'Panca piana con bilanciere - presa media|Squat con bilanciere|Stacco da terra con bilanciere|Military press in piedi|Trazioni alla sbarra (pull-up)',
+       'report: i fondamentali della «Progressione esercizi» si trovano coi nomi del catalogo di oggi');
+    w.eval('showTab("report")');
+    const li = [...d.querySelectorAll('#panel-report .rep-li__nome')].find(e => /Progressione esercizi/.test(e.textContent));
+    ok(/Progressione di forza \(1RM stimato\)/.test(d.getElementById('panel-report').textContent) && li && !/senza dati/.test(li.textContent),
+       'report: il blocco «Progressione esercizi» ha il suo grafico (non più «senza dati»)');
+    const sto = w.eval('JSON.stringify(DOC.storico)');
+    w.eval('DOC.storico=[{scheda:202401,esercizio:"Squat bilanciere",seduta:1,test:false,macro:"Gambe",serie:3,rip:5,peso:100},{scheda:202402,esercizio:"Squat bilanciere",seduta:1,test:false,macro:"Gambe",serie:3,rip:5,peso:102.5}]');
+    ok(w.eval('fondamentaliReport().join("|")') === 'Squat bilanciere', 'report: uno Storico vecchio coi nomi di una volta trova ancora i suoi fondamentali');
+    w.eval('DOC.storico=' + sto + '; showTab("profilo");'); }
 
   /* correzione di una riga dello Storico */
   w.eval('showTab("storico")');
