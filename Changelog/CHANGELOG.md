@@ -4,6 +4,23 @@
 
 ---
 
+### 2026-11-18 — TMS v1.1.29: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.28
+**Descrizione**:
+- Il TMS torna su GitHub, con le novità arrivate dopo la v1.1.17. TMS Scheda è ora un’app Android (APK nelle Release) COLLEGATA al TMS: una scheda sola per PC e telefono, che si modifica da tutte e due le parti attraverso una cartella di Google Drive, con i file cifrati col codice di collegamento; Salva nello Storico cristallizza la settimana. Le pesate della bilancia Bluetooth a 8 elettrodi (famiglia FitDays) e le foto dei progressi arrivano da sole al profilo. Progressi: grafici compatti, Progresso reale a parità di esercizi, filtri Periodo e Alimentazione. Alimentazione: periodi che si avviano oggi e si terminano quando finiscono. Ragnatela con più fonti e schede Fable dove mancano i dati. Grafica rifatta, senza emoji, tre stili notte. TMS e TMS Scheda trovano da soli gli aggiornamenti nelle Release GitHub.
+- Guide: TMS Scheda si scarica dalle Release GitHub e si aggiorna da sola da GitHub
+- App del telefono (APK 1.2.6): gli aggiornamenti arrivano da GitHub, non più dalla cartella condivisa
+- Sito e README: spiegato il nuovo flusso coach-cliente — la scheda non si spedisce più, PC e telefono condividono la stessa scheda collegata (cartella di Google Drive, file cifrati col codice, vince l'ultima modifica, Salva nello Storico cristallizza, pesate e foto da sole) — e TMS Scheda si scarica dalle Release GitHub
+- Di nuovo su GitHub: l'app desktop cerca gli aggiornamenti nelle Release GitHub e PUBBLICA.bat pubblica lì (push, release con installer e APK nuovo di TMS Scheda)
+- Unito il commit di GitHub che aveva tolto la vecchia app web dal sito: resta tolta, il sorgente dell'APK è in app-android/web/
+- App del telefono: il sorgente passa da docs/app/ ad app-android/web/ — fuori dal sito, così pubblicando su GitHub la vecchia app web non torna online
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-18)
+
+---
+
 ### 2026-11-17 — TMS v1.1.28: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.27
