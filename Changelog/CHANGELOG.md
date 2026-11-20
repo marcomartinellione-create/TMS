@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-11-20 — TMS v1.1.31: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.30
+**Descrizione**:
+- Report: il blocco «Progressione esercizi» mostra di nuovo il grafico della forza (cercava i fondamentali coi nomi vecchi e restava sempre «senza dati»)
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-20)
+
+---
+
 ### 2026-11-18 — TMS v1.1.30: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.29

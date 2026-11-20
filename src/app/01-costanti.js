@@ -13,8 +13,8 @@ function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); r
 function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
 function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.30', APP_DATE='2026-11-18';
-const RELEASE_NOTE='Novità: Sito e README: screenshot rifatti col nuovo profilo dimostrativo (Pesi, Progressi, Alimentazione, Analisi) e didascalie allineate all’app di oggi; Profilo dimostrativo «Atleta Template» rifatto da zero: 14 mesi, cinque Training Set, fasi alimentari con un periodo in corso, pesate della bilancia e foto; Report: una foto prima/dopo che manca dal disco non fa più ridisegnare il report all’infinito; Traduzioni: tolte 18 chiavi doppie del riquadro «Tipo di corpo» (il lint fermava npm test; a video non cambia nulla); Pesi, rapporto corporeo e tab Corpo: via il pulsante Bilanciamento, «Rinumera da 1» per i giorni che partono dal 6, PDF della composizione impaginato meglio, e il tipo di corpo grande nel tab Corpo; Telefono collegato: le ripetizioni segnate sul telefono non arrivavano al PC — il PC ora legge tutte le copie della scheda del telefono («scheda.json», «scheda (1).json»…) e le unisce; release.js: il messaggio finale dice che su GitHub pubblica PUBBLICA.bat (non più «niente GitHub»).'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.31', APP_DATE='2026-11-20';
+const RELEASE_NOTE='Novità: Report: il blocco «Progressione esercizi» mostra di nuovo il grafico della forza (cercava i fondamentali coi nomi vecchi e restava sempre «senza dati»).'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
    Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */
