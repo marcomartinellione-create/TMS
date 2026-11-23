@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-11-23 — TMS v1.1.32: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.31
+**Descrizione**:
+- Menù Training Set rifatto nello stile dell'app: ricerca, bottoni dei gruppi, set divisi per gruppo con la spunta su quello aperto e azioni separate in fondo (Pesi e «Dati da analizzare» nei Progressi)
+- Training Set in gruppi: si raccolgono in gruppi scelti da te (es. Palestra, Corpo libero) per filtrarli e cercarli nei Pesi e nei Progressi; i calcoli restano identici
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-23)
+
+---
+
 ### 2026-11-20 — TMS v1.1.31: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.30

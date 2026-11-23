@@ -13,8 +13,8 @@ function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); r
 function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
 function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.31', APP_DATE='2026-11-20';
-const RELEASE_NOTE='Novità: Report: il blocco «Progressione esercizi» mostra di nuovo il grafico della forza (cercava i fondamentali coi nomi vecchi e restava sempre «senza dati»).'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.32', APP_DATE='2026-11-23';
+const RELEASE_NOTE='Novità: Menù Training Set rifatto nello stile dell’app: ricerca, bottoni dei gruppi, set divisi per gruppo con la spunta su quello aperto e azioni separate in fondo (Pesi e «Dati da analizzare» nei Progressi); Training Set in gruppi: si raccolgono in gruppi scelti da te (es. Palestra, Corpo libero) per filtrarli e cercarli nei Pesi e nei Progressi; i calcoli restano identici.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
    Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */
