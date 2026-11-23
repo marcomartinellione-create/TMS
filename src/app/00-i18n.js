@@ -1116,8 +1116,7 @@ const EN={
   'Nuovo gruppo':'New group',
   'Nuovo gruppo…':'New group…',
   'Gestisci i gruppi…':'Manage groups…',
-  'Cerca e raggruppa…':'Search and group…',
-  'Mostra nel menù Training Set solo i set di un gruppo. I gruppi servono a ordinare e cercare i set: non cambiano nessun calcolo':'Show only one group\'s sets in the Training Set menu. Groups are for sorting and finding sets: they don\'t change any calculation',
+  'Cerca un Training Set…':'Search a Training Set…',
   'Gruppo (facoltativo)':'Group (optional)',
   'I gruppi servono solo a ordinare e cercare i Training Set: non cambiano nessun calcolo':'Groups are only for sorting and finding Training Sets: they don\'t change any calculation',
   'Nome del gruppo nuovo, es. Corpo libero':'Name of the new group, e.g. Bodyweight',
@@ -1139,7 +1138,6 @@ const EN={
   'Training Set resta e passa a «Senza gruppo».':'Training Set stays and moves to «No group».',
   'Training Set restano e passano a «Senza gruppo».':'Training Sets stay and move to «No group».',
   'Il gruppo è vuoto.':'The group is empty.',
-  'Restringe l\'elenco dei Training Set qui accanto ai set di un gruppo. I gruppi non cambiano nessun calcolo: i grafici seguono il Training Set scelto':'Narrows the Training Set list next to it to one group\'s sets. Groups don\'t change any calculation: the charts follow the chosen Training Set',
   /* ══════════ Progressi: filtro «dati da analizzare» (Training Set) ══════════ */
   'Dati da analizzare':'Data to analyze',
   'Tutto il percorso':'Whole journey',

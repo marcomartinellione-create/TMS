@@ -286,10 +286,14 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
 - **Training Set** (dal v1.1.2): selettore accanto a «Scheda» per tenere più versioni
   alternative dell'intera scheda Pesi (settimanale + mensile) — es. «Palestra» e «Casa» —
   e passare dall'una all'altra. Il set su cui si stava lavorando si salva da solo al
-  cambio. Le azioni (nuovo/rinomina/elimina) sono voci dentro il menù a tendina stesso,
-  sotto un separatore «Azioni», e compaiono solo aprendolo: «Nuovo Training Set…»
-  (chiede il nome e se partire da zero o copiare un set esistente), «Rinomina»,
-  «Elimina» (solo se resta almeno un altro set). Dati: campo 'setAttivo' (nome attivo),
+  cambio. Il selettore è un menù a tendina disegnato dall'app (pulsante + riquadro, non un
+  select di sistema; lo stesso menù serve «Dati da analizzare» nei Progressi): casella di ricerca
+  per nome, i set con la spunta su quello aperto e il tipo di allenamento accanto, e in fondo,
+  separate, le azioni: «Nuovo Training Set…» (chiede il nome, se partire da zero o copiare un set
+  esistente e il gruppo, facoltativo), «Gestisci i gruppi…», «Rinomina», «Elimina» (solo se resta
+  almeno un altro set). Da tastiera: freccia giù sul pulsante apre, frecce su/giù scorrono, Invio
+  sceglie (con una ricerca scritta, il primo set trovato), Esc chiude; si chiude anche cliccando
+  fuori. Dati: campo 'setAttivo' (nome attivo),
   'setsSalvati' (mappa nome→scheda dei set inattivi), 'setsOrdine' in scheda.json; le
   schede preesistenti diventano da sole il set «Base» al primo avvio dopo l'aggiornamento.
   Ogni Training Set ha anche il suo **tipo di allenamento** ('tipoAllenamento': forza,
@@ -303,16 +307,16 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   in setsSalvati[nome] per gli altri; viaggia col set nei cambi e nelle copie) e 'setsGruppi'
   (elenco ordinato dei gruppi, anche vuoti; c'è solo se esiste almeno un gruppo, quindi una scheda
   che non li usa resta identica). Un set senza gruppo sta in «Senza gruppo». Il menù Training Set ›
-  «Cerca e raggruppa…» apre il riquadro «Training Set e gruppi»: ricerca per nome (parole, senza
+  «Gestisci i gruppi…» apre il riquadro «Training Set e gruppi»: ricerca per nome (parole, senza
   badare a maiuscole e accenti, in tutti i gruppi o in quello scelto), filtro per gruppo, set divisi
   per gruppo col loro tipo di allenamento, un menù su ogni riga per mettere il set in un gruppo
   (anche nuovo), «Nuovo gruppo», «Rinomina», «Togli il gruppo» (con conferma: i set restano e
   passano a «Senza gruppo»); un clic sul nome apre il set. Il riquadro «Nuovo Training Set» ha il
-  campo Gruppo (propone quello filtrato nella barra o quello del set copiato). Con almeno un gruppo
-  la barra Pesi mostra il menù «Gruppo» (Tutti, i gruppi col numero di set, Senza gruppo, Gestisci
-  i gruppi…): il menù Training Set mostra solo i set del gruppo scelto, sempre più quello aperto, e
-  con «Tutti» li divide per gruppo. Il filtro non si salva: riparte da «Tutti» all'avvio e per ogni
-  profilo. Al telefono non va nulla dei gruppi (riceve solo la scheda del set aperto).
+  campo Gruppo (propone quello scelto nel menù o quello del set copiato). Con almeno un gruppo il
+  menù Training Set divide i set per gruppo e ha in cima i bottoni dei gruppi (Tutti, i gruppi col
+  numero di set, Senza gruppo; un gruppo vuoto non compare): uno acceso mostra solo i suoi set e la
+  ricerca cerca lì dentro; sul pulsante, accanto al set aperto, c'è il suo gruppo. Il filtro non si
+  salva: riparte da «Tutti» all'avvio e per ogni profilo. Al telefono non va nulla dei gruppi (riceve solo la scheda del set aperto).
 
 - **Riscaldamento** (dal v1.1.3, video+cardio dal v1.1.6): pulsante arancione accanto a
   Training Set, cambia vista e mostra i riscaldamenti **giorno per giorno del Training Set
@@ -419,9 +423,10 @@ Due modi per registrare una seduta:
   corpo.json) e viene riproposta al rientro; ogni profilo ha la SUA (cambiando profilo non
   si trascina quella del precedente); se il Training Set salvato non esiste piu' si torna
   da soli a «Tutto il percorso». Ogni settimana salvata porta il campo 'set' col Training Set attivo; le settimane
-  salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso». Con i gruppi di
-  Training Set compare accanto il menù «Gruppo»: restringe l'elenco di «Dati da analizzare» (set
-  divisi per gruppo; un set che c'è solo nello Storico sta in «Senza gruppo»), non i dati. **Eccezione
+  salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso». Il menù di
+  «Dati da analizzare» ha in cima «Tutto il percorso», poi i set con le settimane salvate di ognuno e
+  la ricerca; con i gruppi di Training Set i set sono divisi per gruppo e i bottoni dei gruppi
+  restringono l'elenco (un set che c'è solo nello Storico sta in «Senza gruppo»), non i dati. **Eccezione
   (dal v1.1.6)**: i «Record personali · carico massimo» NON seguono questo filtro — un record
   è un record, sempre calcolato su TUTTO lo storico indipendentemente dal Training Set attivo;
   quando un filtro è impostato compare la pill «su tutto il percorso» accanto al titolo per

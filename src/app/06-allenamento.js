@@ -153,6 +153,30 @@ const _tsFiltro={};
 function tsFiltroGet(dove){ const f=_tsFiltro[dove]; let v=(f && f.profilo===activeProfile)? f.valore : TS_TUTTI;
   const el=tsGruppi(); if(!el.length || (v!==TS_TUTTI && v!==TS_SENZA && el.indexOf(v)<0)) v=TS_TUTTI; return v; }
 function tsFiltroSet(dove, v){ _tsFiltro[dove]={profilo:activeProfile, valore:v||TS_TUTTI}; }
+/* ── i Training Set nel menù a tendina dell'app (04-modal.js, tendina*): il filtro per gruppo sono i
+      bottoni in cima al riquadro, la ricerca la casella sopra, i set divisi per gruppo; usato dal
+      menù Training Set dei Pesi e da «Dati da analizzare» dei Progressi ── */
+/* bottoni dei gruppi: Tutti, i gruppi, Senza gruppo, ognuno col numero di set; un gruppo senza set
+   non compare (non c'è niente da filtrare), salvo che sia quello scelto */
+function tsVociFiltro(nomi, valore, gruppoDi){ const gDi=gruppoDi||tsGruppoDi, n=g=>(nomi||[]).filter(x=>tsPassa(gDi(x),g)).length;
+  return [{v:TS_TUTTI, lab:t('Tutti'), n:n(TS_TUTTI)}].concat(tsGruppi().map(g=>({v:g, lab:g, n:n(g)})), [{v:TS_SENZA, lab:t('Senza gruppo'), n:n(TS_SENZA)}])
+    .filter(x=>x.v===TS_TUTTI || x.n>0 || x.v===valore); }
+/* le voci divise per gruppo, già filtrate e cercate; senza gruppi un solo blocco senza intestazione */
+function tsBlocchiTendina(nomi, filtro, cerca, info, gruppoDi){ const con=tsGruppi().length>0;
+  return tsPerGruppo(nomi,{filtro, cerca, gruppoDi}).map(b=>({titolo: con? (b.gruppo||t('Senza gruppo')) : null, voci:b.nomi.map(n=>({v:n, lab:n, info:info? info(n) : ''}))})); }
+function tsVuotoTendina(cerca){ return tsNormCerca(cerca).trim()? t('Nessun Training Set con questo nome.') : t('Nessun Training Set in questo gruppo.'); }
+/* menù Training Set della barra Pesi: set con il loro tipo di allenamento, e in fondo le azioni */
+function tsTendinaCfg(){ const S=ensureSets(), att=S.setAttivo;
+  const tipo=n=>{ const o=n===att? S : S.setsSalvati[n]; return o && TIPI_ALLEN.includes(o.tipoAllenamento)? t(TIPO_NOME[o.tipoAllenamento]) : ''; };
+  return { scelto:att, cerca:{ph:t('Cerca un Training Set…')},
+    gruppi:()=>tsGruppi().length? {valore:tsFiltroGet('pesi'), voci:tsVociFiltro(ensureSets().setsOrdine, tsFiltroGet('pesi'))} : null,
+    onGruppo:v=>{ tsFiltroSet('pesi', v); },
+    blocchi:q=>tsBlocchiTendina(ensureSets().setsOrdine, tsFiltroGet('pesi'), q, tipo),
+    vuoto:tsVuotoTendina,
+    azioni:[{v:'__new__', lab:t('Nuovo Training Set…'), ico:'piu'}, {v:'__cerca__', lab:t('Gestisci i gruppi…'), ico:'cartella'},
+      {v:'__rename__', lab:t('Rinomina')+' «'+att+'»', ico:'matita'}].concat(S.setsOrdine.length>1? [{v:'__delete__', lab:t('Elimina')+' «'+att+'»', ico:'cestino', pericolo:true}] : []),
+    onScegli:v=>{ if(v==='__new__') nuovoTrainingSetModal(); else if(v==='__cerca__') tsGruppiModal();
+      else if(v==='__rename__') rinominaTrainingSet(); else if(v==='__delete__') eliminaTrainingSet(); else switchTrainingSet(v); } }; }
 function switchTrainingSet(nome){ const s=ensureSets(); if(!nome||nome===s.setAttivo||!s.setsSalvati[nome]) return;
   s.setsSalvati[s.setAttivo]=tsFoto(s);  /* salva l'attivo */
   tsCarica(s, s.setsSalvati[nome]||{});                                                                /* carica il target */
@@ -198,8 +222,8 @@ async function eliminaTrainingSet(){ const s=ensureSets(); const nomi=s.setsOrdi
   const altro=nomi.find(n=>n!==vitt); tsCarica(s, s.setsSalvati[altro]||{});
   delete s.setsSalvati[altro]; delete s.setsSalvati[vitt];
   s.setAttivo=altro; s.setsOrdine=nomi.filter(n=>n!==vitt); persist('scheda'); renderAllenamento(); }
-/* ── riquadro «Training Set e gruppi» (menù Training Set › Cerca e raggruppa…, menù Gruppo ›
-      Gestisci i gruppi…): cerca per nome, filtra per gruppo, apre un set, lo mette in un gruppo
+/* ── riquadro «Training Set e gruppi» (menù Training Set › Gestisci i gruppi…): cerca per nome,
+      filtra per gruppo, apre un set, lo mette in un gruppo
       (esistente o nuovo), crea, rinomina e toglie i gruppi. Si ridisegna solo l'elenco, così la
       casella di ricerca non perde il punto di scrittura; nomi nuovi e rinomine si scrivono nella
       riga stessa (chiediTesto chiuderebbe il riquadro). Il filtro è quello della barra Pesi. ── */
@@ -329,32 +353,20 @@ function rpeDayControls(g){ const d=dayRpe(g), ld=dayLoad(g);
     `<span class="pill" data-rpe-load="${esc(g)}" title="${t('Carico interno seduta = RPE × min (AU)')}">${ld?nfk(ld)+' AU':'—'}</span></span>`; }
 /* selettori condivisi della barra Pesi (Scheda + Training Set + pulsante 🔥 Riscaldamento/◂ Scheda),
    usati sia dalla vista scheda sia da quella riscaldamento */
-function barSelettori(S){ const fv=tsFiltroGet('pesi'); return `
+function barSelettori(S){ return `
      <div class="field"><label>${t('Scheda')}</label>
        <select id="sched-mode">
          <option value="settimanale"${schedaMode==='settimanale'?' selected':''}>${t('Settimanale')}</option>
          <option value="mensile"${schedaMode==='mensile'?' selected':''}>${t('Mensile')}</option>
        </select></div>
-     ${tsGruppi().length? `<div class="field"><label>${t('Gruppo')}</label>
-       <select id="ts-gruppo" title="${t('Mostra nel menù Training Set solo i set di un gruppo. I gruppi servono a ordinare e cercare i set: non cambiano nessun calcolo')}">${tsOpzioniFiltro(fv, S.setsOrdine)}<optgroup label="${t('Azioni')}"><option value="__gestisci__">${t('Gestisci i gruppi…')}</option></optgroup></select></div>` : ''}
      <div class="field"><label>Training Set</label>
-       <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, cercarle, raggrupparle, rinominarle o eliminarle')}">${tsOpzioni(S.setsOrdine, fv, S.setAttivo)}<optgroup label="${t('Azioni')}"><option value="__new__">${t('Nuovo Training Set…')}</option><option value="__cerca__">${t('Cerca e raggruppa…')}</option><option value="__rename__">${t('Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
+       ${tendinaPulsante('training-set', S.setAttivo, S.setAttivo, tsGruppoDi(S.setAttivo), t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, cercarle, raggrupparle, rinominarle o eliminarle'))}</div>
      <div class="field"><label>${t('Tipo di allenamento')}</label>
        <select id="tipo-allen" title="${t('Tipo di allenamento di questo Training Set: sceglie il riferimento della ragnatela «distribuzione fra i gruppi»')}"><option value="">—</option>${TIPI_ALLEN.map(x=>`<option value="${x}"${S.tipoAllenamento===x?' selected':''}>${esc(t(TIPO_NOME[x]))}</option>`).join('')}</select></div>
      <button class="btn btn--ember" id="btn-warm" title="${t('Apri i riscaldamenti giorno per giorno di questo Training Set')}">${pesiView==='riscaldamento'?(ico('indietro')+t('Scheda')):(ico('fiamma')+t('Riscaldamento'))}</button>`; }
 function wireBarSelettori(){
   const sm=document.getElementById('sched-mode'); if(sm) sm.onchange=e=>{schedaMode=e.target.value; renderAllenamento();};
-  { const ts=document.getElementById('training-set');
-    if(ts) ts.onchange=e=>{ const v=e.target.value; e.target.value=DOC.scheda.setAttivo;  /* le voci Azioni non restano selezionate */
-      if(v==='__new__') nuovoTrainingSetModal();
-      else if(v==='__cerca__') tsGruppiModal();
-      else if(v==='__rename__') rinominaTrainingSet();
-      else if(v==='__delete__') eliminaTrainingSet();
-      else switchTrainingSet(v); }; }
-  { const tg=document.getElementById('ts-gruppo');
-    if(tg) tg.onchange=e=>{ const v=e.target.value;
-      if(v==='__gestisci__'){ e.target.value=tsFiltroGet('pesi'); tsGruppiModal(); return; }
-      tsFiltroSet('pesi', v); renderAllenamento(); }; }
+  tendinaLega(document.getElementById('training-set'), tsTendinaCfg);
   { const ta=document.getElementById('tipo-allen');
     if(ta) ta.onchange=e=>{ const v=e.target.value; if(TIPI_ALLEN.includes(v)) DOC.scheda.tipoAllenamento=v; else delete DOC.scheda.tipoAllenamento;
       persist('scheda'); renderAllenamento(); }; }

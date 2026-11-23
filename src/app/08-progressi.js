@@ -260,17 +260,12 @@ function plateauList(sf){
 /* barra «Dati da analizzare»: Training Set (tutto il percorso o uno solo), periodo e alimentazione */
 function barraSetProgressi(){
   const sets=setDiStorico(), per=progPeriodiAlim(), pv=progPerGet(), av=progAlimGet(), u=(DOC&&DOC.dati_utente)||{};
-  /* gruppi dei Training Set (06-allenamento.js): dividono e filtrano l'elenco qui sotto, i dati no.
-     Un set che c'è solo nello Storico (tolto dalla scheda) sta in «Senza gruppo». */
-  const sv=progSetGet(), gv=tsFiltroGet('prog');
-  const opts=`<option value="__tutti__"${sv==='__tutti__'?' selected':''}>${t('Tutto il percorso')}</option>`+
-    tsOpzioni(sets, gv, sv==='__tutti__'? null : sv);
-  const campoGr=(sets.length && tsGruppi().length)? `<div class="field"><label>${t('Gruppo')}</label>
-      <select id="prog-gruppo" title="${t('Restringe l\'elenco dei Training Set qui accanto ai set di un gruppo. I gruppi non cambiano nessun calcolo: i grafici seguono il Training Set scelto')}">${tsOpzioniFiltro(gv, sets)}</select></div>` : '';
-  const nota=(progSetGet()!=='__tutti__'&&senzaEtichetta())
+  const sv=progSetGet();
+  const nota=(sv!=='__tutti__'&&senzaEtichetta())
     ? `<div class="muted" style="font-size:11.5px;margin:-6px 0 10px">${t('Le settimane salvate prima di questa versione non hanno l\'etichetta del Training Set: si vedono solo in «Tutto il percorso».')}</div>` : '';
+  /* menù a tendina dell'app (04-modal.js), come il Training Set dei Pesi: vedi progTendinaCfg */
   const campoSet=sets.length? `<div class="field"><label>${t('Dati da analizzare')}</label>
-      <select id="prog-set" title="${t('Analizza tutto il percorso oppure un singolo Training Set (es. solo Palestra): utile quando le schede sono molto diverse tra loro')}">${opts}</select></div>` : '';
+      ${tendinaPulsante('prog-set', sv, sv==='__tutti__'? t('Tutto il percorso') : sv, sv==='__tutti__'? '' : tsGruppoDi(sv), t('Analizza tutto il percorso oppure un singolo Training Set (es. solo Palestra): utile quando le schede sono molto diverse tra loro'))}</div>` : '';
   const campoPer=`<div class="field"><label>${t('Periodo')}</label><select id="prog-per" title="${t('Mostra solo le settimane di un periodo: le ultime settimane o mesi da oggi, oppure fra due date')}">`+
     PROG_PERIODI.map(p=>`<option value="${p[0]}"${p[0]===pv?' selected':''}>${t(p[1])}</option>`).join('')+`</select></div>`+
     (pv==='date'? `<div class="field"><label>${t('Dal')}</label><input type="date" id="prog-per-da" value="${esc(u.progPerDa||'')}"></div>`+
@@ -281,13 +276,23 @@ function barraSetProgressi(){
     `<optgroup label="${esc(t('Fase'))}">${['bulk','mant','cut'].filter(f=>per.some(p=>p.fase===f)).map(f=>`<option value="${f}"${av===f?' selected':''}>${esc(t(FASE_LAB[f]||f))}</option>`).join('')}</optgroup>`+
     `<optgroup label="${esc(t('Un solo periodo'))}">${per.slice().sort((a,b)=>String(a.dal).localeCompare(String(b.dal))).map(p=>`<option value="p:${esc(p.id)}"${av==='p:'+p.id?' selected':''}>${esc(t(FASE_LAB[p.fase]||p.fase))} · ${ggmmaa(p.dal)} → ${p.al? ggmmaa(p.al) : t('in corso')}</option>`).join('')}</optgroup>`+
     `</select></div>` : '';
-  return `<div class="bar no-print prog-filtri">${campoGr}${campoSet}${campoPer}${campoAlim}<div class="spacer"></div></div>${nota}`;
+  return `<div class="bar no-print prog-filtri">${campoSet}${campoPer}${campoAlim}<div class="spacer"></div></div>${nota}`;
 }
+/* «Dati da analizzare»: in cima «Tutto il percorso», poi i set divisi per gruppo (06-allenamento.js)
+   con le settimane salvate di ognuno. I bottoni dei gruppi restringono solo l'elenco, non i dati; un
+   set che c'è solo nello Storico (tolto dalla scheda) sta in «Senza gruppo». */
+function progTendinaCfg(){ const sets=setDiStorico(), sett={};
+  (DOC.storico||[]).forEach(r=>{ const n=String((r&&r.set)||'').trim(); if(n) (sett[n]=sett[n]||new Set()).add(+r.scheda); });
+  return { scelto:progSetGet(), testa:[{v:'__tutti__', lab:t('Tutto il percorso')}], cerca:{ph:t('Cerca un Training Set…')},
+    gruppi:()=>tsGruppi().length? {valore:tsFiltroGet('prog'), voci:tsVociFiltro(sets, tsFiltroGet('prog'))} : null,
+    onGruppo:v=>{ tsFiltroSet('prog', v); },
+    blocchi:q=>tsBlocchiTendina(sets, tsFiltroGet('prog'), q, n=>sett[n]? sett[n].size+' '+t('sett.') : ''),
+    vuoto:tsVuotoTendina,
+    onScegli:v=>{ progSetSet(v); progEx=null; renderProgressi(); } }; }
 /* i comandi della barra (anche nella pagina vuota, così si può cambiare la scelta) */
 function bindFiltriProgressi(){
   const q=id=>document.getElementById(id);
-  if(q('prog-gruppo')) q('prog-gruppo').onchange=e=>{ tsFiltroSet('prog', e.target.value); renderProgressi(); };
-  if(q('prog-set')) q('prog-set').onchange=e=>{ progSetSet(e.target.value); progEx=null; renderProgressi(); };
+  tendinaLega(q('prog-set'), progTendinaCfg);
   if(q('prog-per')) q('prog-per').onchange=e=>{ progFiltroSalva('progPer', e.target.value==='tutto'? null : e.target.value); renderProgressi(); };
   if(q('prog-per-da')) q('prog-per-da').onchange=e=>{ progFiltroSalva('progPerDa', e.target.value); renderProgressi(); };
   if(q('prog-per-a')) q('prog-per-a').onchange=e=>{ progFiltroSalva('progPerA', e.target.value); renderProgressi(); };

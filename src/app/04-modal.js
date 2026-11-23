@@ -158,4 +158,110 @@ function chiediTesto(titolo, valore, cb){
   i.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); conferma(); } };
   setTimeout(()=>{ try{ i.focus(); i.select(); }catch(e){} },0);
 }
+/* ── MENÙ A TENDINA IN STILE APP (2026-11-23, Marco: «migliora lo stile del menù a tendina che
+      appare quando si clicca sui Training Set») ─────────────────────────────────────────────
+   Un <select> aperto mostra l'elenco di Windows: fondo bianco anche di notte, carattere di sistema,
+   gruppi in grassetto, azioni mescolate alle scelte, e il CSS non lo raggiunge. Qui c'è un pulsante
+   che sembra un campo come gli altri e, al clic, un riquadro dell'app appena sotto: casella di
+   ricerca, gruppi a bottoni («Tutti · Palestra 4 · …»), le voci divise per gruppo con la spunta su
+   quella scelta e una nota a destra, e in fondo, separate, le azioni. Da tastiera: freccia giù sul
+   pulsante apre; nel riquadro frecce su/giù, Invio sceglie (con una ricerca scritta, la prima voce
+   trovata), Esc chiude. Un solo riquadro per volta (#tnd-pop nel body, position:fixed sotto il
+   pulsante, o sopra se sotto non c'è posto); si chiude cliccando fuori, scorrendo la pagina o
+   ridimensionando la finestra.
+   cfg (la ricrea chi apre, a ogni apertura):
+     scelto          valore con la spunta
+     testa           [{v,lab,info}] voci in cima, fuori dai gruppi (es. «Tutto il percorso»)
+     blocchi(cerca)  → [{titolo|null, voci:[{v,lab,info}]}] le voci già filtrate (titolo null = senza intestazione)
+     gruppi()        → null | {valore, voci:[{v,lab,n}]} i bottoni dei gruppi; onGruppo(v) quando se ne sceglie uno
+     cerca           {ph} | null — la casella di ricerca
+     vuoto(cerca)    testo quando non c'è nessuna voce
+     azioni          [{v,lab,ico,pericolo}]
+     onScegli(v)     dopo la chiusura del riquadro */
+let _tnd=null;
+function tendinaPulsante(id, valore, testo, nota, titolo){
+  return `<button type="button" class="tnd" id="${id}" value="${esc(valore)}" aria-haspopup="listbox" aria-expanded="false"${titolo?` title="${esc(titolo)}"`:''}>`+
+    `<span class="tnd__val">${esc(testo)}</span>${nota?`<span class="tnd__nota">${esc(nota)}</span>`:''}${ico('giu','p')}</button>`; }
+/* collega il pulsante al suo riquadro; cfgFn() costruisce la configurazione al momento del clic */
+function tendinaLega(btn, cfgFn){
+  if(_tnd && !document.contains(_tnd.btn)) tendinaChiudi(false);   /* il pulsante è stato ridisegnato: via il riquadro rimasto orfano */
+  if(!btn) return;
+  btn.onclick=()=>{ if(_tnd && _tnd.btn===btn){ tendinaChiudi(true); return; } tendinaApri(btn, cfgFn()); };
+  btn.onkeydown=e=>{ if(e.key==='ArrowDown' && !(_tnd && _tnd.btn===btn)){ e.preventDefault(); tendinaApri(btn, cfgFn()); } };
+}
+function tendinaApri(btn, cfg){
+  tendinaChiudi(false);
+  const pop=document.createElement('div'); pop.id='tnd-pop'; pop.className='tnd-pop'; pop.setAttribute('role','dialog');
+  pop.innerHTML=(cfg.cerca? `<div class="tnd-cerca"><input type="search" autocomplete="off" spellcheck="false" placeholder="${esc(cfg.cerca.ph)}" aria-label="${esc(cfg.cerca.ph)}"></div>` : '')+
+    `<div class="tnd-chips" hidden></div><div class="tnd-lista" role="listbox"></div><div class="tnd-azioni" hidden></div>`;
+  document.body.appendChild(pop);
+  _tnd={btn, cfg, pop, cerca:'', att:-1};
+  btn.setAttribute('aria-expanded','true'); btn.classList.add('is-aperto');
+  _tndDisegna(); _tndPosiziona();
+  pop.onkeydown=_tndTasti;
+  pop.addEventListener('focusout', e=>{ if(_tnd && _tnd.pop===pop && e.relatedTarget && !pop.contains(e.relatedTarget) && e.relatedTarget!==btn) tendinaChiudi(false); });
+  const inp=pop.querySelector('.tnd-cerca input');
+  if(inp) inp.oninput=()=>{ if(!_tnd) return; _tnd.cerca=inp.value; _tnd.att=-1; _tndDisegna(); };
+  try{ (inp||pop.querySelector('[data-tnd-v]')||pop).focus({preventScroll:true}); }catch(e){}
+  document.addEventListener('mousedown', _tndFuori, true);
+  document.addEventListener('scroll', _tndScorre, true);
+  window.addEventListener('resize', _tndRidim);
+}
+function tendinaChiudi(fuoco){
+  const T=_tnd; if(!T) return; _tnd=null;
+  document.removeEventListener('mousedown', _tndFuori, true);
+  document.removeEventListener('scroll', _tndScorre, true);
+  window.removeEventListener('resize', _tndRidim);
+  try{ T.pop.remove(); }catch(e){}
+  if(T.btn && document.contains(T.btn)){ T.btn.setAttribute('aria-expanded','false'); T.btn.classList.remove('is-aperto');
+    if(fuoco){ try{ T.btn.focus({preventScroll:true}); }catch(e){} } }
+}
+function _tndFuori(e){ const T=_tnd; if(!T || T.pop.contains(e.target) || T.btn.contains(e.target)) return; tendinaChiudi(false); }
+function _tndScorre(e){ const T=_tnd; if(T && !(e.target && e.target.nodeType===1 && T.pop.contains(e.target))) tendinaChiudi(false); }
+function _tndRidim(){ tendinaChiudi(false); }
+function _tndPosiziona(){
+  const T=_tnd; if(!T) return; const r=T.btn.getBoundingClientRect(), p=T.pop, H=window.innerHeight, W=window.innerWidth;
+  p.style.minWidth=Math.max(r.width, 280)+'px';
+  const w=p.offsetWidth||Math.max(r.width,280);
+  p.style.left=Math.max(8, Math.min(r.left, W-w-8))+'px';
+  const sotto=H-r.bottom-14, sopra=r.top-14;
+  if(sotto>=280 || sotto>=sopra){ p.style.top=(r.bottom+4)+'px'; p.style.bottom=''; p.style.maxHeight=Math.max(180,sotto)+'px'; }
+  else { p.style.bottom=(H-r.top+4)+'px'; p.style.top=''; p.style.maxHeight=Math.max(180,sopra)+'px'; }
+}
+function _tndVoce(x, scelto, cls){
+  const sel=x.v===scelto;
+  return `<button type="button" class="tnd-voce${sel?' is-sel':''}${cls?' '+cls:''}" role="option" aria-selected="${sel}" data-tnd-v="${esc(x.v)}">`+
+    `${sel? ico('check','p') : '<span class="tnd-spazio"></span>'}<span class="tnd-nome">${esc(x.lab)}</span>${x.info?`<span class="tnd-info">${esc(x.info)}</span>`:''}</button>`; }
+function _tndDisegna(){
+  const T=_tnd; if(!T) return; const c=T.cfg, P=T.pop;
+  const chips=P.querySelector('.tnd-chips'), lista=P.querySelector('.tnd-lista'), az=P.querySelector('.tnd-azioni');
+  const g=c.gruppi? c.gruppi() : null;
+  chips.hidden=!g;
+  chips.innerHTML=g? g.voci.map(x=>`<button type="button" class="tnd-chip${x.v===g.valore?' is-on':''}" aria-pressed="${x.v===g.valore}" data-tnd-gr="${esc(x.v)}">${esc(x.lab)}<span>${x.n}</span></button>`).join('') : '';
+  const bl=c.blocchi(T.cerca);
+  let h=(c.testa||[]).map(x=>_tndVoce(x, c.scelto, 'tnd-testa')).join('');
+  bl.forEach(b=>{ if(!b.voci.length) return;
+    if(b.titolo) h+=`<div class="tnd-gr" role="presentation"><span class="tnd-gr__nome">${esc(b.titolo)}</span><span>${b.voci.length}</span></div>`;
+    h+=b.voci.map(x=>_tndVoce(x, c.scelto)).join(''); });
+  if(!bl.some(b=>b.voci.length)) h+=`<div class="tnd-vuoto">${esc(c.vuoto? c.vuoto(T.cerca) : '')}</div>`;
+  lista.innerHTML=h;
+  const A=c.azioni||[]; az.hidden=!A.length;
+  az.innerHTML=A.map(a=>`<button type="button" class="tnd-voce tnd-az${a.pericolo?' tnd-az--pericolo':''}" data-tnd-v="${esc(a.v)}">${ico(a.ico||'avanti','p')}<span class="tnd-nome">${esc(a.lab)}</span></button>`).join('');
+  P.querySelectorAll('[data-tnd-v]').forEach(b=>{ b.onclick=()=>_tndScegli(b.dataset.tndV); });
+  chips.querySelectorAll('[data-tnd-gr]').forEach(b=>{ b.onclick=()=>{ if(!_tnd) return; c.onGruppo(b.dataset.tndGr); _tnd.att=-1; _tndDisegna();
+    const inp=P.querySelector('.tnd-cerca input'); try{ (inp||b).focus({preventScroll:true}); }catch(e){} }; });
+}
+function _tndScegli(v){ const T=_tnd; if(!T) return; tendinaChiudi(true); try{ T.cfg.onScegli(v); }catch(e){ logErrore('tendina', e); } }
+function _tndTasti(e){
+  const T=_tnd; if(!T) return;
+  if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); tendinaChiudi(true); return; }
+  const voci=[...T.pop.querySelectorAll('[data-tnd-v]')];
+  if(e.key==='ArrowDown' || e.key==='ArrowUp'){ e.preventDefault(); if(!voci.length) return;
+    T.att=e.key==='ArrowDown'? (T.att+1)%voci.length : (T.att<=0? voci.length-1 : T.att-1);
+    voci.forEach((b,i)=>b.classList.toggle('is-att', i===T.att));
+    try{ voci[T.att].scrollIntoView({block:'nearest'}); }catch(_){} return; }
+  if(e.key==='Enter' && e.target && e.target.matches && e.target.matches('.tnd-cerca input')){ e.preventDefault();
+    const b=voci[T.att] || (T.cerca.trim()? T.pop.querySelector('.tnd-lista [data-tnd-v]:not(.tnd-testa)') : null);
+    if(b) _tndScegli(b.dataset.tndV); }
+}
 

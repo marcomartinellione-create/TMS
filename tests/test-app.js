@@ -935,7 +935,9 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     w.eval('DOC.storico.pop()');
     w.eval('progSetSet("Palestra"); showTab("progressi");');
     ok(d.getElementById('prog-set') !== null && d.getElementById('prog-set').value === 'Palestra', 'Progressi/filtro: selettore in pagina con il set attivo selezionato');
-    ok(d.getElementById('panel-progressi').textContent.includes('Tutto il percorso'), 'Progressi/filtro: tra le opzioni c\'è «Tutto il percorso»');
+    d.getElementById('prog-set').click();
+    ok(d.querySelector('#tnd-pop .tnd-testa[data-tnd-v="__tutti__"]') !== null && d.getElementById('tnd-pop').textContent.includes('Tutto il percorso'), 'Progressi/filtro: tra le scelte del menù c\'è «Tutto il percorso»');
+    w.eval('tendinaChiudi(false)');
     /* i MASSIMALI non seguono il filtro: un record è un record (richiesta di Marco) */
     { const valori=[...d.querySelectorAll('#panel-progressi .pr-card .pr-val')].map(e=>e.textContent.trim());
       const conDati=valori.filter(v=>v && !v.startsWith('—')).length;
@@ -1695,19 +1697,20 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   w.eval('creaTrainingSet("Vuota","__vuota__")');
   ok(w.eval('DOC.scheda.setAttivo') === 'Vuota' && w.eval('DOC.scheda.settimanale.length') === 0, 'Training Set: «Scheda vuota» crea un set senza esercizi');
   ok(w.eval('DOC.scheda.setsOrdine.length') === 2 && w.eval('!!DOC.scheda.setsSalvati["Casa"]') === true, 'Training Set: due set totali (Casa salvato, Vuota attivo)');
-  /* la barra Pesi mostra il selettore Training Set con le AZIONI dentro il menù (niente bottoni separati) */
+  /* la barra Pesi mostra il menù Training Set (in stile app) con le AZIONI dentro il riquadro (niente bottoni separati) */
   w.eval('showTab("allenamento")');
-  ok(d.getElementById('training-set') !== null && d.getElementById('ts-new') === null && d.getElementById('ts-del') === null, 'Training Set: solo il selettore nella barra (niente bottoni separati)');
-  { const opts = [...d.getElementById('training-set').options].map(o=>o.value);
-    ok(opts.includes('Casa') && opts.includes('__new__') && opts.includes('__rename__') && opts.includes('__delete__'), 'Training Set: le azioni (Nuovo/Rinomina/Elimina) sono opzioni dentro il menù a tendina');
-    ok(d.querySelector('#training-set optgroup') !== null, 'Training Set: le azioni sono in un gruppo «Azioni» separato'); }
-  ok(d.getElementById('training-set').value === 'Vuota', 'Training Set: il selettore ha l\'attivo selezionato (Vuota)');
-  /* scegliere «➕ Nuovo…» dal menù apre il modale, e la voce Azione non resta selezionata */
-  w.eval('var _sel=document.getElementById("training-set"); _sel.value="__new__"; _sel.onchange({target:_sel});');
-  ok(d.getElementById('ts-nome') !== null && w.eval('document.getElementById("training-set").value') === 'Vuota', 'Training Set: «➕ Nuovo…» apre il modale e il selettore torna sull\'attivo');
+  ok(d.getElementById('training-set') !== null && d.getElementById('training-set').tagName === 'BUTTON' && d.getElementById('ts-new') === null && d.getElementById('ts-del') === null, 'Training Set: solo il menù nella barra (niente bottoni separati)');
+  ok(d.getElementById('training-set').value === 'Vuota' && d.querySelector('#training-set .tnd__val').textContent === 'Vuota', 'Training Set: il menù mostra il set attivo (Vuota)');
+  d.getElementById('training-set').click();
+  { const voci = [...d.querySelectorAll('#tnd-pop .tnd-lista [data-tnd-v]')].map(b => b.dataset.tndV), az = [...d.querySelectorAll('#tnd-pop .tnd-azioni [data-tnd-v]')].map(b => b.dataset.tndV);
+    ok(voci.join('|') === 'Casa|Vuota' && d.querySelector('#tnd-pop .tnd-voce.is-sel').dataset.tndV === 'Vuota', 'Training Set: al clic il riquadro elenca i set, con la spunta su quello attivo');
+    ok(['__new__', '__cerca__', '__rename__', '__delete__'].every(v => az.includes(v)) && !voci.some(v => v.startsWith('__')), 'Training Set: le azioni (Nuovo, Gestisci i gruppi, Rinomina, Elimina) stanno in fondo, separate dai set'); }
+  /* scegliere «Nuovo…» dal menù apre il modale e chiude il riquadro */
+  d.querySelector('#tnd-pop [data-tnd-v="__new__"]').click();
+  ok(d.getElementById('ts-nome') !== null && d.getElementById('tnd-pop') === null && w.eval('DOC.scheda.setAttivo') === 'Vuota', 'Training Set: «Nuovo…» apre il modale e chiude il menù');
   w.eval('closeModal();');
   /* scegliere un set dal menù lo attiva */
-  w.eval('var _s2=document.getElementById("training-set"); _s2.value="Casa"; _s2.onchange({target:_s2});');
+  d.getElementById('training-set').click(); d.querySelector('#tnd-pop [data-tnd-v="Casa"]').click();
   ok(w.eval('DOC.scheda.setAttivo') === 'Casa', 'Training Set: scegliere un set dal menù lo attiva');
   /* Riscaldamento — vista alternativa per Training Set (giorni dalla scheda), fuori dai calcoli */
   w.eval('pesiView="scheda"; showTab("allenamento");');
@@ -3479,11 +3482,15 @@ console.log('--- T15: gruppi di Training Set (solo per ordinare, filtrare e cerc
   ok(canon(JSON.parse(w.eval('JSON.stringify(DOC.scheda)'))) === canon(schedaVecchia) && canon(JSON.parse(fsmem._files.get('TMS_Dati/anna/scheda.json'))) === canon(schedaVecchia),
      'gruppi/profilo vecchio: si apre identico (in memoria e su disco, nessun campo nuovo)');
   ok(w.eval('tsGruppi().length') === 0 && w.eval('JSON.stringify(tsPerGruppo(ensureSets().setsOrdine))') === J([{ gruppo: '', nomi: ['Palestra', 'Casa'] }]), 'gruppi/profilo vecchio: tutti i set stanno in «Senza gruppo»');
-  ok(d.getElementById('ts-gruppo') === null && d.querySelectorAll('#training-set optgroup').length === 1 && [...d.getElementById('training-set').options].map(o => o.value).slice(0, 2).join('|') === 'Palestra|Casa',
-     'gruppi/profilo vecchio: barra Pesi come prima (niente menù Gruppo, set in fila, solo il gruppo Azioni)');
-  ok([...d.getElementById('training-set').options].some(o => o.value === '__cerca__'), 'gruppi: «Cerca e raggruppa…» tra le azioni del menù Training Set');
-  w.eval('showTab("progressi")');
-  ok(d.getElementById('prog-gruppo') === null && d.getElementById('prog-set') !== null && d.querySelectorAll('#prog-set optgroup').length === 0, 'gruppi/profilo vecchio: nei Progressi niente menù Gruppo, set in fila');
+  d.getElementById('training-set').click();
+  ok(d.querySelector('#tnd-pop .tnd-chips').hidden === true && d.querySelectorAll('#tnd-pop .tnd-gr').length === 0 && [...d.querySelectorAll('#tnd-pop .tnd-lista [data-tnd-v]')].map(b => b.dataset.tndV).join('|') === 'Palestra|Casa' &&
+     d.querySelector('#training-set .tnd__nota') === null, 'gruppi/profilo vecchio: il menù Training Set mostra i set in fila, senza bottoni né intestazioni di gruppo');
+  ok(d.querySelector('#tnd-pop .tnd-azioni [data-tnd-v="__cerca__"]') !== null, 'gruppi: «Gestisci i gruppi…» tra le azioni del menù Training Set');
+  w.eval('tendinaChiudi(false); showTab("progressi")');
+  d.getElementById('prog-set').click();
+  ok(d.querySelector('#tnd-pop .tnd-chips').hidden === true && d.querySelectorAll('#tnd-pop .tnd-gr').length === 0 && [...d.querySelectorAll('#tnd-pop .tnd-lista [data-tnd-v]')].map(b => b.dataset.tndV).join('|') === '__tutti__|Casa|Palestra',
+     'gruppi/profilo vecchio: nei Progressi «Tutto il percorso» e i set in fila, senza gruppi');
+  w.eval('tendinaChiudi(false)');
   /* dati scritti a mano: elenco ripulito, gruppi usati ma non elencati aggiunti, idempotente */
   w.eval('DOC.scheda.setsGruppi=["  A ","A","",null]; DOC.scheda.setsSalvati.Casa.gruppo="  B  "; DOC.scheda.gruppo="   "; ensureSets();');
   ok(w.eval('JSON.stringify(DOC.scheda.setsGruppi)') === '["A","B"]' && w.eval('DOC.scheda.setsSalvati.Casa.gruppo') === 'B' && w.eval('"gruppo" in DOC.scheda') === false && w.eval('JSON.stringify(ensureSets().setsGruppi)') === '["A","B"]',
@@ -3541,38 +3548,75 @@ console.log('--- T15: gruppi di Training Set (solo per ordinare, filtrare e cerc
   E('tsFiltroSet("pesi","Corpo libero"); tsFiltroSet("prog","Corpo libero");');
   ok(E('__calcoli()') === calc0 && vedi() === vista0, 'gruppi/calcoli: anche col filtro per gruppo acceso (Pesi e Progressi) i numeri non cambiano');
   ok(E('JSON.stringify(costruisciSchedaJSON({},true))') === tel0, 'gruppi/telefono: la scheda che va al telefono è identica (il gruppo non ci va)');
-  /* 3 · filtro e ricerca nella barra Pesi */
+  /* 3 · il menù Training Set della barra Pesi (menù a tendina dell'app): gruppi a bottoni, set divisi
+     per gruppo con la spunta su quello aperto, ricerca, tastiera, chiusura, azioni */
+  const voci = () => [...d.querySelectorAll('#tnd-pop .tnd-lista [data-tnd-v]')].map(b => b.dataset.tndV).join('|');
+  const grTit = () => [...d.querySelectorAll('#tnd-pop .tnd-gr__nome')].map(x => x.textContent).join('|');
   E('showTab("allenamento")');
-  { const tg = d.getElementById('ts-gruppo');
-    ok(tg !== null && [...tg.options].map(o => o.value).join('|') === '__tutti__|Palestra|Corpo libero|__senza__|__gestisci__' && tg.value === 'Corpo libero' && /\(1\)$/.test(tg.selectedOptions[0].textContent),
-       'gruppi/filtro: nella barra Pesi il menù Gruppo (Tutti, i gruppi col numero di set, Senza gruppo, Gestisci) col filtro scelto');
-    ok([...d.querySelectorAll('#training-set option')].map(o => o.value).filter(v => !v.startsWith('__')).join('|') === 'Ipertrofia B|Casa · manubri' &&
-       [...d.querySelectorAll('#training-set optgroup')].map(g => g.label).join('|') === 'Palestra|Corpo libero|Azioni',
-       'gruppi/filtro «Corpo libero»: il menù Training Set mostra i suoi set (più quello aperto), divisi per gruppo');
-    ok(d.getElementById('training-set').value === 'Ipertrofia B', 'gruppi/filtro: il set aperto resta scelto anche se il filtro lo esclude');
-    tg.value = '__tutti__'; tg.onchange({ target: tg }); }
-  ok(E('tsFiltroGet("pesi")') === '__tutti__' && [...d.querySelectorAll('#training-set option')].filter(o => !o.value.startsWith('__')).map(o => o.value).join('|') === 'Ipertrofia A|Forza|Powerlifting|Ipertrofia B|Casa · manubri',
-     'gruppi/filtro «Tutti»: tornano tutti e cinque i set, raggruppati');
-  { const tg = d.getElementById('ts-gruppo'); tg.value = '__gestisci__'; tg.onchange({ target: tg }); }
-  ok(d.getElementById('tsm-lista') !== null && d.getElementById('ts-gruppo').value === '__tutti__', 'gruppi: «Gestisci i gruppi…» apre il riquadro e il menù Gruppo resta sul filtro');
+  ok(d.getElementById('training-set').tagName === 'BUTTON' && d.querySelector('#training-set .tnd__val').textContent === 'Ipertrofia B' && d.querySelector('#training-set .tnd__nota').textContent === 'Palestra' && d.getElementById('ts-gruppo') === null,
+     'menù Training Set: un pulsante col set aperto e il suo gruppo (niente menù Gruppo a parte)');
+  d.getElementById('training-set').click();
+  { const pop = d.getElementById('tnd-pop'), chips = [...pop.querySelectorAll('[data-tnd-gr]')];
+    ok(pop !== null && d.getElementById('training-set').getAttribute('aria-expanded') === 'true', 'menù Training Set: al clic si apre il riquadro dell\'app');
+    ok(chips.map(b => b.dataset.tndGr).join('|') === '__tutti__|Palestra|Corpo libero' && pop.querySelector('[data-tnd-gr].is-on').dataset.tndGr === 'Corpo libero' && chips[1].textContent === 'Palestra4',
+       'menù Training Set: in cima i bottoni dei gruppi col numero di set (Senza gruppo, vuoto, non c\'è), acceso quello filtrato');
+    ok(voci() === 'Casa · manubri' && grTit() === 'Corpo libero', 'menù Training Set: col filtro «Corpo libero» solo i suoi set, sotto il nome del gruppo');
+    pop.querySelector('[data-tnd-gr="__tutti__"]').click(); }
+  ok(E('tsFiltroGet("pesi")') === '__tutti__' && voci() === 'Ipertrofia A|Forza|Powerlifting|Ipertrofia B|Casa · manubri' && grTit() === 'Palestra|Corpo libero',
+     'menù Training Set: con «Tutti» tornano tutti e cinque i set, divisi per gruppo');
+  ok(d.querySelector('#tnd-pop .tnd-voce.is-sel').dataset.tndV === 'Ipertrofia B' && d.querySelector('#tnd-pop [data-tnd-v="Forza"] .tnd-info').textContent === 'Forza',
+     'menù Training Set: spunta sul set aperto e tipo di allenamento accanto a ogni set');
+  ok([...d.querySelectorAll('#tnd-pop .tnd-azioni [data-tnd-v]')].map(b => b.dataset.tndV).join('|') === '__new__|__cerca__|__rename__|__delete__' && d.querySelector('#tnd-pop [data-tnd-v="__delete__"]').classList.contains('tnd-az--pericolo'),
+     'menù Training Set: in fondo le azioni, Elimina in rosso');
+  { const ce = d.querySelector('#tnd-pop .tnd-cerca input');
+    ok(d.activeElement === ce, 'menù Training Set: aperto, si può scrivere subito nella ricerca');
+    ce.value = 'iper'; ce.dispatchEvent(new w.Event('input'));
+    ok(voci() === 'Ipertrofia A|Ipertrofia B', 'menù Training Set: la ricerca restringe l\'elenco, in tutti i gruppi');
+    d.querySelector('#tnd-pop [data-tnd-gr="Corpo libero"]').click();
+    ok(voci() === '' && /Nessun Training Set con questo nome/.test(d.getElementById('tnd-pop').textContent) && d.activeElement === ce, 'menù Training Set: dentro un gruppo cerca solo lì (e la casella resta pronta)');
+    ce.value = 'MANUBRI'; ce.dispatchEvent(new w.Event('input'));
+    ok(voci() === 'Casa · manubri', 'menù Training Set: senza badare alle maiuscole');
+    ce.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); }
+  ok(E('DOC.scheda.setAttivo') === 'Casa · manubri' && d.getElementById('tnd-pop') === null, 'menù Training Set: Invio apre il set trovato e chiude il riquadro');
+  E('switchTrainingSet("Ipertrofia B"); tsFiltroSet("pesi","__tutti__"); renderAllenamento();');
+  d.getElementById('training-set').click();
+  { const k = key => d.querySelector('#tnd-pop .tnd-cerca input').dispatchEvent(new w.KeyboardEvent('keydown', { key, bubbles: true }));
+    k('ArrowDown'); k('ArrowDown');
+    ok(d.querySelector('#tnd-pop .is-att') !== null && d.querySelector('#tnd-pop .is-att').dataset.tndV === 'Forza', 'menù Training Set: le frecce scorrono le voci');
+    k('Escape');
+    ok(d.getElementById('tnd-pop') === null && d.activeElement === d.getElementById('training-set') && E('DOC.scheda.setAttivo') === 'Ipertrofia B', 'menù Training Set: Esc chiude senza cambiare e torna sul pulsante'); }
+  d.getElementById('training-set').click();
+  d.body.dispatchEvent(new w.MouseEvent('mousedown', { bubbles: true }));
+  ok(d.getElementById('tnd-pop') === null, 'menù Training Set: un clic fuori lo chiude');
+  d.getElementById('training-set').click(); d.getElementById('training-set').click();
+  ok(d.getElementById('tnd-pop') === null && d.getElementById('training-set').getAttribute('aria-expanded') === 'false', 'menù Training Set: un secondo clic sul pulsante lo chiude');
+  d.getElementById('training-set').click(); E('renderAllenamento()');
+  ok(d.getElementById('tnd-pop') === null, 'menù Training Set: se la barra si ridisegna il riquadro non resta appeso');
+  d.getElementById('training-set').click(); d.querySelector('#tnd-pop [data-tnd-v="__cerca__"]').click();
+  ok(d.getElementById('tsm-lista') !== null && d.getElementById('tnd-pop') === null, 'menù Training Set: «Gestisci i gruppi…» apre il riquadro dei gruppi');
   E('closeModal()');
-  ok(typeof E('EN[document.getElementById("training-set").title]') === 'string' && typeof E('EN[document.getElementById("ts-gruppo").title]') === 'string' && E('EN["Senza gruppo"]') === 'No group',
-     'EN: i testi dei menù Training Set e Gruppo hanno la traduzione');
+  ok(typeof E('EN[document.getElementById("training-set").title]') === 'string' && E('EN["Cerca un Training Set…"]') === 'Search a Training Set…' && E('EN["Senza gruppo"]') === 'No group',
+     'EN: i testi del menù Training Set hanno la traduzione');
   ok(E('JSON.stringify(tsPerGruppo(ensureSets().setsOrdine,{cerca:"iper"}))') === J2([{ gruppo: 'Palestra', nomi: ['Ipertrofia A', 'Ipertrofia B'] }]), 'gruppi/ricerca: «iper» trova i set in tutti i gruppi');
   ok(E('tsPerGruppo(ensureSets().setsOrdine,{cerca:"iper",filtro:"Corpo libero"}).length') === 0 && E('tsPerGruppo(ensureSets().setsOrdine,{cerca:"MANUBRI",filtro:"Corpo libero"})[0].nomi.join()') === 'Casa · manubri',
      'gruppi/ricerca: dentro un gruppo cerca solo lì, senza badare alle maiuscole');
   ok(E('tsPerGruppo(ensureSets().setsOrdine,{cerca:"IPERTRÒFIA  b"})[0].nomi.join()') === 'Ipertrofia B', 'gruppi/ricerca: più parole, accenti e spazi doppi');
   ok(E('tsPerGruppo(ensureSets().setsOrdine,{filtro:"__senza__"}).length') === 0, 'gruppi/filtro «Senza gruppo»: vuoto quando ogni set ha il suo gruppo');
-  /* 4 · Progressi: il menù Gruppo restringe l'elenco, i dati analizzati no */
+  /* 4 · Progressi: «Dati da analizzare» è lo stesso menù; i gruppi restringono l'elenco, i dati analizzati no */
   E('tsFiltroSet("prog","Corpo libero"); progSetSet("Forza"); showTab("progressi");');
-  { const pg = d.getElementById('prog-gruppo'), ps = d.getElementById('prog-set');
-    ok(pg !== null && pg.value === 'Corpo libero' && [...ps.options].map(o => o.value).join('|') === '__tutti__|Forza|Casa · manubri' && ps.value === 'Forza',
-       'gruppi/Progressi: il menù Gruppo restringe «Dati da analizzare» (il set scelto resta, anche fuori dal gruppo)');
+  ok(d.getElementById('prog-set').tagName === 'BUTTON' && d.getElementById('prog-set').value === 'Forza' && d.querySelector('#prog-set .tnd__val').textContent === 'Forza' && d.getElementById('prog-gruppo') === null,
+     'Progressi: «Dati da analizzare» è il menù dell\'app, col set scelto');
+  d.getElementById('prog-set').click();
+  { const pop = d.getElementById('tnd-pop');
+    ok(voci() === '__tutti__|Casa · manubri' && pop.querySelector('[data-tnd-gr].is-on').dataset.tndGr === 'Corpo libero', 'Progressi: col gruppo «Corpo libero» l\'elenco mostra «Tutto il percorso» e i suoi set');
     const agPrima = E('JSON.stringify(schedeAggr(progSetGet()))');
-    pg.value = 'Palestra'; pg.onchange({ target: pg });
-    ok(E('progSetGet()') === 'Forza' && E('JSON.stringify(schedeAggr(progSetGet()))') === agPrima, 'gruppi/Progressi: cambiare gruppo non cambia i dati analizzati');
-    const pg2 = d.getElementById('prog-gruppo'); pg2.value = '__tutti__'; pg2.onchange({ target: pg2 });
-    ok([...d.querySelectorAll('#prog-set optgroup')].map(g => g.label).join('|') === 'Palestra|Corpo libero' && E('tsFiltroGet("prog")') === '__tutti__', 'gruppi/Progressi: con «Tutti» i set sono divisi per gruppo'); }
+    pop.querySelector('[data-tnd-gr="Palestra"]').click();
+    ok(E('progSetGet()') === 'Forza' && E('JSON.stringify(schedeAggr(progSetGet()))') === agPrima && d.getElementById('tnd-pop') === pop, 'Progressi: cambiare gruppo non cambia i dati analizzati (e il menù resta aperto)');
+    ok(/^\d+ sett\.$/.test(pop.querySelector('[data-tnd-v="Forza"] .tnd-info').textContent) && pop.querySelector('.tnd-voce.is-sel').dataset.tndV === 'Forza', 'Progressi: spunta sul set scelto e le sue settimane salvate accanto');
+    pop.querySelector('[data-tnd-gr="__tutti__"]').click();
+    ok(grTit() === 'Palestra|Corpo libero' && E('tsFiltroGet("prog")') === '__tutti__', 'Progressi: con «Tutti» i set sono divisi per gruppo');
+    pop.querySelector('[data-tnd-v="Casa · manubri"]').click(); }
+  ok(E('progSetGet()') === 'Casa · manubri' && d.getElementById('prog-set').value === 'Casa · manubri' && d.getElementById('tnd-pop') === null, 'Progressi: scegliere un set dal menù cambia i dati da analizzare');
   E('progSetSet(' + J2(progSet0) + ')');
   /* 5 · rinomina */
   E('tsFiltroSet("pesi","Palestra")');
@@ -3591,8 +3635,8 @@ console.log('--- T15: gruppi di Training Set (solo per ordinare, filtrare e cerc
   ok(E('__calcoli()') === calc0, 'gruppi/calcoli: identici anche dopo rinomine e rimozioni');
   /* 7 · il riquadro «Training Set e gruppi» */
   E('showTab("allenamento")');
-  { const ts = d.getElementById('training-set'); ts.value = '__cerca__'; ts.onchange({ target: ts }); }
-  ok(d.getElementById('tsm-lista') !== null && d.getElementById('training-set').value === 'Ipertrofia B', '«Cerca e raggruppa…» apre il riquadro e il menù torna sul set aperto');
+  d.getElementById('training-set').click(); d.querySelector('#tnd-pop [data-tnd-v="__cerca__"]').click();
+  ok(d.getElementById('tsm-lista') !== null && d.getElementById('training-set').value === 'Ipertrofia B', '«Gestisci i gruppi…» apre il riquadro; il set aperto non cambia');
   ok([...d.querySelectorAll('#tsm-lista .tsm-gr__tit b')].map(b => b.textContent).join('|') === 'Sala pesi|Senza gruppo' && d.querySelectorAll('#tsm-lista .tsm-riga').length === 5 &&
      d.querySelector('#tsm-lista .tsm-riga.is-att [data-tsm-apri]').dataset.tsmApri === 'Ipertrofia B', 'riquadro gruppi: un blocco per gruppo, cinque set, quello aperto segnato');
   { const ce = d.getElementById('tsm-cerca'); ce.value = 'casa'; ce.oninput();
