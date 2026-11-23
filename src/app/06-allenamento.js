@@ -62,39 +62,130 @@ function tsCopy(o){ try{ return JSON.parse(JSON.stringify(o||[])); }catch(e){ re
    attivo: il TIPO DI ALLENAMENTO viaggia con la sua scheda (Marco, 2026-11-13: l'esperienza
    sta nell'anagrafica, il tipo nella scheda di riferimento) */
 function tsFoto(s){ const f={settimanale:tsCopy(s.settimanale||[]), mensile:tsCopy(s.mensile||[]), riscaldamento:tsCopy(s.riscaldamento||{})};
-  if(TIPI_ALLEN.includes(s.tipoAllenamento)) f.tipoAllenamento=s.tipoAllenamento; return f; }
+  if(TIPI_ALLEN.includes(s.tipoAllenamento)) f.tipoAllenamento=s.tipoAllenamento;
+  const g=tsGruppoNorm(s.gruppo); if(g) f.gruppo=g; return f; }
 function tsCarica(s,src){ src=src||{}; s.settimanale=tsCopy(src.settimanale||[]); s.mensile=tsCopy(src.mensile||[]); s.riscaldamento=tsCopy(src.riscaldamento||{});
-  if(TIPI_ALLEN.includes(src.tipoAllenamento)) s.tipoAllenamento=src.tipoAllenamento; else delete s.tipoAllenamento; }
+  if(TIPI_ALLEN.includes(src.tipoAllenamento)) s.tipoAllenamento=src.tipoAllenamento; else delete s.tipoAllenamento;
+  const g=tsGruppoNorm(src.gruppo); if(g) s.gruppo=g; else delete s.gruppo; }
 function ensureSets(){ const s=DOC.scheda; if(!s||typeof s!=='object') return s;
   if(typeof s.setAttivo!=='string'||!s.setAttivo) s.setAttivo='Base';
   if(!s.setsSalvati||typeof s.setsSalvati!=='object') s.setsSalvati={};
   if(!s.riscaldamento||typeof s.riscaldamento!=='object'||Array.isArray(s.riscaldamento)) s.riscaldamento={};
   let ord=Array.isArray(s.setsOrdine)?s.setsOrdine.filter(n=>n===s.setAttivo||s.setsSalvati[n]):[];
   [s.setAttivo].concat(Object.keys(s.setsSalvati)).forEach(n=>{ if(ord.indexOf(n)<0) ord.push(n); });
-  s.setsOrdine=ord; return s; }
+  s.setsOrdine=ord; tsGruppiPulisci(s); return s; }
+/* ── GRUPPI DI TRAINING SET (2026-11-23, Marco: «raccogliere i Training Set in gruppi, per esempio
+      Palestra e Corpo libero»). Un gruppo è SOLO un'etichetta per ordinare, filtrare e cercare i set:
+      nessun calcolo la legge (1RM, TL, volumi, riferimenti della ragnatela, Progressi, Analisi danno
+      gli stessi numeri con e senza gruppi). In scheda.json:
+        · 'gruppo' dentro ogni set (in DOC.scheda per quello aperto, in setsSalvati[nome] per gli altri),
+          facoltativo: un set senza gruppo sta sotto «Senza gruppo». Viaggia col set nei cambi e nelle
+          copie (tsFoto/tsCarica), come il tipo di allenamento;
+        · 'setsGruppi' = elenco ordinato dei nomi dei gruppi, anche di quelli ancora vuoti (un gruppo
+          si può creare prima di metterci dei set). C'è solo se esiste almeno un gruppo: una scheda che
+          non li usa resta identica, senza migrazioni.
+      Al telefono non va niente: lì arriva solo la scheda del set aperto. ── */
+const TS_TUTTI='__tutti__', TS_SENZA='__senza__';
+function tsGruppoNorm(g){ return String(g==null?'':g).replace(/\s+/g,' ').trim(); }
+function tsGruppi(){ const s=DOC.scheda; return (s && Array.isArray(s.setsGruppi))? s.setsGruppi.slice() : []; }
+function tsOggettiSet(s){ const sv=(s&&s.setsSalvati)||{}; return [s].concat(Object.keys(sv).map(n=>sv[n])).filter(o=>o&&typeof o==='object'); }
+/* elenco pulito (nomi unici e non vuoti) più i gruppi usati dai set ma non elencati; idempotente */
+function tsGruppiPulisci(s){ const el=[], visti=new Set(), metti=g=>{ if(g && !visti.has(g)){ visti.add(g); el.push(g); } };
+  if(Array.isArray(s.setsGruppi)) s.setsGruppi.forEach(g=>metti(tsGruppoNorm(g)));
+  tsOggettiSet(s).forEach(o=>{ if(!('gruppo' in o)) return; const g=tsGruppoNorm(o.gruppo);
+    if(g){ if(o.gruppo!==g) o.gruppo=g; metti(g); } else delete o.gruppo; });
+  if(el.length) s.setsGruppi=el; else delete s.setsGruppi; }
+function tsGruppoDi(nome){ const s=DOC.scheda||{}; const o=(nome===s.setAttivo)? s : (s.setsSalvati||{})[nome];
+  return (o && typeof o==='object' && tsGruppoNorm(o.gruppo)) || ''; }
+/* il gruppo che esiste già con questo nome, senza badare a maiuscole e minuscole ('' se non c'è) */
+function tsGruppoEsistente(g){ g=tsGruppoNorm(g).toLowerCase(); return g? (tsGruppi().find(x=>x.toLowerCase()===g)||'') : ''; }
+/* crea un gruppo (se c'è già, restituisce quello): il nome con cui il gruppo esiste, '' se non valido */
+function tsNuovoGruppo(g){ const s=DOC.scheda; g=tsGruppoNorm(g); if(!g || !s || g===TS_TUTTI || g===TS_SENZA) return '';
+  const c=tsGruppoEsistente(g); if(c) return c; s.setsGruppi=tsGruppi().concat(g); return g; }
+/* mette il set «nome» nel gruppo g, esistente o nuovo; '' = Senza gruppo */
+function tsAssegnaGruppo(nome, g){ const s=ensureSets(); const o=(nome===s.setAttivo)? s : s.setsSalvati[nome]; if(!o) return false;
+  const c=tsGruppoNorm(g)? tsNuovoGruppo(g) : ''; if(c) o.gruppo=c; else delete o.gruppo; return true; }
+/* rinomina un gruppo: i suoi set lo seguono; rifiuta un nome già usato da un altro gruppo */
+function tsRinominaGruppo(vecchio, nuovo){ const s=ensureSets(), el=tsGruppi(); nuovo=tsGruppoNorm(nuovo);
+  if(!nuovo || nuovo===TS_TUTTI || nuovo===TS_SENZA || el.indexOf(vecchio)<0) return false;
+  const c=tsGruppoEsistente(nuovo); if(c && c!==vecchio) return false;
+  s.setsGruppi=el.map(x=>x===vecchio? nuovo : x);
+  tsOggettiSet(s).forEach(o=>{ if(o.gruppo===vecchio) o.gruppo=nuovo; });
+  Object.keys(_tsFiltro).forEach(k=>{ if(_tsFiltro[k] && _tsFiltro[k].valore===vecchio) _tsFiltro[k].valore=nuovo; });
+  return true; }
+/* toglie un gruppo: i suoi set restano e passano a «Senza gruppo» */
+function tsTogliGruppo(g){ const s=ensureSets(), el=tsGruppi(); if(el.indexOf(g)<0) return false;
+  tsOggettiSet(s).forEach(o=>{ if(o.gruppo===g) delete o.gruppo; });
+  const resto=el.filter(x=>x!==g); if(resto.length) s.setsGruppi=resto; else delete s.setsGruppi; return true; }
+/* filtro e ricerca: TS_TUTTI, TS_SENZA o il nome di un gruppo; la ricerca guarda le parole del nome
+   del set, senza badare a maiuscole e accenti, dentro il gruppo scelto o in tutti */
+function tsPassa(g, filtro){ return !filtro || filtro===TS_TUTTI || (filtro===TS_SENZA? !g : g===filtro); }
+function tsNormCerca(x){ return String(x==null?'':x).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+function tsCercaOk(nome, q){ const p=tsNormCerca(q).split(/\s+/).filter(Boolean); if(!p.length) return true;
+  const h=tsNormCerca(nome); return p.every(x=>h.includes(x)); }
+/* set divisi per gruppo: [{gruppo, nomi}], nell'ordine dei gruppi e poi «Senza gruppo» (gruppo '').
+   opt: filtro, cerca, sempre (un nome da tenere comunque: il set aperto o scelto), vuoti (anche i
+   gruppi senza set, per gestirli), gruppoDi (chi dice il gruppo di un nome: di base la scheda) */
+function tsPerGruppo(nomi, opt){ opt=opt||{}; const gDi=opt.gruppoDi||tsGruppoDi, filtro=opt.filtro||TS_TUTTI, q=opt.cerca||'';
+  const blocchi=tsGruppi().map(g=>({gruppo:g, nomi:[]})), senza={gruppo:'', nomi:[]};
+  (nomi||[]).forEach(n=>{ const g=gDi(n);
+    if(n!==opt.sempre && (!tsPassa(g,filtro) || !tsCercaOk(n,q))) return;
+    (blocchi.find(b=>b.gruppo===g)||senza).nomi.push(n); });
+  return blocchi.concat([senza]).filter(b=>b.nomi.length || (opt.vuoti && b.gruppo && !tsNormCerca(q).trim() && tsPassa(b.gruppo,filtro))); }
+/* <option> dei set: divise in <optgroup> per gruppo quando ci sono gruppi, altrimenti in fila come sempre */
+function tsOpzioni(nomi, filtro, scelto, prefisso, gruppoDi){
+  const opt=n=>`<option value="${esc(n)}"${n===scelto?' selected':''}>${esc((prefisso||'')+n)}</option>`;
+  const bl=tsPerGruppo(nomi,{filtro, sempre:scelto, gruppoDi});
+  if(!tsGruppi().length) return bl.map(b=>b.nomi.map(opt).join('')).join('');
+  return bl.map(b=>`<optgroup label="${esc(b.gruppo||t('Senza gruppo'))}">${b.nomi.map(opt).join('')}</optgroup>`).join(''); }
+/* <option> del filtro per gruppo, col numero di set di ognuno */
+function tsOpzioniFiltro(v, nomi, gruppoDi){ const gDi=gruppoDi||tsGruppoDi, n=g=>(nomi||[]).filter(x=>tsPassa(gDi(x),g)).length;
+  const o=(val,lab)=>`<option value="${esc(val)}"${v===val?' selected':''}>${esc(lab)} (${n(val)})</option>`;
+  return o(TS_TUTTI,t('Tutti'))+tsGruppi().map(g=>o(g,g)).join('')+o(TS_SENZA,t('Senza gruppo')); }
+/* <option> per mettere un set in un gruppo: Senza gruppo, i gruppi, Nuovo gruppo… */
+function tsOpzioniGruppo(v){ return `<option value=""${!v?' selected':''}>${t('Senza gruppo')}</option>`+
+  tsGruppi().map(g=>`<option value="${esc(g)}"${g===v?' selected':''}>${esc(g)}</option>`).join('')+
+  `<option value="__nuovo__">${t('Nuovo gruppo…')}</option>`; }
+/* filtro per gruppo dei selettori: solo in memoria e legato al profilo. All'avvio e cambiando profilo
+   si riparte da «Tutti» (un cliente non eredita la scelta fatta su un altro); se il gruppo non c'è
+   più si torna a «Tutti» */
+const _tsFiltro={};
+function tsFiltroGet(dove){ const f=_tsFiltro[dove]; let v=(f && f.profilo===activeProfile)? f.valore : TS_TUTTI;
+  const el=tsGruppi(); if(!el.length || (v!==TS_TUTTI && v!==TS_SENZA && el.indexOf(v)<0)) v=TS_TUTTI; return v; }
+function tsFiltroSet(dove, v){ _tsFiltro[dove]={profilo:activeProfile, valore:v||TS_TUTTI}; }
 function switchTrainingSet(nome){ const s=ensureSets(); if(!nome||nome===s.setAttivo||!s.setsSalvati[nome]) return;
   s.setsSalvati[s.setAttivo]=tsFoto(s);  /* salva l'attivo */
   tsCarica(s, s.setsSalvati[nome]||{});                                                                /* carica il target */
   delete s.setsSalvati[nome]; s.setAttivo=nome; persist('scheda'); renderAllenamento(); }
-function creaTrainingSet(nome, sorgente){ const s=ensureSets(); nome=String(nome||'').trim();
+/* gruppo: se manca il set nuovo prende quello dell'origine (copia) o nessuno (vuota); '' = Senza gruppo */
+function creaTrainingSet(nome, sorgente, gruppo){ const s=ensureSets(); nome=String(nome||'').trim();
   if(!nome || nome===s.setAttivo || s.setsSalvati[nome]) return;
   s.setsSalvati[s.setAttivo]=tsFoto(s);  /* salva l'attivo */
-  tsCarica(s, (sorgente && sorgente!=='__vuota__' && s.setsSalvati[sorgente])? s.setsSalvati[sorgente] : {});  /* copia (tipo compreso) o vuota */
+  tsCarica(s, (sorgente && sorgente!=='__vuota__' && s.setsSalvati[sorgente])? s.setsSalvati[sorgente] : {});  /* copia (tipo e gruppo compresi) o vuota */
+  if(gruppo!==undefined){ const g=tsGruppoNorm(gruppo)? tsNuovoGruppo(gruppo) : ''; if(g) s.gruppo=g; else delete s.gruppo; }
   s.setAttivo=nome;
   if(s.setsOrdine.indexOf(nome)<0) s.setsOrdine.push(nome);
   persist('scheda'); renderAllenamento(); }
-function nuovoTrainingSetModal(){ const s=ensureSets();
-  const opts='<option value="__vuota__">'+t('Scheda vuota (da zero)')+'</option>'+
-    s.setsOrdine.map(n=>'<option value="'+esc(n)+'">'+t('Copia da:')+' '+esc(n)+'</option>').join('');
+function nuovoTrainingSetModal(){ const s=ensureSets(), fv=tsFiltroGet('pesi'), filtroGr=(fv!==TS_TUTTI && fv!==TS_SENZA)? fv : '';
+  const opts='<option value="__vuota__">'+t('Scheda vuota (da zero)')+'</option>'+tsOpzioni(s.setsOrdine, TS_TUTTI, null, t('Copia da:')+' ');
+  /* gruppo proposto: quello filtrato nella barra, altrimenti quello del set da cui si copia */
+  const grDi=src=>filtroGr || (fv===TS_SENZA || src==='__vuota__'? '' : tsGruppoDi(src));
   modal(`<h3>${t('Nuovo Training Set')}</h3>
     <div class="field" style="margin-top:8px"><label>${t('Nome')}</label><input id="ts-nome" placeholder="${t('es. Casa, Palestra…')}" style="width:100%"></div>
     <div class="field" style="margin-top:8px"><label>${t('Punto di partenza')}</label><select id="ts-src" style="width:100%">${opts}</select></div>
+    <div class="field" style="margin-top:8px"><label>${t('Gruppo (facoltativo)')}</label><select id="ts-gr" style="width:100%" title="${t('I gruppi servono solo a ordinare e cercare i Training Set: non cambiano nessun calcolo')}">${tsOpzioniGruppo(grDi(s.setAttivo))}</select>
+      <input id="ts-gr-nuovo" placeholder="${t('Nome del gruppo nuovo, es. Corpo libero')}" style="width:100%;margin-top:6px" hidden></div>
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="ts-ok">${t('Crea')}</button></div>`);
-  const src=document.getElementById('ts-src'); if(src) src.value=s.setAttivo;
+  const src=document.getElementById('ts-src'), gs=document.getElementById('ts-gr'), gn=document.getElementById('ts-gr-nuovo');
+  let grToccato=false;
+  if(src){ src.value=s.setAttivo; src.onchange=()=>{ if(!grToccato){ gs.value=grDi(src.value); } }; }
+  gs.onchange=()=>{ grToccato=true; gn.hidden=gs.value!=='__nuovo__'; if(!gn.hidden){ try{ gn.focus(); }catch(e){} } };
   document.getElementById('ts-ok').onclick=()=>{ const nome=(document.getElementById('ts-nome').value||'').trim();
     if(!nome){ avviso(t('Dai un nome al Training Set.')); return; }
     if(nome===s.setAttivo||s.setsSalvati[nome]){ avviso(t('Esiste già un Training Set con questo nome.')); return; }
-    const sorgente=document.getElementById('ts-src').value; closeModal(); creaTrainingSet(nome, sorgente); };
+    let gruppo=gs.value;
+    if(gruppo==='__nuovo__'){ gruppo=tsGruppoNorm(gn.value); if(!gruppo || gruppo===TS_TUTTI || gruppo===TS_SENZA){ avviso(t('Dai un nome al gruppo.')); return; } }
+    const sorgente=document.getElementById('ts-src').value; closeModal(); creaTrainingSet(nome, sorgente, gruppo); };
   setTimeout(()=>{ try{ document.getElementById('ts-nome').focus(); }catch(e){} },0); }
 function rinominaTrainingSet(){ const s=ensureSets(); const old=s.setAttivo;
   chiediTesto(t('Rinomina Training Set'), old, nome=>{ nome=(nome||'').trim(); if(!nome||nome===old) return;
@@ -107,6 +198,80 @@ async function eliminaTrainingSet(){ const s=ensureSets(); const nomi=s.setsOrdi
   const altro=nomi.find(n=>n!==vitt); tsCarica(s, s.setsSalvati[altro]||{});
   delete s.setsSalvati[altro]; delete s.setsSalvati[vitt];
   s.setAttivo=altro; s.setsOrdine=nomi.filter(n=>n!==vitt); persist('scheda'); renderAllenamento(); }
+/* ── riquadro «Training Set e gruppi» (menù Training Set › Cerca e raggruppa…, menù Gruppo ›
+      Gestisci i gruppi…): cerca per nome, filtra per gruppo, apre un set, lo mette in un gruppo
+      (esistente o nuovo), crea, rinomina e toglie i gruppi. Si ridisegna solo l'elenco, così la
+      casella di ricerca non perde il punto di scrittura; nomi nuovi e rinomine si scrivono nella
+      riga stessa (chiediTesto chiuderebbe il riquadro). Il filtro è quello della barra Pesi. ── */
+let _tsm=null;   /* {cerca, ed}: ed = null | {tipo:'nuovo'} | {tipo:'rin', g} | {tipo:'set', n} */
+function tsGruppiModal(){ ensureSets(); _tsm={cerca:'', ed:null};
+  modal(`<h3>${t('Training Set e gruppi')}</h3>
+    <div class="muted tsm-nota">${t('I gruppi servono solo a ordinare, filtrare e cercare i Training Set: non cambiano nessun calcolo. Un set senza gruppo sta in «Senza gruppo».')}</div>
+    <div class="tsm-barra">
+      <div class="field tsm-cerca"><label>${t('Cerca')}</label><input id="tsm-cerca" type="search" autocomplete="off" placeholder="${t('Nome del Training Set…')}"></div>
+      <div class="field"><label>${t('Gruppo')}</label><select id="tsm-filtro"></select></div>
+      <button class="btn" id="tsm-nuovo">${ico('piu')}${t('Nuovo gruppo')}</button>
+    </div>
+    <div id="tsm-lista" class="tsm-lista"></div>
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
+  const m=document.getElementById('modal'); if(m) m.style.maxWidth='660px';
+  const ce=document.getElementById('tsm-cerca');
+  ce.oninput=()=>{ _tsm.cerca=ce.value; tsmDisegna(); };
+  ce.onkeydown=e=>{ if(e.key!=='Enter') return; e.preventDefault();
+    const trovati=[].concat(...tsPerGruppo(ensureSets().setsOrdine,{filtro:tsFiltroGet('pesi'), cerca:_tsm.cerca}).map(b=>b.nomi));
+    if(trovati.length===1) tsmApri(trovati[0]); };
+  document.getElementById('tsm-filtro').onchange=e=>{ tsFiltroSet('pesi', e.target.value); tsmDisegna(); renderAllenamento(); };
+  document.getElementById('tsm-nuovo').onclick=()=>{ _tsm.ed={tipo:'nuovo'}; tsmDisegna(); };
+  tsmDisegna();
+  setTimeout(()=>{ try{ ce.focus(); }catch(e){} },0); }
+function tsmApri(n){ closeModal(); _tsm=null; if(n!==ensureSets().setAttivo) switchTrainingSet(n); }
+function tsmSalva(){ persist('scheda'); renderAllenamento(); tsmDisegna(); }
+function tsmDisegna(){
+  const box=document.getElementById('tsm-lista'); if(!box || !_tsm) return;
+  const s=ensureSets(), fv=tsFiltroGet('pesi'), ed=_tsm.ed||{};
+  const fs=document.getElementById('tsm-filtro'); if(fs) fs.innerHTML=tsOpzioniFiltro(fv, s.setsOrdine);
+  const scrivi=(val,ph)=>`<span class="tsm-ed"><input id="tsm-in" value="${esc(val||'')}" placeholder="${esc(ph||'')}" autocomplete="off">`+
+    `<button class="btn btn--sm btn--ember" data-tsm-ok>${t('OK')}</button><button class="btn btn--sm" data-tsm-annulla>${t('Annulla')}</button></span>`;
+  const bl=tsPerGruppo(s.setsOrdine,{filtro:fv, cerca:_tsm.cerca, vuoti:true});
+  let h=ed.tipo==='nuovo'? `<div class="tsm-gr"><div class="tsm-gr__tit">${scrivi('',t('Nome del gruppo nuovo, es. Corpo libero'))}</div></div>` : '';
+  bl.forEach(b=>{
+    const tit=(ed.tipo==='rin' && ed.g===b.gruppo)? scrivi(b.gruppo,'')
+      : `<b>${esc(b.gruppo||t('Senza gruppo'))}</b><span class="pill">${b.nomi.length}</span>`+(b.gruppo?
+        `<span class="spacer"></span><button class="btn btn--sm" data-tsm-rin="${esc(b.gruppo)}">${ico('matita','p')}${t('Rinomina')}</button>`+
+        `<button class="btn btn--sm btn--danger" data-tsm-togli="${esc(b.gruppo)}" title="${t('I suoi Training Set restano e passano a «Senza gruppo»')}">${ico('x','p')}${t('Togli il gruppo')}</button>` : '');
+    const righe=b.nomi.map(n=>{ const att=n===s.setAttivo, o=att? s : s.setsSalvati[n], tipo=o && TIPI_ALLEN.includes(o.tipoAllenamento)? t(TIPO_NOME[o.tipoAllenamento]) : '';
+      const sp=(ed.tipo==='set' && ed.n===n)? scrivi('',t('Nome del gruppo nuovo, es. Corpo libero'))
+        : `<select data-tsm-set="${esc(n)}" title="${t('Metti questo Training Set in un gruppo')}">${tsOpzioniGruppo(tsGruppoDi(n))}</select>`;
+      return `<div class="tsm-riga${att?' is-att':''}"><button class="tsm-nome" data-tsm-apri="${esc(n)}" title="${att?t('È il Training Set aperto nella scheda Pesi'):t('Apri questo Training Set nella scheda Pesi')}">${esc(n)}</button>`+
+        `${att?`<span class="pill">${t('aperto')}</span>`:''}${tipo?`<span class="tsm-tipo">${esc(tipo)}</span>`:''}<span class="spacer"></span>${sp}</div>`; }).join('')
+      || `<div class="tsm-vuoto">${t('Nessun Training Set in questo gruppo: mettilo qui dal menù accanto a un set.')}</div>`;
+    h+=`<div class="tsm-gr"><div class="tsm-gr__tit">${tit}</div>${righe}</div>`; });
+  if(!bl.length) h+=`<div class="tsm-vuoto">${tsNormCerca(_tsm.cerca).trim()? t('Nessun Training Set con questo nome.') : t('Nessun Training Set in questo gruppo.')}</div>`;
+  box.innerHTML=h;
+  const q=sel=>box.querySelectorAll(sel);
+  q('[data-tsm-apri]').forEach(b=>b.onclick=()=>tsmApri(b.dataset.tsmApri));
+  q('[data-tsm-set]').forEach(sl=>sl.onchange=()=>{ const n=sl.dataset.tsmSet;
+    if(sl.value==='__nuovo__'){ _tsm.ed={tipo:'set', n}; tsmDisegna(); return; }
+    tsAssegnaGruppo(n, sl.value); tsmSalva(); });
+  q('[data-tsm-rin]').forEach(b=>b.onclick=()=>{ _tsm.ed={tipo:'rin', g:b.dataset.tsmRin}; tsmDisegna(); });
+  q('[data-tsm-togli]').forEach(b=>b.onclick=async()=>{ const g=b.dataset.tsmTogli, n=ensureSets().setsOrdine.filter(x=>tsGruppoDi(x)===g).length;
+    if(!await conferma(t('Togliere il gruppo «')+g+'»? '+(n? (n+' '+(n===1? t('Training Set resta e passa a «Senza gruppo».') : t('Training Set restano e passano a «Senza gruppo».'))) : t('Il gruppo è vuoto.')), {titolo:t('Togli il gruppo'), testoOk:t('Togli il gruppo')})) return;
+    tsTogliGruppo(g); tsmSalva(); });
+  q('[data-tsm-annulla]').forEach(b=>b.onclick=()=>{ _tsm.ed=null; tsmDisegna(); });
+  q('[data-tsm-ok]').forEach(b=>b.onclick=tsmConferma);
+  const inp=document.getElementById('tsm-in');
+  if(inp){ inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); tsmConferma(); } else if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); _tsm.ed=null; tsmDisegna(); } };
+    /* fuoco SUBITO, non in un setTimeout: chi scrive appena dopo il clic perdeva le prime lettere */
+    try{ inp.focus(); inp.select(); }catch(e){} }
+}
+/* OK della riga in scrittura: gruppo nuovo, rinomina, o set messo in un gruppo nuovo */
+function tsmConferma(){ if(!_tsm || !_tsm.ed) return; const ed=_tsm.ed, inp=document.getElementById('tsm-in');
+  const g=tsGruppoNorm(inp? inp.value : '');
+  if(!g || g===TS_TUTTI || g===TS_SENZA){ avviso(t('Dai un nome al gruppo.')); return; }
+  if(ed.tipo==='nuovo'){ if(tsGruppoEsistente(g)){ avviso(t('Esiste già un gruppo con questo nome.')); return; } tsNuovoGruppo(g); }
+  else if(ed.tipo==='rin'){ if(!tsRinominaGruppo(ed.g, g)){ avviso(t('Esiste già un gruppo con questo nome.')); return; } }
+  else if(ed.tipo==='set'){ tsAssegnaGruppo(ed.n, g); }
+  _tsm.ed=null; tsmSalva(); }
 /* Bozza RPE/durata per-giorno (Foster): vive in scheda.json (autosave), azzerata al salvataggio nello Storico */
 function schedaRpe(){ const s=DOC.scheda; if(!s.rpe||typeof s.rpe!=='object')s.rpe={}; if(!s.rpe[schedaMode])s.rpe[schedaMode]={}; return s.rpe[schedaMode]; }
 function dayRpe(g){ const d=schedaRpe()[g]; return d||{}; }
@@ -164,14 +329,16 @@ function rpeDayControls(g){ const d=dayRpe(g), ld=dayLoad(g);
     `<span class="pill" data-rpe-load="${esc(g)}" title="${t('Carico interno seduta = RPE × min (AU)')}">${ld?nfk(ld)+' AU':'—'}</span></span>`; }
 /* selettori condivisi della barra Pesi (Scheda + Training Set + pulsante 🔥 Riscaldamento/◂ Scheda),
    usati sia dalla vista scheda sia da quella riscaldamento */
-function barSelettori(S){ return `
+function barSelettori(S){ const fv=tsFiltroGet('pesi'); return `
      <div class="field"><label>${t('Scheda')}</label>
        <select id="sched-mode">
          <option value="settimanale"${schedaMode==='settimanale'?' selected':''}>${t('Settimanale')}</option>
          <option value="mensile"${schedaMode==='mensile'?' selected':''}>${t('Mensile')}</option>
        </select></div>
+     ${tsGruppi().length? `<div class="field"><label>${t('Gruppo')}</label>
+       <select id="ts-gruppo" title="${t('Mostra nel menù Training Set solo i set di un gruppo. I gruppi servono a ordinare e cercare i set: non cambiano nessun calcolo')}">${tsOpzioniFiltro(fv, S.setsOrdine)}<optgroup label="${t('Azioni')}"><option value="__gestisci__">${t('Gestisci i gruppi…')}</option></optgroup></select></div>` : ''}
      <div class="field"><label>Training Set</label>
-       <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, rinominarle o eliminarle')}">${S.setsOrdine.map(n=>`<option value="${esc(n)}"${n===S.setAttivo?' selected':''}>${esc(n)}</option>`).join('')}<optgroup label="${t('Azioni')}"><option value="__new__">${t('Nuovo Training Set…')}</option><option value="__rename__">${t('Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
+       <select id="training-set" title="${t('Loadout della scheda: crea più schede (es. Palestra, Casa) e passa dall\'una all\'altra. Apri il menù per crearne, cercarle, raggrupparle, rinominarle o eliminarle')}">${tsOpzioni(S.setsOrdine, fv, S.setAttivo)}<optgroup label="${t('Azioni')}"><option value="__new__">${t('Nuovo Training Set…')}</option><option value="__cerca__">${t('Cerca e raggruppa…')}</option><option value="__rename__">${t('Rinomina')} «${esc(S.setAttivo)}»</option>${S.setsOrdine.length>1?`<option value="__delete__">${t('Elimina')} «${esc(S.setAttivo)}»</option>`:''}</optgroup></select></div>
      <div class="field"><label>${t('Tipo di allenamento')}</label>
        <select id="tipo-allen" title="${t('Tipo di allenamento di questo Training Set: sceglie il riferimento della ragnatela «distribuzione fra i gruppi»')}"><option value="">—</option>${TIPI_ALLEN.map(x=>`<option value="${x}"${S.tipoAllenamento===x?' selected':''}>${esc(t(TIPO_NOME[x]))}</option>`).join('')}</select></div>
      <button class="btn btn--ember" id="btn-warm" title="${t('Apri i riscaldamenti giorno per giorno di questo Training Set')}">${pesiView==='riscaldamento'?(ico('indietro')+t('Scheda')):(ico('fiamma')+t('Riscaldamento'))}</button>`; }
@@ -180,9 +347,14 @@ function wireBarSelettori(){
   { const ts=document.getElementById('training-set');
     if(ts) ts.onchange=e=>{ const v=e.target.value; e.target.value=DOC.scheda.setAttivo;  /* le voci Azioni non restano selezionate */
       if(v==='__new__') nuovoTrainingSetModal();
+      else if(v==='__cerca__') tsGruppiModal();
       else if(v==='__rename__') rinominaTrainingSet();
       else if(v==='__delete__') eliminaTrainingSet();
       else switchTrainingSet(v); }; }
+  { const tg=document.getElementById('ts-gruppo');
+    if(tg) tg.onchange=e=>{ const v=e.target.value;
+      if(v==='__gestisci__'){ e.target.value=tsFiltroGet('pesi'); tsGruppiModal(); return; }
+      tsFiltroSet('pesi', v); renderAllenamento(); }; }
   { const ta=document.getElementById('tipo-allen');
     if(ta) ta.onchange=e=>{ const v=e.target.value; if(TIPI_ALLEN.includes(v)) DOC.scheda.tipoAllenamento=v; else delete DOC.scheda.tipoAllenamento;
       persist('scheda'); renderAllenamento(); }; }

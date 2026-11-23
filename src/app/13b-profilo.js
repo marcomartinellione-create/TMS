@@ -11,7 +11,8 @@ function riepilogoProfiloAperto(){
     ${R(t('Misure corporee'), io.length+(io.length? ' <span class="muted" style="font-weight:400">· '+esc(schedaLabel(io[io.length-1].scheda))+'</span>' : ''))}
     ${R(t('Attività cardio'), (DOC.cardio||[]).length)}
     ${R(t('Foto progressi'), (DOC.foto||[]).length)}
-    ${R('Training Set', S.length? esc(S.join(', ')) : '—')}
+    ${R('Training Set', !S.length? '—' : !tsGruppi().length? esc(S.join(', '))
+        : tsPerGruppo(S).map(b=>esc(b.gruppo||t('Senza gruppo'))+': '+b.nomi.map(esc).join(', ')).join(' · '))}
     ${R(t('Periodi alimentari'), (((DOC.alimentazione||{}).periodi)||[]).length)}</div>`;
 }
 function renderProfilo(){

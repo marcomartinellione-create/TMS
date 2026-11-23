@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.30 (2026-11-18). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.31 (2026-11-20). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -292,6 +292,23 @@ nuovo tab «Cardio». Le attività cardio NON sono selezionabili qui (restano ne
   ipertrofia, powerlifting, resistenza, potenza, generale), scelto dal menù «Tipo di
   allenamento» accanto: viaggia col set nei cambi e nelle copie, e sceglie il riferimento
   della ragnatela insieme all'esperienza dell'anagrafica.
+  **Gruppi di Training Set** (novembre 2026): etichette scelte dall'utente (es. «Palestra»,
+  «Corpo libero») SOLO per ordinare, filtrare e cercare i set: nessun calcolo le legge (1RM, TL,
+  volumi, riferimenti della ragnatela, Progressi, Analisi danno gli stessi numeri con e senza).
+  Dati in scheda.json: campo facoltativo 'gruppo' dentro ogni set (nella radice per il set aperto,
+  in setsSalvati[nome] per gli altri; viaggia col set nei cambi e nelle copie) e 'setsGruppi'
+  (elenco ordinato dei gruppi, anche vuoti; c'è solo se esiste almeno un gruppo, quindi una scheda
+  che non li usa resta identica). Un set senza gruppo sta in «Senza gruppo». Il menù Training Set ›
+  «Cerca e raggruppa…» apre il riquadro «Training Set e gruppi»: ricerca per nome (parole, senza
+  badare a maiuscole e accenti, in tutti i gruppi o in quello scelto), filtro per gruppo, set divisi
+  per gruppo col loro tipo di allenamento, un menù su ogni riga per mettere il set in un gruppo
+  (anche nuovo), «Nuovo gruppo», «Rinomina», «Togli il gruppo» (con conferma: i set restano e
+  passano a «Senza gruppo»); un clic sul nome apre il set. Il riquadro «Nuovo Training Set» ha il
+  campo Gruppo (propone quello filtrato nella barra o quello del set copiato). Con almeno un gruppo
+  la barra Pesi mostra il menù «Gruppo» (Tutti, i gruppi col numero di set, Senza gruppo, Gestisci
+  i gruppi…): il menù Training Set mostra solo i set del gruppo scelto, sempre più quello aperto, e
+  con «Tutti» li divide per gruppo. Il filtro non si salva: riparte da «Tutti» all'avvio e per ogni
+  profilo. Al telefono non va nulla dei gruppi (riceve solo la scheda del set aperto).
 
 - **Riscaldamento** (dal v1.1.3, video+cardio dal v1.1.6): pulsante arancione accanto a
   Training Set, cambia vista e mostra i riscaldamenti **giorno per giorno del Training Set
@@ -398,7 +415,9 @@ Due modi per registrare una seduta:
   corpo.json) e viene riproposta al rientro; ogni profilo ha la SUA (cambiando profilo non
   si trascina quella del precedente); se il Training Set salvato non esiste piu' si torna
   da soli a «Tutto il percorso». Ogni settimana salvata porta il campo 'set' col Training Set attivo; le settimane
-  salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso». **Eccezione
+  salvate prima del v1.1.4 non ce l'hanno e compaiono solo in «Tutto il percorso». Con i gruppi di
+  Training Set compare accanto il menù «Gruppo»: restringe l'elenco di «Dati da analizzare» (set
+  divisi per gruppo; un set che c'è solo nello Storico sta in «Senza gruppo»), non i dati. **Eccezione
   (dal v1.1.6)**: i «Record personali · carico massimo» NON seguono questo filtro — un record
   è un record, sempre calcolato su TUTTO lo storico indipendentemente dal Training Set attivo;
   quando un filtro è impostato compare la pill «su tutto il percorso» accanto al titolo per

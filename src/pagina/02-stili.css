@@ -893,6 +893,29 @@ svg.graf-lin.g-entra .g-clip{animation:grafEntra .95s cubic-bezier(.3,.75,.25,1)
 .modal .row .field{flex:1}
 .modal input,.modal select{width:100%}
 .modal__actions{display:flex; gap:9px; justify-content:flex-end; margin-top:18px}
+/* riquadro «Training Set e gruppi» (06-allenamento.js, tsGruppiModal): ricerca, filtro e un
+   blocco per gruppo con i suoi set; l'elenco scorre dentro il riquadro */
+/* in alto e non al centro: cercando, l'elenco cambia altezza e il riquadro centrato saltava su e giù */
+.modal:has(.tsm-lista){align-self:flex-start; margin-top:7vh}
+.tsm-nota{font-size:12.5px; margin:-4px 0 10px; line-height:1.45}
+.tsm-barra{display:flex; flex-wrap:wrap; gap:9px; align-items:flex-end; margin-bottom:10px}
+.tsm-barra .tsm-cerca{flex:1 1 200px}
+.tsm-barra .field:not(.tsm-cerca){flex:0 1 200px}
+.tsm-lista{max-height:56vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:2px}
+.tsm-gr{border:1px solid var(--border); border-radius:var(--r-md); background:var(--paper-2); padding:8px 12px}
+.tsm-gr__tit{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:30px; padding-bottom:6px; margin-bottom:2px; border-bottom:1px solid var(--border)}
+.tsm-gr__tit b{font-family:var(--font-disp); font-size:15px; color:var(--ink)}
+.tsm-gr__tit .spacer,.tsm-riga .spacer{flex:1}
+.tsm-riga{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:5px 0}
+.tsm-riga + .tsm-riga{border-top:1px dashed var(--border)}
+.tsm-nome{background:none; border:0; padding:2px 0; font:inherit; font-weight:600; color:var(--ember-2); cursor:pointer; text-align:left}
+.tsm-nome:hover{text-decoration:underline}
+.tsm-riga.is-att .tsm-nome{color:var(--ink)}
+.tsm-tipo{font-size:12px; color:var(--ink-3)}
+.modal .tsm-riga select{width:auto; min-width:150px; max-width:220px}
+.tsm-ed{display:flex; align-items:center; gap:6px; flex:1 1 260px}
+.modal .tsm-ed input{flex:1; width:auto; min-width:120px}
+.tsm-vuoto{font-size:12.5px; color:var(--ink-3); padding:6px 0}
 
 .empty{padding:40px; text-align:center; color:var(--ink-3)}
 /* quando lo stato vuoto è un riquadro a sé (non una cella di tabella) diventa un
