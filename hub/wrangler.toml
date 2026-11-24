@@ -7,7 +7,7 @@ workers_dev = true
 [[d1_databases]]
 binding = "DB"
 database_name = "tms-hub"
-database_id = "DA-RIEMPIRE"   # lo scrive pubblica-hub.cjs dopo «wrangler d1 create»
+database_id = "4613c7cc-5600-404d-8bf5-6ffea37bbc93"   # lo scrive pubblica-hub.cjs dopo «wrangler d1 create»
 
 # pulizia notturna: pesate e foto non ritirate da 30 giorni
 [triggers]

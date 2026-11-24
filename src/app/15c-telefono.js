@@ -39,7 +39,7 @@ const TEL_ALFA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   /* 32 segni senza I, O, 0, 
 const TEL_SALE='tms-hub-v1';
 const TEL_LUNGO_PERSONAL=24, TEL_LUNGO_CLIENTE=20;  /* 120 e 100 bit */
 /* l'hub di Marco su Cloudflare (hub/pubblica-hub.cjs stampa l'indirizzo); window.TMS_HUB lo sostituisce nelle prove */
-const TEL_HUB='';
+const TEL_HUB='https://tms-hub.marco-martinellione.workers.dev';
 const TEL_OGNI=20000;                                /* un giro ogni 20 s a TMS aperto (e al ritorno sulla finestra) */
 const TEL_CAMPI=['giorno','esercizio','serie','rip','peso','rir','note','rest','test','pos','del'];
 const TEL_CAMPI_S=['rpe','min','fatto'];

@@ -1796,7 +1796,7 @@ document.addEventListener('input',e=>{ const id=e.target&&e.target.id;
    dopo ogni modifica). */
 const COL_KEY='tms-col', COL_SALE='tms-hub-v1', COL_OGNI=60000, COL_LUNGO=20;
 /* l'hub di Marco su Cloudflare: lo stesso indirizzo del TMS (TEL_HUB in src/app/15c-telefono.js) */
-const COL_HUB='';
+const COL_HUB='https://tms-hub.marco-martinellione.workers.dev';
 const COL={stato:'', ultimo:null, errore:'', inCorso:false, chiesto:{}, apk:null, chiestoApk:'', id:null, idDi:'', modT:null, inviata:null, timer:null, prestoT:null, msg:'', rifiutata:false, attesa:false};
 function colConf(){ try{ const o=JSON.parse(localStorage.getItem(COL_KEY)||'{}'); return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } }
 function colSalvaConf(o){ try{ localStorage.setItem(COL_KEY, JSON.stringify(o||{})); }catch(e){} }

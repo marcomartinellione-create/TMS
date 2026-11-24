@@ -103,9 +103,12 @@ app.whenReady().then(async () => {
        await rifiutato('window.tmsScambio.leggi("../../x.json")'), 'cartella condivisa: niente uscite dalla cartella');
     ok(await rifiutato('window.tmsScambio.scrivi("prova/x.exe", "x")') && await rifiutato('window.tmsScambio.togli("prova/dal-telefono/eventi/nota.txt")') &&
        fs.existsSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'nota.txt')), 'cartella condivisa: si scrivono e si tolgono solo file .json');
-    ok(await js('(async function(){ localStorage.setItem("tms-telefono", JSON.stringify({codice:"K7QM3XRPA9TB4WZC", profili:{}})); TEL=null; _telChiave=null;' +
-      ' var c=await telCifra({prova:"Squat"}); var r=await telDecifra(c); localStorage.removeItem("tms-telefono"); TEL=null; _telChiave=null;' +
-      ' return r.prova==="Squat" && c.indexOf("Squat")<0; })()'), 'cifratura dello scambio (AES-GCM) disponibile nella pagina dell\'app');
+    ok(await js('(async function(){ var c=await telCifra({prova:"Squat"}, "K7QM3XRPA9TB4WZCHN5D"); var r=await telDecifra(c, "K7QM3XRPA9TB4WZCHN5D");' +
+      ' return r.prova==="Squat" && c.indexOf("Squat")<0; })()'), 'cifratura dello scambio (HKDF + AES-GCM) disponibile nella pagina dell\'app');
+    /* l'hub del TMS su Cloudflare: la pagina (origine app://tms) lo raggiunge con fetch (CORS) */
+    { const r = await js('(async function(){ try{ var x=await fetch(telHubUrl()+"/v1/salute",{cache:"no-store"}); var j=await x.json();' +
+        ' var y=await fetch(telHubUrl()+"/v1/io",{headers:{Authorization:"Bearer "+"x".repeat(43)}}); return [telDisponibile(), j.hub, y.status].join("|"); }catch(e){ return "errore: "+e.message; } })()');
+      ok(r === 'true|tms|401', 'hub del TMS: la pagina dell\'app lo raggiunge dal processo vero di Electron (salute, e 401 con un gettone sconosciuto) → ' + r); }
 
     /* ── profilo di prova: creato, scritto, eliminato, ricreato ── */
     await js('createProfile("Prova Collaudo")');
