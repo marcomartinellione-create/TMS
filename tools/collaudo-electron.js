@@ -33,7 +33,7 @@ const esiti = [];
 const ok = (c, l) => { esiti.push([!!c, l]); console.log((c ? '  OK   ' : '  FAIL ') + l); };
 const attendi = ms => new Promise(r => setTimeout(r, ms));
 const leggi = rel => { try { return fs.readFileSync(path.join(DATI, rel), 'utf8'); } catch (e) { return null; } };
-let chiusuraAttesa = false;
+let chiusuraAttesa = false, chiusuraTrattenuta = 0;
 
 function chiudi() {
   const falliti = esiti.filter(e => !e[0]).length;
@@ -56,6 +56,7 @@ app.on('quit', () => {
     ok(!fs.readdirSync(path.join(DATI, 'prova-collaudo')).some(n => n.includes('.tmp-')), 'chiusura immediata: nessun file temporaneo lasciato a metà');
     { let s = null; try { s = JSON.parse(fs.readFileSync(path.join(tmpData, 'finestra.json'), 'utf8')); } catch (e) {}
       ok(s && s.massimizzata === true && s.bounds && s.bounds.width > 0, 'finestra: alla chiusura lo stato (massimizzata) è su disco'); }
+    ok(chiusuraTrattenuta === 1, 'telefono collegato con una modifica in sospeso: la chiusura si trattiene per l\'ultimo giro con l\'hub, poi la finestra si chiude da sola (trattenuta ' + chiusuraTrattenuta + ' volta)');
   }
   chiudi();
 });
@@ -130,9 +131,15 @@ app.whenReady().then(async () => {
     /* ── modifica e chiusura immediata (dentro i 350 ms di attesa del salvataggio) ── */
     await js('DOC.scheda.settimanale.push({giorno:"Lunedì",esercizio:"Squat con bilanciere",note:"CHIUSURA-TEST",serie:1,rip:1,peso:1,rest:""}); persist("scheda"); pendingSaves.size');
     ok(!((leggi('prova-collaudo/scheda.json') || '').includes('CHIUSURA-TEST')), 'prima della chiusura la modifica è ancora in attesa (non su disco)');
+    /* telefono collegato con una modifica non ancora mandata: la chiusura si trattiene per l'ultimo giro con
+       l'hub (qui con codici finti l'hub risponde 401 e il giro finisce subito), poi la finestra si chiude da sola */
+    await js('(function(){ var st=telStato(); st.personal={codice:"AAAAAAAAAAAAAAAAAAAAAAAA", pid:"0000000000000000", attivo:true};' +
+      ' st.profili[activeProfile]={codice:"BBBBBBBBBBBBBBBBBBBB", lid:"0123456789abcdef", settimana:1, ricevute:[]}; _telSporco=true; return true; })()');
+    win.webContents.on('will-prevent-unload', () => { chiusuraTrattenuta++; });
     chiusuraAttesa = true;
     clearTimeout(guardia);
-    win.close();   /* → beforeunload → scaricaSubito → main aspetta le scritture → quit */
+    setTimeout(() => { ok(false, 'la finestra trattenuta per l\'hub non si è chiusa da sola entro 30 secondi'); app.exit(1); }, 30000).unref();
+    win.close();   /* → beforeunload → scaricaSubito + ultimo giro con l'hub → la pagina richiude → main aspetta le scritture → quit */
   } catch (e) {
     ok(false, 'errore durante il collaudo: ' + (e && e.message));
     clearTimeout(guardia);

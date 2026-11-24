@@ -1352,6 +1352,7 @@ const EN={
   "pesate e foto ricevute":"weigh-ins and photos received",
   "controllato alle":"checked at",
   "Collegato":"Linked",
+  "Mando le ultime modifiche al telefono, poi chiudo…":"Sending the last changes to the phone, then closing\u2026",
   "il codice di recupero non è valido su questo hub":"the recovery code is not valid on this hub",
   "codice d'invito sconosciuto o già usato":"invitation code unknown or already used",
   "il collegamento di questo profilo non c'è più sull'hub":"this profile's link no longer exists on the hub",

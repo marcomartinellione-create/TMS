@@ -111,5 +111,6 @@ async function init(){
   }
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&dataDir){ clearTimeout(saveTimer); persistAll().catch(()=>{}); }});
-window.addEventListener('beforeunload',()=>{ if(!scrittureBloccate) saveCache(); scaricaSubito(); });
+window.addEventListener('beforeunload',e=>{ if(!scrittureBloccate) saveCache(); scaricaSubito();
+  if(typeof telChiusura==='function') telChiusura(e); });   /* telefono collegato: ultimo giro con l'hub prima di chiudere */
 init();

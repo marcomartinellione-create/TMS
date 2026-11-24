@@ -576,7 +576,8 @@ scaricate dal PC e cancellate dall'hub subito dopo il salvataggio, quelle mai ri
 Sul PC, in Impostazioni › Telefono collegato: (1) una volta sola «Attiva» con un CODICE D'INVITO
 dato da chi gestisce l'hub: il TMS diventa personal e mostra il CODICE DI RECUPERO (24 caratteri)
 da conservare; con quello, su un PC nuovo, si scrive nel campo «Codice di recupero» e si preme
-«Recupera»: i collegamenti dei profili tornano senza ricollegare i clienti; (2) per ogni profilo
+«Recupera»: i collegamenti dei profili tornano senza ricollegare i clienti, con la settimana e
+l'ultima scheda unita riprese dall'hub (i dati vanno portati prima con Backup completo e Ripristina); (2) per ogni profilo
 cliente «Collega un telefono» crea il CODICE DI QUEL CLIENTE (20 caratteri, a gruppi di 4) da
 scrivere una volta sul suo telefono. Pulsanti: Copia; «Nuovo codice» (il vecchio telefono smette di
 funzionare finché non si scrive il nuovo; settimana e dati restano); «Stacca» (scollega: l'hub
@@ -585,7 +586,8 @@ dato dal proprio personal → «Collega». Tutto quello che passa dall'hub è CI
 la chiave ricavata (HKDF-SHA256) dal codice di quel singolo cliente; dallo stesso codice nascono
 anche l'id del collegamento e il gettone d'accesso all'hub, che ne tiene solo l'impronta. L'hub
 vede solo file illeggibili, non vede mai codici né chiavi, e non ci sono nomi in chiaro; un file
-illeggibile si salta e si riprova al giro dopo. Il PC controlla l'hub ogni 20
+illeggibile si salta e si riprova al giro dopo. Chiudendo il TMS con una modifica non ancora mandata,
+la finestra fa l'ultimo giro con l'hub (al massimo 10 secondi) e poi si chiude. Il PC controlla l'hub ogni 20
 secondi a TMS aperto e a profilo del cliente attivo (e 2 secondi dopo ogni modifica della scheda),
 il telefono ogni minuto ad app aperta (e pochi secondi dopo ogni modifica). Senza collegamento il
 telefono non riceve la scheda (nel browser la PWA mostra solo il benvenuto).

@@ -3381,13 +3381,25 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     ok(fermo && righePC()[0].rip === 7, 'PC: con un campo dei Pesi sotto le dita aspetta il giro dopo, e poi la modifica del telefono entra lo stesso'); }
   ok(H.nomi(LID, 'dal-telefono/').filter(n => /scheda/.test(n)).length === 1, 'hub: una sola scheda del telefono, sempre sostituita (niente più «scheda (1).json»)');
   /* esercizio aggiunto sul telefono, panca tolta sul PC */
-  { const nome = sw.eval('(SCHEDA.catalogo||[]).map(function(e){return e.n;}).filter(function(n){return !/Squat con bilanciere|Panca piana con bilanciere/.test(n);})[0]') || 'Rematore con bilanciere';
+  { /* un secondo giorno (Mercoledì) dopo il Lunedì: il telefono metterà l'esercizio nuovo del Lunedì in fondo all'elenco */
+    w.eval('DOC.scheda.settimanale.push({giorno:"Mercoledì", esercizio:"Hip thrust prova", serie:3, rip:10, peso:40, rest:"1:30", rir:2, note:"", test:false}); persist("scheda");');
+    await giroPC(); await giroTel(); await settle(50);
+    const nome = sw.eval('(SCHEDA.catalogo||[]).map(function(e){return e.n;}).filter(function(n){return !/Squat con bilanciere|Panca piana con bilanciere/.test(n);})[0]') || 'Rematore con bilanciere';
     sw.eval('navEntra(); mostra("home"); addEsercizio(0);'); await settle(30);
     const rid = sw.eval('WROWS[WROWS.length-1].rid');
     sd.getElementById('ename-' + rid).value = nome; sw.eval('saveEdit(' + rid + ')'); await settle(30);
     await giroTel(); await giroPC();
     ok(righePC().some(r => r.esercizio === nome && r.giorno === righePC()[0].giorno), 'esercizio aggiunto sul telefono: compare nella scheda Pesi del PC');
-    w.eval('DOC.scheda.settimanale=DOC.scheda.settimanale.filter(function(r){ return !/Panca/.test(r.esercizio); });');
+    const primo = righePC()[0].giorno;
+    { const g = righePC().map(r => r.giorno), blocchi = g.filter((x, i) => i === 0 || g[i - 1] !== x);
+      ok(blocchi.join('|') === primo + '|Mercoledì' && g.lastIndexOf(primo) < g.indexOf('Mercoledì') && g.filter(x => x === primo).length === 3,
+         'esercizio aggiunto sul telefono a un giorno che non è l\'ultimo: sul PC entra in quel giorno, senza creare un secondo giorno con lo stesso nome in fondo'); }
+    /* una scheda già spezzata (unita prima della correzione): il PC rimette insieme il giorno da solo */
+    w.eval('var _r=DOC.scheda.settimanale; DOC.scheda.settimanale=_r.filter(function(r){ return r.esercizio!==' + J(nome) + '; }).concat(_r.filter(function(r){ return r.esercizio===' + J(nome) + '; }));');
+    await giroPC(); await giroTel(); await settle(50);
+    { const g = righePC().map(r => r.giorno), blocchi = g.filter((x, i) => i === 0 || g[i - 1] !== x);
+      ok(blocchi.join('|') === primo + '|Mercoledì', 'scheda con un giorno spezzato in due blocchi: al giro dopo il PC lo rimette insieme'); }
+    w.eval('DOC.scheda.settimanale=DOC.scheda.settimanale.filter(function(r){ return !/Panca|Hip thrust prova/.test(r.esercizio); });');
     await giroPC(); await giroTel(); await settle(50);
     ok(!sw.eval('WROWS.some(function(r){ return /Panca/.test(r.esercizio); })') && sw.eval('WROWS.some(function(r){ return r.esercizio===' + J(nome) + '; })') && righePC().length === 2,
        'esercizio tolto sul PC: sparisce anche dal telefono (e non torna indietro)'); }
@@ -3444,18 +3456,38 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
        rp['Giorno 1'] && rp['Giorno 1'].rpe === 7 && !rp['Giorno 6'] && sw.eval('colLocale().sedute["Giorno 1"].rpe') === 7,
        'Rinumera da 1 col telefono collegato: anche il telefono passa a «Giorno 1» e la fatica resta sulla seduta giusta, da tutte e due le parti'); }
   /* recupero su un PC nuovo: col solo codice di recupero tornano personal e collegamento del profilo */
-  { const prima = JSON.parse(w.eval('JSON.stringify(telProf("prova"))'));
-    w.eval('localStorage.removeItem("tms-telefono"); TEL=null; _telId={};');
+  { await giroPC(); await giroTel(); await giroPC();
+    const prima = JSON.parse(w.eval('JSON.stringify(telProf("prova"))')), serieHub = righePC()[0].serie;
+    /* PC nuovo: impostazioni vuote e dati da un backup più vecchio (3 serie al posto dell'ultima scheda) */
+    w.eval('localStorage.removeItem("tms-telefono"); TEL=null; _telId={}; DOC.scheda.settimanale[0].serie=3;');
     ok(!w.eval('telPersonal()') && !w.eval('telProf("prova")'), 'PC nuovo (impostazioni vuote): né personal né collegamenti');
+    /* intanto, sul telefono, il cliente cambia il peso dello squat */
+    scrivi('p-0', '90'); await giroTel();
     let errRec = ''; try { await w.eval('telRecupera("AAAA-BBBB-CCCC-DDDD-EEEE-FFFF")'); } catch (e) { errRec = String(e.message || e); }
     ok(/sconosciuto/.test(errRec) && !w.eval('telPersonal()'), 'recupero: un codice che l\'hub non conosce non attiva niente');
     const n = await w.eval('telRecupera(' + J(w.eval('telCodiceBello(' + J(REC) + ')')) + ')');
     const dopo = JSON.parse(w.eval('JSON.stringify(telProf("prova"))'));
     ok(n === 1 && w.eval('telPersonal().codice') === REC && dopo.codice === prima.codice && dopo.lid === prima.lid,
        'recupero: col codice di recupero tornano il personal e il collegamento del profilo (stesso codice del telefono)');
-    w.eval('localStorage.setItem("tms-telefono", ' + J(J(Object.assign(JSON.parse(w.eval('JSON.stringify(telStato())')), { profili: { prova: prima } }))) + '); TEL=null;');
-    await giroPC(); await giroTel();
-    ok(sw.eval('COL.stato') === 'ok', 'dopo il recupero il telefono continua a funzionare senza toccarlo'); }
+    ok(dopo.settimana === prima.settimana && prima.settimana === 2 && (prima.ricevute || []).every(x => dopo.ricevute.includes(x)) && dopo.ombra && dopo.riparti === true,
+       'recupero: settimana (2) e pesate e foto già ricevute si riprendono dall\'hub, non ripartono da zero');
+    await giroPC(); await giroTel(); await giroPC(); await settle(50);
+    ok(serieHub === 5 && righePC()[0].serie === 5 && righePC()[0].peso === 90 && sd.getElementById('s-0').value === '5' && sd.getElementById('p-0').value === '90' && !w.eval('telProf("prova").riparti'),
+       'recupero con un backup vecchio: la scheda riparte dall\'ultima unita (5 serie, non le 3 del backup) e la modifica fatta intanto sul telefono (90 kg) resta, da tutte e due le parti');
+    ok(sw.eval('COL.stato') === 'ok' && sw.eval('SCHEDA.sync.settimana') === 2, 'dopo il recupero il telefono continua a funzionare senza toccarlo, sempre alla settimana 2'); }
+  /* chiusura del TMS con una modifica non ancora mandata: ultimo giro con l'hub, poi la finestra si chiude da sola */
+  { const chiudiVero = w.close; let chiuso = 0; w.close = () => { chiuso++; };
+    w.eval('DOC.scheda.settimanale[0].rip=11; persist("scheda");'); await settle(30);
+    const ev = new w.Event('beforeunload', { cancelable: true }); w.dispatchEvent(ev);
+    const trattenuta = ev.defaultPrevented && chiuso === 0;
+    for (let k = 0; k < 80 && !chiuso; k++) await settle(100);
+    await giroTel(); await settle(50);
+    ok(trattenuta && chiuso === 1 && sd.getElementById('r-0').value === '11' && !w.eval('_telSporco'),
+       'chiusura del TMS con una modifica appena fatta: la finestra aspetta l\'ultimo giro con l\'hub, poi si chiude da sola; il telefono ha la modifica');
+    w.eval('_telChiudi=false; _telChiusuraIn=false;');
+    const ev2 = new w.Event('beforeunload', { cancelable: true }); w.dispatchEvent(ev2);
+    ok(!ev2.defaultPrevented && chiuso === 1, 'chiusura senza niente in sospeso: la finestra si chiude subito');
+    w.close = chiudiVero; }
   /* «Nuovo codice»: il telefono vecchio non entra più, il legame vecchio sparisce dall'hub */
   { w.eval('closeModal(); impostazioniModal()'); await settle(30);
     await clic('imp-tel-nuovo', 500);

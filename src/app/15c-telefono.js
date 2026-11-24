@@ -45,6 +45,7 @@ const TEL_CAMPI=['giorno','esercizio','serie','rip','peso','rir','note','rest','
 const TEL_CAMPI_S=['rpe','min','fatto'];
 const TEL_TOLTE_GIORNI=30;                           /* i segni delle righe tolte si tengono un mese */
 let TEL=null, _telId={}, _telGiroIn=false, _telTimer=null, _telModT=null, _telUltimoGiro=null, _telErr='', _telInterno=false, _telMostraRec=false;
+let _telSporco=false, _telChiudi=false, _telChiusuraIn=false;   /* modifiche non ancora mandate; chiusura della finestra */
 
 function telHubUrl(){ return String(window.TMS_HUB||TEL_HUB||'').replace(/\/+$/,''); }
 function telDisponibile(){ return !!(telHubUrl() && typeof fetch==='function' && window.crypto && crypto.subtle); }
@@ -156,8 +157,32 @@ async function telRecupera(codice){
     if(!et || et.tipo!=='tms-etichetta' || !et.slug || !profili.some(x=>x.slug===et.slug)) continue;
     const p=st.profili[et.slug]=st.profili[et.slug]||{ricevute:[], settimana:1};
     Object.assign(p, {codice:et.codice, lid:l.lid, firmaScheda:'', firmaStato:'', videoFirma:''}); n++;
+    try{ await telRiprendi(p); }catch(e){ logErrore('telefono/recupero', e); }
   }
   telSalva(); return n;
+}
+/* 24/11/2026, Marco: «miglioralo». Su un PC nuovo il collegamento torna col codice di recupero, ma settimana,
+   ricevute e l'ultima scheda unita («ombra») stavano nelle impostazioni del PC vecchio: senza, la settimana
+   ripartiva da 1 e il primo giro dava ragione al PC su ogni campo (con un backup vecchio, le ultime modifiche
+   del telefono si perdevano). Si riprendono da quello che il PC vecchio aveva scritto sull'hub (dal-pc/stato.json
+   e dal-pc/scheda.json, cifrati col codice del cliente); la scheda dei Pesi del profilo riparte da lì al suo
+   primo giro (`riparti`, vedi telSincronizza). */
+async function telRiprendi(p){
+  const r=await telHub('GET', '/v1/f/'+p.lid+'?dir=dal-pc/&testo=1&salta=video.json', {gettone:await telGettone()});
+  if(!r.ok) return false;
+  const file=(await r.json()).file||[];
+  const leggi=async nome=>{ const f=file.find(x=>x.nome===nome); if(!f || typeof f.testo!=='string') return null;
+    try{ return await telDecifra(f.testo, p.codice); }catch(e){ return null; } };
+  const st=await leggi('stato.json'), sc=await leggi('scheda.json');
+  if(st && st.tipo==='tms-stato'){
+    p.settimana=+st.settimana||+p.settimana||1;
+    if(Array.isArray(st.ricevute)) p.ricevute=[...new Set((p.ricevute||[]).concat(st.ricevute.map(String)))].slice(-400);
+  }
+  if(sc && sc.tipo==='tms-collegata' && Array.isArray(sc.righe)){
+    p.ombra={righe:sc.righe, sedute:sc.sedute||{}}; p.riparti=true;
+    if(!(st && st.tipo==='tms-stato')) p.settimana=+sc.settimana||+p.settimana||1;
+  }
+  return true;
 }
 async function telRegistraLegame(slug, codiceCliente){
   const pe=telPersonal(); if(!pe) throw new Error(t('questo TMS non è ancora attivo come personal'));
@@ -237,9 +262,23 @@ function telValori(d){
 function telPota(d, adesso){ const lim=adesso-TEL_TOLTE_GIORNI*86400000; d.righe=d.righe.filter(r=>!(r.del && ((r.t&&r.t.del)||0)<lim)); return d; }
 
 /* ── la scheda Pesi di questo PC ↔ scheda collegata ── */
+/* 24/11/2026, Marco: «se aggiungo un esercizio dal telefono, quando lo importa crea un nuovo giorno con lo stesso
+   nome, con solo quell'esercizio». Il telefono mette l'esercizio nuovo in fondo all'elenco (lui mostra per giorno),
+   e la tabella dei Pesi fa un giorno per ogni blocco di righe consecutive: le righe di uno stesso giorno si
+   tengono INSIEME, nell'ordine in cui i giorni compaiono la prima volta (pura: torna un elenco nuovo) */
+function telRaggruppa(rows){
+  const giorni=[], per=new Map();
+  (rows||[]).forEach(r=>{ const g=String((r&&r.giorno)||''); if(!per.has(g)){ per.set(g, []); giorni.push(g); } per.get(g).push(r); });
+  return [].concat(...giorni.map(g=>per.get(g)));
+}
 function telLocale(p){
+  let riordinata=false;   /* un giorno spezzato in due blocchi (schede unite prima del 24/11/2026): si rimette insieme e si salva */
+  if(DOC.scheda && Array.isArray(DOC.scheda.settimanale)){
+    const g=telRaggruppa(DOC.scheda.settimanale);
+    if(g.some((r,i)=>r!==DOC.scheda.settimanale[i])){ DOC.scheda.settimanale=g; riordinata=true; if(curTab==='allenamento') setTimeout(()=>{ if(curTab==='allenamento') renderAllenamento(); }, 0); }
+  }
   const rows=(DOC.scheda && Array.isArray(DOC.scheda.settimanale))? DOC.scheda.settimanale : [];
-  const visti=new Set(), righe=[]; let nuovi=false;
+  const visti=new Set(), righe=[]; let nuovi=riordinata;
   rows.forEach(r=>{ if(!r || !String(r.esercizio||'').trim()) return;     /* un giorno appena aggiunto, ancora vuoto: resta qui */
     if(!r.uid || visti.has(r.uid)){ r.uid=telUid(); nuovi=true; }           /* ＋set copia la riga: l'id va rifatto */
     visti.add(r.uid); righe.push(r); });
@@ -255,7 +294,7 @@ function telApplica(d){
   const nuove=(d.righe||[]).filter(r=>!r.del).slice().sort(telOrdine).map(r=>Object.assign({}, perUid.get(r.uid)||{}, {uid:r.uid,
     giorno:r.giorno, esercizio:r.esercizio, serie:r.serie, rip:r.rip, peso:r.peso, rir:(r.rir==null? '' : r.rir), note:r.note, rest:r.rest, test:!!r.test}));
   prima.forEach(r=>{ if(r && !String(r.esercizio||'').trim()) nuove.push(r); });
-  DOC.scheda.settimanale=nuove;
+  DOC.scheda.settimanale=telRaggruppa(nuove);
   if(!DOC.scheda.rpe || typeof DOC.scheda.rpe!=='object') DOC.scheda.rpe={};
   const rpe={}; Object.keys(d.sedute||{}).forEach(g=>{ const s=d.sedute[g]; if(s && (s.rpe||s.min)) rpe[g]={rpe:s.rpe||'', min:s.min||''}; });
   DOC.scheda.rpe.settimanale=rpe;
@@ -293,6 +332,14 @@ function telRinominaGiorni(mappa){ const p=telProf(); if(!p || !p.ombra || !p.om
   Object.assign(os, copia); telSalva(); }
 /* un giro sulla scheda: data le modifiche fatte qui, unisce quelle del telefono, applica, scrive */
 async function telSincronizza(slug, p, lista){
+  /* primo giro dopo il recupero su un PC nuovo: la scheda dei Pesi riparte dall'ultima unita (presa dall'hub),
+     non dal backup, che può essere più vecchio */
+  if(p.riparti && p.ombra){
+    if(activeProfile!==slug) return false;
+    telApplica(p.ombra); delete p.riparti;
+    _telInterno=true; try{ persist('scheda'); } finally{ _telInterno=false; }
+    if(curTab==='allenamento') renderAllenamento();
+  }
   const adesso=Date.now(), loc=telLocale(p);
   const timbrata=telTimbra(loc.righe, loc.sedute, p.ombra, adesso);
   let remota=null;
@@ -328,7 +375,25 @@ async function telSincronizza(slug, p, lista){
    La chiamano persist('scheda') e persist('alimentazione'). */
 function telSchedaToccata(){
   if(_telInterno || !telDisponibile() || !telCollegato(telProf())) return;
+  _telSporco=true;
   clearTimeout(_telModT); _telModT=setTimeout(()=>{ telGiro(); }, 2000);
+}
+/* 24/11/2026, Marco: «quando chiudo l'app da PC fa che si aggiorni con il server per non lasciare nessuna modifica
+   in sospeso». Se alla chiusura della finestra c'è una modifica non ancora mandata (o un giro a metà), la chiusura
+   si trattiene: ultimo giro con l'hub (al massimo 10 s, anche senza rete), poi la finestra si chiude da sola.
+   Solo nell'app desktop (window.tmsFS): nel browser trattenere la chiusura mostrerebbe la domanda del browser. */
+function telChiusura(e){
+  if(_telChiudi || !window.tmsFS || !telDisponibile() || !telPersonal() || !telCollegato(telProf())) return false;
+  if(!_telSporco && !_telGiroIn) return false;
+  if(e){ e.preventDefault(); e.returnValue=false; }
+  if(_telChiusuraIn) return true;
+  _telChiusuraIn=true; clearTimeout(_telModT);
+  telNotizia(t('Mando le ultime modifiche al telefono, poi chiudo…'));
+  let chiusa=false;
+  const fine=()=>{ if(chiusa) return; chiusa=true; _telChiudi=true; window.close(); };
+  const tempo=setTimeout(fine, 10000);
+  (async()=>{ while(_telGiroIn) await new Promise(r=>setTimeout(r,50)); await telGiro(); })().catch(()=>{}).then(()=>{ clearTimeout(tempo); fine(); });
+  return true;
 }
 /* «💾 Salva nello Storico» CRISTALLIZZA: la settimana dopo riparte con fatica, durata e spunte vuote,
    anche sul telefono; la scheda resta collegata */
@@ -342,6 +407,7 @@ function telSettimanaSalvata(code){
     p.ombra.sedute[g]={rpe:null, min:null, fatto:false, t:{rpe:adesso, min:adesso, fatto:adesso}}; });
   if(DOC.scheda && DOC.scheda.rpe) DOC.scheda.rpe.settimanale={};
   telSalva(); telAggiornaVista();
+  _telSporco=true;
   clearTimeout(_telModT); _telModT=setTimeout(()=>{ telGiro(); }, 300);
 }
 
@@ -374,7 +440,7 @@ async function telGiro(){
   if(_telGiroIn || !telDisponibile() || scrittureBloccate || !profileDir) return;
   const slug=activeProfile, p=telProf(slug);
   if(!telPersonal() || !telCollegato(p)) return;
-  _telGiroIn=true;
+  _telGiroIn=true; _telSporco=false;   /* una modifica fatta durante il giro lo rimette a true */
   try{
     const lista=await telLista(p);
     const ev=await telLeggiEventi(slug, p, lista);
@@ -387,7 +453,7 @@ async function telGiro(){
     if(ev && ev.foto) pz.push(ev.foto+' '+t('foto nel tab Corpo'));
     if(sc) pz.push(t('scheda aggiornata dal telefono'));
     if(pz.length) telNotizia(t('Dal telefono:')+' '+pz.join(' · '));
-  }catch(e){ _telErr=String((e&&e.message)||e); logErrore('telefono/giro', e); }
+  }catch(e){ _telSporco=true; _telErr=String((e&&e.message)||e); logErrore('telefono/giro', e); }
   finally{ _telGiroIn=false; telAggiornaVista(); }
 }
 function telAvvia(){
