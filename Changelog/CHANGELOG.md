@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-11-24 — TMS v1.1.33: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.32
+**Descrizione**:
+- Hub del TMS online (tms-hub.marco-martinellione.workers.dev): indirizzo scritto nel TMS e nell'APK 1.2.7, che si collega col codice dato dal personal
+- Personal e clienti attraverso l'hub del TMS su Cloudflare al posto di Google Drive: ogni cliente ha il suo codice e i suoi file sono cifrati con quello; il TMS si attiva come personal con un codice d'invito e si ritrova su un PC nuovo col codice di recupero
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-24)
+
+---
+
 ### 2026-11-23 — TMS v1.1.32: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.31
