@@ -95,7 +95,7 @@ async function init(){
          IndexedDB viene ignorato e rimosso, niente piu' gate "Ricollega la cartella". */
       try{ await idbDel(IDB_KEY); }catch(e){}
       dirHandle=localDirHandle(''); await connectFlow();
-      telAvvia();   /* telefono collegato: giro sulla cartella condivisa (solo se scelta e col codice) */
+      telAvvia();   /* telefono collegato: giro sull'hub (solo da personal attivo e per il profilo collegato) */
     } else {
       const saved=await idbGet(IDB_KEY);
       if(saved){ dirHandle=saved; const perm=await saved.queryPermission({mode:'readwrite'});

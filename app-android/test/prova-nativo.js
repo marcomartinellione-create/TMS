@@ -50,6 +50,8 @@ async function apri(opz = {}) {
   const dom = new JSDOM(html, {
     runScripts: 'dangerously', url: 'https://localhost/index.html', pretendToBeVisual: true,
     beforeParse(win) {
+      win.TMS_HUB = opz.hub === false ? '' : 'https://hub.test';   /* l'hub del TMS: nell'APK vero è scritto nella pagina */
+      try { Object.defineProperty(win, 'crypto', { value: require('crypto').webcrypto, configurable: true }); } catch (e) {}   /* come nella WebView: crypto.subtle */
       win.localStorage.setItem('tms-scheda-lang', opz.lingua || 'it');
       if (opz.scheda !== null) win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(opz.scheda || SCHEDA));
       Object.entries(opz.ls || {}).forEach(([k, v]) => win.localStorage.setItem(k, v));
@@ -301,17 +303,11 @@ async function apri(opz = {}) {
     ok(/spento/.test(a.d.getElementById('bil-stato').textContent) && a.reg.ble.some(x => x[0] === 'requestEnable'), 'Bluetooth spento: chiede di accenderlo e poi lo dice');
     a.dom.window.close(); }
 
-  /* ── cartella condivisa col PC (plugin TmsCartella) ── */
+  /* ── collegamento col PC del personal (dal 24/11/2026 passa dall'hub del TMS) e aggiornamento dell'APK ── */
   { const a = await apri({ cartella: true }), { w, d, reg } = a;
-    ok(d.getElementById('vai-col').hidden === false && typeof w.tmsCartella === 'object' && w.tmsCartella.pronta() === false, 'cartella: nel menu «⚙ Collegamento e promemoria»; nessuna cartella scelta all’inizio');
-    await w.tmsCartella.scegli();
-    ok(w.tmsCartella.pronta() && w.tmsCartella.nome() === '6 - TMS' && JSON.parse(w.localStorage.getItem('tms-col-cartella')).uri === 'content://tree/6-TMS', 'cartella: scelta una volta, il suo indirizzo resta nell’app');
-    ok(await w.tmsCartella.leggi('c/x.json') === 'TESTO' && await w.tmsCartella.leggi('c/manca.json') === null, 'cartella: lettura (null se il file non c’è)');
-    await w.tmsCartella.scrivi('prova/dal-telefono/bozza.json', 'X');
-    const sc = reg.cart.find(x => x[0] === 'scrivi');
-    ok(sc && sc[1].uri === 'content://tree/6-TMS' && sc[1].percorso === 'prova/dal-telefono/bozza.json' && sc[1].data === 'X', 'cartella: scrittura col percorso relativo alla cartella scelta');
-    ok(JSON.stringify(await w.tmsCartella.elenca('')) === JSON.stringify([{ nome: 'prova', cartella: true }]), 'cartella: elenco di file e sottocartelle');
-    ok(typeof w.tmsCartella.installaApk === 'undefined' && typeof w.tmsAggiorna === 'object', 'aggiornamento: non passa più dalla cartella condivisa (c’è tmsAggiorna)');
+    ok(d.getElementById('vai-col').hidden === false && typeof w.tmsCartella === 'undefined' && !d.getElementById('col-cartella'),
+       'collegamento: nel menu «⚙ Collegamento e promemoria», senza cartella da scegliere (passa dall’hub)');
+    ok(typeof w.tmsAggiorna === 'object', 'aggiornamento: il plugin TmsCartella serve solo a scaricare l’APK nuovo (window.tmsAggiorna)');
     /* versione.json su GitHub (fetch finto): più nuova → domanda in stile app → sì → il plugin scarica url + impronta */
     const VJ = { versione: '9.9.9', file: 'TMS-Scheda-9.9.9.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v9.9.9/TMS-Scheda-9.9.9.apk', pubblicata: '2026-11-18' };
     const chiesti = []; w.fetch = async (u) => { chiesti.push(String(u)); return { ok: true, json: async () => VJ }; };

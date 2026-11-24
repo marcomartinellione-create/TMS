@@ -562,26 +562,33 @@ TMS Scheda si installa la prima volta toccando il file APK, scaricato dalle Rele
 (https://github.com/marcomartinellione-create/TMS/releases, allegato TMS-Scheda-x.y.z.apk)
 oppure passato dal coach via WhatsApp, email o cavo; fuori dal Play Store va consentita
 l'installazione da quella fonte. Dopo, gli aggiornamenti li trova da solo su GitHub, anche
-senza cartella collegata (vedi sotto). Solo Android.
+senza collegamento (vedi sotto). Solo Android.
 
 **COLLEGAMENTO** (TMS sul PC: modulo 15c-telefono.js; telefono: blocco «SCHEDA COLLEGATA» della
-PWA + plugin TmsCartella): PC e app si parlano attraverso una CARTELLA CONDIVISA, come
-Movienaitor. Sul PC una cartella di Google Drive per desktop (di solito My Drive › 6 - TMS),
-scelta in Impostazioni › Telefono collegato (il percorso lo tiene il processo principale di
-Electron: la pagina chiede solo file .json relativi a quella cartella, con scrittura atomica e
-senza uscite); lì si crea il CODICE DI COLLEGAMENTO (16 segni) e si preme «Collega la scheda di
-questo profilo». Sul telefono una cartella tenuta uguale da un'app di sincronizzazione
-bidirezionale (Autosync, FolderSync…), scelta in «Collegamento e promemoria», dove si scrive il
-codice. Struttura: <profilo>/dal-pc/stato.json, scheda.json e video.json (li scrive SOLO il PC),
-<profilo>/dal-telefono/scheda.json ed eventi/*.json (li scrive SOLO il telefono; il PC toglie un
-evento DOPO averlo salvato su disco); la cartella apk/ che «Crea APK.bat» riempie ancora serve
-solo ai telefoni con TMS Scheda 1.2.5 o prima, per passare una volta alla 1.2.6 (dalla 1.2.6
-gli aggiornamenti vengono da GitHub). Tutto il resto è CIFRATO con AES-GCM, chiave PBKDF2-SHA256 (150 000 giri)
-dal codice: Google vede solo file illeggibili, e il sigillo della cifratura scopre anche i file
-arrivati a metà (si saltano e si riprovano, mai cancellati). Il PC controlla la cartella ogni 20
-secondi a TMS aperto (e 2 secondi dopo ogni modifica della scheda), il telefono ogni minuto ad app
-aperta (e pochi secondi dopo ogni modifica). Senza cartella collegata il telefono non riceve la
-scheda (nel browser la PWA mostra solo il benvenuto).
+PWA): ci sono due ruoli, il PERSONAL (usa il TMS sul PC) e il CLIENTE (usa l'APK). Ogni personal ha
+uno o più clienti (un profilo per cliente nel TMS), ogni cliente ha un solo personal; il personal
+può essere anche cliente di se stesso (un suo profilo collegato al suo telefono). PC e app si
+parlano attraverso l'HUB DEL TMS, un piccolo servizio su internet (Cloudflare): è uno smistamento,
+non un archivio. Lo storico vero resta sul PC del personal (si salva ogni settimana con «💾 Salva
+nello Storico»); sull'hub resta solo l'ultima versione di ogni file di scambio; pesate e foto sono
+scaricate dal PC e cancellate dall'hub subito dopo il salvataggio, quelle mai ritirate scadono dopo
+30 giorni (il telefono le tiene e le rimanda finché il PC non conferma).
+Sul PC, in Impostazioni › Telefono collegato: (1) una volta sola «Attiva» con un CODICE D'INVITO
+dato da chi gestisce l'hub: il TMS diventa personal e mostra il CODICE DI RECUPERO (24 caratteri)
+da conservare; con quello, su un PC nuovo, si scrive nel campo «Codice di recupero» e si preme
+«Recupera»: i collegamenti dei profili tornano senza ricollegare i clienti; (2) per ogni profilo
+cliente «Collega un telefono» crea il CODICE DI QUEL CLIENTE (20 caratteri, a gruppi di 4) da
+scrivere una volta sul suo telefono. Pulsanti: Copia; «Nuovo codice» (il vecchio telefono smette di
+funzionare finché non si scrive il nuovo; settimana e dati restano); «Stacca» (scollega: l'hub
+cancella i file di quel cliente). Sul telefono: «Collegamento e promemoria» → si scrive il codice
+dato dal proprio personal → «Collega». Tutto quello che passa dall'hub è CIFRATO con AES-GCM, con
+la chiave ricavata (HKDF-SHA256) dal codice di quel singolo cliente; dallo stesso codice nascono
+anche l'id del collegamento e il gettone d'accesso all'hub, che ne tiene solo l'impronta. L'hub
+vede solo file illeggibili, non vede mai codici né chiavi, e non ci sono nomi in chiaro; un file
+illeggibile si salta e si riprova al giro dopo. Il PC controlla l'hub ogni 20
+secondi a TMS aperto e a profilo del cliente attivo (e 2 secondi dopo ogni modifica della scheda),
+il telefono ogni minuto ad app aperta (e pochi secondi dopo ogni modifica). Senza collegamento il
+telefono non riceve la scheda (nel browser la PWA mostra solo il benvenuto).
 
 **SCHEDA COLLEGATA** (richiesta dell'utente: «le modifiche di uno modificano l'altra e solo a Salva
 si cristallizza»): la scheda settimanale del tab Pesi e quella del telefono sono la stessa,
@@ -642,12 +649,11 @@ compare «al PC».
 **AGGIORNAMENTO DELL'APK** (dalla 1.2.6): l'app legge scheda/versione.json dal sito su GitHub
 Pages (https://marcomartinellione-create.github.io/TMS/scheda/versione.json: versione, file,
 sha256 e url dell'allegato della Release; lo scrive «PUBBLICA.bat») all'avvio e poi al massimo
-ogni 6 ore, anche senza cartella collegata; senza rete tace. Se la versione è più alta di
+ogni 6 ore, anche senza collegamento; senza rete tace. Se la versione è più alta di
 quella installata la propone, scarica l'APK dalla Release (solo da
 github.com/marcomartinellione-create/TMS, via https), ne controlla l'impronta SHA-256 e lo
 passa all'installer di Android (conferma dell'utente; la prima volta «Installa app
-sconosciute»). Su GitHub viaggia solo l'APK: scheda, pesate e foto restano nella cartella
-condivisa.
+sconosciute»). Su GitHub viaggia solo l'APK: scheda, pesate e foto passano solo dall'hub.
 **PROMEMORIA** (notifiche locali, in «Collegamento e promemoria»): ogni sera all'ora scelta
 (predefinita 21:00) la pesata, il lunedì anche le foto; si programmano i 28 giorni successivi e si
 ricalcolano a ogni apertura, pesata o foto: se quel giorno la pesata (o le foto) c'è già, quello
@@ -818,8 +824,8 @@ della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
 - **Grafici vuoti** finché non ci sono almeno 2-3 settimane salvate nello Storico.
 - **Salva nello Storico su una settimana già salvata**: AGGIUNGE righe, non sostituisce
   quelle esistenti (l'app avvisa prima).
-- **Telefono collegato**: quanto è «in diretta» dipende dall'app di sincronizzazione del
-  telefono (Autosync, FolderSync…) e da Google Drive per desktop; ci vuole il TMS aperto.
+- **Telefono collegato**: ci vuole il TMS aperto sul PC, con attivo il profilo del
+  cliente (il PC controlla l'hub ogni 20 secondi, il telefono ogni minuto ad app aperta).
 - **Rinomina profilo**: cambia il nome visualizzato ma non il nome della cartella
   dati su disco (che resta quello originario). È innocuo.
 - **Niente sincronizzazione nativa multi-PC**: i dati si possono spostare con una
@@ -842,8 +848,8 @@ della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
 - «Cambiare formula 1RM, RIR, session-RPE» → Profilo → tendina del profilo → 
   Modifica parametri.
 - «Cambiare la fase alimentare (Bulk/Mant/Cut)» → Alimentazione → bottoni in cima al tab.
-- «Avere la scheda sul telefono» → Impostazioni › Telefono collegato (cartella, codice,
-  «Collega la scheda di questo profilo») e, sul telefono, Collegamento e promemoria. Da lì la
+- «Avere la scheda sul telefono» → Impostazioni › Telefono collegato («Attiva» con il codice d'invito, poi
+  «Collega un telefono» sul profilo del cliente) e, sul telefono, Collegamento e promemoria dove si scrive il codice. Da lì la
   scheda è la stessa sui due e quello che si scrive in palestra arriva da solo nei Pesi.
 - «Salvare l'allenamento della settimana» → Pesi → Salva nello Storico.
 - «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,

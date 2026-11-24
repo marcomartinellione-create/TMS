@@ -12,6 +12,7 @@
 const { JSDOM, VirtualConsole } = require('jsdom');
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 
 const ROOT = path.join(__dirname, '..');
 const ARTEFATTO = path.join(ROOT, 'Training Monitor System.html');
@@ -97,23 +98,23 @@ function conCrypto(win){
   if(!win.TextEncoder) win.TextEncoder = require('util').TextEncoder;
   if(!win.TextDecoder) win.TextDecoder = require('util').TextDecoder;
 }
-/* la cartella condivisa PC ↔ telefono, in memoria: `pc` imita window.tmsScambio (Electron),
-   `tel` window.tmsCartella (APK). Stessi file per tutti e due, come dopo una sincronizzazione. */
-function makeCartella(){
-  const files = new Map(), norm = p => String(p || '').replace(/^\/+/, '');
-  const figli = c => { const pre = c ? norm(c) + '/' : '', vis = new Map();
-    for(const k of files.keys()){ if(!k.startsWith(pre)) continue; const r = k.slice(pre.length), i = r.indexOf('/'); if(i < 0) vis.set(r, false); else vis.set(r.slice(0, i), true); }
-    return [...vis].map(([nome, cartella]) => ({ nome, cartella })); };
-  const C = { files, installati: [] };
-  C.pc = { cartella: async () => 'C:\\Prova\\My Drive\\6 - TMS', scegli: async () => 'C:\\Prova\\My Drive\\6 - TMS', scollega: async () => '',
-    leggi: async rel => files.has(norm(rel)) ? { stato: 'ok', testo: files.get(norm(rel)) } : { stato: 'assente' },
-    elenca: async rel => figli(rel).filter(x => !x.cartella && /\.json$/.test(x.nome)).map(x => x.nome),
-    scrivi: async (rel, t) => { files.set(norm(rel), String(t)); }, togli: async rel => { files.delete(norm(rel)); } };
-  C.tel = { pronta: () => true, nome: () => '6 - TMS', scegli: async () => ({ nome: '6 - TMS' }), dimentica(){},
-    leggi: async p => files.has(norm(p)) ? files.get(norm(p)) : null, scrivi: async (p, t) => { files.set(norm(p), String(t)); },
-    elenca: async c => figli(c) };
-  C.agg = { scarica: async (url, sha) => { C.installati.push([url, sha]); return { permesso: true, avviato: true }; } };
-  return C;
+/* l'hub del TMS (hub/worker.js) su un database D1 finto (hub/d1-finto.cjs, node:sqlite): il PC e il telefono
+   delle prove lo chiamano con fetch come farebbero con quello vero su Cloudflare. */
+async function makeHub(){
+  const W = (await import(pathToFileURL(path.join(ROOT, 'hub', 'worker.js')).href)).default;
+  const { nuovoD1 } = require('../hub/d1-finto.cjs');
+  const env = { DB: nuovoD1() }, sql = env.DB._sql;
+  sql.prepare('INSERT INTO inviti (codice, creato) VALUES (?, ?)').run('INVITOPROVA1', 1);
+  const H = { env, sql, URL: 'https://hub.test', chiamate: 0, installati: [] };
+  H.fetch = async (url, init) => { H.chiamate++; init = init || {};
+    return W.fetch(new Request(String(url), { method: init.method || 'GET', headers: init.headers || {}, body: init.body }), env); };
+  H.fetchSolo = (url, init) => String(url).startsWith(H.URL) ? H.fetch(url, init) : Promise.reject(new Error('offline'));
+  H.file = (lid, percorso) => { const r = sql.prepare('SELECT testo FROM file WHERE lid = ? AND percorso = ? ORDER BY parte').all(lid, percorso); return r.length ? r.map(x => x.testo).join('') : null; };
+  H.nomi = (lid, pre) => sql.prepare('SELECT DISTINCT percorso FROM file WHERE lid = ? AND substr(percorso, 1, ?) = ? ORDER BY percorso').all(lid, pre.length, pre).map(x => x.percorso);
+  H.metti = (lid, percorso, testo) => { sql.prepare('DELETE FROM file WHERE lid = ? AND percorso = ?').run(lid, percorso);
+    sql.prepare('INSERT INTO file (lid, percorso, parte, testo, ora) VALUES (?, ?, ?, ?, ?)').run(lid, percorso, 0, testo, Date.now()); };
+  H.agg = { scarica: async (url, sha) => { H.installati.push([url, sha]); return { permesso: true, avviato: true }; } };
+  return H;
 }
 function load(opts){
   const errors = [];
@@ -125,11 +126,11 @@ function load(opts){
     virtualConsole: vc,
     beforeParse(window){
       if(opts.lang) window.localStorage.setItem('tms-lang', opts.lang);
-      window.fetch = () => Promise.reject(new Error('offline'));
+      window.fetch = opts.fetch || (() => Promise.reject(new Error('offline')));
+      if(opts.hub) window.TMS_HUB = opts.hub;   /* l'hub del TMS (finto, vedi makeHub) */
       if(!window.matchMedia) window.matchMedia = ()=>({matches:false,addListener(){},removeListener(){}});
       if(opts.idb) window.indexedDB = opts.idb;
       if(opts.tmsFS) window.tmsFS = opts.tmsFS;
-      if(opts.scambio) window.tmsScambio = opts.scambio;   /* cartella condivisa col telefono (finta) */
       conCrypto(window);
       if(opts.fsa) window.showDirectoryPicker = async ()=>{ const e = new Error('abort'); e.name='AbortError'; throw e; };
       if(!window.URL.createObjectURL){ window.URL.createObjectURL = ()=>'blob:test'; window.URL.revokeObjectURL = ()=>{}; }
@@ -3260,11 +3261,11 @@ console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---'
   dom.window.close();
 }
 
-console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivisa cifrata), pesate e foto, promemoria, APK nuovo ---');
+console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l\'hub: scheda collegata cifrata, pesate e foto, codici, promemoria, APK nuovo ---');
 {
   const PWA = path.join(ROOT, 'app-android', 'web', 'index.html');
-  const J = o => JSON.stringify(o), CODICE = 'K7QM3XRPA9TB4WZC';
-  const C = makeCartella();
+  const J = o => JSON.stringify(o);
+  const H = await makeHub();
   const fsmem = makeTmsFS();
   await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'prova', nome: 'Cliente Prova', creato: '2026-01-01' }], active: 'prova' }));
   await fsmem.writeFile('TMS_Dati/prova/scheda.json', J({ settimanale: [
@@ -3273,21 +3274,25 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
   await fsmem.writeFile('TMS_Dati/prova/storico.json', '[]');
   await fsmem.writeFile('TMS_Dati/prova/corpo.json', J({ dati_utente: { nome: 'Cliente Prova', sesso: 'M', altezza: 180, nascita: '1995-03-01', useRpe: true }, storico_io: [] }));
   await fsmem.writeFile('TMS_Dati/prova/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
-  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true, scambio: C.pc });
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true, hub: H.URL, fetch: H.fetchSolo });
   await settleConnect(dom, fsmem); await settle(200);
-  const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+  const w = dom.window, d = w.document, avvisiPC = []; w.alert = x => { avvisiPC.push(String(x)); }; w.confirm = () => true;
   const giroPC = () => w.eval('(async function(){ clearTimeout(_telModT); while(_telGiroIn) await new Promise(function(r){ setTimeout(r,20); }); await telGiro(); })()');
   const righePC = () => JSON.parse(w.eval('JSON.stringify(DOC.scheda.settimanale)'));
-  /* cifratura */
-  w.eval('localStorage.setItem("tms-telefono", ' + J(J({ codice: CODICE, profili: {} })) + '); TEL=null; _telChiave=null;');
-  { const c = await w.eval('telCifra({a:"Squat 80 kg"})');
-    ok(!/Squat/.test(c) && JSON.parse(c).tms === 'scambio', 'cifratura: nel file non si legge niente (solo busta «scambio» + dati cifrati)');
-    ok(J(await w.eval('telDecifra(' + J(c) + ')')) === J({ a: 'Squat 80 kg' }), 'cifratura: si rilegge col codice giusto');
-    let rotta = false; try { await w.eval('telDecifra(' + J(c.slice(0, c.length - 12) + '"}') + ')'); } catch (e) { rotta = true; }
-    let altro = false; try { w.eval('TEL.codice="ZZZZZZZZZZZZZZZZ"'); await w.eval('telDecifra(' + J(c) + ')'); } catch (e) { altro = true; }
-    w.eval('TEL.codice=' + J(CODICE));
-    ok(rotta && altro, 'cifratura: un file arrivato a metà o un codice diverso vengono rifiutati (sigillo)');
-    ok(/^[A-HJ-NP-Z2-9]{16}$/.test(w.eval('telNuovoCodice()')) && w.eval('telCodiceBello("k7qm3xrpa9tb4wzc")') === 'K7QM-3XRP-A9TB-4WZC', 'codice di collegamento: 16 segni senza I, O, 0, 1, mostrato a gruppi di quattro'); }
+  const clic = async (id, ms) => { d.getElementById(id).click(); await settle(ms || 300); };
+  /* codici e cifratura */
+  { const c = await w.eval('telCifra({a:"Squat 80 kg"}, "K7QM3XRPA9TB4WZCHN5D")');
+    ok(!/Squat/.test(c) && JSON.parse(c).tms === 'hub', 'cifratura: nel file non si legge niente (solo busta «hub» + dati cifrati)');
+    ok(J(await w.eval('telDecifra(' + J(c) + ', "K7QM3XRPA9TB4WZCHN5D")')) === J({ a: 'Squat 80 kg' }), 'cifratura: si rilegge col codice giusto');
+    let rotta = false; try { await w.eval('telDecifra(' + J(c.slice(0, c.length - 12) + '"}') + ', "K7QM3XRPA9TB4WZCHN5D")'); } catch (e) { rotta = true; }
+    let altro = false; try { await w.eval('telDecifra(' + J(c) + ', "ZZZZZZZZZZZZZZZZZZZZ")'); } catch (e) { altro = true; }
+    ok(rotta && altro, 'cifratura: un file rovinato o il codice di un altro cliente vengono rifiutati (sigillo)');
+    ok(/^[A-HJ-NP-Z2-9]{20}$/.test(w.eval('telNuovoCodice()')) && /^[A-HJ-NP-Z2-9]{24}$/.test(w.eval('telNuovoCodice(24)')) && w.eval('telCodiceBello("k7qm3xrpa9tb4wzchn5d")') === 'K7QM-3XRP-A9TB-4WZC-HN5D',
+       'codici: 20 segni per il cliente, 24 per il recupero del personal, senza I, O, 0, 1, mostrati a gruppi di quattro');
+    const a = JSON.parse(await w.eval('telIdentita("K7QM3XRPA9TB4WZCHN5D").then(function(x){ return JSON.stringify({id:x.id, g:x.gettone}); })'));
+    const b = JSON.parse(await w.eval('telIdentita("ZZZZZZZZZZZZZZZZZZZZ").then(function(x){ return JSON.stringify({id:x.id, g:x.gettone}); })'));
+    ok(/^[0-9a-f]{16}$/.test(a.id) && /^[A-Za-z0-9_-]{43}$/.test(a.g) && a.id !== b.id && a.g !== b.g && !a.g.includes('K7QM'),
+       'dal codice si ricavano id del legame e gettone d\'accesso (diversi per ogni codice, senza ripeterlo)'); }
   /* unione campo per campo (funzioni pure) */
   { const r = JSON.parse(w.eval('JSON.stringify(telUnisci(' +
       'telTimbra([{uid:"a",giorno:"L",esercizio:"X",serie:3,rip:5,peso:80}], {}, {righe:[{uid:"a",giorno:"L",esercizio:"X",serie:3,rip:5,peso:70,rir:null,note:"",rest:"",test:false,pos:0,del:0,t:{giorno:1,esercizio:1,serie:1,rip:1,peso:1,rir:1,note:1,rest:1,test:1,pos:1,del:1}}],sedute:{}}, 100),' +
@@ -3295,36 +3300,63 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
       '{uid:"b",giorno:"L",esercizio:"Y",serie:1,rip:1,peso:1,rir:null,note:"",rest:"",test:false,pos:1,del:0,t:{}}],sedute:{}}))'));
     ok(r.righe.length === 2 && r.righe[0].peso === 80 && r.righe[0].rip === 8 && r.righe[1].uid === 'b',
        'unione: campo per campo vince l\'ultima modifica (peso cambiato qui, ripetizioni là: restano tutti e due) e le righe nuove dell\'altro entrano'); }
-  /* interfaccia del PC */
+  /* il vecchio collegamento con la cartella di Drive: settimana e ombra restano, il codice unico sparisce */
+  w.eval('localStorage.setItem("tms-telefono", ' + J(J({ codice: 'K7QM3XRPA9TB4WZC', profili: { prova: { settimana: 3, ricevute: ['x1'] } } })) + '); TEL=null;');
+  ok(w.eval('telStato().v') === 2 && !w.eval('telStato().codice') && w.eval('telStato().profili.prova.settimana') === 3 && !w.eval('telCollegato(telProf("prova"))'),
+     'dal collegamento con Google Drive: il codice unico sparisce, la settimana del profilo resta, va ricollegato');
+  w.eval('localStorage.removeItem("tms-telefono"); TEL=null;');
+  /* attivazione come personal */
   w.eval('showTab("allenamento")');
   ok(!d.getElementById('tel-riga'), 'tab Pesi: finché il profilo non è collegato, nessuna riga del telefono');
   await w.eval('impostazioniModal()'); await settle(30);
-  ok(d.querySelector('#imp-tel .tel-codice') && d.querySelector('#imp-tel .tel-codice').textContent === 'K7QM-3XRP-A9TB-4WZC' && d.getElementById('imp-tel-prof'),
-     '⚙ Impostazioni: cartella condivisa, codice e «Collega la scheda di questo profilo»');
-  d.getElementById('imp-tel-prof').click(); await settle(400); for (let k = 0; k < 40 && !C.files.has('prova/dal-pc/scheda.json'); k++) await settle(100);
+  ok(d.getElementById('imp-tel-invito') && d.getElementById('imp-tel-attiva') && d.getElementById('imp-tel-recupero') && !d.getElementById('imp-tel-prof') && !/Google Drive|cartella/i.test(d.getElementById('imp-tel').textContent),
+     '⚙ Impostazioni: prima si attiva il TMS come personal (codice d\'invito, oppure codice di recupero); niente più cartella');
+  d.getElementById('imp-tel-invito').value = 'sbagliato'; await clic('imp-tel-attiva');
+  ok(!w.eval('telPersonal()') && avvisiPC.some(x => /invito/.test(x)), 'attivazione: con un codice d\'invito sbagliato non si attiva e lo dice');
+  d.getElementById('imp-tel-invito').value = 'invi-topr-ova1'; await clic('imp-tel-attiva');
+  const REC = w.eval('telPersonal() && telPersonal().codice');
+  ok(/^[A-HJ-NP-Z2-9]{24}$/.test(REC || '') && H.sql.prepare('SELECT COUNT(*) AS n FROM personal').get().n === 1 && H.sql.prepare("SELECT usato FROM inviti WHERE codice='INVITOPROVA1'").get().usato > 0,
+     'attivazione: col codice d\'invito il TMS diventa personal sull\'hub (invito consumato)');
+  ok(d.getElementById('imp-tel-rec') && d.getElementById('imp-tel-rec').textContent === w.eval('telCodiceBello(' + J(REC) + ')') && /PC nuovo/.test(d.getElementById('imp-tel').textContent),
+     'attivazione: compare il codice di recupero, da conservare per passare a un PC nuovo');
+  ok(!JSON.stringify(H.sql.prepare('SELECT * FROM personal').all()).includes(REC), 'hub: del personal ha solo un numero e l\'impronta del gettone, mai il codice di recupero');
+  /* collega il profilo */
+  ok(d.getElementById('imp-tel-prof'), '⚙ Impostazioni: «Collega un telefono» per il profilo attivo');
+  await clic('imp-tel-prof', 400);
+  const P = JSON.parse(w.eval('JSON.stringify(telProf("prova"))')), LID = P.lid, CODICE = P.codice;
+  for (let k = 0; k < 40 && !H.file(LID, 'dal-pc/scheda.json'); k++) await settle(100);
+  ok(/^[A-HJ-NP-Z2-9]{20}$/.test(CODICE) && /^[0-9a-f]{16}$/.test(LID) && d.getElementById('imp-tel-codice') && d.getElementById('imp-tel-codice').textContent === w.eval('telCodiceBello(' + J(CODICE) + ')'),
+     'collega: il profilo prende il SUO codice (20 segni) da scrivere sul telefono del cliente');
+  { const l = H.sql.prepare('SELECT * FROM legami').get();
+    ok(l && l.lid === LID && !String(l.etichetta).includes('Cliente Prova') && !String(l.etichetta).includes(CODICE), 'hub: il legame ha l\'etichetta cifrata (né nome né codice in chiaro)'); }
   w.eval('closeModal(); showTab("allenamento")');
-  ok(C.files.has('prova/dal-pc/scheda.json') && C.files.has('prova/dal-pc/stato.json') && !/Squat/.test(C.files.get('prova/dal-pc/scheda.json')),
-     'collega: la scheda dei Pesi va nella cartella del profilo, cifrata (senza «Manda al telefono»)');
+  ok(H.file(LID, 'dal-pc/scheda.json') && H.file(LID, 'dal-pc/stato.json') && !/Squat/.test(H.file(LID, 'dal-pc/scheda.json')),
+     'collega: la scheda dei Pesi va sull\'hub nel legame del profilo, cifrata');
   { const r = righePC(); ok(r.length === 2 && r[0].uid && r[1].uid && r[0].uid !== r[1].uid, 'collega: ogni riga della scheda Pesi prende un id suo'); }
   ok(d.getElementById('tel-riga') && /collegata/.test(d.getElementById('tel-riga').textContent) && !d.getElementById('tel-manda'), 'tab Pesi: riga «Scheda collegata al telefono», nessun pulsante da premere');
 
-  /* il telefono */
+  /* il telefono del cliente */
+  H.versioneApk = null;
+  const fetchTel = async (u, i) => { if (String(u).startsWith(H.URL)) return H.fetch(u, i); if (!H.versioneApk) throw new Error('offline'); return { ok: true, json: async () => H.versioneApk }; };
   const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
     beforeParse(win){ conCrypto(win); win.localStorage.setItem('tms-scheda-lang', 'it'); win.scrollTo = () => {}; win.confirm = () => true; win.alert = () => {};
-      win.localStorage.setItem('tms-col', J({ codice: CODICE, slug: 'prova', nome: 'Cliente Prova' }));
-      win.TMS_APK_VERSIONE = '1.2.0'; win.tmsCartella = C.tel; win.tmsAggiorna = C.agg;
-      win.fetch = async u => { C.chiesti = (C.chiesti || 0) + 1; if (!C.versioneApk) throw new Error('offline'); return { ok: true, json: async () => C.versioneApk }; }; } });
+      win.localStorage.setItem('tms-col', J({ codice: CODICE, lid: LID, slug: 'prova', nome: 'Cliente Prova' }));
+      win.TMS_APK_VERSIONE = '1.2.0'; win.TMS_HUB = H.URL; win.tmsAggiorna = H.agg; win.fetch = fetchTel; } });
   const sw = sub.window, sd = sw.document;
   const giroTel = () => sw.eval('(async function(){ clearTimeout(COL.modT); while(COL.inCorso) await new Promise(function(r){ setTimeout(r,20); }); await colGiro(); })()');
   const scrivi = (id, v) => { const el = sd.getElementById(id); el.value = v; el.dispatchEvent(new sw.Event('input', { bubbles: true })); };
   for (let k = 0; k < 60 && !sw.eval('!!(SCHEDA&&SCHEDA.collegata)'); k++) await settle(100);
-  ok(sw.eval('!!(SCHEDA && SCHEDA.collegata)') && sd.getElementById('menu').hidden === false, 'telefono: senza scheda prende da solo quella collegata del PC');
+  ok(J(await sw.eval('colIdentita(' + J(CODICE) + ').then(function(x){ return [x.lid, x.gettone]; })')) === J(JSON.parse(await w.eval('telIdentita(' + J(CODICE) + ').then(function(x){ return JSON.stringify([x.id, x.gettone]); })'))),
+     'telefono e PC ricavano dallo stesso codice lo stesso legame e lo stesso gettone');
+  ok(sw.eval('!!(SCHEDA && SCHEDA.collegata)') && sd.getElementById('menu').hidden === false, 'telefono: senza scheda prende da solo quella collegata del PC, dall\'hub');
   ok(sd.getElementById('s-0').value === '3' && sd.getElementById('rir-0').value === '2' && sd.getElementById('n-0').value === 'fermo in basso' && !sd.querySelector('#ex-0 .ex-coach'),
      'telefono: i campi sono la scheda (anche RIR e note), senza «previsto» ripetuto');
   ok(/collegata/.test(sd.getElementById('scheda-info').textContent) && !sd.getElementById('invia') && sd.getElementById('col-home').hidden === false,
      'telefono: «Scheda collegata al TMS sul PC», niente file da mandare al coach');
   await giroTel();
-  ok(C.files.has('prova/dal-telefono/scheda.json') && !/Squat/.test(C.files.get('prova/dal-telefono/scheda.json')), 'telefono: scrive la sua copia della scheda, cifrata');
+  ok(H.file(LID, 'dal-telefono/scheda.json') && !/Squat/.test(H.file(LID, 'dal-telefono/scheda.json')), 'telefono: scrive la sua copia della scheda sull\'hub, cifrata');
+  { const n0 = H.chiamate; await giroTel();
+    ok(H.chiamate - n0 === 1, 'telefono: un giro senza novità è una chiamata sola all\'hub (stato e scheda insieme, il video no)'); }
   /* in palestra: 4 serie di squat */
   scrivi('s-0', '4'); await giroTel(); await giroPC();
   { const r = righePC(); ok(r[0].serie === 4 && r[0].note === 'fermo in basso' && r[0].rir === 2 && r[0].rest === '2:00' && r[1].peso === 60,
@@ -3347,20 +3379,7 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
     await giroPC(); const fermo = righePC()[0].rip === 6;
     inp.blur(); await giroPC();
     ok(fermo && righePC()[0].rip === 7, 'PC: con un campo dei Pesi sotto le dita aspetta il giro dopo, e poi la modifica del telefono entra lo stesso'); }
-  /* 18/11/2026: Google Drive ha DUE file «scheda.json» e Drive per desktop chiama il nuovo «scheda (1).json»:
-     il PC leggeva solo il vecchio e le ripetizioni del telefono non arrivavano */
-  { const vecchia = C.files.get('prova/dal-telefono/scheda.json');
-    scrivi('rir-0', '4'); await giroTel();
-    const nuova = C.files.get('prova/dal-telefono/scheda.json');
-    C.files.set('prova/dal-telefono/scheda (1).json', nuova); C.files.set('prova/dal-telefono/scheda.json', vecchia);
-    await giroPC();
-    ok(righePC()[0].rir === 4 && righePC()[0].rip === 7, 'copie doppie della scheda del telefono («scheda (1).json»): il PC le legge tutte e vince la modifica più recente');
-    C.files.set('prova/dal-telefono/scheda.json', nuova); C.files.set('prova/dal-telefono/scheda (1).json', vecchia);
-    await giroPC();
-    ok(righePC()[0].rir === 4, 'copie doppie al contrario (la vecchia col nome numerato): il valore nuovo resta');
-    C.files.delete('prova/dal-telefono/scheda (1).json');
-    ok(w.eval('telNomeCopia("scheda (12).json","scheda") && telNomeCopia("Scheda.JSON","scheda") && !telNomeCopia("scheda-vecchia.json","scheda") && !telNomeCopia("stato.json","scheda")'),
-       'copie doppie: si riconoscono «scheda.json» e «scheda (N).json», non altri file'); }
+  ok(H.nomi(LID, 'dal-telefono/').filter(n => /scheda/.test(n)).length === 1, 'hub: una sola scheda del telefono, sempre sostituita (niente più «scheda (1).json»)');
   /* esercizio aggiunto sul telefono, panca tolta sul PC */
   { const nome = sw.eval('(SCHEDA.catalogo||[]).map(function(e){return e.n;}).filter(function(n){return !/Squat con bilanciere|Panca piana con bilanciere/.test(n);})[0]') || 'Rematore con bilanciere';
     sw.eval('navEntra(); mostra("home"); addEsercizio(0);'); await settle(30);
@@ -3373,15 +3392,15 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
     ok(!sw.eval('WROWS.some(function(r){ return /Panca/.test(r.esercizio); })') && sw.eval('WROWS.some(function(r){ return r.esercizio===' + J(nome) + '; })') && righePC().length === 2,
        'esercizio tolto sul PC: sparisce anche dal telefono (e non torna indietro)'); }
   sw.eval('risali(); risali();'); await settle(30);
-  /* pesata e foto dal telefono */
+  /* pesata e foto dal telefono: sull'hub solo finché il PC non le ha salvate */
   sw.eval('PESATE.push({id:"2026-11-17T21:00:00|72.4", data:"2026-11-17", ora:"21:00:00", peso:72.4}); FOTO.fronte={id:"fprova1", img:"data:image/jpeg;base64,/9j/AAAA", data:"2026-11-17"};');
   await sw.eval('colEventi()');
-  const ev = [...C.files.keys()].filter(k => k.startsWith('prova/dal-telefono/eventi/'));
-  ok(ev.length === 2 && ev.every(k => !/72\.4|AAAA/.test(C.files.get(k))), 'telefono: una pesata e una foto diventano due file cifrati');
-  C.files.set('prova/dal-telefono/eventi/pesata-rotta.json', '{"tms":"scambio","v":1,"iv":"AAAA');
+  const ev = H.nomi(LID, 'dal-telefono/eventi/');
+  ok(ev.length === 2 && ev.every(k => !/72\.4|AAAA/.test(H.file(LID, k))), 'telefono: una pesata e una foto diventano due file cifrati sull\'hub');
+  H.metti(LID, 'dal-telefono/eventi/pesata-rotta.json', '{"tms":"hub","v":1,"iv":"AAAA');
   await giroPC(); await settle(450);
   ok(w.eval('DOC.pesate.length') === 1 && w.eval('DOC.pesate[0].peso') === 72.4 && w.eval('DOC.foto.some(function(f){ return f.id==="fprova1"; })'), 'PC: pesata (Storico misure) e foto (tab Corpo) importate da sole');
-  ok(!C.files.has(ev[0]) && !C.files.has(ev[1]) && C.files.has('prova/dal-telefono/eventi/pesata-rotta.json'), 'PC: dopo il salvataggio toglie i file arrivati; quello a metà resta lì (mai cancellato)');
+  ok(!H.file(LID, ev[0]) && !H.file(LID, ev[1]) && H.file(LID, 'dal-telefono/eventi/pesata-rotta.json'), 'PC: dopo il salvataggio su disco toglie subito pesata e foto dall\'hub; quella illeggibile resta lì');
   ok(await w.eval('importaFotoRientro([{id:"fprova1", tag:"fronte", data:"2026-11-17", img:"data:image/jpeg;base64,/9j/AAAA"}])') === 0, 'PC: la stessa foto arrivata di nuovo non si duplica');
   { const n = w.eval('DOC.foto.length'), file = w.eval('DOC.foto.find(function(f){ return f.id==="fprova1"; }).file');
     ok(await w.eval('importaFotoRientro([{id:"fprova2", sostituisce:"fprova1", tag:"fronte", data:"2026-11-17", img:"data:image/jpeg;base64,/9j/BBBB"}])') === 1 &&
@@ -3403,14 +3422,14 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
   ok(/Settimana salvata/.test(sd.getElementById('col-avvisi').textContent), 'telefono: «✔ Settimana salvata nello Storico sul PC»');
   scrivi('s-0', '5'); await giroTel(); await giroPC();
   ok(righePC()[0].serie === 5, 'dopo il salvataggio la scheda resta collegata: la settimana dopo si modifica come prima');
-  /* collegamento: il codice si scrive come si vuole; sbagliato non collega */
+  /* collegamento dal telefono: il codice si scrive come si vuole; sbagliato non collega */
   sw.eval('colStacca(); navEntra(); mostra("col"); colRender();');
-  ok(sw.eval('SCHEDA.collegata') === false && sd.getElementById('col').hidden === false && sd.getElementById('col-codice-box').hidden === false,
-     'telefono: «Scollega» lascia la scheda come scheda normale; schermata col campo del codice');
-  sd.getElementById('col-codice').value = 'zzzz-zzzz-zzzz-zzzz'; await sw.eval('colCollega()');
-  ok(!sw.eval('colConf().slug') && /codice/.test(sd.getElementById('col-stato').textContent), 'telefono: con un codice sbagliato non si collega e lo dice');
-  sd.getElementById('col-codice').value = 'k7qm-3xrp-a9tb-4wzc'; await sw.eval('colCollega()');
-  ok(sw.eval('colConf().slug') === 'prova' && sw.eval('colConf().codice') === CODICE, 'telefono: col codice giusto (anche minuscolo, coi trattini) trova il profilo e si collega');
+  ok(sw.eval('SCHEDA.collegata') === false && sd.getElementById('col').hidden === false && sd.getElementById('col-codice-box').hidden === false && !sd.getElementById('col-cartella'),
+     'telefono: «Scollega» lascia la scheda come scheda normale; schermata col solo campo del codice (niente cartella)');
+  sd.getElementById('col-codice').value = 'zzzz-zzzz-zzzz-zzzz-zzzz'; await sw.eval('colCollega()');
+  ok(!sw.eval('colConf().lid') && /Codice sconosciuto/.test(sd.getElementById('col-stato').textContent), 'telefono: con un codice sbagliato l\'hub non lo fa entrare, e lo dice');
+  sd.getElementById('col-codice').value = w.eval('telCodiceBello(' + J(CODICE) + ')').toLowerCase(); await sw.eval('colCollega()');
+  ok(sw.eval('colConf().lid') === LID && sw.eval('colConf().slug') === 'prova' && sw.eval('colConf().nome') === 'Cliente Prova', 'telefono: col codice giusto (anche minuscolo, coi trattini) trova il suo profilo e si collega');
   sw.eval('risali();'); await giroTel(); await settle(50);
   ok(sw.eval('!!SCHEDA.collegata'), 'telefono: ricollegato, con una scheda già sul telefono chiede e riprende quella del PC');
   /* 18/11/2026: «Rinumera da 1» sul PC col telefono collegato → anche il telefono passa ai nomi nuovi e la
@@ -3424,6 +3443,28 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
     ok(prima && righePC().every(r => r.giorno === 'Giorno 1') && sw.eval('WROWS.every(function(r){ return r.giorno==="Giorno 1"; })') &&
        rp['Giorno 1'] && rp['Giorno 1'].rpe === 7 && !rp['Giorno 6'] && sw.eval('colLocale().sedute["Giorno 1"].rpe') === 7,
        'Rinumera da 1 col telefono collegato: anche il telefono passa a «Giorno 1» e la fatica resta sulla seduta giusta, da tutte e due le parti'); }
+  /* recupero su un PC nuovo: col solo codice di recupero tornano personal e collegamento del profilo */
+  { const prima = JSON.parse(w.eval('JSON.stringify(telProf("prova"))'));
+    w.eval('localStorage.removeItem("tms-telefono"); TEL=null; _telId={};');
+    ok(!w.eval('telPersonal()') && !w.eval('telProf("prova")'), 'PC nuovo (impostazioni vuote): né personal né collegamenti');
+    let errRec = ''; try { await w.eval('telRecupera("AAAA-BBBB-CCCC-DDDD-EEEE-FFFF")'); } catch (e) { errRec = String(e.message || e); }
+    ok(/sconosciuto/.test(errRec) && !w.eval('telPersonal()'), 'recupero: un codice che l\'hub non conosce non attiva niente');
+    const n = await w.eval('telRecupera(' + J(w.eval('telCodiceBello(' + J(REC) + ')')) + ')');
+    const dopo = JSON.parse(w.eval('JSON.stringify(telProf("prova"))'));
+    ok(n === 1 && w.eval('telPersonal().codice') === REC && dopo.codice === prima.codice && dopo.lid === prima.lid,
+       'recupero: col codice di recupero tornano il personal e il collegamento del profilo (stesso codice del telefono)');
+    w.eval('localStorage.setItem("tms-telefono", ' + J(J(Object.assign(JSON.parse(w.eval('JSON.stringify(telStato())')), { profili: { prova: prima } }))) + '); TEL=null;');
+    await giroPC(); await giroTel();
+    ok(sw.eval('COL.stato') === 'ok', 'dopo il recupero il telefono continua a funzionare senza toccarlo'); }
+  /* «Nuovo codice»: il telefono vecchio non entra più, il legame vecchio sparisce dall'hub */
+  { w.eval('closeModal(); impostazioniModal()'); await settle(30);
+    await clic('imp-tel-nuovo', 500);
+    const P2 = JSON.parse(w.eval('JSON.stringify(telProf("prova"))'));
+    await giroPC(); await giroTel();
+    ok(P2.lid !== LID && P2.codice !== CODICE && H.sql.prepare('SELECT COUNT(*) AS n FROM file WHERE lid = ?').get(LID).n === 0 && H.file(P2.lid, 'dal-pc/scheda.json') && P2.settimana === 2,
+       'Nuovo codice: nuovo legame con la scheda già sopra, quello vecchio tolto dall\'hub coi suoi file; la settimana resta');
+    ok(sw.eval('COL.stato') === 'staccato' && /non vale più/.test(sd.getElementById('col-stato').textContent || sw.eval('COL.errore')), 'Nuovo codice: il telefono col codice vecchio lo dice («il collegamento non vale più»)');
+    w.eval('closeModal()'); }
   /* promemoria */
   sw.eval('avvSalvaConf({on:true, ora:"21:00"}); PESATE=[];');
   { const l = JSON.parse(sw.eval('JSON.stringify(avvLista(new Date(2026,10,16,8,0)))'));
@@ -3436,21 +3477,26 @@ console.log('--- T14: scheda collegata PC ↔ app del telefono (cartella condivi
     ok(new Date(l[0].at).getDate() === 18, 'promemoria: passata l\'ora, si parte da domani'); }
   sw.eval('avvSalvaConf({on:false, ora:"21:00"})');
   ok(sw.eval('avvLista(new Date()).length') === 0, 'promemoria: spenti, nessuno');
-  /* APK nuovo su GitHub (versione.json del sito; la cartella non c'entra più) */
-  C.files.set('apk/versione.json', J({ versione: '9.0.0', file: 'TMS-Scheda-9.0.0.apk', sha256: 'x' }));   /* quello vecchio nella cartella si ignora */
-  C.versioneApk = { versione: '1.3.0', file: 'TMS-Scheda-1.3.0.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v1.1.29/TMS-Scheda-1.3.0.apk', pubblicata: '2026-11-18' };
+  /* APK nuovo su GitHub (versione.json del sito) */
+  H.versioneApk = { versione: '1.3.0', file: 'TMS-Scheda-1.3.0.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v1.1.29/TMS-Scheda-1.3.0.apk', pubblicata: '2026-11-18' };
   await sw.eval('colApk(true)');
-  ok(C.installati.length === 1 && C.installati[0][0] === C.versioneApk.url && C.installati[0][1] === C.versioneApk.sha256, 'APK nuovo su GitHub: lo propone e lo scarica dalla release (con l\'impronta da controllare)');
-  C.versioneApk = { versione: '1.2.0', file: 'TMS-Scheda-1.2.0.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v1.1.28/TMS-Scheda-1.2.0.apk' };
+  ok(H.installati.length === 1 && H.installati[0][0] === H.versioneApk.url && H.installati[0][1] === H.versioneApk.sha256, 'APK nuovo su GitHub: lo propone e lo scarica dalla release (con l\'impronta da controllare)');
+  H.versioneApk = { versione: '1.2.0', file: 'TMS-Scheda-1.2.0.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v1.1.28/TMS-Scheda-1.2.0.apk' };
   await sw.eval('colApk(true)');
-  ok(C.installati.length === 1 && sw.eval('COL.apk') === null, 'APK della stessa versione: niente da proporre');
+  ok(H.installati.length === 1 && sw.eval('COL.apk') === null, 'APK della stessa versione: niente da proporre');
+  /* «Stacca» sul PC: l'hub cancella legame e file */
+  { const lidOra = w.eval('telProf("prova").lid');
+    await w.eval('impostazioniModal()'); await settle(30); await clic('imp-tel-togli', 400);
+    ok(!w.eval('telProf("prova")') && H.sql.prepare('SELECT COUNT(*) AS n FROM legami').get().n === 0 && H.sql.prepare('SELECT COUNT(*) AS n FROM file WHERE lid = ?').get(lidOra).n === 0,
+       'Stacca: il profilo non è più collegato e sull\'hub non resta niente di quel cliente');
+    w.eval('closeModal()'); }
   /* chiusura pulita: niente giri del telefono a finestra chiusa */
   sw.eval('clearInterval(COL.timer); clearTimeout(COL.prestoT); clearTimeout(COL.modT); clearTimeout(COL.avvisoT); clearTimeout(_avvT);');
   for (let k = 0; k < 100 && sw.eval('COL.inCorso'); k++) await settle(30);
   sw.eval('clearTimeout(COL.prestoT); clearTimeout(COL.modT);');
   sub.window.close();
-  /* senza APK (PWA nel browser) niente collegamento */
-  { const s2 = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html', beforeParse(win){ win.scrollTo = () => {}; } });
+  /* senza APK (pagina nel browser) niente collegamento */
+  { const s2 = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html', beforeParse(win){ win.scrollTo = () => {}; win.TMS_HUB = H.URL; } });
     await settle(200);
     ok(s2.window.document.getElementById('col-da-ben').hidden === true, 'fuori dall\'APK: niente «Collega al PC»');
     s2.window.close(); }

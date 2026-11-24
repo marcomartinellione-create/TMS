@@ -119,21 +119,19 @@
 
 <section class="wrap">
  <h2>Come viaggiano i dati fra coach e cliente</h2>
- <p class="sub">Non si spedisce più niente: la scheda del PC e quella del telefono sono la stessa scheda, collegata.</p>
+ <p class="sub">La scheda del PC e quella del telefono sono la stessa scheda, collegata attraverso l'hub del TMS.</p>
  <div class="feat">
-  <div class="card"><h3>🔗 Si collega una volta</h3><p>Il coach, sul PC, in <b>Impostazioni › Telefono collegato</b> sceglie una
-   cartella di Google Drive (di solito <i>My Drive › 6 - TMS</i>), crea un <b>codice</b> e collega la scheda del cliente. Il cliente
-   tiene quella cartella sincronizzata sul telefono con un'app di sincronizzazione (Autosync, FolderSync…) e in TMS Scheda,
-   <b>Collegamento e promemoria</b>, la sceglie e scrive il codice.</p></div>
+  <div class="card"><h3>🔗 Si collega una volta</h3><p>Il coach (il <b>personal</b>), sul PC, in <b>Impostazioni › Telefono collegato</b> si attiva una volta con un
+   <b>codice d'invito</b> e per ogni cliente preme <b>Collega un telefono</b>: nasce il <b>codice di quel cliente</b>. Il cliente lo scrive una volta in TMS Scheda,
+   <b>Collegamento e promemoria</b>, e preme «Collega». Niente cartelle, niente app di sincronizzazione, niente account Google.</p></div>
   <div class="card"><h3>✍️ Una scheda, due schermi</h3><p>Serie, ripetizioni, pesi, RIR, note, esercizi aggiunti o tolti: quello che
-   cambia uno compare sull'altro da solo, al giro successivo (il TMS controlla ogni 20 secondi, il telefono ogni minuto ad app aperta;
-   il resto dipende da quanto spesso sincronizza). Se lo stesso campo cambia da tutte e due le parti vince l'ultima modifica, campo per campo.</p></div>
+   cambia uno compare sull'altro da solo, al giro successivo (il TMS controlla ogni 20 secondi, il telefono ogni minuto ad app aperta). Se lo stesso campo cambia da tutte e due le parti vince l'ultima modifica, campo per campo.</p></div>
   <div class="card"><h3>💾 A fine settimana si salva</h3><p>Sul PC <b>Salva nello Storico</b> «cristallizza» la settimana: diventa storico,
    Training Load e grafici. Sul telefono fatica, durata e spunte ripartono da zero e la scheda resta collegata per la settimana dopo.</p></div>
   <div class="card"><h3>⚖️ Pesate e foto arrivano da sole</h3><p>Le pesate della <b>bilancia Bluetooth</b> a 8 elettrodi (famiglia FitDays)
-   e le <b>foto dei progressi</b> passano dalla stessa cartella e finiscono nel profilo del cliente sul PC, settimana per settimana.</p></div>
-  <div class="card"><h3>🔒 Cifrato, senza server</h3><p>I file nella cartella sono <b>cifrati</b> (AES-GCM) con il codice di collegamento:
-   Google e l'app di sincronizzazione vedono solo file illeggibili. Il TMS non ha server: i dati stanno sul PC del coach e sul telefono del cliente.</p></div>
+   e le <b>foto dei progressi</b> passano dall'hub, il PC le scarica nel profilo del cliente settimana per settimana e le toglie subito dall'hub.</p></div>
+  <div class="card"><h3>🔒 Cifrato, e lo storico resta tuo</h3><p>Tutto quello che passa dall'hub è <b>cifrato</b> (AES-GCM) con il codice del singolo cliente:
+   l'hub vede solo file illeggibili, mai codici né nomi. È uno smistamento, non un archivio: lo storico vero resta sul PC del coach, e sull'hub c'è solo l'ultima versione di ogni file.</p></div>
   <div class="card"><h3>⭳ Aggiornamenti da GitHub</h3><p>Il TMS desktop e TMS Scheda trovano da soli le versioni nuove nelle
    <a href="https://github.com/marcomartinellione-create/TMS/releases/latest">Release GitHub</a> e chiedono prima di installarle. Su GitHub ci sono solo le app, mai i dati.</p></div>
  </div>

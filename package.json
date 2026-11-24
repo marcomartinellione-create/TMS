@@ -8,7 +8,7 @@
     "verifica": "node tools/build.js --verifica && node tools/genera-guida-ai.js --verifica && node tools/genera-seed-incorporato.js --verifica && node app-android/scripts/prepara-www.js --verifica",
     "sintassi": "node tools/controlla-sintassi.js",
     "lint": "node tools/lint.js",
-    "test": "node tools/lint.js && node tools/controlla-sintassi.js && node tests/test-app.js",
+    "test": "node tools/lint.js && node tools/controlla-sintassi.js && node --no-warnings tests/test-hub.js && node --no-warnings tests/test-app.js",
     "release": "node tools/release.js",
     "alimenti": "python tools/genera-alimenti.py",
     "riferimenti": "python tools/genera-riferimenti.py"

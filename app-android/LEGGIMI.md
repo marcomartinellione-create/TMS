@@ -3,8 +3,9 @@
 L'app del telefono, «TMS Scheda», come **app Android vera** da installare. La sua pagina (una PWA)
 sta in `web/`: riscaldamento, esercizi coi video, timer di recupero, modifica della scheda col
 catalogo del coach, test del massimale, alimentazione, foto progressi, bilancia, italiano e inglese.
-**Dal 17/11/2026 niente più file Scheda/Rientro** (decisione di Marco): la scheda arriva solo dalla
-cartella condivisa ed è collegata al TMS sul PC (vedi sotto).
+**Dal 17/11/2026 niente più file Scheda/Rientro** (decisione di Marco): la scheda arriva solo
+attraverso l'**hub del TMS** (vedi `hub/` e `Doc/hub-cloudflare/PROGETTO.md`) ed è collegata al TMS
+sul PC (vedi sotto). Il cliente scrive il codice che gli dà il suo personal.
 **Dal 16/11/2026 è l'unica app del telefono** (decisione di Marco): l'app desktop non indica più la
 PWA ai clienti. Il **sorgente** dell'APK è `web/` (fino al 18/11/2026 era `docs/app/`, pubblicata su
 GitHub Pages; spostata qui perché non torni online): si modifica lì e si rifà l'APK.
@@ -26,19 +27,22 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   misure. Android chiede una volta «Dispositivi nelle
   vicinanze» (fino ad Android 11 la Posizione: lo pretende Android per cercare dispositivi Bluetooth).
   FitDays sullo stesso telefono può prendersi la bilancia: va chiuso o disinstallato.
-- **🔗 Collegamento col TMS sul PC** (dalla 1.2.0, «⚙ Collegamento e promemoria»): come Movienaitor, una
-  cartella del telefono tenuta uguale alla cartella `My Drive\6 - TMS` di Google Drive da un'app di
-  sincronizzazione bidirezionale (Autosync, FolderSync…). Si sceglie la cartella e si scrive il codice
-  di collegamento che il PC mostra in ⚙ Impostazioni › 🔗 Telefono collegato. Da lì (dalla 1.2.1) la
+- **🔗 Collegamento col TMS sul PC** («⚙ Collegamento e promemoria»): attraverso l'hub del TMS su
+  Cloudflare (fino alla versione precedente all'hub passava da una cartella condivisa di Google Drive;
+  ora niente cartella, niente app di sincronizzazione, niente account Google). Si scrive il codice
+  del cliente che il personal ha creato sul PC in ⚙ Impostazioni › 🔗 Telefono collegato › «Collega
+  un telefono» e si preme «Collega». Da lì (dalla 1.2.1) la
   **scheda è collegata**: una sola, modificabile qui e sul PC (vince l'ultima modifica, campo per campo);
   «💾 Salva nello Storico» sul PC la cristallizza (fatica, durata e spunte ripartono da zero, la scheda
   resta collegata). Pesate e foto partono da sole e tornano con «✔ al PC». File
-  **cifrati** (AES-GCM, chiave dal codice): Google vede solo file illeggibili. Plugin `TmsCartella`
-  (`nativo/TmsCartellaPlugin.java`, selettore di cartelle di Android con permesso persistente).
-- **⬆ Aggiornamento da solo** (dalla 1.2.0): `Crea APK.bat` mette l'APK in `6 - TMS\apk\` con
-  `versione.json` (versione, nome, impronta SHA-256); il telefono collegato lo vede, lo propone, ne
-  controlla l'impronta e lo passa all'installer di Android (la prima volta va consentito «Installa app
-  sconosciute» per TMS Scheda). La 1.2.0 stessa va installata a mano, come prima.
+  **cifrati** (AES-GCM, chiave dal codice di quel cliente): l'hub vede solo file illeggibili. Il
+  plugin `TmsCartella` (`nativo/TmsCartellaPlugin.java`) serve ormai solo a scaricare e installare
+  l'APK nuovo; i suoi metodi per la cartella restano nel Java ma la pagina non li usa più.
+- **⬆ Aggiornamento da solo** (dalla 1.2.6): il telefono legge `docs/scheda/versione.json` sul sito
+  (versione, nome, impronta SHA-256, url; lo scrive `tools/pubblica.js`), propone la versione nuova,
+  scarica l'APK allegato alla release GitHub, ne controlla l'impronta e lo passa all'installer di
+  Android (la prima volta va consentito «Installa app sconosciute» per TMS Scheda). Funziona anche
+  senza collegamento.
 - **🔔 Promemoria** (dalla 1.2.0, stessa schermata): ogni sera all'ora scelta (21:00) la pesata, il
   lunedì anche le foto; se quel giorno ci si è già pesati (o si sono fatte le foto) non suona. Plugin
   `@capacitor/local-notifications` (MIT); niente sveglie «esatte»: può suonare qualche minuto dopo.
@@ -49,9 +53,10 @@ Doppio clic su **`Crea APK.bat`** (in questa cartella). Dopo un minuto circa:
 
     app-android\dist\TMS-Scheda-<versione>.apk
 
-Se c'è la cartella di Google Drive, l'APK va anche in `My Drive\6 - TMS\apk\` con `versione.json`: i
-telefoni collegati lo propongono da soli. Un'altra cartella si scrive in `app-android\cartella-condivisa.txt`;
-per crearlo senza pubblicarlo: `powershell -File scripts\build-apk.ps1 -SoloCrea`.
+L'APK nuovo arriva ai telefoni con `PUBBLICA.bat`, che lo allega alla release GitHub e scrive
+`docs/scheda/versione.json`. Lo script `scripts\build-apk.ps1` può ancora copiarlo in una cartella
+`6 - TMS\apk\` se esiste (serve solo ai telefoni con la 1.2.5 o prima); per crearlo senza copiarlo:
+`powershell -File scripts\build-apk.ps1 -SoloCrea`.
 
 Serve solo ciò che c'è già sul PC (Node, Java 17, Android SDK in `D:\Android-SDK`). La
 compilazione avviene in `D:\Android-build\TMS-Scheda`, fuori da OneDrive (dentro OneDrive i
@@ -89,9 +94,9 @@ Funziona solo perché ogni versione è firmata con la **stessa chiave** (vedi so
 | file | cosa |
 |---|---|
 | `scripts/prepara-www.js` | copia `web/` in `www/` (senza `sw.js`) e applica 4 modifiche con **conteggio asserito**: via il service worker, `confirm(` → `await tmsConferma(` (5 punti), `delEsercizio` async, `nativo.js` dopo lo script. Se la PWA cambia lì, si ferma e lo dice. `--verifica` controlla senza scrivere |
-| `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, scelta foto, `window.tmsIndietro`, `window.tmsCartella` (cartella condivisa e APK nuovo, plugin `TmsCartella`), `window.tmsAvvisi` (promemoria), `window.tmsBLE` (trasporto Bluetooth della pagina Bilancia: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; il protocollo e la formula stanno nella PWA). Sostituisce funzioni globali della PWA (`isStandalone`, `alert`) e avvolge `avvia` |
+| `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, scelta foto, `window.tmsIndietro`, `window.tmsAggiorna` (aggiornamento dell'APK da GitHub: scarica e installa, plugin `TmsCartella`; `window.tmsCartella` non esiste più), `window.tmsAvvisi` (promemoria), `window.tmsBLE` (trasporto Bluetooth della pagina Bilancia: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; il protocollo e la formula stanno nella PWA). Sostituisce funzioni globali della PWA (`isStandalone`, `alert`) e avvolge `avvia` |
 | `nativo/TmsFilePlugin.java` | plugin Capacitor «TmsFile»: `info` (versione di Android) e tasto indietro |
-| `nativo/TmsCartellaPlugin.java` | plugin «TmsCartella»: scelta della cartella condivisa (permesso persistente), lettura, scrittura ed elenco per percorso relativo, installazione dell'APK nuovo con controllo dell'impronta |
+| `nativo/TmsCartellaPlugin.java` | plugin «TmsCartella»: la pagina lo usa solo per scaricare e installare l'APK nuovo con controllo dell'impronta; i metodi per la cartella condivisa (scelta, lettura, scrittura, elenco) restano nel Java ma non sono più chiamati |
 | `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, via «Apri con» dal manifest, fotocamera visibile (`<queries>`), permesso della fotocamera (sagoma), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |
 | `scripts/immagini.ps1` | icona adattiva, icone e stella d'avvio da `web/icon-512.png` |
 | `test/prova-nativo.js` | prova in jsdom con un plugin finto (`npm run prova`, da questa cartella) |

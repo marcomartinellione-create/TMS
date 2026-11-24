@@ -1,0 +1,6 @@
+{
+  "name": "tms-hub",
+  "private": true,
+  "type": "module",
+  "description": "TMS Hub: ufficio smistamento cifrato fra il TMS sul PC (personal) e l'app TMS Scheda (cliente), su Cloudflare Workers + D1. Vedi LEGGIMI.md."
+}

@@ -47,25 +47,25 @@ Questa divisione permette **due modi d'uso**:
 
 ### Come viaggiano i dati fra coach e cliente
 
-Non si spedisce più niente: la scheda del PC e quella del telefono sono **la stessa scheda, collegata**.
+La scheda del PC e quella del telefono sono **la stessa scheda, collegata** attraverso l'hub del TMS.
 
-1. **Si collega una volta.** Il coach, sul PC, in *Impostazioni › Telefono collegato* sceglie una
-   cartella di Google Drive (di solito *My Drive › 6 - TMS*), crea un **codice** e collega la scheda
-   del cliente. Il cliente tiene quella cartella sincronizzata sul telefono con un'app di
-   sincronizzazione (Autosync, FolderSync…) e in TMS Scheda, *Collegamento e promemoria*, la sceglie
-   e scrive il codice.
+1. **Si collega una volta.** Il coach (il **personal**), sul PC, in *Impostazioni › Telefono collegato*
+   si attiva una volta con un **codice d'invito** e per ogni cliente preme *Collega un telefono*: nasce
+   il **codice di quel cliente**. Il cliente lo scrive una volta in TMS Scheda, *Collegamento e
+   promemoria*, e preme «Collega». Niente cartelle, niente app di sincronizzazione, niente account Google.
 2. **Una scheda, due schermi.** Serie, ripetizioni, pesi, RIR, note, esercizi aggiunti o tolti: quello
    che cambia uno compare sull'altro da solo, al giro successivo (il TMS controlla ogni 20 secondi, il
-   telefono ogni minuto ad app aperta; il resto dipende da quanto spesso sincronizza). Se lo stesso
+   telefono ogni minuto ad app aperta). Se lo stesso
    campo cambia da tutte e due le parti vince l'ultima modifica, campo per campo.
 3. **A fine settimana si salva.** Sul PC *Salva nello Storico* «cristallizza» la settimana: diventa
    storico, Training Load e grafici. Sul telefono fatica, durata e spunte ripartono da zero e la scheda
    resta collegata per la settimana dopo.
 4. **Pesate e foto arrivano da sole.** Le pesate della bilancia Bluetooth a 8 elettrodi (famiglia
-   FitDays) e le foto dei progressi passano dalla stessa cartella e finiscono nel profilo del cliente.
-5. **Cifrato, senza server.** I file nella cartella sono cifrati (AES-GCM) con il codice di
-   collegamento: Google e l'app di sincronizzazione vedono solo file illeggibili. Il TMS non ha
-   server: i dati vivono solo sul PC del coach e sul telefono del cliente.
+   FitDays) e le foto dei progressi passano dall'hub: il PC le scarica nel profilo del cliente e le toglie subito dall'hub.
+5. **Cifrato, e lo storico resta tuo.** Tutto quello che passa dall'hub è cifrato (AES-GCM) con il
+   codice del singolo cliente: l'hub vede solo file illeggibili, mai codici né nomi. È uno
+   smistamento, non un archivio: lo storico vero resta sul PC del coach, e sull'hub c'è solo
+   l'ultima versione di ogni file.
 6. **Aggiornamenti da GitHub.** Il TMS desktop e TMS Scheda trovano da soli le versioni nuove nelle
    [Release](https://github.com/marcomartinellione-create/TMS/releases) e chiedono prima di
    installarle. Su GitHub ci sono solo le app, mai i dati.

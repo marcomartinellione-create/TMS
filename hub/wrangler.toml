@@ -1,0 +1,14 @@
+# TMS Hub su Cloudflare Workers (piano gratuito). Lo pubblica hub/pubblica-hub.cjs (vedi LEGGIMI.md).
+name = "tms-hub"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tms-hub"
+database_id = "DA-RIEMPIRE"   # lo scrive pubblica-hub.cjs dopo «wrangler d1 create»
+
+# pulizia notturna: pesate e foto non ritirate da 30 giorni
+[triggers]
+crons = ["17 3 * * *"]

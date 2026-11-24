@@ -7,12 +7,12 @@
    · foto progressi: si sceglie se scattarla (fotocamera dell'app con la sagoma) o prenderla dalla galleria;
    · tasto indietro del telefono (window.tmsIndietro, chiamata dal plugin);
    · bilancia Bluetooth: window.tmsBLE, il trasporto della pagina «⚖ Bilancia» della PWA;
-   · cartella condivisa col TMS sul PC: window.tmsCartella; aggiornamento dell'APK da GitHub:
-     window.tmsAggiorna (tutti e due dal plugin TmsCartella);
+   · aggiornamento dell'APK da GitHub: window.tmsAggiorna (plugin TmsCartella, che dal 24/11/2026 serve
+     solo a questo: la scheda col PC del personal passa dall'hub del TMS, con fetch, nella pagina);
    · promemoria della sera: window.tmsAvvisi (plugin LocalNotifications);
    · niente invito a installare (è già un'app) e link del sito nel browser.
-   I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app). Dal 17/11/2026 la
-   scheda arriva solo dalla cartella condivisa (scheda collegata): niente più file Scheda/Rientro. */
+   I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app). La scheda collegata
+   passa dall'hub del TMS (dal 24/11/2026; prima da una cartella di Google Drive). */
 /* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa,
    avvia, risali, chiudiVideo, mostraInstallHint, camApri, bilAggiornaMenu, colRender,
    avvRender, avvPianifica */
@@ -158,24 +158,10 @@ if(BLE){
   try{ bilAggiornaMenu(); }catch(e){}     /* la voce «⚖ Bilancia» del menu compare solo adesso */
 }
 
-/* ── CARTELLA CONDIVISA col TMS sul PC (plugin TmsCartella): il TRASPORTO del «🔗 Collegamento»
-      della PWA, che fa tutto il resto (cifratura, scheda, bozza, pesate, foto). La cartella si
-      sceglie una volta; il suo indirizzo (con il permesso persistente di Android) resta qui. ── */
+/* ── ⬆ AGGIORNAMENTO dell'app (plugin TmsCartella: dal 24/11/2026 serve solo a questo; la scheda col PC
+      del personal passa dall'hub del TMS, nella pagina) ── */
 const CART=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TmsCartella)||null;
 if(CART){
-  const K='tms-col-cartella';
-  const conf=()=>{ try{ return JSON.parse(localStorage.getItem(K)||'{}')||{}; }catch(e){ return {}; } };
-  const uri=()=>conf().uri||'';
-  window.tmsCartella={
-    pronta(){ return !!uri(); },
-    nome(){ return conf().nome||''; },
-    async scegli(){ const r=await CART.scegli(); if(!r||!r.uri) return null;
-      localStorage.setItem(K, JSON.stringify({uri:r.uri, nome:r.nome||''})); return {nome:r.nome||''}; },
-    dimentica(){ try{ localStorage.removeItem(K); }catch(e){} },
-    async leggi(percorso){ const r=await CART.leggi({uri:uri(), percorso:percorso}); return (r&&typeof r.data==='string')? r.data : null; },
-    async scrivi(percorso, testo){ await CART.scrivi({uri:uri(), percorso:percorso, data:String(testo)}); },
-    async elenca(cartella){ const r=await CART.elenca({uri:uri(), cartella:cartella||''}); return (r&&Array.isArray(r.voci))? r.voci : []; }
-  };
   /* ── ⬆ AGGIORNAMENTO dell'app (dal 18/11/2026 da GitHub, non più dalla cartella): il plugin scarica l'APK
         dall'indirizzo della release (solo github.com/marcomartinellione-create/TMS, redirect compresi),
         controlla l'impronta SHA-256 e lo passa all'installer di Android. Non serve la cartella. ── */

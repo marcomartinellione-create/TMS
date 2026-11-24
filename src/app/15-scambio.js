@@ -1,6 +1,6 @@
 /* ════ LA SCHEDA COME LA VEDE IL TELEFONO ════
    Dal 17/11/2026 (Marco: «togliamo importa esporta scheda / rientro») PC e app del telefono non si
-   passano più file a mano: la scheda è COLLEGATA attraverso la cartella condivisa (15c-telefono.js).
+   passano più file a mano: la scheda è COLLEGATA attraverso l'hub del TMS (15c-telefono.js).
    Qui restano i pezzi che servono a quel collegamento: le righe della scheda settimanale, il piano
    alimentare coi valori già calcolati (il telefono non ha la banca alimenti), il riscaldamento e i
    suoi video, «l'ultima volta» dallo Storico, il catalogo degli esercizi, altezza/età/sesso per la

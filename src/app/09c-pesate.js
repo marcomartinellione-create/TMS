@@ -1,7 +1,7 @@
 /* ════════════════ PESATE DELLA BILANCIA (dal telefono collegato) ════════════════
    2026-11-15, richiesta di Marco: la bilancia Bluetooth (famiglia FitDays/iComon) parla con
    l'app «TMS Scheda» sul telefono, che registra ogni pesata e la manda da sola al PC
-   attraverso la cartella condivisa (15c-telefono.js). Quando arriva, qui:
+   attraverso l'hub del TMS (15c-telefono.js). Quando arriva, qui:
    - ogni pesata entra in DOC.pesate (corpo.json). Quelle già arrivate (stesso id) non si
      doppiano; quelle tolte col 🗑 (id in DOC.pesate_scartate) non tornano più;
    - per ogni settimana ISO con almeno una pesata nuova si scrive nello Storico misure
