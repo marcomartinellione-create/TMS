@@ -13,8 +13,8 @@ function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); r
 function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
 function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.33', APP_DATE='2026-11-24';
-const RELEASE_NOTE='Novità: Hub del TMS online (tms-hub.marco-martinellione.workers.dev): indirizzo scritto nel TMS e nell’APK 1.2.7, che si collega col codice dato dal personal; Personal e clienti attraverso l’hub del TMS su Cloudflare al posto di Google Drive: ogni cliente ha il suo codice e i suoi file sono cifrati con quello; il TMS si attiva come personal con un codice d’invito e si ritrova su un PC nuovo col codice di recupero.'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.34', APP_DATE='2026-11-25';
+const RELEASE_NOTE='Novità: Telefono collegato: un esercizio aggiunto dal telefono entra nel suo giorno (niente più giorno doppio), chiudendo il TMS parte l’ultimo invio all’hub, e il recupero su un PC nuovo riprende anche settimana e ultima scheda.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
    Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */

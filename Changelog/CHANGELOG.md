@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-11-25 — TMS v1.1.34: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.33
+**Descrizione**:
+- Telefono collegato: un esercizio aggiunto dal telefono entra nel suo giorno (niente più giorno doppio), chiudendo il TMS parte l'ultimo invio all'hub, e il recupero su un PC nuovo riprende anche settimana e ultima scheda
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-25)
+
+---
+
 ### 2026-11-24 — TMS v1.1.33: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.32
