@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-11-25 — TMS v1.1.38: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.37
+**Descrizione**:
+- Novità: la finestra delle Impostazioni resta dentro lo schermo e scorre con la rotella; si chiude con la ✕ in alto a destra o con Esc.
+- Guida per l'AI: numero di versione allineato alla 1.1.37
+- Impostazioni: la finestra resta dentro lo schermo e scorre con la rotella; al posto di «Chiudi» la ✕ in alto a destra (sempre a vista) ed Esc
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-25)
+
+---
+
 ### 2026-11-25 — TMS v1.1.37: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.36
