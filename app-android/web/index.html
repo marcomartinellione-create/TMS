@@ -326,6 +326,38 @@
  .dove-btn .icbox{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--acc-t);color:var(--acc)}
  .dove-btn small{display:block;color:var(--ink-3);font-size:13px;font-weight:400;margin-top:2px}
 
+ /* ── andamento del peso, come nei grafici di borsa ── */
+ .and-testa{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px;margin:-2px 0 10px}
+ .and-peso{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+ .and-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+ .and-rif{flex-basis:100%;font-size:12.5px;color:var(--ink-3)}
+ .and-per{display:flex;gap:6px;margin:0 0 6px}
+ .and-per button{flex:1;height:34px;border:1px solid var(--filo-2);background:var(--carta);border-radius:9px;font-size:13px;font-weight:600;color:var(--ink-3)}
+ .and-per button.on{background:var(--ink);border-color:var(--ink);color:var(--carta)}
+ .bil-graf{display:block;width:100%;height:auto;margin:4px 0 6px}
+ .and-sf{display:flex;gap:2px;height:16px;margin:0 0 10px}
+ .and-sf i{flex:1;min-width:0;border-radius:2px}
+ .and-somma{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+ .and-mini{display:inline-block;margin-left:4px;padding:1px 7px;border-radius:999px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+ /* ── dieta seguita: domanda della sera e calendario ── */
+ .dieta-q{border-color:#e3a982;background:var(--acc-t)}
+ .dieta-bt{display:flex;gap:10px}
+ .dieta-bt .btn-big{margin:2px 0 0;box-shadow:none}
+ .dieta-bt .btn-big.si{background:var(--ok)}
+ .dieta-bt .btn-big.no{background:var(--carta);color:var(--err);border:1px solid var(--err-f)}
+ .cal-testa{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
+ .cal-testa b{font-family:var(--serif);font-size:16px;text-transform:capitalize}
+ .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+ .cal-n{text-align:center;font-size:11.5px;font-weight:600;color:var(--ink-4);text-transform:uppercase;padding:2px 0}
+ .cal-g{aspect-ratio:1;min-width:0;border:1px solid var(--filo);background:var(--carta);border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums;padding:0}
+ .cal-g.si{background:var(--ok);border-color:var(--ok);color:#fff}
+ .cal-g.no{background:var(--err);border-color:var(--err);color:#fff}
+ .cal-g.oggi{box-shadow:0 0 0 2px var(--acc)}
+ .cal-g:disabled{background:transparent;border-color:transparent;color:var(--ink-4)}
+ .cal-somma{display:flex;flex-wrap:wrap;gap:4px 14px;margin:10px 0 0;font-size:13px;color:var(--ink-2)}
+ .cal-pt{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+ .cal-pt.si{background:var(--ok)}
+ .cal-pt.no{background:var(--err)}
  /* ── barra del timer di recupero, fissa in basso ── */
  #tbar{position:fixed;left:0;right:0;bottom:0;z-index:14;display:none;align-items:center;gap:8px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));
    background:linear-gradient(180deg,#2a1606,var(--brace));color:var(--carta);border-top:2px solid var(--oro-2);box-shadow:0 -6px 24px rgba(20,10,2,.3)}
@@ -422,6 +454,7 @@
   <symbol id="i-strati" viewBox="0 0 24 24"><path d="M12 4l8.5 4.3L12 12.6 3.5 8.3z"/><path d="M3.5 12.4L12 16.7l8.5-4.3M3.5 16.4L12 20.7l8.5-4.3"/></symbol>
   <symbol id="i-gira" viewBox="0 0 24 24"><path d="M3.5 8.6c0-.9.7-1.6 1.6-1.6h2.4l1.5-2.2h6l1.5 2.2h2.4c.9 0 1.6.7 1.6 1.6v9.3c0 .9-.7 1.6-1.6 1.6H5.1c-.9 0-1.6-.7-1.6-1.6z"/><path d="M14.8 11.2a3.2 3.2 0 0 0-5.6 0M9.2 14.8a3.2 3.2 0 0 0 5.6 0M14.8 9.4v1.8H13M9.2 16.6v-1.8H11"/></symbol>
   <symbol id="i-appunti" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16" rx="2.2"/><path d="M9 4.5V3.4h6v1.1M8.6 10h6.8M8.6 13.5h6.8M8.6 17h4"/></symbol>
+  <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.8" y="5.2" width="16.4" height="15" rx="2.2"/><path d="M3.8 9.8h16.4M8.2 3.4v3.4M15.8 3.4v3.4"/></symbol>
   <symbol id="i-fiamma" viewBox="0 0 24 24"><path d="M12 21c3.5 0 6-2.5 6-5.8 0-3.6-2.6-5.5-3.6-8.6-.7 1.6-1.6 2.6-2.6 3.1-.1-2.8-1.3-5.2-3.2-6.7.2 3.2-3.1 6.2-3.1 10.2C5.5 18.5 8.3 21 12 21z"/></symbol>
 </defs></svg>
 
@@ -498,7 +531,6 @@
   <p class="sez-nota" data-i18n>Seleziona il giorno da compilare</p>
   <div class="days" id="days"></div>
   <div id="bozza-stato"></div>
-  <div class="avviso" id="col-home" hidden></div>
 </div>
 
 <!-- ── schermata FOTO PROGRESSI: tre viste (fronte/lato/retro), da fotocamera o galleria.
@@ -517,6 +549,7 @@
   <div class="box bil-live"><div class="bil-stato" id="bil-stato"></div><div class="bil-peso" id="bil-peso">—</div><div class="bil-stato" id="bil-sotto"></div>
     <button type="button" class="btn-lite" id="bil-riprova" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Riprova</span></button></div>
   <div id="bil-ris"></div>
+  <div id="bil-and"></div>
   <div class="box"><div class="pick-title" data-i18n>Le tue pesate</div><div id="bil-lista"></div></div>
   <div class="fine" data-i18n-html>Le pesate restano su <b>questo telefono</b> e arrivano da sole sul PC: nel TMS la media di ogni settimana va da sola nello Storico misure.</div>
   <button type="button" class="btn-lite quieto" id="bil-dimentica" hidden data-i18n>Usa un’altra bilancia</button>
@@ -538,6 +571,7 @@
   <div class="box" id="avv-box" hidden>
     <div class="pick-title"><svg class="ic"><use href="#i-campana"/></svg><span data-i18n>Promemoria</span></div>
     <label class="col-riga"><input type="checkbox" id="avv-on"><span data-i18n>Ogni sera la pesata, il lunedì anche le foto</span></label>
+    <label class="col-riga"><input type="checkbox" id="avv-dieta"><span data-i18n>Ogni sera la domanda sulla dieta</span></label>
     <label class="col-riga"><span data-i18n>Alle ore</span><input type="time" id="avv-ora" value="21:00"></label>
     <div class="fine" id="avv-stato"></div>
   </div>
@@ -599,7 +633,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='3.5';
+const CVER='3.6';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -624,7 +658,6 @@ const TT={en:{
   '», del':'», from',
   'La sostituisco con quella nuova? (La bozza della vecchia resta salvata sul telefono.)':'Replace it with the new one? (The old draft stays saved on the phone.)',
   'Ciao':'Hi',
-  'Il tuo taccuino: scheda e alimentazione dal TMS, da annotare in palestra.':'Your notebook: program and nutrition from TMS, to record at the gym.',
   'Scheda del':'Program of',
   'esportata il':'exported on',
   'giorno':'day','giorni':'days','esercizio':'exercise','esercizi':'exercises',
@@ -794,7 +827,6 @@ const TT={en:{
   "controllato alle":"checked at",
   "scheda dal PC, pesate e foto al PC, promemoria":"program from the PC, weigh-ins and photos to the PC, reminders",
   "Apri":"Open",
-  "ultimo invio alle":"last sent at",
   "Profilo:":"Profile:",
   "Collegato":"Linked",
   "⚖ Pesata e 📷 foto del lunedì":"⚖ Weigh-in and 📷 Monday photos",
@@ -825,11 +857,42 @@ const TT={en:{
   "La uso al posto di quella caricata da file? (Quello che hai scritto in quella resta salvato sul telefono.)":"Shall I use it instead of the one loaded from a file? (What you wrote in that one stays saved on the phone.)",
   "Il TMS sul PC ha collegato la sua scheda: la usi al posto di questa?":"The TMS on the PC linked its program: use it instead of this one?",
   "Usala":"Use it",
-  "Scheda collegata: quello che cambi qui o sul PC si allinea da solo; «💾 Salva nello Storico» sul PC chiude la settimana.":"Linked program: what you change here or on the PC lines up by itself; «💾 Save to History» on the PC closes the week.",
   "Giorni":"Days",
   "Indietro":"Back",
   "Grassi":"Fat",
-  "Carboidrati":"Carbs"
+  "Carboidrati":"Carbs",
+  "⏱ Recupero finito":"⏱ Rest over",
+  "tocca alla prossima serie":"time for the next set",
+  "Tocca alla prossima serie.":"Time for the next set.",
+  "Andamento del peso":"Weight trend",
+  "una pesata al giorno":"one weigh-in a day",
+  "rispetto a":"compared with",
+  "7 g":"7 d",
+  "1 m":"1 m",
+  "3 m":"3 m",
+  "Tutto":"All",
+  "Dal":"Since",
+  "In questo periodo c’è una pesata sola: scegli un periodo più lungo.":"There's only one weigh-in in this period: pick a longer one.",
+  "Verde quando il peso scende: sei in definizione.":"Green when your weight goes down: you're cutting.",
+  "Verde quando il peso sale: sei in massa.":"Green when your weight goes up: you're bulking.",
+  "Verde quando il peso sale, rosso quando scende, come in borsa.":"Green when your weight goes up, red when it goes down, like the stock market.",
+  "Oggi hai seguito la dieta?":"Did you follow your diet today?",
+  "Ieri hai seguito la dieta?":"Did you follow your diet yesterday?",
+  "Sì":"Yes",
+  "Calendario della dieta":"Diet calendar",
+  "Mese prima":"Previous month",
+  "Mese dopo":"Next month",
+  "dieta seguita":"diet followed",
+  "dieta non seguita":"diet not followed",
+  "seguita":"followed",
+  "non seguita":"not followed",
+  "da segnare":"to mark",
+  "Tocca un giorno per cambiarlo: sì, no, vuoto.":"Tap a day to change it: yes, no, blank.",
+  "segna la dieta di oggi":"mark today's diet",
+  "segna la dieta di ieri":"mark yesterday's diet",
+  "Ogni sera la domanda sulla dieta":"Every evening the diet question",
+  "🍽 Com’è andata la dieta?":"🍽 How did the diet go?",
+  "Segna in TMS Scheda se oggi hai seguito il piano alimentare.":"Mark in TMS Scheda whether you followed your meal plan today."
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -934,7 +997,7 @@ function ultimaDi(nome){ const u=(SCHEDA&&SCHEDA.ultima)||null; return (u&&u[Str
 function avvia(){
   const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
-  if(!SCHEDA){ { const ct=$('ciao-t'); if(ct) ct.hidden=true; $('sub').textContent=tt("Il taccuino digitale del Training Monitor System: qui annoti l'allenamento in palestra."); }
+  if(!SCHEDA){ { const ct=$('ciao-t'); if(ct) ct.hidden=true; $('sub').hidden=false; $('sub').textContent=tt("Il taccuino digitale del Training Monitor System: qui annoti l'allenamento in palestra."); }
     ben.hidden=false; ['menu','home','alim','foto','bil','col'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); colRender(); avvPianifica(); return; }
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
@@ -942,12 +1005,11 @@ function avvia(){
   buildWrows();
   WROWS.forEach(r=>{ if(r.giorno && GIORNI.indexOf(r.giorno)<0) GIORNI.push(r.giorno); });
   { const ct=$('ciao-t'), nome=((SCHEDA.profilo||{}).nome)||''; if(ct){ ct.textContent=tt('Ciao')+(nome?' '+nome:''); ct.hidden=false; } }
-  $('sub').textContent=tt('Il tuo taccuino: scheda e alimentazione dal TMS, da annotare in palestra.');
+  $('sub').hidden=true;   /* con la scheda, in alto c'è solo «Ciao Nome» */
   $('scheda-info').innerHTML=ico('appunti')+'<span>'+tt('Scheda del')+' <b>'+esc((SCHEDA.profilo||{}).nome||'')+'</b> · '+tt('esportata il')+' <b>'+esc(SCHEDA.esportata||'?')+'</b>'+(SCHEDA.app?' · TMS v'+esc(SCHEDA.app):'')+'</span>';
   colIntestazione();
-  const dieta=SCHEDA.dieta, haDieta=!!(dieta&&Array.isArray(dieta.righe)&&dieta.righe.length);
-  $('meta-alim').textContent=haDieta? (tt(dieta.label||dieta.fase||'piano')+(dieta.tot?(' · '+(dieta.tot.kcal||0)+' '+tt('kcal/giorno')):'')) : tt('non inclusa in questo file');
-  $('vai-alim').disabled=!haDieta;
+  $('vai-alim').disabled=!haDietaScheda();
+  alimMeta();
   renderAlim();
   renderScheda();
   fotoLeggi().then(f=>{ FOTO=f||{}; renderFoto(); }).catch(()=>{ FOTO={}; renderFoto(); });
@@ -1047,7 +1109,7 @@ function rigaEsercizio(r){
 }
 function mostra(id){ ['menu','home','alim','foto','bil','col'].forEach(s=>{ $(s).hidden=(id!==s); });
   if(id!=='bil') bilEsci();   /* fuori dalla pagina Bilancia il Bluetooth si ferma */
-  if(id==='menu') colPresto();   /* di nuovo al menu: è il momento giusto per gli aggiornamenti dal PC */
+  if(id==='menu'){ colPresto(); alimMeta(); }   /* di nuovo al menu: è il momento giusto per gli aggiornamenti dal PC */
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
 /* ── barra in alto: il marchio al menu; nelle altre schermate «‹ indietro» e il titolo. Si aggiorna
@@ -1098,8 +1160,79 @@ function renderAlim(){
   pasti.forEach(m=>{ const rs=byP[m]; const kc=Math.round(rs.reduce((a,r)=>a+(+r.kcal||0),0));
     h+='<div class="box"><div class="pasto-t"><span class="ex-nm">'+esc(m)+'</span><span class="al-kcal">'+kc+' kcal</span></div>'+
       rs.map(r=>'<div class="al-row"><span class="al-nome">'+esc(r.alimento)+'</span><span class="al-g">'+(+r.grammi||0)+' g</span><span class="al-kcal">'+Math.round(+r.kcal||0)+' kcal</span></div>').join('')+'</div>'; });
-  box.innerHTML=h;
+  const adesso=new Date();
+  box.innerHTML=dietaDomanda(adesso)+h+dietaCalendario(adesso);
+  box.querySelectorAll('[data-dq]').forEach(b=>{ b.onclick=()=>{ dietaSegna(b.getAttribute('data-dd'), b.getAttribute('data-dq')); }; });
+  box.querySelectorAll('[data-dg]').forEach(b=>{ b.onclick=()=>{ const d=b.getAttribute('data-dg'), v=dietaLeggi().giorni[d]||'';
+    dietaSegna(d, v===''?'si':(v==='si'?'no':'')); }; });
+  box.querySelectorAll('[data-dm]').forEach(b=>{ b.onclick=()=>{ const oggi=dataLoc(new Date()).slice(0,7), m=DIETA_MESE||oggi;
+    const d=new Date(+m.slice(0,4), +m.slice(5,7)-1+(+b.getAttribute('data-dm')), 1), nuovo=dataLoc(d).slice(0,7);
+    DIETA_MESE=nuovo>=oggi? '' : nuovo; renderAlim(); }; });
 }
+/* ── 🍽 DIETA SEGUITA? (richiesta di Marco, 25/11/2026). Dall'ora dei promemoria (di serie le 21)
+      l'Alimentazione chiede se oggi il piano è stato rispettato; se ieri è rimasto in sospeso, lo chiede
+      fino all'ora dei promemoria del giorno dopo. Il calendario mostra i giorni: verde sì, rosso no;
+      toccando un giorno lo si cambia (sì → no → vuoto). Resta su questo telefono (chiave per profilo,
+      nella copia durevole), come le pesate prima di partire. ── */
+let DIETA_MESE='';   /* 'AAAA-MM' del calendario in vista; vuoto = il mese in corso */
+function dietaKey(){ return 'tms-dieta-'+(((SCHEDA&&SCHEDA.profilo)||{}).slug||'cliente'); }
+function dietaLeggi(){
+  try{ const o=JSON.parse(localStorage.getItem(dietaKey())||'null');
+    if(o && typeof o==='object' && o.giorni && typeof o.giorni==='object') return {dal:String(o.dal||''), giorni:o.giorni}; }catch(e){}
+  return {dal:'', giorni:{}}; }
+function dietaScrivi(o){ try{ localStorage.setItem(dietaKey(), JSON.stringify(o)); }catch(e){} }
+function haDietaScheda(){ const d=SCHEDA&&SCHEDA.dieta; return !!(d&&Array.isArray(d.righe)&&d.righe.length); }
+/* il primo giorno con un piano sul telefono: prima di quello non si chiede niente */
+function dietaDal(adesso){ const o=dietaLeggi(); if(!o.dal && haDietaScheda()){ o.dal=dataLoc(adesso||new Date()); dietaScrivi(o); } return o.dal; }
+function dietaMinuti(){ const hm=avvConf().ora.split(':').map(Number); return hm[0]*60+hm[1]; }
+/* il giorno da chiedere adesso: oggi dall'ora dei promemoria; prima di quell'ora ieri, se è in sospeso */
+function dietaDaChiedere(adesso){
+  adesso=adesso||new Date(); if(!haDietaScheda()) return null;
+  const dal=dietaDal(adesso), g=dietaLeggi().giorni, oggi=dataLoc(adesso);
+  if(adesso.getHours()*60+adesso.getMinutes()>=dietaMinuti()) return g[oggi]? null : oggi;
+  const ieri=dataLoc(new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate()-1));
+  return (!g[ieri] && dal && ieri>=dal)? ieri : null; }
+function dietaSegna(data, val){
+  if(!/^\d{4}-\d\d-\d\d$/.test(String(data||''))) return;
+  const o=dietaLeggi();
+  if(val==='si'||val==='no') o.giorni[data]=val; else delete o.giorni[data];
+  if(!o.dal || data<o.dal) o.dal=data;
+  dietaScrivi(o); renderAlim(); alimMeta(); avvPianifica(); }
+function dietaDomanda(adesso){
+  const d=dietaDaChiedere(adesso); if(!d) return '';
+  const oggi=d===dataLoc(adesso||new Date());
+  return '<div class="box dieta-q"><div class="pick-title">'+ico('pasto')+'<span>'+tt(oggi?'Oggi hai seguito la dieta?':'Ieri hai seguito la dieta?')+'</span></div>'+
+    '<div class="dieta-bt"><button type="button" class="btn-big si" data-dq="si" data-dd="'+d+'">'+ico('check')+tt('Sì')+'</button>'+
+    '<button type="button" class="btn-big no" data-dq="no" data-dd="'+d+'">'+ico('x')+tt('No')+'</button></div></div>'; }
+function dietaCalendario(adesso){
+  adesso=adesso||new Date();
+  const o=dietaLeggi(), oggi=dataLoc(adesso), mese=DIETA_MESE||oggi.slice(0,7), y=+mese.slice(0,4), m=+mese.slice(5,7)-1;
+  const loc=LANGP==='en'?'en-GB':'it-IT', primo=new Date(y,m,1), quanti=new Date(y,m+1,0).getDate();
+  let titolo=mese; try{ titolo=primo.toLocaleDateString(loc,{month:'long',year:'numeric'}); }catch(e){}
+  let celle='';
+  for(let i=0;i<7;i++){ let n=''; try{ n=new Date(2024,0,1+i).toLocaleDateString(loc,{weekday:'narrow'}); }catch(e){} celle+='<span class="cal-n">'+esc(n)+'</span>'; }
+  celle+='<span></span>'.repeat((primo.getDay()+6)%7);
+  let si=0, no=0, aperti=0;
+  for(let g=1; g<=quanti; g++){
+    const d=mese+'-'+String(g).padStart(2,'0'), v=o.giorni[d]||'', dopo=d>oggi;
+    if(v==='si') si++; else if(v==='no') no++; else if(!dopo && d<oggi && o.dal && d>=o.dal) aperti++;
+    const lab=giornoBreve(d)+(v==='si'?' — '+tt('dieta seguita'):(v==='no'?' — '+tt('dieta non seguita'):''));
+    celle+='<button type="button" class="cal-g'+(v?' '+v:'')+(d===oggi?' oggi':'')+'" data-dg="'+d+'"'+(dopo?' disabled':'')+' aria-label="'+esc(lab)+'">'+g+'</button>'; }
+  return '<div class="box" id="dieta-cal"><div class="pick-title">'+ico('calendario')+'<span>'+tt('Calendario della dieta')+'</span></div>'+
+    '<div class="cal-testa"><button type="button" class="mini solo" data-dm="-1" aria-label="'+esc(tt('Mese prima'))+'">'+ico('indietro')+'</button><b>'+esc(titolo)+'</b>'+
+    '<button type="button" class="mini solo" data-dm="1"'+(mese<oggi.slice(0,7)?'':' disabled')+' aria-label="'+esc(tt('Mese dopo'))+'">'+ico('avanti')+'</button></div>'+
+    '<div class="cal">'+celle+'</div>'+
+    '<div class="cal-somma"><span><i class="cal-pt si"></i>'+tt('seguita')+' <b>'+si+'</b></span><span><i class="cal-pt no"></i>'+tt('non seguita')+' <b>'+no+'</b></span>'+
+      (aperti?'<span>'+tt('da segnare')+' <b>'+aperti+'</b></span>':'')+'</div>'+
+    '<div class="fine" style="margin:8px 0 0">'+tt('Tocca un giorno per cambiarlo: sì, no, vuoto.')+'</div></div>'; }
+/* la riga «Alimentazione» del menu: il piano e, se c'è, la dieta da segnare */
+function alimMeta(){
+  const mt=$('meta-alim'); if(!mt) return;
+  if(!haDietaScheda()){ mt.textContent=tt('non inclusa in questo file'); return; }
+  const D=SCHEDA.dieta, d=dietaDaChiedere(new Date());
+  mt.textContent=tt(D.label||D.fase||'piano')+(D.tot?(' · '+(D.tot.kcal||0)+' '+tt('kcal/giorno')):'')+
+    (d? ' · '+tt(d===dataLoc(new Date())? 'segna la dieta di oggi' : 'segna la dieta di ieri') : ''); }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden || !SCHEDA) return; alimMeta(); if(!$('alim').hidden) renderAlim(); });
 
 /* ── FOTO PROGRESSI: tre viste (fronte/lato/retro), da fotocamera o galleria. Restano nel
       telefono (IndexedDB) e viaggiano nel file di rientro come immagini incorporate; il TMS
@@ -1592,14 +1725,20 @@ function renderBil(){
       [['Peso',ul.peso,1,'kg'],['Grasso',ul.grasso,1,'%'],['Muscolo',ul.muscolo,1,'kg'],['Acqua',ul.acqua,1,'%'],['Grasso viscerale',ul.visc,0,''],
        ['Metabolismo basale',ul.bmr,0,'kcal'],['Età metabolica',ul.eta_met,0,tt('anni')],['BMI',ul.bmi,1,''],['Proteine',ul.proteine,1,'%'],['Massa ossea',ul.ossa,1,'kg']]
       .filter(x=>x[1]!=null).map(x=>'<div class="bil-v"><b>'+esc(nfP(x[1],x[2]))+(x[3]?' '+esc(x[3]):'')+'</b><span>'+esc(tt(x[0]))+'</span></div>').join('')+'</div></div>' : '';
-  /* elenco: le ultime 12, la media della settimana in corso */
+  renderAndamento();
+  /* elenco: le ultime 12, la media della settimana in corso; accanto a quelle che contano la
+     variazione dal giorno prima, con la sfumatura dell'andamento */
   const lista=$('bil-lista'); if(!lista) return;
   const ord=PESATE.slice().sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora)), contate=new Set(pesContate(PESATE).map(p=>p.id));
+  const giu={}; pesContate(PESATE).forEach((p,i,l)=>{ if(i) giu[p.id]=p.peso-l[i-1].peso; });
+  const varMini=p=>{ if(giu[p.id]==null) return ''; const dl=giu[p.id], t=pesTono(dl, p.peso), forte=t.buono!=null && t.a>=0.5;
+    return '<span class="and-mini" style="background:'+pesColore(t, t.buono==null?0.14:t.a)+';color:'+(forte?'#fff':(t.buono==null?'var(--ink-3)':pesColore(t,1)))+'">'+
+      (Math.abs(dl)<0.05?'=':(dl>0?'+':'−')+esc(nfP(Math.abs(dl),1)))+'</span>'; };
   const sett=lunediDi(dataLoc(new Date())), cs=pesContate(PESATE.filter(p=>lunediDi(p.data)===sett));
   lista.innerHTML=(ord.length? ord.slice(0,12).map(p=> PES_TOGLI===p.id?
       '<div class="bil-row"><span class="bil-g">'+tt('Togli la pesata di')+' '+esc(giornoBreve(p.data))+' '+esc(String(p.ora||'').slice(0,5))+'?</span>'+
       '<button type="button" class="mini del" data-pesok="'+esc(p.id)+'">'+tt('Togli')+'</button><button type="button" class="mini" data-pesno="1">'+tt('No')+'</button></div>'
-    : '<div class="bil-row'+(contate.has(p.id)?'':' fuori')+'"><span class="bil-g">'+esc(giornoBreve(p.data))+' '+esc(String(p.ora||'').slice(0,5))+' · <b>'+esc(nfP(p.peso,1))+' kg</b>'+
+    : '<div class="bil-row'+(contate.has(p.id)?'':' fuori')+'"><span class="bil-g">'+esc(giornoBreve(p.data))+' '+esc(String(p.ora||'').slice(0,5))+' · <b>'+esc(nfP(p.peso,1))+' kg</b>'+varMini(p)+
       (p.grasso!=null?' · '+tt('grasso')+' '+esc(nfP(p.grasso,1))+' %':'')+(p.muscolo!=null?' · '+tt('muscolo')+' '+esc(nfP(p.muscolo,1))+' kg':'')+colSegnoPesata(p)+'</span>'+
       '<button type="button" class="mini del solo" data-pesx="'+esc(p.id)+'" title="'+esc(tt('Togli questa pesata'))+'" aria-label="'+esc(tt('Togli questa pesata'))+'">'+ico('cestino')+'</button></div>').join('')
     : '<div class="fine" style="margin:4px 0">'+tt('Ancora nessuna pesata.')+'</div>')+
@@ -1612,6 +1751,62 @@ function renderBil(){
     PESATE=PESATE.filter(p=>p.id!==id); PES_TOGLI=''; await pesSalva(); renderBil(); }; });
   const dim=$('bil-dimentica'); if(dim) dim.hidden=!bilIdNoto();
   if(BIL.stato) bilStato(BIL.stato);
+}
+/* ── andamento del peso, come nei grafici di borsa (richiesta di Marco, 25/11/2026): una pesata al
+      giorno (quella che conta nella media), la variazione in kg e in percentuale; verde quando il peso
+      va dove vuole la fase del piano (definizione: giù; massa: su; senza fase o in mantenimento come in
+      borsa: su), rosso quando va contro; più grande la variazione, più carica la sfumatura. ── */
+let BIL_PERIODO=30;
+const BIL_PERIODI=[[7,'7 g'],[30,'1 m'],[90,'3 m'],[0,'Tutto']];
+function pesVerso(){ return (((SCHEDA&&SCHEDA.dieta)||{}).fase==='cut')? -1 : 1; }
+/* tono di una variazione: buono (true · false · null = ferma) e intensità da 0,35 a 1 (piena da 1 %) */
+function pesTono(delta, base){
+  if(!(base>0) || !isFinite(delta) || Math.abs(delta)<0.05) return {buono:null, a:0};
+  return {buono:delta*pesVerso()>0, a:Math.min(1, 0.35+Math.abs(delta)/base*100*0.65)}; }
+function pesColore(t, a){
+  if(t.buono==null) return 'rgba(107,90,64,'+(a==null?0.7:a)+')';
+  return (t.buono? 'rgba(47,125,79,' : 'rgba(176,32,32,')+(a==null?t.a:a)+')'; }
+/* «▼ −0,4 kg · −0,5 %» (la percentuale è sul peso di partenza) */
+function pesVar(delta, base){
+  const fermo=Math.abs(delta)<0.05, segno=fermo?'':(delta>0?'+':'−');
+  return (fermo?'=':(delta>0?'▲':'▼'))+' '+segno+nfP(fermo?0:Math.abs(delta),1)+' kg · '+segno+nfP(fermo||!(base>0)?0:Math.abs(delta)/base*100,1)+' %'; }
+function pesGrafico(punti, tono){
+  const W=320, H=120, px=4, py=12, n=punti.length, vs=punti.map(p=>p.peso);
+  const mn=Math.min(...vs), mx=Math.max(...vs), sp=Math.max(mx-mn, 0.6)*1.15, mid=(mx+mn)/2, hi=mid+sp/2, lo=mid-sp/2;
+  const x=i=>px+(n>1? i*(W-2*px)/(n-1) : (W-2*px)/2), y=v=>py+(hi-v)/(hi-lo)*(H-2*py);
+  const linea=punti.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p.peso).toFixed(1)).join(' ');
+  const col=pesColore(tono,1), y0=y(vs[0]).toFixed(1);
+  return '<svg class="bil-graf" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(tt('Andamento del peso'))+'">'+
+    '<defs><linearGradient id="bil-sf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+col+'" stop-opacity=".30"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'+
+    '<line x1="0" x2="'+W+'" y1="'+y0+'" y2="'+y0+'" stroke="#a08d6e" stroke-width="1" stroke-dasharray="3 4"/>'+
+    '<path d="'+linea+' L'+x(n-1).toFixed(1)+' '+H+' L'+x(0).toFixed(1)+' '+H+' Z" fill="url(#bil-sf)"/>'+
+    '<path d="'+linea+'" fill="none" stroke="'+col+'" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>'+
+    '<circle cx="'+x(n-1).toFixed(1)+'" cy="'+y(vs[n-1]).toFixed(1)+'" r="4" fill="'+col+'" stroke="#fdfaf5" stroke-width="2"/></svg>'; }
+function renderAndamento(){
+  const box=$('bil-and'); if(!box) return;
+  const tutte=pesContate(PESATE);
+  if(tutte.length<2){ box.innerHTML=''; return; }
+  const ul=tutte[tutte.length-1], pr=tutte[tutte.length-2], oggi=new Date();
+  const da=BIL_PERIODO? dataLoc(new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate()-BIL_PERIODO+1)) : '';
+  const punti=tutte.filter(p=>p.data>=da), t1=pesTono(ul.peso-pr.peso, pr.peso);
+  const pill=(t,txt)=>'<span class="and-pill" style="background:'+pesColore(t, t.buono==null?0.14:Math.max(t.a,0.55))+';color:'+(t.buono==null?'var(--ink-2)':'#fff')+'">'+esc(txt)+'</span>';
+  let h='<div class="box"><div class="pick-title">'+tt('Andamento del peso')+'<small>'+tt('una pesata al giorno')+'</small></div>'+
+    '<div class="and-testa"><b class="and-peso">'+esc(nfP(ul.peso,1))+' kg</b>'+pill(t1, pesVar(ul.peso-pr.peso, pr.peso))+
+    '<span class="and-rif">'+tt('rispetto a')+' '+esc(giornoBreve(pr.data))+'</span></div>'+
+    '<div class="and-per">'+BIL_PERIODI.map(([g,l])=>'<button type="button" data-bp="'+g+'"'+(g===BIL_PERIODO?' class="on"':'')+'>'+esc(tt(l))+'</button>').join('')+'</div>';
+  if(punti.length<2) h+='<div class="fine">'+tt('In questo periodo c’è una pesata sola: scegli un periodo più lungo.')+'</div>';
+  else {
+    const a=punti[0], b=punti[punti.length-1], tp=pesTono(b.peso-a.peso, a.peso);
+    h+=pesGrafico(punti, tp.buono==null? {buono:null} : {buono:tp.buono, a:1});
+    const sf=punti.slice(1).map((p,i)=>{ const dl=p.peso-punti[i].peso, t=pesTono(dl, punti[i].peso);
+      return '<i style="background:'+pesColore(t, t.buono==null?0.18:t.a)+'" title="'+esc(giornoBreve(p.data)+' '+pesVar(dl, punti[i].peso))+'"></i>'; }).slice(-60).join('');
+    h+='<div class="and-sf">'+sf+'</div>'+
+      '<div class="and-somma" style="color:'+(tp.buono==null?'var(--ink-2)':pesColore(tp,1))+'">'+tt('Dal')+' '+esc(giornoBreve(a.data))+': '+esc(pesVar(b.peso-a.peso, a.peso))+'</div>';
+  }
+  const fase=((SCHEDA&&SCHEDA.dieta)||{}).fase;
+  h+='<div class="fine" style="margin:8px 0 0">'+tt(fase==='cut'? 'Verde quando il peso scende: sei in definizione.' : fase==='bulk'? 'Verde quando il peso sale: sei in massa.' : 'Verde quando il peso sale, rosso quando scende, come in borsa.')+'</div></div>';
+  box.innerHTML=h;
+  box.querySelectorAll('[data-bp]').forEach(b=>{ b.onclick=()=>{ BIL_PERIODO=+b.getAttribute('data-bp'); renderAndamento(); }; });
 }
 /* valore di un campo numerico (vuoto → null) */
 function num(id){ const el=$(id); const v=el?el.value:''; return v===''?null:+v; }
@@ -1633,7 +1828,7 @@ function wire(){
   document.querySelectorAll('[data-edit]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); openEdit(+b.getAttribute('data-edit')); }; });
   document.querySelectorAll('[data-rec]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); const r=rowById(+b.getAttribute('data-rec')); if(r) startTimer(r.esercizio||tt('Recupero'), restSec(r.rest)); }; });
   const vs=$('vai-scheda'); if(vs) vs.onclick=()=>{ navEntra(); mostra('home'); };
-  const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled){ navEntra(); mostra('alim'); } };
+  const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled){ navEntra(); renderAlim(); mostra('alim'); } };
   const vf=$('vai-foto'); if(vf) vf.onclick=()=>{ navEntra(); mostra('foto'); };
   const vb=$('vai-bil'); if(vb) vb.onclick=()=>{ navEntra(); mostra('bil'); renderBil(); bilAvvia(); };
 }
@@ -1726,7 +1921,13 @@ function restSec(v){ v=String(v==null?'':v).trim(); if(!v) return 0;
   if(mm||ss) return (mm?(+mm[1])*60:0)+(ss?(+ss[1]):0);
   const n=parseInt(v,10); return isNaN(n)?0:n; }
 function fmtSec(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
-let timerId=null, timerLeft=0, timerPaused=false, timerAudio=null;
+/* il tempo si conta dall'ORA DI FINE, non a scatti di un secondo: con l'app in secondo piano o lo
+   schermo spento Android rallenta (o ferma) i timer della pagina, e il conto a scatti restava
+   indietro (segnalato da Marco il 25/11/2026). Tornando nell'app il tempo è quello giusto; nell'APK,
+   se intanto il recupero finisce, suona la notifica «Recupero finito» (programmata quando l'app va in
+   secondo piano, tolta quando torna davanti). */
+let timerId=null, timerFine=0, timerLeft=0, timerPaused=false, timerAudio=null, timerChiesto=false;
+function timerResta(){ return (timerPaused||!timerFine)? timerLeft : Math.max(0, Math.ceil((timerFine-Date.now())/1000)); }
 function timerBeep(){
   try{ timerAudio=timerAudio||new (window.AudioContext||window.webkitAudioContext)();
     const a=timerAudio, o=a.createOscillator(), g=a.createGain(); o.type='sine'; o.frequency.value=880;
@@ -1736,24 +1937,47 @@ function timerBeep(){
     o.start(); o.stop(t0+1.3); }catch(e){}
   try{ if(navigator.vibrate) navigator.vibrate([400,140,400,140,400]); }catch(e){}
 }
-function timerRun(){ clearInterval(timerId); timerId=setInterval(()=>{ if(timerPaused) return;
-  timerLeft--;
-  if(timerLeft<=0){ timerLeft=0; $('t-time').textContent='0:00'; clearInterval(timerId); timerId=null;
-    $('tbar').classList.add('done'); timerBeep(); return; }
-  $('t-time').textContent=fmtSec(timerLeft); },1000); }
+function timerTick(){
+  if(timerPaused || !timerFine) return;
+  timerLeft=timerResta(); $('t-time').textContent=fmtSec(timerLeft);
+  if(timerLeft>0) return;
+  clearInterval(timerId); timerId=null; timerFine=0;
+  $('tbar').classList.add('done');
+  if(!document.hidden){ timerBeep(); timerAvvisoVia(); }   /* in secondo piano ci pensa la notifica */
+}
+function timerRun(){ clearInterval(timerId); timerId=setInterval(timerTick, 250); }
 function startTimer(nome,sec){ sec=+sec||0; if(sec<=0) sec=90;
   const bar=$('tbar'); if(!bar) return;
-  timerPaused=false; timerLeft=sec; $('t-ex').textContent=nome||'';
+  timerPaused=false; timerLeft=sec; timerFine=Date.now()+sec*1000; $('t-ex').textContent=nome||'';
   bar.classList.remove('done'); bar.classList.add('show'); document.body.classList.add('timer-su'); $('t-pause').innerHTML=ico('pausa'); $('t-time').textContent=fmtSec(timerLeft);
   try{ if(!timerAudio) timerAudio=new (window.AudioContext||window.webkitAudioContext)(); if(timerAudio&&timerAudio.resume) timerAudio.resume(); }catch(e){}
+  timerPermesso();
   timerRun();
 }
 function timerAdjust(delta){ const bar=$('tbar'); if(!bar||!bar.classList.contains('show')) return;
-  timerLeft=Math.max(0,timerLeft+delta); $('t-time').textContent=fmtSec(timerLeft);
+  timerLeft=Math.max(0, timerResta()+delta);
+  if(!timerPaused) timerFine=(timerLeft>0 || timerId)? Date.now()+timerLeft*1000 : 0;
+  $('t-time').textContent=fmtSec(timerLeft);
   if(timerLeft>0){ bar.classList.remove('done'); if(!timerId&&!timerPaused) timerRun(); } }
-function timerToggle(){ const bar=$('tbar'); if(!bar||!bar.classList.contains('show')||timerLeft<=0) return;
-  timerPaused=!timerPaused; $('t-pause').innerHTML=ico(timerPaused?'play':'pausa'); if(!timerPaused&&!timerId) timerRun(); }
-function timerClose(){ clearInterval(timerId); timerId=null; timerPaused=false; const bar=$('tbar'); if(bar) bar.classList.remove('show','done'); document.body.classList.remove('timer-su'); }
+function timerToggle(){ const bar=$('tbar'); if(!bar||!bar.classList.contains('show')||timerResta()<=0) return;
+  if(!timerPaused){ timerLeft=timerResta(); timerPaused=true; timerFine=0; }
+  else { timerPaused=false; timerFine=Date.now()+timerLeft*1000; if(!timerId) timerRun(); }
+  $('t-pause').innerHTML=ico(timerPaused?'play':'pausa'); $('t-time').textContent=fmtSec(timerLeft); }
+function timerClose(){ clearInterval(timerId); timerId=null; timerPaused=false; timerFine=0; timerLeft=0; timerAvvisoVia();
+  const bar=$('tbar'); if(bar) bar.classList.remove('show','done'); document.body.classList.remove('timer-su'); }
+/* notifica di fine recupero (solo nell'APK: window.tmsAvvisi, in nativo.js) */
+function timerAvvisoMetti(){
+  if(!timerFine || timerPaused || !window.tmsAvvisi || !window.tmsAvvisi.recupero) return;
+  const nome=(($('t-ex')||{}).textContent||'').trim();
+  window.tmsAvvisi.recupero(new Date(timerFine).toISOString(), tt('⏱ Recupero finito'),
+    nome? nome+' · '+tt('tocca alla prossima serie') : tt('Tocca alla prossima serie.')).catch(()=>{}); }
+function timerAvvisoVia(){ try{ if(window.tmsAvvisi && window.tmsAvvisi.recuperoVia) window.tmsAvvisi.recuperoVia().catch(()=>{}); }catch(e){} }
+/* la prima volta che parte il timer l'APK chiede di poter mandare notifiche (una volta sola) */
+function timerPermesso(){
+  if(timerChiesto || !window.tmsAvvisi) return; timerChiesto=true;
+  try{ if(localStorage.getItem('tms-timer-chiesto')) return; localStorage.setItem('tms-timer-chiesto','1'); }catch(e){ return; }
+  window.tmsAvvisi.permesso(true).catch(()=>{}); }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) timerAvvisoMetti(); else { timerAvvisoVia(); timerTick(); } });
 function chiudiVideo(){ const ov=$('vov'), v=ov.querySelector('video'); try{ v.pause(); }catch(e){} v.removeAttribute('src'); ov.style.display='none'; }
 $('vclose').onclick=chiudiVideo;
 /* pannello QR «By Wander» (Instagram / YouTube / GitHub), come nel TMS desktop */
@@ -2154,11 +2378,6 @@ function colRender(){
   if(COL.avviso) pz.push('<div class="avviso ok riga-ic">'+ico('check')+'<span>'+esc(COL.avviso)+'</span></div>');
   ['col-avvisi','col-avvisi-ben'].forEach(id=>{ const box=$(id); if(!box) return; box.innerHTML=pz.join('');
     box.querySelectorAll('[data-col-az]').forEach(b=>{ b.onclick=()=>{ const az=b.getAttribute('data-col-az'); if(az==='apk') colInstallaApk(); else { COL.rifiutata=false; COL.chiesto.collega=1; SCHEDA=null; colGiro(); } }; }); });
-  /* riga sotto i giorni */
-  const ch=$('col-home');
-  if(ch){ const coll=att && colCollegata();
-    ch.hidden=!coll;
-    if(coll) ch.textContent=tt('Scheda collegata: quello che cambi qui o sul PC si allinea da solo; «💾 Salva nello Storico» sul PC chiude la settimana.')+(COL.inviata?' · '+tt('ultimo invio alle')+' '+colOraBreve(COL.inviata):''); }
   /* schermata */
   const stEl=$('col-stato'); if(!stEl) return;
   let testo, cls='';
@@ -2179,28 +2398,36 @@ function colRender(){
       ogni apertura, pesata o foto: se oggi ti sei già pesato (o hai già fatto le foto) quello di
       stasera non suona. ── */
 const AVV_KEY='tms-avvisi', AVV={n:null, err:''};
-function avvConf(){ try{ const o=JSON.parse(localStorage.getItem(AVV_KEY)||'{}')||{}; return {on:!!o.on, ora:/^\d\d:\d\d$/.test(String(o.ora||''))? o.ora : '21:00'}; }catch(e){ return {on:false, ora:'21:00'}; } }
+function avvConf(){ try{ const o=JSON.parse(localStorage.getItem(AVV_KEY)||'{}')||{}; return {on:!!o.on, dieta:o.dieta!==false, ora:/^\d\d:\d\d$/.test(String(o.ora||''))? o.ora : '21:00'}; }catch(e){ return {on:false, dieta:true, ora:'21:00'}; } }
 function avvSalvaConf(c){ try{ localStorage.setItem(AVV_KEY, JSON.stringify(c)); }catch(e){} }
 function avvLista(adesso){
-  const c=avvConf(); if(!c.on || !SCHEDA) return [];
+  const c=avvConf(), dieta=c.dieta && haDietaScheda(); if(!SCHEDA || (!c.on && !dieta)) return [];
   const hm=c.ora.split(':').map(Number), oggi=dataLoc(adesso);
-  const pesOggi=PESATE.some(p=>p&&p.data===oggi), fotoOggi=FOTO_VISTE.some(v=>FOTO[v]&&FOTO[v].data===oggi);
+  const pesOggi=PESATE.some(p=>p&&p.data===oggi), fotoOggi=FOTO_VISTE.some(v=>FOTO[v]&&FOTO[v].data===oggi), dietaOggi=!!dietaLeggi().giorni[oggi];
   const out=[];
   for(let k=0;k<28;k++){
     const d=new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate()+k, hm[0], hm[1], 0, 0);
     if(d<=adesso) continue;
-    const pesa=!(k===0 && pesOggi), foto=d.getDay()===1 && !(k===0 && fotoOggi);
-    if(!pesa && !foto) continue;
-    out.push({id:7000+k, at:d.toISOString(), pagina:pesa?'bil':'foto',
+    const pesa=c.on && !(k===0 && pesOggi), foto=c.on && d.getDay()===1 && !(k===0 && fotoOggi);
+    if(pesa || foto) out.push({id:7000+k, at:d.toISOString(), pagina:pesa?'bil':'foto',
       titolo: pesa&&foto? tt('⚖ Pesata e 📷 foto del lunedì') : pesa? tt('⚖ Pesata della sera') : tt('📷 Foto del lunedì'),
       testo: pesa&&foto? tt('Sali sulla bilancia con TMS Scheda aperta, poi fai le foto dei progressi (fronte, lato, retro).') :
              pesa? tt('Sali sulla bilancia con TMS Scheda aperta.') : tt('Fai le foto dei progressi: fronte, lato, retro.')});
+    /* la dieta della sera: se oggi è già segnata, stasera non suona */
+    if(dieta && !(k===0 && dietaOggi)) out.push({id:7050+k, at:d.toISOString(), pagina:'alim',
+      titolo:tt('🍽 Com’è andata la dieta?'), testo:tt('Segna in TMS Scheda se oggi hai seguito il piano alimentare.')});
   }
   return out;
 }
+/* la prima volta che c'è un piano alimentare l'APK chiede di poter mandare la domanda della sera */
+function dietaPermesso(){
+  const c=avvConf(); if(!window.tmsAvvisi || !c.dieta || !haDietaScheda()) return;
+  try{ if(localStorage.getItem('tms-dieta-chiesto')) return; localStorage.setItem('tms-dieta-chiesto','1'); }catch(e){ return; }
+  window.tmsAvvisi.permesso(true).then(()=>avvPianifica()).catch(()=>{}); }
 let _avvT=null;
 function avvPianifica(){
   if(!window.tmsAvvisi) return;
+  dietaPermesso();
   clearTimeout(_avvT); _avvT=setTimeout(async()=>{
     try{ AVV.n=await window.tmsAvvisi.pianifica(avvLista(new Date())); AVV.err=''; }catch(e){ AVV.err=String((e&&e.message)||e); }
     avvRender(); }, 400);
@@ -2208,25 +2435,28 @@ function avvPianifica(){
 function avvRender(){
   const c=avvConf(), on=$('avv-on'), ora=$('avv-ora'), st=$('avv-stato'); if(!on) return;
   on.checked=c.on; if(ora) ora.value=c.ora;
+  { const dt=$('avv-dieta'); if(dt) dt.checked=c.dieta; }
   if(!st) return;
   if(AVV.err) st.textContent=AVV.err;
-  else if(!c.on) st.textContent=tt('Spenti.');
+  else if(!c.on && !c.dieta) st.textContent=tt('Spenti.');
   else if(!SCHEDA) st.textContent=tt('Partono quando c\'è una scheda.');
   else { const l=avvLista(new Date()); st.textContent=l.length? tt('Il prossimo:')+' '+colQuando(l[0].at)+' — '+l[0].titolo : ''; }
 }
 async function avvCambia(){
   const c=avvConf(); c.on=!!$('avv-on').checked; c.ora=/^\d\d:\d\d$/.test($('avv-ora').value||'')? $('avv-ora').value : '21:00';
-  if(c.on && window.tmsAvvisi){
+  { const dt=$('avv-dieta'); if(dt) c.dieta=!!dt.checked; }
+  if((c.on || c.dieta) && window.tmsAvvisi){
     let ok=false; try{ ok=await window.tmsAvvisi.permesso(true); }catch(e){ ok=false; }
-    if(!ok){ c.on=false; alert(tt('Android non permette le notifiche a TMS Scheda: abilitale nelle impostazioni del telefono (App › TMS Scheda › Notifiche) e riprova.')); }
+    if(!ok){ c.on=false; c.dieta=false; alert(tt('Android non permette le notifiche a TMS Scheda: abilitale nelle impostazioni del telefono (App › TMS Scheda › Notifiche) e riprova.')); }
   }
-  avvSalvaConf(c); avvRender(); avvPianifica();
+  avvSalvaConf(c); avvRender(); avvPianifica(); alimMeta(); if(!$('alim').hidden) renderAlim();
 }
 /* tocco sul promemoria: si apre la pagina giusta */
 function apriDaAvviso(pagina){
-  if(!SCHEDA) return;
+  if(!SCHEDA || pagina==='timer') return;   /* fine recupero: si resta dove si era */
   navLivelli=0; mostra('menu');
   if(pagina==='foto'){ navEntra(); mostra('foto'); }
+  else if(pagina==='alim'){ if(haDietaScheda()){ navEntra(); renderAlim(); mostra('alim'); } }
   else if(window.tmsBLE){ navEntra(); mostra('bil'); renderBil(); bilAvvia(); }
 }
 window.apriDaAvviso=apriDaAvviso;
@@ -2235,7 +2465,7 @@ document.querySelectorAll('[data-col-esci]').forEach(b=>{ b.onclick=navIndietro;
 $('col-collega').onclick=colCollega;
 $('col-ora').onclick=()=>{ COL.msg=''; colGiro(); };
 $('col-stacca').onclick=async()=>{ if(confirm(tt('Il telefono smette di scambiare dati col PC (quelli già arrivati restano). Continuo?'))) colStacca(); };
-$('avv-on').onchange=avvCambia; $('avv-ora').onchange=avvCambia;
+$('avv-on').onchange=avvCambia; $('avv-ora').onchange=avvCambia; $('avv-dieta').onchange=avvCambia;
 
 /* ── suggerimento d'installazione (solo se non già installata) ── */
 let deferredInstall=null;

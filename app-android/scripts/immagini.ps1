@@ -41,7 +41,7 @@ function ConForma([int]$lato, [string]$forma, [string]$file) {
   Salva $b $g $file
 }
 # icona adattiva: Android ritaglia il primo piano (108dp) e ne mostra solo il centro (72dp);
-# la stella, alta l'80% dell'icona, sta tutta dentro se l'icona occupa il 72% del livello.
+# la stella (la stessa del logo del PC, due terzi dell'icona) sta tutta dentro se l'icona occupa il 72% del livello.
 # Il fondo nero dell'icona coincide col colore di fondo: non si vede nessun bordo.
 function PrimoPiano([int]$lato, [string]$file) {
   $b, $g = Nuova $lato

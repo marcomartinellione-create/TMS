@@ -344,6 +344,32 @@ async function apri(opz = {}) {
     d.getElementById('avv-on').checked = true; d.getElementById('avv-on').dispatchEvent(new w.Event('change')); await attendi(200);
     ok(d.getElementById('avv-on').checked === false && /notifiche/.test(a.testoDlg()), 'promemoria: se Android li nega restano spenti e lo spiega');
     a.dom.window.close(); }
+  /* ── dieta della sera (con un piano alimentare) e fine del recupero ── */
+  { const conDieta = Object.assign({}, SCHEDA, { dieta: { fase: 'cut', label: 'Definizione', tot: { kcal: 2100 },
+      righe: [{ pasto: 'Colazione', alimento: 'Avena', grammi: 80, kcal: 300 }] } });
+    const a = await apri({ notifiche: true, scheda: conDieta }), { w, d, reg } = a;
+    await attendi(600);
+    ok(reg.avv.filter(x => x[0] === 'requestPermissions').length === 1, 'dieta: con un piano alimentare l’APK chiede una volta di poter mandare la domanda della sera');
+    const sch = reg.avv.filter(x => x[0] === 'schedule').pop(), nn = sch ? sch[1].notifications : [];
+    ok(nn.length >= 27 && nn.every(n => n.id >= 7050 && n.id < 7078 && n.extra.pagina === 'alim' && n.channelId === 'promemoria'),
+       'dieta: ogni sera la domanda sulla dieta (id 7050+, apre l’Alimentazione), anche coi promemoria della pesata spenti');
+    ok(d.getElementById('avv-dieta').checked === true, 'dieta: nel riquadro Promemoria la casella «domanda sulla dieta» è accesa di serie');
+    reg.avvAscolti.localNotificationActionPerformed({ notification: { extra: { pagina: 'alim' } } }); await attendi(80);
+    ok(d.getElementById('alim').hidden === false && d.getElementById('dieta-cal'), 'dieta: toccando la notifica si apre l’Alimentazione col calendario');
+    /* timer: in secondo piano la notifica di fine recupero, tornando davanti si toglie */
+    w.eval('startTimer("Panca", 90)');
+    let nascosta = true; Object.defineProperty(d, 'hidden', { configurable: true, get: () => nascosta });
+    d.dispatchEvent(new w.Event('visibilitychange')); await attendi(80);
+    const rec = reg.avv.filter(x => x[0] === 'schedule').map(x => x[1].notifications[0]).find(n => n.id === 7200);
+    ok(rec && rec.channelId === 'recupero' && rec.extra.pagina === 'timer' && Math.abs(new Date(rec.schedule.at).getTime() - w.eval('timerFine')) < 5 && /Panca/.test(rec.body),
+       'timer: con l’app in secondo piano programma la notifica «Recupero finito» all’ora di fine (canale recupero)');
+    ok(reg.avv.some(x => x[0] === 'createChannel' && x[1].id === 'recupero'), 'timer: il canale «Timer di recupero» si crea la prima volta');
+    nascosta = false; const nc = reg.avv.length; d.dispatchEvent(new w.Event('visibilitychange')); await attendi(80);
+    ok(reg.avv.slice(nc).some(x => x[0] === 'cancel' && JSON.stringify(x[1].notifications) === JSON.stringify([{ id: 7200 }])), 'timer: tornando nell’app la notifica di fine recupero si toglie');
+    w.eval('mostra("home")');
+    reg.avvAscolti.localNotificationActionPerformed({ notification: { extra: { pagina: 'timer' } } }); await attendi(80);
+    ok(d.getElementById('home').hidden === false, 'timer: toccando la notifica di fine recupero si resta dove si era');
+    a.dom.window.close(); }
 
   console.log((falliti ? '✗ ' : '✓ ') + passati + ' verifiche passate' + (falliti ? ', ' + falliti + ' FALLITE' : ''));
   process.exit(falliti ? 1 : 0);

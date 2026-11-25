@@ -9,7 +9,7 @@
    · bilancia Bluetooth: window.tmsBLE, il trasporto della pagina «⚖ Bilancia» della PWA;
    · aggiornamento dell'APK da GitHub: window.tmsAggiorna (plugin TmsCartella, che dal 24/11/2026 serve
      solo a questo: la scheda col PC del personal passa dall'hub del TMS, con fetch, nella pagina);
-   · promemoria della sera: window.tmsAvvisi (plugin LocalNotifications);
+   · promemoria della sera e fine del recupero: window.tmsAvvisi (plugin LocalNotifications);
    · niente invito a installare (è già un'app) e link del sito nel browser.
    I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app). La scheda collegata
    passa dall'hub del TMS (dal 24/11/2026; prima da una cartella di Google Drive). */
@@ -32,7 +32,9 @@ Object.assign(TT.en,{
   'una foto che hai già':'a photo you already have',
   'le notifiche di TMS Scheda sono spente nelle impostazioni del telefono':'TMS Scheda notifications are turned off in the phone settings',
   'Promemoria':'Reminders',
-  'Pesata della sera e foto del lunedì':'Evening weigh-in and Monday photos'
+  'Pesata della sera, foto del lunedì e dieta':'Evening weigh-in, Monday photos and diet',
+  'Timer di recupero':'Rest timer',
+  'Avvisa quando il recupero è finito':'Tells you when the rest is over'
 });
 
 /* ── finestre in stile app: una alla volta, si chiudono anche toccando fuori o col tasto indietro ── */
@@ -172,11 +174,13 @@ if(CART){
 }
 
 /* ── 🔔 PROMEMORIA (@capacitor/local-notifications): il TRASPORTO dei promemoria della PWA, che
-      decide quando (ogni sera la pesata, il lunedì anche le foto). Niente sveglie «esatte»: Android
-      li fa suonare all'ora giusta o pochi minuti dopo. Toccandone uno si apre la pagina giusta. ── */
+      decide quando (ogni sera la pesata e la dieta, il lunedì anche le foto), e la notifica di fine
+      recupero del timer (id 7200), programmata quando l'app va in secondo piano. Le sveglie sono
+      esatte (permesso USE_EXACT_ALARM, scripts/patch-android.js): il recupero finisce al secondo
+      giusto. Toccandone una si apre la pagina giusta (quella del timer lascia dove si era). ── */
 const LN=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications)||null;
 if(LN){
-  let canale=false;
+  let canale=false, canaleRec=false;
   window.tmsAvvisi={
     async permesso(chiedi){ let p=await LN.checkPermissions();
       if((!p||p.display!=='granted') && chiedi) p=await LN.requestPermissions();
@@ -187,11 +191,21 @@ if(LN){
       if(nostri.length) await LN.cancel({notifications:nostri});
       if(!lista || !lista.length) return 0;
       if(!(await this.permesso(false))) throw new Error(tt('le notifiche di TMS Scheda sono spente nelle impostazioni del telefono'));
-      if(!canale){ try{ await LN.createChannel({id:'promemoria', name:tt('Promemoria'), description:tt('Pesata della sera e foto del lunedì'), importance:4, visibility:1, vibration:true}); }catch(e){} canale=true; }
+      if(!canale){ try{ await LN.createChannel({id:'promemoria', name:tt('Promemoria'), description:tt('Pesata della sera, foto del lunedì e dieta'), importance:4, visibility:1, vibration:true}); }catch(e){} canale=true; }
       await LN.schedule({notifications:lista.map(x=>({id:x.id, title:x.titolo, body:x.testo, channelId:'promemoria',
         smallIcon:'ic_stat_tms', iconColor:'#9A5B1F', schedule:{at:x.at, allowWhileIdle:true}, extra:{pagina:x.pagina}}))});
       return lista.length;
-    }
+    },
+    /* fine del recupero: una sola notifica alla volta (id 7200), suono e vibrazione */
+    async recupero(at, titolo, testo){
+      try{ await LN.cancel({notifications:[{id:7200}]}); }catch(e){}
+      if(!(await this.permesso(false))) return false;
+      if(!canaleRec){ try{ await LN.createChannel({id:'recupero', name:tt('Timer di recupero'), description:tt('Avvisa quando il recupero è finito'), importance:4, visibility:1, vibration:true}); }catch(e){} canaleRec=true; }
+      await LN.schedule({notifications:[{id:7200, title:titolo, body:testo, channelId:'recupero',
+        smallIcon:'ic_stat_tms', iconColor:'#9A5B1F', schedule:{at:new Date(at), allowWhileIdle:true}, extra:{pagina:'timer'}}]});
+      return true;
+    },
+    async recuperoVia(){ try{ await LN.cancel({notifications:[{id:7200}]}); }catch(e){} }
   };
   LN.addListener('localNotificationActionPerformed', ev=>{
     const pg=ev && ev.notification && ev.notification.extra && ev.notification.extra.pagina;

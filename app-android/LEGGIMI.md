@@ -44,8 +44,16 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   Android (la prima volta va consentito «Installa app sconosciute» per TMS Scheda). Funziona anche
   senza collegamento.
 - **🔔 Promemoria** (dalla 1.2.0, stessa schermata): ogni sera all'ora scelta (21:00) la pesata, il
-  lunedì anche le foto; se quel giorno ci si è già pesati (o si sono fatte le foto) non suona. Plugin
-  `@capacitor/local-notifications` (MIT); niente sveglie «esatte»: può suonare qualche minuto dopo.
+  lunedì anche le foto e (dalla 1.2.8, casella a parte accesa di serie) la domanda sulla dieta; se quel
+  giorno ci si è già pesati, si sono fatte le foto o si è segnata la dieta, non suona. Plugin
+  `@capacitor/local-notifications` (MIT).
+- **⏱ Fine del recupero** (dalla 1.2.8): il timer conta dall'ora di fine, quindi è giusto anche con
+  l'app in secondo piano; quando l'app va in secondo piano si programma la notifica «Recupero finito»
+  (id 7200, canale «Timer di recupero»), che si toglie tornando nell'app. Le sveglie sono **esatte**
+  (`USE_EXACT_ALARM`, su Android 12 `SCHEDULE_EXACT_ALARM`: le aggiunge `scripts/patch-android.js`),
+  così il recupero finisce al secondo giusto e i promemoria suonano all'ora scelta.
+- **Icona**: la stella del logo del PC (`logo.png`, bracci uguali), disegnata da
+  `tools/genera-icone-app.js` in `web/icon-512.png`; `scripts/immagini.ps1` ne ricava icone e avvio.
 
 ## Creare l'APK
 

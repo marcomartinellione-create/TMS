@@ -100,8 +100,14 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
   if (!s.includes('android.permission.CAMERA')) {
     s = s.replace('</manifest>', '    <!-- TMS: fotocamera dentro l\'app (foto progressi con la sagoma) -->\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n</manifest>');
   }
+  /* timer di recupero: la notifica «Recupero finito» deve arrivare al secondo giusto anche con l'app in
+     secondo piano (senza sveglia esatta Android la può ritardare di minuti). Da Android 13 basta
+     USE_EXACT_ALARM, concessa da sé alle app che fanno da timer; su Android 12 SCHEDULE_EXACT_ALARM */
+  if (!s.includes('android.permission.USE_EXACT_ALARM')) {
+    s = s.replace('</manifest>', '    <!-- TMS: notifica di fine recupero al secondo giusto -->\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n</manifest>');
+  }
   scrivi(f, s);
-  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera');
+  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte');
   /* icona dei promemoria (barra delle notifiche): una sagoma bianca, Android la colora da sé */
   scrivi(path.join(RES, 'drawable', 'ic_stat_tms.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona dei promemoria (bilancia). Generato da scripts/patch-android.js -->\n' +

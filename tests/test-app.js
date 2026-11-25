@@ -1229,6 +1229,78 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sw.eval('WROWS.some(r=>r.rid===' + firstRid + ')') === false && sw.eval('WROWS.length') === before, 'app cliente/esercizi: 🗑 elimina la riga (dopo +1/−1 il totale torna all\'originale)');
     sub.window.close();
   }
+  /* 25/11/2026 (richieste di Marco per l'APK): in alto solo «Ciao Nome», timer contato dall'ora di fine,
+     andamento delle pesate come in borsa, dieta seguita con la domanda della sera e il calendario */
+  {
+    const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html', pretendToBeVisual: true,
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(schedaCli)); } });
+    await settle(400);
+    const sd = sub.window.document, sw = sub.window;
+    ok(sd.getElementById('ciao-t').textContent === 'Ciao Atleta Template' && sd.getElementById('sub').hidden === true, 'app cliente: in alto solo «Ciao Nome», senza la riga del taccuino');
+    ok(!sd.getElementById('col-home'), 'app cliente: nella scheda niente spiegazione su come si salva (lo fa il coach sul PC)');
+    /* timer: il tempo viene dall'ora di fine, anche se la pagina è rimasta ferma (app in secondo piano) */
+    sw.eval('startTimer("Panca", 90); timerFine -= 61000; timerTick();');
+    ok(sd.getElementById('t-time').textContent === '0:29', 'app cliente/timer: dopo un minuto «fermo» in secondo piano segna il tempo giusto (0:29), non quello dei tic');
+    sw.eval('timerToggle(); timerFine = 0;');
+    ok(sw.eval('timerPaused') === true && sw.eval('timerResta()') === 29, 'app cliente/timer: in pausa il tempo resta fermo');
+    sw.eval('timerToggle(); timerAdjust(15);');
+    ok(sd.getElementById('t-time').textContent === '0:44' && Math.abs(sw.eval('timerFine - Date.now()') - 44000) < 1500, 'app cliente/timer: ripreso e +15 s, l\'ora di fine si sposta (0:44)');
+    sw.eval('timerFine = Date.now() - 1; timerTick();');
+    ok(sd.getElementById('tbar').classList.contains('done') && sd.getElementById('t-time').textContent === '0:00' && sw.eval('timerId') === null, 'app cliente/timer: passata l\'ora di fine il recupero è finito');
+    sw.eval('timerClose()');
+    /* andamento delle pesate: una al giorno, variazione in kg e %, verde/rosso secondo la fase */
+    sw.eval(`(function(){ const d=k=>{ const x=new Date(); x.setDate(x.getDate()-k); return dataLoc(x); };
+      PESATE=[[9,80.0],[6,80.6],[3,80.2],[1,80.0],[0,80.4]].map(([k,p])=>({id:d(k)+'T07:00:00|'+p, data:d(k), ora:'07:00:00', peso:p}));
+      PESATE.push({id:d(0)+'T20:00:00|81', data:d(0), ora:'20:00:00', peso:81}); renderBil(); })()`);
+    const and = () => sd.getElementById('bil-and');
+    ok(/Andamento del peso/.test(and().textContent) && and().querySelector('.and-peso').textContent === '80,4 kg', 'app cliente/bilancia: andamento del peso con l\'ultima pesata che conta (la prima del giorno)');
+    { const pill = and().querySelector('.and-pill');
+      ok(pill.textContent === '▲ +0,4 kg · +0,5 %' && /rgba\(47, ?125, ?79/.test(pill.getAttribute('style')), 'app cliente/bilancia: variazione dal giorno prima in kg e % (in massa la salita è verde)'); }
+    ok(and().querySelectorAll('.and-sf i').length === 4 && and().querySelector('svg.bil-graf path') !== null, 'app cliente/bilancia: grafico ad area e una sfumatura per ogni variazione (4 nel mese)');
+    ok(/Dal .*: ▲ \+0,4 kg · \+0,5 %/.test(and().querySelector('.and-somma').textContent), 'app cliente/bilancia: variazione dell\'intero periodo, come in borsa');
+    and().querySelector('[data-bp="7"]').click();
+    ok(and().querySelector('[data-bp="7"]').classList.contains('on') && and().querySelectorAll('.and-sf i').length === 3, 'app cliente/bilancia: «7 g» restringe il grafico all\'ultima settimana');
+    ok([...sd.querySelectorAll('#bil-lista .and-mini')].map(e => e.textContent).join('|') === '+0,4|−0,2|−0,4|+0,6', 'app cliente/bilancia: nella lista ogni pesata che conta ha la variazione dal giorno prima');
+    sw.eval('SCHEDA.dieta.fase="cut"; renderBil();');
+    ok(/rgba\(176, ?32, ?32/.test(and().querySelector('.and-pill').getAttribute('style')) && /definizione/.test(and().textContent), 'app cliente/bilancia: in definizione la stessa salita è rossa');
+    sw.eval('SCHEDA.dieta.fase="bulk"; PESATE=PESATE.slice(-1); renderBil();');
+    ok(and().innerHTML === '', 'app cliente/bilancia: con un giorno solo di pesate niente andamento');
+    /* dieta seguita: la domanda arriva dall'ora dei promemoria, il giorno prima del primo piano non si chiede */
+    sw.eval('localStorage.removeItem("tms-dieta-template"); localStorage.removeItem("tms-avvisi");');
+    ok(sw.eval('dietaDaChiedere(new Date(2026,10,25,20,0))') === null, 'dieta: prima delle 21 del primo giorno non si chiede niente (ieri non c\'era il piano)');
+    ok(sw.eval('dietaDaChiedere(new Date(2026,10,25,21,5))') === '2026-11-25', 'dieta: dalle 21 chiede di oggi');
+    sw.eval('dietaSegna("2026-11-25","si")');
+    ok(sw.eval('dietaDaChiedere(new Date(2026,10,25,22,0))') === null && sw.eval('dietaDaChiedere(new Date(2026,10,26,10,0))') === null, 'dieta: segnata, non la chiede più (né la mattina dopo)');
+    ok(sw.eval('dietaDaChiedere(new Date(2026,10,27,10,0))') === '2026-11-26', 'dieta: la mattina chiede di ieri, se è rimasto in sospeso');
+    sw.eval('DIETA_MESE="2026-11"');
+    { const cal = sw.eval('dietaCalendario(new Date(2026,10,27,10,0))');
+      ok(/class="cal-g si" data-dg="2026-11-25"/.test(cal) && /data-dg="2026-11-28" disabled/.test(cal) && /seguita <b>1<\/b>/.test(cal) && /da segnare <b>1<\/b>/.test(cal),
+         'dieta: calendario del mese (25 verde, 26 da segnare, i giorni a venire non si toccano)'); }
+    ok(sw.eval('avvLista(new Date(2030,0,10,12,0)).map(x=>x.id).join(",")') === Array.from({ length: 28 }, (_, k) => 7050 + k).join(','), 'dieta: coi promemoria della pesata spenti restano le 28 domande della sera sulla dieta');
+    sw.eval('localStorage.setItem("tms-avvisi", JSON.stringify({on:true, dieta:true, ora:"21:00"}))');
+    ok(sw.eval('avvLista(new Date(2030,0,10,12,0)).length') === 56 && sw.eval('avvLista(new Date(2030,0,10,12,0))[1].pagina') === 'alim', 'dieta: coi promemoria accesi pesata e dieta, ogni sera');
+    sw.eval('localStorage.setItem("tms-avvisi", JSON.stringify({on:false, dieta:false, ora:"21:00"}))');
+    ok(sw.eval('avvLista(new Date(2030,0,10,12,0)).length') === 0, 'dieta: con la casella spenta niente domanda della sera');
+    /* l'Alimentazione: domanda in cima (qui con l'ora dei promemoria a mezzanotte, così vale sempre) e calendario in fondo */
+    sw.eval('localStorage.setItem("tms-avvisi", JSON.stringify({on:false, dieta:true, ora:"00:00"})); localStorage.removeItem("tms-dieta-template"); DIETA_MESE="";');
+    sd.getElementById('vai-alim').click();
+    const oggi = sw.eval('dataLoc(new Date())');
+    ok(sd.getElementById('alim').hidden === false && /Oggi hai seguito la dieta\?/.test((sd.querySelector('#alim-body .dieta-q') || {}).textContent || '') && sd.getElementById('dieta-cal') !== null,
+       'dieta: nell\'Alimentazione la domanda di oggi in cima e il calendario');
+    sw.eval('alimMeta()');
+    ok(/segna la dieta di oggi/.test(sd.getElementById('meta-alim').textContent), 'dieta: nel menu la riga Alimentazione ricorda di segnarla');
+    sd.querySelector('#alim-body [data-dq="si"]').click();
+    ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === 'si' && !sd.querySelector('#alim-body .dieta-q') && sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').classList.contains('si') && !/segna/.test(sd.getElementById('meta-alim').textContent),
+       'dieta: «Sì» la segna, la domanda sparisce e il giorno diventa verde');
+    sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').click();
+    ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === 'no' && sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').classList.contains('no'), 'dieta: toccando il giorno passa a «no» (rosso)');
+    sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').click();
+    ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === undefined && sd.querySelector('#alim-body .dieta-q') !== null, 'dieta: e poi a vuoto, e la domanda torna');
+    sd.querySelector('#dieta-cal [data-dm="-1"]').click();
+    ok(sw.eval('DIETA_MESE') !== '' && sd.querySelector('#dieta-cal [data-dm="1"]').disabled === false, 'dieta: il calendario va al mese prima e torna avanti');
+    ok(sw.eval('["Andamento del peso","Calendario della dieta","Oggi hai seguito la dieta?","⏱ Recupero finito","🍽 Com’è andata la dieta?"].every(k=>TT.en[k])'), 'app cliente EN: i testi nuovi hanno la traduzione');
+    sub.window.close();
+  }
   /* v1.5: scheda FISSA (modificabile:false) → niente aggiungi/modifica/elimina/★, ma il timer resta */
   {
     const schedaFissa = JSON.parse(JSON.stringify(schedaCli)); schedaFissa.modificabile = false; schedaFissa.righe[0].rest = '1:30';
@@ -3351,8 +3423,8 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
   ok(sw.eval('!!(SCHEDA && SCHEDA.collegata)') && sd.getElementById('menu').hidden === false, 'telefono: senza scheda prende da solo quella collegata del PC, dall\'hub');
   ok(sd.getElementById('s-0').value === '3' && sd.getElementById('rir-0').value === '2' && sd.getElementById('n-0').value === 'fermo in basso' && !sd.querySelector('#ex-0 .ex-coach'),
      'telefono: i campi sono la scheda (anche RIR e note), senza «previsto» ripetuto');
-  ok(/collegata/.test(sd.getElementById('scheda-info').textContent) && !sd.getElementById('invia') && sd.getElementById('col-home').hidden === false,
-     'telefono: «Scheda collegata al TMS sul PC», niente file da mandare al coach');
+  ok(/collegata/.test(sd.getElementById('scheda-info').textContent) && !sd.getElementById('invia') && !sd.getElementById('col-home'),
+     'telefono: «Scheda collegata al TMS sul PC», niente file da mandare al coach né spiegazioni sul salvataggio');
   await giroTel();
   ok(H.file(LID, 'dal-telefono/scheda.json') && !/Squat/.test(H.file(LID, 'dal-telefono/scheda.json')), 'telefono: scrive la sua copia della scheda sull\'hub, cifrata');
   { const n0 = H.chiamate; await giroTel();

@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.33 (2026-11-24). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.34 (2026-11-25). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -606,7 +606,10 @@ telefono non ha la banca alimenti), riscaldamento, «l'ultima volta», catalogo 
 altezza/età/sesso per la bilancia e video vanno SOLO dal PC al telefono.
 
 **SUL TELEFONO** l'app si apre su un menu: «Scheda allenamento», «Alimentazione» (piano in
-sola lettura, grammi in evidenza), «Foto progressi» (fronte/lato/retro, galleria oppure FOTOCAMERA DELL'APP con la
+sola lettura, grammi in evidenza; dall'ora dei promemoria, predefinita 21:00, in cima chiede «Oggi hai
+seguito la dieta?» Sì/No, e prima di quell'ora chiede di ieri se è rimasto in sospeso; in fondo il CALENDARIO
+DELLA DIETA del mese, verde sì, rosso no, toccando un giorno passa a sì, no, vuoto; resta sul telefono e
+non va al PC; nel menu la riga Alimentazione ricorda «segna la dieta di oggi»), «Foto progressi» (fronte/lato/retro, galleria oppure FOTOCAMERA DELL'APP con la
 SAGOMA della vista: riquadro 3:4, testa sulla riga in alto al 30%, metà coscia su quella in basso al
 78%, inquadratura ricavata dai selfie allo specchio dell'utente ma disegno generico; a richiesta la
 foto di prima in trasparenza e l'autoscatto da 3 o 10 s; si salva esattamente il riquadro visto;
@@ -622,7 +625,9 @@ SONO la scheda (RIR e note compresi, come la tabella del PC); sotto ogni eserciz
 **«l'ultima volta»** (ultima prestazione dallo Storico). Una spunta e una barra di avanzamento
 segnano gli esercizi toccati in settimana. Nella fase Fine: se il profilo usa il Session-RPE trova
 fatica 0-10 e durata; se NON lo usa, solo una **casella «Giorno completato»**. Ogni esercizio ha un
-**timer di recupero** (bottone che parte dal riposo della scheda, con pausa e +15/-15). Si
+**timer di recupero** (bottone che parte dal riposo della scheda, con pausa e +15/-15; conta dall'ora di
+fine, quindi è giusto anche con l'app in secondo piano; nell'APK, se intanto il recupero finisce, arriva
+la notifica «Recupero finito» al secondo giusto: sveglia esatta, permesso USE_EXACT_ALARM). Si
 possono **aggiungere/eliminare/modificare** esercizi (il nome si sceglie dal catalogo del coach:
 nel TMS si possono usare solo quelli; si salva il nome esatto) e segnare i **test del massimale
 (stella)**.
@@ -633,7 +638,12 @@ WLA25 ricostruita da openScale (riscritta da zero), usando altezza, età e sesso
 PC. Grasso e muscolo per singolo braccio o gamba NON si calcolano (FitDays usa un algoritmo non
 pubblico). Confrontata con un rapporto reale di FitDays, tutti i valori dopo il grasso seguono le
 stesse derivazioni della WLA25, ma il grasso di FitDays era più alto di circa un punto: per quel
-modello FitDays usa un'altra formula del grasso. La pesata si salva sul telefono (una lista per
+modello FitDays usa un'altra formula del grasso. Sotto l'ultima pesata c'è l'ANDAMENTO DEL PESO, come nei grafici di
+borsa: una pesata al giorno (la prima, come nella media), variazione dal giorno prima in kg e %,
+grafico ad area per 7 giorni, 1 mese, 3 mesi o tutto, una striscia di sfumature (una per variazione,
+più carica se più grande) e la variazione del periodo; verde quando il peso va nella direzione della
+fase del piano (cut: giù; bulk: su; mant o nessuna fase: su, come in borsa), rosso quando va contro;
+nella lista ogni pesata che conta ha la sua variazione. La pesata si salva sul telefono (una lista per
 profilo), si toglie col con conferma sulla riga, e va da sola al PC. L'app accetta solo un
 risultato arrivato dopo il peso in diretta (non quello ripetuto al collegamento), conferma i
 messaggi alla bilancia e si ricorda la bilancia trovata; fuori dalla pagina il Bluetooth si ferma.
@@ -653,9 +663,11 @@ github.com/marcomartinellione-create/TMS, via https), ne controlla l'impronta SH
 passa all'installer di Android (conferma dell'utente; la prima volta «Installa app
 sconosciute»). Su GitHub viaggia solo l'APK: scheda, pesate e foto passano solo dall'hub.
 **PROMEMORIA** (notifiche locali, in «Collegamento e promemoria»): ogni sera all'ora scelta
-(predefinita 21:00) la pesata, il lunedì anche le foto; si programmano i 28 giorni successivi e si
-ricalcolano a ogni apertura, pesata o foto: se quel giorno la pesata (o le foto) c'è già, quello
-della sera non suona. Toccandolo si apre la Bilancia (o le Foto).
+(predefinita 21:00) la pesata, il lunedì anche le foto, e la domanda sulla dieta (casella a parte,
+accesa di serie: con un piano alimentare l'APK chiede una volta il permesso delle notifiche); si
+programmano i 28 giorni successivi e si ricalcolano a ogni apertura, pesata, foto o dieta segnata: se
+quel giorno la pesata (o le foto, o la dieta) c'è già, quello della sera non suona. Toccandolo si apre
+la Bilancia, le Foto o l'Alimentazione.
 
 ## 9 · Esercizi e video (tab Esercizi)
 
