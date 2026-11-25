@@ -412,16 +412,26 @@ function telSettimanaSalvata(code){
 }
 
 /* ── pesate e foto dal telefono: si importano, si SALVANO, poi si tolgono dall'hub ── */
-async function telLeggiEventi(slug, p, lista){
-  const arrivati=(lista||[]).filter(x=>/^eventi\//.test(x.nome) && typeof x.testo==='string');
-  if(!arrivati.length) return null;
+/* i file arrivati dal telefono (pesate, foto, giorni della dieta), decifrati; quelli illeggibili restano sull'hub */
+async function telEventi(p, lista){
   const pesate=[], foto=[], dieta=[], fatti=[];
+  const arrivati=(lista||[]).filter(x=>/^eventi\//.test(x.nome) && typeof x.testo==='string');
   for(const f of arrivati.slice().sort((a,b)=>a.nome<b.nome?-1:1)){
     let ev; try{ ev=await telDecifra(f.testo, p.codice); }catch(e){ continue; }   /* illeggibile: si lascia */
     if(ev && ev.tipo==='tms-pesata' && ev.pesata && pulisciPesata(ev.pesata)){ pesate.push(ev.pesata); fatti.push({nome:f.nome, id:String(ev.pesata.id)}); }
     else if(ev && ev.tipo==='tms-foto' && ev.foto && ev.foto.id && /^data:image\//.test(String(ev.foto.img||''))){ foto.push(ev.foto); fatti.push({nome:f.nome, id:String(ev.foto.id)}); }
     else if(ev && ev.tipo==='tms-dieta' && ev.id && /^\d{4}-\d\d-\d\d$/.test(String(ev.data||''))){ dieta.push(ev); fatti.push({nome:f.nome, id:String(ev.id)}); }
   }
+  return {pesate, foto, dieta, fatti};
+}
+/* arrivati e salvati: il telefono li vede «al PC» e dall'hub se ne vanno */
+async function telConfermaEventi(slug, p, fatti){
+  const ric=new Set(p.ricevute||[]); fatti.forEach(f=>ric.add(f.id)); p.ricevute=[...ric].slice(-400); telSalva();
+  await telScriviStato(slug, p);
+  for(const f of fatti){ try{ await telTogli(p, 'dal-telefono/'+f.nome); }catch(e){ logErrore('telefono/togli', e); } }
+}
+async function telLeggiEventi(slug, p, lista){
+  const {pesate, foto, dieta, fatti}=await telEventi(p, lista);
   if(!fatti.length || activeProfile!==slug) return null;
   let rp=null, nFoto=0, nDieta=0;
   if(pesate.length) rp=await importaPesate(pesate);
@@ -430,9 +440,7 @@ async function telLeggiEventi(slug, p, lista){
   /* salvataggio VERO su disco prima di togliere qualcosa dall'hub */
   clearTimeout(saveTimer); await flushSaves();
   if(activeProfile!==slug) return null;
-  const ric=new Set(p.ricevute||[]); fatti.forEach(f=>ric.add(f.id)); p.ricevute=[...ric].slice(-400); telSalva();
-  await telScriviStato(slug, p);                             /* il telefono vedrà ✔ «arrivata al PC» */
-  for(const f of fatti){ try{ await telTogli(p, 'dal-telefono/'+f.nome); }catch(e){ logErrore('telefono/togli', e); } }
+  await telConfermaEventi(slug, p, fatti);                    /* il telefono vedrà ✔ «arrivata al PC» */
   if(curTab==='corpo') renderCorpo();
   if(nDieta && curTab==='alimentazione') renderAlimentazione();
   return {pesate:rp, foto:nFoto, dieta:nDieta};
@@ -441,15 +449,82 @@ async function telLeggiEventi(slug, p, lista){
    del cambio}}. Vince il cambio più recente (uno più vecchio arrivato dopo non torna indietro); un giorno
    tolto resta con v vuoto, così un vecchio «sì» in ritardo non lo rimette. */
 function telDietaApplica(lista){
-  const A=DOC.alimentazione=DOC.alimentazione||{bulk:[],mant:[],cut:[]};
+  const n=telDietaUnisci(DOC.alimentazione=DOC.alimentazione||{bulk:[],mant:[],cut:[]}, lista);
+  if(n){ _telInterno=true; try{ persist('alimentazione'); } finally{ _telInterno=false; } }
+  return n;
+}
+function telDietaUnisci(A, lista){
   const ad=A.aderenza=(A.aderenza && typeof A.aderenza==='object' && !Array.isArray(A.aderenza))? A.aderenza : {};
   let n=0;
   lista.slice().sort((a,b)=>String(a.ora||'').localeCompare(String(b.ora||''))).forEach(e=>{
     const d=String(e.data), v=(e.valore==='si'||e.valore==='no')? e.valore : '', ora=String(e.ora||'');
     const c=ad[d]; if(c && c.t && ora && ora<c.t) return;
     ad[d]={v:v, t:ora}; n++; });
-  if(n){ _telInterno=true; try{ persist('alimentazione'); } finally{ _telInterno=false; } }
   return n;
+}
+
+/* ── i CLIENTI NON APERTI (25/11/2026, richiesta di Marco): il PC controlla anche i loro telefoni, uno alla
+      volta, e salva pesate, foto e giorni della dieta direttamente nei file di quel profilo (corpo.json,
+      alimentazione.json, foto/), senza aprirlo: così non aspettano sull'hub (dove scadono dopo 30 giorni) e
+      lo storico resta completo. Regole di sicurezza: un file illeggibile non si riscrive mai; i valori dello
+      Storico misure scritti a mano restano (le pesate si salvano comunque); se intanto apri o cambi profilo
+      (profiloCambi) non si conferma niente, i file restano sull'hub e arrivano al giro dopo, senza doppioni
+      (gli id). La scheda di un cliente non aperto si unisce quando apri il suo profilo (sull'hub non scade). ── */
+const TEL_ALTRI_OGNI=90000;
+let _telAltroIdx=0, _telAltriT=null;
+const TEL_PANORAMICA={};   /* slug → {controllato, ultimo, arrivati} per la panoramica nelle Impostazioni */
+function telAltriCollegati(){
+  const st=telStato();
+  return profili.map(x=>x.slug).filter(s=>s!==activeProfile && telCollegato(st.profili[s])); }
+async function telGiroAltri(){
+  if(_telGiroIn || !telDisponibile() || scrittureBloccate || !dataDir || !telPersonal()) return;
+  const altri=telAltriCollegati(); if(!altri.length) return;
+  const slug=altri[_telAltroIdx++ % altri.length], p=telProf(slug), cambi=profiloCambi;
+  _telGiroIn=true;
+  try{
+    const lista=await telLista(p);
+    const pan=TEL_PANORAMICA[slug]=TEL_PANORAMICA[slug]||{};
+    pan.controllato=new Date().toISOString();
+    const ore=lista.map(x=>+x.ora||0).filter(Boolean); if(ore.length) pan.ultimo=new Date(Math.max(...ore)).toISOString();
+    const {pesate, foto, dieta, fatti}=await telEventi(p, lista);
+    if(!fatti.length) return;
+    const pd=await dataDir.getDirectoryHandle(slug, {create:false});
+    const rc=await leggiJson(pd, FILES.corpo), ra=await leggiJson(pd, FILES.alimentazione);
+    if(rc.stato==='illeggibile' || ra.stato==='illeggibile') return;      /* mai sopra un file che non si legge */
+    if(profiloCambi!==cambi || activeProfile===slug) return;
+    const co=(rc.stato==='ok' && rc.dati && typeof rc.dati==='object')? rc.dati : corpoFile({});
+    const al=(ra.stato==='ok' && ra.dati && typeof ra.dati==='object')? ra.dati : {bulk:[],mant:[],cut:[]};
+    const rp=await pesateUnisci(co, pesate, async()=>false);          /* i valori scritti a mano restano */
+    const nFoto=await fotoUnisci(co, foto, async(fname, bytes)=>{ const fd=await pd.getDirectoryHandle('foto',{create:true});
+      const fh=await fd.getFileHandle(fname,{create:true}); const wr=await fh.createWritable(); await wr.write(bytes); await wr.close(); });
+    const nDieta=telDietaUnisci(al, dieta);
+    if(profiloCambi!==cambi || activeProfile===slug) return;         /* aperto nel frattempo: ci pensa il suo giro */
+    if(rp.nuove || nFoto) await writeJson(pd, FILES.corpo, co);
+    if(nDieta) await writeJson(pd, FILES.alimentazione, al);
+    if(profiloCambi!==cambi || activeProfile===slug) return;         /* aperto mentre scrivevo: si rifà dopo */
+    await telConfermaEventi(slug, p, fatti);
+    pan.arrivati={ora:new Date().toISOString(), pesate:rp.nuove, foto:nFoto, dieta:nDieta};
+    const pz=[];
+    if(rp.nuove) pz.push(rp.nuove+' '+(rp.nuove===1?t('pesata nuova'):t('pesate nuove')));
+    if(nFoto) pz.push(nFoto+' '+t('foto'));
+    if(nDieta) pz.push(nDieta===1? t('un giorno della dieta') : nDieta+' '+t('giorni della dieta'));
+    const nome=(profili.find(x=>x.slug===slug)||{}).nome||slug;
+    if(pz.length) telNotizia(t('Dal telefono di')+' '+nome+': '+pz.join(' · '));
+  }catch(e){ logErrore('telefono/altri', e); }
+  finally{ _telGiroIn=false; }
+}
+/* panoramica dei clienti collegati (Impostazioni › Telefono collegato) */
+function telPanoramicaHtml(){
+  const st=telStato(), coll=profili.filter(x=>telCollegato(st.profili[x.slug]));
+  if(coll.length<2) return '';
+  const righe=coll.map(x=>{ const p=st.profili[x.slug], pan=TEL_PANORAMICA[x.slug]||{}, att=x.slug===activeProfile;
+    const ultimo=att? p.ultimoTelefono : (pan.ultimo || p.ultimoTelefono);
+    const arr=pan.arrivati, pz=[];
+    if(arr){ if(arr.pesate) pz.push(arr.pesate+' '+t(arr.pesate===1?'pesata':'pesate')); if(arr.foto) pz.push(arr.foto+' '+t('foto')); if(arr.dieta) pz.push(arr.dieta+' '+t(arr.dieta===1?'giorno della dieta':'giorni della dieta')); }
+    return `<div class="tel-cliente${att?' is-on':''}"><b>${esc(x.nome||x.slug)}</b><span>${ultimo? t('ultimo dal telefono')+' '+esc(telOra(ultimo)) : t('il telefono non ha ancora scritto niente')}${pz.length? ' · '+t('arrivate')+' '+esc(pz.join(', ')) : ''}</span>
+      ${att? `<em>${t('aperto')}</em>` : `<button class="btn btn--sm" data-tel-apri="${esc(x.slug)}">${t('Apri')}</button>`}</div>`; }).join('');
+  return `<div class="imp-etich" style="margin-top:10px">${t('Clienti collegati')}</div><div class="tel-clienti">${righe}</div>
+    <div class="lat-nota">${t('Il TMS controlla anche i telefoni dei profili non aperti e ne salva pesate, foto e giorni della dieta; le modifiche alla scheda si uniscono quando apri il profilo.')}</div>`;
 }
 
 /* ── il giro: pesate e foto, scheda, stato. Solo il profilo ATTIVO (gli altri al loro turno). ── */
@@ -477,6 +552,8 @@ async function telGiro(){
 function telAvvia(){
   if(!telDisponibile()) return;
   clearInterval(_telTimer); _telTimer=setInterval(()=>{ telGiro(); }, TEL_OGNI);
+  clearInterval(_telAltriT); _telAltriT=setInterval(()=>{ telGiroAltri(); }, TEL_ALTRI_OGNI);
+  setTimeout(()=>{ telGiroAltri(); }, 12000);
   window.addEventListener('focus', ()=>{ telGiro(); });
   setTimeout(()=>{ telGiro(); }, 2500);
 }
@@ -544,7 +621,7 @@ function telSezioneImpostazioni(){
     : `<div class="imp-riga"><span>${t('Profilo')} «${nome}»</span><span class="gruppo"><button class="btn btn--sm btn--ember" id="imp-tel-prof">${t('Collega un telefono')}</button></span></div>
       <div class="lat-nota">${t('Crea il codice da scrivere sul telefono di questo cliente (o sul tuo, se il profilo è il tuo).')}</div>`;
   return `<div class="imp-sez" id="imp-tel">
-      <h4>${t('Telefono collegato')}</h4>${intro}${rec}${prof}
+      <h4>${t('Telefono collegato')}</h4>${intro}${rec}${prof}${telPanoramicaHtml()}
     </div>`;
 }
 function telAgganciaImpostazioni(riapri){
@@ -554,6 +631,7 @@ function telAgganciaImpostazioni(riapri){
   su('imp-tel-attiva', async()=>{ await telAttiva(valore('imp-tel-invito')); });
   su('imp-tel-recupera', async()=>{ const n=await telRecupera(valore('imp-tel-recupero')); telNotizia(n? t('Personal ritrovato:')+' '+n+' '+t('profili ricollegati') : t('Personal ritrovato.')); await telGiro(); });
   su('imp-tel-mostra-rec', async()=>{ _telMostraRec=true; });
+  document.querySelectorAll('[data-tel-apri]').forEach(b=>{ b.onclick=async()=>{ closeModal(); await switchProfile(b.getAttribute('data-tel-apri')); }; });
   su('imp-tel-copia-rec', async()=>{ try{ await navigator.clipboard.writeText(telCodiceBello(telPersonal().codice)); telNotizia(t('Codice copiato.')); }catch(e){} });
   su('imp-tel-prof', async()=>{ await telCollega(activeProfile); await telGiro(); if(curTab==='allenamento') renderAllenamento(); });
   su('imp-tel-nuovo', async()=>{

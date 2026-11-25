@@ -87,13 +87,16 @@ function applicaUltimaPesata(p, u){
 }
 /* import delle pesate arrivate dal telefono. Chiede SOLO se una settimana ha già una misura scritta a
    mano (una domanda per tutte). Restituisce il riepilogo per il messaggio finale. */
-async function importaPesate(arrivate){
+/* il cuore dell'unione delle pesate, su un profilo qualsiasi: T è DOC (profilo aperto) oppure il corpo.json
+   di un altro profilo (telefono collegato, giro sui clienti non aperti, 15c-telefono.js). `aMano(settimane)`
+   decide se i valori scritti a mano nello Storico misure si sostituiscono con la media delle pesate. */
+async function pesateUnisci(T, arrivate, aManoFn){
   const ris={nuove:0, gia:0, scartate:0, nonValide:0, settimane:[], tenute:[]};
   if(!Array.isArray(arrivate)||!arrivate.length) return ris;
-  if(!Array.isArray(DOC.pesate)) DOC.pesate=[];
-  if(!Array.isArray(DOC.pesate_scartate)) DOC.pesate_scartate=[];
-  if(!Array.isArray(DOC.storico_io)) DOC.storico_io=[];
-  const note=new Set(DOC.pesate.map(p=>p.id)), via=new Set(DOC.pesate_scartate), nuove=[];
+  if(!Array.isArray(T.pesate)) T.pesate=[];
+  if(!Array.isArray(T.pesate_scartate)) T.pesate_scartate=[];
+  if(!Array.isArray(T.storico_io)) T.storico_io=[];
+  const note=new Set(T.pesate.map(p=>p.id)), via=new Set(T.pesate_scartate), nuove=[];
   arrivate.forEach(x=>{ const p=pulisciPesata(x);
     if(!p){ ris.nonValide++; return; }
     if(via.has(p.id)){ ris.scartate++; return; }
@@ -101,23 +104,27 @@ async function importaPesate(arrivate){
     note.add(p.id); nuove.push(p); });
   if(!nuove.length) return ris;
   ris.nuove=nuove.length;
-  DOC.pesate=DOC.pesate.concat(nuove).sort(ordinePesate);
+  T.pesate=T.pesate.concat(nuove).sort(ordinePesate);
   const settimane=[...new Set(nuove.map(settimanaPesata))].sort((a,b)=>a-b);
-  const aMano=settimane.filter(c=>DOC.storico_io.some(r=>(+r.scheda)===c && !rigaIoDaPesate(r)));
+  const aMano=settimane.filter(c=>T.storico_io.some(r=>(+r.scheda)===c && !rigaIoDaPesate(r)));
   let sostituisci=true;
-  if(aMano.length) sostituisci=await conferma(
-    t('Nello Storico misure ci sono già valori scritti a mano per:')+'\n• '+aMano.map(c=>t('settimana del')+' '+schedaLabel(c)).join('\n• ')+'\n\n'+
-    t('Li sostituisco con la media delle pesate? Se scegli «Tienili», le pesate restano salvate ma lo Storico di quelle settimane non cambia.'),
-    {titolo:t('Pesate della bilancia'), testoOk:t('Sostituisci'), testoNo:t('Tienili')});
+  if(aMano.length) sostituisci=await aManoFn(aMano);
   settimane.forEach(c=>{
     if(!sostituisci && aMano.indexOf(c)>=0){ ris.tenute.push(c); return; }
-    const riga=rigaDaPesate(c, pesateDellaSettimana(c), DOC.dati_utente||{}); if(!riga) return;
-    DOC.storico_io=DOC.storico_io.filter(r=>(+r.scheda)!==c); DOC.storico_io.push(riga);
+    const riga=rigaDaPesate(c, T.pesate.filter(p=>settimanaPesata(p)===c), T.dati_utente||{}); if(!riga) return;
+    T.storico_io=T.storico_io.filter(r=>(+r.scheda)!==c); T.storico_io.push(riga);
     ris.settimane.push({code:c, n:riga.n_pesate}); });
-  DOC.storico_io.sort((a,b)=>(+a.scheda||0)-(+b.scheda||0));
-  const ultima=DOC.pesate[DOC.pesate.length-1];
-  if(ultima && nuove.indexOf(ultima)>=0) applicaUltimaPesata(ultima, DOC.dati_utente||(DOC.dati_utente={}));
-  persist('corpo');
+  T.storico_io.sort((a,b)=>(+a.scheda||0)-(+b.scheda||0));
+  const ultima=T.pesate[T.pesate.length-1];
+  if(ultima && nuove.indexOf(ultima)>=0) applicaUltimaPesata(ultima, T.dati_utente||(T.dati_utente={}));
+  return ris;
+}
+async function importaPesate(arrivate){
+  const ris=await pesateUnisci(DOC, arrivate, aMano=>conferma(
+    t('Nello Storico misure ci sono già valori scritti a mano per:')+'\n• '+aMano.map(c=>t('settimana del')+' '+schedaLabel(c)).join('\n• ')+'\n\n'+
+    t('Li sostituisco con la media delle pesate? Se scegli «Tienili», le pesate restano salvate ma lo Storico di quelle settimane non cambia.'),
+    {titolo:t('Pesate della bilancia'), testoOk:t('Sostituisci'), testoNo:t('Tienili')}));
+  if(ris.nuove) persist('corpo');
   return ris;
 }
 /* ── riquadro «Pesate della bilancia» nel tab Corpo (solo se ce ne sono) ── */

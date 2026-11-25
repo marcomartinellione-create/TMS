@@ -88,9 +88,16 @@ function costruisciSchedaJSON(videoMap, modificabile){
    arrivano). Ritorna quante ne ha salvate. */
 async function importaFotoRientro(foto){
   if(!Array.isArray(foto) || !foto.length || !profileDir) return 0;
+  const n=await fotoUnisci(DOC, foto, async(fname, bytes)=>{ const fh=await fotoHandle(fname,true); const wr=await fh.createWritable(); await wr.write(bytes); await wr.close(); });
+  if(n) persist('corpo');
+  return n;
+}
+/* il cuore, su un profilo qualsiasi (T = DOC, o il corpo.json di un profilo non aperto): `scrivi(nome, byte)`
+   mette il file nella cartella foto/ di quel profilo */
+async function fotoUnisci(T, foto, scrivi){
   let n=0;
   /* `id` (dal telefono collegato, 2026-11-17): la stessa foto arrivata due volte non si duplica */
-  const gia=new Set((DOC.foto||[]).map(x=>x&&x.id).filter(Boolean));
+  const gia=new Set((T.foto||[]).map(x=>x&&x.id).filter(Boolean));
   for(const f of foto){
     const fid=String((f&&f.id)||'').slice(0,80);
     if(fid && gia.has(fid)) continue;
@@ -103,21 +110,20 @@ async function importaFotoRientro(foto){
       for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); }
     catch(e){ logErrore('importFoto/base64', e); continue; }   /* immagine corrotta: si salta, ma resta tracciata */
     const fname='f'+Date.now()+'-'+Math.random().toString(36).slice(2,6)+'.'+ext;
-    try{ const fh=await fotoHandle(fname,true); const wr=await fh.createWritable(); await wr.write(bytes); await wr.close(); }
+    try{ await scrivi(fname, bytes); }
     catch(e){ logErrore('importFoto', e); continue; }
     /* `sostituisce` (2026-11-17): la foto è stata spostata o ritagliata sul telefono dopo che la vecchia era
        già partita. Prende il posto della vecchia (stessa data e vista), senza aggiungersi; il file vecchio
        resta su disco, non si cancella niente. */
     const sost=String((f&&f.sostituisce)||'').slice(0,80);
-    const vecchia=sost? (DOC.foto||[]).find(x=>x&&x.id===sost) : null;
+    const vecchia=sost? (T.foto||[]).find(x=>x&&x.id===sost) : null;
     if(vecchia){ vecchia.file=fname; if(fid){ vecchia.id=fid; gia.add(fid); } n++; continue; }
     const voce={file:fname,
       data:String((f&&f.data)||'').slice(0,10)||new Date().toISOString().slice(0,10),
       tag:String((f&&f.tag)||'').trim()};
     if(fid){ voce.id=fid; gia.add(fid); }
-    (DOC.foto=DOC.foto||[]).push(voce);
+    (T.foto=T.foto||[]).push(voce);
     n++;
   }
-  if(n) persist('corpo');
   return n;
 }

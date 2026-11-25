@@ -3585,6 +3585,47 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
   d.querySelector('#ader-cal [data-aderm="-1"]').click(); await settle(20);
   ok(w.eval('aderMese') === '2026-10' && d.getElementById('ader-cal').querySelectorAll('.ader-g.si').length === 0, 'PC: il calendario va al mese prima');
   w.eval('aderMese=""; showTab("allenamento");');
+  /* clienti NON aperti (25/11/2026): il PC controlla anche i loro telefoni e salva nei file del profilo, senza aprirlo */
+  { await fsmem.writeFile('TMS_Dati/giulia/scheda.json', J({ settimanale: [], mensile: [] }));
+    await fsmem.writeFile('TMS_Dati/giulia/storico.json', '[]');
+    const sett = w.eval('settimanaPesata({data:"2026-11-23"})');
+    await fsmem.writeFile('TMS_Dati/giulia/corpo.json', J({ dati_utente: { nome: 'Giulia', sesso: 'F', altezza: 165 }, storico_io: [{ scheda: sett, peso: 60 }], pesate: [], foto: [] }));
+    await fsmem.writeFile('TMS_Dati/giulia/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+    w.eval('profili.push({slug:"giulia", nome:"Giulia"})');
+    const { lid: L2, codice: C2 } = JSON.parse(await w.eval('telCollega("giulia").then(function(p){ return JSON.stringify({lid:p.lid, codice:p.codice}); })'));
+    const cifra = ev => w.eval('telCifra(' + J(ev) + ', ' + J(C2) + ')');
+    H.metti(L2, 'dal-telefono/eventi/pesata-g1.json', await cifra({ tipo: 'tms-pesata', pesata: { id: '2026-11-23T07:00:00|61.2', data: '2026-11-23', ora: '07:00:00', peso: 61.2 } }));
+    H.metti(L2, 'dal-telefono/eventi/foto-g1.json', await cifra({ tipo: 'tms-foto', foto: { id: 'fg1', tag: 'fronte', data: '2026-11-23', img: 'data:image/jpeg;base64,/9j/AAAA' } }));
+    H.metti(L2, 'dal-telefono/eventi/dieta-g1.json', await cifra({ tipo: 'tms-dieta', id: 'dieta|2026-11-23|g1', data: '2026-11-23', valore: 'si', ora: '2026-11-23T20:00:00.000Z' }));
+    const pesatePrima = w.eval('JSON.stringify(DOC.pesate)');
+    await w.eval('telGiroAltri()');
+    const co = JSON.parse(fsmem._files.get('TMS_Dati/giulia/corpo.json')), al = JSON.parse(fsmem._files.get('TMS_Dati/giulia/alimentazione.json'));
+    ok(co.pesate.length === 1 && co.pesate[0].peso === 61.2 && co.foto.some(f => f.id === 'fg1' && fsmem._files.has('TMS_Dati/giulia/foto/' + f.file)) && al.aderenza['2026-11-23'].v === 'si',
+       'clienti non aperti: pesata, foto e giorno della dieta salvati nei file di quel profilo, senza aprirlo');
+    ok(co.storico_io.find(r => r.scheda === sett).peso === 60 && co.dati_utente.peso === 61.2, 'clienti non aperti: i valori scritti a mano nello Storico misure restano, il peso del profilo si aggiorna');
+    ok(w.eval('JSON.stringify(DOC.pesate)') === pesatePrima && w.eval('activeProfile') === 'prova', 'clienti non aperti: il profilo aperto non cambia');
+    ok(H.nomi(L2, 'dal-telefono/eventi/').length === 0 && ['2026-11-23T07:00:00|61.2', 'fg1', 'dieta|2026-11-23|g1'].every(id => w.eval('telProf("giulia").ricevute').indexOf(id) >= 0),
+       'clienti non aperti: salvati su disco, tolti dall\'hub e segnati fra le ricevute (il telefono li vede «al PC»)');
+    /* un file illeggibile non si riscrive mai: l'arrivo resta sull'hub */
+    await fsmem.writeFile('TMS_Dati/giulia/alimentazione.json', '{rotto');
+    H.metti(L2, 'dal-telefono/eventi/dieta-g2.json', await cifra({ tipo: 'tms-dieta', id: 'dieta|2026-11-24|g2', data: '2026-11-24', valore: 'no', ora: '2026-11-24T20:00:00.000Z' }));
+    await w.eval('telGiroAltri()');
+    ok(fsmem._files.get('TMS_Dati/giulia/alimentazione.json') === '{rotto' && H.nomi(L2, 'dal-telefono/eventi/').length === 1, 'clienti non aperti: con un file illeggibile non si scrive niente e l\'arrivo resta sull\'hub');
+    /* aperto il profilo mentre si salva: niente conferme, al giro dopo arriva senza doppioni */
+    await fsmem.writeFile('TMS_Dati/giulia/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+    w.eval('var _w=writeJson; writeJson=async function(a,b,c){ await _w(a,b,c); profiloCambi++; };');
+    await w.eval('telGiroAltri()');
+    w.eval('writeJson=_w;');
+    ok(H.nomi(L2, 'dal-telefono/eventi/').length === 1, 'clienti non aperti: se intanto si cambia profilo non si toglie niente dall\'hub');
+    await w.eval('telGiroAltri()');
+    ok(H.nomi(L2, 'dal-telefono/eventi/').length === 0 && JSON.parse(fsmem._files.get('TMS_Dati/giulia/alimentazione.json')).aderenza['2026-11-24'].v === 'no', 'clienti non aperti: al giro dopo arriva');
+    /* la panoramica nelle Impostazioni */
+    await w.eval('impostazioniModal()');
+    { const righe = [...d.querySelectorAll('#imp-tel .tel-cliente')];
+      ok(righe.length === 2 && righe.some(r => /Giulia/.test(r.textContent) && r.querySelector('[data-tel-apri="giulia"]') && /arrivate/.test(r.textContent)) && righe.some(r => r.classList.contains('is-on')),
+         'Impostazioni: panoramica dei clienti collegati (ultimo dal telefono, cosa è arrivato, «Apri»)'); }
+    w.eval('closeModal()');
+    await w.eval('telStacca("giulia")'); w.eval('profili=profili.filter(function(x){ return x.slug!=="giulia"; })'); }
   /* fine seduta sul telefono, poi «💾 Salva nello Storico» sul PC: la settimana si cristallizza */
   scrivi('rpe-0', '7'); scrivi('min-0', '60'); await giroTel(); await giroPC();
   ok(J(w.eval('JSON.stringify(DOC.scheda.rpe.settimanale)')) === J(J({ [righePC()[0].giorno]: { rpe: 7, min: 60 } })), 'fatica e durata della seduta scritte sul telefono arrivano sul PC');

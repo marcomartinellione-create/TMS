@@ -328,8 +328,10 @@ function persist(which){
 }
 
 /* ── PROFILI (ops) ── */
+let profiloCambi=0;   /* sale a ogni cambio di profilo: il giro sui telefoni dei profili non aperti (15c) lo guarda */
 async function switchProfile(slug){
   if(!profili.some(p=>p.slug===slug)) return;
+  profiloCambi++;
   cruscottoInvalida();  /* il set di dati per-profilo è cambiato: il cruscotto va ricalcolato */
   if(slug!==activeProfile){
     if(scrittureBloccate){ mostraBloccoScritture(); return; }
