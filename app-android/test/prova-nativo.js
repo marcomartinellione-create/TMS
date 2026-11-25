@@ -382,6 +382,14 @@ async function apri(opz = {}) {
     w.eval('bilStato("cerco"); BIL.liveStato=2; bilStato("misura"); BIL.ultima={peso:72.3, grasso:14.2}; bilStato("fatto");'); await attendi(80);
     const fine = reg.avv.filter(x => x[0] === 'schedule').map(x => x[1].notifications[0]).find(n => n.id === 7300);
     ok(fine && /Pesata finita/.test(fine.title) && /72,3 kg/.test(fine.body) && fine.channelId === 'promemoria', 'pesata: a fine misura una notifica del telefono (si sente anche senza guardare lo schermo)');
+    w.eval('scanChiudi()');
+    ok(d.getElementById('col-qr').hidden === true, 'QR: senza il lettore di Android niente «Inquadra il QR» (si scrive il codice)');
+    w.BarcodeDetector = function(){ this.detect = () => Promise.resolve([]); };
+    Object.defineProperty(w.navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [] }) } });
+    w.eval('colRender()');
+    ok(d.getElementById('col-qr').hidden === false && d.getElementById('col-oppure').hidden === false, 'QR: col lettore di Android, nella schermata Collegamento compare «Inquadra il QR» (oppure il codice)');
+    d.getElementById('qrscan').hidden = false;
+    ok(w.tmsIndietro() === true && d.getElementById('qrscan').hidden === true, 'QR: il tasto indietro chiude il lettore del QR');
     a.dom.window.close(); }
 
   console.log((falliti ? '✗ ' : '✓ ') + passati + ' verifiche passate' + (falliti ? ', ' + falliti + ' FALLITE' : ''));

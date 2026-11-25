@@ -1346,6 +1346,16 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sd.getElementById('scan').hidden === true && sw.__suona === '', 'bilancia/analisi: se la bilancia si perde, la schermata si chiude e la musica si ferma');
     ok(!/#2ee9ff|Courier|scanlines|text-transform:uppercase/.test(sd.querySelector('style').textContent.slice(sd.querySelector('style').textContent.indexOf('#scan{'), sd.querySelector('style').textContent.indexOf('barra del timer di recupero'))),
        'bilancia/analisi: la schermata usa la grafica dell\'app (niente colori, caratteri o maiuscole da videogioco)');
+    /* collegamento col QR del PC */
+    ok(sw.eval('qrCodiceDa("TMS:ABCD-EFGH-JKLM-NPQR-STUV")') === 'ABCDEFGHJKLMNPQRSTUV' && sw.eval('qrCodiceDa("https://esempio.it")') === '' && sw.eval('qrCodiceDa("TMS:ABC")') === '',
+       'collegamento col QR: legge solo i QR del TMS col codice giusto');
+    ok(sd.getElementById('col-qr').hidden === true, 'collegamento col QR: senza il lettore di Android il pulsante non c\'è (si scrive il codice)');
+    sw.BarcodeDetector = function(){ this.detect = () => Promise.resolve([{ rawValue: 'TMS:ABCD-EFGH-JKLM-NPQR-STUV' }]); };
+    let fermata = 0;
+    Object.defineProperty(sw.navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [{ stop(){ fermata++; } }] }) } });
+    await sw.eval('qrApri()'); await settle(60);
+    ok(sd.getElementById('qrscan').hidden === true && sd.getElementById('col-codice').value === 'ABCD-EFGH-JKLM-NPQR-STUV' && fermata === 1,
+       'collegamento col QR: inquadrato il QR, il codice entra da solo, la fotocamera si spegne e il collegamento parte');
     sub.window.close();
   }
   /* v1.5: scheda FISSA (modificabile:false) → niente aggiungi/modifica/elimina/★, ma il timer resta */
@@ -3489,6 +3499,20 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     w.tmsScambio.scrivi = async () => { throw new Error('disco non trovato'); };
     ok(await w.eval('bkEstCopia(true)') === false && /non è riuscita/.test(w.eval('bkEstTestoStato()')), 'backup fuori dal PC: se la cartella non si raggiunge lo dice, e riprova al prossimo avvio');
     w.eval('closeModal()'); delete w.tmsScambio; w.eval('localStorage.removeItem("tms-bk-esterno")'); }
+  /* collegamento col QR (25/11/2026): il codificatore è lo stesso della libreria Python qrcode */
+  { const ref = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests', 'qr-riferimento.json'), 'utf8'));
+    const diverse = Object.keys(ref).filter(k => { const [tx, m] = k.split('|');
+      return w.eval('JSON.stringify(qrMatrice(' + J(tx) + ',' + m + ').map(function(r){ return r.map(function(x){ return x?1:0; }).join(""); }))') !== JSON.stringify(ref[k].righe); });
+    ok(Object.keys(ref).length === 24 && diverse.length === 0, 'QR: il codificatore dà le stesse matrici della libreria Python qrcode (versioni 1–3, tutte le 8 maschere)');
+    ok(w.eval('qrTestoCodice(' + J(CODICE) + ')') === 'TMS:' + w.eval('telCodiceBello(' + J(CODICE) + ')') && w.eval('qrMatrice(qrTestoCodice(' + J(CODICE) + ')).length') === 25,
+       'QR: il contenuto è «TMS:» + il codice a gruppi di 4 (versione 2, 25×25)');
+    await w.eval('impostazioniModal()');
+    d.getElementById('imp-tel-qr').click();
+    ok(d.querySelector('#modal .tel-qr svg.qr-svg') && /Inquadra il QR/.test(d.getElementById('modal').textContent) && /mostralo solo a lui/.test(d.getElementById('modal').textContent),
+       'impostazioni: «QR» mostra il codice del cliente come QR, con le istruzioni e l\'avvertenza');
+    d.getElementById('tel-qr-indietro').click(); await settle(30);
+    ok(d.getElementById('imp-tel'), 'impostazioni: dal QR «Indietro» torna alle Impostazioni');
+    w.eval('closeModal()'); }
 
   /* il telefono del cliente */
   H.versioneApk = null;

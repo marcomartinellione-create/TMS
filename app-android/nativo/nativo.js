@@ -13,7 +13,7 @@
    · niente invito a installare (è già un'app) e link del sito nel browser.
    I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app). La scheda collegata
    passa dall'hub del TMS (dal 24/11/2026; prima da una cartella di Google Drive). */
-/* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa, scanAperta, scanChiudi,
+/* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa, scanAperta, scanChiudi, qrAperto, qrChiudi,
    avvia, risali, chiudiVideo, mostraInstallHint, camApri, bilAggiornaMenu, colRender,
    avvRender, avvPianifica */
 (function(){
@@ -227,6 +227,7 @@ if(LN){
 window.tmsIndietro=function(){
   if(DLG){ DLG.chiudi(DLG.annulla); return true; }
   if(typeof scanAperta==='function' && scanAperta()){ scanChiudi(); return true; }   /* schermata d'analisi della pesata */
+  if(typeof qrAperto==='function' && qrAperto()){ qrChiudi(); return true; }        /* lettore del QR del collegamento */
   try{ if(document.fullscreenElement){ document.exitFullscreen(); return true; } }catch(e){}
   const aperto=id=>{ const o=$(id); return !!o && o.style.display==='flex'; };
   if(aperto('vov')||aperto('qrov')){ risali(); return true; }

@@ -513,6 +513,17 @@ async function telGiroAltri(){
   }catch(e){ logErrore('telefono/altri', e); }
   finally{ _telGiroIn=false; }
 }
+/* il QR del codice del cliente: il telefono lo inquadra (TMS Scheda › Collegamento › «Inquadra il QR») */
+function telQrModal(indietro){
+  const p=telProf(); if(!telCollegato(p)) return;
+  modal(`<h3>${t('Collega il telefono di')} «${esc(profNome())}»</h3>
+    <div class="tel-qr">${qrSvg(qrTestoCodice(p.codice), 240)}</div>
+    <div class="lat-nota" style="text-align:center">${t('Sul telefono del cliente: TMS Scheda › Collegamento e promemoria › «Inquadra il QR», e punta la fotocamera qui. Oppure scrivi il codice:')}<br><code class="tel-codice">${esc(telCodiceBello(p.codice))}</code></div>
+    <div class="lat-nota tel-avviso" style="text-align:center">${t('Chi inquadra questo QR può leggere i dati di questo cliente: mostralo solo a lui.')}</div>
+    <div class="modal__actions"><button class="btn" id="tel-qr-indietro">${t('Indietro')}</button><button class="btn btn--ember" id="tel-qr-ok">${t('Chiudi')}</button></div>`);
+  document.getElementById('tel-qr-indietro').onclick=()=>indietro();
+  document.getElementById('tel-qr-ok').onclick=closeModal;
+}
 /* panoramica dei clienti collegati (Impostazioni › Telefono collegato) */
 function telPanoramicaHtml(){
   const st=telStato(), coll=profili.filter(x=>telCollegato(st.profili[x.slug]));
@@ -615,8 +626,8 @@ function telSezioneImpostazioni(){
   const rec=_telMostraRec? `<div class="imp-riga imp-codice"><span>${t('Codice di recupero')}</span><code class="tel-codice" id="imp-tel-rec">${esc(telCodiceBello(pe.codice))}</code><span class="gruppo"><button class="btn btn--sm" id="imp-tel-copia-rec">${t('Copia')}</button></span></div>
       <div class="lat-nota tel-avviso">${t('Conservalo in un posto sicuro: serve per passare a un PC nuovo senza ricollegare i clienti. Chi lo ha può leggere i dati dei tuoi clienti sull\'hub.')}</div>`
     : `<div class="imp-riga"><span>${t('Personal attivo')}</span><span class="gruppo"><button class="btn btn--sm" id="imp-tel-mostra-rec">${t('Mostra il codice di recupero')}</button></span></div>`;
-  const prof=telCollegato(p)? `<div class="imp-riga imp-codice"><span>${t('Codice del telefono di')} «${nome}»</span><code class="tel-codice" id="imp-tel-codice">${esc(telCodiceBello(p.codice))}</code><span class="gruppo"><button class="btn btn--sm" id="imp-tel-copia">${t('Copia')}</button><button class="btn btn--sm" id="imp-tel-nuovo">${t('Nuovo codice')}</button><button class="btn btn--sm" id="imp-tel-togli">${t('Stacca')}</button></span></div>
-      <div class="lat-nota">${t('Sul telefono del cliente: TMS Scheda › Collegamento e promemoria › scrivi questo codice. Si fa una volta sola.')}</div>
+  const prof=telCollegato(p)? `<div class="imp-riga imp-codice"><span>${t('Codice del telefono di')} «${nome}»</span><code class="tel-codice" id="imp-tel-codice">${esc(telCodiceBello(p.codice))}</code><span class="gruppo"><button class="btn btn--sm" id="imp-tel-copia">${t('Copia')}</button><button class="btn btn--sm" id="imp-tel-qr">${t('QR')}</button><button class="btn btn--sm" id="imp-tel-nuovo">${t('Nuovo codice')}</button><button class="btn btn--sm" id="imp-tel-togli">${t('Stacca')}</button></span></div>
+      <div class="lat-nota">${t('Sul telefono del cliente: TMS Scheda › Collegamento e promemoria › «Inquadra il QR» (pulsante QR qui sopra) o scrivi questo codice. Si fa una volta sola.')}</div>
       <div class="lat-nota" id="imp-tel-stato">${telTestoStato()}</div>`
     : `<div class="imp-riga"><span>${t('Profilo')} «${nome}»</span><span class="gruppo"><button class="btn btn--sm btn--ember" id="imp-tel-prof">${t('Collega un telefono')}</button></span></div>
       <div class="lat-nota">${t('Crea il codice da scrivere sul telefono di questo cliente (o sul tuo, se il profilo è il tuo).')}</div>`;
@@ -631,6 +642,7 @@ function telAgganciaImpostazioni(riapri){
   su('imp-tel-attiva', async()=>{ await telAttiva(valore('imp-tel-invito')); });
   su('imp-tel-recupera', async()=>{ const n=await telRecupera(valore('imp-tel-recupero')); telNotizia(n? t('Personal ritrovato:')+' '+n+' '+t('profili ricollegati') : t('Personal ritrovato.')); await telGiro(); });
   su('imp-tel-mostra-rec', async()=>{ _telMostraRec=true; });
+  { const b=document.getElementById('imp-tel-qr'); if(b) b.onclick=()=>telQrModal(riapri); }
   document.querySelectorAll('[data-tel-apri]').forEach(b=>{ b.onclick=async()=>{ closeModal(); await switchProfile(b.getAttribute('data-tel-apri')); }; });
   su('imp-tel-copia-rec', async()=>{ try{ await navigator.clipboard.writeText(telCodiceBello(telPersonal().codice)); telNotizia(t('Codice copiato.')); }catch(e){} });
   su('imp-tel-prof', async()=>{ await telCollega(activeProfile); await telGiro(); if(curTab==='allenamento') renderAllenamento(); });

@@ -435,6 +435,11 @@
  #tbar .t-x{border-color:transparent;background:none;color:var(--oro-t);min-width:40px}
 
  /* ── fotocamera con la sagoma e «sposta e ritaglia» (schermo intero, scuro) ── */
+ #qrscan{position:fixed;inset:0;background:#0d0906;z-index:26;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 12px calc(14px + env(safe-area-inset-bottom))}
+ #qrscan[hidden]{display:none}
+ .qrscan-quadro{aspect-ratio:1}
+ .qrscan-mirino{position:absolute;inset:16%;border:3px solid var(--oro);border-radius:var(--r-md);box-shadow:0 0 0 999px rgba(13,9,6,.45)}
+ .col-oppure{text-align:center;font-size:13px;color:var(--ink-3);margin:2px 0 10px}
  #cam,#rit{position:fixed;inset:0;background:#0d0906;z-index:24;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 12px calc(14px + env(safe-area-inset-bottom))}
  #cam[hidden],#rit[hidden]{display:none!important}
  #rit-quadro{touch-action:none;cursor:grab}
@@ -624,7 +629,9 @@
     <div class="pick-title"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Collegamento col TMS sul PC</span></div>
     <p class="col-spieg" data-i18n-html>La scheda arriva da sola dal tuo personal e quello che scrivi, le pesate e le foto gli tornano da sole, attraverso l'<b>hub del TMS</b> su internet. Tutto è <b>cifrato</b> col tuo codice: l'hub vede solo file illeggibili e non tiene lo storico, che resta sul PC del tuo personal.</p>
     <div class="col-stato" id="col-stato"></div>
-    <div id="col-codice-box"><label class="col-lab" for="col-codice" data-i18n>Codice di collegamento</label>
+    <div id="col-codice-box"><button type="button" class="btn-big" id="col-qr" hidden><svg class="ic"><use href="#i-camera"/></svg><span data-i18n>Inquadra il QR</span></button>
+      <div class="col-oppure" id="col-oppure" hidden data-i18n>oppure scrivi il codice</div>
+      <label class="col-lab" for="col-codice" data-i18n>Codice di collegamento</label>
       <input id="col-codice" class="col-in" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX">
       <button type="button" class="btn-big" id="col-collega"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Collega</span></button></div>
     <button type="button" class="btn-lite" id="col-ora" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Controlla adesso</span></button>
@@ -656,6 +663,14 @@
   <button type="button" id="t-pause" title="pausa / riprendi" aria-label="pausa / riprendi"><svg class="ic"><use href="#i-pausa"/></svg></button>
   <button type="button" id="t-p15" title="+15 s">+15</button>
   <button type="button" id="t-x" class="t-x" title="chiudi" aria-label="chiudi"><svg class="ic"><use href="#i-x"/></svg></button>
+</div>
+
+<!-- ── lettore del QR del collegamento (il PC lo mostra in ⚙ Impostazioni › Telefono collegato › QR) ── -->
+<div id="qrscan" hidden>
+  <div class="cam-titolo" data-i18n>Inquadra il QR che vedi sul PC</div>
+  <div class="cam-quadro qrscan-quadro"><video playsinline muted></video><div class="qrscan-mirino"></div></div>
+  <div class="cam-aiuto" data-i18n>Sul PC del tuo personal: ⚙ Impostazioni › Telefono collegato › QR.</div>
+  <div class="cam-barra"><button type="button" id="qrscan-x"><svg class="ic"><use href="#i-x"/></svg><span data-i18n>Annulla</span></button></div>
 </div>
 
 <!-- ── schermata d'analisi della pesata (stile videogioco): la costruisce scanApri() ── -->
@@ -698,7 +713,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='3.8';
+const CVER='3.9';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -981,7 +996,13 @@ const TT={en:{
   "Tocca per continuare":"Tap to continue",
   "Tieni le maniglie a braccia distese":"Hold the handles, arms straight",
   "Resta fermo sulla bilancia":"Stand still on the scale",
-  "⚖ Pesata finita":"⚖ Weigh-in done"
+  "⚖ Pesata finita":"⚖ Weigh-in done",
+  "Inquadra il QR":"Scan the QR",
+  "oppure scrivi il codice":"or type the code",
+  "Inquadra il QR che vedi sul PC":"Scan the QR shown on the PC",
+  "Sul PC del tuo personal: ⚙ Impostazioni › Telefono collegato › QR.":"On your personal trainer's PC: ⚙ Settings › Linked phone › QR.",
+  "Questo telefono non riesce a leggere i QR: scrivi il codice.":"This phone can't read QR codes: type the code.",
+  "Senza il permesso della fotocamera non posso leggere il QR: scrivi il codice.":"Without camera permission I can't read the QR: type the code."
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -2682,6 +2703,33 @@ async function colInstallaApk(){
   finally{ COL.apkScarico=false; colRender(); }
 }
 
+/* ── 📷 «Inquadra il QR» (25/11/2026, richiesta di Marco): il PC mostra il codice del cliente come QR
+      (contenuto «TMS:» + il codice); qui la fotocamera lo legge col lettore di codici di Android
+      (BarcodeDetector) e il collegamento parte da solo. Sui telefoni senza lettore resta il codice da scrivere. ── */
+const QRS={stream:null, t:0, det:null};
+function qrPuo(){ return typeof window.BarcodeDetector==='function' && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
+function qrAperto(){ const ov=$('qrscan'); return !!ov && !ov.hidden; }
+/* dal testo letto, il codice (solo i QR del TMS: «TMS:» + 20 lettere e cifre) */
+function qrCodiceDa(testo){ const m=String(testo||'').trim().match(/^TMS:([A-Z0-9-]+)$/i); if(!m) return ''; const c=colPulito(m[1]); return c.length===COL_LUNGO? c : ''; }
+async function qrApri(){
+  if(!qrPuo()) return;
+  try{ QRS.det=new window.BarcodeDetector({formats:['qr_code']}); }catch(e){ alert(tt('Questo telefono non riesce a leggere i QR: scrivi il codice.')); return; }
+  const ov=$('qrscan'), v=ov.querySelector('video'); ov.hidden=false;
+  try{ QRS.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false}); v.srcObject=QRS.stream; await v.play(); }
+  catch(e){ qrChiudi(); alert(tt('Senza il permesso della fotocamera non posso leggere il QR: scrivi il codice.')); return; }
+  const giro=async()=>{ if(!qrAperto()) return;
+    try{ const r=await QRS.det.detect(v); const c=(r||[]).map(x=>qrCodiceDa(x&&x.rawValue)).find(Boolean); if(c){ qrTrovato(c); return; } }catch(e){}
+    QRS.t=setTimeout(giro, 250); };
+  giro(); }
+function qrChiudi(){
+  clearTimeout(QRS.t);
+  if(QRS.stream){ try{ QRS.stream.getTracks().forEach(t=>t.stop()); }catch(e){} QRS.stream=null; }
+  const ov=$('qrscan'); if(ov){ ov.hidden=true; const v=ov.querySelector('video'); if(v) try{ v.srcObject=null; }catch(e){} } }
+function qrTrovato(codice){
+  qrChiudi(); try{ if(navigator.vibrate) navigator.vibrate(60); }catch(e){}
+  const inp=$('col-codice'); if(inp) inp.value=codice.match(/.{1,4}/g).join('-');
+  colCollega(); }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && qrAperto()) qrChiudi(); });
 /* ── schermata «⚙ Collegamento e promemoria» ── */
 function colAvvisoMenu(testo){ COL.avviso=testo; clearTimeout(COL.avvisoT); COL.avvisoT=setTimeout(()=>{ COL.avviso=''; colRender(); }, 15000); colRender(); }
 async function colCollega(){
@@ -2736,6 +2784,7 @@ function colRender(){
   if(COL.msg){ testo+='\n'+COL.msg; if(COL.msgErr) cls='err'; }
   stEl.className='col-stato'+(cls?' '+cls:''); stEl.textContent=testo; stEl.style.whiteSpace='pre-line';
   const cb=$('col-codice-box'); if(cb) cb.hidden=att;
+  { const q=$('col-qr'), o=$('col-oppure'), si=!att && qrPuo(); if(q) q.hidden=!si; if(o) o.hidden=!si; }
   ['col-ora','col-stacca'].forEach(id=>{ const b=$(id); if(b) b.hidden=!att; });
 }
 
@@ -2809,6 +2858,8 @@ window.apriDaAvviso=apriDaAvviso;
 $('vai-col').onclick=colApri; $('col-da-ben').onclick=colApri;
 document.querySelectorAll('[data-col-esci]').forEach(b=>{ b.onclick=navIndietro; });
 $('col-collega').onclick=colCollega;
+$('col-qr').onclick=qrApri;
+$('qrscan-x').onclick=qrChiudi;
 $('col-ora').onclick=()=>{ COL.msg=''; colGiro(); };
 $('col-stacca').onclick=async()=>{ if(confirm(tt('Il telefono smette di scambiare dati col PC (quelli già arrivati restano). Continuo?'))) colStacca(); };
 $('avv-on').onchange=avvCambia; $('avv-ora').onchange=avvCambia; $('avv-dieta').onchange=avvCambia;

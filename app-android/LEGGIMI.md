@@ -56,6 +56,9 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   dell'app e la figura del corpo del PC (maschile o femminile, `SAGOME`, uguale a quella di
   `src/app/09d-rapporto-corpo.js`), musica `web/musica-pesata.mp3` (data da Marco come libera da
   copyright), fanfara, vibrazione e notifica a fine misura (id 7300).
+- **📷 Collegamento col QR** (dalla 1.3.0): nella schermata Collegamento «Inquadra il QR» legge il QR che il
+  TMS mostra in ⚙ Impostazioni › Telefono collegato › QR (contenuto «TMS:» + il codice) col lettore di codici
+  di Android (`BarcodeDetector`) e collega da solo; sui telefoni senza lettore si scrive il codice.
 - **🍽 Dieta seguita** (dalla 1.2.8): domanda della sera e calendario nell'Alimentazione; ogni giorno
   segnato va al PC del personal come le pesate (file cifrato `tms-dieta` sull'hub).
 - **Icona**: la stella del logo del PC (`logo.png`, bracci uguali), disegnata da

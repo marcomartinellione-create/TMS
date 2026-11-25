@@ -109,6 +109,14 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, il pulsante **Backup automatici** (si apre e mostra le copie): l'app ne crea
   uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5
   copie) con link «ripristina» accanto a ciascuno.
+- **Copia dei backup fuori dal PC** (⚙ Impostazioni › Copia dei backup, solo nell'app per PC): si sceglie
+  una cartella col selettore di Windows (dentro OneDrive, Google Drive, MEGA o una chiavetta; non la
+  cartella dei dati né un disco intero) e ogni settimana ci va il backup completo con le foto
+  (TMS-backup-AAAA-MM-GG.json, ultime 5; gli altri file della cartella non si toccano); «Copia adesso» la
+  fa subito. La copia non è cifrata. Se la cartella non si raggiunge lo dice e riprova al prossimo
+  avvio. Si riprende con Ripristina scegliendo il file. Il percorso lo tiene il processo principale
+  (ponte tmsScambio di electron/main.js, scritture chiuse in quella cartella, solo .json).
+- **Versione dell'app**: ⚙ Impostazioni › Informazioni.
 - **Correggere una riga già salvata**: nello **Storico** (tab Profilo, in cima alla pagina) ogni riga
   ha a destra una **matita**: apre un riquadro dove si cambiano serie, ripetizioni, peso,
   RIR e il segno di test, oppure si elimina quella riga soltanto. Esercizio e settimana non
@@ -532,7 +540,8 @@ Due modi per registrare una seduta:
 - **Dieta seguita** (pannello laterale, col telefono collegato o se ci sono giorni): calendario del mese,
   in sola lettura, dei giorni che il cliente segna ogni sera su TMS Scheda (verde sì, rosso no), con
   i conteggi e la percentuale rispettata; arriva dall'hub (telDietaApplica).
-- **Periodi**: il piano di una fase seguito per un certo tempo, che alimenta il tab Analisi.
+- **Periodi**: il piano di una fase seguito per un certo tempo, che alimenta il tab Analisi (dove
+  c'è anche «Dieta seguita e peso», che non ha bisogno dei periodi: vedi il tab Analisi).
   «▶ Avvia un periodo…» lo fa partire (oggi o da una data passata) e resta IN CORSO, senza
   data di fine, finché non si preme «Termina» nella sua riga; nei grafici arriva fino a
   oggi. Uno solo in corso alla volta (avviandone un altro, il precedente si chiude il giorno
@@ -541,7 +550,12 @@ Due modi per registrare una seduta:
 
 ## 7 · Analisi (tab Analisi)
 
-Incrocia dieta e allenamento nel tempo (servono periodi alimentari registrati). I grafici
+«DIETA SEGUITA E PESO» (non servono i periodi; compare se ci sono giorni di dieta segnati dal cliente sul
+telefono): ultime 12 settimane, il peso (una pesata al giorno, o la misura settimanale dello Storico misure)
+con sotto un quadratino per giorno (verde dieta seguita, rosso no, chiaro non segnato), la percentuale di
+ogni settimana e il confronto: variazione media del peso nella settimana dopo, per le settimane con la
+dieta seguita (almeno l'80 % dei giorni segnati) e per le altre.
+Il resto incrocia dieta e allenamento nel tempo (servono periodi alimentari registrati). I grafici
 stanno in tre sezioni, su una griglia compatta, con accanto il pannello dei periodi:
 «Quadro nel tempo» (timeline dei periodi con carico allenante e peso sovrapposti, a tutta
 riga) · «Dieta e peso» (variazione di peso contro bilancio calorico stimato; confronto tra
@@ -585,8 +599,16 @@ l'ultima scheda unita riprese dall'hub (i dati vanno portati prima con Backup co
 cliente «Collega un telefono» crea il CODICE DI QUEL CLIENTE (20 caratteri, a gruppi di 4) da
 scrivere una volta sul suo telefono. Pulsanti: Copia; «Nuovo codice» (il vecchio telefono smette di
 funzionare finché non si scrive il nuovo; settimana e dati restano); «Stacca» (scollega: l'hub
-cancella i file di quel cliente). Sul telefono: «Collegamento e promemoria» → si scrive il codice
-dato dal proprio personal → «Collega». Tutto quello che passa dall'hub è CIFRATO con AES-GCM, con
+cancella i file di quel cliente); «QR» mostra il codice come QR (contenuto «TMS:» + il codice). Sul
+telefono: «Collegamento e promemoria» → «Inquadra il QR» (lettore di codici di Android, BarcodeDetector;
+il collegamento parte da solo) oppure si scrive il codice dato dal proprio personal → «Collega».
+TUTTI I CLIENTI: oltre al profilo aperto, il PC controlla a turno (ogni 90 secondi uno) i telefoni dei
+profili non aperti e salva pesate, foto e giorni della dieta direttamente nei loro file (corpo.json,
+alimentazione.json, foto/), senza aprirli: i valori dello Storico misure scritti a mano restano, un file
+illeggibile non si riscrive, e se nel frattempo si cambia profilo non si conferma niente (i file restano
+sull'hub e arrivano al giro dopo). La scheda di un cliente non aperto si unisce quando si apre il suo
+profilo. In Impostazioni › Telefono collegato c'è la panoramica dei clienti collegati (ultimo dal
+telefono, cosa è arrivato, «Apri»). Tutto quello che passa dall'hub è CIFRATO con AES-GCM, con
 la chiave ricavata (HKDF-SHA256) dal codice di quel singolo cliente; dallo stesso codice nascono
 anche l'id del collegamento e il gettone d'accesso all'hub, che ne tiene solo l'impronta. L'hub
 vede solo file illeggibili, non vede mai codici né chiavi, e non ci sono nomi in chiaro; un file

@@ -48,6 +48,7 @@
     "app/14-backup.js",
     "app/15-scambio.js",
     "app/15c-telefono.js",
+    "app/15d-qr.js",
     "app/15b-segnalazioni.js",
     "app/16-gate.js",
     "app/17-init.js",
