@@ -4,6 +4,17 @@
 
 ---
 
+### 2026-11-25 — TMS v1.1.36: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.35
+**Descrizione**:
+- TMS Scheda 1.2.9: nel calendario della dieta un tocco sul giorno apre la modifica con «Seguita» / «Non seguita» (niente più cambi a tocchi ripetuti); tolta la scritta sulle foto rimpicciolite
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-25)
+
+---
+
 ### 2026-11-25 — TMS v1.1.35: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.34
