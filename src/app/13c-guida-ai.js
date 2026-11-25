@@ -616,7 +616,8 @@ altezza/età/sesso per la bilancia e video vanno SOLO dal PC al telefono.
 **SUL TELEFONO** l'app si apre su un menu: «Scheda allenamento», «Alimentazione» (piano in
 sola lettura, grammi in evidenza; dall'ora dei promemoria, predefinita 21:00, in cima chiede «Oggi hai
 seguito la dieta?» Sì/No, e prima di quell'ora chiede di ieri se è rimasto in sospeso; in fondo il CALENDARIO
-DELLA DIETA del mese, verde sì, rosso no, toccando un giorno passa a sì, no, vuoto; ogni cambio va al PC
+DELLA DIETA del mese, verde sì, rosso no; toccando un giorno compare la matita e sotto la modifica con
+«Seguita», «Non seguita» e, se è già segnato, «Togli la scelta»; ogni cambio va al PC
 come le pesate, un file cifrato 'tms-dieta' sull'hub, e il PC lo salva in alimentazione.json
 (DOC.alimentazione.aderenza: data → {v:'si'|'no'|'', t}, vince il cambio più recente) e lo toglie; nel menu la riga Alimentazione ricorda «segna la dieta di oggi»), «Foto progressi» (fronte/lato/retro, galleria oppure FOTOCAMERA DELL'APP con la
 SAGOMA della vista: riquadro 3:4, testa sulla riga in alto al 30%, metà coscia su quella in basso al

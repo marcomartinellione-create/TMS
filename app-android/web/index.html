@@ -353,6 +353,20 @@
  .cal-g.si{background:var(--ok);border-color:var(--ok);color:#fff}
  .cal-g.no{background:var(--err);border-color:var(--err);color:#fff}
  .cal-g.oggi{box-shadow:0 0 0 2px var(--acc)}
+ .cal-g.sel{position:relative;box-shadow:0 0 0 2px var(--ink)}
+ .cal-mat{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--carta);display:grid;place-items:center;box-shadow:var(--om-1)}
+ .cal-mat .ic{width:11px;height:11px}
+ .cal-mod{margin:12px 0 0;padding:12px;border:1px solid var(--filo);border-radius:var(--r-sm);background:var(--carta-2)}
+ .cal-mod-t{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:0 0 8px}
+ .cal-mod-t .ic{color:var(--acc)}
+ .cal-mod-t .mini{margin-left:auto}
+ .cal-mod .dieta-bt .btn-big{min-height:48px;font-size:14.5px;padding:8px 10px;white-space:nowrap;background:var(--carta);border:1px solid var(--filo-2);color:var(--ink-2);box-shadow:none}
+ .cal-mod .dieta-bt .btn-big.si .ic{color:var(--ok)}
+ .cal-mod .dieta-bt .btn-big.no .ic{color:var(--err)}
+ .cal-mod .dieta-bt .btn-big.scelto .ic{color:#fff}
+ .cal-mod .dieta-bt .btn-big.si.scelto{background:var(--ok);border-color:var(--ok);color:#fff}
+ .cal-mod .dieta-bt .btn-big.no.scelto{background:var(--err);border-color:var(--err);color:#fff}
+ .cal-mod .btn-lite{margin:8px 0 0;min-height:40px}
  .cal-g:disabled{background:transparent;border-color:transparent;color:var(--ink-4)}
  .cal-somma{display:flex;flex-wrap:wrap;gap:4px 14px;margin:10px 0 0;font-size:13px;color:var(--ink-2)}
  .cal-pt{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
@@ -587,7 +601,6 @@
 <div id="foto" hidden>
   <p class="sez-nota" data-i18n-html>Scatta o scegli una foto per ogni vista: arrivano da sole sul PC, nel <b>tuo storico foto</b> (tab Corpo).</p>
   <div class="foto-grid" id="foto-grid"></div>
-  <div class="fine" id="foto-nota" data-i18n>Le foto vengono rimpicciolite prima di partire.</div>
 </div>
 
 <!-- ── schermata BILANCIA (solo nell'APK: serve il Bluetooth del telefono). Le pesate restano
@@ -685,7 +698,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='3.7';
+const CVER='3.8';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -783,7 +796,6 @@ const TT={en:{
   'da compilare':'to fill in',
   /* v2.2 — foto progressi, casella «giorno completato» */
   'Foto progressi':'Progress photos',
-  'Le foto vengono rimpicciolite per non appesantire il file.':'Photos are downscaled to keep the file small.',
   'Fronte':'Front','Lato':'Side','Retro':'Back',
   'di':'of',
   'nessuna foto':'no photos',
@@ -848,7 +860,6 @@ const TT={en:{
   "Non riesco ad aprire questa fotocamera.":"I can’t open this camera.",
   "Mettiti dentro la sagoma: la testa sulla riga in alto, metà coscia sulla riga in basso.":"Stand inside the silhouette: head on the top line, mid-thigh on the bottom line.",
   "Il collegamento c’è nell’app Android «TMS Scheda».":"The link is in the «TMS Scheda» Android app.",
-  "Le foto vengono rimpicciolite prima di partire.":"Photos are shrunk before they leave.",
   "Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> e arrivano qui da sole; in palestra annoti quello che fai, e torna al PC da solo.":"This app is the <b>digital notebook</b> of the <b>Training Monitor System</b>: program and diet <b>are created in the TMS on the PC</b> and arrive here by themselves; at the gym you log what you do, and it goes back to the PC by itself.",
   "Per cominciare <b>collega l’app al TMS del tuo personal</b>: basta il <b>codice</b> che ti dà lui (nel suo TMS, ⚙ Impostazioni › Telefono collegato).":"To start, <b>link the app to your personal trainer’s TMS</b>: all you need is the <b>code</b> they give you (in their TMS, ⚙ Settings › Linked phone).",
   "Scheda, allenamenti, pesate e foto passano dall’hub del TMS solo <b>cifrati</b> col tuo codice: l’hub non li può leggere e non li tiene, lo storico sta sul PC del tuo personal. L’app chiede a GitHub soltanto se c’è una versione nuova. Funziona anche offline.":"Program, workouts, weigh-ins and photos go through the TMS hub only <b>encrypted</b> with your code: the hub can’t read them and doesn’t keep them, the history is on your personal trainer’s PC. The app only asks GitHub whether there is a new version. It works offline too.",
@@ -939,7 +950,10 @@ const TT={en:{
   "seguita":"followed",
   "non seguita":"not followed",
   "da segnare":"to mark",
-  "Tocca un giorno per cambiarlo: sì, no, vuoto.":"Tap a day to change it: yes, no, blank.",
+  "Tocca un giorno per modificarlo.":"Tap a day to edit it.",
+  "Seguita":"Followed",
+  "Non seguita":"Not followed",
+  "Togli la scelta":"Clear the choice",
   "segna la dieta di oggi":"mark today's diet",
   "segna la dieta di ieri":"mark yesterday's diet",
   "Ogni sera la domanda sulla dieta":"Every evening the diet question",
@@ -1238,11 +1252,14 @@ function renderAlim(){
   const adesso=new Date();
   box.innerHTML=dietaDomanda(adesso)+h+dietaCalendario(adesso);
   box.querySelectorAll('[data-dq]').forEach(b=>{ b.onclick=()=>{ dietaSegna(b.getAttribute('data-dd'), b.getAttribute('data-dq')); }; });
-  box.querySelectorAll('[data-dg]').forEach(b=>{ b.onclick=()=>{ const d=b.getAttribute('data-dg'), v=dietaLeggi().giorni[d]||'';
-    dietaSegna(d, v===''?'si':(v==='si'?'no':'')); }; });
+  /* tocco su un giorno: si seleziona (matita) e sotto il calendario si sceglie fra «seguita» e «non seguita» */
+  box.querySelectorAll('[data-dg]').forEach(b=>{ b.onclick=()=>{ const d=b.getAttribute('data-dg'); DIETA_SEL=(DIETA_SEL===d)? '' : d; renderAlim();
+    const m=$('dieta-mod'); if(m && m.scrollIntoView) try{ m.scrollIntoView({block:'nearest', behavior:'smooth'}); }catch(e){} }; });
+  box.querySelectorAll('[data-dv]').forEach(b=>{ b.onclick=()=>{ const d=DIETA_SEL; DIETA_SEL=''; dietaSegna(d, b.getAttribute('data-dv')); }; });
+  box.querySelectorAll('[data-dx]').forEach(b=>{ b.onclick=()=>{ DIETA_SEL=''; renderAlim(); }; });
   box.querySelectorAll('[data-dm]').forEach(b=>{ b.onclick=()=>{ const oggi=dataLoc(new Date()).slice(0,7), m=DIETA_MESE||oggi;
     const d=new Date(+m.slice(0,4), +m.slice(5,7)-1+(+b.getAttribute('data-dm')), 1), nuovo=dataLoc(d).slice(0,7);
-    DIETA_MESE=nuovo>=oggi? '' : nuovo; renderAlim(); }; });
+    DIETA_MESE=nuovo>=oggi? '' : nuovo; DIETA_SEL=''; renderAlim(); }; });
 }
 /* ── 🍽 DIETA SEGUITA? (richiesta di Marco, 25/11/2026). Dall'ora dei promemoria (di serie le 21)
       l'Alimentazione chiede se oggi il piano è stato rispettato; se ieri è rimasto in sospeso, lo chiede
@@ -1252,6 +1269,7 @@ function renderAlim(){
       (tipo 'tms-dieta', con l'ora del cambio), che il PC salva nel profilo e toglie. `mod` = ora
       dell'ultimo cambio di ogni giorno, `ev` = quando è partito, `pc` = il cambio che il PC ha confermato. ── */
 let DIETA_MESE='';   /* 'AAAA-MM' del calendario in vista; vuoto = il mese in corso */
+let DIETA_SEL='';    /* il giorno toccato nel calendario, in modifica */
 function dietaKey(){ return 'tms-dieta-'+(((SCHEDA&&SCHEDA.profilo)||{}).slug||'cliente'); }
 function dietaLeggi(){
   try{ const o=JSON.parse(localStorage.getItem(dietaKey())||'null');
@@ -1300,14 +1318,24 @@ function dietaCalendario(adesso){
     const d=mese+'-'+String(g).padStart(2,'0'), v=o.giorni[d]||'', dopo=d>oggi;
     if(v==='si') si++; else if(v==='no') no++; else if(!dopo && d<oggi && o.dal && d>=o.dal) aperti++;
     const lab=giornoBreve(d)+(v==='si'?' — '+tt('dieta seguita'):(v==='no'?' — '+tt('dieta non seguita'):''));
-    celle+='<button type="button" class="cal-g'+(v?' '+v:'')+(d===oggi?' oggi':'')+'" data-dg="'+d+'"'+(dopo?' disabled':'')+' aria-label="'+esc(lab)+'">'+g+'</button>'; }
+    const sel=d===DIETA_SEL && !dopo;
+    celle+='<button type="button" class="cal-g'+(v?' '+v:'')+(d===oggi?' oggi':'')+(sel?' sel':'')+'" data-dg="'+d+'"'+(dopo?' disabled':'')+' aria-label="'+esc(lab)+'"'+(sel?' aria-pressed="true"':'')+'>'+g+
+      (sel?'<span class="cal-mat">'+ico('matita')+'</span>':'')+'</button>'; }
+  /* la modifica del giorno toccato: le due scelte (e «togli» se è già segnato) */
+  let mod='';
+  if(DIETA_SEL && DIETA_SEL.slice(0,7)===mese && DIETA_SEL<=oggi){ const v=o.giorni[DIETA_SEL]||'';
+    mod='<div class="cal-mod'+(v?' ha':'')+'" id="dieta-mod"><div class="cal-mod-t">'+ico('matita')+'<span>'+tt('Modifica')+' · <b>'+esc(giornoBreve(DIETA_SEL))+'</b></span>'+
+      '<button type="button" class="mini solo" data-dx="1" aria-label="'+esc(tt('Chiudi'))+'">'+ico('x')+'</button></div>'+
+      '<div class="dieta-bt"><button type="button" class="btn-big si'+(v==='si'?' scelto':'')+'" data-dv="si">'+ico('check')+tt('Seguita')+'</button>'+
+      '<button type="button" class="btn-big no'+(v==='no'?' scelto':'')+'" data-dv="no">'+ico('x')+tt('Non seguita')+'</button></div>'+
+      (v?'<button type="button" class="btn-lite quieto" data-dv="">'+tt('Togli la scelta')+'</button>':'')+'</div>'; }
   return '<div class="box" id="dieta-cal"><div class="pick-title">'+ico('calendario')+'<span>'+tt('Calendario della dieta')+'</span></div>'+
     '<div class="cal-testa"><button type="button" class="mini solo" data-dm="-1" aria-label="'+esc(tt('Mese prima'))+'">'+ico('indietro')+'</button><b>'+esc(titolo)+'</b>'+
     '<button type="button" class="mini solo" data-dm="1"'+(mese<oggi.slice(0,7)?'':' disabled')+' aria-label="'+esc(tt('Mese dopo'))+'">'+ico('avanti')+'</button></div>'+
-    '<div class="cal">'+celle+'</div>'+
+    '<div class="cal">'+celle+'</div>'+mod+
     '<div class="cal-somma"><span><i class="cal-pt si"></i>'+tt('seguita')+' <b>'+si+'</b></span><span><i class="cal-pt no"></i>'+tt('non seguita')+' <b>'+no+'</b></span>'+
       (aperti?'<span>'+tt('da segnare')+' <b>'+aperti+'</b></span>':'')+dietaSegnoPc(o)+'</div>'+
-    '<div class="fine" style="margin:8px 0 0">'+tt('Tocca un giorno per cambiarlo: sì, no, vuoto.')+'</div></div>'; }
+    (mod?'':'<div class="fine" style="margin:8px 0 0">'+tt('Tocca un giorno per modificarlo.')+'</div>')+'</div>'; }
 /* col telefono collegato: i giorni sono arrivati al PC del personal? */
 function dietaSegnoPc(o){
   if(!colAttivo() || !Object.keys(o.mod).length) return '';

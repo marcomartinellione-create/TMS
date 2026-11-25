@@ -1292,10 +1292,20 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     sd.querySelector('#alim-body [data-dq="si"]').click();
     ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === 'si' && !sd.querySelector('#alim-body .dieta-q') && sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').classList.contains('si') && !/segna/.test(sd.getElementById('meta-alim').textContent),
        'dieta: «Sì» la segna, la domanda sparisce e il giorno diventa verde');
+    /* tocco su un giorno: niente cambi a ripetizione, si apre la modifica con le due scelte */
     sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').click();
-    ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === 'no' && sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').classList.contains('no'), 'dieta: toccando il giorno passa a «no» (rosso)');
-    sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').click();
-    ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === undefined && sd.querySelector('#alim-body .dieta-q') !== null, 'dieta: e poi a vuoto, e la domanda torna');
+    { const cella = sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]'), mod = sd.getElementById('dieta-mod');
+      ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === 'si' && cella.classList.contains('sel') && cella.querySelector('.cal-mat') && mod
+         && mod.querySelector('[data-dv="si"]').classList.contains('scelto') && mod.querySelector('[data-dv="no"]') && mod.querySelector('[data-dv=""]'),
+         'dieta: toccando un giorno non cambia niente: compare la matita e sotto la modifica con «Seguita» / «Non seguita» (e «Togli la scelta»)'); }
+    sd.querySelector('#dieta-mod [data-dv="no"]').click();
+    ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === 'no' && sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').classList.contains('no') && !sd.getElementById('dieta-mod'),
+       'dieta: «Non seguita» segna il giorno in rosso e chiude la modifica');
+    sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').click(); sd.querySelector('#dieta-mod [data-dx]').click();
+    ok(!sd.getElementById('dieta-mod') && sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === 'no', 'dieta: la ✕ chiude la modifica senza cambiare niente');
+    sd.querySelector('#dieta-cal [data-dg="' + oggi + '"]').click(); sd.querySelector('#dieta-mod [data-dv=""]').click();
+    ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === undefined && sd.querySelector('#alim-body .dieta-q') !== null, 'dieta: «Togli la scelta» lo lascia vuoto, e la domanda torna');
+    ok(!sd.getElementById('foto-nota') && !/rimpicciolite/.test(sd.body.textContent), 'foto progressi: niente più scritta sulle foto rimpicciolite');
     sd.querySelector('#dieta-cal [data-dm="-1"]').click();
     ok(sw.eval('DIETA_MESE') !== '' && sd.querySelector('#dieta-cal [data-dm="1"]').disabled === false, 'dieta: il calendario va al mese prima e torna avanti');
     ok(sw.eval('["Andamento del peso","Calendario della dieta","Oggi hai seguito la dieta?","⏱ Recupero finito","🍽 Com’è andata la dieta?","Scansione corporea","Analisi completata"].every(k=>TT.en[k])'), 'app cliente EN: i testi nuovi hanno la traduzione');
