@@ -150,6 +150,34 @@ function omsRenderSection(){
    Accanto alla tabella dei pasti: quanta energia porta il piano rispetto al fabbisogno,
    com'è ripartita fra i macronutrienti, quanto pesa ogni pasto e quali nutrienti sono
    fuori dai riferimenti. Tutto calcolato al volo dal piano della fase attiva. */
+/* ── 🍽 DIETA SEGUITA: la segna il cliente sul telefono (TMS Scheda, ogni sera) e arriva dall'hub in
+      DOC.alimentazione.aderenza (telDietaApplica, 15c-telefono.js). Qui il calendario del mese, in sola
+      lettura: verde sì, rosso no, e quanti giorni su quelli segnati. ── */
+let aderMese='';   /* 'AAAA-MM' in vista; vuoto = il mese in corso */
+function aderenzaGiorni(){ const a=(DOC.alimentazione||{}).aderenza; return (a && typeof a==='object' && !Array.isArray(a))? a : {}; }
+function pannelloAderenza(){
+  const ad=aderenzaGiorni(), segnati=Object.keys(ad).filter(d=>ad[d] && (ad[d].v==='si'||ad[d].v==='no'));
+  const coll=typeof telCollegato==='function' && typeof telProf==='function' && telCollegato(telProf());
+  if(!segnati.length && !coll) return '';
+  const loc=LANG==='en'?'en-GB':'it-IT', oggi=dataOggi(), mese=aderMese||oggi.slice(0,7), y=+mese.slice(0,4), m=+mese.slice(5,7)-1;
+  const primo=new Date(y,m,1), quanti=new Date(y,m+1,0).getDate();
+  let titolo=mese; try{ titolo=primo.toLocaleDateString(loc,{month:'long',year:'numeric'}); }catch(e){}
+  let celle='';
+  for(let i=0;i<7;i++){ let n=''; try{ n=new Date(2024,0,1+i).toLocaleDateString(loc,{weekday:'narrow'}); }catch(e){} celle+=`<span class="ader-n">${esc(n)}</span>`; }
+  celle+='<span></span>'.repeat((primo.getDay()+6)%7);
+  let si=0, no=0;
+  for(let g=1; g<=quanti; g++){
+    const d=mese+'-'+String(g).padStart(2,'0'), v=(ad[d]||{}).v||'';
+    if(v==='si') si++; else if(v==='no') no++;
+    celle+=`<span class="ader-g${v?' '+v:''}${d===oggi?' oggi':''}${d>oggi?' dopo':''}" title="${esc(d+(v==='si'?' · '+t('dieta seguita'):v==='no'?' · '+t('dieta non seguita'):''))}">${g}</span>`; }
+  const pct=(si+no)? Math.round(si/(si+no)*100) : null;
+  return `<div class="lat" id="ader-cal"><h4>${t('Dieta seguita')} <span class="muted">${t('la segna il cliente sul telefono')}</span></h4>
+    <div class="ader-testa"><button class="btn btn--sm" data-aderm="-1" title="${t('Mese prima')}">${ico('indietro','p')}</button><b>${esc(titolo)}</b>
+      <button class="btn btn--sm" data-aderm="1" title="${t('Mese dopo')}"${mese<oggi.slice(0,7)?'':' disabled'}>${ico('avanti','p')}</button></div>
+    <div class="ader-cal">${celle}</div>
+    <div class="ader-somma"><span><i class="ader-pt si"></i>${t('seguita')} <b>${si}</b></span><span><i class="ader-pt no"></i>${t('non seguita')} <b>${no}</b></span>${pct!=null?`<span>${t('rispettata')} <b>${pct} %</b></span>`:''}</div>
+    ${segnati.length? '' : `<div class="empty">${t('Ancora nessun giorno: il cliente lo segna ogni sera nell’Alimentazione di TMS Scheda.')}</div>`}</div>`;
+}
 function pannelloPiano(fase){
   const rows=((DOC.alimentazione||{})[fase]||[]).filter(r=>r&&r.alimento);
   if(!rows.length) return `<div class="lat"><h4>${t('Il piano in sintesi')}</h4><div class="empty">${t('Aggiungi un pasto e i suoi alimenti: qui vedrai energia, macronutrienti e ripartizione fra i pasti.')}</div></div>`;
@@ -234,7 +262,7 @@ function renderAlimentazione(){
   document.getElementById('panel-alimentazione').innerHTML=`
    <div class="bar no-print" style="margin-bottom:6px"><span class="bar__lab">${t('Fase del piano:')}</span>${['bulk','mant','cut'].map(f=>`<button class="btn btn--sm ${f===fase?'btn--ember':''}" data-fasesel="${f}">${t(FASE_LAB[f])}</button>`).join('')}<button class="btn btn--sm" id="ricette-btn" style="margin-left:auto" title="${t('Le ricette, comuni a tutti i profili: ingredienti, tempi, procedimento e valori sommati')}">${t('Ricette')}</button><button class="btn btn--gold btn--sm" id="dieta-pdf-btn" onclick="apriStampaDieta()" title="${t('Apri l\'anteprima per sistemare la stampa del piano della fase attiva (PDF A4 orizzontale, da dare al cliente)')}">${ico('stampa')}${t('Stampa dieta')}</button></div>
    <div class="pag pag--tre"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}</div>
-   <aside class="pag__side no-print" id="alim-side">${pannelloPiano(fase)}</aside>
+   <aside class="pag__side no-print" id="alim-side">${pannelloAderenza()}${pannelloPiano(fase)}</aside>
    <div class="pag__terza" id="alim-oms">${omsSection}</div></div>`;
   document.querySelectorAll('#panel-alimentazione input').forEach(inp=>inp.addEventListener('input',e=>{
     const tr=e.target.closest('tr'); const fase=tr.dataset.fase, i=+tr.dataset.i, f=e.target.dataset.f;
@@ -268,6 +296,9 @@ function renderAlimentazione(){
   { const ps=document.getElementById('per-start'); if(ps) ps.onclick=avviaPeriodo; }
   document.querySelectorAll('#panel-alimentazione [data-perstop]').forEach(b=>b.onclick=()=>terminaPeriodo(+b.dataset.perstop));
   { const rb=document.getElementById('ricette-btn'); if(rb) rb.onclick=ricetteModal; }
+  document.querySelectorAll('#panel-alimentazione [data-aderm]').forEach(b=>b.onclick=()=>{
+    const oggi=dataOggi().slice(0,7), m=aderMese||oggi, d=new Date(+m.slice(0,4), +m.slice(5,7)-1+(+b.dataset.aderm), 1), nuovo=dataLocale(d).slice(0,7);
+    aderMese=nuovo>=oggi? '' : nuovo; renderAlimentazione(); });
   document.querySelectorAll('#panel-alimentazione [data-perdel]').forEach(b=>b.onclick=async()=>{
     const i=+b.dataset.perdel; const p=(DOC.alimentazione.periodi||[])[i]; if(!p) return;
     if(!await conferma(t('Eliminare il periodo')+' '+t(FASE_LAB[p.fase]||p.fase)+' '+p.dal+' → '+(p.al||t('in corso'))+'?')) return;

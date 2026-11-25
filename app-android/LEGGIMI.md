@@ -52,6 +52,12 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   (id 7200, canale «Timer di recupero»), che si toglie tornando nell'app. Le sveglie sono **esatte**
   (`USE_EXACT_ALARM`, su Android 12 `SCHEDULE_EXACT_ALARM`: le aggiunge `scripts/patch-android.js`),
   così il recupero finisce al secondo giusto e i promemoria suonano all'ora scelta.
+- **🎮 Schermata d'analisi della pesata** (dalla 1.2.8): a tutto schermo durante la misura, con la grafica
+  dell'app e la figura del corpo del PC (maschile o femminile, `SAGOME`, uguale a quella di
+  `src/app/09d-rapporto-corpo.js`), musica `web/musica-pesata.mp3` (data da Marco come libera da
+  copyright), fanfara, vibrazione e notifica a fine misura (id 7300).
+- **🍽 Dieta seguita** (dalla 1.2.8): domanda della sera e calendario nell'Alimentazione; ogni giorno
+  segnato va al PC del personal come le pesate (file cifrato `tms-dieta` sull'hub).
 - **Icona**: la stella del logo del PC (`logo.png`, bracci uguali), disegnata da
   `tools/genera-icone-app.js` in `web/icon-512.png`; `scripts/immagini.ps1` ne ricava icone e avvio.
 

@@ -370,6 +370,19 @@ async function apri(opz = {}) {
     reg.avvAscolti.localNotificationActionPerformed({ notification: { extra: { pagina: 'timer' } } }); await attendi(80);
     ok(d.getElementById('home').hidden === false, 'timer: toccando la notifica di fine recupero si resta dove si era');
     a.dom.window.close(); }
+  /* ── schermata d'analisi della pesata: notifica a fine misura e tasto indietro ── */
+  { const a = await apri({ notifiche: true, ble: true, ls: { 'tms-timer-chiesto': '1' } }), { w, d, reg } = a;
+    w.HTMLMediaElement.prototype.play = () => Promise.resolve(); w.HTMLMediaElement.prototype.pause = () => {};
+    reg.permesso = true;
+    w.eval('mostra("bil"); BIL.live=72.3; BIL.liveStato=2; bilStato("misura");');
+    ok(d.getElementById('scan').hidden === false, 'pesata: col peso in diretta si apre la schermata d’analisi');
+    ok(w.tmsIndietro() === true && d.getElementById('scan').hidden === true && w.eval('SCAN.via') === true, 'pesata: il tasto indietro chiude la schermata (non si riapre fino alla pesata dopo)');
+    w.eval('bilStato("misura")');
+    ok(d.getElementById('scan').hidden === true, 'pesata: chiusa a metà misura resta chiusa');
+    w.eval('bilStato("cerco"); BIL.liveStato=2; bilStato("misura"); BIL.ultima={peso:72.3, grasso:14.2}; bilStato("fatto");'); await attendi(80);
+    const fine = reg.avv.filter(x => x[0] === 'schedule').map(x => x[1].notifications[0]).find(n => n.id === 7300);
+    ok(fine && /Pesata finita/.test(fine.title) && /72,3 kg/.test(fine.body) && fine.channelId === 'promemoria', 'pesata: a fine misura una notifica del telefono (si sente anche senza guardare lo schermo)');
+    a.dom.window.close(); }
 
   console.log((falliti ? '✗ ' : '✓ ') + passati + ' verifiche passate' + (falliti ? ', ' + falliti + ' FALLITE' : ''));
   process.exit(falliti ? 1 : 0);

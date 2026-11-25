@@ -452,7 +452,8 @@ Due modi per registrare una seduta:
   Il su ogni pesata (e «Rapporto dell'ultima» nel titolo del riquadro) apre il RAPPORTO DI
   COMPOSIZIONE CORPOREA: una pagina A4 (anteprima + «Scarica PDF», file
   Composizione_<nome>_<data>.pdf, fatto come il PDF del Report). Contiene: figura del corpo
-  (disegno del TMS: sagoma sfumata con gli 8 elettrodi e otto valori collegati da linee: peso,
+  (disegno del TMS: sagoma maschile o femminile secondo il sesso del profilo, sfumata, con pochi
+  dettagli leggeri e gli 8 elettrodi, e otto valori collegati da linee: peso,
   BMI, grasso, viscerale, acqua, massa muscolare, muscolo scheletrico, ossa), tabella della
   composizione in kg e % del peso con la differenza dalla pesata precedente, BMI e grasso su
   fasce (BMI dell'OMS; grasso di Gallagher e coll. 2000 per sesso ed età), tipo di corpo (BMI ×
@@ -524,6 +525,9 @@ Due modi per registrare una seduta:
   i ritocchi a mano solo per il documento aperto. «Scarica PDF (A4 orizzontale)» genera il
   PDF **A4 orizzontale** (297×210mm) con la stessa impaginazione dell'anteprima; «← Chiudi»
   torna al tab Alimentazione. Lo fa l'app, senza la stampa del browser.
+- **Dieta seguita** (pannello laterale, col telefono collegato o se ci sono giorni): calendario del mese,
+  in sola lettura, dei giorni che il cliente segna ogni sera su TMS Scheda (verde sì, rosso no), con
+  i conteggi e la percentuale rispettata; arriva dall'hub (telDietaApplica).
 - **Periodi**: il piano di una fase seguito per un certo tempo, che alimenta il tab Analisi.
   «▶ Avvia un periodo…» lo fa partire (oggi o da una data passata) e resta IN CORSO, senza
   data di fine, finché non si preme «Termina» nella sua riga; nei grafici arriva fino a
@@ -608,8 +612,9 @@ altezza/età/sesso per la bilancia e video vanno SOLO dal PC al telefono.
 **SUL TELEFONO** l'app si apre su un menu: «Scheda allenamento», «Alimentazione» (piano in
 sola lettura, grammi in evidenza; dall'ora dei promemoria, predefinita 21:00, in cima chiede «Oggi hai
 seguito la dieta?» Sì/No, e prima di quell'ora chiede di ieri se è rimasto in sospeso; in fondo il CALENDARIO
-DELLA DIETA del mese, verde sì, rosso no, toccando un giorno passa a sì, no, vuoto; resta sul telefono e
-non va al PC; nel menu la riga Alimentazione ricorda «segna la dieta di oggi»), «Foto progressi» (fronte/lato/retro, galleria oppure FOTOCAMERA DELL'APP con la
+DELLA DIETA del mese, verde sì, rosso no, toccando un giorno passa a sì, no, vuoto; ogni cambio va al PC
+come le pesate, un file cifrato 'tms-dieta' sull'hub, e il PC lo salva in alimentazione.json
+(DOC.alimentazione.aderenza: data → {v:'si'|'no'|'', t}, vince il cambio più recente) e lo toglie; nel menu la riga Alimentazione ricorda «segna la dieta di oggi»), «Foto progressi» (fronte/lato/retro, galleria oppure FOTOCAMERA DELL'APP con la
 SAGOMA della vista: riquadro 3:4, testa sulla riga in alto al 30%, metà coscia su quella in basso al
 78%, inquadratura ricavata dai selfie allo specchio dell'utente ma disegno generico; a richiesta la
 foto di prima in trasparenza e l'autoscatto da 3 o 10 s; si salva esattamente il riquadro visto;
@@ -662,6 +667,14 @@ quella installata la propone, scarica l'APK dalla Release (solo da
 github.com/marcomartinellione-create/TMS, via https), ne controlla l'impronta SHA-256 e lo
 passa all'installer di Android (conferma dell'utente; la prima volta «Installa app
 sconosciute»). Su GitHub viaggia solo l'APK: scheda, pesate e foto passano solo dall'hub.
+**SCHERMATA D'ANALISI DELLA PESATA** (solo nell'APK): col primo peso in diretta si apre a tutto schermo,
+con la grafica dell'app: la figura del corpo del PC, maschile o femminile secondo la scheda, si riempie
+dal basso mentre il peso si stabilizza; a peso fermo gambe, braccia, tronco e testa si illuminano uno
+alla volta, con righe di analisi, valori che scorrono, una percentuale scenica e una barra a blocchi.
+Per tutta la misura suona musica-pesata.mp3 (data da Marco come libera da copyright; non si
+personalizza). Al risultato: «Analisi completata», la musica si ferma, fanfara, vibrazione e una
+notifica del telefono (id 7300), poi i valori; un tocco o il tasto indietro la chiudono. Se si scende
+prima del risultato si chiude da sola.
 **PROMEMORIA** (notifiche locali, in «Collegamento e promemoria»): ogni sera all'ora scelta
 (predefinita 21:00) la pesata, il lunedì anche le foto, e la domanda sulla dieta (casella a parte,
 accesa di serie: con un piano alimentare l'APK chiede una volta il permesso delle notifiche); si

@@ -358,6 +358,55 @@
  .cal-pt{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
  .cal-pt.si{background:var(--ok)}
  .cal-pt.no{background:var(--err)}
+ /* ── schermata d'ANALISI della pesata: animazione e impostazione da videogioco, grafica dell'app
+      (pergamena, inchiostro, arancio e oro, Noto Serif, la stella ✦) ── */
+ #scan{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;
+   padding:calc(18px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+   background:radial-gradient(ellipse at 50% 42%,var(--carta) 0%,var(--carta-2) 62%,var(--carta-3) 100%);color:var(--ink)}
+ #scan[hidden]{display:none}
+ .scan-testa,.scan-piede,.scan-log{position:relative;width:100%;max-width:440px;flex:none}
+ .scan-titolo{display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--serif);font-size:22px;font-weight:700;color:var(--ink);line-height:1.2}
+ .scan-titolo .ic{width:22px;height:22px;color:var(--acc)}
+ .scan-chi{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-3);margin-top:6px}
+ .scan-chi b{color:var(--ink-2)}
+ .scan-centro{position:relative;flex:1;min-height:0;width:100%;max-width:440px;display:flex;align-items:center;justify-content:center;gap:10px}
+ .scan-corpo{position:relative;height:100%;max-height:340px;aspect-ratio:100/212;flex:none}
+ .scan-corpo svg{display:block;width:100%;height:100%;overflow:visible}
+ .scan-corpo .sag{fill:var(--carta);stroke:var(--filo-2);stroke-width:1.1;stroke-linejoin:round}
+ .scan-corpo .pieno{fill:url(#scan-grad);stroke:#2f7d74;stroke-width:1.1;stroke-linejoin:round}
+ .scan-corpo .dettagli{fill:none;stroke:#2f7d74;stroke-width:.7;stroke-linecap:round;opacity:.4}
+ .scan-corpo .zona{fill:transparent}
+ .scan-corpo .zona.att{fill:rgba(31,158,150,.26);animation:scan-pulsa .9s ease-in-out infinite alternate}
+ .scan-corpo .elettrodo{fill:#d4a017;stroke:#fff;stroke-width:.6}
+ .scan-corpo.analisi .elettrodo{animation:scan-pulsa .5s ease-in-out infinite alternate}
+ .scan-corpo .pedana{fill:#000;opacity:.09}
+ .scan-raggio{position:absolute;left:-16%;right:-16%;height:2px;top:0;border-radius:2px;background:var(--acc);box-shadow:0 0 12px 3px rgba(180,71,13,.35);animation:scan-su-giu 2.2s ease-in-out infinite alternate}
+ @keyframes scan-su-giu{from{top:2%}to{top:94%}}
+ @keyframes scan-pulsa{from{opacity:1}to{opacity:.45}}
+ .scan-dati{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:12px;font-size:11.5px;color:var(--ink-4);text-align:right}
+ .scan-dati.sx{text-align:left}
+ .scan-dati b{display:block;font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+ .scan-log{height:96px;font-size:12.5px;line-height:1.55;color:var(--ink-3);overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+ .scan-log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:scan-entra .3s ease-out}
+ .scan-log .ok{color:var(--ok);font-weight:700}
+ @keyframes scan-entra{from{opacity:0;transform:translateY(6px)}}
+ .scan-peso{text-align:center;font-family:var(--serif);font-size:52px;font-weight:700;line-height:1.05;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+ .scan-peso small{font-family:var(--sans);font-size:19px;font-weight:500;color:var(--ink-3);margin-left:3px;letter-spacing:0}
+ .scan-pct{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;color:var(--ink-3);margin:8px 0 5px}
+ .scan-pct b{font-family:var(--serif);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+ .scan-barra{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;padding:5px;background:var(--carta);border:1px solid var(--filo);border-radius:var(--r-sm);box-shadow:var(--om-1)}
+ .scan-barra i{height:14px;border-radius:3px;background:var(--carta-3);transition:background .2s}
+ .scan-barra i.on{background:var(--acc)}
+ .scan-consiglio{text-align:center;font-size:14px;font-weight:600;margin-top:10px;color:var(--acc-2);min-height:20px;animation:scan-pulsa 1.1s ease-in-out infinite alternate}
+ #scan.fine .scan-titolo .ic{color:var(--ok)}
+ #scan.fine .scan-barra i.on{background:var(--ok)}
+
+ #scan.fine .scan-raggio,#scan.fine .scan-log{display:none}
+ #scan.fine .scan-consiglio{color:var(--ink-3);font-weight:500}
+ .scan-ris{display:grid;gap:3px;font-size:14px;color:var(--ink-3);margin-top:8px;padding:10px 14px;background:var(--carta);border:1px solid var(--filo);border-radius:var(--r-md);box-shadow:var(--om-2)}
+ .scan-ris div{display:flex;gap:6px;align-items:baseline}
+ .scan-ris span{flex:1;border-bottom:1px dotted var(--filo-2);transform:translateY(-4px)}
+ .scan-ris b{font-family:var(--serif);font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
  /* ── barra del timer di recupero, fissa in basso ── */
  #tbar{position:fixed;left:0;right:0;bottom:0;z-index:14;display:none;align-items:center;gap:8px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));
    background:linear-gradient(180deg,#2a1606,var(--brace));color:var(--carta);border-top:2px solid var(--oro-2);box-shadow:0 -6px 24px rgba(20,10,2,.3)}
@@ -596,6 +645,9 @@
   <button type="button" id="t-x" class="t-x" title="chiudi" aria-label="chiudi"><svg class="ic"><use href="#i-x"/></svg></button>
 </div>
 
+<!-- ── schermata d'analisi della pesata (stile videogioco): la costruisce scanApri() ── -->
+<div id="scan" hidden></div>
+
 <input id="foto-file" type="file" accept="image/*" style="display:none">
 <!-- ── SPOSTA E RITAGLIA una foto sulla sagoma (anche dopo lo scatto, e per quelle della galleria) ── -->
 <div id="rit" hidden>
@@ -633,7 +685,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='3.6';
+const CVER='3.7';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -892,7 +944,30 @@ const TT={en:{
   "segna la dieta di ieri":"mark yesterday's diet",
   "Ogni sera la domanda sulla dieta":"Every evening the diet question",
   "🍽 Com’è andata la dieta?":"🍽 How did the diet go?",
-  "Segna in TMS Scheda se oggi hai seguito il piano alimentare.":"Mark in TMS Scheda whether you followed your meal plan today."
+  "Segna in TMS Scheda se oggi hai seguito il piano alimentare.":"Mark in TMS Scheda whether you followed your meal plan today.",
+  "in viaggio verso il PC":"on its way to the PC",
+  "in viaggio verso il PC (giorni)":"on their way to the PC",
+  "Scansione corporea":"Body scan",
+  "Braccio sx":"Left arm",
+  "Braccio dx":"Right arm",
+  "Gamba sx":"Left leg",
+  "Gamba dx":"Right leg",
+  "Collegamento bilancia":"Scale link",
+  "Lettura del peso":"Reading weight",
+  "Peso stabile":"Weight locked",
+  "Avvio analisi corporea":"Starting body analysis",
+  "Impedenza gambe":"Leg impedance",
+  "Impedenza braccia":"Arm impedance",
+  "Tronco":"Trunk",
+  "Calcolo composizione":"Computing composition",
+  "Fatto. Dati salvati":"Done. Data saved",
+  "Analisi completata":"Analysis complete",
+  "Analisi composizione":"Composition analysis",
+  "Caricamento peso":"Loading weight",
+  "Tocca per continuare":"Tap to continue",
+  "Tieni le maniglie a braccia distese":"Hold the handles, arms straight",
+  "Resta fermo sulla bilancia":"Stand still on the scale",
+  "⚖ Pesata finita":"⚖ Weigh-in done"
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -1172,14 +1247,21 @@ function renderAlim(){
 /* ── 🍽 DIETA SEGUITA? (richiesta di Marco, 25/11/2026). Dall'ora dei promemoria (di serie le 21)
       l'Alimentazione chiede se oggi il piano è stato rispettato; se ieri è rimasto in sospeso, lo chiede
       fino all'ora dei promemoria del giorno dopo. Il calendario mostra i giorni: verde sì, rosso no;
-      toccando un giorno lo si cambia (sì → no → vuoto). Resta su questo telefono (chiave per profilo,
-      nella copia durevole), come le pesate prima di partire. ── */
+      toccando un giorno lo si cambia (sì → no → vuoto). Sta sul telefono (chiave per profilo, nella copia
+      durevole) e ogni cambio va al PC del personal come le pesate: un file cifrato sull'hub
+      (tipo 'tms-dieta', con l'ora del cambio), che il PC salva nel profilo e toglie. `mod` = ora
+      dell'ultimo cambio di ogni giorno, `ev` = quando è partito, `pc` = il cambio che il PC ha confermato. ── */
 let DIETA_MESE='';   /* 'AAAA-MM' del calendario in vista; vuoto = il mese in corso */
 function dietaKey(){ return 'tms-dieta-'+(((SCHEDA&&SCHEDA.profilo)||{}).slug||'cliente'); }
 function dietaLeggi(){
   try{ const o=JSON.parse(localStorage.getItem(dietaKey())||'null');
-    if(o && typeof o==='object' && o.giorni && typeof o.giorni==='object') return {dal:String(o.dal||''), giorni:o.giorni}; }catch(e){}
-  return {dal:'', giorni:{}}; }
+    if(o && typeof o==='object' && o.giorni && typeof o.giorni==='object'){
+      const mappa=x=>(x && typeof x==='object')? x : {};
+      const r={dal:String(o.dal||''), giorni:o.giorni, mod:mappa(o.mod), ev:mappa(o.ev), pc:mappa(o.pc)};
+      Object.keys(r.giorni).forEach(d=>{ if(!r.mod[d]) r.mod[d]=d+'T12:00:00.000Z'; });   /* segnati prima che andassero al PC */
+      return r; } }catch(e){}
+  return {dal:'', giorni:{}, mod:{}, ev:{}, pc:{}}; }
+function dietaId(d, mod){ return 'dieta|'+d+'|'+(Date.parse(mod)||0).toString(36); }
 function dietaScrivi(o){ try{ localStorage.setItem(dietaKey(), JSON.stringify(o)); }catch(e){} }
 function haDietaScheda(){ const d=SCHEDA&&SCHEDA.dieta; return !!(d&&Array.isArray(d.righe)&&d.righe.length); }
 /* il primo giorno con un piano sul telefono: prima di quello non si chiede niente */
@@ -1197,7 +1279,8 @@ function dietaSegna(data, val){
   const o=dietaLeggi();
   if(val==='si'||val==='no') o.giorni[data]=val; else delete o.giorni[data];
   if(!o.dal || data<o.dal) o.dal=data;
-  dietaScrivi(o); renderAlim(); alimMeta(); avvPianifica(); }
+  o.mod[data]=new Date().toISOString(); delete o.ev[data];   /* parte al PC al prossimo giro */
+  dietaScrivi(o); renderAlim(); alimMeta(); avvPianifica(); colPresto(); }
 function dietaDomanda(adesso){
   const d=dietaDaChiedere(adesso); if(!d) return '';
   const oggi=d===dataLoc(adesso||new Date());
@@ -1223,8 +1306,14 @@ function dietaCalendario(adesso){
     '<button type="button" class="mini solo" data-dm="1"'+(mese<oggi.slice(0,7)?'':' disabled')+' aria-label="'+esc(tt('Mese dopo'))+'">'+ico('avanti')+'</button></div>'+
     '<div class="cal">'+celle+'</div>'+
     '<div class="cal-somma"><span><i class="cal-pt si"></i>'+tt('seguita')+' <b>'+si+'</b></span><span><i class="cal-pt no"></i>'+tt('non seguita')+' <b>'+no+'</b></span>'+
-      (aperti?'<span>'+tt('da segnare')+' <b>'+aperti+'</b></span>':'')+'</div>'+
+      (aperti?'<span>'+tt('da segnare')+' <b>'+aperti+'</b></span>':'')+dietaSegnoPc(o)+'</div>'+
     '<div class="fine" style="margin:8px 0 0">'+tt('Tocca un giorno per cambiarlo: sì, no, vuoto.')+'</div></div>'; }
+/* col telefono collegato: i giorni sono arrivati al PC del personal? */
+function dietaSegnoPc(o){
+  if(!colAttivo() || !Object.keys(o.mod).length) return '';
+  const via=Object.keys(o.mod).filter(d=>o.pc[d]!==o.mod[d]).length;
+  return via? '<span class="pc-via">⏳ '+via+' '+tt(via===1?'in viaggio verso il PC':'in viaggio verso il PC (giorni)')+'</span>'
+    : '<span class="pc-ok">'+ico('check')+tt('al PC')+'</span>'; }
 /* la riga «Alimentazione» del menu: il piano e, se c'è, la dieta da segnare */
 function alimMeta(){
   const mt=$('meta-alim'); if(!mt) return;
@@ -1676,7 +1765,223 @@ function bilEsci(){
   BIL.attivo=false; BIL.gen++; clearTimeout(BIL.timer);
   if(window.tmsBLE){ try{ Promise.resolve(window.tmsBLE.fermaRicerca()).catch(()=>{}); }catch(e){}
     if(BIL.id){ try{ Promise.resolve(window.tmsBLE.stacca(BIL.id)).catch(()=>{}); }catch(e){} } }
-  BIL.id=''; BIL.collegando=false; }
+  BIL.id=''; BIL.collegando=false;
+  if(SCAN.on) scanChiudi(); SCAN.via=false; }
+/* ── 🎮 SCHERMATA D'ANALISI della pesata (richiesta di Marco, 25/11/2026): «una schermata di caricamento, la
+      forma stilizzata del corpo che si carica e sembra che venga analizzata, in stile videogioco anni 2000».
+      Dei videogiochi si prendono SOLO l'animazione e l'impostazione: colori, forme e caratteri restano quelli
+      dell'app (indicazione di Marco: lo stile grafico dell'app non si cambia mai).
+      Si apre col primo peso in diretta e segue la bilancia: 1 peso in misura (la sagoma si riempie dai
+      piedi), 2 peso fermo e maniglie (gambe, braccia, tronco «analizzati» uno per volta), 3 risultato:
+      ANALISI COMPLETATA, la musica si ferma, fanfara + vibrazione + notifica del telefono (si sente anche
+      senza guardare lo schermo), poi i valori; un tocco chiude. Se si scende prima, si chiude da sola.
+      La percentuale è scenica: la bilancia non dice quanto manca, si avvicina al traguardo della fase.
+      Musica: la traccia SCAN_MUSICA (app-android/web/musica-pesata.mp3, data da Marco il 25/11/2026 come
+      libera da copyright), che si ripete per tutta la misura; se non parte, un motivetto chiptune ORIGINALE
+      suonato qui con WebAudio. Non si personalizza (decisione di Marco). ── */
+const SCAN_MUSICA='musica-pesata.mp3';   /* sta anche fra i FILE di scripts/prepara-www.js e di sw.js */
+const SCAN={on:false, fase:0, prog:0, fine:false, via:false, tick:0, n:0, chiudiT:0, abbandonoT:0, log:[], soglie:{}, audio:null, ctx:null, synth:null, lock:null};
+function scanCtx(){ try{ if(!SCAN.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; SCAN.ctx=new C(); }
+  if(SCAN.ctx.state==='suspended' && SCAN.ctx.resume) SCAN.ctx.resume(); return SCAN.ctx; }catch(e){ return null; } }
+/* toccando «Bilancia» (un gesto dell'utente) l'audio si sblocca: la musica potrà partire da sola */
+function scanSblocca(){ scanCtx(); }
+/* la figura è la stessa del TMS sul PC (figura del corpo del rapporto, src/app/09d-rapporto-corpo.js):
+   maschile o femminile secondo il sesso della scheda, coi suoi colori (dal turchese del tronco al giallo
+   di testa, mani e piedi), i dettagli leggeri e gli 8 elettrodi. SAGOME va tenuta uguale nei due posti
+   (lo controlla tests/test-app.js). Qui si riempie dal basso: sotto la figura vuota, sopra quella colorata. */
+const SAGOME={
+  M:{dx:[[54.9,25.6],[55.6,30.4],[59.6,32.8],[65,34.6],[70.4,36],[74.4,39.2],[76.4,44.4],[77,50.5],[77.4,57.5],[77.8,64.5],[78.4,72],[78.8,79],
+    [79.8,86],[80.4,93],[80.6,100],[80.4,106],[81.2,111],[81.8,116.5],[81,121.5],[79.4,123.6],[77.8,122.7],[77,118],[76.6,112],[76.2,106],
+    [75.4,99],[74.2,92],[72.9,85],[71.9,78.5],[71.2,72],[70.4,64],[69.2,56.5],[67.4,50.8],[65.8,51.6],[66,58],[65.2,66],[62.9,76],[62.2,84],
+    [63.2,92],[64.6,100],[65.4,107],[65.6,115],[65,125],[63.6,135],[62.2,144],[61.8,150],[63,158],[63,166],[61.6,176],[60,186],
+    [59,194],[59.2,199],[61.8,203.5],[62.2,207.2],[60.2,208.4],[54,208.6],[52.8,206],[53,199],[53.2,192],[53.8,182],[54.2,172],[53.6,162],
+    [53,152],[53.2,144],[53.2,134],[52.8,124],[51.8,117]],
+    cavallo:114, testa:[15,9,11.5], capelli:'',
+    det:'M44 34.6 Q47.5 36.4 50 35.6 Q52.5 36.4 56 34.6 M41 52 Q45.5 55.6 50 53.2 Q54.5 55.6 59 52 M50 56 L50 82 M55.4 146 Q57.6 148.4 59.8 146 M44.6 146 Q42.4 148.4 40.2 146',
+    el:[[79.6,114],[78.2,119.6],[20.4,114],[21.8,119.6],[55.4,206],[59,206],[44.6,206],[41,206]]},
+  F:{dx:[[54.2,25.5],[54.6,30.5],[57.8,33],[62,34.6],[66.2,35.8],[69.4,38.6],[71,43],[71.6,48.5],[72,55.5],[72.4,63],[72.8,71],[73.4,78],
+    [74.4,85],[75.2,93],[75.6,100],[75.6,106],[76.2,110.5],[76.6,115.5],[76,120],[74.6,122],[73.2,121.2],[72.6,117],[72.2,111.5],[71.8,106],
+    [71,99],[69.8,92],[68.6,85],[67.6,78],[66.9,71],[66.2,63],[65.2,56],[63.8,50],[63.2,52],[63.8,57],[62.6,64],[60.2,72],[59.8,78],
+    [61.8,88],[64.4,96],[65.6,104],[65.8,110],[65,118],[63.6,128],[62,138],[60.6,147],[60.4,152],[61.2,160],[61,168],[59.6,178],[58.4,188],
+    [57.6,195],[57.8,200],[60,204],[60.2,207.4],[58.4,208.4],[53.8,208.6],[52.6,206],[52.8,199],[52.9,192],[53.4,182],[53.6,172],[53,162],
+    [52.4,152],[52.6,144],[52.4,134],[51.8,124],[51,119]],
+    cavallo:117, testa:[15.2,8.4,11],
+    capelli:'M50 2.6 C56.8 2.6 60.4 7.6 60.2 15 C60.1 21.6 61 27.6 62.2 33 C58.4 34.6 54.2 34.2 50 34.2 C45.8 34.2 41.6 34.6 37.8 33 C39 27.6 39.9 21.6 39.8 15 C39.6 7.6 43.2 2.6 50 2.6Z',
+    det:'M44.6 34.2 Q47.6 35.8 50 35.2 Q52.4 35.8 55.4 34.2 M42.4 55.8 Q45.6 59 48.6 56.6 M51.4 56.6 Q54.4 59 57.6 55.8 M54.6 148 Q56.6 150.2 58.6 148 M45.4 148 Q43.4 150.2 41.4 148',
+    el:[[74.6,113.2],[73.6,119],[25.4,113.2],[26.4,119],[55,206],[58.2,206.2],[45,206],[41.8,206.2]]}};
+/* le parti della figura (capelli, corpo, testa) come d di <path>, la sagoma liscia (Catmull-Rom) per
+   i punti del lato destro specchiati per il sinistro */
+function sagomaParti(sesso){
+  const S=SAGOME[sesso==='F'?'F':'M'], P=S.dx.concat([[50,S.cavallo]], S.dx.slice().reverse().map(p=>[100-p[0],p[1]]));
+  const n=P.length, q=i=>P[(i+n)%n], r=v=>(+v.toFixed(2)); let d='M'+P[0][0]+' '+P[0][1];
+  for(let i=0;i<n;i++){ const p0=q(i-1), p1=q(i), p2=q(i+1), p3=q(i+2);
+    d+=' C'+r(p1[0]+(p2[0]-p0[0])/6)+' '+r(p1[1]+(p2[1]-p0[1])/6)+' '+r(p2[0]-(p3[0]-p1[0])/6)+' '+r(p2[1]-(p3[1]-p1[1])/6)+' '+p2[0]+' '+p2[1]; }
+  const [cy,rx,ry]=S.testa, testa='M'+(50-rx)+' '+cy+' A'+rx+' '+ry+' 0 1 0 '+(50+rx)+' '+cy+' A'+rx+' '+ry+' 0 1 0 '+(50-rx)+' '+cy+'Z';
+  return {capelli:S.capelli, corpo:d+'Z', testa:testa, det:S.det, el:S.el}; }
+function scanSagoma(){
+  const F=sagomaParti(((SCHEDA&&SCHEDA.corpo)||{}).sesso);
+  const forma=(F.capelli?'<path d="'+F.capelli+'"/>':'')+'<path d="'+F.corpo+'"/><path d="'+F.testa+'"/>';
+  /* ogni parte col suo contorno, nell'ordine capelli → corpo → testa: le linee dietro restano coperte */
+  const strati=cls=>'<g class="'+cls+'">'+(F.capelli?'<path d="'+F.capelli+'"/>':'')+'<path d="'+F.corpo+'"/><path d="'+F.testa+'"/></g>';
+  /* le zone «sotto analisi», una alla volta: gambe, braccia, tronco, testa */
+  const zone={g:[[28,121,44,92]], b:[[14,36,24,90],[62,36,24,90]], tronco:[[36,30,28,92]], testa:[[37,1,26,30]]};
+  const att=Object.keys(zone).map(k=>zone[k].map(z=>'<rect class="zona" data-seg="'+k+'" x="'+z[0]+'" y="'+z[1]+'" width="'+z[2]+'" height="'+z[3]+'"/>').join('')).join('');
+  const el=F.el.map(q=>'<circle class="elettrodo" cx="'+q[0]+'" cy="'+q[1]+'" r="1.9"/>').join('');
+  return '<svg viewBox="0 0 100 212" aria-hidden="true"><defs>'+
+    '<radialGradient id="scan-grad" gradientUnits="userSpaceOnUse" cx="50" cy="82" r="112"><stop offset="0" stop-color="#1f9e96"/><stop offset=".42" stop-color="#7cc79a"/><stop offset=".86" stop-color="#f0cf63"/></radialGradient>'+
+    '<radialGradient id="scan-luce" gradientUnits="userSpaceOnUse" cx="44" cy="58" r="46"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
+    '<clipPath id="scan-forma">'+forma+'</clipPath><clipPath id="scan-livello"><rect id="scan-liv" x="0" y="212" width="100" height="212"/></clipPath></defs>'+
+    '<ellipse class="pedana" cx="50" cy="209.5" rx="30" ry="3.2"/>'+strati('sag')+
+    '<g clip-path="url(#scan-livello)">'+strati('pieno')+'<path d="'+F.corpo+'" fill="url(#scan-luce)"/></g>'+
+    '<g clip-path="url(#scan-forma)">'+att+'</g><path class="dettagli" d="'+F.det+'"/>'+el+'</svg><div class="scan-raggio"></div>'; }
+function scanApri(){
+  const el=$('scan'); if(!el) return;
+  clearTimeout(SCAN.chiudiT); clearTimeout(SCAN.abbandonoT);
+  Object.assign(SCAN, {on:true, fase:1, prog:0, fine:false, log:[], soglie:{}});
+  const nome=((SCHEDA&&SCHEDA.profilo)||{}).nome||'';
+  el.className='';
+  el.innerHTML='<div class="scan-testa"><div class="scan-titolo" id="scan-tit">'+ico('sigillo')+'<span>'+esc(tt('Scansione corporea'))+'</span></div>'+
+      '<div class="scan-chi"><span>'+tt('Pesata per')+' <b>'+esc(nome)+'</b></span><span>TMS Scheda</span></div></div>'+
+    '<div class="scan-centro"><div class="scan-dati sx" id="scan-dati-sx"></div><div class="scan-corpo">'+scanSagoma()+'</div>'+
+      '<div class="scan-dati" id="scan-dati"></div></div><div class="scan-log" id="scan-log"></div>'+
+    '<div class="scan-piede"><div class="scan-peso" id="scan-peso">–,– <small>kg</small></div><div id="scan-ris"></div>'+
+      '<div class="scan-pct"><span id="scan-fase"></span><b id="scan-pct">000%</b></div>'+
+      '<div class="scan-barra" id="scan-barra">'+'<i></i>'.repeat(20)+'</div><div class="scan-consiglio" id="scan-cons"></div></div>';
+  el.hidden=false;
+  el.onclick=()=>{ if(SCAN.fine) scanChiudi(); };
+  scanRiga(tt('Collegamento bilancia')+' ... OK');
+  scanRiga(tt('Lettura del peso')+' ...');
+  try{ if(navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen').then(l=>{ SCAN.lock=l; }).catch(()=>{}); }catch(e){}
+  scanMusica(true);
+  clearInterval(SCAN.tick); SCAN.tick=setInterval(scanPasso, 90); scanPasso();
+}
+function scanRiga(t){ SCAN.log.push(t); SCAN.log=SCAN.log.slice(-6); const l=$('scan-log');
+  if(l) l.innerHTML=SCAN.log.map(x=>'<div>'+esc(x).replace(/ \.\.\. OK$| ✔$/, ' <span class="ok">✓</span>')+'</div>').join(''); }
+function scanUnaVolta(k, fn){ if(SCAN.soglie[k]) return; SCAN.soglie[k]=1; fn(); }
+/* un passo dell'animazione: la percentuale si avvicina al traguardo della fase e non torna mai indietro */
+function scanPasso(){
+  if(!SCAN.on) return;
+  const meta=SCAN.fine? 100 : (SCAN.fase===2? 96 : 38);
+  SCAN.prog=Math.min(100, Math.max(SCAN.prog, SCAN.prog+(meta-SCAN.prog)*(SCAN.fine? 0.35 : (SCAN.fase===2? 0.022 : 0.04))));
+  if(SCAN.fine && SCAN.prog>99.4) SCAN.prog=100;
+  const p=SCAN.prog, pi=Math.floor(p);
+  const pc=$('scan-pct'); if(pc) pc.textContent=String(pi).padStart(3,'0')+'%';
+  const bar=$('scan-barra'); if(bar) [...bar.children].forEach((b,i)=>b.classList.toggle('on', i<Math.round(p/5)));
+  const liv=$('scan-liv'); if(liv) liv.setAttribute('y', String(212-212*p/100));
+  const pe=$('scan-peso'); if(pe && BIL.live!=null && !SCAN.fine) pe.innerHTML=esc(nfP(BIL.live,1))+' <small>kg</small>';
+  /* il segmento «sotto analisi» */
+  const att=SCAN.fine? '' : (SCAN.fase<2? '' : (p<62? 'g' : p<74? 'b' : p<86? 'tronco' : 'testa'));
+  document.querySelectorAll('#scan .zona').forEach(z=>{ z.classList.toggle('att', z.getAttribute('data-seg')===att); });
+  { const cp=document.querySelector('#scan .scan-corpo'); if(cp) cp.classList.toggle('analisi', SCAN.fase===2 && !SCAN.fine); }
+  const fa=$('scan-fase'); if(fa) fa.textContent=SCAN.fine? tt('Analisi completata') : (SCAN.fase===2? tt('Analisi composizione') : tt('Caricamento peso'));
+  const co=$('scan-cons'); if(co) co.textContent=SCAN.fine? tt('Tocca per continuare') : (SCAN.fase===2? tt('Tieni le maniglie a braccia distese') : tt('Resta fermo sulla bilancia'));
+  const da=$('scan-dati'), ds=$('scan-dati-sx');
+  if(da && ds && !SCAN.fine && SCAN.fase===2 && (SCAN.n++)%4===0){   /* cifre che scorrono, da videogioco */
+    const z=()=>(300+Math.random()*250).toFixed(1);
+    const v=(lab,x)=>'<span>'+esc(tt(lab))+'<b>'+esc(nfP(+x,1))+' Ω</b></span>';
+    ds.innerHTML=v('Braccio sx',z())+v('Gamba sx',z());
+    da.innerHTML=v('Braccio dx',z())+v('Gamba dx',z())+v('Tronco',15+Math.random()*12); }
+  if(SCAN.fase===2){
+    if(p>50) scanUnaVolta('g', ()=>scanRiga(tt('Impedenza gambe')+' ... OK'));
+    if(p>62) scanUnaVolta('b', ()=>scanRiga(tt('Impedenza braccia')+' ... OK'));
+    if(p>74) scanUnaVolta('t', ()=>scanRiga(tt('Tronco')+' ... OK'));
+    if(p>86) scanUnaVolta('c', ()=>scanRiga(tt('Calcolo composizione')+' ...'));
+  }
+}
+/* la bilancia cambia stato (lo chiama bilStato) */
+function scanStato(s){
+  if(s==='misura'){
+    clearTimeout(SCAN.abbandonoT);
+    if(SCAN.via) return;
+    if(!SCAN.on) scanApri();
+    if(SCAN.fine) return;
+    if(BIL.liveStato!==1 && SCAN.fase<2){ SCAN.fase=2; scanRiga(tt('Peso stabile')+': '+nfP(BIL.live||0,1)+' kg'); scanRiga(tt('Avvio analisi corporea')+' ...'); }
+    return; }
+  if(s==='fatto'){ if(SCAN.on && !SCAN.fine) scanFine(); return; }
+  if(s==='collegata'){   /* peso a zero: sceso dalla bilancia? si aspetta un attimo prima di chiudere */
+    if(SCAN.on && !SCAN.fine){ clearTimeout(SCAN.abbandonoT); SCAN.abbandonoT=setTimeout(()=>{ if(SCAN.on && !SCAN.fine){ scanChiudi(); } SCAN.via=false; }, 2500); }
+    else if(!SCAN.on) SCAN.via=false;
+    return; }
+  if(SCAN.on && !SCAN.fine) scanChiudi();   /* errore, ricerca, Bluetooth da preparare */
+  SCAN.via=false;
+}
+function scanFine(){
+  SCAN.fine=true; SCAN.fase=3;
+  scanRiga(tt('Fatto. Dati salvati')+' ✔');
+  const el=$('scan'); if(el) el.className='fine';
+  const tit=$('scan-tit'); if(tit) tit.innerHTML=ico('check')+'<span>'+esc(tt('Analisi completata'))+'</span>';
+  const u=BIL.ultima||{};
+  const pe=$('scan-peso'); if(pe && u.peso) pe.innerHTML=esc(nfP(u.peso,1))+' <small>kg</small>';
+  const righe=[['Grasso',u.grasso,1,'%'],['Muscolo',u.muscolo,1,'kg'],['Acqua',u.acqua,1,'%'],['Età metabolica',u.eta_met,0,tt('anni')]].filter(x=>x[1]!=null);
+  const ris=$('scan-ris'); if(ris) ris.innerHTML=righe.length? '<div class="scan-ris">'+righe.map(x=>'<div>'+esc(tt(x[0]))+'<span></span><b>'+esc(nfP(x[1],x[2]))+' '+esc(x[3])+'</b></div>').join('')+'</div>' : '';
+  ['scan-dati','scan-dati-sx'].forEach(id=>{ const x=$(id); if(x) x.innerHTML=''; });
+  scanMusica(false);
+  scanFanfara();
+  try{ if(navigator.vibrate) navigator.vibrate([90,60,90,60,260]); }catch(e){}
+  try{ if(window.tmsAvvisi && window.tmsAvvisi.subito) window.tmsAvvisi.subito(tt('⚖ Pesata finita'),
+    (u.peso? nfP(u.peso,1)+' kg' : '')+(u.grasso!=null? ' · '+tt('grasso')+' '+nfP(u.grasso,1)+' %' : '')).catch(()=>{}); }catch(e){}
+  clearTimeout(SCAN.chiudiT); SCAN.chiudiT=setTimeout(scanChiudi, 15000);
+}
+function scanChiudi(){
+  const misura=SCAN.on && !SCAN.fine;
+  SCAN.on=false; SCAN.via=misura;   /* chiusa durante la misura: non si riapre fino alla prossima pesata */
+  clearInterval(SCAN.tick); clearTimeout(SCAN.chiudiT); clearTimeout(SCAN.abbandonoT);
+  scanMusica(false);
+  try{ if(SCAN.lock){ SCAN.lock.release(); SCAN.lock=null; } }catch(e){}
+  const el=$('scan'); if(el){ el.hidden=true; el.innerHTML=''; el.onclick=null; }
+  if(!$('bil').hidden) renderBil();
+}
+function scanAperta(){ const el=$('scan'); return SCAN.on || !!(el && el.hidden===false); }
+/* — musica: la traccia scelta da Marco, oppure il motivetto originale — */
+function scanMusica(on){
+  if(!on){
+    if(SCAN.audio){ try{ SCAN.audio.pause(); }catch(e){} SCAN.audio=null; }
+    if(SCAN.synth){ clearInterval(SCAN.synth.t); try{ SCAN.synth.out.gain.setTargetAtTime(0, SCAN.ctx.currentTime, 0.05); }catch(e){} SCAN.synth=null; }
+    return; }
+  scanMusica(false);
+  if(SCAN_MUSICA && typeof Audio!=='undefined'){
+    try{ const a=new Audio(SCAN_MUSICA); a.loop=true; a.volume=0.8; SCAN.audio=a;
+      const p=a.play(); if(p && p.catch) p.catch(()=>{ if(SCAN.audio===a){ SCAN.audio=null; scanChip(); } }); return; }catch(e){ SCAN.audio=null; } }
+  scanChip();
+}
+/* motivetto chiptune ORIGINALE (composto qui): La minore, 132 bpm, ottavi; due parti da 4 battute,
+   onda quadra per la melodia, triangolare per il basso, rumore per il charleston */
+const SCAN_CHIP={bpm:132,
+  mel:[69,72,76,81,79,76,72,76, 65,69,72,77,76,72,69,72, 62,65,69,74,72,69,65,69, 64,68,71,76,74,71,68,71,
+       81,0,79,76,0,72,74,76, 77,0,76,72,0,69,72,74, 74,0,72,69,0,65,69,72, 71,0,68,64,0,71,76,0],
+  bas:[45,0,57,0,45,0,57,45, 41,0,53,0,41,0,53,41, 38,0,50,0,38,0,50,38, 40,0,52,0,40,0,52,40]};
+function scanChip(){
+  const c=scanCtx(); if(!c) return;
+  const out=c.createGain(); out.gain.value=0.55; out.connect(c.destination);
+  const passo=60/SCAN_CHIP.bpm/2, S={out, t:0, n:0, prossimo:c.currentTime+0.08};
+  let rumore=null; try{ rumore=c.createBuffer(1, Math.floor(c.sampleRate*0.05), c.sampleRate); const d=rumore.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; }catch(e){}
+  const nota=(midi, t, dur, tipo, vol)=>{ if(!midi) return; const o=c.createOscillator(), g=c.createGain();
+    o.type=tipo; o.frequency.value=440*Math.pow(2,(midi-69)/12); o.connect(g); g.connect(out);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.008); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t); o.stop(t+dur+0.02); };
+  const hat=(t, vol)=>{ if(!rumore) return; const s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain();
+    s.buffer=rumore; f.type='highpass'; f.frequency.value=7000; s.connect(f); f.connect(g); g.connect(out); g.gain.value=vol; s.start(t); };
+  const programma=()=>{ while(S.prossimo<c.currentTime+0.15){
+      const i=S.n%SCAN_CHIP.mel.length, t=S.prossimo;
+      nota(SCAN_CHIP.mel[i], t, passo*0.9, 'square', 0.07);
+      nota(SCAN_CHIP.bas[i%SCAN_CHIP.bas.length], t, passo*0.95, 'triangle', 0.16);
+      hat(t, i%2? 0.05 : 0.02);
+      S.n++; S.prossimo+=passo; } };
+  programma(); S.t=setInterval(programma, 30); SCAN.synth=S;
+}
+/* fanfara di fine misura: arpeggio che sale e accordo tenuto, più forte della musica */
+function scanFanfara(){
+  const c=scanCtx(); if(!c) return;
+  try{ const t0=c.currentTime+0.05;
+    [72,76,79,84,88].forEach((m,i)=>{ const o=c.createOscillator(), g=c.createGain(), t=t0+i*0.075;
+      o.type='square'; o.frequency.value=440*Math.pow(2,(m-69)/12); o.connect(g); g.connect(c.destination);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.16,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+(i===4?0.9:0.14));
+      o.start(t); o.stop(t+1); });
+    [84,88,91].forEach(m=>{ const o=c.createOscillator(), g=c.createGain(), t=t0+0.4;
+      o.type='triangle'; o.frequency.value=440*Math.pow(2,(m-69)/12); o.connect(g); g.connect(c.destination);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.14,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+1.1);
+      o.start(t); o.stop(t+1.2); }); }catch(e){}
+}
 const BIL_ERR={
   permesso:'Senza il permesso «Dispositivi nelle vicinanze» l’app non può parlare con la bilancia. Tocca «Riprova» e poi «Consenti».',
   spento:'Il Bluetooth del telefono è spento: accendilo e tocca «Riprova».',
@@ -1684,6 +1989,7 @@ const BIL_ERR={
   errore:'Il Bluetooth non risponde.'};
 function bilStato(s, motivo, msg){
   BIL.stato=s;
+  scanStato(s);
   if(s==='errore'){ if(motivo!==undefined){ BIL.motivo=motivo||'errore'; BIL.msg=msg||''; } motivo=BIL.motivo; msg=BIL.msg; }
   const st=$('bil-stato'), so=$('bil-sotto'), pe=$('bil-peso'), rp=$('bil-riprova');
   if(!st) return;
@@ -1830,7 +2136,7 @@ function wire(){
   const vs=$('vai-scheda'); if(vs) vs.onclick=()=>{ navEntra(); mostra('home'); };
   const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled){ navEntra(); renderAlim(); mostra('alim'); } };
   const vf=$('vai-foto'); if(vf) vf.onclick=()=>{ navEntra(); mostra('foto'); };
-  const vb=$('vai-bil'); if(vb) vb.onclick=()=>{ navEntra(); mostra('bil'); renderBil(); bilAvvia(); };
+  const vb=$('vai-bil'); if(vb) vb.onclick=()=>{ scanSblocca(); navEntra(); mostra('bil'); renderBil(); bilAvvia(); };
 }
 function giornoIndex(g){ const i=GIORNI.indexOf(g); return i<0?0:i; }
 /* ── aggiungi / elimina / test 1RM / modifica un esercizio (agiscono su WROWS) ── */
@@ -2115,6 +2421,9 @@ async function colRicevute(st){
   FOTO_VISTE.forEach(v=>{ const f=FOTO[v]; if(f && f.id && !f.pc && ric.has(String(f.id))){ f.pc=true; cf=true; } });
   if(cp){ await pesSalva(); if(!$('bil').hidden) renderBil(); }
   if(cf){ await fotoSalva(); renderFoto(); }
+  if(SCHEDA){ const o=dietaLeggi(); let cd=false;
+    Object.keys(o.mod).forEach(d=>{ if(o.pc[d]!==o.mod[d] && ric.has(dietaId(d, o.mod[d]))){ o.pc[d]=o.mod[d]; cd=true; } });
+    if(cd){ dietaScrivi(o); if(!$('alim').hidden) renderAlim(); } }
 }
 
 /* ── SCHEDA COLLEGATA: funzioni pure (le stesse del TMS, col prefisso tel) ── */
@@ -2284,6 +2593,15 @@ async function colEventi(){
     f.ev=new Date().toISOString(); cf=true; }
   if(cp) await pesSalva();
   if(cf) await fotoSalva();
+  /* i giorni della dieta: un file per ogni cambio (sì, no o tolto), finché il PC non lo conferma */
+  if(SCHEDA){ const o=dietaLeggi(), partiti=[];
+    for(const d of Object.keys(o.mod).sort()){
+      if(o.pc[d]===o.mod[d] || (o.ev[d] && Date.parse(o.ev[d])>=vecchio)) continue;
+      const id=dietaId(d, o.mod[d]);
+      await colScrivi(dir+colNomeFile('dieta', id), await colCifra({tipo:'tms-dieta', id, data:d, valore:o.giorni[d]||'', ora:o.mod[d]}));
+      partiti.push([d, o.mod[d], new Date().toISOString()]); }
+    /* si rilegge: durante l'invio il cliente può aver cambiato un giorno, e quel cambio non si perde */
+    if(partiti.length){ const f=dietaLeggi(); partiti.forEach(([d, mod, ora])=>{ if(f.mod[d]===mod) f.ev[d]=ora; }); dietaScrivi(f); } }
 }
 function colSegnoPesata(p){
   if(!colAttivo()) return '';

@@ -415,16 +415,18 @@ function telSettimanaSalvata(code){
 async function telLeggiEventi(slug, p, lista){
   const arrivati=(lista||[]).filter(x=>/^eventi\//.test(x.nome) && typeof x.testo==='string');
   if(!arrivati.length) return null;
-  const pesate=[], foto=[], fatti=[];
+  const pesate=[], foto=[], dieta=[], fatti=[];
   for(const f of arrivati.slice().sort((a,b)=>a.nome<b.nome?-1:1)){
     let ev; try{ ev=await telDecifra(f.testo, p.codice); }catch(e){ continue; }   /* illeggibile: si lascia */
     if(ev && ev.tipo==='tms-pesata' && ev.pesata && pulisciPesata(ev.pesata)){ pesate.push(ev.pesata); fatti.push({nome:f.nome, id:String(ev.pesata.id)}); }
     else if(ev && ev.tipo==='tms-foto' && ev.foto && ev.foto.id && /^data:image\//.test(String(ev.foto.img||''))){ foto.push(ev.foto); fatti.push({nome:f.nome, id:String(ev.foto.id)}); }
+    else if(ev && ev.tipo==='tms-dieta' && ev.id && /^\d{4}-\d\d-\d\d$/.test(String(ev.data||''))){ dieta.push(ev); fatti.push({nome:f.nome, id:String(ev.id)}); }
   }
   if(!fatti.length || activeProfile!==slug) return null;
-  let rp=null, nFoto=0;
+  let rp=null, nFoto=0, nDieta=0;
   if(pesate.length) rp=await importaPesate(pesate);
   if(foto.length) nFoto=await importaFotoRientro(foto);
+  if(dieta.length) nDieta=telDietaApplica(dieta);
   /* salvataggio VERO su disco prima di togliere qualcosa dall'hub */
   clearTimeout(saveTimer); await flushSaves();
   if(activeProfile!==slug) return null;
@@ -432,7 +434,22 @@ async function telLeggiEventi(slug, p, lista){
   await telScriviStato(slug, p);                             /* il telefono vedrà ✔ «arrivata al PC» */
   for(const f of fatti){ try{ await telTogli(p, 'dal-telefono/'+f.nome); }catch(e){ logErrore('telefono/togli', e); } }
   if(curTab==='corpo') renderCorpo();
-  return {pesate:rp, foto:nFoto};
+  if(nDieta && curTab==='alimentazione') renderAlimentazione();
+  return {pesate:rp, foto:nFoto, dieta:nDieta};
+}
+/* «dieta seguita» segnata dal cliente sul telefono: DOC.alimentazione.aderenza = {data: {v:'si'|'no'|'', t:ora
+   del cambio}}. Vince il cambio più recente (uno più vecchio arrivato dopo non torna indietro); un giorno
+   tolto resta con v vuoto, così un vecchio «sì» in ritardo non lo rimette. */
+function telDietaApplica(lista){
+  const A=DOC.alimentazione=DOC.alimentazione||{bulk:[],mant:[],cut:[]};
+  const ad=A.aderenza=(A.aderenza && typeof A.aderenza==='object' && !Array.isArray(A.aderenza))? A.aderenza : {};
+  let n=0;
+  lista.slice().sort((a,b)=>String(a.ora||'').localeCompare(String(b.ora||''))).forEach(e=>{
+    const d=String(e.data), v=(e.valore==='si'||e.valore==='no')? e.valore : '', ora=String(e.ora||'');
+    const c=ad[d]; if(c && c.t && ora && ora<c.t) return;
+    ad[d]={v:v, t:ora}; n++; });
+  if(n){ _telInterno=true; try{ persist('alimentazione'); } finally{ _telInterno=false; } }
+  return n;
 }
 
 /* ── il giro: pesate e foto, scheda, stato. Solo il profilo ATTIVO (gli altri al loro turno). ── */
@@ -451,6 +468,7 @@ async function telGiro(){
     const pz=[];
     if(ev && ev.pesate && ev.pesate.nuove) pz.push(ev.pesate.nuove+' '+(ev.pesate.nuove===1?t('pesata nuova'):t('pesate nuove')));
     if(ev && ev.foto) pz.push(ev.foto+' '+t('foto nel tab Corpo'));
+    if(ev && ev.dieta) pz.push(ev.dieta===1? t('un giorno della dieta') : ev.dieta+' '+t('giorni della dieta'));
     if(sc) pz.push(t('scheda aggiornata dal telefono'));
     if(pz.length) telNotizia(t('Dal telefono:')+' '+pz.join(' · '));
   }catch(e){ _telSporco=true; _telErr=String((e&&e.message)||e); logErrore('telefono/giro', e); }

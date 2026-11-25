@@ -13,7 +13,7 @@
    · niente invito a installare (è già un'app) e link del sito nel browser.
    I dati restano dove li mette la PWA (localStorage e IndexedDB, dentro l'app). La scheda collegata
    passa dall'hub del TMS (dal 24/11/2026; prima da una cartella di Google Drive). */
-/* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa,
+/* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa, scanAperta, scanChiudi,
    avvia, risali, chiudiVideo, mostraInstallHint, camApri, bilAggiornaMenu, colRender,
    avvRender, avvPianifica */
 (function(){
@@ -205,7 +205,15 @@ if(LN){
         smallIcon:'ic_stat_tms', iconColor:'#9A5B1F', schedule:{at:new Date(at), allowWhileIdle:true}, extra:{pagina:'timer'}}]});
       return true;
     },
-    async recuperoVia(){ try{ await LN.cancel({notifications:[{id:7200}]}); }catch(e){} }
+    async recuperoVia(){ try{ await LN.cancel({notifications:[{id:7200}]}); }catch(e){} },
+    /* fine della pesata: una notifica subito (id 7300), così il suono arriva anche senza guardare lo schermo */
+    async subito(titolo, testo){
+      if(!(await this.permesso(false))) return false;
+      if(!canale){ try{ await LN.createChannel({id:'promemoria', name:tt('Promemoria'), description:tt('Pesata della sera, foto del lunedì e dieta'), importance:4, visibility:1, vibration:true}); }catch(e){} canale=true; }
+      await LN.schedule({notifications:[{id:7300, title:titolo, body:testo, channelId:'promemoria',
+        smallIcon:'ic_stat_tms', iconColor:'#9A5B1F', schedule:{at:new Date(Date.now()+300), allowWhileIdle:true}, extra:{pagina:'bil'}}]});
+      return true;
+    }
   };
   LN.addListener('localNotificationActionPerformed', ev=>{
     const pg=ev && ev.notification && ev.notification.extra && ev.notification.extra.pagina;
@@ -218,6 +226,7 @@ if(LN){
       poi si risale di una schermata ── */
 window.tmsIndietro=function(){
   if(DLG){ DLG.chiudi(DLG.annulla); return true; }
+  if(typeof scanAperta==='function' && scanAperta()){ scanChiudi(); return true; }   /* schermata d'analisi della pesata */
   try{ if(document.fullscreenElement){ document.exitFullscreen(); return true; } }catch(e){}
   const aperto=id=>{ const o=$(id); return !!o && o.style.display==='flex'; };
   if(aperto('vov')||aperto('qrov')){ risali(); return true; }

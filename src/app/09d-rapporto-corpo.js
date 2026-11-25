@@ -51,36 +51,58 @@ function lineaFerma(punti, dec, colore){
     <text x="${P}" y="${H+11}" font-size="9" fill="#7a6a50">${esc(giornoPesata(punti[0].data))} · ${nf(punti[0].y,dec)}</text>
     <text x="${W-P}" y="${H+11}" font-size="9" fill="#7a6a50" text-anchor="end">${esc(giornoPesata(punti[punti.length-1].data))} · ${nf(punti[punti.length-1].y,dec)}</text></svg>`;
 }
-/* figura del corpo (disegno nostro, nello spirito di quella di FitDays): sagoma morbida sfumata dal
-   turchese del tronco al giallo di testa, mani e piedi, gli 8 elettrodi su mani e piedi, e intorno
-   i valori con le linee verso il corpo. Valori per singolo braccio o gamba NON ce ne sono (FitDays li
-   calcola con una formula non pubblica): le linee indicano i valori del corpo intero. La sagoma è una
-   curva liscia (Catmull-Rom) per i punti del lato destro, specchiati per il sinistro. */
+/* figura del corpo (disegno nostro, nello spirito di quella di FitDays): sagoma morbida, MASCHILE o
+   FEMMINILE secondo il sesso del profilo (dal 25/11/2026, richiesta di Marco), sfumata dal turchese del
+   tronco al giallo di testa, mani e piedi, con pochi dettagli leggeri (clavicole, petto, ombelico,
+   ginocchia), gli 8 elettrodi su mani e piedi, e intorno i valori con le linee verso il corpo. Valori per
+   singolo braccio o gamba NON ce ne sono (FitDays li calcola con una formula non pubblica): le linee
+   indicano i valori del corpo intero. Le stesse sagome sono nell'app del telefono (schermata d'analisi
+   della pesata, app-android/web/index.html): SAGOME va tenuta uguale nei due posti. */
 let figuraSeq=0;
-const SAGOMA_DX=[[54.5,26],[55,32],[60,35],[66,37.5],[70.5,41],[72.5,47],[73,56],[73.8,66],[74.6,76],[75.6,88],[76.3,100],[76.8,108],
-  [78.3,114],[77.6,120],[74.8,122],[72.6,118],[72.2,110],[71,100],[69.6,88],[68.2,77],[66.6,66],[64.6,57],[63.2,52],[62.6,62],[61.2,74],
-  [60.6,84],[62.2,93],[64.2,102],[64.6,114],[63.6,128],[62,142],[60.4,152],[61,164],[60.6,178],[58.6,192],[57.6,199],[60,204],[59.2,208],
-  [53.5,208],[52.2,203],[52.4,196],[52.2,182],[52.6,168],[52.4,154],[51.6,138],[51,124]];
-function pathLiscio(P){
+const SAGOME={
+  M:{dx:[[54.9,25.6],[55.6,30.4],[59.6,32.8],[65,34.6],[70.4,36],[74.4,39.2],[76.4,44.4],[77,50.5],[77.4,57.5],[77.8,64.5],[78.4,72],[78.8,79],
+    [79.8,86],[80.4,93],[80.6,100],[80.4,106],[81.2,111],[81.8,116.5],[81,121.5],[79.4,123.6],[77.8,122.7],[77,118],[76.6,112],[76.2,106],
+    [75.4,99],[74.2,92],[72.9,85],[71.9,78.5],[71.2,72],[70.4,64],[69.2,56.5],[67.4,50.8],[65.8,51.6],[66,58],[65.2,66],[62.9,76],[62.2,84],
+    [63.2,92],[64.6,100],[65.4,107],[65.6,115],[65,125],[63.6,135],[62.2,144],[61.8,150],[63,158],[63,166],[61.6,176],[60,186],
+    [59,194],[59.2,199],[61.8,203.5],[62.2,207.2],[60.2,208.4],[54,208.6],[52.8,206],[53,199],[53.2,192],[53.8,182],[54.2,172],[53.6,162],
+    [53,152],[53.2,144],[53.2,134],[52.8,124],[51.8,117]],
+    cavallo:114, testa:[15,9,11.5], capelli:'',
+    det:'M44 34.6 Q47.5 36.4 50 35.6 Q52.5 36.4 56 34.6 M41 52 Q45.5 55.6 50 53.2 Q54.5 55.6 59 52 M50 56 L50 82 M55.4 146 Q57.6 148.4 59.8 146 M44.6 146 Q42.4 148.4 40.2 146',
+    el:[[79.6,114],[78.2,119.6],[20.4,114],[21.8,119.6],[55.4,206],[59,206],[44.6,206],[41,206]]},
+  F:{dx:[[54.2,25.5],[54.6,30.5],[57.8,33],[62,34.6],[66.2,35.8],[69.4,38.6],[71,43],[71.6,48.5],[72,55.5],[72.4,63],[72.8,71],[73.4,78],
+    [74.4,85],[75.2,93],[75.6,100],[75.6,106],[76.2,110.5],[76.6,115.5],[76,120],[74.6,122],[73.2,121.2],[72.6,117],[72.2,111.5],[71.8,106],
+    [71,99],[69.8,92],[68.6,85],[67.6,78],[66.9,71],[66.2,63],[65.2,56],[63.8,50],[63.2,52],[63.8,57],[62.6,64],[60.2,72],[59.8,78],
+    [61.8,88],[64.4,96],[65.6,104],[65.8,110],[65,118],[63.6,128],[62,138],[60.6,147],[60.4,152],[61.2,160],[61,168],[59.6,178],[58.4,188],
+    [57.6,195],[57.8,200],[60,204],[60.2,207.4],[58.4,208.4],[53.8,208.6],[52.6,206],[52.8,199],[52.9,192],[53.4,182],[53.6,172],[53,162],
+    [52.4,152],[52.6,144],[52.4,134],[51.8,124],[51,119]],
+    cavallo:117, testa:[15.2,8.4,11],
+    capelli:'M50 2.6 C56.8 2.6 60.4 7.6 60.2 15 C60.1 21.6 61 27.6 62.2 33 C58.4 34.6 54.2 34.2 50 34.2 C45.8 34.2 41.6 34.6 37.8 33 C39 27.6 39.9 21.6 39.8 15 C39.6 7.6 43.2 2.6 50 2.6Z',
+    det:'M44.6 34.2 Q47.6 35.8 50 35.2 Q52.4 35.8 55.4 34.2 M42.4 55.8 Q45.6 59 48.6 56.6 M51.4 56.6 Q54.4 59 57.6 55.8 M54.6 148 Q56.6 150.2 58.6 148 M45.4 148 Q43.4 150.2 41.4 148',
+    el:[[74.6,113.2],[73.6,119],[25.4,113.2],[26.4,119],[55,206],[58.2,206.2],[45,206],[41.8,206.2]]}};
+/* le parti della figura (capelli, corpo, testa) come d di <path>, la sagoma liscia (Catmull-Rom) per
+   i punti del lato destro specchiati per il sinistro */
+function sagomaParti(sesso){
+  const S=SAGOME[sesso==='F'?'F':'M'], P=S.dx.concat([[50,S.cavallo]], S.dx.slice().reverse().map(p=>[100-p[0],p[1]]));
   const n=P.length, q=i=>P[(i+n)%n], r=v=>(+v.toFixed(2)); let d='M'+P[0][0]+' '+P[0][1];
   for(let i=0;i<n;i++){ const p0=q(i-1), p1=q(i), p2=q(i+1), p3=q(i+2);
     d+=' C'+r(p1[0]+(p2[0]-p0[0])/6)+' '+r(p1[1]+(p2[1]-p0[1])/6)+' '+r(p2[0]-(p3[0]-p1[0])/6)+' '+r(p2[1]-(p3[1]-p1[1])/6)+' '+p2[0]+' '+p2[1]; }
-  return d+'Z'; }
+  const [cy,rx,ry]=S.testa, testa='M'+(50-rx)+' '+cy+' A'+rx+' '+ry+' 0 1 0 '+(50+rx)+' '+cy+' A'+rx+' '+ry+' 0 1 0 '+(50-rx)+' '+cy+'Z';
+  return {capelli:S.capelli, corpo:d+'Z', testa:testa, det:S.det, el:S.el}; }
+
 /* tema=true (tab Corpo): i testi prendono i colori del tema (giorno e notte); senza (rapporto e PDF) i
    colori restano scritti nel disegno, l'unico modo che html2canvas riporta fedelmente */
 function figuraCorpo(c, dPeso, tema){
   const g='comp-fig-'+(++figuraSeq), S=0.44, X=v=>150+(v-50)*S, Y=v=>3+v*S, N=(v,dec)=>v!=null? nf(v,dec) : '—';
+  const sesso=(DOC.dati_utente||{}).sesso==='F'? 'F' : 'M', F=sagomaParti(sesso);
   const colV=tema? ' style="fill:var(--ink)"' : ' fill="#1c1208"', colE=tema? ' style="fill:var(--ink-3)"' : ' fill="#7a6a50"', colP=tema? ' style="fill:var(--ink-2)"' : ' fill="#3d2e1a"';
-  const L=SAGOMA_DX.slice().reverse().map(p=>[100-p[0],p[1]]), corpo=pathLiscio(SAGOMA_DX.concat([[50,114]],L));
-  const el=[[76.5,116],[74.5,120.5],[23.5,116],[25.5,120.5],[55,206],[58.5,206],[45,206],[41.5,206]]
-    .map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="1.9" fill="#d4a017" stroke="#fff" stroke-width=".6"/>`).join('');
+  const el=F.el.map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="1.9" fill="#d4a017" stroke="#fff" stroke-width=".6"/>`).join('');
   const tipoBmi=c.bmi==null?'' : c.bmi<18.5?t('sottopeso') : c.bmi<25?t('normopeso') : c.bmi<30?t('sovrappeso') : t('obesità');
   const voci=[['s',12,N(c.peso,1)+' kg',t('Peso')+(dPeso?' · '+dPeso+' kg':''),[43,10]],
     ['s',34,N(c.grasso,1)+' %',t('Grasso')+' · '+N(c.grassoKg,1)+' kg',[41,86]],
     ['s',56,N(c.visc,0),t('Grasso viscerale'),[46,95]],
     ['s',78,N(c.acqua,1)+' %',t('Acqua'),[40,140]],
     ['d',12,'BMI '+N(c.bmi,1),tipoBmi,[57,8]],
-    ['d',34,N(c.muscolo,1)+' kg',t('Massa muscolare'),[72,62]],
+    ['d',34,N(c.muscolo,1)+' kg',t('Massa muscolare'),[sesso==='F'? 69.5 : 74,62]],
     ['d',56,N(c.scheletrico,1)+' kg',t('Muscolo scheletrico'),[60,138]],
     ['d',78,N(c.ossa,1)+' kg',t('Massa ossea'),[57,182]]];
   const testi=voci.map(v=>{ const sx=v[0]==='s', xt=sx?116:184, xl=sx?119:181, xg=sx?127:173, px=X(v[4][0]).toFixed(1), py=Y(v[4][1]).toFixed(1);
@@ -92,9 +114,11 @@ function figuraCorpo(c, dPeso, tema){
     <radialGradient id="${g}-l" gradientUnits="userSpaceOnUse" cx="44" cy="58" r="46"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
     <ellipse cx="150" cy="94.2" rx="19" ry="1.7" fill="#000" opacity=".09"/>
     <g transform="translate(${(150-50*S).toFixed(2)} 3) scale(${S})">
-      <path d="${corpo}" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1" stroke-linejoin="round"/>
-      <ellipse cx="50" cy="15" rx="9" ry="11.5" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1"/>
-      <path d="${corpo}" fill="url(#${g}-l)"/>${el}</g>${testi}</svg>`;
+      ${F.capelli? `<path d="${F.capelli}" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1"/>` : ''}
+      <path d="${F.corpo}" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="${F.testa}" fill="url(#${g})" stroke="#2f7d74" stroke-width="1.1"/>
+      <path d="${F.corpo}" fill="url(#${g}-l)"/>
+      <path d="${F.det}" fill="none" stroke="#2f7d74" stroke-width=".7" stroke-linecap="round" opacity=".45"/>${el}</g>${testi}</svg>`;
 }
 /* la nota sotto la figura sta FUORI dal disegno: nel PDF il disegno usa un carattere più largo e la scritta
    allineata al bordo destro usciva tagliata («… non per singolo bra») */

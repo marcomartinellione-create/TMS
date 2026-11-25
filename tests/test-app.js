@@ -1298,7 +1298,28 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(sw.eval('dietaLeggi().giorni[' + JSON.stringify(oggi) + ']') === undefined && sd.querySelector('#alim-body .dieta-q') !== null, 'dieta: e poi a vuoto, e la domanda torna');
     sd.querySelector('#dieta-cal [data-dm="-1"]').click();
     ok(sw.eval('DIETA_MESE') !== '' && sd.querySelector('#dieta-cal [data-dm="1"]').disabled === false, 'dieta: il calendario va al mese prima e torna avanti');
-    ok(sw.eval('["Andamento del peso","Calendario della dieta","Oggi hai seguito la dieta?","⏱ Recupero finito","🍽 Com’è andata la dieta?"].every(k=>TT.en[k])'), 'app cliente EN: i testi nuovi hanno la traduzione');
+    ok(sw.eval('["Andamento del peso","Calendario della dieta","Oggi hai seguito la dieta?","⏱ Recupero finito","🍽 Com’è andata la dieta?","Scansione corporea","Analisi completata"].every(k=>TT.en[k])'), 'app cliente EN: i testi nuovi hanno la traduzione');
+    /* schermata d'analisi della pesata (animazione da videogioco, grafica dell'app) */
+    sw.HTMLMediaElement.prototype.play = function(){ sw.__suona = this.src; return Promise.resolve(); };
+    sw.HTMLMediaElement.prototype.pause = function(){ sw.__suona = ''; };
+    sw.eval('mostra("bil"); BIL.live=80.4; BIL.liveStato=1; bilStato("misura");');
+    ok(sd.getElementById('scan').hidden === false && sw.eval('SCAN.fase') === 1 && /80,4/.test(sd.getElementById('scan-peso').textContent) && /musica-pesata\.mp3$/.test(sw.__suona || ''),
+       'bilancia/analisi: col primo peso in diretta si apre la schermata d\'analisi e parte la traccia della pesata');
+    sw.eval('BIL.liveStato=2; bilStato("misura"); for(let i=0;i<40;i++) scanPasso();');
+    ok(sw.eval('SCAN.fase') === 2 && sw.eval('SCAN.prog') > 50 && /Peso stabile/.test(sd.getElementById('scan-log').textContent) && sd.querySelector('#scan .zona.att') !== null,
+       'bilancia/analisi: peso fermo → analisi della composizione, un pezzo del corpo alla volta');
+    { const p1 = sw.eval('SCAN.prog'); sw.eval('BIL.liveStato=1; bilStato("misura"); scanPasso();');
+      ok(sw.eval('SCAN.prog') >= p1 && sw.eval('SCAN.fase') === 2, 'bilancia/analisi: la percentuale non torna mai indietro'); }
+    sw.eval('BIL.ultima={peso:80.4, grasso:16.6, muscolo:62.1}; bilStato("fatto"); for(let i=0;i<30;i++) scanPasso();');
+    ok(sw.eval('SCAN.fine') === true && sw.eval('SCAN.prog') === 100 && sd.getElementById('scan').classList.contains('fine') && /Analisi completata/.test(sd.getElementById('scan-tit').textContent)
+       && /16,6 %/.test(sd.getElementById('scan-ris').textContent) && sw.__suona === '' && !sw.eval('SCAN.audio') && !sw.eval('SCAN.synth'),
+       'bilancia/analisi: al risultato «Analisi completata», i valori, la musica si ferma');
+    sd.getElementById('scan').click();
+    ok(sd.getElementById('scan').hidden === true && sw.eval('SCAN.on') === false, 'bilancia/analisi: un tocco la chiude');
+    sw.eval('BIL.liveStato=1; bilStato("misura"); bilStato("errore","spento");');
+    ok(sd.getElementById('scan').hidden === true && sw.__suona === '', 'bilancia/analisi: se la bilancia si perde, la schermata si chiude e la musica si ferma');
+    ok(!/#2ee9ff|Courier|scanlines|text-transform:uppercase/.test(sd.querySelector('style').textContent.slice(sd.querySelector('style').textContent.indexOf('#scan{'), sd.querySelector('style').textContent.indexOf('barra del timer di recupero'))),
+       'bilancia/analisi: la schermata usa la grafica dell\'app (niente colori, caratteri o maiuscole da videogioco)');
     sub.window.close();
   }
   /* v1.5: scheda FISSA (modificabile:false) → niente aggiungi/modifica/elimina/★, ma il timer resta */
@@ -3308,7 +3329,15 @@ console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---'
          la freccetta del valore è sotto il numero, la nota a piè di pagina segue il contenuto */
       ok(!/elettrodi/.test(fig.textContent) && /elettrodi/.test(box.querySelector('.comp-hero .comp-fig-nota').textContent) &&
          [...box.querySelectorAll('.comp-segno')].every(s => s.querySelector('i') && !/▾/.test(s.textContent)) && box.querySelector('.comp-pg > .comp-nota') !== null,
-         'rapporto: nota della figura fuori dal disegno, freccetta del valore sotto il numero, nota a piè di pagina in fondo al contenuto'); } }
+         'rapporto: nota della figura fuori dal disegno, freccetta del valore sotto il numero, nota a piè di pagina in fondo al contenuto');
+      /* figura maschile o femminile secondo il sesso del profilo (25/11/2026), la stessa dell'app del telefono */
+      const conSesso = s => w.eval('(function(){ var o=DOC.dati_utente.sesso; DOC.dati_utente.sesso=' + JSON.stringify(s) + '; var h=figuraCorpo({peso:70,bmi:22}, "", true); DOC.dati_utente.sesso=o; return h; })()');
+      const figM = conSesso('M'), figF = conSesso('F');
+      ok(figM !== figF && (figF.match(/<path d="M50 2\.6/g) || []).length === 1 && !/M50 2\.6/.test(figM) && (figM.match(/fill="#d4a017"/g) || []).length === 8 && (figF.match(/fill="#d4a017"/g) || []).length === 8,
+         'rapporto: figura maschile o femminile (capelli, spalle, vita, fianchi) secondo il sesso del profilo, sempre con gli 8 elettrodi');
+      { const apk = fs.readFileSync(path.join(ROOT, 'app-android', 'web', 'index.html'), 'utf8'), pc = fs.readFileSync(path.join(ROOT, 'src', 'app', '09d-rapporto-corpo.js'), 'utf8');
+        const blocco = t => { const i = t.indexOf('const SAGOME={'), j = t.indexOf('el:S.el}; }'); return i >= 0 && j > i ? t.slice(i, j) : ''; };
+        ok(blocco(pc) !== '' && blocco(pc) === blocco(apk), 'figure del corpo: le sagome (uomo e donna) sono le stesse nel TMS sul PC e nell\'app del telefono'); } } }
   { const h = w.eval('htmlRapportoCorpo(DOC.pesate.find(function(p){return p.data==="2026-11-17";}))');
     ok(/solo il peso/.test(h) && /72,2/.test(h), 'rapporto di una pesata col solo peso: lo dice, senza errori'); }
   /* dal tab Corpo: 📄 sulla riga → anteprima → PDF */
@@ -3495,6 +3524,29 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
   sw.eval('navEntra(); mostra("bil"); renderBil();');
   ok(/al PC/.test(sd.getElementById('bil-lista').textContent), 'telefono: nell\'elenco delle pesate compare «✔ al PC»');
   sw.eval('risali();');
+  /* dieta seguita: segnata sul telefono, arriva sul PC del personal (un file per cambio, tolto appena salvato) */
+  sw.eval('dietaSegna("2026-11-20","si"); dietaSegna("2026-11-21","no");'); await sw.eval('colEventi()');
+  { const evD = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /dieta-/.test(k));
+    ok(evD.length === 2 && evD.every(k => !/"si"|"no"/.test(H.file(LID, k))), 'telefono: ogni giorno della dieta segnato diventa un file cifrato sull\'hub');
+    await giroPC(); await settle(450);
+    ok(w.eval('DOC.alimentazione.aderenza["2026-11-20"].v') === 'si' && w.eval('DOC.alimentazione.aderenza["2026-11-21"].v') === 'no', 'PC: i giorni della dieta arrivano nel profilo del cliente (alimentazione.json)');
+    ok(evD.every(k => !H.file(LID, k)) && /2026-11-21/.test(fsmem._files.get('TMS_Dati/prova/alimentazione.json') || ''), 'PC: salvati su disco, li toglie subito dall\'hub'); }
+  await giroTel();
+  ok(sw.eval('(function(){ var o=dietaLeggi(); return o.pc["2026-11-20"]===o.mod["2026-11-20"] && o.pc["2026-11-21"]===o.mod["2026-11-21"]; })()'), 'telefono: i giorni della dieta risultano «al PC»');
+  /* un cambio sul telefono vince; uno più vecchio arrivato dopo non torna indietro */
+  sw.eval('dietaSegna("2026-11-21","si")'); await sw.eval('colEventi()'); await giroPC(); await settle(450);
+  ok(w.eval('DOC.alimentazione.aderenza["2026-11-21"].v') === 'si', 'PC: il giorno corretto sul telefono (no → sì) si aggiorna');
+  ok(w.eval('telDietaApplica([{id:"x", data:"2026-11-21", valore:"no", ora:"2020-01-01T00:00:00.000Z"}])') === 0 && w.eval('DOC.alimentazione.aderenza["2026-11-21"].v') === 'si', 'PC: un cambio più vecchio arrivato in ritardo non torna indietro');
+  sw.eval('dietaSegna("2026-11-20","")'); await sw.eval('colEventi()'); await giroPC(); await settle(450);
+  ok(w.eval('DOC.alimentazione.aderenza["2026-11-20"].v') === '', 'PC: un giorno tolto sul telefono resta vuoto anche sul PC');
+  /* il calendario nel tab Alimentazione del PC */
+  w.eval('aderMese="2026-11"; showTab("alimentazione");'); await settle(30);
+  { const cal = d.getElementById('ader-cal');
+    ok(cal && cal.querySelectorAll('.ader-g.si').length === 1 && cal.querySelectorAll('.ader-g.no').length === 0 && /seguita 1/.test(cal.textContent.replace(/\s+/g, ' ')) && /100 %/.test(cal.textContent),
+       'PC: nel tab Alimentazione il calendario «Dieta seguita» del cliente (verde sì, rosso no, % rispettata)'); }
+  d.querySelector('#ader-cal [data-aderm="-1"]').click(); await settle(20);
+  ok(w.eval('aderMese') === '2026-10' && d.getElementById('ader-cal').querySelectorAll('.ader-g.si').length === 0, 'PC: il calendario va al mese prima');
+  w.eval('aderMese=""; showTab("allenamento");');
   /* fine seduta sul telefono, poi «💾 Salva nello Storico» sul PC: la settimana si cristallizza */
   scrivi('rpe-0', '7'); scrivi('min-0', '60'); await giroTel(); await giroPC();
   ok(J(w.eval('JSON.stringify(DOC.scheda.rpe.settimanale)')) === J(J({ [righePC()[0].giorno]: { rpe: 7, min: 60 } })), 'fatica e durata della seduta scritte sul telefono arrivano sul PC');

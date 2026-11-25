@@ -24,7 +24,7 @@ const WWW = path.join(QUI, 'www');
 const NATIVO = path.join(QUI, 'nativo', 'nativo.js');
 const VERIFICA = process.argv.includes('--verifica');
 /* file della PWA che servono all'app (sw.js NO: vedi sopra) */
-const FILE = ['index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'qr-ig.png', 'qr-yt.png', 'qr-gh.png'];
+const FILE = ['index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'qr-ig.png', 'qr-yt.png', 'qr-gh.png', 'musica-pesata.mp3'];
 
 function ferma(msg) {
   console.error('\nprepara-www: ' + msg);
