@@ -13,8 +13,8 @@ function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); r
 function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
 function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.34', APP_DATE='2026-11-25';
-const RELEASE_NOTE='Novità: Telefono collegato: un esercizio aggiunto dal telefono entra nel suo giorno (niente più giorno doppio), chiudendo il TMS parte l’ultimo invio all’hub, e il recupero su un PC nuovo riprende anche settimana e ultima scheda.'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.35', APP_DATE='2026-11-25';
+const RELEASE_NOTE='Novità: La dieta segnata dal cliente sul telefono arriva al PC (calendario «Dieta seguita» nel tab Alimentazione); nell’APK la schermata d’analisi della pesata con musica e avviso di fine misura; figura del corpo maschile o femminile, uguale sul PC e sul telefono; TMS Scheda 1.2.8: icona con la stella del PC, timer di recupero giusto anche in secondo piano (con la notifica di fine recupero), andamento del peso come in borsa, domanda serale sulla dieta col calendario, in alto solo «Ciao Nome».'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
    Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */

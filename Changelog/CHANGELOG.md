@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-11-25 — TMS v1.1.35: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.34
+**Descrizione**:
+- La dieta segnata dal cliente sul telefono arriva al PC (calendario «Dieta seguita» nel tab Alimentazione); nell'APK la schermata d'analisi della pesata con musica e avviso di fine misura; figura del corpo maschile o femminile, uguale sul PC e sul telefono
+- TMS Scheda 1.2.8: icona con la stella del PC, timer di recupero giusto anche in secondo piano (con la notifica di fine recupero), andamento del peso come in borsa, domanda serale sulla dieta col calendario, in alto solo «Ciao Nome»
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-25)
+
+---
+
 ### 2026-11-25 — TMS v1.1.34: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.33
