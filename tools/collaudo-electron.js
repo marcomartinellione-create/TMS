@@ -104,6 +104,11 @@ app.whenReady().then(async () => {
        await rifiutato('window.tmsScambio.leggi("../../x.json")'), 'cartella condivisa: niente uscite dalla cartella');
     ok(await rifiutato('window.tmsScambio.scrivi("prova/x.exe", "x")') && await rifiutato('window.tmsScambio.togli("prova/dal-telefono/eventi/nota.txt")') &&
        fs.existsSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'nota.txt')), 'cartella condivisa: si scrivono e si tolgono solo file .json');
+    /* la stessa cartella ora serve alla COPIA DEI BACKUP fuori dal PC (OneDrive, Drive, MEGA, chiavetta) */
+    ok(await js('(async function(){ localStorage.setItem("tms-bk-esterno", JSON.stringify({scelta:true})); return await bkEstCopia(true); })()') === true &&
+       fs.readdirSync(tmpScambio).some(n => /^TMS-backup-\d{4}-\d\d-\d\d\.json$/.test(n) && JSON.parse(fs.readFileSync(path.join(tmpScambio, n), 'utf8'))._tms === 'backup'),
+       'copia dei backup: il backup completo arriva davvero nella cartella scelta');
+    await js('localStorage.removeItem("tms-bk-esterno")');
     ok(await js('(async function(){ var c=await telCifra({prova:"Squat"}, "K7QM3XRPA9TB4WZCHN5D"); var r=await telDecifra(c, "K7QM3XRPA9TB4WZCHN5D");' +
       ' return r.prova==="Squat" && c.indexOf("Squat")<0; })()'), 'cifratura dello scambio (HKDF + AES-GCM) disponibile nella pagina dell\'app');
     /* l'hub del TMS su Cloudflare: la pagina (origine app://tms) lo raggiunge con fetch (CORS) */

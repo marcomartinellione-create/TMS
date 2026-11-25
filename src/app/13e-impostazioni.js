@@ -35,6 +35,7 @@ function impAnteprima(c){
     `<span class="imp-ant__barre"><i style="background:${c.acc};height:62%"></i><i style="background:${c.acc2};height:88%"></i><i style="background:#62b483;height:46%"></i><i style="background:#b48fdc;height:72%"></i></span></span></span>`;
 }
 async function impostazioniModal(){
+  if(typeof bkEstDisponibile==='function' && bkEstDisponibile()) await bkEstCartella();   /* solo nell'app per PC: lì c'è il ponte della cartella */
   /* si legge dall'<html>, cioè da ciò che si vede, non solo da ciò che è salvato */
   const h=document.documentElement, md=h.getAttribute('data-theme')==='notte'? 'notte' : 'giorno';
   const st=TEMI_NOTTE.some(x=>x.id===h.getAttribute('data-notte'))? h.getAttribute('data-notte') : notteGet();
@@ -49,6 +50,11 @@ async function impostazioniModal(){
       <div class="lat-nota">${t('Il pulsante con la luna in alto passa da giorno a notte; di notte usa lo stile scelto qui.')}</div>
     </div>
     ${telSezioneImpostazioni()}
+    ${typeof bkSezioneImpostazioni==='function'? bkSezioneImpostazioni() : ''}
+    <div class="imp-sez" id="imp-info">
+      <h4>${t('Informazioni')}</h4>
+      <div class="imp-riga"><span>${t('Versione')}</span><span class="imp-ver"><b>Training Monitor System v${esc(APP_VERSION)}</b> · ${esc(new Date(APP_DATE+'T12:00:00').toLocaleDateString(LANG==='en'?'en-GB':'it-IT',{day:'numeric',month:'long',year:'numeric'}))}</span></div>
+    </div>
     <div class="imp-sez">
       <h4>${t('Aiuto')}</h4>
       <div class="imp-aiuto">
@@ -65,4 +71,5 @@ async function impostazioniModal(){
   document.getElementById('fab-segnala').onclick=()=>segnalaModal();   /* prende il posto delle impostazioni */
   document.getElementById('imp-ok').onclick=closeModal;
   telAgganciaImpostazioni(()=>impostazioniModal());
+  if(typeof bkAgganciaImpostazioni==='function') bkAgganciaImpostazioni(()=>impostazioniModal());
 }

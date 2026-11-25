@@ -126,6 +126,78 @@ async function salvaCopiaDiSicurezza(){
   await writeJson(dir,'indice.json',indice);
   return nomeFile;
 }
+/* ── COPIA FUORI DAL PC (25/11/2026, richiesta di Marco): lo storico di tutti i clienti vive solo su questo
+      PC, e i backup automatici stanno nella stessa cartella dei dati. Una volta a settimana il backup
+      completo (foto comprese) va anche in una cartella scelta da Marco — dentro OneDrive, Google Drive,
+      MEGA o su una chiavetta — così sopravvive anche se il PC si rompe. La cartella la sceglie il selettore
+      di Windows attraverso il ponte window.tmsScambio di electron/main.js: il percorso lo tiene main.js
+      (userData/scambio.json), la pagina chiede solo nomi di file, le scritture restano chiuse lì dentro
+      (solo .json, scrittura atomica). Si tengono le ultime BKEST_MAX copie col nostro nome; gli altri file
+      della cartella non si toccano. Il percorso vale solo se è stato scelto da qui (`scelta`): una cartella
+      rimasta dal vecchio scambio con Google Drive non si usa da sola. ── */
+const BKEST_KEY='tms-bk-esterno', BKEST_MAX=5, BKEST_NOME=/^TMS-backup-\d{4}-\d\d-\d\d\.json$/;
+let _bkEstCartella='', _bkEstIn=false;
+function bkEstStato(){ try{ return JSON.parse(localStorage.getItem(BKEST_KEY)||'{}')||{}; }catch(e){ return {}; } }
+function bkEstSalva(o){ try{ localStorage.setItem(BKEST_KEY, JSON.stringify(o)); }catch(e){} }
+function bkEstDisponibile(){ return !!(window.tmsScambio && typeof window.tmsScambio.scegli==='function'); }
+async function bkEstCartella(){
+  _bkEstCartella='';
+  if(!bkEstDisponibile() || !bkEstStato().scelta) return '';
+  try{ _bkEstCartella=String(await window.tmsScambio.cartella()||''); }catch(e){ _bkEstCartella=''; }
+  return _bkEstCartella; }
+async function bkEstScegli(){
+  if(!bkEstDisponibile()) return '';
+  const c=String(await window.tmsScambio.scegli()||'');
+  if(c){ const s=bkEstStato(); s.scelta=true; delete s.errore; bkEstSalva(s); }
+  return await bkEstCartella(); }
+async function bkEstTogli(){
+  if(bkEstDisponibile()){ try{ await window.tmsScambio.scollega(); }catch(e){} }
+  bkEstSalva({}); _bkEstCartella=''; }
+/* la copia: una a settimana (forza=true: adesso). Torna true se l'ha scritta. */
+async function bkEstCopia(forza){
+  if(_bkEstIn || !bkEstDisponibile() || !dataDir) return false;
+  const st=bkEstStato(), oggi=new Date().toISOString().slice(0,10);
+  if(!st.scelta) return false;
+  if(!forza && st.ultima && (Date.parse(oggi)-Date.parse(String(st.ultima).slice(0,10))) < AUTOBK_GIORNI*86400000) return false;
+  if(!(await bkEstCartella())) return false;
+  _bkEstIn=true;
+  try{
+    const nome='TMS-backup-'+oggi+'.json';
+    await window.tmsScambio.scrivi(nome, JSON.stringify(await costruisciSnapshot(true)));
+    try{ const nostri=((await window.tmsScambio.elenca(''))||[]).filter(n=>BKEST_NOME.test(n)).sort();
+      for(const v of nostri.slice(0, Math.max(0, nostri.length-BKEST_MAX))) await window.tmsScambio.togli(v); }
+    catch(e){ logErrore('backupEsterno/rotazione', e); }
+    bkEstSalva({scelta:true, ultima:new Date().toISOString(), file:nome});
+    return true;
+  }catch(e){
+    logErrore('backupEsterno', e);
+    const s=bkEstStato(); s.errore=String((e&&e.message)||e); s.tentato=new Date().toISOString(); bkEstSalva(s);
+    return false;
+  }finally{ _bkEstIn=false; }
+}
+function bkEstTestoStato(){
+  const st=bkEstStato(), q=d=>{ try{ return new Date(d).toLocaleString(LANG==='en'?'en-GB':'it-IT',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(d); } };
+  if(_bkEstIn) return t('Copia in corso…');
+  if(st.errore && (!st.ultima || String(st.tentato||'')>=String(st.ultima))) return t('L’ultima copia non è riuscita')+' ('+esc(st.errore)+'): '+t('riprovo al prossimo avvio. Se la cartella è su un disco esterno, collegalo.');
+  if(st.ultima) return t('Ultima copia:')+' '+esc(q(st.ultima))+' · <span class="mono">'+esc(st.file||'')+'</span>';
+  return t('Ancora nessuna copia.'); }
+function bkSezioneImpostazioni(){
+  if(!bkEstDisponibile()) return '';
+  const c=_bkEstCartella;
+  return `<div class="imp-sez" id="imp-bk"><h4>${t('Copia dei backup')}</h4>
+    <div class="lat-nota" style="margin:0 0 8px">${t('Ogni settimana il TMS fa un backup completo di tutti i profili, foto comprese. Scegli una cartella fuori da questo PC, per esempio dentro OneDrive, Google Drive o MEGA, o su una chiavetta: lì ne va una copia, così lo storico dei clienti resta al sicuro anche se il PC si rompe. Si tengono le ultime cinque.')}</div>
+    <div class="imp-riga imp-codice"><span>${t('Cartella')}</span><code class="tel-codice imp-bk-percorso" id="imp-bk-cartella">${c? esc(c) : esc(t('nessuna'))}</code>
+      <span class="gruppo"><button class="btn btn--sm${c?'':' btn--ember'}" id="imp-bk-scegli">${t(c?'Cambia…':'Scegli…')}</button>${c?`<button class="btn btn--sm" id="imp-bk-ora">${t('Copia adesso')}</button><button class="btn btn--sm" id="imp-bk-togli">${t('Togli')}</button>`:''}</span></div>
+    ${c? `<div class="lat-nota" id="imp-bk-stato">${bkEstTestoStato()}</div>
+    <div class="lat-nota">${t('La copia non è cifrata: usa una cartella che vedi solo tu. Per riprenderla: tab Profilo › Ripristina, e scegli il file da quella cartella.')}</div>` : ''}
+  </div>`; }
+function bkAgganciaImpostazioni(riapri){
+  const su=(id,fn)=>{ const b=document.getElementById(id); if(b) b.onclick=async()=>{ b.disabled=true;
+    try{ await fn(b); }catch(e){ logErrore('backupEsterno/impostazioni', e); avviso(String((e&&e.message)||e)); } riapri(); }; };
+  su('imp-bk-scegli', async()=>{ if(await bkEstScegli()) await bkEstCopia(true); });
+  su('imp-bk-ora', async b=>{ b.textContent=t('Copia in corso…'); await bkEstCopia(true); });
+  su('imp-bk-togli', async()=>{ if(await conferma(t('Smetto di copiare i backup in questa cartella? Le copie già fatte restano lì.'))) await bkEstTogli(); });
+}
 async function listaCopieDiSicurezza(){
   try{ if(!dataDir) return [];
     const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:false});

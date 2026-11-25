@@ -252,6 +252,7 @@ async function connectFlow(){
     undoAzzera();   /* i dati vengono dal disco: da qui parte l'annulla */
     renderAll();
     backupAutomaticoSeServe();  /* fire-and-forget: uno snapshot a settimana, non blocca l'avvio */
+    setTimeout(()=>{ if(typeof bkEstCopia==='function') bkEstCopia().catch(()=>{}); }, 15000);   /* e la copia fuori dal PC, se c'è la cartella */
   }catch(e){
     if(e&&e.name==='DatiIlleggibili'){ bloccaScritture(e); aggiornaTabProfilo(); try{ renderAll(); }catch(_){} return; }
     setConn('err',t('errore: ')+e.message); logErrore('connectFlow', e); }

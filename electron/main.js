@@ -189,10 +189,11 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('tmsfs:dataRoot', () => WRITE_ROOT());
 
-  // ── Cartella condivisa col telefono (2026-11-17, window.tmsScambio) ──
-  // Una cartella di Google Drive per desktop (di solito «My Drive\6 - TMS») che un'app di
-  // sincronizzazione tiene uguale a una cartella del telefono. La sceglie l'utente UNA volta con
-  // il selettore di sistema; il percorso resta qui, in userData/scambio.json, e la pagina non lo
+  // ── Cartella scelta dall'utente (window.tmsScambio) ──
+  // Nata il 2026-11-17 come cartella di Google Drive condivisa col telefono; dal 2026-11-25 (il telefono
+  // passa dall'hub del TMS) serve alla COPIA DEI BACKUP fuori dal PC: una cartella dentro OneDrive, Google
+  // Drive, MEGA o una chiavetta (src/app/14-backup.js, bkEstCopia). La sceglie l'utente con il selettore
+  // di sistema; il percorso resta qui, in userData/scambio.json, e la pagina non lo
   // passa mai: chiede solo file RELATIVI a quella cartella. Stesse protezioni dei dati: niente
   // uscite dalla cartella (safeJoin), solo file .json, scrittura atomica (temp + rename).
   // «Illeggibile» e «assente» si distinguono, così la pagina non scambia un file a metà per uno
@@ -213,17 +214,17 @@ app.whenReady().then(() => {
   ipcMain.handle('scambio:cartella', () => cartellaScambio());
   ipcMain.handle('scambio:scegli', async (e) => {
     const prima = cartellaScambio();
-    const drive = path.join(require('node:os').homedir(), 'My Drive');
-    const suggerita = prima || (fsSync.existsSync(path.join(drive, '6 - TMS')) ? path.join(drive, '6 - TMS') : drive);
+    const casa = require('node:os').homedir(), od = process.env.OneDrive || process.env.OneDriveConsumer || '';
+    const suggerita = prima || (od && fsSync.existsSync(od) ? od : casa);
     const r = await dialog.showOpenDialog(BrowserWindow.fromWebContents(e.sender), {
-      title: 'Cartella condivisa col telefono', defaultPath: suggerita,
+      title: 'Cartella per la copia dei backup del TMS', defaultPath: suggerita,
       properties: ['openDirectory', 'createDirectory'] });
     if (r.canceled || !r.filePaths || !r.filePaths[0]) return prima;
     const scelta = path.normalize(r.filePaths[0]);
     // mai la cartella dei dati (o una che la contiene): lì scrive solo il ponte dei dati
     const dati = path.normalize(WRITE_ROOT());
     if (scelta === dati || dati.startsWith(scelta.replace(/[\\/]+$/, '') + path.sep) || scelta.startsWith(dati + path.sep) || path.parse(scelta).root === scelta)
-      throw new Error('questa cartella non si può usare per lo scambio: ' + scelta);
+      throw new Error('questa cartella non si può usare (è la cartella dei dati, la contiene o è un disco intero): ' + scelta);
     fsSync.writeFileSync(FILE_SCAMBIO(), JSON.stringify({ cartella: scelta }));
     return scelta;
   });

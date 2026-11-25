@@ -3448,6 +3448,31 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
   { const cod = d.getElementById('imp-tel-codice');
     ok(cod && cod.parentElement.classList.contains('imp-codice') && !cod.closest('.gruppo') && cod.parentElement.querySelector('.gruppo #imp-tel-copia'),
        'impostazioni: il codice del telefono sta fuori dal gruppo dei pulsanti (la riga va a capo invece di uscire dalla finestra)'); }
+  /* Impostazioni › Informazioni: la versione dell'app */
+  await w.eval('impostazioniModal()');
+  ok(d.getElementById('imp-info') && d.getElementById('imp-info').textContent.includes('v' + w.eval('APP_VERSION')), 'impostazioni: fra le informazioni c\'è la versione dell\'app');
+  /* copia dei backup fuori dal PC: cartella scelta col selettore (ponte tmsScambio, qui finto in memoria) */
+  { const est = new Map(); let cartella = 'C:\\Users\\x\\OneDrive\\TMS backup';
+    w.tmsScambio = { cartella: async () => cartella, scegli: async () => cartella, scollega: async () => { cartella = ''; },
+      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async () => [...est.keys()], togli: async n => { est.delete(n); } };
+    w.eval('localStorage.removeItem("tms-bk-esterno")');
+    ok(await w.eval('bkEstCartella()') === '', 'backup fuori dal PC: una cartella rimasta dal vecchio scambio con Drive non si usa da sola');
+    await w.eval('impostazioniModal()');
+    ok(d.getElementById('imp-bk') && /nessuna/.test(d.getElementById('imp-bk-cartella').textContent) && d.getElementById('imp-bk-scegli'), 'impostazioni: sezione «Copia dei backup» con «Scegli…»');
+    d.getElementById('imp-bk-scegli').click();
+    for (let k = 0; k < 40 && !est.size; k++) await settle(50);
+    await settle(100);
+    const nomi = [...est.keys()];
+    ok(nomi.length === 1 && /^TMS-backup-\d{4}-\d\d-\d\d\.json$/.test(nomi[0]) && JSON.parse(est.get(nomi[0]))._tms === 'backup', 'backup fuori dal PC: scelta la cartella, la prima copia (backup completo) parte subito');
+    ok(/OneDrive/.test(d.getElementById('imp-bk-cartella').textContent) && /Ultima copia/.test(d.getElementById('imp-bk-stato').textContent), 'impostazioni: cartella scelta e ultima copia');
+    ok(await w.eval('bkEstCopia()') === false, 'backup fuori dal PC: una a settimana (subito dopo non ne rifà un\'altra)');
+    for (const g of ['2026-01-01', '2026-01-08', '2026-01-15', '2026-01-22', '2026-01-29']) est.set('TMS-backup-' + g + '.json', '{}');
+    est.set('altro.json', '{}');
+    ok(await w.eval('bkEstCopia(true)') === true && [...est.keys()].filter(n => /^TMS-backup-/.test(n)).length === 5 && est.has('altro.json') && !est.has('TMS-backup-2026-01-01.json'),
+       'backup fuori dal PC: si tengono le ultime cinque copie, gli altri file della cartella non si toccano');
+    w.tmsScambio.scrivi = async () => { throw new Error('disco non trovato'); };
+    ok(await w.eval('bkEstCopia(true)') === false && /non è riuscita/.test(w.eval('bkEstTestoStato()')), 'backup fuori dal PC: se la cartella non si raggiunge lo dice, e riprova al prossimo avvio');
+    w.eval('closeModal()'); delete w.tmsScambio; w.eval('localStorage.removeItem("tms-bk-esterno")'); }
 
   /* il telefono del cliente */
   H.versioneApk = null;
