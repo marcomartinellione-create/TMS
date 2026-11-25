@@ -13,8 +13,8 @@ function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); r
 function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
 function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.36', APP_DATE='2026-11-25';
-const RELEASE_NOTE='Novità: TMS Scheda 1.2.9: nel calendario della dieta un tocco sul giorno apre la modifica con «Seguita» / «Non seguita» (niente più cambi a tocchi ripetuti); tolta la scritta sulle foto rimpicciolite.'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.37', APP_DATE='2026-11-25';
+const RELEASE_NOTE='Novità: il PC riceve pesate, foto e giorni della dieta da tutti i clienti collegati, anche dai profili non aperti, con la panoramica dei clienti nelle Impostazioni; il telefono si collega inquadrando un QR (TMS Scheda 1.3.0); copia settimanale dei backup in una cartella a scelta (OneDrive, Google Drive, MEGA o chiavetta); nel tab Analisi la sezione «Dieta seguita e peso»; la versione dell’app nelle Impostazioni; la riga del codice del telefono non esce più dalla finestra.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
    Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */

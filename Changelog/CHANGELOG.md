@@ -4,6 +4,23 @@
 
 ---
 
+### 2026-11-25 — TMS v1.1.37: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.36
+**Descrizione**:
+- Novità: il PC riceve pesate, foto e giorni della dieta da tutti i clienti collegati, anche dai profili non aperti, con la panoramica dei clienti nelle Impostazioni; il telefono si collega inquadrando un QR (TMS Scheda 1.3.0); copia settimanale dei backup in una cartella a scelta (OneDrive, Google Drive, MEGA o chiavetta); nel tab Analisi la sezione «Dieta seguita e peso»; la versione dell’app nelle Impostazioni; la riga del codice del telefono non esce più dalla finestra.
+- Collegamento del telefono col QR: il PC mostra il codice del cliente come QR (Impostazioni › Telefono collegato › QR) e TMS Scheda 1.3.0 lo inquadra e si collega da solo; guide aggiornate
+- Analisi: «Dieta seguita e peso» — l'andamento del peso coi giorni di dieta segnati dal cliente, la percentuale di ogni settimana e il confronto del peso fra settimane con e senza dieta seguita
+- Il PC riceve da tutti i clienti collegati: pesate, foto e giorni della dieta dei profili non aperti si salvano da soli nei loro file; panoramica dei clienti nelle Impostazioni
+- Copia dei backup in una cartella scelta da te (OneDrive, Google Drive, MEGA, chiavetta): ogni settimana il backup completo va anche lì; la versione dell'app nelle Impostazioni; CI di GitHub sulle azioni nuove
+- Guida per l'AI: numero di versione allineato alla 1.1.36
+- Impostazioni › Telefono collegato: la riga del codice non esce più dalla finestra (scritta sopra, codice e pulsanti sotto, che vanno a capo se serve)
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-25)
+
+---
+
 ### 2026-11-25 — TMS v1.1.36: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.35
