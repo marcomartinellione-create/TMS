@@ -503,6 +503,22 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const pan = d.getElementById('panel-analisi').innerHTML;
   ok(pan.includes('Timeline') && pan.includes('bilancio calorico') && pan.includes('ritardo') && pan.includes('Confronto fasi'), 'tab Analisi: 4 grafici presenti');
   ok((pan.match(/<svg/g) || []).length >= 4, 'tab Analisi: SVG renderizzati (' + (pan.match(/<svg/g) || []).length + ')');
+  ok(!d.getElementById('ader-analisi'), 'tab Analisi: senza giorni di dieta segnati niente sezione «Dieta seguita e peso»');
+  /* dieta seguita e peso (25/11/2026): giorni segnati dal cliente sotto il peso, % per settimana, confronto */
+  { const salva = w.eval('JSON.stringify({a:DOC.alimentazione.aderenza||null, p:DOC.pesate||[]})');
+    w.eval(`(function(){ var g=function(k){ var x=new Date(); x.setDate(x.getDate()-k); return dataLocale(x); };
+      DOC.alimentazione.aderenza={}; DOC.pesate=[]; var peso=80;
+      for(var k=27;k>=0;k--){ var buona=Math.floor(k/7)%2===0, v=buona? 'si' : (k%2? 'si':'no'); DOC.alimentazione.aderenza[g(k)]={v:v, t:g(k)+'T20:00:00Z'};
+        peso+= buona? -0.1 : 0.08; DOC.pesate.push({id:g(k)+'T07:00:00|'+peso.toFixed(2), data:g(k), ora:'07:00:00', peso:+peso.toFixed(2)}); }
+      showTab("analisi"); })()`);
+    const sez = d.getElementById('ader-analisi');
+    ok(sez && sez.querySelectorAll('svg')[0].querySelectorAll('rect.ader-giorno.si').length > 10 && sez.querySelectorAll('svg')[0].querySelectorAll('rect.ader-giorno.no').length > 0 && sez.querySelector('.ader-pct'),
+       'tab Analisi: sezione «Dieta seguita e peso» con la striscia dei giorni (verde sì, rosso no) e la % di ogni settimana');
+    ok(/% dei giorni segnati/.test(sez.textContent) && /dieta seguita.*kg in media.*non seguita.*kg in media/.test(sez.querySelector('.ader-conf').textContent.replace(/\s+/g, ' ')),
+       'tab Analisi: percentuale dei giorni segnati e confronto del peso fra settimane con e senza dieta seguita');
+    const D = JSON.parse(w.eval('JSON.stringify(aderenzaDati().conf)'));
+    ok(D.seguite < 0 && D.no > 0, 'tab Analisi: nelle settimane con la dieta seguita il peso scende, nelle altre sale (dati di prova)');
+    w.eval('(function(){ var s=' + JSON.stringify(salva) + '; s=JSON.parse(s); if(s.a) DOC.alimentazione.aderenza=s.a; else delete DOC.alimentazione.aderenza; DOC.pesate=s.p; })()'); }
   w.eval('showTab("alimentazione")');
   ok(d.getElementById('panel-alimentazione').innerHTML.includes('Periodi') && d.getElementById('per-add') !== null, 'sezione Periodi nel tab Alimentazione');
   /* periodi IN CORSO (Marco, 15/11/2026): si avviano senza data di fine e si terminano dopo */

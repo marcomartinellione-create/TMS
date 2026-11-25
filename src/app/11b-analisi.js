@@ -101,12 +101,86 @@ function timelineChart(sett,opts){
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"${grafFs(opts)}${gi.attr}>${gi.defs}<line class="axis" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}"/><line class="axis" x1="${W-P.r}" y1="${P.t}" x2="${W-P.r}" y2="${H-P.b}"/><line class="axis" x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"/>${g}${gi.hover}</svg>${leg}`;
 }
 
+/* ── DIETA SEGUITA E PESO (25/11/2026, richiesta di Marco): i giorni che il cliente segna ogni sera sul
+      telefono (sì / no, DOC.alimentazione.aderenza) sotto l'andamento del peso, la percentuale di ogni
+      settimana e il confronto fra le settimane in cui la dieta è stata seguita (almeno l'80 % dei giorni
+      segnati) e le altre: di quanto è cambiato il peso, in media, nella settimana dopo. Ultime 12 settimane.
+      Non servono i periodi alimentari. Derivato al volo, come il resto del tab. ── */
+const ADER_SOGLIA=80;
+function aderenzaDati(){
+  const ad=((DOC.alimentazione||{}).aderenza)||{};
+  const segnati=Object.keys(ad).filter(d=>ad[d] && (ad[d].v==='si'||ad[d].v==='no')).sort();
+  if(!segnati.length) return null;
+  const oggi=dataOggi(), lim=(()=>{ const d=new Date(oggi+'T12:00:00'); d.setDate(d.getDate()-83); return dataLocale(d); })();
+  const d0=new Date((segnati[0]>lim? segnati[0] : lim)+'T12:00:00'); d0.setDate(d0.getDate()-((d0.getDay()+6)%7));   /* dal lunedì */
+  const date=[]; for(const d=new Date(d0); dataLocale(d)<=oggi; d.setDate(d.getDate()+1)) date.push(dataLocale(d));
+  /* il peso: una pesata al giorno (bilancia); senza pesate, la misura settimanale dello Storico misure */
+  let pesi=pesateContate(DOC.pesate||[]).filter(p=>p.data>=date[0] && p.data<=oggi && +p.peso>0).map(p=>({data:p.data, peso:+p.peso}));
+  if(!pesi.length) pesi=(DOC.storico_io||[]).filter(r=>+r.peso>0 && +r.scheda>0).map(r=>{ const m=isoWeekMonday(Math.floor(+r.scheda/100), +r.scheda%100);
+    return {data:m.toISOString().slice(0,10), peso:+r.peso}; }).filter(p=>p.data>=date[0] && p.data<=oggi).sort((a,b)=>a.data.localeCompare(b.data));
+  const settimane=[];
+  for(let i=0;i<date.length;i+=7){ const g=date.slice(i,i+7), si=g.filter(x=>(ad[x]||{}).v==='si').length, no=g.filter(x=>(ad[x]||{}).v==='no').length;
+    const pw=pesi.filter(p=>p.data>=g[0] && p.data<=g[g.length-1]);
+    settimane.push({dal:g[0], si, no, pct:(si+no)? si/(si+no)*100 : null, peso:pw.length? pw.reduce((a,p)=>a+p.peso,0)/pw.length : null}); }
+  /* la dieta della settimana N contro il peso dalla N alla N+1 */
+  const seguite=[], no=[];
+  for(let k=0;k<settimane.length-1;k++){ const s=settimane[k], nx=settimane[k+1];
+    if(s.pct==null || s.peso==null || nx.peso==null) continue;
+    (s.pct>=ADER_SOGLIA? seguite : no).push(nx.peso-s.peso); }
+  const media=a=>a.length? a.reduce((x,y)=>x+y,0)/a.length : null;
+  const tot=segnati.filter(d=>d>=date[0]), siTot=tot.filter(d=>ad[d].v==='si').length;
+  return {ad, date, pesi, settimane, pct:tot.length? siTot/tot.length*100 : null, giorni:tot.length,
+    conf:{seguite:media(seguite), nSeguite:seguite.length, no:media(no), nNo:no.length}};
+}
+function aderenzaChart(D, opts){
+  const W=opts.w||560, H=opts.h||250, P={l:44, r:12, t:12, b:58}, n=D.date.length, cw=(W-P.l-P.r)/n;
+  const X=i=>P.l+cw*(i+0.5), yb=H-P.b+8;
+  let g='';
+  const vs=D.pesi.map(p=>p.peso);
+  if(vs.length){
+    let mn=Math.min(...vs), mx=Math.max(...vs); if(mx-mn<1){ const c=(mx+mn)/2; mn=c-.5; mx=c+.5; } const pad=(mx-mn)*.12; mn-=pad; mx+=pad;
+    const Y=v=>P.t+(yb-14-P.t)*(1-(v-mn)/(mx-mn));
+    for(let k=0;k<=3;k++){ const v=mx-(mx-mn)*k/3, y=Y(v);
+      g+=`<line class="grid" x1="${P.l}" y1="${y.toFixed(1)}" x2="${W-P.r}" y2="${y.toFixed(1)}"/><text class="lbl" x="${P.l-5}" y="${(y+3).toFixed(1)}" text-anchor="end" style="fill:var(--violet)">${nf(v,1)}</text>`; }
+    let p='', dots='';
+    D.pesi.forEach(q=>{ const i=D.date.indexOf(q.data); if(i<0) return; const x=X(i), y=Y(q.peso);
+      p+=(p?' L':'M')+x.toFixed(1)+' '+y.toFixed(1); dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="var(--violet)"><title>${esc(q.data)} · ${nf(q.peso,1)} kg</title></circle>`; });
+    g+=`<path class="ln" d="${p}" stroke="var(--violet)"/>${dots}`;
+  } else g+=`<text class="lbl" x="${(W/2).toFixed(1)}" y="${((yb+P.t)/2).toFixed(1)}" text-anchor="middle">${esc(t('Nessuna pesata in queste settimane'))}</text>`;
+  /* la striscia dei giorni: verde sì, rosso no, chiaro non segnato */
+  D.date.forEach((d,i)=>{ const v=(D.ad[d]||{}).v, col=v==='si'? 'var(--ok)' : v==='no'? 'var(--danger)' : 'var(--border)';
+    g+=`<rect class="ader-giorno${v?' '+v:''}" x="${(P.l+cw*i+.6).toFixed(1)}" y="${yb}" width="${Math.max(cw-1.2,1).toFixed(1)}" height="11" rx="1.5" fill="${col}"${v?'':' opacity=".55"'}><title>${esc(d)}${v==='si'?' · '+esc(t('dieta seguita')):v==='no'?' · '+esc(t('dieta non seguita')):''}</title></rect>`; });
+  /* la percentuale di ogni settimana e il suo lunedì */
+  const passo=(W-P.l-P.r)/D.settimane.length<46? 2 : 1;
+  D.settimane.forEach((s,k)=>{ const xm=P.l+cw*(k*7+3.5);
+    g+=`<line class="grid" x1="${(P.l+cw*k*7).toFixed(1)}" y1="${P.t}" x2="${(P.l+cw*k*7).toFixed(1)}" y2="${yb+11}" style="opacity:.5"/>`;
+    if(s.pct!=null) g+=`<text class="lbl ader-pct" x="${xm.toFixed(1)}" y="${yb+25}" text-anchor="middle" style="font-weight:700;fill:${s.pct>=ADER_SOGLIA?'var(--ok)':s.pct>=50?'var(--gold-2)':'var(--danger)'}">${nf(s.pct,0)}%</text>`;
+    if(k%passo===0){ const dd=new Date(s.dal+'T12:00:00'); g+=`<text class="lbl" x="${xm.toFixed(1)}" y="${yb+39}" text-anchor="middle">${dd.getDate()}/${dd.getMonth()+1}</text>`; } });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet"${grafFs(opts)} class="ader-graf"><line class="axis" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${yb-14}"/>${g}</svg>`;
+}
+function aderenzaSezione(){
+  const D=aderenzaDati(); if(!D) return '';
+  const c=D.conf, kg=v=>(v>0?'+':v<0?'−':'')+nf(Math.abs(v),2)+' kg';
+  const conf=(c.nSeguite||c.nNo)? `<div class="graf-nota ader-conf">${t('Peso nella settimana dopo')}: `+
+      (c.nSeguite? `<b style="color:var(--ok)">${t('dieta seguita')}</b> (≥ ${ADER_SOGLIA} %) ${kg(c.seguite)} ${t('in media')} <span class="muted">(${c.nSeguite} ${t(c.nSeguite===1?'settimana':'settimane')})</span>` : '')+
+      (c.nSeguite && c.nNo? ' · ' : '')+
+      (c.nNo? `<b style="color:var(--danger)">${t('non seguita')}</b> ${kg(c.no)} ${t('in media')} <span class="muted">(${c.nNo} ${t(c.nNo===1?'settimana':'settimane')})</span>` : '')+'</div>'
+    : `<div class="graf-nota">${t('Il confronto fra settimane con la dieta seguita e non seguita compare quando ci sono pesate di due settimane di fila.')}</div>`;
+  return `<div class="sec">${t('Dieta seguita e peso')}</div>
+   <div class="chart-grid chart-grid--compatta" id="ader-analisi">
+     <div class="chart-box chart-box--largo"><h4>${t('Peso e giorni di dieta seguita')} ${D.pct!=null?`<span class="pill">${nf(D.pct,0)} % ${t('dei giorni segnati')}</span>`:''}</h4>
+       ${grafVarianti(aderenzaChart(D,{w:900,h:250,fs:11}), aderenzaChart(D,{w:440,h:250,fs:11}))}
+       <div class="graf-nota">${t('Sotto il peso, un quadratino per giorno: verde se il cliente ha segnato la dieta seguita, rosso se no, chiaro se non l’ha segnato. Sotto, la percentuale di ogni settimana.')}</div>
+       ${conf}</div>
+   </div>`;
+}
 function renderAnalisi(){
   const sett=serieSettimanali();
   const periodi=((DOC.alimentazione||{}).periodi)||[];
+  const ader=aderenzaSezione();
   const intro=`<div class="callout callout--info"><div>${t('<b>Dieta × allenamento nel tempo.</b> Le analisi incrociano i <b>periodi alimentari</b> registrati (tab Alimentazione → "Periodi") con carico (TL), peso e metabolismo settimanali. Tutto è calcolato al volo dai tuoi dati.')}</div></div>`;
   if(!periodi.length){
-    document.getElementById('panel-analisi').innerHTML=intro+
+    document.getElementById('panel-analisi').innerHTML=intro+(ader? `<div class="graf-pagina">${ader}</div>` : '')+
       `<div class="empty" style="padding:28px">${t('Nessun periodo alimentare registrato.<br><br>Vai in <b>Alimentazione → Periodi</b> e registra il piano attuale con le sue date (es. "bulk dal 1/3 al 30/4"): da lì in poi questi grafici si accendono.')}<br><br><button class="btn btn--ember" onclick="showTab('alimentazione')">${t('Vai all\'Alimentazione')}</button></div>`;
     return;
   }
@@ -158,6 +232,7 @@ function renderAnalisi(){
        ${regr?`<div class="graf-nota">${t('Retta: ogni 100 kcal/g di surplus ≈')} ${nf(regr.b*100,2)} ${t('kg/settimana')}${rPB!=null&&Math.abs(rPB)<0.3?' · '+t('correlazione debole: servono più settimane'):''}</div>`:''}</div>
      <div class="chart-box"><h4>${t('Confronto fasi — Δ peso kg a settimana')}${spiegaBtn('confronto-fasi')}</h4>${boxChart(boxPeso,Object.assign({fmt:x=>nf(x,2)},GA))}</div>
    </div>
+   ${ader}
    <div class="sec">${t('Carico e correlazioni')}</div>
    <div class="chart-grid chart-grid--compatta">
      <div class="chart-box"><h4>${t('Confronto fasi — Δ Training Load % a settimana')}${spiegaBtn('confronto-fasi')}</h4>${boxChart(boxTL,Object.assign({fmt:x=>nf(x,0)+'%'},GA))}</div>
