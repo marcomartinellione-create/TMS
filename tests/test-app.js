@@ -3445,6 +3445,9 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
      'collega: la scheda dei Pesi va sull\'hub nel legame del profilo, cifrata');
   { const r = righePC(); ok(r.length === 2 && r[0].uid && r[1].uid && r[0].uid !== r[1].uid, 'collega: ogni riga della scheda Pesi prende un id suo'); }
   ok(d.getElementById('tel-riga') && /collegata/.test(d.getElementById('tel-riga').textContent) && !d.getElementById('tel-manda'), 'tab Pesi: riga «Scheda collegata al telefono», nessun pulsante da premere');
+  { const cod = d.getElementById('imp-tel-codice');
+    ok(cod && cod.parentElement.classList.contains('imp-codice') && !cod.closest('.gruppo') && cod.parentElement.querySelector('.gruppo #imp-tel-copia'),
+       'impostazioni: il codice del telefono sta fuori dal gruppo dei pulsanti (la riga va a capo invece di uscire dalla finestra)'); }
 
   /* il telefono del cliente */
   H.versioneApk = null;
