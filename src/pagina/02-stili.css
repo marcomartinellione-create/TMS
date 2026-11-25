@@ -925,6 +925,18 @@ svg.graf-lin.g-entra .g-clip{animation:grafEntra .95s cubic-bezier(.3,.75,.25,1)
 .modal .row .field{flex:1}
 .modal input,.modal select{width:100%}
 .modal__actions{display:flex; gap:9px; justify-content:flex-end; margin-top:18px}
+/* finestre più alte dello schermo (per esempio le Impostazioni): restano dentro lo schermo e il contenuto
+   scorre con la rotella, senza barra visibile come nelle pagine; i pulsanti in fondo restano sempre a vista */
+.modal{max-height:calc(100vh - 40px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none}
+.modal::-webkit-scrollbar{display:none}
+.modal:has(> .modal__actions){padding-bottom:0}
+/* la ✕ delle finestre da consultare: in alto a destra, resta a vista mentre si scorre */
+.modal-x{position:sticky; top:0; float:right; z-index:3; display:grid; place-items:center; width:34px; height:34px; margin:-10px -12px 0 8px;
+  border:1px solid var(--border); border-radius:50%; background:var(--sup); color:var(--ink-2); cursor:pointer; box-shadow:var(--shadow)}
+.modal-x:hover{background:var(--paper-2); color:var(--ink)}
+.modal-x .ic{width:16px; height:16px}
+.modal > .modal__actions{position:sticky; bottom:0; z-index:2; margin:18px -26px 0; padding:14px 26px 22px;
+  background:linear-gradient(to bottom, transparent, var(--sup) 14px)}
 /* riquadro «Training Set e gruppi» (06-allenamento.js, tsGruppiModal): ricerca, filtro e un
    blocco per gruppo con i suoi set; l'elenco scorre dentro il riquadro */
 /* in alto e non al centro: cercando, l'elenco cambia altezza e il riquadro centrato saltava su e giù */

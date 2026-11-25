@@ -516,13 +516,13 @@ async function telGiroAltri(){
 /* il QR del codice del cliente: il telefono lo inquadra (TMS Scheda › Collegamento › «Inquadra il QR») */
 function telQrModal(indietro){
   const p=telProf(); if(!telCollegato(p)) return;
-  modal(`<h3>${t('Collega il telefono di')} «${esc(profNome())}»</h3>
+  modal(`${croceModal()}<h3>${t('Collega il telefono di')} «${esc(profNome())}»</h3>
     <div class="tel-qr">${qrSvg(qrTestoCodice(p.codice), 240)}</div>
     <div class="lat-nota" style="text-align:center">${t('Sul telefono del cliente: TMS Scheda › Collegamento e promemoria › «Inquadra il QR», e punta la fotocamera qui. Oppure scrivi il codice:')}<br><code class="tel-codice">${esc(telCodiceBello(p.codice))}</code></div>
     <div class="lat-nota tel-avviso" style="text-align:center">${t('Chi inquadra questo QR può leggere i dati di questo cliente: mostralo solo a lui.')}</div>
-    <div class="modal__actions"><button class="btn" id="tel-qr-indietro">${t('Indietro')}</button><button class="btn btn--ember" id="tel-qr-ok">${t('Chiudi')}</button></div>`);
+    <div class="modal__actions"><button class="btn" id="tel-qr-indietro">${ico('indietro','p')}${t('Torna alle Impostazioni')}</button></div>`);
   document.getElementById('tel-qr-indietro').onclick=()=>indietro();
-  document.getElementById('tel-qr-ok').onclick=closeModal;
+  modalChiudibile();
 }
 /* panoramica dei clienti collegati (Impostazioni › Telefono collegato) */
 function telPanoramicaHtml(){

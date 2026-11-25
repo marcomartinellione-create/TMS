@@ -1,6 +1,18 @@
 /* ════════════════ MODAL ════════════════ */
-function modal(html){ const bk=document.getElementById('modal-bk'); document.getElementById('modal').innerHTML=html; bk.classList.remove('hidden'); }
-function closeModal(){ const m=document.getElementById('modal'); if(m){ const vid=m.querySelector('video'); if(vid){ vid.pause(); vid.currentTime=0; } m.style.maxWidth=''; } document.getElementById('modal-bk').classList.add('hidden'); }
+function modal(html){ const bk=document.getElementById('modal-bk'); const m=document.getElementById('modal'); m.innerHTML=html; delete m.dataset.esc; bk.classList.remove('hidden'); }
+function closeModal(){ const m=document.getElementById('modal'); if(m){ const vid=m.querySelector('video'); if(vid){ vid.pause(); vid.currentTime=0; } m.style.maxWidth=''; delete m.dataset.esc; } document.getElementById('modal-bk').classList.add('hidden'); }
+/* finestre «da consultare» (Impostazioni e QR del telefono, 25/11/2026): niente pulsante «Chiudi», ma la ✕ in
+   alto a destra (resta a vista mentre si scorre) ed Esc. Le altre finestre hanno moduli da compilare: lì Esc
+   non chiude, per non perdere quello che si è scritto. */
+function croceModal(){ return `<button type="button" class="modal-x" data-modal-x title="${t('Chiudi')} (Esc)" aria-label="${t('Chiudi')}">${ico('x')}</button>`; }
+function modalChiudibile(){ const m=document.getElementById('modal'); if(!m) return; m.dataset.esc='1';
+  m.querySelectorAll('[data-modal-x]').forEach(b=>{ b.onclick=closeModal; }); }
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape' || e.defaultPrevented) return;
+  const bk=document.getElementById('modal-bk'), m=document.getElementById('modal'), dlg=document.getElementById('dlg-bk');
+  if(!bk || bk.classList.contains('hidden') || !m || m.dataset.esc!=='1') return;
+  if(dlg && !dlg.classList.contains('hidden')) return;   /* prima la conferma aperta sopra */
+  e.preventDefault(); closeModal(); });
 /* Conferma via modale, in stile pergamena — al posto del confirm() di sistema, che
    arriva come una finestra grigia di Windows e stona con tutto il resto.
    Differenza importante: confirm() è SINCRONO, questo no — quindi chi lo usa deve

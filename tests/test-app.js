@@ -3029,8 +3029,12 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
        'Impostazioni: scelto «Grafite» si passa subito alla notte con quello stile, e la scelta si ricorda');
     m = d.getElementById('modal');
     ok(m.querySelector('[data-imp-notte="grafite"].is-on') && m.querySelector('[data-imp-tema="notte"].is-on'), 'Impostazioni: lo stile e il tema scelti risultano selezionati');
-    d.getElementById('imp-ok').click();
-    ok(w.eval('document.getElementById("modal-bk").classList.contains("hidden")'), 'Impostazioni: «Chiudi» chiude la finestra');
+    ok(!d.getElementById('imp-ok') && m.querySelector('[data-modal-x]'), 'Impostazioni: niente pulsante «Chiudi», al suo posto la ✕ in alto a destra');
+    m.querySelector('[data-modal-x]').click();
+    ok(w.eval('document.getElementById("modal-bk").classList.contains("hidden")'), 'Impostazioni: la ✕ chiude la finestra');
+    d.getElementById('btn-impost').click();
+    d.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    ok(w.eval('document.getElementById("modal-bk").classList.contains("hidden")'), 'Impostazioni: anche Esc la chiude');
     d.getElementById('btn-theme').click();
     ok(h.getAttribute('data-theme') === 'giorno' && w.localStorage.getItem('tms-theme') === 'giorno' && w.localStorage.getItem('tms-notte') === 'grafite',
        'Impostazioni: 🌙/☀ torna al giorno e lo stile della notte resta quello scelto');
