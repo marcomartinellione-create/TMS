@@ -3730,6 +3730,9 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
        'file .tms: sostituisce il cliente (il vecchio va nel cestino) e ricorda di ricollegare il telefono col QR');
     await w.eval('pacchettoImporta(new Uint8Array([1,2,3,4]))');
     ok(w.eval('__avvisi').some(m => /non è un cliente del TMS/.test(m)), 'file .tms: un file qualsiasi viene rifiutato con un messaggio chiaro');
+    { const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'electron', 'package.json'), 'utf8')), fa = ((pkg.build || {}).fileAssociations || [])[0] || {};
+      const ico = fs.existsSync(path.join(ROOT, 'electron', 'build', 'tms.ico')) ? fs.readFileSync(path.join(ROOT, 'electron', 'build', 'tms.ico')) : null;
+      ok(fa.ext === 'tms' && fa.icon === 'tms.ico' && ico && ico.readUInt16LE(2) === 1 && ico.readUInt16LE(4) >= 7, 'file .tms: nell\'installer estensione registrata con la sua icona (tms.ico, ' + (ico ? ico.readUInt16LE(4) : 0) + ' misure)'); }
     w.eval('conferma=_cf; avviso=_av; pkScarica=_pks; closeModal();'); }
   /* fine seduta sul telefono, poi «💾 Salva nello Storico» sul PC: la settimana si cristallizza */
   scrivi('rpe-0', '7'); scrivi('min-0', '60'); await giroTel(); await giroPC();

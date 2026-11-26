@@ -125,7 +125,8 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
 - **File .tms (un cliente in un file)**, tab Profilo: su ogni profilo «Esporta» (file «Nome.tms») e
   «Archivia» (esporta e poi, chiesto se il file è salvato, toglie il profilo dalla lista: la cartella va nel
   cestino dei profili); accanto a «Nuovo profilo» c'è «Importa cliente»; nell'app per PC si apre anche col
-  doppio clic (l'installer registra l'estensione; una sola istanza del TMS: col TMS aperto il file va a quello).
+  doppio clic (l'installer registra l'estensione con la sua icona, electron/build/tms.ico: un foglio pergamena con la
+  stella del TMS; una sola istanza del TMS: col TMS aperto il file va a quello).
   Il file è un archivio ZIP senza compressione: tms.json (formato «tms-cliente», versione, profilo), dati/
   scheda.json, storico.json, corpo.json, alimentazione.json, le foto come immagini in foto/, catalogo/
   esercizi.json e ricette.json con quelli che il cliente usa (all'arrivo si aggiungono solo quelli che
