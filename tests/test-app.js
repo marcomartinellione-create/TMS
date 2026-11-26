@@ -3524,7 +3524,7 @@ console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---'
       ok(figM !== figF && (figF.match(/<path d="M50 2\.6/g) || []).length === 1 && !/M50 2\.6/.test(figM) && (figM.match(/fill="#d4a017"/g) || []).length === 8 && (figF.match(/fill="#d4a017"/g) || []).length === 8,
          'rapporto: figura maschile o femminile (capelli, spalle, vita, fianchi) secondo il sesso del profilo, sempre con gli 8 elettrodi');
       { const apk = fs.readFileSync(path.join(ROOT, 'app-android', 'web', 'index.html'), 'utf8'), pc = fs.readFileSync(path.join(ROOT, 'src', 'app', '09d-rapporto-corpo.js'), 'utf8');
-        const blocco = t => { const i = t.indexOf('const SAGOME={'), j = t.indexOf('el:S.el}; }'); return i >= 0 && j > i ? t.slice(i, j) : ''; };
+        const blocco = s => { const t = s.replace(/\r\n/g, '\n'), i = t.indexOf('const SAGOME={'), j = t.indexOf('el:S.el}; }'); return i >= 0 && j > i ? t.slice(i, j) : ''; };
         ok(blocco(pc) !== '' && blocco(pc) === blocco(apk), 'figure del corpo: le sagome (uomo e donna) sono le stesse nel TMS sul PC e nell\'app del telefono'); } } }
   { const h = w.eval('htmlRapportoCorpo(DOC.pesate.find(function(p){return p.data==="2026-11-17";}))');
     ok(/solo il peso/.test(h) && /72,2/.test(h), 'rapporto di una pesata col solo peso: lo dice, senza errori'); }
