@@ -13,24 +13,55 @@ async function fotoScriviDataUri(pd, nome, dataUri){
   const wr=await fh.createWritable(); await wr.write(bytes); await wr.close();
   return true;
 }
+/* ── QUALI COPIE SI TENGONO (26/11/2026): le ultime AUTOBK_MAX settimanali PIÙ la più vecchia di ogni mese
+      (la prima copia di quel mese fra quelle presenti) per gli ultimi AUTOBK_MESI mesi, quello di oggi compreso.
+      Così, se ci si accorge tardi di un errore, c'è ancora una copia buona di qualche mese fa. Non si fanno
+      copie in più: si sceglie solo quali tenere. Vale per backup_automatici/ e per la cartella fuori dal PC
+      (non per le copie di sicurezza «prima del ripristino», che hanno la loro regola). Funzione pura:
+      prende nomi di file o date (anche oggetti {file,data} dell'indice) e torna due sottoinsiemi
+      dell'elenco, nell'ordine dato: «tieni» (tutte quelle da tenere) e «mensili» (quelle tenute SOLO perché
+      sono la copia del mese). Quello che non ha una data riconoscibile si tiene: non si cancella ciò che
+      non si capisce. ── */
+const AUTOBK_DIR='backup_automatici', AUTOBK_MAX=5, AUTOBK_GIORNI=7, AUTOBK_MESI=12;
+function bkDataDi(v){
+  const s=typeof v==='string'? v : String((v&&(v.data||v.file))||'');
+  const m=s.match(/(\d{4})-(\d\d)-(\d\d)/); return m? m[0] : ''; }
+function bkDaTenere(nomiODate, oggi){
+  const elenco=Array.isArray(nomiODate)? nomiODate : [];
+  const og=typeof oggi==='string'? oggi.slice(0,10) : new Date(oggi||Date.now()).toISOString().slice(0,10);
+  const meseNum=d=>(+d.slice(0,4))*12+(+d.slice(5,7))-1, primoMese=meseNum(og)-(AUTOBK_MESI-1);
+  const nome=v=>typeof v==='string'? v : String((v&&v.file)||'');
+  const conData=elenco.map((v,i)=>({v,i,d:bkDataDi(v)})).filter(x=>x.d)
+    .sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:(nome(a.v)<nome(b.v)?-1:nome(a.v)>nome(b.v)?1:a.i-b.i));
+  const ultime=new Set(conData.slice(Math.max(0, conData.length-AUTOBK_MAX)).map(x=>x.i));
+  const delMese=new Set(), visti=new Set();
+  conData.forEach(x=>{ const m=meseNum(x.d); if(m<primoMese || visti.has(m)) return; visti.add(m); delMese.add(x.i); });
+  const tieni=[], mensili=[];
+  elenco.forEach((v,i)=>{ const d=bkDataDi(v);
+    if(!d || ultime.has(i) || delMese.has(i)) tieni.push(v);
+    if(d && delMese.has(i) && !ultime.has(i)) mensili.push(v); });
+  return {tieni, mensili}; }
+/* l'ora di adesso per i backup (le prove la spostano avanti per simulare le settimane) */
+function bkAdesso(){ return new Date(); }
 /* ── backup AUTOMATICO (P-backup, v1.0.72): uno snapshot a settimana in
-      TMS_Dati/backup_automatici/, rotazione ultime AUTOBK_MAX copie.
+      TMS_Dati/backup_automatici/, si tengono quelli che dice bkDaTenere.
       Niente listing di directory nel ponte: l'elenco vive in indice.json. ── */
-const AUTOBK_DIR='backup_automatici', AUTOBK_MAX=5, AUTOBK_GIORNI=7;
 async function backupAutomaticoSeServe(){
   try{
     if(!dataDir) return false;
     const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:true});
     let indice=null; try{ indice=await readJson(dir,'indice.json'); }catch(e){}
     if(!indice||!Array.isArray(indice.list)) indice={list:[]};
-    const oggi=new Date().toISOString().slice(0,10);
+    const oggi=bkAdesso().toISOString().slice(0,10);
     const ultimo=indice.list.length?indice.list[indice.list.length-1]:null;
     if(ultimo && ultimo.data && (Date.parse(oggi)-Date.parse(ultimo.data)) < AUTOBK_GIORNI*86400000) return false;
     const nomeFile='TMS-auto-'+oggi+'.tmsb';
     await bkScriviBin(dir, nomeFile, (await backupCostruisci(null)).bytes);   /* completo: foto e video compresi */
     indice.list=indice.list.filter(x=>x&&x.file!==nomeFile);
     indice.list.push({file:nomeFile,data:oggi});
-    while(indice.list.length>AUTOBK_MAX){ const vecchio=indice.list.shift(); try{ await dir.removeEntry(vecchio.file); }catch(e){} }
+    const tieni=bkDaTenere(indice.list, oggi).tieni;
+    for(const vecchio of indice.list.filter(x=>!tieni.includes(x))){ try{ await dir.removeEntry(vecchio.file); }catch(e){} }
+    indice.list=tieni;
     await writeJson(dir,'indice.json',indice);
     return true;
   }catch(e){ logErrore('backupAutomatico', e); return false; }
@@ -61,10 +92,13 @@ async function salvaCopiaDiSicurezza(){
       MEGA o su una chiavetta — così sopravvive anche se il PC si rompe. La cartella la sceglie il selettore
       di Windows attraverso il ponte window.tmsScambio di electron/main.js: il percorso lo tiene main.js
       (userData/scambio.json), la pagina chiede solo nomi di file, le scritture restano chiuse lì dentro
-      (solo .json, scrittura atomica). Si tengono le ultime BKEST_MAX copie col nostro nome; gli altri file
-      della cartella non si toccano. Il percorso vale solo se è stato scelto da qui (`scelta`): una cartella
-      rimasta dal vecchio scambio con Google Drive non si usa da sola. ── */
-const BKEST_KEY='tms-bk-esterno', BKEST_MAX=5, BKEST_NOME=/^TMS-backup-\d{4}-\d\d-\d\d\.(json|tmsb)$/;
+      (solo .json, scrittura atomica). Fra le copie col nostro nome (anche i vecchi .json) si tengono quelle
+      che dice bkDaTenere; gli altri file della cartella non si toccano. Il percorso vale solo se è stato
+      scelto da qui (`scelta`): una cartella rimasta dal vecchio scambio con Google Drive non si usa da sola.
+      Lo stato in localStorage (tms-bk-esterno): scelta, sceltaIl (quando è stata scelta la cartella),
+      ultima (data e ora dell'ultima copia RIUSCITA) e file, errore/tentato (l'ultimo tentativo andato male).
+      Se da BKEST_AVVISO_GIORNI giorni non ne riesce una, il tab Profilo lo dice (copiaFuoriRiquadro). ── */
+const BKEST_KEY='tms-bk-esterno', BKEST_NOME=/^TMS-backup-\d{4}-\d\d-\d\d\.(json|tmsb)$/, BKEST_AVVISO_GIORNI=14;
 let _bkEstCartella='', _bkEstIn=false;
 function bkEstStato(){ try{ return JSON.parse(localStorage.getItem(BKEST_KEY)||'{}')||{}; }catch(e){ return {}; } }
 function bkEstSalva(o){ try{ localStorage.setItem(BKEST_KEY, JSON.stringify(o)); }catch(e){} }
@@ -77,31 +111,42 @@ async function bkEstCartella(){
 async function bkEstScegli(){
   if(!bkEstDisponibile()) return '';
   const c=String(await window.tmsScambio.scegli()||'');
-  if(c){ const s=bkEstStato(); s.scelta=true; delete s.errore; bkEstSalva(s); }
+  if(c){ const s=bkEstStato(); s.scelta=true; s.sceltaIl=bkAdesso().toISOString(); delete s.errore; delete s.tentato; bkEstSalva(s); }
   return await bkEstCartella(); }
+/* da quando la copia fuori dal PC non riesce: l'ultima riuscita, o (se non ce n'è mai stata una) il giorno della
+   scelta. Torna null se va tutto bene o se non c'è una cartella; altrimenti {dal, mai, motivo}. */
+function bkEstRitardo(){
+  if(!bkEstDisponibile()) return null;
+  const st=bkEstStato(); if(!st.scelta) return null;
+  const dal=String(st.ultima||st.sceltaIl||''); if(!dal) return null;
+  const ms=Date.parse(dal); if(!isFinite(ms) || bkAdesso().getTime()-ms <= BKEST_AVVISO_GIORNI*86400000) return null;
+  const motivo=st.errore && String(st.tentato||'')>=dal? String(st.errore) : '';
+  return {dal, mai:!st.ultima, motivo}; }
 async function bkEstTogli(){
   if(bkEstDisponibile()){ try{ await window.tmsScambio.scollega(); }catch(e){} }
   bkEstSalva({}); _bkEstCartella=''; }
 /* la copia: una a settimana (forza=true: adesso). Torna true se l'ha scritta. */
 async function bkEstCopia(forza){
   if(_bkEstIn || !bkEstDisponibile() || !dataDir) return false;
-  const st=bkEstStato(), oggi=new Date().toISOString().slice(0,10);
+  const st=bkEstStato(), adesso=bkAdesso(), oggi=adesso.toISOString().slice(0,10);
   if(!st.scelta) return false;
+  if(!st.ultima && !st.sceltaIl){ st.sceltaIl=adesso.toISOString(); bkEstSalva(st); }   /* cartella scelta prima che si segnasse il giorno */
   if(!forza && st.ultima && (Date.parse(oggi)-Date.parse(String(st.ultima).slice(0,10))) < AUTOBK_GIORNI*86400000) return false;
-  if(!(await bkEstCartella())) return false;
+  const fallita=motivo=>{ const s=bkEstStato(); s.errore=motivo; s.tentato=bkAdesso().toISOString(); bkEstSalva(s); return false; };
+  if(!(await bkEstCartella())) return fallita(t('il TMS non trova più la cartella scelta'));
   _bkEstIn=true;
   try{
     const nome='TMS-backup-'+oggi+'.tmsb';
     await window.tmsScambio.scrivi(nome, (await backupCostruisci(null)).bytes);   /* il backup completo (.tmsb) */
-    try{ const nostri=((await window.tmsScambio.elenca(''))||[]).filter(n=>BKEST_NOME.test(n)).sort();
-      for(const v of nostri.slice(0, Math.max(0, nostri.length-BKEST_MAX))) await window.tmsScambio.togli(v); }
+    try{ const nostri=((await window.tmsScambio.elenca(''))||[]).filter(n=>BKEST_NOME.test(n)), tieni=bkDaTenere(nostri, oggi).tieni;
+      for(const v of nostri.filter(n=>!tieni.includes(n))) await window.tmsScambio.togli(v); }
     catch(e){ logErrore('backupEsterno/rotazione', e); }
-    bkEstSalva({scelta:true, ultima:new Date().toISOString(), file:nome});
+    bkEstSalva({scelta:true, sceltaIl:st.sceltaIl, ultima:bkAdesso().toISOString(), file:nome});
+    { const r=document.getElementById('prof-copia-ko'); if(r) r.remove(); }   /* l'avviso nel tab Profilo non serve più */
     return true;
   }catch(e){
     logErrore('backupEsterno', e);
-    const s=bkEstStato(); s.errore=String((e&&e.message)||e); s.tentato=new Date().toISOString(); bkEstSalva(s);
-    return false;
+    return fallita(String((e&&e.message)||e));
   }finally{ _bkEstIn=false; }
 }
 function bkEstTestoStato(){
@@ -114,7 +159,7 @@ function bkSezioneImpostazioni(){
   if(!bkEstDisponibile()) return '';
   const c=_bkEstCartella;
   return `<div class="imp-sez" id="imp-bk"><h4>${t('Copia dei backup')}</h4>
-    <div class="lat-nota" style="margin:0 0 8px">${t('Ogni settimana il TMS fa un backup completo di tutti i profili, foto comprese. Scegli una cartella fuori da questo PC, per esempio dentro OneDrive, Google Drive o MEGA, o su una chiavetta: lì ne va una copia, così lo storico dei clienti resta al sicuro anche se il PC si rompe. Si tengono le ultime cinque.')}</div>
+    <div class="lat-nota" style="margin:0 0 8px">${t('Ogni settimana il TMS fa un backup completo di tutti i profili, foto comprese. Scegli una cartella fuori da questo PC, per esempio dentro OneDrive, Google Drive o MEGA, o su una chiavetta: lì ne va una copia, così lo storico dei clienti resta al sicuro anche se il PC si rompe. Si tengono le ultime cinque copie e, per un anno, la prima di ogni mese.')}</div>
     <div class="imp-riga imp-codice"><span>${t('Cartella')}</span><code class="tel-codice imp-bk-percorso" id="imp-bk-cartella">${c? esc(c) : esc(t('nessuna'))}</code>
       <span class="gruppo"><button class="btn btn--sm${c?'':' btn--ember'}" id="imp-bk-scegli">${t(c?'Cambia…':'Scegli…')}</button>${c?`<button class="btn btn--sm" id="imp-bk-ora">${t('Copia adesso')}</button><button class="btn btn--sm" id="imp-bk-togli">${t('Togli')}</button>`:''}</span></div>
     ${c? `<div class="lat-nota" id="imp-bk-stato">${bkEstTestoStato()}</div>
@@ -139,7 +184,9 @@ async function listaBackupAutomatici(){
     if(!dataDir) return [];
     const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:false});
     const ind=await readJson(dir,'indice.json');
-    return (ind&&Array.isArray(ind.list))? ind.list.slice().reverse() : [];
+    if(!ind||!Array.isArray(ind.list)) return [];
+    const mensili=bkDaTenere(ind.list, bkAdesso()).mensili;   /* le copie tenute come «copia del mese» si distinguono */
+    return ind.list.map(x=>mensili.includes(x)? Object.assign({}, x, {mensile:true}) : x).reverse();
   }catch(e){ return []; }
 }
 async function ripristinaBackupAutomatico(nomeFile){

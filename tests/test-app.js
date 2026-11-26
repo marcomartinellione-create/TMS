@@ -3524,10 +3524,10 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     ok(nomi.length === 1 && /^TMS-backup-\d{4}-\d\d-\d\d\.tmsb$/.test(nomi[0]) && typeof est.get(nomi[0]) !== 'string' && (await leggiTmsb(w, est.get(nomi[0]))).man.formato === 'tms-backup', 'backup fuori dal PC: scelta la cartella, la prima copia (backup completo .tmsb) parte subito');
     ok(/OneDrive/.test(d.getElementById('imp-bk-cartella').textContent) && /Ultima copia/.test(d.getElementById('imp-bk-stato').textContent), 'impostazioni: cartella scelta e ultima copia');
     ok(await w.eval('bkEstCopia()') === false, 'backup fuori dal PC: una a settimana (subito dopo non ne rifà un\'altra)');
-    for (const g of ['2026-01-01', '2026-01-08', '2026-01-15', '2026-01-22']) est.set('TMS-backup-' + g + '.json', '{}');   /* anche le copie vecchie in .json contano fra le cinque */
-    est.set('TMS-backup-2026-01-29.tmsb', new Uint8Array(4));
+    for (const g of ['2024-01-01', '2024-01-08', '2024-01-15', '2024-01-22']) est.set('TMS-backup-' + g + '.json', '{}');   /* anche le copie vecchie in .json contano fra le cinque (di oltre un anno fa: nessuna resta come copia del mese) */
+    est.set('TMS-backup-2024-01-29.tmsb', new Uint8Array(4));
     est.set('altro.json', '{}');
-    ok(await w.eval('bkEstCopia(true)') === true && [...est.keys()].filter(n => /^TMS-backup-/.test(n)).length === 5 && est.has('altro.json') && !est.has('TMS-backup-2026-01-01.json'),
+    ok(await w.eval('bkEstCopia(true)') === true && [...est.keys()].filter(n => /^TMS-backup-/.test(n)).length === 5 && est.has('altro.json') && !est.has('TMS-backup-2024-01-01.json'),
        'backup fuori dal PC: si tengono le ultime cinque copie, gli altri file della cartella non si toccano');
     w.tmsScambio.scrivi = async () => { throw new Error('disco non trovato'); };
     ok(await w.eval('bkEstCopia(true)') === false && /non è riuscita/.test(w.eval('bkEstTestoStato()')), 'backup fuori dal PC: se la cartella non si raggiunge lo dice, e riprova al prossimo avvio');
@@ -4271,6 +4271,98 @@ console.log('--- T16: backup completo (.tmsb), ripristino di tutto o di un clien
     ok(sic && /\.tmsb$/.test(f) && sic.snap.profili.some(p => p.slug === 'anna-2') && sic.snap.profiles.anna.storico.some(r => +r.peso === 150), 'Ripristina tutto: prima c\'è la copia di sicurezza completa dello stato di prima'); }
   ok(w.eval('__avvisi').some(m => /Backup ripristinato/.test(m) && /2 profili/.test(m)), 'Ripristina tutto: l\'avviso riassume cosa è tornato');
   ok(await w.eval('backupApri(new Uint8Array([80,75,3,4,1,2,3]))') === false && w.eval('__avvisi').some(m => /non è un backup del TMS/.test(m)), 'un file qualsiasi viene rifiutato con un messaggio chiaro');
+
+  /* F · quali copie si tengono: le ultime 5 settimanali più la prima di ogni mese per 12 mesi (backup_automatici/ e cartella fuori dal PC) */
+  w.eval('var _bka=bkAdesso; window.__ora="2026-11-26T09:00:00Z"; bkAdesso=function(){ return new Date(window.__ora); };');
+  const ora = iso => w.eval('window.__ora=' + J(iso));
+  /* 14 mesi di copie (da settembre 2025), febbraio e giugno senza copie, le più vecchie ancora in .json */
+  const GIORNI = ['2025-09-03', '2025-09-24', '2025-10-01', '2025-11-05', '2025-12-03', '2025-12-10', '2026-01-07', '2026-01-14', '2026-03-04', '2026-03-11', '2026-03-25',
+    '2026-04-01', '2026-05-06', '2026-05-27', '2026-07-01', '2026-08-05', '2026-08-12', '2026-09-02', '2026-10-07', '2026-10-14', '2026-10-21', '2026-10-28',
+    '2026-11-04', '2026-11-11', '2026-11-18', '2026-11-25'];
+  const nomeEst = g => 'TMS-backup-' + g + (g < '2026-03-01' ? '.json' : '.tmsb');
+  const MENSILI_NOV = ['2025-12-03', '2026-01-07', '2026-03-04', '2026-04-01', '2026-05-06', '2026-07-01', '2026-08-05', '2026-09-02', '2026-10-07'];
+  { const elenco = GIORNI.map(nomeEst).concat(['TMS-backup-senza-data.tmsb']).reverse();   /* l'ordine dato non conta */
+    const r = JSON.parse(w.eval('JSON.stringify(bkDaTenere(' + J(elenco) + ', "2026-11-26"))'));
+    const attese = MENSILI_NOV.concat(['2026-10-28', '2026-11-04', '2026-11-11', '2026-11-18', '2026-11-25']).map(nomeEst).concat(['TMS-backup-senza-data.tmsb']);
+    ok(J(r.tieni.slice().sort()) === J(attese.slice().sort()), 'bkDaTenere: le ultime 5 più la prima copia di ogni mese degli ultimi 12 (14 mesi di copie, febbraio e giugno senza, i vecchi .json contano)');
+    ok(J(r.mensili.slice().sort()) === J(MENSILI_NOV.map(nomeEst).sort()), 'bkDaTenere: «mensili» sono quelle tenute solo come copia del mese (quella di novembre è già fra le ultime 5)');
+    ok(!r.tieni.some(n => /2025-(09|10|11)-/.test(n)) && r.tieni.includes('TMS-backup-senza-data.tmsb') && J(r.tieni) === J(elenco.filter(n => r.tieni.includes(n))),
+       'bkDaTenere: niente oltre i 12 mesi; ciò che non ha una data si tiene; torna le voci nell\'ordine dato');
+    const conDate = JSON.parse(w.eval('JSON.stringify(bkDaTenere(' + J(GIORNI) + ', new Date("2026-11-26T09:00:00Z")))'));
+    ok(conDate.tieni.length === 14 && conDate.tieni.includes('2025-12-03') && !conDate.tieni.includes('2025-12-10') && !conDate.tieni.includes('2026-10-21'), 'bkDaTenere: funziona anche con le sole date (e oggi come Date)');
+    ok(w.eval('bkDaTenere(["2026-11-04","2026-11-11"], "2026-11-26").tieni.length') === 2 && w.eval('bkDaTenere([], "2026-11-26").tieni.length') === 0, 'bkDaTenere: con poche copie le tiene tutte'); }
+  /* la rotazione vera in backup_automatici/ (l'indice ha anche un vecchio .json e le copie di sicurezza, che non si toccano) */
+  { const AB = 'TMS_Dati/backup_automatici/';
+    const nomeAuto = g => g === '2026-01-07' ? 'TMS-auto-2026-01-07.json' : 'TMS-auto-' + g + '.tmsb';
+    const prima = GIORNI.filter(g => g !== '2026-11-25');
+    for (const g of prima) await fsmem.writeFile(AB + nomeAuto(g), new Uint8Array([1, 2, 3]));
+    const ind = JSON.parse(testo(AB + 'indice.json'));
+    ind.list = prima.map(g => ({ file: nomeAuto(g), data: g }));
+    const sicPrima = J(ind.sicurezza || []);
+    await fsmem.writeFile(AB + 'indice.json', J(ind));
+    ok(await w.eval('backupAutomaticoSeServe()') === true, 'backup automatico: dopo 8 giorni ne fa uno nuovo');
+    const dopo = JSON.parse(testo(AB + 'indice.json')), file = dopo.list.map(x => x.file);
+    const attesi = MENSILI_NOV.concat(['2026-10-28', '2026-11-04', '2026-11-11', '2026-11-18']).map(nomeAuto).concat(['TMS-auto-2026-11-26.tmsb']);
+    ok(J(file) === J(attesi), 'backup automatico: restano le ultime 5 e la prima di ogni mese per 12 mesi (anche il vecchio .json), nell\'ordine');
+    ok(attesi.every(f => fsmem._files.has(AB + f)) && prima.map(nomeAuto).filter(f => !attesi.includes(f)).every(f => !fsmem._files.has(AB + f)) && J(dopo.sicurezza || []) === sicPrima,
+       'backup automatico: le altre copie sono tolte dal disco; le copie di sicurezza non cambiano');
+    w.eval('profBkAperto=true; renderProfilo()'); await settle(200);
+    { const men = [...d.querySelectorAll('#prof-autobk-lista [data-mensile]')];
+      ok(men.length === 9 && men.every(p => /mensile/.test(p.textContent)) && /2025-12-03/.test(men[men.length - 1].textContent) && !/mensile/.test(d.querySelector('#prof-autobk-lista .pill').textContent),
+         'tab Profilo: nei backup automatici le copie del mese hanno l\'etichetta «mensile» (le settimanali no)'); }
+    w.eval('profBkAperto=false');
+    ora('2026-12-03T09:00:00Z');
+    ok(await w.eval('backupAutomaticoSeServe()') === true, 'backup automatico: la settimana dopo, un altro');
+    const dic = JSON.parse(testo(AB + 'indice.json')).list.map(x => x.file);
+    ok(dic.length === 13 && !dic.includes('TMS-auto-2025-12-03.tmsb') && !dic.includes('TMS-auto-2026-10-28.tmsb') && dic.includes('TMS-auto-2026-10-07.tmsb') && dic.includes('TMS-auto-2026-12-03.tmsb'),
+       'backup automatico: passato un mese, esce la copia di 13 mesi fa e la settimanale che non è più fra le ultime 5'); }
+  /* la stessa regola nella cartella fuori dal PC (finta), e l'avviso se la copia non riesce da più di 14 giorni */
+  { const est = new Map(); let cartella = 'E:\\Chiavetta TMS';
+    w.tmsScambio = { cartella: async () => cartella, scegli: async () => cartella, scollega: async () => { cartella = ''; },
+      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async () => [...est.keys()], togli: async n => { est.delete(n); } };
+    for (const g of GIORNI.filter(g => g !== '2026-11-25')) est.set(nomeEst(g), '{}');
+    est.set('altro.json', '{}'); est.set('Foto vacanze.tmsb', '{}');
+    ora('2026-11-26T09:00:00Z');
+    w.eval('localStorage.setItem("tms-bk-esterno", ' + J(J({ scelta: true, ultima: '2026-11-18T10:00:00.000Z', file: 'TMS-backup-2026-11-18.tmsb' })) + ')');
+    ok(await w.eval('bkEstCopia()') === true, 'copia fuori dal PC: dopo 8 giorni ne fa una nuova');
+    const attese = MENSILI_NOV.concat(['2026-10-28', '2026-11-04', '2026-11-11', '2026-11-18']).map(nomeEst).concat(['TMS-backup-2026-11-26.tmsb']);
+    ok(J([...est.keys()].filter(n => /^TMS-backup-/.test(n)).sort()) === J(attese.sort()) && est.has('altro.json') && est.has('Foto vacanze.tmsb'),
+       'copia fuori dal PC: restano le ultime 5 e la prima di ogni mese per 12 mesi (i vecchi .json contano); gli altri file non si toccano');
+    ok(w.eval('localStorage.getItem("tms-bk-esterno")').includes('"ultima":"2026-11-26T09:00:00.000Z"'), 'copia fuori dal PC: lo stato segna la data dell\'ultima copia riuscita');
+    /* la cartella non si raggiunge: per 14 giorni nessun avviso, poi una riga nel tab Profilo */
+    w.tmsScambio.scrivi = async () => { throw new Error('disco non trovato'); };
+    ora('2026-12-09T09:00:00Z');
+    ok(await w.eval('bkEstCopia()') === false && w.eval('copiaFuoriRiquadro()') === '', 'avviso: dopo 13 giorni senza copie riuscite, ancora niente');
+    ora('2026-12-11T09:00:00Z');
+    ok(await w.eval('bkEstCopia()') === false, 'prova: la copia non riesce');
+    w.eval('renderProfilo()'); await settle(100);
+    { const r = d.getElementById('prof-copia-ko');
+      ok(r && r.classList.contains('callout') && /non riesce dal/.test(r.textContent) && /26 novembre 2026/.test(r.textContent) && /disco non trovato/.test(r.textContent) && !d.getElementById('prof-copia-fuori'),
+         'avviso: dopo 15 giorni il tab Profilo dice da quando la copia non riesce, con la data e il motivo');
+      ok(d.getElementById('prof-copia-ora') && /Copia adesso/.test(d.getElementById('prof-copia-ora').textContent) && d.getElementById('prof-copia-scegli') && /Scegli un’altra cartella/.test(d.getElementById('prof-copia-scegli').textContent),
+         'avviso: coi pulsanti «Copia adesso» e «Scegli un\'altra cartella…»'); }
+    d.getElementById('prof-copia-ora').click();
+    for (let k = 0; k < 40 && !w.eval('__avvisi').some(m => /La copia non è riuscita/.test(m)); k++) await settle(50);
+    ok(w.eval('__avvisi').some(m => /La copia non è riuscita\. disco non trovato/.test(m)) && d.getElementById('prof-copia-ko'), '«Copia adesso» che non riesce: lo dice, e la riga resta');
+    w.tmsScambio.scrivi = async (n, tx) => { est.set(n, tx); };
+    d.getElementById('prof-copia-ora').click();
+    for (let k = 0; k < 40 && !est.has('TMS-backup-2026-12-11.tmsb'); k++) await settle(50);
+    await settle(150);
+    ok(est.has('TMS-backup-2026-12-11.tmsb') && !d.getElementById('prof-copia-ko') && w.eval('copiaFuoriRiquadro()') === '', 'avviso: dopo una copia riuscita la riga sparisce');
+    /* mai riuscita: si conta dal giorno in cui è stata scelta la cartella */
+    w.eval('localStorage.setItem("tms-bk-esterno", ' + J(J({ scelta: true, sceltaIl: '2026-11-25T09:00:00.000Z' })) + ')');
+    ora('2026-12-08T09:00:00Z');
+    ok(w.eval('copiaFuoriRiquadro()') === '', 'avviso: cartella scelta da poco e nessuna copia ancora, niente riga');
+    ora('2026-12-11T09:00:00Z');
+    ok(/ancora riuscita/.test(w.eval('copiaFuoriRiquadro()')) && /25 novembre 2026/.test(w.eval('copiaFuoriRiquadro()')), 'avviso: nessuna copia riuscita in 15 giorni dalla scelta della cartella, la riga lo dice');
+    /* una cartella scelta prima che si segnasse il giorno: si comincia a contare adesso */
+    w.eval('localStorage.setItem("tms-bk-esterno", ' + J(J({ scelta: true })) + ')');
+    cartella = '';
+    ok(await w.eval('bkEstCopia()') === false && /"sceltaIl":"2026-12-11T09:00:00.000Z"/.test(w.eval('localStorage.getItem("tms-bk-esterno")')) && /non trova più la cartella/.test(w.eval('localStorage.getItem("tms-bk-esterno")')),
+       'copia fuori dal PC: senza il giorno della scelta si comincia a contare adesso; se la cartella non si trova lo segna come motivo');
+    ora('2026-12-27T09:00:00Z');
+    ok(/non trova più la cartella/.test(w.eval('copiaFuoriRiquadro()')), 'avviso: il motivo «non trova più la cartella» compare nella riga');
+    delete w.tmsScambio; w.eval('localStorage.removeItem("tms-bk-esterno"); bkAdesso=_bka; renderProfilo();'); await settle(100); }
   w.eval('REF.esercizi=window.__refEs; conferma=_cf; avviso=_av; pkScarica=_pks; closeModal();');
   await settle(600);   /* i semafori e l'avviso dei profili fuori elenco si aggiornano dopo */
   ok(errors.length === 0, 'backup completo: nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));

@@ -79,6 +79,7 @@ function renderProfilo(){
   { const pn=document.getElementById('prof-new'); if(pn) pn.onclick=()=>chiediTesto(t('Nuovo profilo (atleta/cliente)'),'',v=>{ const n=(v||'').trim(); if(!n)return; createProfile(n); }); }
   { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=()=>backupScarica(); }
   { const cf=document.getElementById('prof-copia-scegli'); if(cf) cf.onclick=()=>copiaFuoriScegli(); }
+  { const ca=document.getElementById('prof-copia-ora'); if(ca) ca.onclick=()=>copiaFuoriAdesso(ca); }
   orfaniRiquadro(document.getElementById('prof-orfani')).catch(e=>logErrore('orfani', e));
   { const rs=document.getElementById('prof-restore'); if(rs) rs.onchange=e=>{ if(e.target.files&&e.target.files[0]){ restoreData(e.target.files[0]); e.target.value=''; } }; }
   { const pi=document.getElementById('prof-importa'); if(pi) pi.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) await pacchettoImporta(new Uint8Array(await f.arrayBuffer())); }; }
@@ -90,10 +91,10 @@ function renderProfilo(){
     if(ab) Promise.all([listaBackupAutomatici().catch(()=>[]), listaCopieDiSicurezza().catch(()=>[])]).then(([l,ls])=>{
       if(!ab.isConnected) return;
       l=l||[]; ls=ls||[];
-      const voce=(x,ora)=>`<span class="pill">${esc(x.data||'?')}${ora&&x.ora?' '+esc(x.ora):''} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">${t('ripristina')}</a></span>`;
+      const voce=(x,ora)=>`<span class="pill"${x.mensile?' data-mensile="1"':''}>${esc(x.data||'?')}${ora&&x.ora?' '+esc(x.ora):''}${x.mensile?' · <b>'+t('mensile')+'</b>':''} · <a href="#" data-autobk="${esc(x.file)}" style="color:var(--ember-2)">${t('ripristina')}</a></span>`;
       ab.innerHTML=`<button class="btn" id="prof-autobk-btn" aria-expanded="${profBkAperto?'true':'false'}">${ico('salva','p')}${t('Backup automatici')} <span class="pill">${l.length+ls.length}</span><span class="bk-freccia">${ico(profBkAperto?'su':'giu','p')}</span></button>
         <div id="prof-autobk-lista" class="prof-bk-lista"${profBkAperto?'':' hidden'}>
-          <div class="muted" style="font-size:11.5px;margin-bottom:2px;flex-basis:100%">${t('Uno a settimana, fatti dall\'app da sola (ultime')} ${AUTOBK_MAX} ${t('copie in')} <span class="mono">TMS_Dati/${AUTOBK_DIR}/</span>).</div>
+          <div class="muted" style="font-size:11.5px;margin-bottom:2px;flex-basis:100%">${t('Uno a settimana, fatti dall\'app da sola (ultime')} ${AUTOBK_MAX} ${t('copie, più la prima di ogni mese per un anno, in')} <span class="mono">TMS_Dati/${AUTOBK_DIR}/</span>).</div>
           ${l.length? l.map(x=>voce(x,false)).join(' ') : `<span class="muted" style="font-size:12px">${t('Ancora nessuna copia.')}</span>`}
           ${ls.length?`<div style="margin-top:7px;font-size:12px;flex-basis:100%">${t('<b>Prima dell\'ultimo ripristino</b> (per tornare indietro):')} ${ls.map(x=>voce(x,true)).join(' ')}</div>`:''}
         </div>`;

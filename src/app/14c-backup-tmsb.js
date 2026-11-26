@@ -181,9 +181,21 @@ async function orfaniRiquadro(box){
     <div class="bar" style="margin-top:8px"><button class="btn btn--sm btn--ember" id="orf-rimetti">${t('Rimettili in elenco')}</button><button class="btn btn--sm" id="orf-cestina">${t('Mettili nel cestino')}</button></div></div></div>`;
   document.getElementById('orf-rimetti').onclick=()=>orfaniRimetti(l);
   document.getElementById('orf-cestina').onclick=async()=>{ if(await conferma(t('Metto nel cestino dei profili')+' '+l.map(o=>'«'+o.nome+'»').join(', ')+'? '+t('Da lì si possono ancora recuperare a mano.'))) orfaniCestina(l); }; }
-/* ── PROMEMORIA della copia fuori dal PC (E): una riga, non una notifica ── */
+/* ── PROMEMORIA della copia fuori dal PC (E): una riga, non una notifica. Senza cartella lo ricorda; con la
+      cartella, avvisa se da più di BKEST_AVVISO_GIORNI giorni la copia non riesce (OneDrive scollegato,
+      chiavetta tolta…): da quando, il motivo se è noto, «Copia adesso» e «Scegli un'altra cartella…». ── */
 function copiaFuoriRiquadro(){
-  if(!bkEstDisponibile() || bkEstStato().scelta) return '';
-  return `<div class="callout callout--warn no-print" id="prof-copia-fuori" style="margin-top:8px"><div>${t('Nessuna copia dei backup fuori da questo PC: se il disco si rompe, lo storico dei clienti si perde.')}
-    <div class="bar" style="margin-top:8px"><button class="btn btn--sm btn--ember" id="prof-copia-scegli">${t('Scegli una cartella…')}</button></div></div></div>`; }
+  if(!bkEstDisponibile()) return '';
+  if(!bkEstStato().scelta) return `<div class="callout callout--warn no-print" id="prof-copia-fuori" style="margin-top:8px"><div>${t('Nessuna copia dei backup fuori da questo PC: se il disco si rompe, lo storico dei clienti si perde.')}
+    <div class="bar" style="margin-top:8px"><button class="btn btn--sm btn--ember" id="prof-copia-scegli">${t('Scegli una cartella…')}</button></div></div></div>`;
+  const r=bkEstRitardo(); if(!r) return '';
+  let quando=r.dal; try{ quando=new Date(r.dal).toLocaleDateString(LANG==='en'?'en-GB':'it-IT',{day:'numeric',month:'long',year:'numeric'}); }catch(e){}
+  return `<div class="callout callout--warn no-print" id="prof-copia-ko" style="margin-top:8px"><div>${t(r.mai? 'Nessuna copia dei backup è ancora riuscita nella cartella fuori da questo PC, scelta il' : 'La copia dei backup fuori da questo PC non riesce dal')} <b>${esc(quando)}</b>${r.motivo? ' ('+esc(r.motivo)+')' : ''}. ${t('Se la cartella è su OneDrive o su un disco esterno, controlla che sia collegato.')}
+    <div class="bar" style="margin-top:8px"><button class="btn btn--sm btn--ember" id="prof-copia-ora">${t('Copia adesso')}</button><button class="btn btn--sm" id="prof-copia-scegli">${t('Scegli un’altra cartella…')}</button></div></div></div>`; }
 async function copiaFuoriScegli(){ if(await bkEstScegli()) await bkEstCopia(true); renderProfilo(); }
+async function copiaFuoriAdesso(b){
+  if(b){ b.disabled=true; b.textContent=t('Copia in corso…'); }
+  const ok=await bkEstCopia(true);
+  renderProfilo();
+  if(!ok){ const st=bkEstStato(); await avviso(t('La copia non è riuscita.')+(st.errore? ' '+st.errore : '')); }
+  return ok; }

@@ -122,18 +122,26 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   Nell'app per PC un .tmsb si apre anche col doppio clic e porta alla stessa scelta (l'installer registra
   l'estensione con la sua icona, electron/build/tmsb.ico: il foglio del .tms con altri due fogli dietro).
   Sotto, il pulsante **Backup automatici** (si apre e mostra le copie): l'app fa da sola un backup
-  completo .tmsb a settimana (cartella «backup_automatici» dentro i dati, ultime 5 copie) con link
-  «ripristina» accanto a ciascuno.
+  completo .tmsb a settimana (cartella «backup_automatici» dentro i dati) con link «ripristina» accanto
+  a ciascuno. Si tengono le ultime 5 copie settimanali più la più vecchia di ogni mese (la prima copia di
+  quel mese fra quelle presenti) per gli ultimi 12 mesi, quello in corso compreso; quelle tenute solo come
+  copia del mese hanno l'etichetta «mensile». Non si fanno copie in più: si sceglie solo quali tenere. Le
+  copie di sicurezza «prima del ripristino» hanno la loro regola (le ultime 3).
 - **Profili fuori elenco**: se nella cartella dei dati c'è una cartella con i file di un profilo
   (scheda/storico/corpo/alimentazione.json) che profili.json non elenca, il tab Profilo lo segnala col
   nome del cliente: «Rimettili in elenco» oppure «Mettili nel cestino» (cestino dei profili).
 - **Copia dei backup fuori dal PC** (⚙ Impostazioni › Copia dei backup, solo nell'app per PC): si sceglie
   una cartella col selettore di Windows (dentro OneDrive, Google Drive, MEGA o una chiavetta; non la
   cartella dei dati né un disco intero) e ogni settimana ci va il backup completo
-  (TMS-backup-AAAA-MM-GG.tmsb, ultime 5; gli altri file della cartella non si toccano); «Copia adesso» la
-  fa subito. La copia non è cifrata. Se la cartella non si raggiunge lo dice e riprova al prossimo
-  avvio. Si riprende con Ripristina scegliendo il file. Finché non è scelta una cartella, nel tab Profilo
-  una riga lo ricorda con «Scegli una cartella…». Il percorso lo tiene il processo principale
+  (TMS-backup-AAAA-MM-GG.tmsb; si tengono con la stessa regola dei backup automatici, le ultime 5 più la
+  prima di ogni mese per 12 mesi, e i vecchi TMS-backup-AAAA-MM-GG.json contano come le altre; gli altri
+  file della cartella non si toccano); «Copia adesso» la fa subito. La copia non è cifrata. Se la
+  cartella non si raggiunge lo dice e riprova al prossimo avvio. Si riprende con Ripristina scegliendo il
+  file. Finché non è scelta una cartella, nel tab Profilo una riga lo ricorda con «Scegli una cartella…».
+  Se l'ultima copia riuscita ha più di 14 giorni (o, se non ne è mai riuscita una, sono passati 14 giorni
+  da quando è stata scelta la cartella), nel tab Profilo una riga dice da quando non riesce, con la data
+  e il motivo se è noto (per esempio «il TMS non trova più la cartella scelta»), e ha i pulsanti
+  «Copia adesso» e «Scegli un'altra cartella…»; sparisce appena una copia riesce. Il percorso lo tiene il processo principale
   (ponte tmsScambio di electron/main.js, scritture chiuse in quella cartella, solo .json e .tmsb).
 - **Versione dell'app**: ⚙ Impostazioni › Informazioni.
 - **File .tms (un cliente in un file)**, tab Profilo: su ogni profilo «Esporta» (file «Nome.tms») e
