@@ -274,8 +274,10 @@ function sceltaModal(titolo, testoHtml, scelte){
     document.querySelectorAll('[data-pk-scelta]').forEach(b=>{ b.onclick=()=>{ const v=b.getAttribute('data-pk-scelta'); closeModal(); fine(v); }; });
     const bk=document.getElementById('modal-bk'), oss=new MutationObserver(()=>{ if(bk.classList.contains('hidden')){ oss.disconnect(); fine(null); } });
     oss.observe(bk, {attributes:true, attributeFilter:['class']}); }); }
-/* un file .tms aperto col doppio clic (app per PC): si aspetta che i dati siano pronti, poi si importa */
+/* un file .tms o .tmsb aperto col doppio clic (app per PC): si aspetta che i dati siano pronti, poi si importa il cliente o si apre il backup */
 async function pacchettoDaFile(f){
   if(!f || !f.dati) return;
   for(let k=0;k<150 && !dataDir;k++) await new Promise(r=>setTimeout(r,100));
-  await pacchettoImporta(f.dati instanceof Uint8Array? f.dati : new Uint8Array(f.dati)); }
+  const dati=f.dati instanceof Uint8Array? f.dati : new Uint8Array(f.dati);
+  if(/\.tmsb$/i.test(String(f.nome||''))) await backupApri(dati);   /* un backup (.tmsb): Ripristina tutto o un cliente solo */
+  else await pacchettoImporta(dati); }

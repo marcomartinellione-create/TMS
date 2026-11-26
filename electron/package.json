@@ -23,7 +23,8 @@
     "directories": { "output": "dist" },
     "files": ["main.js", "preload.js", "renderer/**", "build/**"],
     "win": { "target": "nsis", "icon": "build/icon.ico" },
-    "fileAssociations": [{ "ext": "tms", "name": "Cliente TMS", "description": "Cliente del Training Monitor System", "role": "Editor", "icon": "tms.ico" }],
+    "fileAssociations": [{ "ext": "tms", "name": "Cliente TMS", "description": "Cliente del Training Monitor System", "role": "Editor", "icon": "tms.ico" },
+                         { "ext": "tmsb", "name": "Backup TMS", "description": "Backup completo del Training Monitor System", "role": "Editor", "icon": "tmsb.ico" }],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

@@ -3751,7 +3751,9 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     ok(w.eval('__avvisi').some(m => /non è un cliente del TMS/.test(m)), 'file .tms: un file qualsiasi viene rifiutato con un messaggio chiaro');
     { const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'electron', 'package.json'), 'utf8')), fa = ((pkg.build || {}).fileAssociations || [])[0] || {};
       const ico = fs.existsSync(path.join(ROOT, 'electron', 'build', 'tms.ico')) ? fs.readFileSync(path.join(ROOT, 'electron', 'build', 'tms.ico')) : null;
-      ok(fa.ext === 'tms' && fa.icon === 'tms.ico' && ico && ico.readUInt16LE(2) === 1 && ico.readUInt16LE(4) >= 7, 'file .tms: nell\'installer estensione registrata con la sua icona (tms.ico, ' + (ico ? ico.readUInt16LE(4) : 0) + ' misure)'); }
+      ok(fa.ext === 'tms' && fa.icon === 'tms.ico' && ico && ico.readUInt16LE(2) === 1 && ico.readUInt16LE(4) >= 7, 'file .tms: nell\'installer estensione registrata con la sua icona (tms.ico, ' + (ico ? ico.readUInt16LE(4) : 0) + ' misure)');
+      const fb = ((pkg.build || {}).fileAssociations || [])[1] || {}, icb = fs.existsSync(path.join(ROOT, 'electron', 'build', 'tmsb.ico')) ? fs.readFileSync(path.join(ROOT, 'electron', 'build', 'tmsb.ico')) : null;
+      ok(fb.ext === 'tmsb' && fb.icon === 'tmsb.ico' && icb && icb.readUInt16LE(2) === 1 && icb.readUInt16LE(4) >= 7 && !icb.equals(ico), 'file .tmsb: estensione registrata con la sua icona, diversa da quella del .tms (tmsb.ico, ' + (icb ? icb.readUInt16LE(4) : 0) + ' misure)'); }
     w.eval('conferma=_cf; avviso=_av; pkScarica=_pks; closeModal();'); }
   /* fine seduta sul telefono, poi «💾 Salva nello Storico» sul PC: la settimana si cristallizza */
   scrivi('rpe-0', '7'); scrivi('min-0', '60'); await giroTel(); await giroPC();
@@ -4168,6 +4170,11 @@ console.log('--- T16: backup completo (.tmsb), ripristino di tutto o di un clien
   /* B · riprendere un solo cliente: gli altri profili non si toccano */
   await w.eval('deleteProfile("bruno",{confermato:true})'); await settle(200);
   ok(!w.eval('profili.some(function(p){ return p.slug==="bruno"; })') && !fsmem._files.has('TMS_Dati/bruno/storico.json'), 'prova: Bruno tolto (va nel cestino dei profili)');
+  { const pd = w.eval('pacchettoDaFile({nome:"TMS-backup-2026-11-26.tmsb", dati:__bk1})'); await settle(80);   /* doppio clic su un .tmsb (app per PC) */
+    ok(d.querySelector('[data-pk-scelta="tutto"]') && d.querySelector('[data-pk-scelta="cliente"]') && /Bruno/.test(d.getElementById('modal').textContent),
+       'doppio clic su un .tmsb: si apre il backup con le due scelte, non l\'import di un cliente');
+    w.eval('closeModal()'); await pd; await settle(20);
+    ok(!w.eval('profili.some(function(p){ return p.slug==="bruno"; })'), 'doppio clic su un .tmsb: chiuso con ✕ non cambia nulla'); }
   { const pr = w.eval('backupApri(__bk1)'); await settle(80);
     const m = d.getElementById('modal').textContent;
     ok(/Anna/.test(m) && /Bruno/.test(m) && /Video personali/.test(m) && /Profili fuori elenco/.test(m) && d.querySelector('[data-pk-scelta="tutto"]') && d.querySelector('[data-pk-scelta="cliente"]'),

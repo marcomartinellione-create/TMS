@@ -123,6 +123,8 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   _eliminati/, poi si riscrivono file, foto, video, catalogo, ricette, taccuino e impostazioni; se la
   lingua del backup è diversa va riaperto il TMS) oppure «Riprendi solo un cliente…» (si sceglie quale;
   entra come un file .tms: gli altri profili non si toccano, se c'è già si sceglie nuovo o sostituisci).
+  Nell'app per PC un .tmsb si apre anche col doppio clic e porta alla stessa scelta (l'installer registra
+  l'estensione con la sua icona, electron/build/tmsb.ico: il foglio del .tms con altri due fogli dietro).
   Sotto, il pulsante **Backup automatici** (si apre e mostra le copie): l'app fa da sola un backup
   completo .tmsb a settimana (cartella «backup_automatici» dentro i dati, ultime 5 copie) con link
   «ripristina» accanto a ciascuno.

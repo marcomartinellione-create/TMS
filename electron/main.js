@@ -152,16 +152,16 @@ function createWindow () {
   win.loadURL('app://tms/index.html');
 }
 
-// ── File .tms (un cliente esportato) aperto col doppio clic (2026-11-26) ──
-// L'installer registra l'estensione .tms; Windows avvia il TMS col percorso del file fra gli argomenti. Se il
+// ── File .tms (un cliente esportato) e .tmsb (backup di tutto) aperti col doppio clic (2026-11-26) ──
+// L'installer registra le estensioni .tms e .tmsb; Windows avvia il TMS col percorso del file fra gli argomenti. Se il
 // TMS è già aperto, la seconda istanza si chiude subito e passa il file alla prima: UNA SOLA ISTANZA, perché
-// due finestre sugli stessi dati scriverebbero l'una sopra l'altra. Il file si legge qui (solo .tms, al
-// massimo 1 GB) e va alla pagina, che lo controlla e chiede conferma prima di importare (14b-pacchetto.js).
+// due finestre sugli stessi dati scriverebbero l'una sopra l'altra. Il file si legge qui (solo .tms/.tmsb, al
+// massimo 1 GB) e va alla pagina, che lo controlla e chiede conferma prima di importare o ripristinare (14b-pacchetto.js).
 let fileTmsInAttesa = null;
-const fileTmsDa = (argv) => (argv || []).map(String).find(a => /\.tms$/i.test(a) && fsSync.existsSync(a)) || null;
+const fileTmsDa = (argv) => (argv || []).map(String).find(a => /\.tmsb?$/i.test(a) && fsSync.existsSync(a)) || null;
 async function leggiFileTms (p) {
   const st = await fs.stat(p);
-  if (!st.isFile() || st.size > 1024 * 1024 * 1024) throw new Error('file .tms non valido');
+  if (!st.isFile() || st.size > 1024 * 1024 * 1024) throw new Error('file .tms/.tmsb non valido');
   return { nome: path.basename(p), dati: await fs.readFile(p) };
 }
 async function apriFileTms (p) {
