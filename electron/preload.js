@@ -26,6 +26,13 @@ contextBridge.exposeInMainWorld('tmsScambio', {
   togli:    (rel)       => ipcRenderer.invoke('scambio:togli', rel)
 });
 
+// Barra della finestra (2026-11-26): su Windows la pagina fa da barra del titolo e dice di che colore
+// disegnare i pulsanti di sistema (seguono il tema dell'app)
+contextBridge.exposeInMainWorld('tmsFinestra', {
+  barra: process.platform === 'win32',
+  colori: (color, symbolColor) => ipcRenderer.send('finestra:colori', String(color || ''), String(symbolColor || ''))
+});
+
 // Aggiornamenti con l'interfaccia DELL'APP (dal v1.0.73): il main manda gli eventi
 // dell'updater al renderer, che mostra il modale in stile pergamena e risponde.
 contextBridge.exposeInMainWorld('tmsUpdate', {

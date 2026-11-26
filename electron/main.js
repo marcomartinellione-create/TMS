@@ -70,6 +70,23 @@ function salvaStatoFinestra (win) {
   } catch (e) {}
 }
 
+// ── Barra della finestra nei colori dell'app (2026-11-26, richiesta di Marco) ──
+// Su Windows la barra del titolo di sistema si nasconde e la barra in alto dell'app ne fa le veci
+// (trascinabile, doppio clic = ingrandisci; CSS -webkit-app-region nella pagina). I tre pulsanti restano
+// quelli veri di Windows (coi layout di aggancio), disegnati sopra la barra coi colori del tema che la
+// pagina manda con 'finestra:colori'. Gli ultimi colori restano in userData/barra.json, così la finestra
+// si apre già col tema giusto. Solo opzioni della finestra: i dati e le scritture non c'entrano.
+const BARRA_ALTA = 47;   // la barra dell'app è alta 49 px: 2 sono il filetto dorato, che corre sotto i pulsanti
+const FILE_BARRA = () => path.join(app.getPath('userData'), 'barra.json');
+const COLORE_HEX = /^#[0-9a-f]{6}$/i;
+function leggiBarra () {
+  try {
+    const b = JSON.parse(fsSync.readFileSync(FILE_BARRA(), 'utf8'));
+    if (b && COLORE_HEX.test(b.color) && COLORE_HEX.test(b.symbolColor)) return { color: b.color, symbolColor: b.symbolColor };
+  } catch (e) {}
+  return { color: '#1d1004', symbolColor: '#fdfaf5' };
+}
+
 function createWindow () {
   // Finestra iniziale più larga: con 1280 i pulsanti fissi «Guida» e «Segnala» finivano
   // sopra la scheda. Si prende quasi tutto lo schermo disponibile ma con un tetto, così
@@ -83,6 +100,7 @@ function createWindow () {
   const win = new BrowserWindow({
     ...dove, minWidth: 900, minHeight: 600, show: false,
     title: 'Training Monitor System',
+    ...(process.platform === 'win32' ? { titleBarStyle: 'hidden', titleBarOverlay: Object.assign({ height: BARRA_ALTA }, leggiBarra()) } : {}),
     icon: path.join(__dirname, 'build', 'icon.ico'),
     webPreferences: {
       contextIsolation: true, nodeIntegration: false, sandbox: true,
@@ -188,6 +206,13 @@ app.whenReady().then(() => {
     return path.relative(root, a).split(path.sep).join('/');
   });
   ipcMain.handle('tmsfs:dataRoot', () => WRITE_ROOT());
+  // i colori dei pulsanti della finestra seguono il tema dell'app (vedi BARRA_ALTA)
+  ipcMain.on('finestra:colori', (e, color, symbolColor) => {
+    if (process.platform !== 'win32' || !COLORE_HEX.test(String(color)) || !COLORE_HEX.test(String(symbolColor))) return;
+    const w = BrowserWindow.fromWebContents(e.sender); if (!w) return;
+    try { w.setTitleBarOverlay({ color: String(color), symbolColor: String(symbolColor), height: BARRA_ALTA }); } catch (err) {}
+    fs.writeFile(FILE_BARRA(), JSON.stringify({ color: String(color), symbolColor: String(symbolColor) })).catch(() => {});
+  });
 
   // ── Cartella scelta dall'utente (window.tmsScambio) ──
   // Nata il 2026-11-17 come cartella di Google Drive condivisa col telefono; dal 2026-11-25 (il telefono
@@ -297,6 +322,8 @@ app.whenReady().then(() => {
     const setProgress = (frazione, titolo) => {
       for (const w of BrowserWindow.getAllWindows()) {
         try { w.setProgressBar(frazione); w.setTitle(titolo || 'Training Monitor System'); } catch (e) {}
+        // senza la barra di Windows il titolo non si vede: la percentuale va anche nella barra dell'app
+        try { w.webContents.send('tms-update', { tipo: 'progresso', frazione: frazione }); } catch (e) {}
       }
     };
     const versioni = v => String(v || '').split('.').map(n => parseInt(n, 10) || 0);

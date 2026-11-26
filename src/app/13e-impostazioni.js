@@ -23,6 +23,23 @@ function applicaTema(md, stile){
   h.setAttribute('data-notte', stile||notteGet());
   const bt=document.getElementById('btn-theme');
   if(bt){ bt.innerHTML=ico(notte? 'sole' : 'luna'); bt.title=notte? t('Modalità giorno') : t('Modalità notte'); }
+  barraColori();
+}
+/* ── barra della finestra (app per PC su Windows, 26/11/2026): la barra in alto fa da barra del titolo e i
+      pulsanti di Windows prendono il suo colore, di giorno e con ogni stile della notte (electron/main.js) ── */
+function barraColori(){
+  if(!(window.tmsFinestra && window.tmsFinestra.barra)) return;
+  const h=document.documentElement, notte=h.getAttribute('data-theme')==='notte';
+  const c=notte? (getComputedStyle(h).getPropertyValue('--n-barra').trim()||'#100e0b') : '#1d1004';
+  try{ window.tmsFinestra.colori(c, notte? '#e0d5c1' : '#fdfaf5'); }catch(e){}
+}
+/* la percentuale del download di un aggiornamento, nella barra (il titolo della finestra non si vede più) */
+function barraProgresso(f){
+  let el=document.getElementById('upd-progresso');
+  if(!el){ const m=document.querySelector('.topbar__mark'); if(!m) return;
+    el=document.createElement('span'); el.id='upd-progresso'; el.className='topbar__agg'; m.insertAdjacentElement('afterend', el); }
+  if(!(f>=0)){ el.hidden=true; return; }
+  el.hidden=false; el.textContent=t('Scarico l’aggiornamento…')+' '+Math.round(f*100)+'%';
 }
 function temaSalva(md, stile){
   try{ localStorage.setItem('tms-theme', md==='notte'? 'notte' : 'giorno'); if(stile) localStorage.setItem('tms-notte', stile); }catch(e){}

@@ -508,7 +508,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const salva = w.eval('JSON.stringify({a:DOC.alimentazione.aderenza||null, p:DOC.pesate||[]})');
     w.eval(`(function(){ var g=function(k){ var x=new Date(); x.setDate(x.getDate()-k); return dataLocale(x); };
       DOC.alimentazione.aderenza={}; DOC.pesate=[]; var peso=80;
-      for(var k=27;k>=0;k--){ var buona=Math.floor(k/7)%2===0, v=buona? 'si' : (k%2? 'si':'no'); DOC.alimentazione.aderenza[g(k)]={v:v, t:g(k)+'T20:00:00Z'};
+      var dow=(new Date().getDay()+6)%7; for(var k=41;k>=0;k--){ var buona=Math.floor((k-dow+6)/7)<=2, v=buona? 'si' : (k%2? 'si':'no'); DOC.alimentazione.aderenza[g(k)]={v:v, t:g(k)+'T20:00:00Z'};
         peso+= buona? -0.1 : 0.08; DOC.pesate.push({id:g(k)+'T07:00:00|'+peso.toFixed(2), data:g(k), ora:'07:00:00', peso:+peso.toFixed(2)}); }
       showTab("analisi"); })()`);
     const sez = d.getElementById('ader-analisi');
@@ -3035,6 +3035,16 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
     d.getElementById('btn-impost').click();
     d.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     ok(w.eval('document.getElementById("modal-bk").classList.contains("hidden")'), 'Impostazioni: anche Esc la chiude');
+    /* barra della finestra (app per PC su Windows): i pulsanti di Windows seguono il colore della barra */
+    { const colori = []; w.tmsFinestra = { barra: true, colori: (c, s) => colori.push(c + ' ' + s) };
+      const prima = [w.eval('temaGet()'), w.eval('notteGet()')];
+      w.eval('applicaTema("notte","blu")'); w.eval('applicaTema("notte","calda")'); w.eval('applicaTema("giorno")');
+      ok(colori.join('|') === '#0b1016 #e0d5c1|#100e0b #e0d5c1|#1d1004 #fdfaf5', 'barra della finestra: i pulsanti di Windows prendono il colore della barra in ogni tema (' + colori.join(', ') + ')');
+      w.eval('barraProgresso(0.42)');
+      ok(/42%/.test((d.getElementById('upd-progresso') || {}).textContent || '') && !d.getElementById('upd-progresso').hidden, 'barra della finestra: la percentuale dell\'aggiornamento compare nella barra');
+      w.eval('barraProgresso(-1)');
+      ok(d.getElementById('upd-progresso').hidden === true, 'barra della finestra: a download finito la percentuale sparisce');
+      delete w.tmsFinestra; w.eval('applicaTema(' + JSON.stringify(prima[0]) + ',' + JSON.stringify(prima[1]) + ')'); }
     d.getElementById('btn-theme').click();
     ok(h.getAttribute('data-theme') === 'giorno' && w.localStorage.getItem('tms-theme') === 'giorno' && w.localStorage.getItem('tms-notte') === 'grafite',
        'Impostazioni: 🌙/☀ torna al giorno e lo stile della notte resta quello scelto');

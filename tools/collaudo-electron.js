@@ -85,6 +85,18 @@ app.whenReady().then(async () => {
     if (!pronto) throw new Error('avvio non riuscito');
     await js('conferma=function(){return Promise.resolve(true);}; avviso=function(){return Promise.resolve();}; var _d=document.getElementById("disc-ok"); if(_d) _d.click(); true');
     ok(await js('typeof window.tmsFS.cestina==="function"'), 'ponte dati: canale «cestina» esposto al renderer');
+    /* ── barra della finestra nei colori dell'app (Windows): la barra in alto fa da barra del titolo ── */
+    if (process.platform === 'win32') {
+      ok(await js('window.tmsFinestra.barra===true && document.documentElement.classList.contains("barra-finestra") && getComputedStyle(document.querySelector(".topbar")).webkitAppRegion==="drag"'),
+         'barra della finestra: quella di Windows è nascosta, la barra dell\'app si trascina');
+      ok(await js('getComputedStyle(document.getElementById("btn-impost")).webkitAppRegion==="no-drag"'), 'barra della finestra: i pulsanti della barra restano cliccabili');
+      await js('temaSalva("notte","grafite"); true'); await attendi(400);
+      { let b = null; try { b = JSON.parse(fs.readFileSync(path.join(tmpData, 'barra.json'), 'utf8')); } catch (e) {}
+        ok(b && b.color === '#0d0e0f' && b.symbolColor === '#e0d5c1', 'barra della finestra: col tema Grafite i pulsanti di Windows prendono il suo colore (e il colore si ricorda)'); }
+      await js('temaSalva("giorno"); true'); await attendi(400);
+      { let b = null; try { b = JSON.parse(fs.readFileSync(path.join(tmpData, 'barra.json'), 'utf8')); } catch (e) {}
+        ok(b && b.color === '#1d1004', 'barra della finestra: tornati al giorno, torna il bruno della barra'); }
+    }
 
     /* ── cartella condivisa col telefono (window.tmsScambio) ── */
     ok(await js('window.tmsScambio.cartella()') === tmpScambio, 'cartella condivisa: il percorso scelto lo sa solo il processo principale');

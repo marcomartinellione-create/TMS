@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.37 (2026-11-25). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.38 (2026-11-25). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -15,6 +15,11 @@ ufficiale e completa dell'app: basa le risposte su quanto scritto qui.
 - Se la domanda non trova risposta in questo documento, dillo chiaramente e suggerisci
   la Guida interna dell'app (tab «Guida», versioni Rapida e Completa) o una
   segnalazione col pulsante in Impostazioni (vedi sotto).
+- **Barra della finestra** (app per PC su Windows): la barra di sistema è nascosta e la barra scura in alto
+  dell'app ne fa le veci (si trascina, doppio clic = ingrandisci); i pulsanti di Windows restano veri ma
+  prendono il colore della barra in ogni tema (titleBarOverlay di Electron; colori dalla pagina con
+  window.tmsFinestra, ultimi colori in userData/barra.json). Le finestre si aprono sotto la barra. La
+  percentuale del download di un aggiornamento compare nella barra.
 - **Impostazioni** (ingranaggio in alto a destra, in un blocco di tre comandi uguali con la
   lingua EN/IT e il pulsante luna/sole): impostazioni generali dell'app, valide su quel computer per
   tutti i profili (stanno nel localStorage, non nei dati del profilo). Dentro ci sono anche

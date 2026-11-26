@@ -37,6 +37,7 @@ async function init(){
     window.tmsUpdate.onEvento(d=>{ try{
       if(d && d.tipo==='disponibile') modalAggiornamento(d);
       else if(d && d.tipo==='pronto') modalRiavvio(d);
+      else if(d && d.tipo==='progresso') barraProgresso(d.frazione);
     }catch(e){ logErrore('modalUpdate', e); } });
     try{ window.tmsUpdate.rispondi('chiedi'); }catch(e){}
   }
@@ -74,6 +75,7 @@ async function init(){
       bl.onclick=()=>setLang(LANG==='it'?'en':'it'); } }
   /* tema: giorno/notte e stile della notte (13e-impostazioni.js); 🌙/☀ passa dall'uno all'altro,
      ⚙ apre le impostazioni generali dell'app */
+  if(window.tmsFinestra && window.tmsFinestra.barra) document.documentElement.classList.add('barra-finestra');   /* la barra fa da barra del titolo */
   { applicaTema(temaGet(), notteGet());
     const bt=document.getElementById('btn-theme');
     if(bt) bt.onclick=()=>temaSalva(document.documentElement.getAttribute('data-theme')==='notte'? 'giorno' : 'notte');

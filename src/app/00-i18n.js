@@ -1373,6 +1373,7 @@ const EN={
   "arrivate":"received",
   "Indietro":"Back",
   "Torna alle Impostazioni":"Back to Settings",
+  "Scarico l’aggiornamento…":"Downloading the update…",
   "Clienti collegati":"Linked clients",
   "Il TMS controlla anche i telefoni dei profili non aperti e ne salva pesate, foto e giorni della dieta; le modifiche alla scheda si uniscono quando apri il profilo.":"TMS also checks the phones of profiles that aren't open and saves their weigh-ins, photos and diet days; program changes are merged when you open the profile.",
   "Dieta seguita e peso":"Diet followed and weight",

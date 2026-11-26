@@ -195,6 +195,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
   color:var(--paper); border-bottom:2px solid var(--gold-2);
   position:sticky; top:0; z-index:40;
 }
+/* barra della finestra (app per PC su Windows): la barra in alto fa da barra del titolo — si trascina, col
+   doppio clic si ingrandisce; a destra lo spazio per i pulsanti di Windows. Le finestre si aprono sotto la
+   barra, così quei pulsanti restano sempre a portata. */
+html.barra-finestra{--barra-h:49px}
+html.barra-finestra .topbar{-webkit-app-region:drag; padding-right:158px; user-select:none}
+html.barra-finestra .topbar button, html.barra-finestra .topbar a, html.barra-finestra .topbar input, html.barra-finestra .topbar .conn{-webkit-app-region:no-drag}
+html.barra-finestra .modal-bk, html.barra-finestra .overlay{top:var(--barra-h)}
+html.barra-finestra .modal{max-height:calc(100vh - var(--barra-h) - 40px)}
+.topbar__agg{font-size:12px; color:var(--grace); border:1px solid rgba(232,196,90,.4); border-radius:999px; padding:2px 10px; white-space:nowrap; font-variant-numeric:tabular-nums}
 .topbar__mark{
   font-family:var(--font-disp); font-size:18px; font-weight:700; letter-spacing:.06em;
   color:var(--grace); text-shadow:0 0 12px rgba(232,196,90,.4); white-space:nowrap;
