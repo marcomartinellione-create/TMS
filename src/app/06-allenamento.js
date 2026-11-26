@@ -595,7 +595,8 @@ function renderAllenamento(){
   const sigCarico=caricoSignals();
   rows.forEach((r,i)=>{
     if(r.giorno && r.giorno!==lastDay){ lastDay=r.giorno;
-      body+=`<tr class="day-sep"><td colspan="12">▌ ${esc(giornoNome(r.giorno))}${useRpeActive()?rpeDayControls(r.giorno):''}</td></tr>`; }
+      const fcS=(DOC.scheda.fcSedute||{})[r.giorno];
+      body+=`<tr class="day-sep"><td colspan="12">▌ ${esc(giornoNome(r.giorno))}${useRpeActive()?rpeDayControls(r.giorno):''}${fcS?`<span class="fc-sed" style="float:right;display:inline-flex;gap:6px;align-items:center;font-weight:400;margin-right:10px">${sedutaFcPill(fcS, `data-fcsp="${esc(r.giorno)}"`)}</span>`:''}</td></tr>`; }
     const sd=rowSeduta(smap,r), bk=r.esercizio+'|'+sd;
     const firstOfBlock=r.esercizio && !blockSeen[bk]; if(r.esercizio) blockSeen[bk]=true;
     const m=rmMostrato(r), p=sPct(r), tl=sTL(r);
@@ -689,6 +690,7 @@ function renderAllenamento(){
     if(!m[g])m[g]={}; m[g][fld]=e.target.value===''?'':+e.target.value; persist('scheda');
     const badge=document.querySelector('#panel-allenamento [data-rpe-load="'+g+'"]'); if(badge){ const ld=dayLoad(g); badge.textContent=ld?nfk(ld)+' AU':'—'; }
   }));
+  document.querySelectorAll('#panel-allenamento [data-fcsp]').forEach(b=>b.onclick=()=>sedutaFcModal((DOC.scheda.fcSedute||{})[b.dataset.fcsp], giornoNome(b.dataset.fcsp)));
   document.querySelectorAll('#panel-allenamento [data-vid]').forEach(b=>b.onclick=()=>playVideo(b.dataset.vid));
   document.querySelectorAll('#panel-allenamento .ex-pick').forEach(b=>b.onclick=()=>{
     const tr=b.closest('tr'); const i=+tr.dataset.i;
@@ -788,6 +790,11 @@ function rinumeraGiorni(md){ const s=DOC.scheda; md=md||schedaMode; const nn=gio
     Object.keys(rp).forEach(g=>{ if(!mappa[g] && !arrivi.has(g)) nuovo[g]=rp[g]; });   /* un vecchio «Giorno 1» rimasto senza righe non copre quello nuovo */
     Object.keys(rp).forEach(g=>{ if(mappa[g]) nuovo[mappa[g]]=rp[g]; });
     s.rpe[md]=nuovo; }
+  /* il battito delle sedute dal telefono segue il giorno rinumerato, come fatica e durata */
+  if(md==='settimanale' && s.fcSedute && typeof s.fcSedute==='object'){ const fs=s.fcSedute, arrivi=new Set(Object.values(mappa)), nuovo={};
+    Object.keys(fs).forEach(g=>{ if(!mappa[g] && !arrivi.has(g)) nuovo[g]=fs[g]; });
+    Object.keys(fs).forEach(g=>{ if(mappa[g]) nuovo[mappa[g]]=Object.assign({}, fs[g], {giorno:mappa[g]}); });
+    s.fcSedute=nuovo; }
   if(md==='settimanale' && typeof telRinominaGiorni==='function') telRinominaGiorni(mappa);
   return mappa; }
 function avvisoGiorni(){ const nn=giorniDaRinumerare(); if(!nn) return '';
@@ -849,6 +856,8 @@ function saveSchedaModal(){
         DOC.storico_rpe=DOC.storico_rpe.filter(x=>!((+x.scheda)===code && x.giorno===g));
         if(rp>0&&mn>0) DOC.storico_rpe.push({scheda:code,giorno:g,rpe:rp,min:mn,set:(ensureSets()||{}).setAttivo||''}); });
       DOC.scheda.rpe[schedaMode]={}; persist('corpo'); }
+    /* battito delle sedute coi pesi (dal telefono): resta con la settimana salvata, fuori dal carico */
+    if(sedutaFcCristallizza(code, (ensureSets()||{}).setAttivo||'')) persist('corpo');
     /* minuti di CARDIO del riscaldamento della settimana (scelta di Marco 2026-08-15):
        entrano SOLO nel radar «Volume ed equilibrio», MAI in TL, ACWR, monotonia o sRPE —
        per questo vivono in un array a parte (storico_risc) che nessun calcolo di carico legge. */
@@ -876,10 +885,11 @@ function saveSchedaModal(){
    la settimana non ha più righe nello Storico non devono restare a contare da soli) */
 function togliCaricoInterno(code){
   code=+code||0; if(!code) return false;
-  const nR=(DOC.storico_rpe||[]).length, nW=(DOC.storico_risc||[]).length;
+  const nR=(DOC.storico_rpe||[]).length, nW=(DOC.storico_risc||[]).length, nF=(DOC.storico_fc||[]).length;
   DOC.storico_rpe=(DOC.storico_rpe||[]).filter(x=>(+x.scheda)!==code);
   DOC.storico_risc=(DOC.storico_risc||[]).filter(x=>(+x.scheda)!==code);
-  const cambiato=DOC.storico_rpe.length!==nR||DOC.storico_risc.length!==nW;
+  DOC.storico_fc=(DOC.storico_fc||[]).filter(x=>(+x.scheda)!==code);   /* anche il battito delle sedute */
+  const cambiato=DOC.storico_rpe.length!==nR||DOC.storico_risc.length!==nW||DOC.storico_fc.length!==nF;
   if(cambiato) persist('corpo');
   return cambiato;
 }

@@ -415,7 +415,7 @@ function telSettimanaSalvata(code){
 /* i file arrivati dal telefono (pesate, foto, giorni della dieta, sedute della fascia cardio), decifrati;
    quelli illeggibili restano sull'hub */
 async function telEventi(p, lista){
-  const pesate=[], foto=[], dieta=[], cardio=[], fatti=[];
+  const pesate=[], foto=[], dieta=[], cardio=[], sedFc=[], fatti=[];
   const arrivati=(lista||[]).filter(x=>/^eventi\//.test(x.nome) && typeof x.testo==='string');
   for(const f of arrivati.slice().sort((a,b)=>a.nome<b.nome?-1:1)){
     let ev; try{ ev=await telDecifra(f.testo, p.codice); }catch(e){ continue; }   /* illeggibile: si lascia */
@@ -423,8 +423,10 @@ async function telEventi(p, lista){
     else if(ev && ev.tipo==='tms-foto' && ev.foto && ev.foto.id && /^data:image\//.test(String(ev.foto.img||''))){ foto.push(ev.foto); fatti.push({nome:f.nome, id:String(ev.foto.id)}); }
     else if(ev && ev.tipo==='tms-dieta' && ev.id && /^\d{4}-\d\d-\d\d$/.test(String(ev.data||''))){ dieta.push(ev); fatti.push({nome:f.nome, id:String(ev.id)}); }
     else if(ev && ev.tipo==='tms-cardio' && ev.seduta && pulisciCardioTel(ev.seduta)){ cardio.push(ev.seduta); fatti.push({nome:f.nome, id:String(ev.seduta.id)}); }
+    /* battito di una seduta coi pesi: va nella scheda del profilo, quindi solo col profilo aperto */
+    else if(ev && ev.tipo==='tms-seduta-fc' && ev.seduta && pulisciSedutaFc(ev.seduta)){ sedFc.push(ev.seduta); fatti.push({nome:f.nome, id:String(ev.seduta.id), soloAperto:true}); }
   }
-  return {pesate, foto, dieta, cardio, fatti};
+  return {pesate, foto, dieta, cardio, sedFc, fatti};
 }
 /* arrivati e salvati: il telefono li vede «al PC» e dall'hub se ne vanno */
 async function telConfermaEventi(slug, p, fatti){
@@ -433,13 +435,14 @@ async function telConfermaEventi(slug, p, fatti){
   for(const f of fatti){ try{ await telTogli(p, 'dal-telefono/'+f.nome); }catch(e){ logErrore('telefono/togli', e); } }
 }
 async function telLeggiEventi(slug, p, lista){
-  const {pesate, foto, dieta, cardio, fatti}=await telEventi(p, lista);
+  const {pesate, foto, dieta, cardio, sedFc, fatti}=await telEventi(p, lista);
   if(!fatti.length || activeProfile!==slug) return null;
-  let rp=null, nFoto=0, nDieta=0, nCardio=0;
+  let rp=null, nFoto=0, nDieta=0, nCardio=0, nSedFc=0;
   if(pesate.length) rp=await importaPesate(pesate);
   if(foto.length) nFoto=await importaFotoRientro(foto);
   if(dieta.length) nDieta=telDietaApplica(dieta);
   if(cardio.length) nCardio=importaCardioTel(cardio, new Set(p.ricevute||[]));   /* già ricevuta = non torna */
+  if(sedFc.length){ nSedFc=sedutaFcUnisci(DOC, sedFc, p, new Set(p.ricevute||[])); if(nSedFc){ persist('scheda'); persist('corpo'); } }
   /* salvataggio VERO su disco prima di togliere qualcosa dall'hub */
   clearTimeout(saveTimer); await flushSaves();
   if(activeProfile!==slug) return null;
@@ -447,7 +450,9 @@ async function telLeggiEventi(slug, p, lista){
   if(curTab==='corpo') renderCorpo();
   if(nDieta && curTab==='alimentazione') renderAlimentazione();
   if(nCardio && curTab==='cardio') renderCardio();
-  return {pesate:rp, foto:nFoto, dieta:nDieta, cardio:nCardio};
+  if(nSedFc && curTab==='allenamento') renderAllenamento();
+  if(nSedFc && curTab==='storico') renderStorico();
+  return {pesate:rp, foto:nFoto, dieta:nDieta, cardio:nCardio, sedFc:nSedFc};
 }
 /* «dieta seguita» segnata dal cliente sul telefono: DOC.alimentazione.aderenza = {data: {v:'si'|'no'|'', t:ora
    del cambio}}. Vince il cambio più recente (uno più vecchio arrivato dopo non torna indietro); un giorno
@@ -490,7 +495,9 @@ async function telGiroAltri(){
     const pan=TEL_PANORAMICA[slug]=TEL_PANORAMICA[slug]||{};
     pan.controllato=new Date().toISOString();
     const ore=lista.map(x=>+x.ora||0).filter(Boolean); if(ore.length) pan.ultimo=new Date(Math.max(...ore)).toISOString();
-    const {pesate, foto, dieta, cardio, fatti}=await telEventi(p, lista);
+    const ev=await telEventi(p, lista), {pesate, foto, dieta, cardio}=ev;
+    /* il battito delle sedute coi pesi resta sull'hub finché non si apre il profilo (va nella sua scheda) */
+    const fatti=ev.fatti.filter(f=>!f.soloAperto);
     if(!fatti.length) return;
     const pd=await dataDir.getDirectoryHandle(slug, {create:false});
     const rc=await leggiJson(pd, FILES.corpo), ra=await leggiJson(pd, FILES.alimentazione);
@@ -562,6 +569,7 @@ async function telGiro(){
     if(ev && ev.foto) pz.push(ev.foto+' '+t('foto nel tab Corpo'));
     if(ev && ev.dieta) pz.push(ev.dieta===1? t('un giorno della dieta') : ev.dieta+' '+t('giorni della dieta'));
     if(ev && ev.cardio) pz.push(ev.cardio===1? t('una seduta cardio') : ev.cardio+' '+t('sedute cardio'));
+    if(ev && ev.sedFc) pz.push(ev.sedFc===1? t('il battito di una seduta') : ev.sedFc+' '+t('battiti di sedute'));
     if(sc) pz.push(t('scheda aggiornata dal telefono'));
     if(pz.length) telNotizia(t('Dal telefono:')+' '+pz.join(' · '));
   }catch(e){ _telSporco=true; _telErr=String((e&&e.message)||e); logErrore('telefono/giro', e); }

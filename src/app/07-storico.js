@@ -34,6 +34,7 @@ function renderStorico(){
        prende il posto del vecchio «Annulla ultimo», che sapeva togliere solo l'ultima */
     if(r.scheda!==last){last=r.scheda; body+=`<tr class="day-sep"><td colspan="12"><div style="display:flex;align-items:center;gap:10px">
       <span>▌ ${t('Scheda')} ${r.scheda} <span style="opacity:.7;font-weight:400">· ${esc(schedaLabel(r.scheda))}</span></span><span style="flex:1"></span>
+      ${(DOC.storico_fc||[]).map((f,k)=>(+f.scheda)===(+r.scheda)? `<span class="fc-sed" style="display:inline-flex;gap:5px;align-items:center;font-weight:400">${esc(giornoNome(f.giorno))} ${sedutaFcPill(f, `data-fcst="${k}"`)}</span>` : '').join('')}
       <button class="btn btn--sm btn--del no-print" data-delsched="${r.scheda}" title="${esc(t('Elimina tutte le righe di questa settimana'))}" aria-label="${esc(t('Elimina tutte le righe di questa settimana'))}">${ico('cestino','p')}</button></div></td></tr>`;}
     const [fl,fc]=fascia(sPct(r));
     body+=`<tr${r.test?' style="background:rgba(122,62,168,.06)"':''}><td class="l">${esc(exName(r.esercizio))}</td><td>${esc(t(r.macro)||'')}</td><td class="num">${(+r.seduta||1)}${r.test?' '+ico('stella','p pieno'):''}</td>
@@ -59,6 +60,7 @@ function renderStorico(){
   document.getElementById('st-sched').onchange=e=>{stFilt.scheda=e.target.value; renderStorico();};
   document.querySelectorAll('#panel-storico [data-delsched]').forEach(b=>{ b.onclick=()=>eliminaScheda(+b.dataset.delsched); });
   document.querySelectorAll('#panel-storico [data-edrow]').forEach(b=>{ b.onclick=()=>modificaRigaStorico(+b.dataset.edrow); });
+  document.querySelectorAll('#panel-storico [data-fcst]').forEach(b=>{ b.onclick=()=>{ const f=(DOC.storico_fc||[])[+b.dataset.fcst]; if(f) sedutaFcModal(f, giornoNome(f.giorno)+' · '+schedaLabel(f.scheda)); }; });
 }
 /* ── CORREGGERE UNA RIGA GIÀ SALVATA (2026-11-11, richiesta di Marco) ─────────────
    Prima un peso sbagliato in una settimana salvata si sistemava solo eliminando l'INTERA

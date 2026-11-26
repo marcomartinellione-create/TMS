@@ -704,7 +704,21 @@ sola per quelle della galleria, si SPOSTA E RITAGLIA sulla sagoma (dito, due dit
 sempre dall'originale; se la foto era già arrivata al PC la nuova porta «sostituisce» e lì prende
 il posto della vecchia, il file vecchio resta su disco); rimpicciolite a 1280 px JPEG), «Bilancia», «Fascia cardio» e «Collegamento e promemoria». Il tasto indietro
 del telefono risale nell'app (video/QR, giorno → lista giorni → menu; solo dal menu l'app si
-chiude). Nella scheda si sceglie il **giorno**; ogni giornata è una **seduta in tre fasi** (tab):
+chiude). Nella scheda si sceglie il **giorno**: APRIRLO AVVIA LA SEDUTA (inizio salvato sul telefono, resiste
+a un'app chiusa; uscire e rientrare non la fa ripartire; una seduta aperta alla volta; un giorno già chiuso in
+settimana non riparte da solo, c'è «Nuova seduta»). Sulle pagine dei giorni la barra in alto ha una seconda riga,
+la ZONA DELLA SEDUTA: battito della fascia cardio colorato per zona (o «nessuna fascia» col tasto per collegarla),
+tempo trascorso, «Fine seduta». «Fine seduta» compila da sola la durata e chiede la fatica RPE (1-10) nei campi di
+fine giornata (senza Session-RPE spunta «Giorno completato»). Con la fascia collegata il battito della seduta si
+registra da solo e alla chiusura va al PC (file 'tms-seduta-fc': FC media, picco, traccia ogni 5 s, dispositivo,
+giorno e settimana); mentre una seduta coi pesi è aperta la pagina «Fascia cardio» non avvia una registrazione a
+parte. Seduta DIMENTICATA: dopo 3 ore senza attività (campi, timer, giorno aperto) l'app avvisa (anche al menu) e
+propone di chiuderla con la durata fino all'ultima attività, oppure «È ancora in corso». Sul PC il battito della
+seduta va nella scheda della settimana (DOC.scheda.fcSedute, per giorno: si vede nel tab Pesi accanto a RPE e
+minuti, col grafico); «Salva nello Storico» lo sposta in DOC.storico_fc con il codice della settimana (si vede
+sulla riga della settimana nello Storico; eliminando la settimana se ne va). NON entra nel tab Cardio né in TL,
+ACWR, monotonia o sRPE. Un battito arrivato dopo il salvataggio della sua settimana va su quella settimana salvata;
+quello di un cliente non aperto aspetta sull'hub che si apra il profilo. Ogni giornata è una **seduta in tre fasi** (tab):
 Riscaldamento (solo se presente nel Training Set: SOLA LETTURA con video, stretching o cardio a
 minuti), Esercizi, Fine. I campi di TUTTI gli esercizi sono **già visibili insieme**; i campi
 SONO la scheda (RIR e note compresi, come la tabella del PC); sotto ogni esercizio compare
@@ -743,7 +757,8 @@ dispositivi vicini che dichiarano quel servizio o hanno il nome di una fascia no
 propria; poi la ritrova da sola. Mostra il battito grande, colorato per zona (5 zone dal 50 al
 100 % della FC max: quella del Profilo se c'è, altrimenti stimata dall'età con Tanaka, come il TMS;
 FC max e FC a riposo arrivano con la scheda). Il battito resta nella barra in alto su tutte le
-schermate, anche durante la seduta coi pesi (solo da vedere). «Registra» avvia una registrazione
+schermate; durante la seduta coi pesi si vede nella zona della seduta e si registra con quella (vedi
+sopra), e «Registra» non c'è. «Registra» (solo per le sedute di solo cardio) avvia una registrazione
 (schermo acceso, bozza salvata ogni 15 s: un'app chiusa a metà non la perde), «Fine» chiede
 attività (gli sport del tab Cardio) e fatica RPE, «Salva la seduta» la tiene sul telefono e la manda
 al PC. Se il battito non arriva per 15 secondi, o la fascia rifiuta le notifiche senza abbinamento,

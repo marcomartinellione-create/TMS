@@ -323,6 +323,33 @@
  .fc-chip.rec{border-color:#f08a7a}
  .fc-chip.rec .ic{animation:fc-pulsa 1s ease-in-out infinite alternate}
 
+ /* ── zona della seduta: seconda riga della barra in alto (stessi colori e bordi della barra) ── */
+ .barra{flex-wrap:wrap}
+ .sed-zona{flex:1 0 100%;order:10;display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:6px -4px 0;padding:8px 4px 2px;border-top:1px solid rgba(232,196,90,.25)}
+ .sed-zona[hidden]{display:none}
+ .sed-fc{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 10px;border:1px solid rgba(232,196,90,.38);border-radius:var(--r-sm);background:rgba(255,255,255,.06);color:#fdf3dc;font-variant-numeric:tabular-nums}
+ .sed-fc .ic{width:18px;height:18px;color:#f08a7a}
+ .sed-fc b{font-family:var(--serif);font-size:26px;line-height:1}
+ .sed-fc span{font-size:12px;color:var(--oro-t)}
+ .sed-fc i{width:10px;height:10px;border-radius:50%}
+ .sed-fc i.z1{background:#5b6f86} .sed-fc i.z2{background:#2b7a9a} .sed-fc i.z3{background:var(--ok)} .sed-fc i.z4{background:var(--acc)} .sed-fc i.z5{background:var(--err)}
+ .sed-due{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}
+ .sed-fc.sed-no u{color:var(--oro);text-decoration:none;font-weight:700;font-size:13.5px}
+ .sed-tempo{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15}
+ .sed-tempo b{font-family:var(--serif);font-size:24px;color:var(--oro);font-variant-numeric:tabular-nums}
+ .sed-tempo b .ic{width:20px;height:20px}
+ .sed-tempo span{font-size:12px;color:var(--oro-t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .sed-btn{flex:none;height:44px;padding:0 12px;border:1px solid rgba(232,196,90,.38);border-radius:var(--r-sm);background:rgba(255,255,255,.06);color:#fdf3dc;font-weight:700;font-size:14px}
+ .sed-btn:active{background:rgba(255,255,255,.14)}
+ .sed-btn.ok{background:var(--acc);border-color:var(--acc)}
+ .sed-riga{flex:1 0 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0 4px}
+ .sed-riga p{flex:1 0 100%;margin:0;font-size:13.5px;color:#fdf3dc;line-height:1.4}
+ .sed-riga p b{color:var(--oro)}
+ .sed-rpe{flex:1 0 100%;display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+ .sed-rpe button{height:40px;border:1px solid rgba(232,196,90,.38);border-radius:8px;background:rgba(255,255,255,.06);color:#fdf3dc;font-weight:700;font-variant-numeric:tabular-nums}
+ .sed-rpe button.on{background:var(--oro);color:var(--brace);border-color:var(--oro)}
+ .sed-avv p{margin:0 0 4px;font-size:14px;color:var(--ink-2);line-height:1.45}
+
  /* ── collegamento col PC e promemoria ── */
  .col-in{width:100%;height:54px;font-family:var(--sans);font-size:19px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 14px;border:1.5px solid transparent;border-radius:var(--r-sm);background:var(--campo);color:var(--ink);margin:6px 0 4px;font-variant-numeric:tabular-nums}
  .col-in:focus{outline:none;border-color:var(--acc);background:#fff;box-shadow:0 0 0 3px var(--acc-t)}
@@ -562,6 +589,7 @@
   <button type="button" class="fc-chip" id="fc-chip" hidden title="Fascia cardio"><svg class="ic"><use href="#i-cuore"/></svg><span id="fc-chip-v">—</span></button>
   <button type="button" id="lang-btn" class="barra-btn" title="Language / Lingua">EN</button>
   <button type="button" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><img src="qr-ig.png" alt="QR"></button>
+  <div class="sed-zona" id="sed-zona" hidden></div>
 </header>
 
 <div id="qrov"><div class="qr-panel">
@@ -594,6 +622,7 @@
 <!-- ── schermata MENU: la scheda in evidenza, poi alimentazione, foto, bilancia; in fondo il collegamento ── -->
 <div id="menu" hidden>
   <div id="col-avvisi"></div>
+  <div id="sed-avviso"></div>
   <div class="info-riga" id="scheda-info"></div>
   <div class="days">
     <button type="button" class="macro-card eroe" id="vai-scheda">
@@ -763,7 +792,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='4.0';
+const CVER='4.1';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1091,6 +1120,17 @@ const TT={en:{
   'Battito di':'Heart rate of', 'FC max':'Max HR', '(dal Profilo)':'(from the Profile)', '(stimata dall’età)':'(estimated from age)',
   'La scheda non porta né la FC max né l’età: vedi il battito, ma non le zone.':'The program has neither max HR nor age: you see the heart rate, but not the zones.',
   'Togli la seduta di':'Remove the session of', 'Togli questa seduta':'Remove this session', 'Ancora nessuna seduta registrata.':'No sessions recorded yet.',
+  /* seduta in corso (26/11/2026) */
+  'aspetto il battito':'waiting for heart rate', 'cerco la fascia':'looking for the strap', 'nessuna fascia':'no strap',
+  'seduta di':'session of', 'seduta in corso':'session in progress', 'Fine seduta':'End session',
+  'Questa seduta è aperta da molte ore.':'This session has been open for many hours.', 'La chiudo con':'Shall I close it with',
+  '(fino all’ultima cosa che hai segnato)?':'(up to the last thing you logged)?',
+  'Chiudi la seduta':'Close the session', 'È ancora in corso':'It’s still going on', 'Durata':'Duration',
+  'Fatica della seduta (RPE)':'Session effort (RPE)', 'seduta chiusa':'session closed', 'nessuna seduta aperta':'no open session',
+  'Nuova seduta':'New session', 'Inizia la seduta':'Start the session', 'Seduta ancora aperta':'Session still open',
+  'La seduta di':'The session of', 'è aperta da':'has been open since', 'Chiudila':'Close it',
+  'C’è una seduta coi pesi aperta':'A weights session is open',
+  'il battito va già con quella. Chiudila per registrare una seduta di solo cardio.':'the heart rate already goes with it. Close it to record a cardio-only session.',
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -1219,6 +1259,8 @@ function avvia(){
     if(JSON.stringify(PESATE)!==prima) pesSalva(); renderBil(); avvPianifica(); }).catch(()=>{ PESATE=[]; renderBil(); });
   /* sedute della fascia cardio (per profilo) e registrazione rimasta a metà */
   SEDUTE_FC=[]; fcAggiornaMenu(); fcCarica().catch(()=>{});
+  /* seduta in corso (aperta aprendo un giorno) e battito delle sedute coi pesi */
+  SED.s=null; SED.chiudi=false; SED.dimenticata=false; sedTimer(); SEDUTE_PESI_FC=[]; sedCarica().catch(()=>{});
   mostra('menu'); mostraInstallHint(); colRender(); avvPianifica();
 }
 /* ricostruisce lista giorni e pagine-giorno dal modello WROWS; poi riaggancia gli
@@ -1328,6 +1370,7 @@ function barraAggiorna(){
   $('barra-ind').hidden=(id==='menu'); $('barra-ind-t').textContent=ind;
   $('barra-titolo').hidden=(id==='menu'); $('barra-titolo').textContent=tit;
   $('barra-marchio').hidden=(id!=='menu');
+  sedZona();
 }
 $('barra-ind').onclick=()=>navIndietro();
 { const oss=new MutationObserver(barraAggiorna);
@@ -1346,6 +1389,7 @@ function apriGiorno(gi){
   const haW=warmDelGiorno(g).length>0;
   const iniziato=wrowsDelGiorno(g).some(r=>exFatto(r.rid));
   mostraFase(gi,(haW&&!iniziato)?'w':'e');
+  sedApri(gi);   /* la seduta parte qui (e non riparte se è già aperta) */
 }
 /* piano alimentare del coach (sola lettura): pasti nell'ordine del piano, grammi in evidenza */
 function renderAlim(){
@@ -1981,10 +2025,10 @@ function fcDati(car, b){
   FC.contatto=m.contatto; if(m.rr.length) FC.rr=true;
   if(m.bpm>=25 && m.bpm<=250 && m.contatto!==false){
     FC.bpm=m.bpm; FC.ultimoBuono=ora;
-    if(FC.reg) fcCampione(ora, m.bpm);
+    if(FC.reg) fcCampione(ora, m.bpm); else if(SED.s) sedCampione(ora, m.bpm);
     if(FC.stato!=='collegata') fcStato('collegata'); else fcMostraBattito(); }
   else if(m.contatto===false){ FC.bpm=null; if(FC.stato!=='contatto') fcStato('contatto'); else fcMostraBattito(); }
-  fcChip(); }
+  fcChip(); sedZonaFc(); }
 
 /* — collegamento: la prima volta si sceglie la fascia fra quelle trovate, poi la si ritrova da sola — */
 function fcIdNoto(){ try{ return localStorage.getItem(FC_KEY_ID)||''; }catch(e){ return ''; } }
@@ -2053,7 +2097,7 @@ function fcTic(){
 
 /* — registrazione: campioni raccolti in secchielli di 5 secondi — */
 function fcRegistra(){
-  if(!FC.id || FC.reg || FC.chiudi) return;
+  if(!FC.id || FC.reg || FC.chiudi || SED.s) return;
   const ora=Date.now();
   FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}};
   FC.bozzaT=0; fcSalvaBozza(true); fcSchermo(true);
@@ -2101,7 +2145,8 @@ function fcSchermo(on){
   try{ if(navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen').then(l=>{ if(FC.reg) FC.lock=l; else { try{ l.release(); }catch(e){} } }).catch(()=>{}); }catch(e){} }
 /* app in secondo piano / di nuovo davanti */
 function fcVisibilita(nascosta){
-  if(nascosta){ if(!FC.reg && (FC.id || FC.cercando || FC.collegando)){ FC.riprendi=true; fcScollega(); } return; }
+  if(nascosta){ if(!FC.reg && !SED.s && (FC.id || FC.cercando || FC.collegando)){ FC.riprendi=true; fcScollega(); } return; }
+  if(SED.s){ sedControlla(); sedZona(); }
   if(FC.reg) fcSchermo(true);
   if(FC.riprendi){ FC.riprendi=false; fcAvvia(); } }
 
@@ -2138,6 +2183,7 @@ function fcStato(s, motivo, msg){
   const rt=$('fc-riprova-t'); if(rt) rt.textContent=tt(s==='errore'? 'Riprova' : 'Collega');
   fcMostraBattito(); fcRenderTrovati(); fcChip();
   const sc=$('fc-scollega'); if(sc) sc.hidden=!(FC.id && !FC.reg);
+  sedZonaFc();
 }
 function fcMostraBattito(){
   const el=$('fc-bpm'), zz=$('fc-zona'), zb=$('fc-zone'); if(!el) return;
@@ -2181,7 +2227,8 @@ function fcRenderReg(soloTempo){
       '<button type="button" class="btn-big" id="fc-fine">'+ico('check')+'<span>'+tt('Fine')+'</span></button>'+
       '<div class="fine" style="margin:4px 0 0">'+tt('Tieni l’app aperta: lo schermo resta acceso finché registri.')+'</div></div>';
     $('fc-fine').onclick=()=>fcFine(); fcRenderReg(true); return; }
-  box.innerHTML=FC.id? '<button type="button" class="btn-big" id="fc-registra">'+ico('play')+'<span>'+tt('Registra')+'</span></button>' : '';
+  box.innerHTML=!FC.id? '' : SED.s? '<div class="box"><div class="fine" style="margin:0">'+tt('C’è una seduta coi pesi aperta')+' ('+esc(SED.s.giorno)+'): '+tt('il battito va già con quella. Chiudila per registrare una seduta di solo cardio.')+'</div></div>'
+    : '<button type="button" class="btn-big" id="fc-registra">'+ico('play')+'<span>'+tt('Registra')+'</span></button>';
   const rg=$('fc-registra'); if(rg) rg.onclick=()=>fcRegistra(); }
 function fcAggiornaMenu(){
   const vb=$('vai-fc'); if(vb) vb.hidden=!(window.tmsBLE && SCHEDA);
@@ -2193,9 +2240,15 @@ function fcAggiornaMenu(){
 /* il battito nella barra in alto, su tutte le schermate (tocca → pagina Fascia cardio) */
 function fcChip(){
   const c=$('fc-chip'); if(!c) return;
-  c.hidden=!(FC.id || FC.reg);
+  const z=$('sed-zona');
+  c.hidden=!(FC.id || FC.reg) || !!(z && !z.hidden);
   const v=$('fc-chip-v'); if(v) v.textContent=(FC.id && FC.bpm)? String(FC.bpm) : '—';
   c.classList.toggle('rec', !!FC.reg); }
+/* solo il riquadro del battito della zona della seduta (arriva ogni secondo: il resto non si ridisegna) */
+function sedZonaFc(){
+  const z=$('sed-zona'), b=$('sed-fc'); if(!z || z.hidden || !b) return;
+  const t=document.createElement('div'); t.innerHTML=sedBattitoHtml(); const n=t.firstChild; if(!n) return;
+  b.replaceWith(n); n.onclick=()=>{ if(FC.id) return; if(fcIdNoto()) fcAvvia(); else fcApri(); }; }
 function fcApri(){ if(!window.tmsBLE || !SCHEDA) return; navEntra(); mostra('fc'); renderFc(); fcAvvia(); }
 function renderFc(){
   fcAggiornaMenu();
@@ -2221,6 +2274,135 @@ function renderFc(){
       SEDUTE_FC=SEDUTE_FC.filter(s=>s.id!==id); FC.togli=''; await fcSalva(); renderFc(); }; }); }
   const dim=$('fc-dimentica'); if(dim) dim.hidden=!(fcIdNoto() && !FC.reg);
 }
+/* ── SEDUTA IN CORSO (richiesta di Marco, 26/11/2026: «quando vado sulla scheda automaticamente fa partire una
+      sessione che devo chiudere, e durante la sessione in una zona dedicata mostra costantemente il battito»).
+      Aprire un giorno della scheda AVVIA la seduta e ne salva l'inizio (IndexedDB, per profilo: resiste a un'app
+      chiusa). Uscire e rientrare non la fa ripartire; resta aperta finché non si chiude. Una sola seduta aperta
+      alla volta; un giorno già chiuso in settimana (fatica+durata o «Giorno completato») non riparte da solo.
+      La ZONA DELLA SEDUTA è una seconda riga della barra in alto, sempre visibile sulle pagine dei giorni:
+      battito (colorato per zona, o «nessuna fascia» con il tasto per collegarla), tempo trascorso, «Fine seduta».
+      «Fine seduta» compila da sola la DURATA e chiede la FATICA (RPE) nei campi di fine giornata che esistono
+      già (rpe-N / min-N; senza RPE la casella «Giorno completato»): arrivano al PC come sempre, con la scheda
+      collegata. Il battito della seduta (con la fascia collegata si registra da solo) va al PC come evento
+      tms-seduta-fc: FC media, picco, traccia ogni 5 s e dispositivo, legati a quel giorno della scheda; sul PC
+      NON va nel tab Cardio né nel carico dei pesi.
+      Seduta DIMENTICATA aperta: dopo 3 ore senza attività (un campo scritto, un timer, un giorno aperto) l'app
+      chiede se chiuderla, con la durata fino all'ultima attività. Mentre una seduta coi pesi è aperta la pagina
+      «Fascia cardio» non avvia una registrazione a parte (il battito va già con la seduta). ── */
+const SED_DIMENTICATA=3*3600000;
+const SED={s:null, chiudi:false, fineAt:0, rpe:null, dimenticata:false, timer:null, bozzaT:0};
+let SEDUTE_PESI_FC=[];
+function sedKey(){ return 'tms-seduta-'+fcSlug(); }
+function fcpKey(){ return 'tms-fcp-'+fcSlug(); }
+function sedSalva(subito){
+  const ora=Date.now(); if(!subito && ora-SED.bozzaT<FC_BOZZA_OGNI) return Promise.resolve();
+  SED.bozzaT=ora; return fcScriviKv(sedKey(), SED.s); }
+function fcpSalva(){ return fcScriviKv(fcpKey(), SEDUTE_PESI_FC.slice(-100)); }
+async function sedCarica(){
+  const slug=fcSlug(); let s=null, l=null;
+  try{ s=await fcLeggiKv(sedKey()); l=await fcLeggiKv(fcpKey()); }catch(e){}
+  if(slug!==fcSlug()) return;
+  SEDUTE_PESI_FC=Array.isArray(l)? l : [];
+  if(s && s.inizio && s.giorno!=null && !SED.s){ SED.s=s; if(!s.secchi) s.secchi={}; sedTimer(); }
+  sedControlla(); sedZona(); }
+function sedGi(){ return SED.s? GIORNI.indexOf(SED.s.giorno) : -1; }
+function sedGiornoVisibile(){ const p=[...document.querySelectorAll('.day-page')].find(x=>!x.hidden); return p? +String(p.id).slice(4) : -1; }
+/* aprendo un giorno: parte la seduta, se non ce n'è già una aperta e quel giorno non è già chiuso */
+function sedApri(gi){
+  if(GIORNI[gi]==null) return;
+  if(SED.s){ sedControlla(); if(!SED.dimenticata) sedAttivita(); sedZona(); return; }
+  if(giornoCompletato(gi)){ sedZona(); return; }
+  sedInizia(GIORNI[gi]); }
+function sedInizia(g){
+  const ora=Date.now();
+  SED.s={giorno:g, settimana:+(((SCHEDA&&SCHEDA.sync)||{}).settimana)||0, inizio:ora, ultima:ora, picco:0, secchi:{}};
+  SED.chiudi=false; SED.dimenticata=false; SED.rpe=null;
+  sedSalva(true); sedTimer(); sedZona(); }
+/* qualcosa fatto nella seduta: sposta «l'ultima attività» (serve a riconoscere una seduta dimenticata) */
+function sedAttivita(){ if(!SED.s || SED.dimenticata) return; SED.s.ultima=Date.now(); sedSalva(false); }
+function sedControlla(){ if(SED.s && !SED.chiudi && Date.now()-(+SED.s.ultima||+SED.s.inizio)>SED_DIMENTICATA) SED.dimenticata=true; sedAvvisoMenu(); }
+function sedCampione(ora, bpm){
+  const s=SED.s; if(!s) return;
+  const k=Math.floor((ora-s.inizio)/1000/FC_PASSO); if(k<0) return;
+  const x=s.secchi[k]||(s.secchi[k]=[0,0]); x[0]+=bpm; x[1]++;
+  if(bpm>(s.picco||0)) s.picco=bpm;
+  if(FC.nome) s.nome=FC.nome;
+  sedSalva(false); }
+function sedTimer(){ clearInterval(SED.timer); SED.timer=SED.s? setInterval(()=>{ sedTempo(); }, 1000) : null; }
+/* «Fine seduta»: si apre la riga per chiudere (durata già compilata, fatica da scegliere) */
+function sedFineApri(fineAt){ if(!SED.s) return; SED.chiudi=true; SED.fineAt=fineAt||0; SED.rpe=null; sedZona(); }
+function sedCampo(id, v){ const el=$(id); if(!el) return;
+  if(el.type==='checkbox') el.checked=!!v; else el.value=String(v);
+  try{ el.dispatchEvent(new Event('input', {bubbles:true})); }catch(e){} }
+async function sedChiudi(){
+  const s=SED.s; if(!s) return;
+  const fine=SED.fineAt||Date.now(), gi=sedGi(), min=Math.max(1, Math.round((fine-s.inizio)/60000));
+  if(gi>=0){ if(useRpeScheda()){ sedCampo('min-'+gi, min); if(SED.rpe!=null) sedCampo('rpe-'+gi, SED.rpe); } else sedCampo('fatto-'+gi, true); }
+  const c=fcComponi({inizio:s.inizio, secchi:s.secchi||{}, picco:s.picco||0}, fine, s.nome||'');
+  if(c.fcMedia){
+    const id='p|'+new Date(s.inizio).toISOString();
+    if(!SEDUTE_PESI_FC.some(x=>x.id===id)) SEDUTE_PESI_FC.push({id:id, giorno:s.giorno, settimana:+s.settimana||0, data:c.data, ora:c.ora,
+      durataSec:c.durataSec, fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo, dispositivo:c.dispositivo});
+    await fcpSalva(); }
+  SED.s=null; SED.chiudi=false; SED.fineAt=0; SED.rpe=null; SED.dimenticata=false; sedTimer();
+  await fcScriviKv(sedKey(), null);
+  try{ if(navigator.vibrate) navigator.vibrate(80); }catch(e){}
+  sedZona(); sedAvvisoMenu(); fcAggiornaMenu(); colPresto(); }
+/* la seduta dimenticata era ancora in corso: si riparte a contare l'attività da adesso */
+function sedContinua(){ if(!SED.s) return; SED.dimenticata=false; SED.chiudi=false; SED.s.ultima=Date.now(); sedSalva(true); sedZona(); sedAvvisoMenu(); }
+function sedBattitoHtml(){
+  if(!window.tmsBLE) return '';
+  const v=(FC.id && FC.bpm)? FC.bpm : null, z=v? fcZona(v) : null;
+  if(v) return '<button type="button" class="sed-fc" id="sed-fc">'+ico('cuore')+'<b>'+v+'</b><span>'+(z&&z.n? esc(tt(FC_ZONE[z.n-1][1])) : 'bpm')+'</span>'+(z&&z.n? '<i class="z'+z.n+'"></i>' : '')+'</button>';
+  if(FC.id || FC.collegando || FC.cercando) return '<button type="button" class="sed-fc" id="sed-fc">'+ico('cuore')+'<b>…</b><span>'+esc(tt(FC.id? 'aspetto il battito' : 'cerco la fascia'))+'</span></button>';
+  return '<button type="button" class="sed-fc sed-no" id="sed-fc">'+ico('cuore')+'<span class="sed-due"><span>'+esc(tt('nessuna fascia'))+'</span><u>'+esc(tt('Collega'))+'</u></span></button>'; }
+function sedTempo(){
+  const t0=$('sed-t'); if(!t0 || !SED.s) return;
+  t0.textContent=fcDur((((SED.chiudi && SED.fineAt) || Date.now())-SED.s.inizio)/1000); }
+/* la zona della seduta (seconda riga della barra in alto): visibile sulle pagine dei giorni */
+function sedZona(){
+  const z=$('sed-zona'); if(!z) return;
+  const gi=sedGiornoVisibile(), vis=!!SCHEDA && gi>=0;
+  z.hidden=!vis; document.body.classList.toggle('con-seduta', vis);
+  fcChip();
+  if(!vis) return;
+  const s=SED.s, altro=s && GIORNI.indexOf(s.giorno)!==gi;
+  let h=sedBattitoHtml();
+  if(s){
+    h+='<div class="sed-tempo"><b id="sed-t">0:00</b><span>'+esc(altro? tt('seduta di')+' '+s.giorno : tt('seduta in corso'))+'</span></div>';
+    if(!SED.chiudi && !SED.dimenticata) h+='<button type="button" class="sed-btn" id="sed-fine">'+esc(tt('Fine seduta'))+'</button>';
+    if(SED.dimenticata && !SED.chiudi){
+      const minU=Math.max(1, Math.round(((+s.ultima||+s.inizio)-s.inizio)/60000));
+      h+='<div class="sed-riga"><p>'+esc(tt('Questa seduta è aperta da molte ore.'))+' '+esc(tt('La chiudo con'))+' <b>'+minU+' min</b> '+esc(tt('(fino all’ultima cosa che hai segnato)?'))+'</p>'+
+        '<button type="button" class="sed-btn ok" id="sed-dim-chiudi">'+esc(tt('Chiudi la seduta'))+'</button><button type="button" class="sed-btn" id="sed-dim-continua">'+esc(tt('È ancora in corso'))+'</button></div>'; }
+    if(SED.chiudi){
+      const min=Math.max(1, Math.round(((SED.fineAt||Date.now())-s.inizio)/60000));
+      h+='<div class="sed-riga"><p>'+esc(tt('Durata'))+' <b>'+min+' min</b>'+(useRpeScheda()? ' · '+esc(tt('Fatica della seduta (RPE)')) : '')+'</p>'+
+        (useRpeScheda()? '<div class="sed-rpe">'+[1,2,3,4,5,6,7,8,9,10].map(n=>'<button type="button" data-sedrpe="'+n+'"'+(SED.rpe===n?' class="on"':'')+'>'+n+'</button>').join('')+'</div>' : '')+
+        '<button type="button" class="sed-btn ok" id="sed-ok">'+esc(tt('Chiudi la seduta'))+'</button><button type="button" class="sed-btn" id="sed-annulla">'+esc(tt('Annulla'))+'</button></div>'; }
+  } else {
+    const chiusa=giornoCompletato(gi);
+    h+='<div class="sed-tempo"><b>'+(chiusa? ico('check') : '–')+'</b><span>'+esc(tt(chiusa? 'seduta chiusa' : 'nessuna seduta aperta'))+'</span></div>'+
+      '<button type="button" class="sed-btn" id="sed-nuova">'+esc(tt(chiusa? 'Nuova seduta' : 'Inizia la seduta'))+'</button>'; }
+  z.innerHTML=h; sedTempo();
+  const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
+  on('sed-fc', ()=>{ if(FC.id) return; if(fcIdNoto()) fcAvvia(); else fcApri(); });
+  on('sed-fine', ()=>sedFineApri(0));
+  on('sed-ok', ()=>{ sedChiudi(); });
+  on('sed-annulla', ()=>{ SED.chiudi=false; SED.fineAt=0; SED.rpe=null; sedZona(); });
+  on('sed-dim-chiudi', ()=>{ SED.dimenticata=false; sedFineApri(+SED.s.ultima||+SED.s.inizio); });
+  on('sed-dim-continua', ()=>sedContinua());
+  on('sed-nuova', ()=>{ if(!SED.s) sedInizia(GIORNI[gi]); });
+  z.querySelectorAll('[data-sedrpe]').forEach(b=>{ b.onclick=()=>{ SED.rpe=+b.getAttribute('data-sedrpe'); sedZona(); }; }); }
+/* al menu: una seduta dimenticata si segnala anche qui */
+function sedAvvisoMenu(){
+  const box=$('sed-avviso'); if(!box) return;
+  if(!(SED.s && SED.dimenticata)){ box.innerHTML=''; return; }
+  const s=SED.s, d=new Date(s.inizio);
+  box.innerHTML='<div class="box sed-avv"><div class="pick-title">'+ico('attenzione')+'<span>'+esc(tt('Seduta ancora aperta'))+'</span></div>'+
+    '<p>'+esc(tt('La seduta di'))+' <b>'+esc(s.giorno)+'</b> '+esc(tt('è aperta da'))+' '+esc(giornoBreve(dataLoc(d)))+' '+esc(oraLoc(d).slice(0,5))+'.</p>'+
+    '<button type="button" class="btn-big" id="sed-avv-apri">'+esc(tt('Chiudila'))+'</button></div>';
+  const b=$('sed-avv-apri'); if(b) b.onclick=()=>{ const gi=sedGi(); if(gi>=0){ navEntra(); apriGiorno(gi); } else { SED.dimenticata=false; sedFineApri(+s.ultima||+s.inizio); sedChiudi(); } }; }
 /* ── 🎮 SCHERMATA D'ANALISI della pesata (richiesta di Marco, 25/11/2026): «una schermata di caricamento, la
       forma stilizzata del corpo che si carica e sembra che venga analizzata, in stile videogioco anni 2000».
       Dei videogiochi si prendono SOLO l'animazione e l'impostazione: colori, forme e caratteri restano quelli
@@ -2711,7 +2893,7 @@ function timerTick(){
   if(!document.hidden){ timerBeep(); timerAvvisoVia(); }   /* in secondo piano ci pensa la notifica */
 }
 function timerRun(){ clearInterval(timerId); timerId=setInterval(timerTick, 250); }
-function startTimer(nome,sec){ sec=+sec||0; if(sec<=0) sec=90;
+function startTimer(nome,sec){ sec=+sec||0; if(sec<=0) sec=90; sedAttivita();
   const bar=$('tbar'); if(!bar) return;
   timerPaused=false; timerLeft=sec; timerFine=Date.now()+sec*1000; $('t-ex').textContent=nome||'';
   bar.classList.remove('done'); bar.classList.add('show'); document.body.classList.add('timer-su'); $('t-pause').innerHTML=ico('pausa'); $('t-time').textContent=fmtSec(timerLeft);
@@ -2763,7 +2945,7 @@ $('t-x').onclick=timerClose;
 { const fi=$('foto-file'); if(fi) fi.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f&&fotoVistaAttesa) fotoAggiungi(fotoVistaAttesa,f); }; }
 /* autosalvataggio: solo sui campi «fatto» del cliente (non sui campi del pannello Modifica) */
 document.addEventListener('input',e=>{ const id=e.target&&e.target.id;
-  if(id && /^(s|r|p|rir|n|rpe|min|fatto)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); } });
+  if(id && /^(s|r|p|rir|n|rpe|min|fatto)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); sedAttivita(); } });
 
 /* ════ 🔗 SCHEDA COLLEGATA COL TMS DEL PERSONAL, 🔔 PROMEMORIA, ⬆ AGGIORNAMENTO DELL'APK (solo nell'APK) ════
    Dal 24/11/2026 telefono e PC si passano i file attraverso l'HUB DEL TMS (Cloudflare, hub/worker.js),
@@ -2882,6 +3064,8 @@ async function colRicevute(st){
   if(cf){ await fotoSalva(); renderFoto(); }
   let cc=false; SEDUTE_FC.forEach(x=>{ if(x && !x.pc && ric.has(String(x.id))){ x.pc=true; cc=true; } });
   if(cc){ await fcSalva(); if(!$('fc').hidden) renderFc(); }
+  let cpf=false; SEDUTE_PESI_FC.forEach(x=>{ if(x && !x.pc && ric.has(String(x.id))){ x.pc=true; cpf=true; } });
+  if(cpf) await fcpSalva();
   if(SCHEDA){ const o=dietaLeggi(); let cd=false;
     Object.keys(o.mod).forEach(d=>{ if(o.pc[d]!==o.mod[d] && ric.has(dietaId(d, o.mod[d]))){ o.pc[d]=o.mod[d]; cd=true; } });
     if(cd){ dietaScrivi(o); if(!$('alim').hidden) renderAlim(); } }
@@ -3061,6 +3245,13 @@ async function colEventi(){
   if(cp) await pesSalva();
   if(cf) await fotoSalva();
   if(cc) await fcSalva();
+  /* battito delle sedute coi pesi: un file per seduta, legato al giorno della scheda */
+  let cpf=false;
+  for(const x of SEDUTE_PESI_FC){ if(!daMandare(x)) continue;
+    await colScrivi(dir+colNomeFile('sedutafc', x.id), await colCifra({tipo:'tms-seduta-fc', seduta:{id:x.id, giorno:x.giorno, settimana:x.settimana, data:x.data, ora:x.ora,
+      durataSec:x.durataSec, fcMedia:x.fcMedia, fcPicco:x.fcPicco, fc:x.fc, fcPasso:x.fcPasso, dispositivo:x.dispositivo}}));
+    x.ev=new Date().toISOString(); cpf=true; }
+  if(cpf) await fcpSalva();
   /* i giorni della dieta: un file per ogni cambio (sì, no o tolto), finché il PC non lo conferma */
   if(SCHEDA){ const o=dietaLeggi(), partiti=[];
     for(const d of Object.keys(o.mod).sort()){

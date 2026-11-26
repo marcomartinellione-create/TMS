@@ -3478,6 +3478,139 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   sw.close();
 }
 
+console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il giorno, zona del battito, fine seduta) e battito della seduta sul PC ---');
+{
+  const PWA = path.join(ROOT, 'app-android', 'web', 'index.html');
+  const J = o => JSON.stringify(o);
+  const scheda = { tipo: 'tms-scheda', versione: 1, app: '1.1.41', modificabile: false, rpe: true,
+    profilo: { slug: 'prova', nome: 'Cliente Prova' }, esportata: '2026-11-26', corpo: { altezza: 180, sesso: 'M', eta: 40, fcMax: 0, fcRiposo: 55 },
+    righe: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 80, rest: '2:00', rir: null, test: false, note: '', video: '' },
+      { giorno: 'Mercoledì', esercizio: 'Panca piana con bilanciere', serie: 3, rip: 8, peso: 60, rest: '2:00', rir: null, test: false, note: '', video: '' }],
+    riscaldamento: [], ultima: {}, video: {}, dieta: null };
+  /* senza Bluetooth (fuori dall'APK) la seduta parte comunque, senza il riquadro del battito */
+  { const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+      beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(scheda)); win.scrollTo = () => {}; } });
+    await settle(300);
+    const w0 = sub.window, d0 = w0.document;
+    d0.getElementById('vai-scheda').click(); await settle(20); d0.querySelector('[data-go="0"]').click(); await settle(30);
+    ok(w0.eval('!!SED.s') && d0.getElementById('sed-zona').hidden === false && !d0.getElementById('sed-fc') && /0:0\d/.test(d0.getElementById('sed-t').textContent) && d0.getElementById('sed-fine') !== null,
+       'seduta: senza fascia (né Bluetooth) parte lo stesso, con il tempo e «Fine seduta»');
+    sub.window.close(); }
+  const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+    beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(scheda)); win.scrollTo = () => {};
+      const B = win.__ble = { collegati: [], staccati: [], cercato: 0 };
+      win.tmsBLE = { prepara: async () => ({ ok: true }), cerca: async (filtro, trovato) => { B.cercato++; B.filtro = filtro; B.trovato = trovato; },
+        fermaRicerca: async () => {}, collega: async (id, cb, opz) => { B.collegati.push([id, opz]); B.cb = cb; }, scrivi: async () => {}, stacca: async id => { B.staccati.push(id); } }; } });
+  await settle(300);
+  const sw = sub.window, sd = sub.window.document, B = sw.__ble;
+  ok(sd.getElementById('sed-zona').hidden === true, 'zona della seduta: al menu non c\'è');
+  sd.getElementById('vai-scheda').click(); await settle(20);
+  ok(sd.getElementById('sed-zona').hidden === true && sw.eval('SED.s') === null, 'nella lista dei giorni la seduta non parte ancora');
+  sd.querySelector('[data-go="0"]').click(); await settle(30);
+  const inizio = sw.eval('SED.s.inizio');
+  ok(sw.eval('SED.s.giorno') === 'Lunedì' && sd.getElementById('sed-zona').hidden === false && sw.document.body.classList.contains('con-seduta'),
+     'aprire il giorno avvia la seduta: la zona compare nella barra in alto');
+  ok(JSON.parse(sw.localStorage.getItem('tms-seduta-prova') || '{}').inizio === inizio, 'l\'inizio della seduta è salvato sul telefono (resiste a un\'app chiusa)');
+  ok(sd.getElementById('sed-fc').classList.contains('sed-no') && /nessuna fascia/.test(sd.getElementById('sed-fc').textContent) && /Collega/.test(sd.getElementById('sed-fc').textContent),
+     'senza fascia collegata: «nessuna fascia» con il tasto per collegarla');
+  ok(sd.getElementById('fc-chip').hidden === true, 'con la zona della seduta il battito piccolo della barra non si ripete');
+  sd.getElementById('barra-ind').click(); await settle(30);
+  ok(sd.getElementById('home').hidden === false && sd.getElementById('sed-zona').hidden === true && sw.eval('SED.s.inizio') === inizio, 'tornando ai giorni la seduta resta aperta (la zona si nasconde)');
+  sd.querySelector('[data-go="0"]').click(); await settle(30);
+  ok(sw.eval('SED.s.inizio') === inizio, 'rientrando nel giorno la seduta NON riparte');
+  sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="1"]').click(); await settle(30);
+  ok(sw.eval('SED.s.giorno') === 'Lunedì' && /seduta di Lunedì/.test(sd.getElementById('sed-zona').textContent), 'aprendo un altro giorno resta la seduta aperta (una alla volta) e lo dice');
+  sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);
+  /* la fascia: un tocco su «nessuna fascia» la cerca; collegata, il battito va da solo nella seduta */
+  sd.getElementById('sed-fc').click(); await settle(30);
+  ok(sd.getElementById('fc').hidden === false && B.cercato === 1, 'la prima volta il tasto porta alla pagina Fascia cardio per sceglierla');
+  B.trovato({ id: 'AA:BB:CC:00:00:01', nome: 'Polar H10 1234', servizi: ['180d'] }); await settle(20);
+  sd.querySelector('#fc-trovati [data-fcd]').click(); await settle(30);
+  ok(/seduta coi pesi aperta/.test(sd.getElementById('fc-reg').textContent) && !sd.getElementById('fc-registra'), 'pagina Fascia cardio: con una seduta coi pesi aperta niente «Registra» a parte (niente doppioni)');
+  sw.eval('fcRegistra()'); ok(sw.eval('FC.reg') === null, 'una registrazione cardio non parte mentre è aperta una seduta coi pesi');
+  sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);
+  B.cb.onDati('2a37', [0x00, 130]); await settle(10);
+  ok(/130/.test(sd.getElementById('sed-fc').textContent) && /Zona 3/.test(sd.getElementById('sed-fc').textContent), 'zona della seduta: battito grande colorato per zona');
+  sw.eval('SED.s.inizio=Date.now()-3600000; SED.s.secchi={}; SED.s.picco=0; for(var k=0;k<11;k++) sedCampione(SED.s.inizio+k*5000+1000, 120+k);');
+  /* fine seduta: durata da sola, fatica da scegliere */
+  sd.getElementById('sed-fine').click(); await settle(10);
+  ok(/60 min/.test(sd.getElementById('sed-zona').textContent) && sd.querySelectorAll('[data-sedrpe]').length === 10, '«Fine seduta»: durata già compilata (60 min), fatica RPE da scegliere');
+  sd.querySelector('[data-sedrpe="7"]').click(); await settle(10);
+  sd.getElementById('sed-ok').click(); await settle(40);
+  ok(sd.getElementById('min-0').value === '60' && sd.getElementById('rpe-0').value === '7' && sw.eval('SED.s') === null && sw.localStorage.getItem('tms-seduta-prova') === null,
+     'seduta chiusa: durata e fatica nei campi di fine giornata (vanno al PC come sempre), seduta tolta dal telefono');
+  { const f = JSON.parse(sw.eval('JSON.stringify(SEDUTE_PESI_FC[0]||null)'));
+    ok(f && f.giorno === 'Lunedì' && f.fcMedia === 125 && f.fcPicco === 130 && f.fc.length === 11 && f.fcPasso === 5 && f.dispositivo === 'Polar H10 1234' && f.durataSec >= 3600,
+       'battito della seduta: media, picco, traccia e dispositivo, legati al giorno'); }
+  ok(/seduta chiusa/.test(sd.getElementById('sed-zona').textContent) && sd.getElementById('sed-nuova') !== null && sd.getElementById('stato-0').innerHTML !== '', 'dopo la chiusura: «seduta chiusa» (e il giorno risulta completato)');
+  sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);
+  ok(sw.eval('SED.s') === null, 'un giorno già chiuso in settimana non fa ripartire la seduta da solo');
+  /* seduta dimenticata aperta: dopo 3 ore senza attività si chiede di chiuderla fino all'ultima attività */
+  sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="1"]').click(); await settle(30);
+  ok(sw.eval('SED.s.giorno') === 'Mercoledì', 'seduta del mercoledì aperta');
+  sw.eval('SED.s.inizio=Date.now()-5*3600000; SED.s.ultima=Date.now()-4*3600000; sedSalva(true);');
+  sd.getElementById('barra-ind').click(); await settle(20); sd.getElementById('barra-ind').click(); await settle(20);
+  sw.eval('sedControlla()'); await settle(10);
+  ok(sd.getElementById('menu').hidden === false && /Seduta ancora aperta/.test(sd.getElementById('sed-avviso').textContent), 'seduta dimenticata: al menu c\'è l\'avviso');
+  sd.getElementById('sed-avv-apri').click(); await settle(30);
+  ok(sd.getElementById('day-1').hidden === false && /aperta da molte ore/.test(sd.getElementById('sed-zona').textContent) && /60 min/.test(sd.getElementById('sed-zona').textContent) && sw.eval('SED.s.inizio') < Date.now() - 4.5 * 3600000,
+     'seduta dimenticata: nel giorno chiede di chiuderla con la durata fino all\'ultima attività (60 min), senza ripartire');
+  sd.getElementById('sed-dim-chiudi').click(); await settle(10);
+  sd.getElementById('sed-ok').click(); await settle(40);
+  ok(sd.getElementById('min-1').value === '60' && sw.eval('SED.s') === null, 'seduta dimenticata chiusa con 60 minuti');
+  /* l'app chiusa a metà: alla riapertura la seduta c'è ancora */
+  sw.localStorage.setItem('tms-seduta-prova', J({ giorno: 'Mercoledì', settimana: 0, inizio: Date.now() - 600000, ultima: Date.now() - 60000, picco: 0, secchi: {} }));
+  await sw.eval('sedCarica()');
+  ok(sw.eval('SED.s && SED.s.giorno') === 'Mercoledì' && sw.eval('SED.dimenticata') === false, 'riaprendo l\'app la seduta aperta si ritrova (e non è «dimenticata» dopo 10 minuti)');
+  sw.close();
+
+  /* sul PC: battito della seduta nella scheda della settimana, poi con «Salva nello Storico» nello Storico; mai nel carico né nel Cardio */
+  { const fsmem = makeTmsFS();
+    await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'prova', nome: 'Cliente Prova', creato: '2026-01-01' }], active: 'prova' }));
+    await fsmem.writeFile('TMS_Dati/prova/scheda.json', J({ settimanale: [{ giorno: 'Giorno 1', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 80, rest: '2:00' }], mensile: [], rpe: { settimanale: { 'Giorno 1': { rpe: 7, min: 60 } } } }));
+    await fsmem.writeFile('TMS_Dati/prova/storico.json', '[]');
+    await fsmem.writeFile('TMS_Dati/prova/corpo.json', J({ dati_utente: { nome: 'Cliente Prova', sesso: 'M', altezza: 180, nascita: '1986-01-01', useRpe: true }, storico_io: [] }));
+    await fsmem.writeFile('TMS_Dati/prova/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+    const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+    await settleConnect(dom, fsmem); await settle(300);
+    const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+    const fc = []; for (let k = 0; k < 11; k++) fc.push(120 + k);
+    const S = { id: 'p|2026-11-23T17:00:00.000Z', giorno: 'Giorno 1', settimana: 1, data: '2026-11-23', ora: '18:00:00', durataSec: 3600, fcMedia: 125, fcPicco: 130, fc: fc, fcPasso: 5, dispositivo: 'Polar H10' };
+    ok(w.eval('sedutaFcUnisci(DOC, [' + J(S) + '], {settimana:1}, new Set())') === 1 && w.eval('DOC.scheda.fcSedute["Giorno 1"].fcMedia') === 125, 'PC: il battito della seduta della settimana in corso va nella scheda (quel giorno)');
+    ok(w.eval('sedutaFcUnisci(DOC, [' + J(S) + '], {settimana:1}, new Set())') === 0 && w.eval('sedutaFcUnisci(DOC, [' + J(Object.assign({}, S, { id: 'altro' })) + '], {settimana:1}, new Set(["altro"]))') === 0,
+       'PC: lo stesso battito non si doppia; uno già ricevuto (e tolto) non torna');
+    ok(w.eval('pulisciSedutaFc({id:"x", giorno:"", data:"2026-11-23", durataSec:600, fcMedia:120})') === null && w.eval('pulisciSedutaFc({id:"x", giorno:"Lunedì", data:"2026-11-23", durataSec:600})') === null,
+       'PC: battito di seduta senza giorno o senza FC media scartato');
+    w.eval('showTab("allenamento")'); await settle(20);
+    ok(d.querySelector('#panel-allenamento [data-fcsp="Giorno 1"]') !== null && /125 · picco 130/.test(d.getElementById('panel-allenamento').textContent), 'tab Pesi: FC media e picco accanto a RPE e minuti del giorno, col pulsante del grafico');
+    d.querySelector('#panel-allenamento [data-fcsp="Giorno 1"]').click(); await settle(20);
+    ok(d.querySelector('#modal svg') !== null && /non entra nel carico/.test(d.getElementById('modal').textContent), 'grafico del battito della seduta (e la nota: fuori dal carico)');
+    w.eval('closeModal()');
+    const tlPrima = w.eval('JSON.stringify(rpeByWeek())');
+    /* «Salva nello Storico» vero */
+    w.eval('saveSchedaModal()'); await settle(20);
+    d.getElementById('m-anno').value = '2026'; d.getElementById('m-sett').value = '48'; d.getElementById('m-sett').dispatchEvent(new w.Event('input', { bubbles: true }));
+    d.getElementById('m-ok').click(); await settle(600);
+    { const f = JSON.parse(w.eval('JSON.stringify(DOC.storico_fc||[])'));
+      ok(f.length === 1 && f[0].scheda === 202648 && f[0].giorno === 'Giorno 1' && f[0].fcMedia === 125 && f[0].fc.length === 11 && J(w.eval('JSON.stringify(DOC.scheda.fcSedute)')) === J('{}'),
+         'Salva nello Storico: il battito resta con quella seduta, nello Storico della settimana 202648'); }
+    ok(/202648/.test(fsmem._files.get('TMS_Dati/prova/corpo.json') || '') && /storico_fc/.test(fsmem._files.get('TMS_Dati/prova/corpo.json') || ''), 'salvato su disco (corpo.json, storico_fc)');
+    ok(w.eval('DOC.cardio.length') === 0 && w.eval('(DOC.storico_rpe||[]).length') === 1 && w.eval('DOC.storico_rpe[0].rpe') === 7, 'nessuna voce nel tab Cardio; il carico interno della seduta resta RPE × minuti');
+    ok(w.eval('JSON.stringify(rpeByWeek())') !== '' && tlPrima !== null && !/fcMedia/.test(w.eval('JSON.stringify(rpeByWeek())')), 'il battito non entra nei calcoli del carico');
+    w.eval('showTab("storico")'); await settle(20);
+    ok(d.querySelector('#panel-storico [data-fcst="0"]') !== null && /125 · picco 130/.test(d.getElementById('panel-storico').textContent), 'Storico: sulla riga della settimana FC media e picco della seduta, col pulsante del grafico');
+    d.querySelector('#panel-storico [data-fcst="0"]').click(); await settle(20);
+    ok(d.querySelector('#modal svg') !== null, 'Storico: il grafico del battito della seduta');
+    w.eval('closeModal()');
+    /* arrivato DOPO il salvataggio della sua settimana: va sulla settimana salvata */
+    ok(w.eval('sedutaFcUnisci(DOC, [' + J(Object.assign({}, S, { id: 'p|tardi', giorno: 'Giovedì', settimana: 1 })) + '], {settimana:2, ultimaSalvata:{codice:202648}}, new Set())') === 1 &&
+       w.eval('DOC.storico_fc.some(function(x){ return x.id==="p|tardi" && x.scheda===202648 && x.giorno==="Giovedì"; })'), 'battito arrivato dopo «Salva nello Storico»: va nella settimana salvata');
+    w.eval('togliCaricoInterno(202648)');
+    ok(w.eval('DOC.storico_fc.length') === 0, 'eliminando la settimana dallo Storico se ne va anche il battito delle sue sedute');
+    ok(errors.length === 0, 'battito delle sedute sul PC: nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+    dom.window.close(); }
+}
+
 console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---');
 {
   const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
@@ -3845,6 +3978,10 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     ok(H.nomi(L2, 'dal-telefono/eventi/').length === 1, 'clienti non aperti: se intanto si cambia profilo non si toglie niente dall\'hub');
     await w.eval('telGiroAltri()');
     ok(H.nomi(L2, 'dal-telefono/eventi/').length === 0 && JSON.parse(fsmem._files.get('TMS_Dati/giulia/alimentazione.json')).aderenza['2026-11-24'].v === 'no', 'clienti non aperti: al giro dopo arriva');
+    /* il battito di una seduta coi pesi di un cliente non aperto resta sull'hub finché non si apre il suo profilo */
+    H.metti(L2, 'dal-telefono/eventi/sedutafc-g1.json', await cifra({ tipo: 'tms-seduta-fc', seduta: { id: 'p|g1', giorno: 'Giorno 1', settimana: 1, data: '2026-11-24', ora: '18:00:00', durataSec: 3000, fcMedia: 120, fcPicco: 150, fc: [110, 130], fcPasso: 5 } }));
+    await w.eval('telGiroAltri()');
+    ok(H.nomi(L2, 'dal-telefono/eventi/').length === 1 && w.eval('telProf("giulia").ricevute').indexOf('p|g1') < 0, 'clienti non aperti: il battito di una seduta coi pesi aspetta sull\'hub che si apra il profilo');
     /* la panoramica nelle Impostazioni */
     await w.eval('impostazioniModal()');
     { const righe = [...d.querySelectorAll('#imp-tel .tel-cliente')];
@@ -3911,6 +4048,19 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
   /* fine seduta sul telefono, poi «💾 Salva nello Storico» sul PC: la settimana si cristallizza */
   scrivi('rpe-0', '7'); scrivi('min-0', '60'); await giroTel(); await giroPC();
   ok(J(w.eval('JSON.stringify(DOC.scheda.rpe.settimanale)')) === J(J({ [righePC()[0].giorno]: { rpe: 7, min: 60 } })), 'fatica e durata della seduta scritte sul telefono arrivano sul PC');
+  /* battito di una seduta coi pesi: dal telefono alla scheda del PC (quel giorno), cifrato; non nel tab Cardio */
+  { const g0 = sw.eval('GIORNI[0]'), sett = sw.eval('+((SCHEDA.sync||{}).settimana)||0');
+    sw.eval('SEDUTE_PESI_FC.push(' + J({ id: 'p|2026-11-24T17:00:00.000Z', giorno: g0, settimana: sett, data: '2026-11-24', ora: '18:00:00', durataSec: 3600, fcMedia: 118, fcPicco: 151, fc: [110, 120, 130], fcPasso: 5, dispositivo: 'Polar H10' }) + ')');
+    await sw.eval('colEventi()');
+    const evS = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /sedutafc-/.test(k));
+    ok(evS.length === 1 && !/Polar|151/.test(H.file(LID, evS[0])), 'telefono: il battito della seduta coi pesi diventa un file cifrato sull\'hub');
+    const nCardio = w.eval('DOC.cardio.length');
+    await giroPC(); await settle(450);
+    ok(w.eval('(DOC.scheda.fcSedute||{})[' + J(g0) + '] && DOC.scheda.fcSedute[' + J(g0) + '].fcMedia') === 118 && w.eval('DOC.cardio.length') === nCardio,
+       'PC: il battito arriva nella scheda, legato a quel giorno (non nel tab Cardio)');
+    ok(!H.file(LID, evS[0]), 'PC: salvato, il file del battito se ne va dall\'hub');
+    await giroTel();
+    ok(sw.eval('SEDUTE_PESI_FC[0].pc===true'), 'telefono: il battito della seduta risulta «al PC»'); }
   ok(sd.getElementById('ck-0').textContent === '✔', 'telefono: la riga dello squat è spuntata ✔ (toccata questa settimana)');
   w.eval('telSettimanaSalvata(202647)'); await settle(20); await giroPC(); await giroTel(); await settle(50);
   ok(w.eval('telProf().settimana') === 2 && sw.eval('SCHEDA.sync.settimana') === 2, 'Salva nello Storico: la settimana sale a 2 sul PC e sul telefono');

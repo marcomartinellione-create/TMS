@@ -30,13 +30,23 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
 - **♥ Fascia cardio** (solo nell'APK, dalla 1.4.0): con una fascia cardio Bluetooth standard (Polar, Garmin,
   Wahoo…) o un bracciale che condivide il battito (Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp)
   si vede il battito in diretta, colorato per zona (FC max del Profilo o stimata dall'età), anche nella barra in
-  alto durante la seduta coi pesi. «Registra» e «Fine» salvano una seduta (sport, minuti, RPE, FC media, picco,
+  alto. Durante una seduta coi pesi il battito va con quella seduta (vedi sotto) e «Registra» non c'è: serve alle
+  sedute di solo cardio. «Registra» e «Fine» salvano una seduta (sport, minuti, RPE, FC media, picco,
   traccia ogni 5 s) che va da sola al TMS collegato, nel tab Cardio (file cifrato `tms-cardio` sull'hub). Profilo
   standard Bluetooth SIG «Heart Rate»: servizio 0x180D, misura 0x2A37 (decodifica e logica nella pagina,
   `fcDecodifica` e seguenti). Durante la registrazione lo schermo resta acceso (Screen Wake Lock, se la
   WebView lo offre) e la bozza si salva ogni 15 s; con l'app in secondo piano Android può fermare la pagina e
   quei secondi restano vuoti (un servizio in primo piano è previsto con la fase successiva del bracciale,
   studio in `Doc/bracciale/PROPOSTA.md`).
+- **Seduta in corso** (dalla 1.5.0): aprire un giorno della scheda avvia la seduta (inizio salvato in IndexedDB,
+  `tms-seduta-<slug>`: resiste a un'app chiusa; uscire e rientrare non la fa ripartire). La **zona della seduta** è
+  una seconda riga della barra in alto sulle pagine dei giorni (`#sed-zona`, funzioni `sed*`): battito colorato per
+  zona o «nessuna fascia», tempo, «Fine seduta», che compila la durata (`min-N`) e chiede la fatica (`rpe-N`).
+  Il battito della seduta (con la fascia collegata si registra da solo) va al PC come evento cifrato
+  `tms-seduta-fc`; sul PC sta col giorno della scheda e poi nello Storico (`storico_fc`), mai nel carico né nel
+  Cardio. Dopo 3 ore senza attività la seduta è «dimenticata»: l'app propone di chiuderla fino all'ultima attività.
+  Durante una seduta la fascia resta collegata anche con l'app in secondo piano (Android può comunque fermare la
+  pagina: quei secondi restano vuoti).
 - **🔗 Collegamento col TMS sul PC** («⚙ Collegamento e promemoria»): attraverso l'hub del TMS su
   Cloudflare (fino alla versione precedente all'hub passava da una cartella condivisa di Google Drive;
   ora niente cartella, niente app di sincronizzazione, niente account Google). Si scrive il codice

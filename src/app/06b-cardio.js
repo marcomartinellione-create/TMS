@@ -384,3 +384,77 @@ function graficoFcSeduta(s){
   return lineChart([{name:t('Battito'), color:'var(--danger-b)', punti:false, data:dati}],
     {labels:lab, h:170, rif:(+s.fcMedia>0? +s.fcMedia : null), fmt:v=>nf(v,0), fmtTip:v=>nf(v,0)+' bpm'});
 }
+
+/* ── BATTITO DELLE SEDUTE COI PESI (26/11/2026, richiesta di Marco). Nell'app del telefono aprire un giorno della
+      scheda avvia la seduta e, con la fascia cardio collegata, il battito si registra da solo; alla «Fine seduta»
+      arriva qui come evento tms-seduta-fc attraverso l'hub. Il battito sta CON LA SEDUTA (quel giorno della
+      scheda), non nel tab Cardio e MAI nel carico dei pesi (TL, ACWR, monotonia, sRPE non lo leggono):
+      · settimana in corso → DOC.scheda.fcSedute[giorno] (scheda.json), si vede nel tab Pesi accanto a RPE e minuti;
+      · «Salva nello Storico» la sposta in DOC.storico_fc (corpo.json) con il codice della settimana: si vede
+        nello Storico, sulla riga della settimana; eliminando la settimana se ne va anche lei;
+      · se arriva DOPO il salvataggio della sua settimana (settimana del telefono più vecchia di quella del PC),
+        va direttamente in DOC.storico_fc, sulla settimana salvata per ultima (o su quella della sua data).
+      Seduta: {id, giorno, settimana, data, ora, durataSec, fcMedia, fcPicco, fc:[bpm|null ogni fcPasso s], fcPasso,
+      dispositivo}. ── */
+function pulisciSedutaFc(x){
+  if(!x || typeof x!=='object') return null;
+  const id=String(x.id||'').trim().slice(0,80), giorno=String(x.giorno||'').trim().slice(0,60);
+  const data=String(x.data||'').slice(0,10);
+  if(!id || !giorno || !/^\d{4}-\d{2}-\d{2}$/.test(data) || isNaN(new Date(data+'T12:00:00').getTime())) return null;
+  const bpm=v=>{ const n=Math.round(+v); return (v!=null && v!=='' && n>=25 && n<=250)? n : null; };
+  const media=bpm(x.fcMedia); if(media==null) return null;
+  const durataSec=Math.round(+x.durataSec); if(!(durataSec>=30 && durataSec<=86400)) return null;
+  const out={id:id, giorno:giorno, settimana:Math.max(0, Math.round(+x.settimana)||0), data:data,
+    ora:/^\d{2}:\d{2}(:\d{2})?$/.test(String(x.ora||''))? String(x.ora) : '', durataSec:durataSec, fcMedia:media, fcPicco:bpm(x.fcPicco)||media,
+    dispositivo:String(x.dispositivo||'').trim().slice(0,60)};
+  const fc=Array.isArray(x.fc)? x.fc.slice(0,20000).map(bpm) : [];
+  if(fc.filter(v=>v!=null).length>1){ out.fc=fc; const ps=Math.round(+x.fcPasso); out.fcPasso=(ps>=1 && ps<=60)? ps : 5; }
+  return out;
+}
+/* unisce in T (DOC) il battito arrivato; p = collegamento del profilo (settimana, ultima salvata).
+   giaVisti = id già ricevuti (una seduta tolta non torna). Ritorna quante ne ha messe. */
+function sedutaFcUnisci(T, arrivate, p, giaVisti){
+  const sett=+(p&&p.settimana)||1; let n=0;
+  if(!T.scheda || typeof T.scheda!=='object') T.scheda={settimanale:[],mensile:[]};
+  (arrivate||[]).forEach(x=>{ const s=pulisciSedutaFc(x);
+    if(!s || (giaVisti && giaVisti.has(s.id))) return;
+    if(!s.settimana || s.settimana>=sett){
+      const fs=(T.scheda.fcSedute && typeof T.scheda.fcSedute==='object')? T.scheda.fcSedute : (T.scheda.fcSedute={});
+      if(fs[s.giorno] && fs[s.giorno].id===s.id) return;
+      fs[s.giorno]=s; n++; return; }
+    const ul=p && p.ultimaSalvata && +p.ultimaSalvata.codice;
+    const w=isoWeek(new Date(s.data+'T12:00:00')), code=(s.settimana===sett-1 && ul)? ul : schedaCode(w.anno, w.sett);
+    if(!Array.isArray(T.storico_fc)) T.storico_fc=[];
+    if(T.storico_fc.some(r=>r.id===s.id)) return;
+    T.storico_fc=T.storico_fc.filter(r=>!((+r.scheda)===code && r.giorno===s.giorno));
+    T.storico_fc.push(Object.assign({scheda:code}, s)); n++; });
+  return n;
+}
+/* «Salva nello Storico»: il battito delle sedute della settimana va con la settimana salvata */
+function sedutaFcCristallizza(code, setNome){
+  const fs=DOC.scheda && DOC.scheda.fcSedute;
+  if(!fs || typeof fs!=='object' || !Object.keys(fs).length) return 0;
+  if(!Array.isArray(DOC.storico_fc)) DOC.storico_fc=[];
+  let n=0;
+  Object.keys(fs).forEach(g=>{ const s=fs[g]; if(!s) return;
+    DOC.storico_fc=DOC.storico_fc.filter(x=>!((+x.scheda)===code && x.giorno===g));
+    DOC.storico_fc.push(Object.assign({}, s, {scheda:code, giorno:g, set:setNome||''})); n++; });
+  DOC.scheda.fcSedute={};
+  return n;
+}
+/* il battito di una seduta in breve (FC media · picco) e, se c'è la traccia, il pulsante del grafico */
+function sedutaFcPill(s, attr){
+  if(!s || !(+s.fcMedia>0)) return '';
+  return `<span class="pill" title="${esc(t('Battito della seduta')+(s.dispositivo? ' · '+s.dispositivo : ''))}">${ico('cardio','p')} ${nf(s.fcMedia,0)} · ${t('picco')} ${nf(+s.fcPicco||+s.fcMedia,0)} bpm</span>`+
+    (cardioHaTraccia(s)? ` <button type="button" class="btn btn--sm no-print" ${attr} title="${esc(t('Grafico del battito della seduta'))}">${ico('andamento','p')}</button>` : '');
+}
+function sedutaFcModal(s, titolo){
+  if(!s) return;
+  const min=Math.round((+s.durataSec||0)/60);
+  modal(`${croceModal()}<h3>${t('Battito della seduta')} · ${esc(titolo||'')}</h3>
+    <p class="muted" style="margin:0 0 8px">${esc(s.data||'')}${s.ora? ' '+esc(String(s.ora).slice(0,5)) : ''} · ${min} min · ${t('FC media')} ${nf(s.fcMedia,0)} · ${t('picco')} ${nf(+s.fcPicco||0,0)} bpm${s.dispositivo? ' · '+esc(s.dispositivo) : ''}</p>
+    ${cardioHaTraccia(s)? graficoFcSeduta(s) : ''}
+    <div class="lat-nota">${t('Il battito della seduta coi pesi si vede qui e nello Storico: non entra nel carico (TL, ACWR) né nel tab Cardio.')}</div>
+    <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Chiudi')}</button></div>`);
+  modalChiudibile();
+}
