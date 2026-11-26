@@ -4,6 +4,18 @@
 
 ---
 
+### 2026-11-26 — TMS v1.1.40: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.39
+**Descrizione**:
+- Backup completo in un solo file .tmsb: tutti i profili con le foto, il catalogo degli esercizi, le ricette, i video personali, le impostazioni e il taccuino (con la password anche i collegamenti dei telefoni). Con Ripristina si riprende tutto oppure un cliente solo. Il file .tms di un cliente porta con sé i suoi esercizi personalizzati coi video; il tab Profilo segnala i profili rimasti fuori dall’elenco e ricorda di scegliere una cartella per la copia dei backup fuori dal PC.
+- Backup completo in un file .tmsb (profili, foto, catalogo, ricette, video personali, impostazioni, taccuino): si ripristina tutto o un cliente solo; il file .tms porta con sé gli esercizi personalizzati del cliente coi loro video
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-26)
+
+---
+
 ### 2026-11-26 — TMS v1.1.39: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.38
