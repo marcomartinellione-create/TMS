@@ -4,6 +4,21 @@
 
 ---
 
+### 2026-11-26 — TMS v1.1.42: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.41
+**Descrizione**:
+- Seduta in corso nell’app del telefono (TMS Scheda 1.5.0): aprire il giorno della scheda avvia la seduta; una zona nella barra in alto mostra sempre battito e tempo trascorso, e con Fine seduta durata e fatica si compilano da sole. Il battito della seduta arriva sul PC con quel giorno, nel tab Pesi e nello Storico (non nel Cardio né nel carico). Nel tab Corpo c’è la sezione Recupero (interruttore Misure | Recupero): sonno con le fasi, HRV, FC a riposo, SpO2, temperatura della pelle, stress e passi, ognuno confrontato col solito del cliente; i dati arriveranno dal bracciale collegato al telefono.
+- Unione del Recupero nel tab Corpo (membro corpo) con la seduta in corso del telefono (membro telefono-hub)
+- Recupero nel tab Corpo completato con le scelte di Marco: interruttore Misure | Recupero, fascia ± 1,5, guide e inglese
+- Bozza della sezione Recupero nel tab Corpo: sonno e dati del giorno dal bracciale, coi dati finti
+- Seduta in corso nell'app del telefono: aprire il giorno la avvia, una zona nella barra in alto mostra sempre battito e tempo, e alla fine durata e fatica si compilano da sole; il battito della seduta arriva sul PC con quel giorno, nel tab Pesi e nello Storico
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-26)
+
+---
+
 ### 2026-11-26 — TMS v1.1.41: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.40
