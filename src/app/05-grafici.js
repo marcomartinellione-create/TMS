@@ -133,7 +133,13 @@ function lineChart(series,opts){
   opts=opts||{}; const W=opts.w||560,H=opts.h||200,FS=opts.fs||9,P={l:42,r:12,t:10,b:24};
   const all=[].concat(...series.map(s=>s.data.map(d=>d.y))).filter(v=>v!=null&&!isNaN(v));
   if(!all.length) return `<div class="empty">${t('Nessun dato')}</div>`;
-  let mn=Math.min(...all),mx=Math.max(...all); if(mn===mx){mx+=1;mn-=1;} const pad=(mx-mn)*.08; mn-=pad; mx+=pad;
+  let mn=Math.min(...all),mx=Math.max(...all);
+  /* opts.scala = [min, max] (facoltativo, 26/11/2026, Corpo › Recupero): la scala verticale arriva ALMENO
+     da min a max anche se i dati stanno più stretti (la fascia «il suo solito» si vede intera anche negli
+     ultimi 7 giorni). Allarga soltanto, non taglia i dati. Senza, la scala è quella dei dati, come sempre. */
+  if(opts.scala){ const sa=opts.scala[0], sb=opts.scala[1];
+    if(sa!=null&&sa!==''&&isFinite(sa)) mn=Math.min(mn,+sa); if(sb!=null&&sb!==''&&isFinite(sb)) mx=Math.max(mx,+sb); }
+  if(mn===mx){mx+=1;mn-=1;} const pad=(mx-mn)*.08; mn-=pad; mx+=pad;
   const n=Math.max(...series.map(s=>s.data.length));
   /* STACCHI (filtri dei Progressi, 16/11/2026): opts.stacchi = [{i, testo, sotto}] dove le settimane
      scelte riprendono dopo un tratto escluso dal filtro. Fra il blocco prima e quello dopo si lascia

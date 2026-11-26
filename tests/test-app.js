@@ -4522,7 +4522,7 @@ console.log('--- T16: backup completo (.tmsb), ripristino di tutto o di un clien
   dom.window.close();
 }
 
-console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale) — bozza coi dati finti ---');
+console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale), coi dati finti ---');
 {
   /* 26/11/2026, bozza da far approvare a Marco: DOC.recupero = {notti, giorni} in corpo.json, valori derivati
      (ore dormite, medie, «il suo solito», scarti) MAI salvati. I dati finti vengono da tools/recupero-finto.js
@@ -4573,12 +4573,30 @@ console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale)
   w.eval('persist("corpo")'); await settle(700);
   ok(J(corpoDisco().recupero) === '{"notti":[],"giorni":[]}' && corpoDisco().storico_io.length === 1, 'migrazione: al primo salvataggio corpo.json ha «recupero» vuoto, il resto com\'era');
 
-  /* stato vuoto: breve, nessun riquadro */
-  w.eval('showTab("corpo")'); await settle(200);
-  ok(box() && box().querySelector('.recu-vuoto') && !box().querySelector('.recu-cards, svg:not(.ic), table') && /bracciale collegato/.test(box().textContent) && box().textContent.trim().length < 160,
-     'stato vuoto: solo il titolo «Recupero» e una riga, niente riquadri né grafici');
-  ok(!!d.querySelector('#panel-corpo .pag__side #recupero-box') && d.querySelector('#panel-corpo .pag__side .corpo-graf').compareDocumentPosition(box()) === 4,
-     'la sezione sta nella colonna di destra del tab Corpo, sotto composizione e grafici');
+  /* «Misure | Recupero» in cima alla colonna di destra: si parte da Misure */
+  w.eval('localStorage.removeItem("tms-corpo-vista"); showTab("corpo")'); await settle(200);
+  const lato = () => d.querySelector('#panel-corpo .pag__side'), graf = () => d.querySelector('#panel-corpo .corpo-graf');
+  const bottone = v => d.querySelector('#panel-corpo [data-corpo-vista="' + v + '"]');
+  ok(lato().firstElementChild.classList.contains('corpo-vista') && lato().querySelector('.corpo-vista > .gruppo > .btn.btn--sm[data-corpo-vista="misure"] + .btn.btn--sm[data-corpo-vista="recupero"]') &&
+     bottone('misure').classList.contains('is-on') && !bottone('recupero').classList.contains('is-on') && !graf().hidden && box().hidden && lato().getAttribute('data-titolo') === 'Composizione e andamento',
+     'interruttore «Misure | Recupero» in cima alla colonna di destra (blocco .gruppo dell\'app); si parte da Misure, col titolo di sempre');
+  bottone('recupero').click(); await settle(50);
+  ok(graf().hidden && !box().hidden && bottone('recupero').classList.contains('is-on') && bottone('recupero').getAttribute('aria-pressed') === 'true' && !bottone('misure').classList.contains('is-on') &&
+     lato().getAttribute('data-titolo') === 'Sonno e recupero' && E('localStorage.getItem("tms-corpo-vista")') === '{"rita":"recupero"}',
+     'clic su Recupero: si vede il recupero, il titolo della colonna diventa «Sonno e recupero», la scelta si ricorda per questo profilo');
+  w.eval('renderCorpo()'); await settle(50);
+  ok(graf().hidden && !box().hidden && bottone('recupero').classList.contains('is-on'), 'ridisegnando il tab la scelta resta');
+  w.eval('activeProfile="altro"; renderCorpo()'); await settle(50);
+  ok(!graf().hidden && box().hidden && E('corpoVista()') === 'misure', 'un altro profilo ha la sua scelta (Misure, finché non sceglie altro)');
+  w.eval('activeProfile="rita"; renderCorpo()'); await settle(50);
+  ok(!box().hidden && E('corpoVista()') === 'recupero', 'tornando al profilo la sua scelta c\'è ancora');
+  w.eval('localStorage.setItem("tms-corpo-vista","[rotto"); renderCorpo()'); await settle(50);
+  ok(!graf().hidden && E('corpoVista()') === 'misure', 'preferenza illeggibile: si torna a Misure senza errori');
+  w.eval('localStorage.setItem("tms-corpo-vista",\'{"rita":"recupero"}\'); renderCorpo()'); await settle(50);
+
+  /* stato vuoto: una riga, nessun riquadro */
+  ok(box() && box().querySelector('.recu-vuoto') && !box().querySelector('.recu-cards, svg:not(.ic), table') && /bracciale collegato/.test(box().textContent) && box().textContent.trim().length < 140,
+     'stato vuoto: una riga sola, niente riquadri né grafici');
 
   /* pulizia di quello che arriva */
   ok(E('pulisciNotte({id:"2026-11-20",inizio:"2026-11-19T23:00",fine:"2026-11-19T22:00",fasi:[]})') === null && E('pulisciNotte({inizio:"ieri",fine:"2026-11-20T07:00"})') === null &&
@@ -4607,8 +4625,8 @@ console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale)
     const prima = finti.giorni.filter(g => g.data >= '2026-10-26' && g.data <= '2026-11-24').map(g => g.rmssd);
     const m = prima.reduce((a, b) => a + b, 0) / prima.length, ds = Math.sqrt(prima.reduce((a, b) => a + (b - m) ** 2, 0) / (prima.length - 1));
     const sol = JSON.parse(E('JSON.stringify(recSolito(recMappa(DOC.recupero),"rmssd","2026-11-25"))'));
-    ok(prima.length === 30 && sol.n === 30 && Math.abs(sol.media - m) < 1e-9 && Math.abs(sol.ds - ds) < 1e-9 && Math.abs(sol.lo - (m - ds)) < 1e-9,
-       'calcoli: «il suo solito» = media ± deviazione standard dei 30 giorni prima, quel giorno escluso (' + m.toFixed(1) + ' ± ' + ds.toFixed(1) + ' ms)');
+    ok(prima.length === 30 && sol.n === 30 && Math.abs(sol.media - m) < 1e-9 && Math.abs(sol.ds - ds) < 1e-9 && Math.abs(sol.lo - (m - 1.5 * ds)) < 1e-9 && Math.abs(sol.hi - (m + 1.5 * ds)) < 1e-9,
+       'calcoli: «il suo solito» = media ± 1,5 deviazioni standard dei 30 giorni prima, quel giorno escluso (' + m.toFixed(1) + ' ± ' + (1.5 * ds).toFixed(1) + ' ms)');
     ok(E('recSolito(recMappa({notti:[],giorni:' + J(finti.giorni.slice(0, 6)) + '}),"rmssd","' + finti.giorni[6].data + '")') === null && E('recSolito(recMappa({notti:[],giorni:' + J(finti.giorni.slice(0, 7)) + '}),"rmssd","' + finti.giorni[7].data + '")') !== null,
        'calcoli: con meno di 7 giorni il solito non si dice (con 7 sì)'); }
 
@@ -4633,7 +4651,30 @@ console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale)
     const sel = d.getElementById('recu-per'); sel.value = '7'; sel.dispatchEvent(new w.Event('change', { bubbles: true })); await settle(100);
     ok(E('recuperoPer') === 7 && box().querySelectorAll('svg.recu-barre g.recu-barra').length === 7 && [...box().querySelectorAll('svg.recu-barre text.lbl')].filter(x => x.getAttribute('text-anchor') === 'middle' && / h/.test(x.textContent)).length === 7,
        'sezione: «Ultimi 7 giorni» → 7 barre, con le ore dormite scritte sopra');
+    /* a 7 giorni la fascia del solito si vede intera: sta dentro il disegno (lineChart: P.t 10, fondo a 150−24) */
+    const fasce = [...box().querySelectorAll('svg.graf-lin rect[fill="rgba(47,125,79,.12)"]')];
+    ok(fasce.length === 2 && fasce.every(r => +r.getAttribute('y') >= 10 + 2 && +r.getAttribute('y') + +r.getAttribute('height') <= 126 - 2),
+       'sezione: a 7 giorni la fascia del suo solito sta tutta nel grafico, con un margine (la scala arriva ai suoi bordi)');
     w.eval('recuperoPer=30'); }
+
+  /* lineChart: l'opzione nuova opts.scala non cambia nessun altro grafico */
+  { const casi = '(function(){ var S=function(n,k){ var a=[]; for(var i=0;i<n;i++) a.push({x:"w"+i, y:(i%5===3? null : Math.round((50+10*Math.sin(i*k)+i*0.7)*100)/100)}); return a; };' +
+      ' var casi=[lineChart([{name:"Peso",color:"var(--orange-b)",data:S(30,0.7)}],{h:130}),' +
+      ' lineChart([{name:"A",color:"red",data:S(12,1.1)},{name:"B",color:"blue",data:S(12,0.4),dash:"4 3",spess:1.5,punti:false}],{h:200,band:[48,55],rif:52}),' +
+      ' lineChart([{name:"C",color:"green",data:S(20,0.9)}],{fs:11,labels:S(20,1).map(function(p){return p.x;}),stacchi:[{i:8,testo:"Cut",sotto:"13 sett."}]}),' +
+      ' lineChart([{name:"D",color:"violet",data:[{x:"a",y:5},{x:"b",y:5}]}],{fmt:function(v){return v.toFixed(2);}}),' +
+      ' lineChart([{name:"E",color:"gold",data:[]}],{})];' +
+      ' return casi.join("\\n").replace(/gclip\\d+/g,"gclip#"); })()';
+    const impronta = require('crypto').createHash('md5').update(w.eval(casi)).digest('hex');
+    ok(impronta === '62e16cf218e98b2a09434940861c6811', 'lineChart: senza «scala» i grafici sono identici a prima (impronta di cinque grafici di prova: ' + impronta + ')');
+    const N = s => s.replace(/gclip\d+/g, 'gclip#');
+    const base = '[{name:"A",color:"red",data:[{x:"a",y:50},{x:"b",y:58},{x:"c",y:54}]}]';
+    ok(N(E('lineChart(' + base + ',{})')) === N(E('lineChart(' + base + ',{scala:[52,56]})')) && N(E('lineChart(' + base + ',{})')) === N(E('lineChart(' + base + ',{scala:[null,""]})')),
+       'lineChart: una «scala» dentro i dati, o vuota, non cambia nulla (allarga soltanto)');
+    const lbl = s => [...new w.DOMParser().parseFromString(s, 'text/html').querySelectorAll('text.lbl[text-anchor="end"]')].map(x => +x.textContent.replace(',', '.'));
+    const conScala = lbl(E('lineChart(' + base + ',{scala:[40,70]})'));
+    ok(Math.min(...conScala) <= 40 && Math.max(...conScala) >= 70 && Math.min(...lbl(E('lineChart(' + base + ',{})'))) > 45,
+       'lineChart: con «scala» [40, 70] l\'asse verticale arriva almeno da 40 a 70'); }
 
   /* MAI valori derivati su disco */
   w.eval('persist("corpo")'); await settle(700);
@@ -4647,10 +4688,23 @@ console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale)
 
   /* voci rovinate in un file (la migrazione le lascia com'erano): il tab si disegna lo stesso, senza di loro */
   w.eval('DOC.recupero.notti.push({id:"2026-11-26",fasi:[null,[1]]},{id:"2026-11-27",inizio:"2026-11-26T23:00",fine:"2026-11-27T07:00",fasi:[null,"x",[0,60,"profondo"]]}); DOC.recupero.giorni.push({data:"rotto"},{passi:3}); renderCorpo()');
-  ok(errors.length === 0 && box().querySelectorAll('.recu-cards .card').length === 7 && /27\/11/.test(box().querySelector('.recu-sec').textContent) &&
+  ok(errors.length === 0 && box().querySelectorAll('.recu-cards .card').length === 7 && /27\/11/.test(box().querySelector('.recu-testa').textContent) &&
      box().querySelectorAll('svg.recu-ipno rect[fill="var(--c-viola)"]').length === 1,
      'voci rovinate in corpo.json: il tab si disegna, si mostrano solo quelle che passano i controlli');
   w.eval('DOC.recupero.notti.splice(42); DOC.recupero.giorni.splice(42)');
+
+  /* traduzioni EN e guide */
+  { const sorg = ['09e-recupero.js', '09-corpo.js'].map(f => fs.readFileSync(path.join(ROOT, 'src', 'app', f), 'utf8')).join('\n');
+    const chiavi = new Set(['Sonno e recupero']);
+    for (const m of sorg.matchAll(/\bt\('((?:[^'\\]|\\.)*)'\)/g)) chiavi.add(m[1].replace(/\\'/g, '\''));
+    for (const m of fs.readFileSync(path.join(ROOT, 'src', 'app', '09e-recupero.js'), 'utf8').matchAll(/nome:'([^']+)'/g)) chiavi.add(m[1]);
+    const senza = [...chiavi].filter(k => typeof w.eval('EN[' + J(k) + ']') !== 'string');
+    ok(senza.length === 0 && E('EN["Recupero"]') === 'Recovery' && E('EN["Sonno e recupero"]') === 'Sleep and recovery',
+       'EN: tutte le scritte del tab Corpo e del Recupero hanno la traduzione (' + chiavi.size + ')' + (senza.length ? ' -> mancano: ' + senza.join(' | ') : '')); }
+  { const it = E('guidaRapida()') + E('guidaCompleta()'), en = E('guidaRapidaEN()') + E('guidaCompletaEN()'), ai = E('guidaAITesto()');
+    ok(/Misure \| Recupero/.test(it) && /1,5 deviazioni standard/.test(it) && /Measurements \| Recovery/.test(en) && /1\.5 standard deviations/.test(en) &&
+       /\*\*Recupero\*\*/.test(ai) && /DOC\.recupero/.test(ai) && /1,5 deviazioni standard/.test(ai) && /recupero dal bracciale/.test(ai),
+       'guide IT/EN e guida per AI descrivono il Recupero (interruttore, fascia ± 1,5, dati in corpo.json)'); }
   /* tema notte e riapertura */
   w.eval('document.documentElement.setAttribute("data-theme","notte"); renderCorpo(); document.documentElement.removeAttribute("data-theme")');
   ok(errors.length === 0, 'recupero: nessun errore runtime (anche col tema notte)' + (errors.length ? ' -> ' + errors.join(' | ') : ''));

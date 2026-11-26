@@ -1,23 +1,38 @@
 /* ════════════════ CORPO › RECUPERO: sonno e dati del giorno dal bracciale ════════════════
-   2026-11-26, BOZZA da far approvare a Marco (studio del bracciale in Doc/bracciale/PROPOSTA.md, fasi 2–3).
+   2026-11-26, approvata da Marco (studio del bracciale in Doc/bracciale/PROPOSTA.md, fasi 2–3).
    Il bracciale (Amazfit Helio Strap) calcola da sé sonno e fasi, HRV, SpO2, stress, temperatura della
    pelle, passi: l'app del telefono li legge e li manda al PC attraverso l'hub, come le pesate. Qui si
-   conservano in DOC.recupero (corpo.json) e si mostrano in fondo alla colonna di destra del tab Corpo.
-   Decisione di Marco (26/11/2026): sonno e recupero stanno nel tab Corpo, non in un tab nuovo.
+   conservano in DOC.recupero (corpo.json) e si mostrano nel tab Corpo, colonna di destra, con
+   l'interruttore «Misure | Recupero» in cima (09-corpo.js; la scelta si ricorda per profilo).
+   Decisioni di Marco (26/11/2026): sonno e recupero stanno nel tab Corpo, non in un tab nuovo; la fascia
+   «il suo solito» è ± 1,5 deviazioni standard; senza bracciale resta una riga sola.
 
-   DOC.recupero = {notti:[notte…], giorni:[giorno…]}
-   - notte (evento tms-sonno): una per giorno, id = giorno del RISVEGLIO 'AAAA-MM-GG'; se ne arriva una
-     nuova per lo stesso giorno prende il posto della vecchia (il bracciale ricalcola la notte).
-       {id, inizio:'AAAA-MM-GGTHH:MM', fine:'AAAA-MM-GGTHH:MM' (ora locale del telefono),
-        fasi:[[da,a,tipo]…] in minuti dall'inizio, tipo 'leggero'|'profondo'|'rem'|'sveglio',
-        punteggio 0–100 (quello del bracciale); facoltativi: sonnellini:[{inizio,fine}],
-        spo2 (media della notte, %), resp (atti al minuto), hrv (RMSSD della notte, ms)}
-   - giorno (evento tms-giorno): uno per data, i valori misurati di notte vanno al giorno del risveglio.
-       {data, passi, fcRiposo, rmssd, sdnn (ms), spo2Min, spo2Med (%), stressMed, stressMax (0–100,
-        indice di Zepp), tempPelle (°C della pelle, valore assoluto), resp, pai, batteria}. Solo data
-        è obbligatoria.
-   VALORI DERIVATI MAI SALVATI: minuti per fase, ore dormite, medie, «il suo solito» (media ± una
-   deviazione standard dei 30 giorni prima), scarti e medie della settimana si ricalcolano a ogni disegno.
+   ── CONTRATTO PER CHI IMPORTA (eventi dal telefono, fase 1b del bracciale) ────────────────────────
+   recuperoUnisci(T, {notti:[…], giorni:[…]}) → {notti, giorni, nonValidi}
+   T = DOC (profilo aperto) oppure l'oggetto di corpo.json di un profilo non aperto: la funzione mette
+   le voci in T.recupero e NON salva (chi chiama fa persist('corpo') o riscrive il file). Ogni voce passa
+   da pulisciNotte/pulisciGiorno: quelle senza data o con orari impossibili si contano in nonValidi e si
+   scartano; i numeri fuori intervallo e i campi sconosciuti si tolgono, il resto della voce entra.
+   Stesso giorno arrivato di nuovo = la voce nuova prende il posto della vecchia (niente doppioni).
+   - notte (evento tms-sonno): una per giorno del RISVEGLIO.
+       {id:'AAAA-MM-GG' (giorno del risveglio; se manca si prende la data di fine),
+        inizio:'AAAA-MM-GGTHH:MM', fine:'AAAA-MM-GGTHH:MM' (ora locale del telefono, fine dopo l'inizio,
+          al massimo 20 ore),
+        fasi:[[da, a, tipo]…] da/a in minuti interi dall'inizio (da < a), tipo 'leggero'|'profondo'|'rem'|'sveglio',
+        punteggio 0–100 (quello del bracciale);
+        facoltativi: sonnellini:[{inizio, fine}] (come sopra, al massimo 4 ore), spo2 (media della notte, %),
+        resp (atti al minuto), hrv (RMSSD della notte, ms)}
+   - giorno (evento tms-giorno): uno per data; i valori misurati di notte vanno al giorno del risveglio.
+       {data:'AAAA-MM-GG', passi, fcRiposo (bpm), rmssd, sdnn (ms), spo2Min, spo2Med (%), stressMed,
+        stressMax (0–100, indice di Zepp), tempPelle (°C della pelle, valore ASSOLUTO: lo scarto lo calcola
+        il PC), resp (atti al minuto), pai, batteria (%)}. Solo data è obbligatoria.
+   Esempio: {notti:[{id:'2026-11-25', inizio:'2026-11-24T23:18', fine:'2026-11-25T06:52',
+     fasi:[[0,12,'sveglio'],[12,40,'leggero'],[40,85,'profondo']…], punteggio:82}],
+     giorni:[{data:'2026-11-25', passi:8421, fcRiposo:54, rmssd:48, spo2Med:96, tempPelle:33.62}]}
+   Dati finti negli stessi formati: tools/recupero-finto.js (solo prove e anteprima).
+
+   VALORI DERIVATI MAI SALVATI: minuti per fase, ore dormite, medie, «il suo solito» (media ± 1,5
+   deviazioni standard dei 30 giorni prima), scarti e medie della settimana si ricalcolano a ogni disegno.
    Niente punteggio di «prontezza» inventato da noi: si mostrano i valori del bracciale e quanto si
    scostano dal solito di QUESTO cliente. */
 
@@ -28,6 +43,9 @@ const REC_FASE={profondo:{nome:'Profondo', col:'var(--c-viola)'}, leggero:{nome:
 const REC_GIORNO_NUM={passi:[0,100000], fcRiposo:[25,120], rmssd:[3,300], sdnn:[3,400], spo2Min:[50,100], spo2Med:[70,100],
   stressMed:[0,100], stressMax:[0,100], tempPelle:[25,42], resp:[4,40], pai:[0,1000], batteria:[0,100]};
 const REC_NOTTE_NUM={punteggio:[0,100], spo2:[70,100], resp:[4,40], hrv:[3,300]};
+/* larghezza della fascia «il suo solito», in deviazioni standard (scelta di Marco, 26/11/2026: con 1 un giorno
+   su tre ne usciva per puro caso) */
+const REC_FASCIA=1.5;
 
 const recDue=n=>String(n).padStart(2,'0');
 function recDataOk(s){ s=String(s==null?'':s).slice(0,10); return /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s+'T12:00:00').getTime())? s : ''; }
@@ -112,14 +130,15 @@ function recValore(x,k){
     : k==='dormito'? (n? notteDormito(n)/60 : null) : k==='punteggio'? (n? n.punteggio : null) : g[k];
   return (v==null||v===''||!isFinite(+v))? null : +v;
 }
-/* «il suo solito»: media ± una deviazione standard dei valori dei 30 giorni PRIMA di `data` (quel giorno
-   escluso, così non si confronta con sé stesso). Sotto i 7 valori non si dice niente. */
+/* «il suo solito»: media ± REC_FASCIA deviazioni standard dei valori dei 30 giorni PRIMA di `data` (quel
+   giorno escluso, così non si confronta con sé stesso). Sotto i 7 valori non si dice niente. */
 function recSolito(M,k,data,giorni){
   giorni=giorni||30; const v=[];
   for(let i=1;i<=giorni;i++){ const y=recValore(M[recPiuGiorni(data,-i)],k); if(y!=null) v.push(y); }
   if(v.length<7) return null;
   const m=v.reduce((a,b)=>a+b,0)/v.length, ds=Math.sqrt(v.reduce((a,b)=>a+(b-m)*(b-m),0)/(v.length-1));
-  return {media:m, ds:ds, n:v.length, lo:m-ds, hi:m+ds};
+  const amp=REC_FASCIA*ds;
+  return {media:m, ds:ds, amp:amp, n:v.length, lo:m-amp, hi:m+amp};
 }
 function recMedia(v){ v=v.filter(x=>x!=null&&isFinite(x)); return v.length? v.reduce((a,b)=>a+b,0)/v.length : null; }
 
@@ -195,11 +214,9 @@ function recAndamento(date,M,k,nome,col,unita,dec,sol){
   const o={labels:lab, h:150, fmtTip:fmt};
   if(sol){
     /* la media del suo solito è una linea tratteggiata (si legge anche passandoci col mouse); la fascia
-       si disegna fin dove arriva la scala, che lineChart prende dai dati */
+       sta tutta nel disegno: la scala arriva almeno ai suoi bordi (opts.scala di lineChart) */
     serie.push({name:t('il suo solito'), color:'var(--ink-3)', dash:'5 4', spess:1.2, punti:false, data:date.map(d=>({x:recEtich(d), y:sol.media}))});
-    const tutti=vals.concat([sol.media]), mn0=Math.min(...tutti), mx0=Math.max(...tutti), pad=((mx0-mn0)||2)*0.08;
-    const lo=Math.max(sol.lo, mn0-pad), hi=Math.min(sol.hi, mx0+pad);
-    if(hi>lo) o.band=[lo, hi];
+    o.band=[sol.lo, sol.hi]; o.scala=[sol.lo, sol.hi];
   }
   return lineChart(serie, o);
 }
@@ -211,8 +228,7 @@ function htmlRecupero(){
      in un file non deve rompere il tab); la pulizia qui serve al disegno e non si salva */
   const R0=recuperoNorm(DOC.recupero), R={notti:R0.notti.map(pulisciNotte).filter(Boolean), giorni:R0.giorni.map(pulisciGiorno).filter(Boolean)};
   if(!R.notti.length && !R.giorni.length)
-    return `<div class="sec recu-sec">${t('Recupero')}</div>
-      <div class="recu-vuoto">${ico('luna')}<span>${t('Sonno, HRV e battito a riposo compaiono qui quando il cliente porta un bracciale collegato all’app del telefono.')}</span></div>`;
+    return `<div class="recu-vuoto">${ico('luna')}<span>${t('Sonno, HRV e battito a riposo compaiono qui quando il cliente porta un bracciale collegato all’app del telefono.')}</span></div>`;
   const M=recMappa(R), tutte=Object.keys(M).sort(), ultimo=tutte[tutte.length-1];
   const date=[]; for(let i=recuperoPer-1;i>=0;i--) date.push(recPiuGiorni(ultimo,-i));
   const oggi=recYmd(new Date()), fa=Math.round((new Date(oggi+'T12:00:00')-new Date(ultimo+'T12:00:00'))/86400000);
@@ -230,7 +246,7 @@ function htmlRecupero(){
     tess('k--danger', t('FC a riposo'), nf(fc,0), 'bpm', recScarto(fc,S('fcRiposo'),0,'bpm')),
     tess('', t('SpO2 notturna'), nf(spo,0), '%', spoMin!=null? `${t('minima')} ${nf(spoMin,0)} %` : ''),
     tess('k--ember', t('Temperatura pelle'), tpScarto!=null? (tpScarto>=0.05?'+':tpScarto<=-0.05?'−':'')+nf(Math.abs(tpScarto),1) : nf(tp,1), '°C',
-      tpScarto!=null? (Math.abs(tpScarto)<=solTp.ds? `${t('dal suo solito, nella fascia')} <span class="muted">(±${nf(solTp.ds,1)})</span>` : `<span class="recu-fuori">${t('fuori dal suo solito')}</span> <span class="muted">(±${nf(solTp.ds,1)})</span>`)
+      tpScarto!=null? (Math.abs(tpScarto)<=solTp.amp? `${t('dal suo solito, nella fascia')} <span class="muted">(±${nf(solTp.amp,1)})</span>` : `<span class="recu-fuori">${t('fuori dal suo solito')}</span> <span class="muted">(±${nf(solTp.amp,1)})</span>`)
         : `<span class="muted">${t('lo scarto dal suo solito dopo 7 giorni')}</span>`),
     tess('', t('Respirazione'), nf(rsp,1), t('/min'), recScarto(rsp,S('resp'),1,'')),
     tess('', t('Stress medio'), nf(stM,0), '', stX!=null? `${t('massimo')} ${nf(stX,0)} <span class="muted">· ${t('scala 0–100')}</span>` : ''),
@@ -272,10 +288,10 @@ function htmlRecupero(){
       <td class="num recu-col-corpo">${r? nf(r.peso,1) : '—'}</td><td class="num">${r&&+r.massa_grassa? nf(r.massa_grassa*100,1) : '—'}</td></tr>`; }).join('');
   const tabella=`<div class="tbl-wrap"><table class="recu-sett"><thead>
       <tr><th rowspan="2">${t('Settimana del')}</th><th colspan="6" class="recu-gruppo">${t('Recupero · media dei giorni')}</th><th colspan="2" class="recu-gruppo recu-col-corpo">${t('Misure del Corpo')}</th></tr>
-      <tr><th>${t('Notti')}</th><th>${t('Sonno')}</th><th>${t('Punteggio')}</th><th>${t('HRV ms')}</th><th>${t('FC riposo')}</th><th>${t('Passi')}</th><th class="recu-col-corpo">${t('Peso')}</th><th>${t('M.grassa%')}</th></tr>
+      <tr><th>${t('Notti')}</th><th>${t('Sonno')}</th><th>${t('Punteggio')}</th><th>${t('HRV ms')}</th><th>${t('FC a riposo')}</th><th>${t('Passi')}</th><th class="recu-col-corpo">${t('Peso')}</th><th>${t('M.grassa%')}</th></tr>
     </thead><tbody>${settimane}</tbody></table></div>`;
 
-  return `<div class="sec recu-sec">${t('Recupero')} <span class="pill">${t('dal bracciale')}</span>
+  return `<div class="recu-testa"><span class="pill">${t('dal bracciale')}</span>
       <span class="recu-agg${fa>2?' recu-fuori':''}">${t('ultimo dato')}: ${esc(giornoPesata(ultimo))} · ${esc(quando)}</span>
       <select id="recu-per" class="recu-per no-print" aria-label="${esc(t('Periodo dei grafici'))}"><option value="7"${recuperoPer===7?' selected':''}>${t('Ultimi 7 giorni')}</option><option value="30"${recuperoPer===30?' selected':''}>${t('Ultimi 30 giorni')}</option></select></div>
     <div class="cards recu-cards">${tessere.join('')}</div>
@@ -283,7 +299,7 @@ function htmlRecupero(){
     <div class="recu-griglia">${grHrv}${grFc}</div>
     <h4 class="recu-tit">${t('Media della settimana')}</h4>
     ${tabella}
-    <div class="lat-nota">${t('Tutti i valori sono quelli calcolati dal bracciale; il TMS non dà un voto al recupero. «Il suo solito» è la media ± una deviazione standard dei 30 giorni prima dell’ultimo dato (la fascia verde nei grafici); servono almeno 7 giorni. La temperatura della pelle si legge come scarto dal suo solito.')}</div>`;
+    <div class="lat-nota">${t('Tutti i valori sono quelli calcolati dal bracciale; il TMS non dà un voto al recupero. «Il suo solito» è la media ± 1,5 deviazioni standard dei 30 giorni prima dell’ultimo dato (la fascia verde nei grafici); servono almeno 7 giorni. La temperatura della pelle si legge come scarto dal suo solito.')}</div>`;
 }
 function legaRecupero(){
   const s=document.getElementById('recu-per');

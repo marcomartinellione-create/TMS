@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.40 (2026-11-26). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.41 (2026-11-26). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -178,7 +178,7 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   mezzo allo storico: non solo l'ultima.
 
 - Per ogni profilo i file sono: scheda.json, storico.json, corpo.json (anagrafica, misure,
-  cardio, foto, pesate della bilancia), alimentazione.json. I valori derivati (1RM, TL, ACWR…) NON vengono mai salvati:
+  cardio, foto, pesate della bilancia, recupero dal bracciale), alimentazione.json. I valori derivati (1RM, TL, ACWR…) NON vengono mai salvati:
   si ricalcolano al volo dai dati grezzi.
 
 ## 4 · Pesi (tab Pesi)
@@ -527,6 +527,26 @@ Due modi per registrare una seduta:
   misure. Massa magra, acqua, proteine, muscolo scheletrico e sottocutaneo si ricavano dal
   grasso come fa FitDays. NON ci sono (calcoli interni di FitDays non pubblici): punteggio,
   intervalli «standard» con valutazioni, peso obiettivo, valori per singolo braccio o gamba, WHR.
+- **Recupero** (tab Corpo, interruttore «Misure | Recupero» in cima alla colonna di destra; la
+  scelta si ricorda per profilo, e il titolo della colonna diventa «Sonno e recupero»): sonno e
+  dati del giorno che il bracciale del cliente calcola da sé e manda attraverso l'app del telefono
+  collegata. Salvati in corpo.json come DOC.recupero = {notti, giorni}: una notte per giorno del
+  risveglio (inizio, fine, fasi in minuti dall'inizio: leggero, profondo, REM, sveglio; punteggio
+  0-100 del bracciale; facoltativi sonnellini, SpO2, respirazione, HRV della notte) e un riassunto
+  per giorno (passi, battito a riposo, HRV RMSSD e SDNN, SpO2 media e minima, stress medio e
+  massimo 0-100 di Zepp, temperatura della pelle in gradi, respirazione, PAI, batteria); se arriva
+  di nuovo lo stesso giorno, la voce nuova prende il posto della vecchia. Senza dati c'è una riga
+  sola. Con i dati: sette riquadri dell'ultimo giorno (HRV, battito a riposo, SpO2 della notte,
+  temperatura della pelle come scarto dal solito, respirazione, stress, passi con la media di 7
+  giorni), l'ultima notte (orari, ore dormite = profondo + leggero + REM, punteggio, ipnogramma
+  con le quattro fasi nel tempo, minuti e % per fase, sonnellini), il sonno per fase a barre,
+  l'andamento di HRV e battito a riposo con la fascia «il suo solito» e la media della settimana
+  (ISO) accanto a peso e massa grassa dello Storico misure. Periodo dei grafici: ultimi 30 giorni
+  (predefinito) o 7. «Il suo solito» = media ± 1,5 deviazioni standard dei valori dei 30 giorni
+  PRIMA dell'ultimo dato (quel giorno escluso; almeno 7 valori, altrimenti non si dice); un valore
+  fuori fascia si scrive in arancio con lo scarto. Ore dormite, medie, fasce e scarti si
+  ricalcolano al volo e NON si salvano. Il TMS NON calcola un punteggio di prontezza o di recupero
+  suo: mostra i valori del bracciale e gli scarti dal solito di quel cliente.
 - **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
