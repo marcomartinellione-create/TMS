@@ -13,8 +13,8 @@ function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); r
 function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
 function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.40', APP_DATE='2026-11-26';
-const RELEASE_NOTE='Backup completo in un solo file .tmsb: tutti i profili con le foto, il catalogo degli esercizi, le ricette, i video personali, le impostazioni e il taccuino (con la password anche i collegamenti dei telefoni). Con Ripristina si riprende tutto oppure un cliente solo. Il file .tms di un cliente porta con sé i suoi esercizi personalizzati coi video; il tab Profilo segnala i profili rimasti fuori dall’elenco e ricorda di scegliere una cartella per la copia dei backup fuori dal PC.'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.41', APP_DATE='2026-11-26';
+const RELEASE_NOTE='Fascia cardio nell’app del telefono (TMS Scheda 1.4.0): battito in diretta da qualunque fascia Bluetooth standard, con le zone; con Registra la seduta arriva da sola nel tab Cardio del PC con FC media, picco, TRIMP e il grafico del battito. I file .tmsb hanno la loro icona e si aprono col doppio clic. Backup automatici: oltre alle ultime cinque copie si tiene la prima di ogni mese per un anno, e il tab Profilo avvisa se la copia fuori dal PC non riesce da più di 14 giorni.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
    Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */

@@ -4,6 +4,22 @@
 
 ---
 
+### 2026-11-26 — TMS v1.1.41: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.40
+**Descrizione**:
+- Fascia cardio nell’app del telefono (TMS Scheda 1.4.0): battito in diretta da qualunque fascia Bluetooth standard, con le zone; con Registra la seduta arriva da sola nel tab Cardio del PC con FC media, picco, TRIMP e il grafico del battito. I file .tmsb hanno la loro icona e si aprono col doppio clic. Backup automatici: oltre alle ultime cinque copie si tiene la prima di ogni mese per un anno, e il tab Profilo avvisa se la copia fuori dal PC non riesce da più di 14 giorni.
+- Prova delle sagome uguali tra PC e telefono: non dipende più dalle terminazioni di riga del file
+- Fascia cardio nell'app del telefono: battito in diretta da qualunque fascia Bluetooth standard (profilo Heart Rate 0x180D) e sedute registrate che arrivano da sole nel tab Cardio del PC
+- Commento della copia dei backup fuori dal PC: la cartella accetta .json e .tmsb
+- Backup automatici: oltre alle ultime cinque copie si tiene la prima di ogni mese per un anno, e il tab Profilo avvisa se la copia fuori dal PC non riesce da più di 14 giorni
+- File .tmsb con la sua icona e apertura col doppio clic
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-26)
+
+---
+
 ### 2026-11-26 — TMS v1.1.40: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.39
