@@ -4,6 +4,20 @@
 
 ---
 
+### 2026-11-26 — TMS v1.1.39: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.38
+**Descrizione**:
+- Novità: la barra in alto fa da barra della finestra (si trascina, doppio clic per ingrandire) e i pulsanti di Windows seguono i colori del tema; un cliente in un file .tms, con la sua icona: nel tab Profilo «Esporta», «Archivia» e «Importa cliente», anche col doppio clic sul file, con password facoltativa; il TMS si apre una volta sola.
+- I file .tms hanno la loro icona: un foglio pergamena con la stella del TMS (tools/genera-icona-tms.js → electron/build/tms.ico, registrata dall'installer)
+- Un cliente in un file .tms: nel tab Profilo «Esporta», «Archivia» e «Importa cliente» (anche col doppio clic sul file), password facoltativa; il TMS resta una sola istanza aperta
+- Barra della finestra nei colori dell'app: su Windows la barra in alto fa da barra del titolo (si trascina, doppio clic ingrandisce) e i pulsanti di Windows seguono il tema; la percentuale degli aggiornamenti compare nella barra
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-26)
+
+---
+
 ### 2026-11-25 — TMS v1.1.38: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.37
