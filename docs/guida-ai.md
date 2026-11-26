@@ -407,8 +407,8 @@ Due modi per registrare una seduta:
   l'app legge durata, FC media, FC max, distanza e **dislivello D+** e apre il modulo già
   compilato (resta solo da aggiungere la fatica RPE). Il **.FIT** è il formato binario nativo
   Garmin (dal messaggio «session»); .TCX/.GPX sono XML. Tutto in locale, offline, nessun account.
-- **Dalla fascia cardio del telefono** (automatico): nell'app del cliente, pagina «Fascia cardio»,
-  con «Registra» e «Fine» si salva una seduta (sport, minuti, RPE, FC media, picco e la traccia
+- **Dalla sezione Cardio del telefono** (automatico): nell'app del cliente, sezione «Cardio», si sceglie
+  lo sport, «Avvia registrazione», poi «Fine» (chiede solo la fatica) e si salva una seduta (sport, minuti, RPE, FC media, picco e la traccia
   del battito ogni 5 s) che arriva da sola attraverso l'hub e diventa una voce del tab Cardio con
   la nota «registrata col telefono»: il TRIMP si calcola dalla FC media, il picco va in «picco in
   questa seduta». Accanto alla FC media c'è un pulsante che apre il modulo della seduta col
@@ -705,7 +705,7 @@ collegata e fa da base alla settimana dopo. Dieta (pasti, grammi, kcal e macro g
 telefono non ha la banca alimenti), riscaldamento, «l'ultima volta», catalogo degli esercizi,
 altezza/età/sesso per la bilancia, FC max e FC a riposo per le zone della fascia cardio e video vanno SOLO dal PC al telefono.
 
-**SUL TELEFONO** l'app si apre su un menu: «Scheda allenamento», «Alimentazione» (piano in
+**SUL TELEFONO** l'app si apre su un menu: «Allenamento» (palestra e cardio), «Alimentazione» (piano in
 sola lettura, grammi in evidenza; dall'ora dei promemoria, predefinita 21:00, in cima chiede «Oggi hai
 seguito la dieta?» Sì/No, e prima di quell'ora chiede di ieri se è rimasto in sospeso; in fondo il CALENDARIO
 DELLA DIETA del mese, verde sì, rosso no; toccando un giorno compare la matita e sotto la modifica con
@@ -718,7 +718,7 @@ foto di prima in trasparenza e l'autoscatto da 3 o 10 s; si salva esattamente il
 senza permesso della fotocamera si ripiega su quella del telefono; col tasto a quattro frecce su una foto fatta, e da
 sola per quelle della galleria, si SPOSTA E RITAGLIA sulla sagoma (dito, due dita o barra; si parte
 sempre dall'originale; se la foto era già arrivata al PC la nuova porta «sostituisce» e lì prende
-il posto della vecchia, il file vecchio resta su disco); rimpicciolite a 1280 px JPEG), «Bilancia», «Fascia cardio» e «Impostazioni» (collegamento col TMS e promemoria, solo nell'APK; lingua IT/EN e i QR del sito, sempre: nella barra in alto non ci sono più, resta solo il battito). Il tasto indietro
+il posto della vecchia, il file vecchio resta su disco); rimpicciolite a 1280 px JPEG), «Bilancia», «Cardio» (dentro «Allenamento», vedi sotto) e «Impostazioni» (collegamento col TMS, promemoria e fascia cardio, solo nell'APK; lingua IT/EN e i QR del sito, sempre: nella barra in alto non ci sono più, resta solo il battito). Il tasto indietro
 del telefono risale nell'app (video/QR, giorno → lista giorni → menu; solo dal menu l'app si
 chiude). Nella scheda si sceglie il **giorno**: aprendolo l'app CHIEDE «Inizio la seduta di oggi?» con «Inizia» e
 «Solo guardare». «Inizia» avvia la seduta (inizio salvato sul telefono, resiste a un'app chiusa; uscire e rientrare
@@ -731,8 +731,8 @@ la ZONA DELLA SEDUTA: battito della fascia cardio colorato per zona (o «nessuna
 tempo trascorso, «Fine seduta». «Fine seduta» compila da sola la durata e chiede la fatica RPE (1-10) nei campi di
 fine giornata (senza Session-RPE spunta «Giorno completato»). Con la fascia collegata il battito della seduta si
 registra da solo e alla chiusura va al PC (file 'tms-seduta-fc': FC media, picco, traccia ogni 5 s, dispositivo,
-giorno e settimana); mentre una seduta coi pesi è aperta la pagina «Fascia cardio» non avvia una registrazione a
-parte. Seduta DIMENTICATA: dopo 3 ore senza attività (campi, timer, giorno aperto) l'app avvisa (anche al menu) e
+giorno e settimana); mentre una seduta coi pesi è aperta la sezione «Cardio» non avvia una registrazione a
+parte, e con una registrazione cardio in corso la seduta coi pesi non parte. Seduta DIMENTICATA: dopo 3 ore senza attività (campi, timer, giorno aperto) l'app avvisa (anche al menu) e
 propone di chiuderla con la durata fino all'ultima attività, oppure «È ancora in corso». Sul PC il battito della
 seduta va nella scheda della settimana (DOC.scheda.fcSedute, per giorno: si vede nel tab Pesi accanto a RPE e
 minuti, col grafico); «Salva nello Storico» lo sposta in DOC.storico_fc con il codice della settimana (si vede
@@ -769,7 +769,15 @@ risultato arrivato dopo il peso in diretta (non quello ripetuto al collegamento)
 messaggi alla bilancia e si ricorda la bilancia trovata; fuori dalla pagina il Bluetooth si ferma.
 Permessi: «Dispositivi nelle vicinanze» senza posizione (fino ad Android 11 Android pretende la
 posizione accesa per cercare dispositivi Bluetooth).
-**FASCIA CARDIO** (solo nell'APK, serve il Bluetooth): qualunque fascia cardio Bluetooth standard
+**ALLENAMENTO** (la voce del menu): in alto due linguette, «Palestra» (i giorni della
+scheda) e «Cardio» (gli sport, con le stesse schede dei giorni). **SEZIONE CARDIO**: PRIMA si tocca lo
+sport (gli sport del tab Cardio del TMS più «Altro»; l'ultimo scelto si ricorda), POI «Avvia registrazione».
+Durante la registrazione: battito grande con le zone, tempo, FC media, picco, «Fine» e «annulla registrazione»
+(con conferma: non salva niente). A «Fine» chiede solo la fatica RPE (lo sport è già scelto); «Salva la seduta»
+la tiene sul telefono e la manda al PC (file 'tms-cardio', tab Cardio, con lo sport scelto). Senza fascia registra
+solo il tempo. Niente doppioni: con una seduta coi pesi aperta non si avvia, e con una registrazione cardio in corso
+il giorno della scheda non propone la seduta coi pesi. Bozza salvata ogni 15 s: un'app chiusa a metà non la perde.
+**FASCIA CARDIO** (si collega in «Impostazioni»; solo nell'APK, serve il Bluetooth): qualunque fascia cardio Bluetooth standard
 (Polar, Garmin, Wahoo, Coospo…) e i bracciali che condividono il battito col profilo standard
 «Heart Rate» (servizio 0x180D, misura 0x2A37, specifica pubblica del Bluetooth SIG): per esempio
 l'Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp. La prima volta l'app elenca i
@@ -778,10 +786,9 @@ propria; poi la ritrova da sola. Mostra il battito grande, colorato per zona (5 
 100 % della FC max: quella del Profilo se c'è, altrimenti stimata dall'età con Tanaka, come il TMS;
 FC max e FC a riposo arrivano con la scheda). Il battito resta nella barra in alto su tutte le
 schermate; durante la seduta coi pesi si vede nella zona della seduta e si registra con quella (vedi
-sopra), e «Registra» non c'è. «Registra» (solo per le sedute di solo cardio) avvia una registrazione
-(schermo acceso, bozza salvata ogni 15 s: un'app chiusa a metà non la perde), «Fine» chiede
-attività (gli sport del tab Cardio) e fatica RPE, «Salva la seduta» la tiene sul telefono e la manda
-al PC. Se il battito non arriva per 15 secondi, o la fascia rifiuta le notifiche senza abbinamento,
+sopra); la registrazione delle sedute di solo cardio è nella sezione «Cardio» (vedi sopra), con lo schermo
+acceso. La pagina Cardio, aperta, ricollega da sola la fascia ricordata; senza fascia ricordata mostra «Collega la
+fascia», che porta alle Impostazioni. Se il battito non arriva per 15 secondi, o la fascia rifiuta le notifiche senza abbinamento,
 l'app lo dice in parole chiare (stringere la fascia; con l'Helio Strap accendere «Heart Rate Push» e
 chiudere Zepp; altrimenti per quel bracciale servirà il collegamento con la sua chiave, non ancora
 disponibile). Fuori dalla pagina la fascia resta collegata; con l'app in secondo piano si stacca e

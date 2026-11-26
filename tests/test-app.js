@@ -1061,11 +1061,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     sd.getElementById('barra-ind').click();
     /* scheda: menu → giorni → giorno, con bottoni di ritorno evidenti */
     sd.getElementById('vai-scheda').click();
-    ok(sd.getElementById('home').hidden === false && sd.querySelectorAll('.day-card').length === giorniCli.length && sd.querySelectorAll('.day-page').length === giorniCli.length, 'app cliente: menu → Scheda: una card e una pagina per ogni giorno');
+    ok(sd.getElementById('home').hidden === false && sd.querySelectorAll('#days .day-card').length === giorniCli.length && sd.querySelectorAll('.day-page').length === giorniCli.length, 'app cliente: menu → Scheda: una card e una pagina per ogni giorno');
     ok(sd.getElementById('s-0') !== null && +sd.getElementById('s-0').value === schedaCli.righe[0].serie, 'app cliente: campi precompilati col previsto del coach');
     ok(sd.getElementById('rir-0') !== null && sd.getElementById('rir-0').value === '', 'app cliente: RIR NON precompilato (si inserisce dopo l\'allenamento)');
     await settle(20);
-    ok(sd.getElementById('barra-titolo').textContent === 'Scheda allenamento' && sd.getElementById('barra-ind-t').textContent === 'Menu', 'app cliente: nella lista dei giorni la barra in alto riporta al menu');
+    ok(sd.getElementById('barra-titolo').textContent === 'Allenamento' && sd.getElementById('barra-ind-t').textContent === 'Menu', 'app cliente: nella lista dei giorni la barra in alto riporta al menu');
     ok(sd.querySelector('.vbtn') !== null, 'app cliente: bottone ▶ video presente (video nel file)');
     /* v2.0: la giornata è una SEDUTA in fasi (🔥 riscaldamento · 🏋 esercizi · ✅ fine) */
     { const pag0 = sd.getElementById('day-0');
@@ -1112,10 +1112,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     ok(!sd.getElementById('invia') && !sd.getElementById('riepilogo'), 'app cliente: niente più «Crea il file per il coach» né riepilogo per il file');
     sd.getElementById('barra-ind').click(); await settle(60); sd.getElementById('vai-scheda').click();
     /* v2.2: il tasto INDIETRO del telefono risale nell'app invece di chiuderla */
-    sd.querySelector('.day-card').click();                       /* entra nel giorno */
+    sd.querySelector('#days .day-card').click();                       /* entra nel giorno */
     ok(sd.getElementById('day-0').hidden === false, 'app cliente v2.2: si entra nel giorno');
     await settle(20);
-    ok(sd.getElementById('barra-ind-t').textContent === 'Giorni' && sd.getElementById('barra-titolo').textContent === sd.querySelector('.day-card .day-name').textContent && sd.body.dataset.schermo === 'giorno',
+    ok(sd.getElementById('barra-ind-t').textContent === 'Giorni' && sd.getElementById('barra-titolo').textContent === sd.querySelector('#days .day-card .day-name').textContent && sd.body.dataset.schermo === 'giorno',
        'app cliente: nel giorno la barra in alto ha «‹ Giorni» e il nome del giorno');
     sub.window.history.back();                                    /* = tasto indietro del telefono */
     await settle(60);
@@ -3388,21 +3388,37 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
     ok(c.bpm === 80 && c.contatto === true && J(c.rr) === '[1000,750]', 'fascia: contatto rilevato e due intervalli RR (1024 → 1000 ms, 768 → 750 ms)');
     ok(e.bpm === 100 && e.energia === 16 && J(e.rr) === '[1000]', 'fascia: battito u16 + energia spesa + RR: i campi si leggono nell\'ordine giusto');
     ok(dec([0x04, 0]).contatto === false && dec([]) === null && dec([0x01, 5]) === null, 'fascia: contatto assente (supportato ma non rilevato); misure troppo corte scartate'); }
-  ok(sd.getElementById('vai-fc').hidden === false && /battito in diretta/.test(sd.getElementById('meta-fc').textContent), 'menu: nell\'APK (Bluetooth disponibile) c\'è «Fascia cardio»');
+  ok(!sd.getElementById('vai-fc') && /Allenamento/.test(sd.getElementById('vai-scheda').textContent), 'menu: una voce sola, «Allenamento» (palestra e cardio stanno dentro)');
   ok(J(JSON.parse(sw.eval('JSON.stringify(fcMaxScheda())'))) === J({ v: 180, da: 'eta' }), 'zone: senza FC max nel Profilo si stima dall\'età (208 − 0,7 × 40 = 180), come il TMS');
-  /* pagina: ricerca e scelta della fascia */
-  sd.getElementById('vai-fc').click(); await settle(50);
-  ok(sd.getElementById('fc').hidden === false && /Cliente Prova/.test(sd.getElementById('fc-chi').textContent) && /180 bpm/.test(sd.getElementById('fc-chi').textContent),
-     'pagina Fascia cardio: di chi è il battito e la FC max usata per le zone');
-  ok(B.cercato === 1 && B.filtro({ id: 'A', nome: 'Polar H10 1234', servizi: [] }) && B.filtro({ id: 'B', nome: '', servizi: ['180d'] }) &&
+  /* Allenamento: Palestra (i giorni) o Cardio (gli sport) */
+  sd.getElementById('vai-scheda').click(); await settle(20);
+  ok(sd.getElementById('home-fasi').querySelectorAll('[data-hf]').length === 2 && sd.getElementById('home-p').hidden === false && sd.getElementById('home-c').hidden === true &&
+     sd.getElementById('barra-titolo').textContent === 'Allenamento', 'Allenamento: si apre su «Palestra» (i giorni), con la linguetta «Cardio»');
+  sd.querySelector('#home-fasi [data-hf="c"]').click(); await settle(10);
+  ok(sd.getElementById('home-c').hidden === false && sd.getElementById('home-p').hidden === true && sd.querySelectorAll('#home-sport [data-fcvai]').length === 12 && sd.querySelector('#home-sport .day-card') !== null,
+     'Cardio: gli sport del tab Cardio (più «Altro»), con le stesse schede dei giorni');
+  /* pagina Cardio: senza fascia ricordata non cerca da sola, rimanda alle Impostazioni */
+  sd.querySelector('#home-sport [data-fcvai="Corsa"]').click(); await settle(50);
+  ok(sd.getElementById('fc').hidden === false && sd.getElementById('barra-titolo').textContent === 'Cardio' && /Cliente Prova/.test(sd.getElementById('fc-chi').textContent) && /180 bpm/.test(sd.getElementById('fc-chi').textContent),
+     'pagina Cardio: di chi è il battito e la FC max usata per le zone');
+  ok(B.cercato === 0 && /Nessuna fascia collegata/.test(sd.getElementById('fc-conn').textContent) && sd.getElementById('fc-collega') !== null, 'senza fascia: «Nessuna fascia collegata» e «Collega la fascia»');
+  ok(sd.querySelectorAll('#fc-reg [data-fcsport]').length === 12 && /Che sport fai/.test(sd.getElementById('fc-reg').textContent) && sd.querySelector('#fc-reg [data-fcsport="Corsa"]').classList.contains('on'),
+     'prima si sceglie lo sport (quelli del tab Cardio, più «Altro»)');
+  /* la fascia si sceglie nelle Impostazioni */
+  sd.getElementById('fc-collega').click(); await settle(50);
+  ok(sd.getElementById('col').hidden === false && sd.getElementById('fc-imp').hidden === false && B.cercato === 1, '«Collega la fascia» porta alle Impostazioni e cerca');
+  ok(B.filtro({ id: 'A', nome: 'Polar H10 1234', servizi: [] }) && B.filtro({ id: 'B', nome: '', servizi: ['180d'] }) &&
      B.filtro({ id: 'C', nome: 'Amazfit Helio Strap', servizi: [] }) && !B.filtro({ id: 'D', nome: 'Mi Band 7', servizi: ['fee0'] }),
      'ricerca: fasce col servizio 0x180D o col nome di una fascia nota (anche l\'Helio Strap), non altri dispositivi');
   B.trovato({ id: 'AA:BB:CC:00:00:01', nome: 'Polar H10 1234', servizi: ['180d'] }); await settle(20);
-  ok(sd.querySelectorAll('#fc-trovati [data-fcd]').length === 1 && /Polar H10/.test(sd.getElementById('fc-trovati').textContent), 'ricerca: la fascia trovata compare nell\'elenco da toccare');
+  ok(sd.querySelectorAll('#fc-trovati [data-fcd]').length === 1 && /Polar H10/.test(sd.getElementById('fc-trovati').textContent) && sd.getElementById('col').contains(sd.getElementById('fc-trovati')),
+     'Impostazioni: la fascia trovata compare nell\'elenco da toccare');
   sd.querySelector('#fc-trovati [data-fcd]').click(); await settle(30);
   ok(B.collegati.length === 1 && B.collegati[0][0] === 'AA:BB:CC:00:00:01' && J(B.collegati[0][1]) === J({ servizio: '180d', notifiche: ['2a37'] }),
      'collegamento: servizio 0x180D, notifiche della misura 0x2A37 (trasporto generico)');
   ok(sw.localStorage.getItem('tms-fascia-id') === 'AA:BB:CC:00:00:01' && /aspetto il battito/.test(sd.getElementById('fc-stato').textContent), 'collegamento: la fascia viene ricordata, si aspetta il battito');
+  sd.getElementById('barra-ind').click(); await settle(30); sw.eval('fcApri()'); await settle(30);
+  ok(sd.getElementById('fc').hidden === false && B.collegati.length === 1 && !sd.getElementById('fc-collega'), 'tornando alla pagina Cardio la fascia resta collegata');
   /* battito e zone */
   B.cb.onDati('2a37', [0x16, 140, 0x00, 0x04]); await settle(10);
   ok(/^140/.test(sd.getElementById('fc-bpm').textContent) && sd.getElementById('fc-bpm').classList.contains('z3') && /Zona 3/.test(sd.getElementById('fc-zona').textContent) && /78 %/.test(sd.getElementById('fc-zona').textContent),
@@ -3410,7 +3426,7 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   ok(sd.querySelectorAll('#fc-zone i.on').length === 1 && sd.querySelector('#fc-zone i.on').classList.contains('z3'), 'zone: la barra delle 5 zone accende la terza');
   ok(sd.getElementById('fc-chip').hidden === false && sd.getElementById('fc-chip-v').textContent === '140', 'barra in alto: il battito si vede su tutte le schermate');
   B.cb.onDati('2a37', [0x04, 0]); await settle(10);
-  ok(/contatto con la pelle/.test(sd.getElementById('fc-stato').textContent) && sd.getElementById('fc-bpm').textContent === '—', 'contatto assente: lo dice e non mostra un battito finto');
+  ok(/contatto con la pelle/.test(sd.getElementById('fc-conn').textContent) && sd.getElementById('fc-bpm').textContent === '—', 'contatto assente: lo dice e non mostra un battito finto');
   sw.eval('FC.contatto=null; FC.ultimoBuono=Date.now()-20000; FC.dalCollegamento=Date.now()-20000; fcTic();');
   ok(/il battito non arriva/.test(sd.getElementById('fc-stato').textContent) && /Heart Rate Push/.test(sd.getElementById('fc-sotto').textContent),
      'battito che non arriva (15 s): lo dice in parole chiare e rimanda a «Heart Rate Push» o alla chiave del bracciale');
@@ -3418,43 +3434,59 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   ok(sw.eval('FC.bpm') === null && sd.getElementById('fc-bpm').textContent === '—' && /il battito non arriva/.test(sd.getElementById('fc-stato').textContent),
      'un battito 0 (bracciale che non condivide) non conta come battito: resta «il battito non arriva»');
   B.cb.onDati('2a37', [0x00, 130]); await settle(10);
-  ok(/Collegata a «Polar H10 1234»/.test(sd.getElementById('fc-stato').textContent) && /^130/.test(sd.getElementById('fc-bpm').textContent), 'il battito torna: «Collegata», 130 bpm');
-  /* registrazione: «Registra» → campioni → «Fine» → «Com'è andata?» → «Salva la seduta» */
-  ok(sd.getElementById('fc-registra') !== null && sd.getElementById('fc-scollega').hidden === false, 'collegata: c\'è «Registra» (e «Scollega»)');
+  ok(/Collegata a «Polar H10 1234»/.test(sd.getElementById('fc-conn').textContent) && /^130/.test(sd.getElementById('fc-bpm').textContent), 'il battito torna: «Collegata», 130 bpm');
+  sd.getElementById('barra-ind').click(); await settle(20);
+  ok(sd.getElementById('home').hidden === false && sd.getElementById('home-c').hidden === false, 'indietro dalla pagina Cardio: si torna ad Allenamento, sulla linguetta Cardio');
+  sd.querySelector('#home-sport [data-fcvai="Nuoto"]').click(); await settle(20);
+  ok(sd.getElementById('fc').hidden === false && sd.querySelector('#fc-reg [data-fcsport="Nuoto"]').classList.contains('on'), 'lo sport toccato in Allenamento è già scelto nella pagina Cardio');
+  /* registrazione: sport → «Avvia registrazione» → campioni → «Fine» → solo la fatica → «Salva la seduta» */
+  sd.querySelector('#fc-reg [data-fcsport="Bici"]').click(); await settle(10);
+  ok(sd.querySelector('#fc-reg [data-fcsport="Bici"]').classList.contains('on') && sw.localStorage.getItem('tms-fc-sport') === 'Bici', 'sport scelto: «Bici» (e se lo ricorda per la volta dopo)');
   sd.getElementById('fc-registra').click(); await settle(20);
-  ok(sw.eval('!!FC.reg') && sd.getElementById('fc-fine') !== null && sd.getElementById('fc-chip').classList.contains('rec') && sd.getElementById('fc-scollega').hidden === true,
-     'Registra: parte la registrazione (pulsante «Fine», segno rosso nella barra, niente «Scollega»)');
+  ok(sw.eval('FC.reg.tipo') === 'Bici' && sd.getElementById('fc-fine') !== null && /Bici · registrazione in corso/.test(sd.getElementById('fc-reg').textContent) && sd.getElementById('fc-chip').classList.contains('rec'),
+     'Avvia registrazione: parte con lo sport scelto (pulsante «Fine», segno rosso nella barra)');
   ok(JSON.parse(sw.localStorage.getItem('tms-fc-bozza-prova') || '{}').reg, 'registrazione: la bozza si salva subito sul telefono (un\'app chiusa non la perde)');
   sw.eval('FC.reg.inizio=Date.now()-125000; for(var k=0;k<25;k++) fcCampione(FC.reg.inizio+k*5000+1000, 120+k);');
   sd.getElementById('fc-fine').click(); await settle(20);
   { const c = JSON.parse(sw.eval('JSON.stringify(FC.chiudi)'));
-    ok(c && c.durataSec >= 125 && c.durataSec < 130 && c.fcMedia === 132 && c.fcPicco === 144 && c.fc.length === 25 && c.passo === 5 && c.dispositivo === 'Polar H10 1234',
-       'Fine: durata, FC media (132), picco (144) e traccia ogni 5 secondi'); }
-  ok(sd.getElementById('fc-sport') !== null && sd.getElementById('fc-sport').value === 'Corsa' && /Com’è andata/.test(sd.getElementById('fc-reg').textContent), 'Fine: chiede attività e fatica');
-  sd.getElementById('fc-sport').value = 'Bici'; sd.getElementById('fc-rpe').value = '6';
+    ok(c && c.durataSec >= 125 && c.durataSec < 130 && c.fcMedia === 132 && c.fcPicco === 144 && c.fc.length === 25 && c.passo === 5 && c.dispositivo === 'Polar H10 1234' && c.tipo === 'Bici',
+       'Fine: durata, FC media (132), picco (144), traccia ogni 5 secondi e lo sport'); }
+  ok(!sd.getElementById('fc-sport') && sd.getElementById('fc-rpe') !== null && /Com’è andata/.test(sd.getElementById('fc-reg').textContent) && /Attività: Bici/.test(sd.getElementById('fc-reg').textContent),
+     'Fine: chiede solo la fatica (lo sport è già scelto)');
+  sd.getElementById('fc-rpe').value = '6';
   sd.getElementById('fc-salva').click(); await settle(30);
   { const s = JSON.parse(sw.eval('JSON.stringify(SEDUTE_FC[0]||null)'));
     ok(s && s.tipo === 'Bici' && s.durata === 2 && s.rpe === 6 && s.fcMedia === 132 && s.fcPicco === 144 && s.fc.length === 25 && s.fcPasso === 5 && s.id === s.data + 'T' + s.ora + '|fc',
        'Salva: la seduta resta sul telefono (sport, minuti, RPE, FC media e picco, traccia)'); }
   ok(JSON.parse(sw.localStorage.getItem('tms-fc-sedute-prova') || '[]').length === 1 && sw.localStorage.getItem('tms-fc-bozza-prova') === null && sd.querySelectorAll('#fc-lista .bil-row').length === 1,
      'Salva: memoria del profilo, bozza tolta, la seduta nell\'elenco');
-  ok(/1 seduta questa settimana/.test(sd.getElementById('meta-fc').textContent) || /bpm/.test(sd.getElementById('meta-fc').textContent), 'menu: le sedute della settimana (o il battito, da collegati)');
-  /* butta via */
+  ok(/1 seduta questa settimana/.test(sd.querySelector('#home-sport [data-fcvai="Bici"]').textContent), 'Allenamento › Cardio: sotto lo sport le sedute della settimana');
+  /* annulla registrazione: avviata per sbaglio, con conferma, niente salvato */
+  sd.getElementById('fc-registra').click(); await settle(10);
+  sd.getElementById('fc-annulla').click(); await settle(10);
+  ok(/Non si salva niente/.test(sd.getElementById('fc-reg').textContent) && sd.getElementById('fc-annulla-si') !== null && !sd.getElementById('fc-fine'), '«annulla registrazione» chiede conferma');
+  sd.getElementById('fc-annulla-no').click(); await settle(10);
+  ok(sw.eval('!!FC.reg') && sd.getElementById('fc-fine') !== null, '«No»: la registrazione continua');
+  sd.getElementById('fc-annulla').click(); await settle(10); sd.getElementById('fc-annulla-si').click(); await settle(20);
+  ok(sw.eval('FC.reg') === null && sw.eval('FC.chiudi') === null && sw.eval('SEDUTE_FC.length') === 1 && sw.localStorage.getItem('tms-fc-bozza-prova') === null && sd.getElementById('fc-registra') !== null,
+     'registrazione annullata: niente seduta, bozza tolta, si torna alla scelta dello sport');
+  /* butta via (dopo la «Fine») */
   sd.getElementById('fc-registra').click(); await settle(10); sd.getElementById('fc-fine').click(); await settle(10);
   sd.getElementById('fc-scarta').click(); await settle(10);
   ok(sd.getElementById('fc-scarta-si') !== null && sw.eval('!!FC.chiudi'), 'Butta via: chiede conferma sulla riga');
   sd.getElementById('fc-scarta-si').click(); await settle(20);
   ok(sw.eval('FC.chiudi') === null && sw.eval('SEDUTE_FC.length') === 1 && sd.getElementById('fc-registra') !== null, 'Butta via: la registrazione sparisce, le sedute salvate restano');
   /* registrazione interrotta (app chiusa a metà): alla riapertura diventa una seduta da chiudere */
-  sw.localStorage.setItem('tms-fc-bozza-prova', J({ reg: { inizio: Date.parse('2026-11-25T18:00:00'), ultimo: Date.parse('2026-11-25T18:01:00'), picco: 110, secchi: { 0: [200, 2], 1: [110, 1] } }, nome: 'Polar' }));
+  sw.localStorage.setItem('tms-fc-bozza-prova', J({ reg: { inizio: Date.parse('2026-11-25T18:00:00'), ultimo: Date.parse('2026-11-25T18:01:00'), picco: 110, secchi: { 0: [200, 2], 1: [110, 1] }, tipo: 'Nuoto' }, nome: 'Polar' }));
   await sw.eval('fcCarica()'); await settle(20);
   { const c = JSON.parse(sw.eval('JSON.stringify(FC.chiudi)'));
-    ok(c && c.data === '2026-11-25' && c.durataSec === 60 && c.fcMedia === 105 && c.fcPicco === 110 && /Com’è andata/.test(sd.getElementById('fc-reg').textContent),
-       'registrazione interrotta: alla riapertura si chiude come una seduta finita (niente battito perso)'); }
+    ok(c && c.data === '2026-11-25' && c.durataSec === 60 && c.fcMedia === 105 && c.fcPicco === 110 && c.tipo === 'Nuoto' && /Com’è andata/.test(sd.getElementById('fc-reg').textContent),
+       'registrazione interrotta: alla riapertura si chiude come una seduta finita (niente battito perso, lo sport resta)'); }
   await sw.eval('fcScartaSeduta()');
   /* fuori dalla pagina resta collegata; in secondo piano si stacca e poi si ricollega */
   sd.getElementById('barra-ind').click(); await settle(30);
-  ok(sd.getElementById('menu').hidden === false && B.staccati.length === 0 && sd.getElementById('fc-chip').hidden === false, 'uscendo dalla pagina la fascia resta collegata (battito nella barra)');
+  ok(sd.getElementById('home').hidden === false && B.staccati.length === 0 && sd.getElementById('fc-chip').hidden === false, 'uscendo dalla pagina la fascia resta collegata (battito nella barra)');
+  sd.getElementById('barra-ind').click(); await settle(20);
   /* la bilancia usa lo stesso trasporto con i suoi parametri, e la fascia non si stacca */
   sd.getElementById('vai-bil').click(); await settle(30);
   B.trovato({ id: '80:F4:16:00:00:01', nome: 'HEALTHKEEP' }); await settle(30);
@@ -3468,13 +3500,24 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   ok(B.cercato === prima + 1 && B.filtro({ id: 'AA:BB:CC:00:00:01', nome: '' }) && !B.filtro({ id: 'X', nome: 'Polar H9', servizi: ['180d'] }), 'app di nuovo davanti: la cerca per indirizzo e si ricollega');
   B.trovato({ id: 'AA:BB:CC:00:00:01', nome: '' }); await settle(30);
   ok(sw.eval('FC.id') === 'AA:BB:CC:00:00:01', 'ricollegata da sola alla fascia ricordata');
+  /* aprendo la pagina Cardio la fascia ricordata si ricollega da sola */
+  sw.eval('fcScollega()'); const prima2 = B.cercato;
+  sw.eval('fcApri()'); await settle(40);
+  ok(B.cercato === prima2 + 1, 'pagina Cardio: la fascia ricordata si cerca da sola');
   /* una fascia (o un bracciale) che rifiuta le notifiche senza abbinamento */
   sw.eval('fcScollega()'); B.rifiuta = true;
-  sd.getElementById('vai-fc').click(); await settle(40);
+  sw.eval('colApri(); fcAvvia();'); await settle(40);
   B.trovato({ id: 'AA:BB:CC:00:00:01', nome: '' }); await settle(40);
   ok(/non lascia leggere il battito/.test(sd.getElementById('fc-stato').textContent) && /Heart Rate Push/.test(sd.getElementById('fc-stato').textContent) && sd.getElementById('fc-riprova').hidden === false,
      'fascia che rifiuta le notifiche: lo dice (Heart Rate Push, chiave del bracciale) e offre «Riprova»');
-  ok(['Fascia cardio', 'Registra', 'Com’è andata?', 'Zona 3', 'Collegata, ma il battito non arriva.'].every(k => sw.eval('TT.en[' + J(k) + ']')), 'fascia EN: i testi nuovi hanno la traduzione');
+  /* niente doppioni: con una registrazione cardio in corso (anche senza fascia) il giorno della scheda non avvia la seduta coi pesi */
+  sw.eval('fcRegistra()'); await settle(10);
+  ok(sw.eval('!!FC.reg'), 'la registrazione cardio parte anche senza fascia (registra il tempo)');
+  sw.eval('navEntra(); mostra("home");'); await settle(10); sd.querySelector('[data-go="0"]').click(); await settle(30);
+  ok(sw.eval('SED.s') === null && !sd.getElementById('sed-inizia') && !sd.getElementById('sed-nuova') && /registrazione cardio in corso/.test(sd.getElementById('sed-zona').textContent),
+     'registrazione cardio in corso: la seduta coi pesi non parte e la zona lo dice');
+  await sw.eval('fcAnnullaReg()');
+  ok(['Cardio', 'Che sport fai?', 'Avvia registrazione', 'annulla registrazione', 'Com’è andata?', 'Zona 3', 'Collegata, ma il battito non arriva.'].every(k => sw.eval('TT.en[' + J(k) + ']')), 'cardio EN: i testi nuovi hanno la traduzione');
   sw.close();
 }
 
@@ -3532,9 +3575,10 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
   sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);
   /* la fascia: un tocco su «nessuna fascia» la cerca; collegata, il battito va da solo nella seduta */
   sd.getElementById('sed-fc').click(); await settle(30);
-  ok(sd.getElementById('fc').hidden === false && B.cercato === 1, 'la prima volta il tasto porta alla pagina Fascia cardio per sceglierla');
+  ok(sd.getElementById('col').hidden === false && sd.getElementById('fc-imp').hidden === false && B.cercato === 1, 'la prima volta il tasto porta alle Impostazioni, dove si sceglie la fascia');
   B.trovato({ id: 'AA:BB:CC:00:00:01', nome: 'Polar H10 1234', servizi: ['180d'] }); await settle(20);
   sd.querySelector('#fc-trovati [data-fcd]').click(); await settle(30);
+  sw.eval('fcApri()'); await settle(20);
   ok(/seduta coi pesi aperta/.test(sd.getElementById('fc-reg').textContent) && !sd.getElementById('fc-registra'), 'pagina Fascia cardio: con una seduta coi pesi aperta niente «Registra» a parte (niente doppioni)');
   sw.eval('fcRegistra()'); ok(sw.eval('FC.reg') === null, 'una registrazione cardio non parte mentre è aperta una seduta coi pesi');
   sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);

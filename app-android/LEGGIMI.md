@@ -27,19 +27,22 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   misure. Android chiede una volta «Dispositivi nelle
   vicinanze» (fino ad Android 11 la Posizione: lo pretende Android per cercare dispositivi Bluetooth).
   FitDays sullo stesso telefono può prendersi la bilancia: va chiuso o disinstallato.
-- **♥ Fascia cardio** (solo nell'APK, dalla 1.4.0): con una fascia cardio Bluetooth standard (Polar, Garmin,
-  Wahoo…) o un bracciale che condivide il battito (Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp)
-  si vede il battito in diretta, colorato per zona (FC max del Profilo o stimata dall'età), anche nella barra in
-  alto. Durante una seduta coi pesi il battito va con quella seduta (vedi sotto) e «Registra» non c'è: serve alle
-  sedute di solo cardio. «Registra» e «Fine» salvano una seduta (sport, minuti, RPE, FC media, picco,
-  traccia ogni 5 s) che va da sola al TMS collegato, nel tab Cardio (file cifrato `tms-cardio` sull'hub). Profilo
+- **♥ Cardio** (dalla 1.6.0 dentro **Allenamento**, la voce del menu che prima si chiamava «Scheda allenamento»: due
+  linguette, Palestra e Cardio, `#home-fasi`; prima era la pagina «Fascia cardio», dalla 1.4.0):
+  prima si sceglie lo sport (`FC_SPORT` + «Altro»), poi «Avvia registrazione»; battito grande con le zone, tempo,
+  «Fine» (chiede solo la fatica) e «annulla registrazione» con conferma. La seduta (sport, minuti, RPE, FC media,
+  picco, traccia ogni 5 s) va da sola al TMS collegato, nel tab Cardio (file cifrato `tms-cardio` sull'hub). Senza
+  fascia registra solo il tempo; con una seduta coi pesi aperta non parte, e viceversa. La **fascia** (una fascia
+  cardio Bluetooth standard, Polar, Garmin, Wahoo…, o un bracciale che condivide il battito, come l'Amazfit Helio
+  Strap con «Heart Rate Push» acceso in Zepp) si sceglie e si collega in **Impostazioni** (`#fc-imp`); il battito si
+  vede anche nella barra in alto, e durante una seduta coi pesi va con quella seduta (vedi sotto). Profilo
   standard Bluetooth SIG «Heart Rate»: servizio 0x180D, misura 0x2A37 (decodifica e logica nella pagina,
   `fcDecodifica` e seguenti). Durante la registrazione lo schermo resta acceso (Screen Wake Lock, se la
   WebView lo offre) e la bozza si salva ogni 15 s; con l'app in secondo piano Android può fermare la pagina e
   quei secondi restano vuoti (un servizio in primo piano è previsto con la fase successiva del bracciale,
   studio in `Doc/bracciale/PROPOSTA.md`).
 - **⚙ Impostazioni** (dalla 1.6.0, al posto di «Collegamento e promemoria»; pagina `#col`, voce `#vai-col`): collegamento
-  col TMS e promemoria (solo nell'APK), lingua (`#lang-btn`) e i QR del sito (`#qr-btn`), che prima stavano nella
+  col TMS, promemoria e fascia cardio (`#fc-imp`; solo nell'APK), lingua (`#lang-btn`) e i QR del sito (`#qr-btn`), che prima stavano nella
   barra in alto. Nella barra restano solo indietro, titolo e il battito (`#fc-chip`, zona della seduta).
 - **Seduta in corso** (dalla 1.5.0; dalla 1.6.0 con la conferma): aprendo un giorno l'app chiede «Inizio la seduta di
   oggi?» («Inizia» / «Solo guardare»; «Solo guardare» si ricorda per quel giorno di calendario, `tms-sed-guardo`, e

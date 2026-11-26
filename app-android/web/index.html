@@ -294,7 +294,6 @@
  .bil-media{font-size:13.5px;color:var(--ink-2);margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--carta-2);line-height:1.45}
  .bil-avv{display:block;margin-top:6px;color:var(--ocra)}
  /* ── fascia cardio ── */
- #vai-fc .macro-ico{background:var(--err-t);color:var(--err)}
  .fc-live{text-align:center;padding:22px 16px 18px}
  #fc-sotto{color:var(--ink-3);font-size:13px}
  .fc-bpm{font-family:var(--serif);font-size:72px;line-height:1.05;font-weight:700;color:var(--ink);margin:10px 0 2px;font-variant-numeric:tabular-nums;transition:color var(--svelto)}
@@ -314,6 +313,8 @@
  .fc-tre b{display:block;font-family:var(--serif);font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
  .fc-tre span{font-size:12.5px;color:var(--ink-3)}
  .fc-in-reg{border-color:var(--err-f)}
+ .fc-sporti{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+ .fc-sporti .mini{min-height:40px;padding:0 12px;font-size:14px}
  .fc-sel{display:block;width:100%;height:48px;margin:6px 0 8px;padding:0 12px;border:1.5px solid var(--filo);border-radius:10px;background:#fff;font-family:var(--sans);font-size:16px;color:var(--ink)}
  .fc-rec{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--err);animation:fc-pulsa 1s ease-in-out infinite alternate}
  @keyframes fc-pulsa{from{opacity:1}to{opacity:.3}}
@@ -627,7 +628,7 @@
   <div class="days">
     <button type="button" class="macro-card eroe" id="vai-scheda">
       <span class="macro-ico"><svg class="ic"><use href="#i-manubrio"/></svg></span>
-      <span class="macro-l"><span class="macro-name" data-i18n>Scheda allenamento</span><span class="macro-meta" id="meta-scheda"></span></span>
+      <span class="macro-l"><span class="macro-name" data-i18n>Allenamento</span><span class="macro-meta" id="meta-scheda"></span></span>
       <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
     <div class="gruppo">
       <button type="button" class="macro-card" id="vai-alim">
@@ -642,10 +643,6 @@
         <span class="macro-ico"><svg class="ic"><use href="#i-bilancia"/></svg></span>
         <span class="macro-l"><span class="macro-name" data-i18n>Bilancia</span><span class="macro-meta" id="meta-bil"></span></span>
         <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
-      <button type="button" class="macro-card" id="vai-fc" hidden>
-        <span class="macro-ico"><svg class="ic"><use href="#i-cuore"/></svg></span>
-        <span class="macro-l"><span class="macro-name" data-i18n>Fascia cardio</span><span class="macro-meta" id="meta-fc"></span></span>
-        <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
     </div>
     <div class="gruppo">
       <button type="button" class="macro-card" id="vai-col">
@@ -659,9 +656,16 @@
 
 <!-- ── schermata SCHEDA: lista giorni ── -->
 <div id="home" hidden>
-  <p class="sez-nota" data-i18n>Seleziona il giorno da compilare</p>
-  <div class="days" id="days"></div>
-  <div id="bozza-stato"></div>
+  <div class="fasi" id="home-fasi"><button type="button" data-hf="p" class="on" data-i18n>Palestra</button><button type="button" data-hf="c" data-i18n>Cardio</button></div>
+  <div id="home-p">
+    <p class="sez-nota" data-i18n>Seleziona il giorno da compilare</p>
+    <div class="days" id="days"></div>
+    <div id="bozza-stato"></div>
+  </div>
+  <div id="home-c" hidden>
+    <p class="sez-nota" data-i18n>Scegli lo sport: poi avvii la registrazione.</p>
+    <div class="days" id="home-sport"></div>
+  </div>
 </div>
 
 <!-- ── schermata FOTO PROGRESSI: tre viste (fronte/lato/retro), da fotocamera o galleria.
@@ -685,20 +689,16 @@
   <button type="button" class="btn-lite quieto" id="bil-dimentica" hidden data-i18n>Usa un’altra bilancia</button>
 </div>
 
-<!-- ── schermata FASCIA CARDIO (solo nell'APK: serve il Bluetooth del telefono). Battito in diretta da una
-       fascia cardio standard o da un bracciale che lo condivide; con «Registra» la seduta resta sul
-       telefono e va da sola al TMS collegato, nel tab Cardio. ── -->
+<!-- ── schermata CARDIO (27/11/2026, Marco: «una sezione a parte per il cardio sotto allenamento in palestra con lo
+       stesso stile, dove prima si sceglie lo sport e poi si fa partire la registrazione»). Battito in diretta dalla
+       fascia collegata (si sceglie in Impostazioni); la seduta resta sul telefono e va da sola al TMS, nel tab Cardio. ── -->
 <div id="fc" hidden>
   <p class="sez-nota" id="fc-chi"></p>
-  <div class="box fc-live"><div class="bil-stato" id="fc-stato"></div><div class="fc-bpm" id="fc-bpm">—</div>
-    <div class="fc-zona" id="fc-zona"></div><div class="fc-zone" id="fc-zone"></div><div class="bil-stato" id="fc-sotto"></div>
-    <div id="fc-trovati"></div>
-    <button type="button" class="btn-lite" id="fc-riprova" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span id="fc-riprova-t">Riprova</span></button></div>
+  <div class="box fc-live"><div class="fc-bpm" id="fc-bpm">—</div>
+    <div class="fc-zona" id="fc-zona"></div><div class="fc-zone" id="fc-zone"></div><div id="fc-conn"></div></div>
   <div id="fc-reg"></div>
   <div class="box"><div class="pick-title" data-i18n>Le tue sedute</div><div id="fc-lista"></div></div>
-  <div class="fine" data-i18n-html>Va con le <b>fasce cardio Bluetooth</b> (Polar, Garmin, Wahoo…) e coi bracciali che condividono il battito. Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio.</div>
-  <button type="button" class="btn-lite quieto" id="fc-scollega" hidden data-i18n>Scollega</button>
-  <button type="button" class="btn-lite quieto" id="fc-dimentica" hidden data-i18n>Usa un’altra fascia</button>
+  <div class="fine" data-i18n-html>Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio. Il battito c’è se colleghi una <b>fascia cardio</b> (Impostazioni).</div>
 </div>
 
 <!-- ── schermata COLLEGAMENTO E PROMEMORIA (solo nell'APK): codice che dà il personal (l'hub del TMS
@@ -715,6 +715,15 @@
       <button type="button" class="btn-big" id="col-collega"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Collega</span></button></div>
     <button type="button" class="btn-lite" id="col-ora" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Controlla adesso</span></button>
     <button type="button" class="btn-lite quieto" id="col-stacca" hidden data-i18n>Scollega</button>
+  </div>
+  <div class="box" id="fc-imp" hidden>
+    <div class="pick-title"><svg class="ic"><use href="#i-cuore"/></svg><span data-i18n>Fascia cardio</span></div>
+    <p class="col-spieg" data-i18n-html>Va con le <b>fasce cardio Bluetooth</b> (Polar, Garmin, Wahoo…) e coi bracciali che condividono il battito (Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp).</p>
+    <div class="bil-stato" id="fc-stato"></div><div class="bil-stato" id="fc-sotto"></div>
+    <div id="fc-trovati"></div>
+    <button type="button" class="btn-lite" id="fc-riprova" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span id="fc-riprova-t">Collega</span></button>
+    <button type="button" class="btn-lite quieto" id="fc-scollega" hidden data-i18n>Scollega</button>
+    <button type="button" class="btn-lite quieto" id="fc-dimentica" hidden data-i18n>Usa un’altra fascia</button>
   </div>
   <div class="box" id="avv-box" hidden>
     <div class="pick-title"><svg class="ic"><use href="#i-campana"/></svg><span data-i18n>Promemoria</span></div>
@@ -800,7 +809,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='4.2';
+const CVER='4.3';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1145,6 +1154,16 @@ const TT={en:{
   'Sì, annulla la seduta':'Yes, cancel the session', 'No, continua':'No, keep going',
   'Impostazioni':'Settings', 'Lingua':'Language', 'Seguici':'Follow us', 'Instagram, YouTube e GitHub coi loro QR':'Instagram, YouTube and GitHub with their QR codes',
   'lingua e QR':'language and QR', 'collegamento, promemoria, lingua e QR':'link, reminders, language and QR',
+  /* sezione Cardio (27/11/2026) */
+  'Cardio':'Cardio', 'Che sport fai?':'What are you doing?', 'Avvia registrazione':'Start recording', 'Altro':'Other',
+  'annulla registrazione':'cancel recording', 'Annullo la registrazione? Non si salva niente.':'Cancel the recording? Nothing is saved.',
+  'Senza fascia registro solo il tempo.':'Without a strap I record only the time.', 'Nessuna fascia collegata.':'No strap connected.',
+  'Collega la fascia':'Connect the strap', 'scegli lo sport e registra':'pick the sport and record',
+  'C’è una registrazione cardio in corso: chiudila per iniziare la seduta coi pesi.':'A cardio recording is in progress: close it to start the weights session.',
+  'Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio. Il battito c’è se colleghi una <b>fascia cardio</b> (Impostazioni).':'Sessions stay on <b>this phone</b> and reach the PC by themselves, in the Cardio tab. The heart rate is there if you connect a <b>heart rate strap</b> (Settings).',
+  'Va con le <b>fasce cardio Bluetooth</b> (Polar, Garmin, Wahoo…) e coi bracciali che condividono il battito (Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp).':'Works with <b>Bluetooth heart rate straps</b> (Polar, Garmin, Wahoo…) and with bands that share the heart rate (Amazfit Helio Strap with “Heart Rate Push” on in Zepp).',
+  /* Allenamento: Palestra o Cardio (27/11/2026) */
+  'Allenamento':'Training', 'Palestra':'Gym', 'Scegli lo sport: poi avvii la registrazione.':'Pick the sport: then you start recording.',
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -1365,21 +1384,21 @@ function rigaEsercizio(r){
 }
 function mostra(id){ ['menu','home','alim','foto','bil','fc','col'].forEach(s=>{ $(s).hidden=(id!==s); });
   if(id!=='bil') bilEsci();   /* fuori dalla pagina Bilancia il Bluetooth si ferma */
-  if(id!=='fc') fcLasciaPagina();   /* la fascia collegata resta collegata; la ricerca si ferma */
+  if(id!=='fc' && id!=='col') fcLasciaPagina();   /* la fascia collegata resta collegata; la ricerca si ferma */
   if(id==='menu'){ colPresto(); alimMeta(); }   /* di nuovo al menu: è il momento giusto per gli aggiornamenti dal PC */
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
 /* ── barra in alto: il marchio al menu; nelle altre schermate «‹ indietro» e il titolo. Si aggiorna
       da sola quando una schermata compare o sparisce (attributo hidden): così ogni strada (menu,
       tasto indietro del telefono, promemoria, collegamento) la tiene giusta. ── */
-const BARRA_TIT={home:'Scheda allenamento', alim:'Alimentazione', foto:'Foto progressi', bil:'Bilancia', fc:'Fascia cardio', col:'Impostazioni'};
+const BARRA_TIT={home:'Allenamento', alim:'Alimentazione', foto:'Foto progressi', bil:'Bilancia', fc:'Cardio', col:'Impostazioni'};
 function barraAggiorna(){
   if(!document || !document.body || !$('barra-ind')) return;   /* pagina già chiusa */
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
   const id=giorno? 'giorno' : (Object.keys(BARRA_TIT).find(x=>$(x)&&!$(x).hidden)||'menu');
   let tit='', ind='';
   if(giorno){ tit=GIORNI[+giorno.id.slice(4)]||''; ind=tt('Giorni'); }
-  else if(id!=='menu'){ tit=tt(BARRA_TIT[id]); ind=(id==='col'&&!SCHEDA)? tt('Indietro') : tt('Menu'); }
+  else if(id!=='menu'){ tit=tt(BARRA_TIT[id]); ind=(id==='col'&&!SCHEDA)? tt('Indietro') : id==='fc'? tt('Allenamento') : tt('Menu'); }
   if(document.body.dataset.schermo!==id){ document.body.dataset.schermo=id; try{ window.scrollTo(0,0); }catch(e){} }
   $('barra-ind').hidden=(id==='menu'); $('barra-ind-t').textContent=ind;
   $('barra-titolo').hidden=(id==='menu'); $('barra-titolo').textContent=tit;
@@ -1810,7 +1829,8 @@ function risali(){
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
   if(giorno){ aggiornaStato(); mostra('home'); return true; }
   if(!$('col').hidden){ colEsci(); return true; }
-  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden || !$('bil').hidden || !$('fc').hidden){ aggiornaStato(); mostra('menu'); return true; }
+  if(!$('fc').hidden){ mostra('home'); homeSport(); return true; }   /* dal Cardio si torna ad Allenamento */
+  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden || !$('bil').hidden){ aggiornaStato(); mostra('menu'); return true; }
   return false;   /* siamo al menu: non c'è più nulla sopra, l'app può chiudersi */
 }
 window.addEventListener('popstate',()=>{ if(navLivelli>0) navLivelli--; risali(); });
@@ -2096,11 +2116,11 @@ function fcScollega(){
   FC.id=''; FC.bpm=null; FC.collegando=false; fcStato(''); fcAggiornaMenu(); }
 /* uscendo dalla pagina: se la fascia è collegata resta collegata (il battito si vede nella barra);
    se la si stava ancora cercando, la ricerca si ferma */
-function fcLasciaPagina(){ if(FC.cercando && !FC.id && !FC.reg) fcScollega(); }
+function fcLasciaPagina(){ if(FC.cercando && !FC.id && !FC.reg && !SED.s) fcScollega(); }
 function fcDimentica(){
   fcScollega();
   try{ localStorage.removeItem(FC_KEY_ID); localStorage.removeItem(FC_KEY_NOME); }catch(e){}
-  FC.nome=''; if(!$('fc').hidden) fcAvvia(); else renderFc(); }
+  FC.nome=''; fcAvvia(); }
 /* ogni secondo, da collegati: il tempo della registrazione e il battito che non arriva */
 function fcTic(){
   if(!FC.id) return;
@@ -2110,10 +2130,11 @@ function fcTic(){
   fcRenderReg(true); }
 
 /* — registrazione: campioni raccolti in secchielli di 5 secondi — */
+function fcSportScelto(){ return FC.sport || (()=>{ try{ return localStorage.getItem('tms-fc-sport')||''; }catch(e){ return ''; } })() || 'Corsa'; }
 function fcRegistra(){
-  if(!FC.id || FC.reg || FC.chiudi || SED.s) return;
+  if(FC.reg || FC.chiudi || SED.s) return;
   const ora=Date.now();
-  FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}};
+  FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}, tipo:fcSportScelto()}; FC.annulla=false;
   FC.bozzaT=0; fcSalvaBozza(true); fcSchermo(true);
   renderFc(); fcAggiornaMenu(); }
 function fcCampione(ora, bpm){
@@ -2133,7 +2154,7 @@ function fcComponi(r, fine, nome){
   while(fc.length && fc[fc.length-1]==null) fc.pop();
   const d=new Date(r.inizio);
   return {data:dataLoc(d), ora:oraLoc(d), durataSec:Math.max(0, Math.round((fine-r.inizio)/1000)),
-    fcMedia:c? Math.round(s/c) : null, fcPicco:r.picco||null, fc:fc, passo:FC_PASSO, dispositivo:nome||''}; }
+    fcMedia:c? Math.round(s/c) : null, fcPicco:r.picco||null, fc:fc, passo:FC_PASSO, dispositivo:nome||'', tipo:r.tipo||''}; }
 function fcFine(){
   const r=FC.reg; if(!r) return;
   FC.reg=null; FC.chiudi=fcComponi(r, Date.now(), FC.nome); FC.scarta=false;
@@ -2141,7 +2162,7 @@ function fcFine(){
   renderFc(); fcAggiornaMenu(); }
 async function fcSalvaSeduta(){
   const c=FC.chiudi; if(!c) return;
-  const sp=$('fc-sport'), rp=$('fc-rpe'), tipo=(sp&&sp.value)||FC.sport||'Corsa', rpe=rp? rp.value : '';
+  const rp=$('fc-rpe'), tipo=c.tipo||fcSportScelto(), rpe=rp? rp.value : '';
   FC.sport=tipo; try{ localStorage.setItem('tms-fc-sport', tipo); }catch(e){}
   const s={id:c.data+'T'+c.ora+'|fc', data:c.data, ora:c.ora, tipo:tipo, durata:Math.max(1, Math.round(c.durataSec/60)),
     rpe:(rpe===''? '' : +rpe), fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo, dispositivo:c.dispositivo||''};
@@ -2150,6 +2171,11 @@ async function fcSalvaSeduta(){
   await fcSalva(); await fcScriviKv(fcBozzaKey(), null);
   try{ if(navigator.vibrate) navigator.vibrate(80); }catch(e){}
   renderFc(); fcAggiornaMenu(); colPresto(); }
+/* «annulla registrazione»: avviata per sbaglio, non si salva niente */
+async function fcAnnullaReg(){ if(!FC.reg) return; FC.reg=null; FC.annulla=false; fcSchermo(false);
+  await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); }
+/* «Collega la fascia» (pagina Cardio, zona della seduta): quella ricordata si cerca subito, altrimenti si sceglie in Impostazioni */
+function fcCollegaDa(){ if(!window.tmsBLE) return; if(fcIdNoto()){ fcAvvia(); return; } colApri(); fcAvvia(); }
 async function fcScartaSeduta(){ FC.chiudi=null; FC.scarta=false; await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); }
 /* schermo acceso durante la registrazione (se il telefono lo permette): con lo schermo spento Android
    può fermare la pagina e il battito di quei minuti mancherebbe */
@@ -2192,8 +2218,13 @@ function fcStato(s, motivo, msg){
     else if(s==='persa'){ a=tt('Collegamento perso: riprovo…'); if(FC.reg) b=tt('La registrazione continua: i secondi senza battito restano vuoti.'); }
     else if(s==='errore'){ a=tt(FC_ERR[FC.motivo]||FC_ERR.errore); if(FC.motivo==='errore' && FC.msg) b=String(FC.msg); }
     else a=fcIdNoto()? tt('Fascia scollegata.') : '';
-    st.textContent=a; if(so) so.textContent=b; }
-  if(rp) rp.hidden=!(s==='errore' || (s==='' && !$('fc').hidden));
+    st.textContent=a; if(so) so.textContent=b;
+    const cn=$('fc-conn');
+    if(cn){ const libera=(s==='' || s==='errore') && !FC.id;
+      cn.innerHTML=!window.tmsBLE? '' : '<div class="bil-stato">'+esc(libera && s===''? tt('Nessuna fascia collegata.') : a)+'</div>'+
+        (libera? '<button type="button" class="btn-lite" id="fc-collega">'+ico('cuore')+'<span>'+esc(tt('Collega la fascia'))+'</span></button>' : '');
+      const bc=$('fc-collega'); if(bc) bc.onclick=()=>fcCollegaDa(); } }
+  if(rp) rp.hidden=!(s==='errore' || s==='');
   const rt=$('fc-riprova-t'); if(rt) rt.textContent=tt(s==='errore'? 'Riprova' : 'Collega');
   fcMostraBattito(); fcRenderTrovati(); fcChip();
   const sc=$('fc-scollega'); if(sc) sc.hidden=!(FC.id && !FC.reg);
@@ -2221,11 +2252,11 @@ function fcRenderReg(soloTempo){
   const box=$('fc-reg'); if(!box || $('fc').hidden) return;
   if(soloTempo){ const t0=$('fc-reg-t'); if(t0 && FC.reg){ t0.textContent=fcDur((Date.now()-FC.reg.inizio)/1000);
       const m=fcMediaReg(FC.reg), md=$('fc-reg-m'), pk=$('fc-reg-p'); if(md) md.textContent=m||'—'; if(pk) pk.textContent=FC.reg.picco||'—'; } return; }
-  const sport=FC.sport||(()=>{ try{ return localStorage.getItem('tms-fc-sport')||''; }catch(e){ return ''; } })()||'Corsa';
+  const sport=fcSportScelto();
   if(FC.chiudi){ const c=FC.chiudi;
     box.innerHTML='<div class="box"><div class="pick-title">'+tt('Com’è andata?')+'<small>'+esc(giornoBreve(c.data))+' '+esc(String(c.ora).slice(0,5))+'</small></div>'+
       '<div class="fc-tre"><div><b>'+esc(fcDur(c.durataSec))+'</b><span>'+tt('durata')+'</span></div><div><b>'+(c.fcMedia||'—')+'</b><span>'+tt('FC media')+'</span></div><div><b>'+(c.fcPicco||'—')+'</b><span>'+tt('picco')+'</span></div></div>'+
-      '<label class="col-lab" for="fc-sport">'+tt('Attività')+'</label><select id="fc-sport" class="fc-sel">'+FC_SPORT.map(x=>'<option value="'+esc(x)+'"'+(x===sport?' selected':'')+'>'+esc(tt(x))+'</option>').join('')+'</select>'+
+      '<p class="sez-nota" style="margin:0 0 4px">'+tt('Attività')+': <b>'+esc(tt(c.tipo||sport))+'</b></p>'+
       '<label class="col-lab" for="fc-rpe">'+tt('Fatica (RPE 0–10)')+'</label><select id="fc-rpe" class="fc-sel"><option value="">–</option>'+[0,1,2,3,4,5,6,7,8,9,10].map(n=>'<option value="'+n+'">'+n+'</option>').join('')+'</select>'+
       (FC.scarta? '<div class="bil-row"><span class="bil-g">'+tt('Buttare via questa registrazione?')+'</span><button type="button" class="mini del" id="fc-scarta-si">'+tt('Butta via')+'</button><button type="button" class="mini" id="fc-scarta-no">'+tt('No')+'</button></div>'
         : '<button type="button" class="btn-big" id="fc-salva">'+ico('check')+'<span>'+tt('Salva la seduta')+'</span></button><button type="button" class="btn-lite quieto" id="fc-scarta">'+tt('Butta via')+'</button>')+
@@ -2236,22 +2267,48 @@ function fcRenderReg(soloTempo){
     const no=$('fc-scarta-no'); if(no) no.onclick=()=>{ FC.scarta=false; fcRenderReg(); };
     return; }
   if(FC.reg){
-    box.innerHTML='<div class="box fc-in-reg"><div class="pick-title"><i class="fc-rec"></i>'+tt('Registrazione in corso')+'</div>'+
+    box.innerHTML='<div class="box fc-in-reg"><div class="pick-title"><i class="fc-rec"></i>'+esc(tt(FC.reg.tipo||sport))+' · '+tt('registrazione in corso')+'</div>'+
       '<div class="fc-tre"><div><b id="fc-reg-t">0:00</b><span>'+tt('tempo')+'</span></div><div><b id="fc-reg-m">—</b><span>'+tt('FC media')+'</span></div><div><b id="fc-reg-p">—</b><span>'+tt('picco')+'</span></div></div>'+
-      '<button type="button" class="btn-big" id="fc-fine">'+ico('check')+'<span>'+tt('Fine')+'</span></button>'+
+      (FC.annulla? '<div class="bil-row"><span class="bil-g">'+tt('Annullo la registrazione? Non si salva niente.')+'</span><button type="button" class="mini del" id="fc-annulla-si">'+tt('Annulla')+'</button><button type="button" class="mini" id="fc-annulla-no">'+tt('No')+'</button></div>'
+        : '<button type="button" class="btn-big" id="fc-fine">'+ico('check')+'<span>'+tt('Fine')+'</span></button>'+
+          '<button type="button" class="btn-lite quieto" id="fc-annulla">'+tt('annulla registrazione')+'</button>')+
       '<div class="fine" style="margin:4px 0 0">'+tt('Tieni l’app aperta: lo schermo resta acceso finché registri.')+'</div></div>';
-    $('fc-fine').onclick=()=>fcFine(); fcRenderReg(true); return; }
-  box.innerHTML=!FC.id? '' : SED.s? '<div class="box"><div class="fine" style="margin:0">'+tt('C’è una seduta coi pesi aperta')+' ('+esc(SED.s.giorno)+'): '+tt('il battito va già con quella. Chiudila per registrare una seduta di solo cardio.')+'</div></div>'
-    : '<button type="button" class="btn-big" id="fc-registra">'+ico('play')+'<span>'+tt('Registra')+'</span></button>';
+    const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
+    on('fc-fine', ()=>fcFine()); on('fc-annulla', ()=>{ FC.annulla=true; fcRenderReg(); });
+    on('fc-annulla-si', ()=>{ fcAnnullaReg(); }); on('fc-annulla-no', ()=>{ FC.annulla=false; fcRenderReg(); });
+    fcRenderReg(true); return; }
+  if(SED.s){ box.innerHTML='<div class="box"><div class="fine" style="margin:0">'+tt('C’è una seduta coi pesi aperta')+' ('+esc(SED.s.giorno)+'): '+tt('il battito va già con quella. Chiudila per registrare una seduta di solo cardio.')+'</div></div>'; return; }
+  box.innerHTML='<div class="box"><div class="pick-title">'+tt('Che sport fai?')+'</div>'+
+    '<div class="fc-sporti">'+FC_SPORT.concat(['Altro']).map(x=>'<button type="button" class="mini'+(x===sport?' on':'')+'" data-fcsport="'+esc(x)+'">'+esc(tt(x))+'</button>').join('')+'</div>'+
+    '<button type="button" class="btn-big" id="fc-registra">'+ico('play')+'<span>'+tt('Avvia registrazione')+'</span></button>'+
+    ((window.tmsBLE && !FC.id)? '<div class="fine" style="margin:4px 0 0">'+tt('Senza fascia registro solo il tempo.')+'</div>' : '')+'</div>';
+  box.querySelectorAll('[data-fcsport]').forEach(b=>{ b.onclick=()=>{ FC.sport=b.getAttribute('data-fcsport'); try{ localStorage.setItem('tms-fc-sport', FC.sport); }catch(e){} fcRenderReg(); }; });
   const rg=$('fc-registra'); if(rg) rg.onclick=()=>fcRegistra(); }
+/* ── ALLENAMENTO (27/11/2026, Marco: «la sezione cardio sta dentro allenamento: aperto allenamento si può scegliere
+      palestra o gli sport del cardio»): due linguette, Palestra (i giorni della scheda) e Cardio (gli sport del tab
+      Cardio del TMS più «Altro»). Toccando uno sport si apre la pagina Cardio con quello sport scelto: lì si avvia la
+      registrazione. Con una registrazione cardio in corso si parte dalla linguetta Cardio. ── */
+let HOME_LATO='';
+function homeLato(l){ HOME_LATO=l; const c=(l==='c');
+  const hp=$('home-p'), hc=$('home-c'); if(hp) hp.hidden=c; if(hc) hc.hidden=!c;
+  document.querySelectorAll('#home-fasi [data-hf]').forEach(b=>{ b.classList.toggle('on', b.dataset.hf===l); }); }
+function homeSport(){
+  const box=$('home-sport'); if(!box) return;
+  const sett=lunediDi(dataLoc(new Date()));
+  box.innerHTML=FC_SPORT.concat(['Altro']).map(x=>{ const n=SEDUTE_FC.filter(z=>z.tipo===x && lunediDi(z.data)===sett).length;
+    const meta=(FC.reg && FC.reg.tipo===x)? tt('registrazione in corso') : n? n+' '+(n===1? tt('seduta questa settimana') : tt('sedute questa settimana')) : '';
+    return '<button type="button" class="day-card" data-fcvai="'+esc(x)+'"><span class="day-l"><span class="day-name">'+esc(tt(x))+'</span>'+
+      (meta? '<span class="day-meta">'+esc(meta)+'</span>' : '')+'</span><span class="day-r"><span class="chev">'+ico('avanti')+'</span></span></button>'; }).join('');
+  box.querySelectorAll('[data-fcvai]').forEach(b=>{ b.onclick=()=>{ if(!FC.reg){ FC.sport=b.getAttribute('data-fcvai'); try{ localStorage.setItem('tms-fc-sport', FC.sport); }catch(e){} } fcApri(); }; });
+  homeLato(HOME_LATO || (FC.reg? 'c' : 'p')); }
 function fcAggiornaMenu(){
-  const vb=$('vai-fc'); if(vb) vb.hidden=!(window.tmsBLE && SCHEDA);
+  try{ homeSport(); }catch(e){}
   const mb=$('meta-fc');
   if(mb){ const sett=lunediDi(dataLoc(new Date())), n=SEDUTE_FC.filter(s=>lunediDi(s.data)===sett).length;
     mb.textContent=FC.reg? tt('registrazione in corso') : (FC.id && FC.bpm)? FC.bpm+' bpm · '+tt('collegata')
-      : n? n+' '+(n===1? tt('seduta questa settimana') : tt('sedute questa settimana')) : tt('battito in diretta, sedute al coach'); }
+      : n? n+' '+(n===1? tt('seduta questa settimana') : tt('sedute questa settimana')) : tt('scegli lo sport e registra'); }
   fcChip(); }
-/* il battito nella barra in alto, su tutte le schermate (tocca → pagina Fascia cardio) */
+/* il battito nella barra in alto, su tutte le schermate (tocca → pagina Cardio) */
 function fcChip(){
   const c=$('fc-chip'); if(!c) return;
   const z=$('sed-zona');
@@ -2262,8 +2319,8 @@ function fcChip(){
 function sedZonaFc(){
   const z=$('sed-zona'), b=$('sed-fc'); if(!z || z.hidden || !b) return;
   const t=document.createElement('div'); t.innerHTML=sedBattitoHtml(); const n=t.firstChild; if(!n) return;
-  b.replaceWith(n); n.onclick=()=>{ if(FC.id) return; if(fcIdNoto()) fcAvvia(); else fcApri(); }; }
-function fcApri(){ if(!window.tmsBLE || !SCHEDA) return; navEntra(); mostra('fc'); renderFc(); fcAvvia(); }
+  b.replaceWith(n); n.onclick=()=>{ if(!FC.id) fcCollegaDa(); }; }
+function fcApri(){ if(!SCHEDA) return; navEntra(); mostra('fc'); renderFc(); if(window.tmsBLE && fcIdNoto() && !FC.id) fcAvvia(); }
 function renderFc(){
   fcAggiornaMenu();
   const chi=$('fc-chi'); if(!chi) return;
@@ -2333,9 +2390,10 @@ function sedGiornoVisibile(){ const p=[...document.querySelectorAll('.day-page')
 function sedApri(gi){
   if(GIORNI[gi]==null) return;
   if(SED.s){ SED.chiedi=''; sedControlla(); if(!SED.dimenticata) sedAttivita(); sedZona(); return; }
-  SED.chiedi=(giornoCompletato(gi) || sedGuardoLeggi().indexOf(GIORNI[gi])>=0)? '' : GIORNI[gi];
+  SED.chiedi=(FC.reg || giornoCompletato(gi) || sedGuardoLeggi().indexOf(GIORNI[gi])>=0)? '' : GIORNI[gi];
   sedZona(); }
 function sedInizia(g){
+  if(FC.reg) return;   /* niente doppioni: c'è una registrazione cardio in corso */
   const ora=Date.now();
   SED.s={giorno:g, settimana:+(((SCHEDA&&SCHEDA.sync)||{}).settimana)||0, inizio:ora, ultima:ora, picco:0, secchi:{}};
   SED.chiudi=false; SED.dimenticata=false; SED.rpe=null; SED.chiedi=''; SED.annulla=false;
@@ -2419,10 +2477,11 @@ function sedZona(){
   } else {
     const chiusa=giornoCompletato(gi);
     h+='<div class="sed-tempo"><b>'+(chiusa? ico('check') : '–')+'</b><span>'+esc(tt(chiusa? 'seduta chiusa' : 'solo da guardare'))+'</span></div>'+
-      '<button type="button" class="sed-btn'+(chiusa? '' : ' ok')+'" id="sed-nuova">'+esc(tt(chiusa? 'Nuova seduta' : 'Inizia la seduta'))+'</button>'; }
+      (FC.reg? '<div class="sed-riga"><p>'+esc(tt('C’è una registrazione cardio in corso: chiudila per iniziare la seduta coi pesi.'))+'</p></div>'
+        : '<button type="button" class="sed-btn'+(chiusa? '' : ' ok')+'" id="sed-nuova">'+esc(tt(chiusa? 'Nuova seduta' : 'Inizia la seduta'))+'</button>'); }
   z.innerHTML=h; sedTempo();
   const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
-  on('sed-fc', ()=>{ if(FC.id) return; if(fcIdNoto()) fcAvvia(); else fcApri(); });
+  on('sed-fc', ()=>{ if(!FC.id) fcCollegaDa(); });
   on('sed-fine', ()=>sedFineApri(0));
   on('sed-ok', ()=>{ sedChiudi(); });
   on('sed-annulla', ()=>{ SED.chiudi=false; SED.fineAt=0; SED.rpe=null; sedZona(); });
@@ -2804,7 +2863,9 @@ function wire(){
   document.querySelectorAll('[data-back]').forEach(b=>{ b.onclick=navIndietro; });
   document.querySelectorAll('[data-menu]').forEach(b=>{ b.onclick=navIndietro; });
   document.querySelectorAll('[data-home]').forEach(b=>{ b.onclick=navIndietro; });
-  document.querySelectorAll('.fasi button').forEach(b=>{ b.onclick=()=>mostraFase(+b.dataset.gi, b.dataset.f); });
+  document.querySelectorAll('.fasi button[data-f]').forEach(b=>{ b.onclick=()=>mostraFase(+b.dataset.gi, b.dataset.f); });
+  document.querySelectorAll('#home-fasi [data-hf]').forEach(b=>{ b.onclick=()=>homeLato(b.dataset.hf); });
+  homeSport();
   document.querySelectorAll('[data-add]').forEach(b=>{ b.onclick=()=>addEsercizio(+b.getAttribute('data-add')); });
   document.querySelectorAll('[data-del]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); delEsercizio(+b.getAttribute('data-del')); }; });
   document.querySelectorAll('[data-star]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); toggleStar(+b.getAttribute('data-star')); }; });
@@ -3409,12 +3470,13 @@ function colStacca(){
   if(colCollegata()){ SCHEDA.collegata=false; salvaScheda(SCHEDA); }
   COL.msgErr=false; COL.msg=c.nome? tt('Scollegato da')+' «'+c.nome+'».' : ''; colRender();
 }
-function colApri(){ navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil','fc'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
+function colApri(){ try{ fcStato(FC.stato); }catch(e){} navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil','fc'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
 function colEsci(){ if(SCHEDA){ aggiornaStato(); mostra('menu'); } else { $('col').hidden=true; avvia(); } }
 function colRender(){
   const P=colPuo(), conf=colConf(), att=colAttivo();
   { const b=$('col-da-ben'); if(b) b.hidden=!P; }
   { const cb=$('col-box'); if(cb) cb.hidden=!P; }
+  { const fi=$('fc-imp'); if(fi) fi.hidden=!window.tmsBLE; }
   { const n=$('ben-solo-apk'); if(n) n.hidden=P; }
   const avv=$('avv-box'); if(avv) avv.hidden=!window.tmsAvvisi;
   const meta=$('meta-col');

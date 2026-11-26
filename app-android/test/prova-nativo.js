@@ -121,7 +121,7 @@ async function apri(opz = {}) {
     ok(w.eval('typeof navigator.serviceWorker === "undefined" || true') && !/serviceWorker\.register/.test(d.documentElement.innerHTML), 'niente service worker nell\'APK');
     /* giorni con etichette libere (Giorno 1, Giorno 2…) */
     d.getElementById('vai-scheda').click();
-    const giorni = [...d.querySelectorAll('.day-card .day-name')].map(e => e.textContent);
+    const giorni = [...d.querySelectorAll('#days .day-card .day-name')].map(e => e.textContent);
     ok(giorni.join('|') === 'Giorno 1|Giorno 2', 'giorni: etichette prese dal file («Giorno 1», «Giorno 2»)');
 
     /* ── avvisi in stile app ── */
@@ -132,7 +132,7 @@ async function apri(opz = {}) {
     ok(!a.dlg(), 'avviso: OK chiude la finestra');
 
     /* ── conferma in stile app: elimina esercizio ── */
-    d.querySelector('.day-card').click();
+    d.querySelector('#days .day-card').click();
     await attendi();
     const prima = w.eval('WROWS.length');
     d.querySelector('[data-del="1"]').click();
@@ -299,8 +299,9 @@ async function apri(opz = {}) {
   /* ── fascia cardio: lo stesso trasporto con servizio 0x180D e misura 0x2A37; la bilancia collegata non la stacca ── */
   { const a = await apri({ ble: true }); const { d, reg } = a;
     const HR = '0000180d-0000-1000-8000-00805f9b34fb', MIS = '00002a37-0000-1000-8000-00805f9b34fb', ID = 'C8:0F:10:00:00:02';
-    ok(d.getElementById('vai-fc').hidden === false, 'con il plugin Bluetooth: la voce «Fascia cardio» c\'è');
-    d.getElementById('vai-fc').click(); await attendi(120);
+    d.getElementById('vai-scheda').click(); await attendi(30); d.querySelector('#home-fasi [data-hf="c"]').click(); await attendi(30);
+    ok(d.querySelectorAll('#home-sport [data-fcvai]').length === 12, 'Allenamento › Cardio: gli sport da scegliere');
+    a.w.eval('fcApri()'); await attendi(60); d.getElementById('fc-collega').click(); await attendi(120);   /* la fascia si sceglie in Impostazioni */
     reg.bleAscolti.onScanResult({ device: { deviceId: '11:22:33:44:55:66', name: 'Telefono di qualcuno' } });
     reg.bleAscolti.onScanResult({ device: { deviceId: ID, name: '' }, uuids: [HR], rssi: -60 }); await attendi(60);
     const bt = d.querySelectorAll('#fc-trovati [data-fcd]');
@@ -312,7 +313,7 @@ async function apri(opz = {}) {
     reg.bleAscolti['notification|' + ID + '|' + HR + '|' + MIS]({ value: '16 8c 00 04' }); await attendi(60);
     ok(/^140/.test(d.getElementById('fc-bpm').textContent) && d.getElementById('fc-chip-v').textContent === '140', 'fascia: la misura in esadecimale diventa 140 bpm sulla pagina e nella barra');
     a.w.tmsIndietro(); await attendi(60);
-    ok(d.getElementById('menu').hidden === false && !reg.ble.some(x => x[0] === 'disconnect'), 'tasto indietro: dalla Fascia si torna al menu e la fascia resta collegata');
+    ok(d.getElementById('menu').hidden === false && !reg.ble.some(x => x[0] === 'disconnect'), 'tasto indietro: dalle Impostazioni si torna al menu e la fascia resta collegata');
     /* la bilancia si collega e si stacca: gli ascolti della fascia restano */
     d.getElementById('vai-bil').click(); await attendi(120);
     reg.bleAscolti.onScanResult({ device: { deviceId: '80:F4:16:00:00:01', name: 'HEALTHKEEP' } }); await attendi(120);
@@ -321,7 +322,7 @@ async function apri(opz = {}) {
        typeof reg.bleAscolti['notification|' + ID + '|' + HR + '|' + MIS] === 'function', 'bilancia e fascia insieme: chiudendo la bilancia la fascia resta collegata e ascoltata');
     a.dom.window.close(); }
   { const a = await apri({ ble: true, bleNotificheNo: true }); const { d, reg } = a;
-    d.getElementById('vai-fc').click(); await attendi(120);
+    a.w.eval('fcApri()'); await attendi(60); d.getElementById('fc-collega').click(); await attendi(120);   /* la fascia si sceglie in Impostazioni */
     reg.bleAscolti.onScanResult({ device: { deviceId: 'C8:0F:10:00:00:03', name: 'Amazfit Helio Strap' } }); await attendi(60);
     d.querySelector('#fc-trovati [data-fcd]').click(); await attendi(150);
     ok(reg.ble.some(x => x[0] === 'disconnect' && x[1].deviceId === 'C8:0F:10:00:00:03') && /Heart Rate Push/.test(d.getElementById('fc-stato').textContent),
