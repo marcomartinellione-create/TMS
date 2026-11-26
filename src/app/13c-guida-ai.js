@@ -105,35 +105,56 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   più qui: si sceglie direttamente nel tab Alimentazione.) Bottoni:
   «Attiva», «Modifica parametri», «Rinomina», «Elimina» (quest'ultimo solo se
   esiste più di un profilo).
-- In fondo alla pagina: «Backup (tutti i profili insieme)» con «⭳ Backup dati»
-  (esporta TUTTO in un file JSON), «⭳ Backup completo (con foto)» e «⭱ Ripristina»
-  (reimporta, sostituendo i dati attuali previa conferma). DIFFERENZA: il backup dati
-  porta solo i METADATI delle foto, quindi ripristinandolo altrove le immagini mancano;
-  il backup completo incorpora le immagini come data-URI (file molto più grande, chiede
-  conferma mostrando numero di foto e MB) e al ripristino le riscrive in
-  TMS_Dati/<profilo>/foto/. I video non entrano in nessuno dei due. Sotto, il pulsante **Backup automatici** (si apre e mostra le copie): l'app ne crea
-  uno a settimana da sola (cartella «backup_automatici» dentro i dati, ultime 5
-  copie) con link «ripristina» accanto a ciascuno.
+- In fondo alla pagina: «Backup (tutti i profili insieme)» con «Backup» e «Ripristina».
+  **Backup** = un solo file TMS-backup-AAAA-MM-GG.tmsb con TUTTO quello che c'è nella cartella dei dati,
+  copiato così com'è (anche un file che il TMS non conosce): ogni file di ogni profilo (scheda, storico,
+  corpo, alimentazione, copie delle migrazioni) con le foto, profili.json, esercizi.json (catalogo),
+  ricette.json, taccuino.json, i video personali (TMS_Dati/video), le cartelle rimaste fuori dall'elenco,
+  le impostazioni (tema, stile della notte, lingua, video personali sì/no). È un archivio ZIP senza
+  compressione come il .tms: tms.json (formato «tms-backup», versione, app, data, profili, conteggi),
+  libreria/, profili/<slug>/, profili/<slug>/foto/, video/, orfani/<slug>/, impostazioni.json. Dopo averlo
+  costruito il TMS lo rilegge (controllo CRC di ogni file). Password facoltativa (almeno 6 caratteri):
+  tutto cifrato AES-GCM 256 con chiave PBKDF2-SHA256 (310.000 iterazioni), e SOLO in quel caso dentro c'è
+  anche telefono.json (collegamenti dei telefoni e codice di recupero): ripristinato su un PC nuovo, i
+  telefoni restano collegati. Senza password i collegamenti non entrano (servirà il codice di recupero).
+  **Ripristina** apre un .tmsb (o un vecchio backup .json) e mostra data, profili, foto, video personali,
+  profili fuori elenco, collegamenti sì/no e versione; poi «Ripristina tutto» (prima una copia di
+  sicurezza completa fra i backup ripristinabili, poi i profili di adesso vanno nel cestino dei profili
+  _eliminati/, poi si riscrivono file, foto, video, catalogo, ricette, taccuino e impostazioni; se la
+  lingua del backup è diversa va riaperto il TMS) oppure «Riprendi solo un cliente…» (si sceglie quale;
+  entra come un file .tms: gli altri profili non si toccano, se c'è già si sceglie nuovo o sostituisci).
+  Sotto, il pulsante **Backup automatici** (si apre e mostra le copie): l'app fa da sola un backup
+  completo .tmsb a settimana (cartella «backup_automatici» dentro i dati, ultime 5 copie) con link
+  «ripristina» accanto a ciascuno.
+- **Profili fuori elenco**: se nella cartella dei dati c'è una cartella con i file di un profilo
+  (scheda/storico/corpo/alimentazione.json) che profili.json non elenca, il tab Profilo lo segnala col
+  nome del cliente: «Rimettili in elenco» oppure «Mettili nel cestino» (cestino dei profili).
 - **Copia dei backup fuori dal PC** (⚙ Impostazioni › Copia dei backup, solo nell'app per PC): si sceglie
   una cartella col selettore di Windows (dentro OneDrive, Google Drive, MEGA o una chiavetta; non la
-  cartella dei dati né un disco intero) e ogni settimana ci va il backup completo con le foto
-  (TMS-backup-AAAA-MM-GG.json, ultime 5; gli altri file della cartella non si toccano); «Copia adesso» la
+  cartella dei dati né un disco intero) e ogni settimana ci va il backup completo
+  (TMS-backup-AAAA-MM-GG.tmsb, ultime 5; gli altri file della cartella non si toccano); «Copia adesso» la
   fa subito. La copia non è cifrata. Se la cartella non si raggiunge lo dice e riprova al prossimo
-  avvio. Si riprende con Ripristina scegliendo il file. Il percorso lo tiene il processo principale
-  (ponte tmsScambio di electron/main.js, scritture chiuse in quella cartella, solo .json).
+  avvio. Si riprende con Ripristina scegliendo il file. Finché non è scelta una cartella, nel tab Profilo
+  una riga lo ricorda con «Scegli una cartella…». Il percorso lo tiene il processo principale
+  (ponte tmsScambio di electron/main.js, scritture chiuse in quella cartella, solo .json e .tmsb).
 - **Versione dell'app**: ⚙ Impostazioni › Informazioni.
 - **File .tms (un cliente in un file)**, tab Profilo: su ogni profilo «Esporta» (file «Nome.tms») e
   «Archivia» (esporta e poi, chiesto se il file è salvato, toglie il profilo dalla lista: la cartella va nel
   cestino dei profili); accanto a «Nuovo profilo» c'è «Importa cliente»; nell'app per PC si apre anche col
   doppio clic (l'installer registra l'estensione con la sua icona, electron/build/tms.ico: un foglio pergamena con la
   stella del TMS; una sola istanza del TMS: col TMS aperto il file va a quello).
-  Il file è un archivio ZIP senza compressione: tms.json (formato «tms-cliente», versione, profilo), dati/
-  scheda.json, storico.json, corpo.json, alimentazione.json, le foto come immagini in foto/, catalogo/
-  esercizi.json e ricette.json con quelli che il cliente usa (all'arrivo si aggiungono solo quelli che
-  mancano). Password facoltativa (almeno 6 caratteri): tutto il contenuto cifrato AES-GCM 256 con chiave
-  PBKDF2-SHA256 (310.000 iterazioni); senza la password non si apre e non si recupera. All'importazione, se
-  il profilo esiste già si sceglie «Aggiungilo come nuovo» (nome con «(importato)») o «Sostituisci» (prima
-  una copia di sicurezza fra i backup ripristinabili, il vecchio nel cestino). I codici del telefono
+  Il file è un archivio ZIP senza compressione: tms.json (formato «tms-cliente», versione, profilo, nomi degli
+  esercizi personalizzati), dati/scheda.json, storico.json, corpo.json, alimentazione.json, le foto come
+  immagini in foto/, catalogo/ricette.json con le ricette che usa, catalogo/esercizi.json con i suoi
+  ESERCIZI PERSONALIZZATI (quelli che usa e che non ci sono nel catalogo dell'installazione o sono diversi:
+  creati o cambiati dal personal; quelli dell'installazione chi riceve li ha già) e i loro video personali in
+  video/. All'arrivo gli esercizi che mancano si aggiungono; se uno ha lo stesso nome ma è diverso si sceglie
+  «Tieni i miei» o «Usa quelli del file» (il catalogo è unico per tutti i clienti); un video che c'è già non si
+  sovrascrive, salvo «Usa quelli del file». Password facoltativa (almeno 6 caratteri): tutto il contenuto
+  cifrato AES-GCM 256 con chiave PBKDF2-SHA256 (310.000 iterazioni); senza la password non si apre e non si
+  recupera. All'importazione, se il profilo esiste già si sceglie «Aggiungilo come nuovo» (nome con
+  «(importato)») o «Sostituisci» (prima una copia di sicurezza fra i backup ripristinabili, il vecchio nel
+  cestino). I codici del telefono
   collegato non viaggiano: sul PC che riceve il cliente si ricollega col QR.
 - **Correggere una riga già salvata**: nello **Storico** (tab Profilo, in cima alla pagina) ogni riga
   ha a destra una **matita**: apre un riquadro dove si cambiano serie, ripetizioni, peso,
@@ -499,9 +520,7 @@ Due modi per registrare una seduta:
   video, play/pausa; con la vista «tutti» ogni passo è una data con le viste affiancate, con
   una vista specifica una foto per volta) e «Confronto» (due date scelte da un calendario,
   vecchia sopra/recente sotto, con data e peso; «tutti» = viste affiancate). Filtro per vista
-  (tag), gestione raggruppata per data. Il backup dati
-  include solo i metadati; per portarsi dietro anche le immagini serve «Backup completo
-  (con foto)» oppure copiare la cartella TMS_Dati (come per i video). Si può inserire un confronto prima/dopo anche nel Report.
+  (tag), gestione raggruppata per data. Le immagini entrano nel Backup (.tmsb) e nel file .tms del cliente. Si può inserire un confronto prima/dopo anche nel Report.
 
 ## 6 · Alimentazione (tab Alimentazione)
 
@@ -613,7 +632,7 @@ Sul PC, in Impostazioni › Telefono collegato: (1) una volta sola «Attiva» co
 dato da chi gestisce l'hub: il TMS diventa personal e mostra il CODICE DI RECUPERO (24 caratteri)
 da conservare; con quello, su un PC nuovo, si scrive nel campo «Codice di recupero» e si preme
 «Recupera»: i collegamenti dei profili tornano senza ricollegare i clienti, con la settimana e
-l'ultima scheda unita riprese dall'hub (i dati vanno portati prima con Backup completo e Ripristina); (2) per ogni profilo
+l'ultima scheda unita riprese dall'hub (i dati vanno portati prima con Backup e Ripristina; se il backup ha la password, i collegamenti tornano già con quello); (2) per ogni profilo
 cliente «Collega un telefono» crea il CODICE DI QUEL CLIENTE (20 caratteri, a gruppi di 4) da
 scrivere una volta sul suo telefono. Pulsanti: Copia; «Nuovo codice» (il vecchio telefono smette di
 funzionare finché non si scrive il nuovo; settimana e dati restano); «Stacca» (scollega: l'hub
@@ -929,9 +948,11 @@ la Bilancia, le Foto o l'Alimentazione.
 - «Vedere i progressi / il rischio di sovraccarico» → Progressi (record, TL, ACWR).
 - «Impostare la dieta» → Alimentazione (fase attiva scelta coi bottoni in cima al tab);
   per le analisi nel tempo registrare i Periodi.
-- «Backup prima di formattare il PC» → Profilo → ⭳ Backup completo (con foto), così
-  le foto progressi non restano indietro (il semplice ⭳ Backup dati porta solo i
-  riferimenti); al ripristino ⭱ Ripristina.
+- «Backup prima di formattare il PC» → Profilo → Backup (meglio con la password: tornano anche i
+  collegamenti dei telefoni) e il file .tmsb fuori dal PC, o una cartella in Impostazioni › Copia dei
+  backup; sul PC nuovo → Ripristina → Ripristina tutto.
+- «Passare un cliente a un collega» → Profilo → Esporta sul profilo (file .tms, con i suoi esercizi
+  personalizzati e i loro video); il collega fa Importa cliente o doppio clic sul file.
 - «Aggiungere un esercizio che manca» → Esercizi → ＋ Nuovo.
 - «Stampare la scheda da consegnare» → Report → PDF (impostazioni di stampa sopra).
 `;

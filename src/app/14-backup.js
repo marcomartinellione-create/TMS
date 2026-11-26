@@ -1,28 +1,8 @@
-/* ════ BACKUP / RIPRISTINO ════ */
-/* fotografia completa di TUTTI i profili (usata dal backup manuale e da quello automatico).
-   Dal v1.0.72 include anche storico_rpe dei profili non attivi (prima andava perso). */
-/* ── FOTO nel backup (2026-08-19) ────────────────────────────────────────────
-   Lo snapshot ha sempre portato i METADATI delle foto (file, data, tag) ma non le
-   immagini: ripristinando su un PC nuovo restavano voci che puntavano a file
-   inesistenti. Con «backup completo» le immagini viaggiano dentro il JSON come
-   data-URI, e il ripristino le riscrive nella cartella foto/ del profilo.
-   I video NON entrano: pesano troppo e sono rigenerabili dal catalogo. ── */
-function bytesToBase64(buf){
-  let bin=''; const CH=8192;                     /* a blocchi: con file grandi
-     un solo String.fromCharCode(...tuttiIByte) sfonda lo stack degli argomenti */
-  for(let i=0;i<buf.length;i+=CH) bin+=String.fromCharCode.apply(null, buf.subarray(i,i+CH));
-  return btoa(bin);
-}
-function mimeFoto(nome){
-  const e=String(nome||'').toLowerCase().split('.').pop();
-  return e==='png'?'image/png':e==='webp'?'image/webp':e==='gif'?'image/gif':'image/jpeg';
-}
-async function fotoLeggiDataUri(pd, nome){
-  const fd=await pd.getDirectoryHandle('foto',{create:false});
-  const fh=await fd.getFileHandle(String(nome),{create:false});
-  const f=await fh.getFile();
-  return 'data:'+(f.type||mimeFoto(nome))+';base64,'+bytesToBase64(new Uint8Array(await f.arrayBuffer()));
-}
+/* ════ BACKUP / RIPRISTINO ════
+   Dal 26/11/2026 il backup è il file .tmsb (14c-backup-tmsb.js): tutto quello che c'è nella cartella dei dati,
+   foto e video personali compresi. Qui restano il ripristino dei VECCHI backup .json (con le foto come data-URI
+   nel «backup completo» di allora), il backup automatico di ogni settimana, la copia di sicurezza prima di un
+   ripristino e la copia nella cartella scelta: tutti fatti col .tmsb. */
 async function fotoScriviDataUri(pd, nome, dataUri){
   const m=String(dataUri||'').match(/^data:[^;]*;base64,(.+)$/);
   if(!m) return false;
@@ -33,55 +13,6 @@ async function fotoScriviDataUri(pd, nome, dataUri){
   const wr=await fh.createWritable(); await wr.write(bytes); await wr.close();
   return true;
 }
-/* legge le immagini di un profilo e le allega al suo blocco dello snapshot */
-async function allegaFoto(pd, blocco){
-  const meta=(blocco&&blocco.foto)||[]; if(!meta.length) return;
-  const files={};
-  for(const f of meta){
-    if(!f||!f.file||files[f.file]) continue;
-    try{ files[f.file]=await fotoLeggiDataUri(pd, f.file); }
-    catch(e){ logErrore('backupFoto:'+f.file, e); }   /* foto mancante: si salta, il resto del backup vale comunque */
-  }
-  if(Object.keys(files).length) blocco.fotoFiles=files;
-}
-async function costruisciSnapshot(conFoto){
-  if(dataDir&&profileDir){ try{ await persistAll(); }catch(e){} } else { saveCache(); }
-  const snap={_tms:'backup', version:APP_VERSION, date:new Date().toISOString(), profili:profili, esercizi:DOC.esercizi, ricette:DOC.ricette||[], profiles:{}};
-  if(dataDir){
-    for(const p of profili){
-      if(p.slug===activeProfile){ snap.profiles[p.slug]=docProfileData();
-        if(conFoto&&profileDir){ try{ await allegaFoto(profileDir, snap.profiles[p.slug]); }catch(e){ logErrore('backupFoto', e); } }
-        continue; }
-      try{ const pd=await dataDir.getDirectoryHandle(p.slug,{create:false});
-        const sc=await readJson(pd,FILES.scheda), st=await readJson(pd,FILES.storico), co=await readJson(pd,FILES.corpo), al=await readJson(pd,FILES.alimentazione);
-        snap.profiles[p.slug]=Object.assign({scheda:sc||{settimanale:[],mensile:[]},storico:st||[],alimentazione:al||{bulk:[],mant:[],cut:[]}}, corpoFile(corpoDaFile(co)));
-        if(conFoto){ try{ await allegaFoto(pd, snap.profiles[p.slug]); }catch(e){ logErrore('backupFoto:'+p.slug, e); } }
-      }catch(e){ snap.profiles[p.slug]=blankDOC(); logErrore('snapshot:'+p.slug, e); }
-    }
-  } else {
-    let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch(e){}
-    profili.forEach(p=>{ snap.profiles[p.slug]= p.slug===activeProfile? docProfileData() : ((cache.data&&cache.data[p.slug])||blankDOC()); });
-  }
-  return snap;
-}
-async function backupData(conFoto){
-  try{
-    const snap=await costruisciSnapshot(conFoto);
-    const blob=new Blob([JSON.stringify(snap,null,2)],{type:'application/json'});
-    if(conFoto){
-      const nFoto=Object.keys(snap.profiles).reduce((n,s)=>n+Object.keys((snap.profiles[s]||{}).fotoFiles||{}).length,0);
-      const mb=blob.size/1048576;
-      if(!nFoto){ avviso(t('Nessuna foto da includere: uso il backup normale.')); }
-      else if(!await conferma(t('Backup completo:')+' '+nFoto+' '+t('foto incluse, circa')+' '+mb.toFixed(1)+' MB.\n\n'+
-        t('I file grandi sono più lenti da salvare e da ripristinare. Procedo?'))) return;
-    }
-    const url=URL.createObjectURL(blob); const a=document.createElement('a');
-    a.download='TMS-backup'+(conFoto?'-completo':'')+'-'+(pslug(profNome())||activeProfile||'profilo')+'-'+new Date().toISOString().slice(0,10)+'.json';  /* nome del profilo attivo nel file: si capisce di chi è (il contenuto resta TUTTI i profili) */
-    a.href=url;
-    document.body.appendChild(a); a.click(); setTimeout(()=>{ try{URL.revokeObjectURL(url);}catch(e){} a.remove(); },600);
-  }catch(e){ avviso(t('Errore backup:')+' '+e.message); logErrore('backupData', e); }
-}
-
 /* ── backup AUTOMATICO (P-backup, v1.0.72): uno snapshot a settimana in
       TMS_Dati/backup_automatici/, rotazione ultime AUTOBK_MAX copie.
       Niente listing di directory nel ponte: l'elenco vive in indice.json. ── */
@@ -95,9 +26,8 @@ async function backupAutomaticoSeServe(){
     const oggi=new Date().toISOString().slice(0,10);
     const ultimo=indice.list.length?indice.list[indice.list.length-1]:null;
     if(ultimo && ultimo.data && (Date.parse(oggi)-Date.parse(ultimo.data)) < AUTOBK_GIORNI*86400000) return false;
-    const snap=await costruisciSnapshot();
-    const nomeFile='TMS-auto-'+oggi+'.json';
-    await writeJson(dir,nomeFile,snap);
+    const nomeFile='TMS-auto-'+oggi+'.tmsb';
+    await bkScriviBin(dir, nomeFile, (await backupCostruisci(null)).bytes);   /* completo: foto e video compresi */
     indice.list=indice.list.filter(x=>x&&x.file!==nomeFile);
     indice.list.push({file:nomeFile,data:oggi});
     while(indice.list.length>AUTOBK_MAX){ const vecchio=indice.list.shift(); try{ await dir.removeEntry(vecchio.file); }catch(e){} }
@@ -117,10 +47,9 @@ async function salvaCopiaDiSicurezza(){
   let indice=null; try{ indice=await readJson(dir,'indice.json'); }catch(e){}
   if(!indice||!Array.isArray(indice.list)) indice={list:[]};
   if(!Array.isArray(indice.sicurezza)) indice.sicurezza=[];
-  const snap=await costruisciSnapshot();
   const ora=new Date().toISOString();
-  const nomeFile='TMS-prima-del-ripristino-'+ora.slice(0,19).replace(/[:T]/g,'-')+'.json';
-  await writeJson(dir,nomeFile,snap);
+  const nomeFile='TMS-prima-del-ripristino-'+ora.slice(0,19).replace(/[:T]/g,'-')+'.tmsb';
+  await bkScriviBin(dir, nomeFile, (await backupCostruisci(null)).bytes);
   indice.sicurezza.push({file:nomeFile,data:ora.slice(0,10),ora:ora.slice(11,16)});
   while(indice.sicurezza.length>SICUR_MAX){ const v=indice.sicurezza.shift(); try{ await dir.removeEntry(v.file); }catch(e){} }
   await writeJson(dir,'indice.json',indice);
@@ -135,7 +64,7 @@ async function salvaCopiaDiSicurezza(){
       (solo .json, scrittura atomica). Si tengono le ultime BKEST_MAX copie col nostro nome; gli altri file
       della cartella non si toccano. Il percorso vale solo se è stato scelto da qui (`scelta`): una cartella
       rimasta dal vecchio scambio con Google Drive non si usa da sola. ── */
-const BKEST_KEY='tms-bk-esterno', BKEST_MAX=5, BKEST_NOME=/^TMS-backup-\d{4}-\d\d-\d\d\.json$/;
+const BKEST_KEY='tms-bk-esterno', BKEST_MAX=5, BKEST_NOME=/^TMS-backup-\d{4}-\d\d-\d\d\.(json|tmsb)$/;
 let _bkEstCartella='', _bkEstIn=false;
 function bkEstStato(){ try{ return JSON.parse(localStorage.getItem(BKEST_KEY)||'{}')||{}; }catch(e){ return {}; } }
 function bkEstSalva(o){ try{ localStorage.setItem(BKEST_KEY, JSON.stringify(o)); }catch(e){} }
@@ -162,8 +91,8 @@ async function bkEstCopia(forza){
   if(!(await bkEstCartella())) return false;
   _bkEstIn=true;
   try{
-    const nome='TMS-backup-'+oggi+'.json';
-    await window.tmsScambio.scrivi(nome, JSON.stringify(await costruisciSnapshot(true)));
+    const nome='TMS-backup-'+oggi+'.tmsb';
+    await window.tmsScambio.scrivi(nome, (await backupCostruisci(null)).bytes);   /* il backup completo (.tmsb) */
     try{ const nostri=((await window.tmsScambio.elenca(''))||[]).filter(n=>BKEST_NOME.test(n)).sort();
       for(const v of nostri.slice(0, Math.max(0, nostri.length-BKEST_MAX))) await window.tmsScambio.togli(v); }
     catch(e){ logErrore('backupEsterno/rotazione', e); }
@@ -216,8 +145,8 @@ async function listaBackupAutomatici(){
 async function ripristinaBackupAutomatico(nomeFile){
   try{
     const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:false});
-    const fh=await dir.getFileHandle(String(nomeFile),{create:false});
-    await restoreData(await fh.getFile());
+    const fh=await dir.getFileHandle(String(nomeFile),{create:false}), f=await fh.getFile();
+    if(/\.tmsb$/i.test(String(nomeFile))) await backupApri(new Uint8Array(await f.arrayBuffer())); else await restoreDataJson(f);
   }catch(e){ avviso(t('Backup automatico non leggibile:')+' '+e.message); logErrore('ripristinoAuto', e); }
 }
 
@@ -252,7 +181,14 @@ function mostraLogErrori(){
   const c=document.getElementById('log-copia');
   if(c) c.onclick=()=>{ try{ navigator.clipboard.writeText(righe); c.textContent=t('Copiato'); }catch(e){} };
 }
+/* «Ripristina»: il backup completo .tmsb (14c-backup-tmsb.js), oppure un vecchio backup .json */
 async function restoreData(file){
+  const nome=String((file&&file.name)||'');
+  if(file && typeof file.arrayBuffer==='function' && !/\.json$/i.test(nome)){
+    const b=new Uint8Array(await file.arrayBuffer());
+    if(b.length>4 && b[0]===0x50 && b[1]===0x4b) return backupApri(b); }
+  return restoreDataJson(file); }
+async function restoreDataJson(file){
   let snap; try{ snap=JSON.parse(await file.text()); }catch(e){ avviso(t('File non leggibile.')); logErrore('ripristino', e); return; }
   if(!snap||snap._tms!=='backup'||!snap.profiles){ avviso(t('Questo non è un backup TMS valido.')); return; }
   const np=Object.keys(snap.profiles).length;

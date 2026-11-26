@@ -11,7 +11,8 @@ contextBridge.exposeInMainWorld('tmsFS', {
   mkdir:     (rel)       => ipcRenderer.invoke('tmsfs:mkdir', rel),
   remove:    (rel)       => ipcRenderer.invoke('tmsfs:remove', rel),
   cestina:   (rel)       => ipcRenderer.invoke('tmsfs:cestina', rel),
-  dataRoot:  ()          => ipcRenderer.invoke('tmsfs:dataRoot')
+  dataRoot:  ()          => ipcRenderer.invoke('tmsfs:dataRoot'),
+  elenca:    (rel)       => ipcRenderer.invoke('tmsfs:elenca', rel)
 });
 
 // Cartella condivisa col telefono (2026-11-17): percorsi RELATIVI alla cartella scelta dall'utente

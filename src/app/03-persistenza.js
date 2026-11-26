@@ -156,13 +156,16 @@ function localDirHandle(rel){
               if(typeof c==='string') parts.push(enc(c));
               else if(typeof Blob!=='undefined' && c instanceof Blob) parts.push(new Uint8Array(await c.arrayBuffer()));
               else if(c instanceof ArrayBuffer) parts.push(new Uint8Array(c));
-              else parts.push(new Uint8Array(c.buffer||c));
+              else if(ArrayBuffer.isView(c)) parts.push(new Uint8Array(c.buffer, c.byteOffset, c.byteLength));   /* anche un pezzo di un archivio (.tms/.tmsb): solo quel pezzo */
+              else parts.push(new Uint8Array(c));
             }
             const buf=new Uint8Array(parts.reduce((a,b)=>a+b.length,0));
             let off=0; for(const b of parts){ buf.set(b,off); off+=b.length; }
             await window.tmsFS.writeFile(p,buf);
           } }; } }; },
     removeEntry:async(nm)=>{ await window.tmsFS.remove(P(nm)); },
+    /* elenco della cartella (solo desktop, sola lettura): [{nome, cartella}] — per il backup completo */
+    elenca:async()=>{ if(typeof window.tmsFS.elenca!=='function') return null; return await window.tmsFS.elenca(rel||''); },
     /* sposta una sottocartella dentro _eliminati/ (solo desktop): niente viene distrutto */
     cestina:async(nm)=>{ if(typeof window.tmsFS.cestina!=='function') throw new Error('cestino non disponibile'); return await window.tmsFS.cestina(P(nm)); }
   };

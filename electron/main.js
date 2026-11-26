@@ -236,6 +236,18 @@ app.whenReady().then(() => {
     return path.relative(root, a).split(path.sep).join('/');
   });
   ipcMain.handle('tmsfs:dataRoot', () => WRITE_ROOT());
+  // elenco di una cartella dei dati (SOLA LETTURA, 2026-11-26): serve al backup completo (tutti i file di ogni
+  // profilo, tutte le foto, i video personali) e a trovare le cartelle di profili rimaste fuori dall'elenco.
+  // Come le letture: userData/TMS più il seed; le voci che stanno SOLO nel seed hanno seme:true (non si cestinano)
+  ipcMain.handle('tmsfs:elenca', async (e, rel) => {
+    const leggi = async root => {
+      try { return (await fs.readdir(safeJoin(root, rel), { withFileTypes: true })).filter(d => !/\.tmp-/.test(d.name)); }
+      catch (err) { if (err && (err.code === 'ENOENT' || err.code === 'ENOTDIR')) return []; throw err; } };
+    const voci = new Map();
+    for (const d of await leggi(SEED_ROOT())) voci.set(d.name, { nome: d.name, cartella: d.isDirectory(), seme: true });
+    for (const d of await leggi(WRITE_ROOT())) voci.set(d.name, { nome: d.name, cartella: d.isDirectory() });
+    return [...voci.values()];
+  });
   // i colori dei pulsanti della finestra seguono il tema dell'app (vedi BARRA_ALTA)
   ipcMain.on('finestra:colori', (e, color, symbolColor) => {
     if (process.platform !== 'win32' || !COLORE_HEX.test(String(color)) || !COLORE_HEX.test(String(symbolColor))) return;
@@ -265,7 +277,8 @@ app.whenReady().then(() => {
     if (!c) throw new Error('cartella condivisa non scelta');
     return c.replace(/[\\/]+$/, '');
   };
-  const soloJson = (rel) => { if (!/\.json$/i.test(String(rel || ''))) throw new Error('nella cartella condivisa solo file .json: ' + rel); };
+  // solo file .json e .tmsb (il backup completo del TMS, binario: dal 2026-11-26)
+  const soloJson = (rel) => { if (!/\.(json|tmsb)$/i.test(String(rel || ''))) throw new Error('nella cartella scelta solo file .json o .tmsb: ' + rel); };
   ipcMain.handle('scambio:cartella', () => cartellaScambio());
   ipcMain.handle('scambio:scegli', async (e) => {
     const prima = cartellaScambio();
@@ -291,7 +304,7 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('scambio:elenca', async (e, rel) => {
     const p = safeJoin(radiceScambio(), rel);
-    try { return (await fs.readdir(p, { withFileTypes: true })).filter(d => d.isFile() && /\.json$/i.test(d.name)).map(d => d.name); }
+    try { return (await fs.readdir(p, { withFileTypes: true })).filter(d => d.isFile() && /\.(json|tmsb)$/i.test(d.name)).map(d => d.name); }
     catch (err) { if (err && err.code === 'ENOENT') return []; throw err; }
   });
   ipcMain.handle('scambio:scrivi', (e, rel, text) => {
@@ -300,8 +313,9 @@ app.whenReady().then(() => {
       const p = safeJoin(radiceScambio(), rel);
       await fs.mkdir(path.dirname(p), { recursive: true });
       const tmp = p + '.tmp-' + process.pid + '-' + Date.now() + '-' + (contaTmp++);
-      try { await fs.writeFile(tmp, String(text), 'utf8'); await fs.rename(tmp, p); }
-      catch (err) { try { await fs.rm(tmp, { force: true }); } catch (e2) {} await fs.writeFile(p, String(text), 'utf8'); }
+      const dati = (typeof text === 'string') ? text : Buffer.from(text);   // testo, oppure i byte di un .tmsb
+      try { await fs.writeFile(tmp, dati); await fs.rename(tmp, p); }
+      catch (err) { try { await fs.rm(tmp, { force: true }); } catch (e2) {} await fs.writeFile(p, dati); }
     })();
     scrittureInCorso.add(lavoro);
     const fine = () => scrittureInCorso.delete(lavoro);

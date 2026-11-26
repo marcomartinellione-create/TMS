@@ -66,8 +66,10 @@ function renderProfilo(){
    ${items||`<div class="empty">${t('Nessun profilo.')}</div>`}
    </div><aside class="pag__side no-print">${riepilogoProfiloAperto()}
    <div class="sec no-print" style="margin-top:4px">${t('Backup (tutti i profili insieme)')}</div>
-   <div class="bar no-print"><button class="btn" id="prof-backup" title="${t('Esporta i dati di TUTTI i profili in un file')}">${ico('scarica')}${t('Backup dati')}</button> <button class="btn" id="prof-backup-full" title="${t('Come il backup dati, ma con dentro anche le immagini delle foto progressi')}">${ico('scarica')}${t('Backup completo (con foto)')}</button> <label class="btn" style="cursor:pointer" title="${t('Importa un backup')}">${ico('carica')}${t('Ripristina')}<input type="file" id="prof-restore" accept="application/json,.json" style="display:none"></label></div>
-   <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('Il <b>Backup dati</b> contiene schede, storico, misure e alimentazione, ma delle foto progressi porta solo i riferimenti: ripristinandolo su un altro PC le immagini mancherebbero. Usa il <b>Backup completo</b> per portarti dietro anche le foto (file più grande). I <b>video</b> non entrano in nessuno dei due: si riscaricano con l\'app.')}</div></div>
+   <div class="bar no-print"><button class="btn btn--ember" id="prof-backup" title="${t('Tutto il TMS in un file .tmsb: profili, foto, catalogo, ricette, video personali, impostazioni')}">${ico('scarica')}${t('Backup')}</button> <label class="btn" style="cursor:pointer" title="${t('Riprende un backup: tutto, oppure un cliente alla volta')}">${ico('carica')}${t('Ripristina')}<input type="file" id="prof-restore" accept=".tmsb,.json,application/json" style="display:none"></label></div>
+   <div class="callout callout--info no-print" style="margin-top:8px"><div>${t('Il <b>Backup</b> contiene tutto quello che hai inserito: tutti i profili con le foto, il catalogo degli esercizi, le ricette, i video personali, le impostazioni e il taccuino. Con <b>Ripristina</b> lo riprendi tutto, oppure solo un cliente. Con una password ci vanno anche i collegamenti dei telefoni.')}</div></div>
+   ${copiaFuoriRiquadro()}
+   <div class="no-print" id="prof-orfani"></div>
    <div class="no-print" id="prof-autobk" style="margin-top:8px"></div>
    </aside></div>`;
   /* Storico e Misure nella riga di ogni profilo: se non è quello attivo, prima lo si attiva */
@@ -75,8 +77,9 @@ function renderProfilo(){
     const slug=b.dataset.pslug, dove=b.dataset.parch; if(slug!==activeProfile){ await switchProfile(slug); } showTab(dove); });
   updateStatusDots();   /* i pallini verde/rosso accanto a Storico e Misure */
   { const pn=document.getElementById('prof-new'); if(pn) pn.onclick=()=>chiediTesto(t('Nuovo profilo (atleta/cliente)'),'',v=>{ const n=(v||'').trim(); if(!n)return; createProfile(n); }); }
-  { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=()=>backupData(false); }
-  { const bf=document.getElementById('prof-backup-full'); if(bf) bf.onclick=()=>backupData(true); }
+  { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=()=>backupScarica(); }
+  { const cf=document.getElementById('prof-copia-scegli'); if(cf) cf.onclick=()=>copiaFuoriScegli(); }
+  orfaniRiquadro(document.getElementById('prof-orfani')).catch(e=>logErrore('orfani', e));
   { const rs=document.getElementById('prof-restore'); if(rs) rs.onchange=e=>{ if(e.target.files&&e.target.files[0]){ restoreData(e.target.files[0]); e.target.value=''; } }; }
   { const pi=document.getElementById('prof-importa'); if(pi) pi.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) await pacchettoImporta(new Uint8Array(await f.arrayBuffer())); }; }
   document.querySelectorAll('#panel-profilo [data-pexp]').forEach(b=>b.onclick=ev=>{ if(ev) ev.stopPropagation(); pacchettoEsporta(b.dataset.pexp, false); });

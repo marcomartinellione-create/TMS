@@ -60,6 +60,12 @@ function makeIDB(seedHandle){
 }
 
 /* ── stub del ponte desktop window.tmsFS (filesystem in memoria) ── */
+/* la «fotografia» del backup completo .tmsb (stessa forma dei vecchi backup .json) */
+const SNAP_BK = 'backupCostruisci(null).then(function(r){ return backupLeggi(r.bytes, function(){ return Promise.resolve(null); }); }).then(function(b){ return b.snap; })';
+const SNAP_BK_JSON = SNAP_BK + '.then(function(s){ return JSON.stringify(s); })';
+/* legge un .tmsb (byte) dentro la finestra: il contenuto, come lo dà backupLeggi */
+async function leggiTmsb(w, bytes, pw){ w.__bkLeggi = bytes; return JSON.parse(await w.eval('backupLeggi(window.__bkLeggi, function(){ return Promise.resolve(' + JSON.stringify(pw || null) + '); }).then(function(b){ return JSON.stringify(b ? {man:b.man, snap:b.snap, file:Object.keys(b.file).reduce(function(o,k){ o[k]=b.file[k].map(function(f){ return f.nome; }); return o; },{}), orfani:Object.keys(b.orfani), video:b.video.map(function(v){ return v.nome+":"+v.dati.length; }), libreria:b.libreria.map(function(f){ return f.nome; }), impostazioni:b.impostazioni, telefono:b.telefono} : null); })')); }
+
 function makeTmsFS(){
   const files = new Map(); const dirs = new Set(['']);
   return {
@@ -77,6 +83,13 @@ function makeTmsFS(){
       for (const k of [...dirs]) if (k === p || k.startsWith(p + '/')) dirs.delete(k);
       dirs.add((madre ? madre + '/' : '') + '_eliminati'); dirs.add(dest);
       return n || true ? dest : null;
+    },
+    /* elenco di una cartella (come tmsfs:elenca del processo principale): [{nome, cartella}] */
+    elenca: async p => {
+      const pre = p ? p + '/' : '', vis = new Map();
+      for (const k of files.keys()) if (k.startsWith(pre)) { const r = k.slice(pre.length), i = r.indexOf('/'); vis.set(i < 0 ? r : r.slice(0, i), i >= 0 || (vis.get(r) || false)); }
+      for (const d of dirs) if (d.startsWith(pre) && d !== p) { const r = d.slice(pre.length), i = r.indexOf('/'); vis.set(i < 0 ? r : r.slice(0, i), true); }
+      return [...vis.entries()].filter(([n]) => n).map(([nome, cartella]) => ({ nome, cartella }));
     }
   };
 }
@@ -218,11 +231,13 @@ console.log('--- T1: desktop (tmsFS + FSA come in Electron) con handle stantio i
   ok(w.eval('typeof APP_CLIENTE_URL') === 'undefined' && !('appCliente' in schedaJs), 'export scheda: niente più link alla PWA nel file (solo APK)');
   ok(w.eval('typeof costruisciSchedaCliente') === 'undefined', 'export HTML rimosso (sostituito dall\'app cliente)');
   /* v1.0.72: backup automatico settimanale + mini-log errori (P4) */
-  ok([...fsmem._files.keys()].some(k => /^TMS_Dati\/backup_automatici\/TMS-auto-\d{4}-\d{2}-\d{2}\.json$/.test(k)) && fsmem._files.has('TMS_Dati/backup_automatici/indice.json'), 'backup automatico creato all\'avvio (snapshot + indice)');
+  ok([...fsmem._files.keys()].some(k => /^TMS_Dati\/backup_automatici\/TMS-auto-\d{4}-\d{2}-\d{2}\.tmsb$/.test(k)) && fsmem._files.has('TMS_Dati/backup_automatici/indice.json'), 'backup automatico creato all\'avvio (backup completo .tmsb + indice)');
   ok(await w.eval('backupAutomaticoSeServe()') === false, 'stesso giorno: nessun backup doppione');
   ok((await w.eval('listaBackupAutomatici()')).length === 1, 'lista backup automatici: 1 voce');
-  const snapAuto = JSON.parse([...fsmem._files.entries()].find(([k]) => k.includes('TMS-auto-'))[1]);
-  ok(snapAuto._tms === 'backup' && snapAuto.profiles && Object.keys(snapAuto.profiles).length >= 1, 'snapshot automatico valido (tutti i profili)');
+  const bkAuto = await leggiTmsb(w, [...fsmem._files.entries()].find(([k]) => k.includes('TMS-auto-'))[1]);
+  const snapAuto = bkAuto.snap;
+  ok(bkAuto.man.formato === 'tms-backup' && snapAuto._tms === 'backup' && snapAuto.profiles && Object.keys(snapAuto.profiles).length >= 1, 'backup automatico valido (tutti i profili, si rilegge)');
+  ok(bkAuto.telefono === null, 'backup automatico (senza password): i collegamenti dei telefoni non ci sono');
   w.eval('showTab("profilo")');
   await settle(300);
   ok(d.getElementById('prof-autobk') !== null && d.getElementById('prof-autobk').innerHTML.includes('Backup automatici'), 'riga backup automatici nel pannello Profilo');
@@ -692,10 +707,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(repDoc.indexOf('composizione corporea') < repDoc.indexOf('Note del coach'), 'report: render coerente dopo lo spostamento');
   w.eval('delete DOC.dati_utente.report.ordine; renderReport();'); /* ripristina il default per i test seguenti */
   /* v1.0.72: lo snapshot include storico_rpe anche dei profili NON attivi (fix backup) + getProfileData (fix lint) */
-  const snapFix = await w.eval('costruisciSnapshot()');
+  const snapFix = await w.eval(SNAP_BK);
   ok(Array.isArray(snapFix.profiles['wander'].storico_rpe) && snapFix.profiles['wander'].storico_rpe.length === 1, 'snapshot: storico_rpe del profilo non attivo incluso (fix)');
   ok((await w.eval('getProfileData("wander")')).dati_utente.nome === 'Wander', 'getProfileData legge i parametri di un profilo non attivo (fix lint)');
-  ok(snapFix.profiles['template'].fotoFiles === undefined, 'backup normale: nessuna immagine allegata (file leggero, come prima)');
+  ok(snapFix.profiles['template'].fotoFiles === undefined, 'backup: le immagini non stanno nella fotografia dei dati (viaggiano come file a parte nel .tmsb)');
   /* 2026-08-19 — ▦ COLONNE della scheda Pesi: 12 colonne sono troppe su schermi
      piccoli. Si nascondono solo visivamente: i valori restano calcolati e salvati. */
   w.eval('showTab("allenamento")');
@@ -886,7 +901,7 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(w.eval('DOC.cardio.length')===nCard+1, 'Cardio: nuova attività aggiunta a DOC.cardio');
   { const last=w.eval('DOC.cardio[DOC.cardio.length-1]'); ok(last.tipo==='Corsa' && last.durata===40 && last.rpe===6 && last.fcMedia===140, 'Cardio: dati attività salvati (tipo/min/rpe/FC)'); }
   ok(d.getElementById('panel-cardio').innerHTML.includes('Corsa') && d.getElementById('panel-cardio').innerHTML.includes('240'), 'Cardio: la tabella mostra l\'attività con sRPE');
-  ok(Array.isArray((await w.eval('costruisciSnapshot()')).profiles['template'].cardio) && (await w.eval('costruisciSnapshot()')).profiles['template'].cardio.length>=1, 'Cardio: incluso nello snapshot di backup');
+  ok(Array.isArray((await w.eval(SNAP_BK)).profiles['template'].cardio) && (await w.eval(SNAP_BK)).profiles['template'].cardio.length>=1, 'Cardio: incluso nello snapshot di backup');
   /* cardio nel radar "Equilibrio volume": 2 h/sett (120 min) ≈ 12 serie-equivalenti (min÷10) */
   w.eval('DOC.cardio.push({data:"2025-01-15",tipo:"Bici",durata:120,rpe:5})');
   { const code=w.eval('(function(){var w=isoWeek(new Date("2025-01-15T12:00:00"));return schedaCode(w.anno,w.sett);})()');
@@ -2087,8 +2102,13 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   const rapida = d.getElementById('panel-guida').innerHTML;
   ok(rapida.includes('Telefono collegato') && !rapida.includes('📲 Esporta scheda') && !rapida.includes('Importa rientro'), 'Guida rapida: passo del telefono collegato, niente più file');
   ok(!d.body.innerHTML.includes('Tarnished'), 'nessuna istanza di «Rise, Tarnished»');
-  const nomeBk = await w.eval('(async()=>{ let cap=null; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ cap=this.download; }; try{ await backupData(); } finally { HTMLAnchorElement.prototype.click=oc; } return cap; })()');
-  ok(typeof nomeBk === 'string' && nomeBk.startsWith('TMS-backup-atleta-template-'), 'backup col nome del profilo attivo (' + nomeBk + ')');
+  w.eval('window.__nomeBk=null; window.__ocBk=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ window.__nomeBk=this.download; };');
+  { const pb = w.eval('backupScarica()'); await settle(30);
+    ok(/Backup di tutto il TMS/.test(d.getElementById('modal').textContent) && d.getElementById('pk-pw-on'), 'Backup: chiede se proteggerlo con una password');
+    d.getElementById('pk-ok').click(); await pb; }
+  w.eval('HTMLAnchorElement.prototype.click=window.__ocBk;');
+  const nomeBk = w.eval('window.__nomeBk');
+  ok(typeof nomeBk === 'string' && /^TMS-backup-\d{4}-\d\d-\d\d\.tmsb$/.test(nomeBk), 'Backup: un file .tmsb con la data (' + nomeBk + ')');
   /* ── Semaforo clienti: triage integrato in ogni riga profilo, SOLA LETTURA ── */
   w.eval('profOpen = null; showTab("profilo")');
   ok(d.getElementById('cr-led-template') !== null && d.getElementById('cr-led-wander') !== null, 'semaforo: pallino in ogni riga profilo (niente box separato che duplica)');
@@ -2150,15 +2170,13 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   ok(fbytes && fbytes.constructor && fbytes.constructor.name === 'Uint8Array' && fbytes.length === 4 && fbytes[0] === 255 && fbytes[1] === 216, 'foto: file BINARIO in TMS_Dati/wander/foto/ (4 byte JPEG verificati)');
   let corpoJson = null; try { corpoJson = JSON.parse(fsmem._files.get('TMS_Dati/wander/corpo.json')); } catch(e){}
   ok(corpoJson && Array.isArray(corpoJson.foto) && corpoJson.foto.some(x => x.file === fmeta.file), 'foto: metadati persistiti in corpo.json');
-  const snapFoto = await w.eval('costruisciSnapshot()');
-  ok(Array.isArray(snapFoto.profiles['wander'].foto) && snapFoto.profiles['wander'].foto.length >= 1, 'foto: metadati nel backup (le immagini restano file, come i video)');
-  /* 2026-08-19 — BACKUP COMPLETO: prima il backup portava solo i riferimenti alle foto,
-     quindi ripristinandolo su un altro PC le immagini mancavano. Ora, su richiesta,
-     viaggiano dentro il file e il ripristino le riscrive su disco. */
-  { const snapFull = await w.eval('costruisciSnapshot(true)');
-    const ff = snapFull.profiles['wander'].fotoFiles || {};
-    ok(Object.keys(ff).length >= 1 && ff[fmeta.file] && /^data:image\/[a-z]+;base64,.+/.test(ff[fmeta.file]),
-       'backup completo: l\'immagine entra nel file come data-URI');
+  const snapFoto = await w.eval(SNAP_BK);
+  ok(Array.isArray(snapFoto.profiles['wander'].foto) && snapFoto.profiles['wander'].foto.length >= 1, 'foto: metadati nel backup');
+  /* il backup .tmsb porta le immagini come file, byte per byte */
+  { const bkF = await leggiTmsb(w, (await w.eval('backupCostruisci(null).then(function(r){ return r.bytes; })')));
+    ok((bkF.file.wander || []).includes('foto/' + fmeta.file) && bkF.man.conta.foto >= 1, 'backup: l\'immagine entra nel .tmsb come file (foto/' + fmeta.file + ')'); }
+  /* i VECCHI backup .json «completi» avevano le immagini come data-URI: il ripristino le riscrive ancora */
+  { const ff = { [fmeta.file]: 'data:image/jpeg;base64,' + Buffer.from(fbytes).toString('base64') };
     /* il ripristino rimette il file al suo posto: lo cancello dal disco e lo riscrivo */
     const via = 'TMS_Dati/wander/foto/' + fmeta.file;
     fsmem._files.delete(via);
@@ -2338,7 +2356,7 @@ console.log('--- T7: revisione 2026-11 — protezione dei dati ---');
   ok(w.eval('DOC.alimentazione.bulk[0].alimento') === 'Porridge classico' && JSON.parse(fsmem._files.get('TMS_Dati/anna/alimentazione.json')).bulk[0].alimento === 'Porridge classico',
      'ricette condivise: aprendo Anna, il suo piano passa al nome nuovo (anche su disco)');
   ok(w.eval('foodVal("Porridge classico",180,"kcal")') > 0, 'ricette condivise: nel piano di Anna la ricetta conta le sue kcal');
-  const snap = JSON.parse(await w.eval('costruisciSnapshot().then(s=>JSON.stringify(s))'));
+  const snap = JSON.parse(await w.eval(SNAP_BK_JSON));
   ok(Array.isArray(snap.ricette) && snap.ricette.length === 2, 'ricette condivise: il backup le comprende');
   w.eval('DOC.ricette.push({nome:"Chiusura",ingredienti:[{alimento:"Banana, cruda",grammi:100}]}); persist("ricette");');
   ok(w.eval('scaricaSubito()') >= 1 && (ricFile() || []).some(r => r.nome === 'Chiusura'), 'ricette condivise: alla chiusura la modifica in attesa parte subito');
@@ -2430,14 +2448,14 @@ console.log('--- T7: revisione 2026-11 — protezione dei dati ---');
   ok(w.eval('pendingSaves.size') === 0, 'chiusura: coda dei salvataggi svuotata');
 
   /* copia di sicurezza prima del ripristino */
-  const snap = await w.eval('costruisciSnapshot().then(s=>JSON.stringify(s))');
+  const snap = await w.eval(SNAP_BK_JSON);   /* stessa forma dei vecchi backup .json: il ripristino li legge ancora */
   w.eval('DOC.storico.push({scheda:202644,esercizio:"Squat con bilanciere",seduta:1,macro:"Gambe",serie:1,rip:1,peso:150}); persist("storico");'); await settle(500);
   w.eval('window.__snap=' + JSON.stringify(snap) + ';');
   await w.eval('restoreData({text:async()=>window.__snap})'); await settle(400);
   let ind = null; try { ind = JSON.parse(fsmem._files.get('TMS_Dati/backup_automatici/indice.json')); } catch (e) {}
   ok(ind && Array.isArray(ind.sicurezza) && ind.sicurezza.length === 1 && fsmem._files.has('TMS_Dati/backup_automatici/' + ind.sicurezza[0].file), 'ripristino: prima viene salvata una copia di sicurezza dello stato attuale');
-  { const cs = JSON.parse(fsmem._files.get('TMS_Dati/backup_automatici/' + ind.sicurezza[0].file));
-    ok(cs.profiles.anna.storico.some(r => +r.peso === 150), 'la copia di sicurezza contiene i dati di PRIMA del ripristino'); }
+  { const cs = (await leggiTmsb(w, fsmem._files.get('TMS_Dati/backup_automatici/' + ind.sicurezza[0].file))).snap;
+    ok(/\.tmsb$/.test(ind.sicurezza[0].file) && cs.profiles.anna.storico.some(r => +r.peso === 150), 'la copia di sicurezza (.tmsb) contiene i dati di PRIMA del ripristino'); }
   ok(w.eval('DOC.storico.length') === 0, 'ripristino applicato (lo storico torna quello del backup)');
   ok((await w.eval('listaCopieDiSicurezza()')).length === 1, 'la copia di sicurezza compare fra quelle ripristinabili');
   ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
@@ -3213,7 +3231,7 @@ console.log('--- T11: pesate della bilancia (dal telefono collegato) ---');
 
   /* backup e file: le pesate non si perdono */
   ok(w.eval('corpoFile({pesate:[1],pesate_scartate:["x"]}).pesate.length') === 1 && w.eval('corpoFile(corpoDaFile(null)).pesate.length') === 0, 'corpoFile/corpoDaFile: le pesate passano, file assente = elenchi vuoti');
-  { const snap = JSON.parse(await w.eval('costruisciSnapshot().then(s=>JSON.stringify(s))'));
+  { const snap = JSON.parse(await w.eval(SNAP_BK_JSON));
     ok(snap.profiles.anna && snap.profiles.anna.pesate.length === nPes && Array.isArray(snap.profiles.anna.pesate_scartate), 'backup: comprende le pesate del profilo'); }
   w.eval('DOC.pesate.push({id:"chiusura",data:"2026-11-19",ora:"07:00",peso:64}); persist("corpo");');
   ok(w.eval('scaricaSubito()') >= 1 && JSON.parse(fsmem._files.get('TMS_Dati/anna/corpo.json')).pesate.some(p => p.id === 'chiusura'), 'chiusura dell\'app: le pesate in attesa partono subito');
@@ -3503,10 +3521,11 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     for (let k = 0; k < 40 && !est.size; k++) await settle(50);
     await settle(100);
     const nomi = [...est.keys()];
-    ok(nomi.length === 1 && /^TMS-backup-\d{4}-\d\d-\d\d\.json$/.test(nomi[0]) && JSON.parse(est.get(nomi[0]))._tms === 'backup', 'backup fuori dal PC: scelta la cartella, la prima copia (backup completo) parte subito');
+    ok(nomi.length === 1 && /^TMS-backup-\d{4}-\d\d-\d\d\.tmsb$/.test(nomi[0]) && typeof est.get(nomi[0]) !== 'string' && (await leggiTmsb(w, est.get(nomi[0]))).man.formato === 'tms-backup', 'backup fuori dal PC: scelta la cartella, la prima copia (backup completo .tmsb) parte subito');
     ok(/OneDrive/.test(d.getElementById('imp-bk-cartella').textContent) && /Ultima copia/.test(d.getElementById('imp-bk-stato').textContent), 'impostazioni: cartella scelta e ultima copia');
     ok(await w.eval('bkEstCopia()') === false, 'backup fuori dal PC: una a settimana (subito dopo non ne rifà un\'altra)');
-    for (const g of ['2026-01-01', '2026-01-08', '2026-01-15', '2026-01-22', '2026-01-29']) est.set('TMS-backup-' + g + '.json', '{}');
+    for (const g of ['2026-01-01', '2026-01-08', '2026-01-15', '2026-01-22']) est.set('TMS-backup-' + g + '.json', '{}');   /* anche le copie vecchie in .json contano fra le cinque */
+    est.set('TMS-backup-2026-01-29.tmsb', new Uint8Array(4));
     est.set('altro.json', '{}');
     ok(await w.eval('bkEstCopia(true)') === true && [...est.keys()].filter(n => /^TMS-backup-/.test(n)).length === 5 && est.has('altro.json') && !est.has('TMS-backup-2026-01-01.json'),
        'backup fuori dal PC: si tengono le ultime cinque copie, gli altri file della cartella non si toccano');
@@ -4070,7 +4089,184 @@ console.log('--- T15: gruppi di Training Set (solo per ordinare, filtrare e cerc
   E('showTab("profilo")');
   ok(/Sala pesi: Ipertrofia A, Forza, Powerlifting, Ipertrofia B, Forza 2/.test(d.getElementById('panel-profilo').textContent) && /Senza gruppo: Vuoto/.test(d.getElementById('panel-profilo').textContent),
      'riepilogo del profilo: i Training Set divisi per gruppo');
+  await settle(400);   /* i semafori del tab Profilo si calcolano dopo: la finestra si chiude quando hanno finito */
   ok(errors.length === 0, 'gruppi: nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  dom.window.close();
+}
+
+console.log('--- T16: backup completo (.tmsb), ripristino di tutto o di un cliente, esercizi personalizzati nel .tms, profili fuori elenco ---');
+{
+  /* scenario autosufficiente (gira anche in CI): due clienti, una foto, un video personale, un esercizio creato e uno cambiato */
+  const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);
+  const testo = k => { const v = fsmem._files.get(k); return v == null ? null : (typeof v === 'string' ? v : Buffer.from(v).toString('utf8')); };
+  const uguali = (v, a) => !!v && typeof v !== 'string' && v.length === a.length && a.every((x, i) => v[i] === x);
+  const ES = (nome, macro, prim) => ({ nome, macro, gruppo: macro, tipo: 'Multi-articolare', fattore: 1, muscoli_primari: prim, muscoli_secondari: [], target: prim.join(', ') });
+  const SQUAT = ES('Squat con bilanciere', 'Gambe', ['quadricipiti']), PANCA = ES('Panca piana con bilanciere', 'Pettorali', ['pettorali']);
+  const MIO = Object.assign(ES('Affondi con elastico', 'Gambe', ['glutei']), { video: 'video/affondi-elastico.mp4' });   /* creato a mano */
+  const PANCA_MIA = Object.assign({}, PANCA, { muscoli_secondari: ['tricipiti'] });   /* c'è nell'installazione, ma è stato cambiato */
+  const FOTO = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 250, 251], VIDEO = Array.from({ length: 300 }, (x, i) => (i * 7) & 255);
+  const riga = (giorno, esercizio) => ({ giorno, esercizio, note: '', serie: 3, rip: 8, peso: 40 });
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'anna', nome: 'Anna', creato: '2026-01-01' }, { slug: 'bruno', nome: 'Bruno', creato: '2026-01-02' }], active: 'anna' }));
+  await fsmem.writeFile('TMS_Dati/esercizi.json', J([SQUAT, PANCA_MIA, MIO]));
+  await fsmem.writeFile('TMS_Dati/ricette.json', J([{ nome: 'Porridge', ingredienti: [] }]));
+  await fsmem.writeFile('TMS_Dati/taccuino.json', J({ note: [{ testo: 'nota del taccuino' }], github: { aggiornato: '', issues: [] } }));
+  await fsmem.writeFile('TMS_Dati/anna/scheda.json', J({ settimanale: [riga('Lunedì', 'Squat con bilanciere'), riga('Lunedì', 'Affondi con elastico'), riga('Giovedì', 'Panca piana con bilanciere')], mensile: [] }));
+  await fsmem.writeFile('TMS_Dati/anna/storico.json', J([{ scheda: 202640, esercizio: 'Squat con bilanciere', seduta: 1, macro: 'Gambe', serie: 3, rip: 8, peso: 40 }]));
+  await fsmem.writeFile('TMS_Dati/anna/storico.backup.json', '[{"vecchio":true}]');   /* copia lasciata da una migrazione: anche questa va nel backup */
+  await fsmem.writeFile('TMS_Dati/anna/appunti-coach.txt', 'un file che il TMS non conosce');   /* anche un file sconosciuto si salva, non si perde */
+  await fsmem.writeFile('TMS_Dati/anna/corpo.json', J({ dati_utente: { nome: 'Anna', sesso: 'F', altezza: 165, peso: 60 }, storico_io: [], foto: [{ id: 'f1', file: 'f1.jpg', data: '2026-03-01', tag: 'fronte' }] }));
+  await fsmem.writeFile('TMS_Dati/anna/alimentazione.json', J({ bulk: [], mant: [{ alimento: 'Porridge', grammi: 100 }], cut: [] }));
+  await fsmem.writeFile('TMS_Dati/anna/foto/f1.jpg', new Uint8Array(FOTO));
+  await fsmem.writeFile('TMS_Dati/bruno/scheda.json', J({ settimanale: [riga('Martedì', 'Squat con bilanciere')], mensile: [] }));
+  await fsmem.writeFile('TMS_Dati/bruno/storico.json', J([{ scheda: 202641, esercizio: 'Squat con bilanciere', seduta: 1, macro: 'Gambe', serie: 5, rip: 5, peso: 90 }]));
+  await fsmem.writeFile('TMS_Dati/bruno/corpo.json', J({ dati_utente: { nome: 'Bruno', sesso: 'M', altezza: 180, peso: 82 }, storico_io: [] }));
+  await fsmem.writeFile('TMS_Dati/bruno/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+  await fsmem.writeFile('TMS_Dati/video/affondi-elastico.mp4', new Uint8Array(VIDEO));
+  /* una cartella di profilo che l'elenco non conosce più, e una cartella qualsiasi */
+  await fsmem.writeFile('TMS_Dati/vecchio/scheda.json', J({ settimanale: [], mensile: [] }));
+  await fsmem.writeFile('TMS_Dati/vecchio/corpo.json', J({ dati_utente: { nome: 'Vecchio Cliente' } }));
+  await fsmem.writeFile('TMS_Dati/appunti/leggimi.txt', 'non è un profilo');
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem);
+  const w = dom.window, d = w.document; w.alert = () => {}; w.confirm = () => true;
+  w.eval('window.__refEs=REF.esercizi; REF.esercizi=' + J([SQUAT, PANCA]) + ';');   /* il catalogo dell'installazione, fisso per la prova */
+  w.eval('var _cf=conferma, _av=avviso, _pks=pkScarica; window.__avvisi=[]; conferma=function(){ return Promise.resolve(true); }; avviso=function(m){ window.__avvisi.push(String(m)); return Promise.resolve(); }; pkScarica=function(b,n){ window.__pk={b:b, n:n}; };');
+  w.eval('localStorage.setItem("tms-theme","notte"); localStorage.setItem("tms-video-pers","1");');
+
+  /* A · il backup completo: tutto quello che c'è nella cartella dei dati, così com'è */
+  await w.eval('backupCostruisci(null).then(function(r){ window.__bk1=r.bytes; return true; })');
+  const bk1 = await leggiTmsb(w, w.eval('window.__bk1'));
+  ok(bk1.man.formato === 'tms-backup' && bk1.man.conta.profili === 2 && bk1.man.conta.foto === 1 && bk1.man.conta.video === 1 && bk1.man.conta.orfani === 1,
+     'backup completo: 2 profili, 1 foto, 1 video personale, 1 profilo fuori elenco');
+  ok(['scheda.json', 'storico.json', 'corpo.json', 'alimentazione.json', 'storico.backup.json', 'appunti-coach.txt', 'foto/f1.jpg'].every(f => bk1.file.anna.includes(f)) && bk1.file.bruno.includes('storico.json'),
+     'backup completo: ogni file di ogni profilo (anche le copie delle migrazioni e i file sconosciuti) e le foto');
+  ok(['profili.json', 'esercizi.json', 'ricette.json', 'taccuino.json'].every(f => bk1.libreria.includes(f)) && bk1.video.includes('affondi-elastico.mp4:300'),
+     'backup completo: elenco dei profili, catalogo, ricette, taccuino e video personali');
+  ok(bk1.orfani.includes('vecchio') && bk1.orfani.includes('appunti') && !bk1.orfani.includes('backup_automatici') && !bk1.orfani.includes('video'),
+     'backup completo: anche le cartelle rimaste fuori dall\'elenco (si conta come profilo solo quella con i file di un profilo)');
+  ok(bk1.impostazioni['tms-theme'] === 'notte' && bk1.impostazioni['tms-video-pers'] === '1' && bk1.telefono === null, 'backup completo: le impostazioni; senza password niente collegamenti dei telefoni');
+  ok(bk1.snap.profiles.anna.storico.length === 1 && bk1.snap.profiles.bruno.storico[0].peso === 90 && bk1.snap.profiles.anna.foto.length === 1, 'backup completo: si rilegge (dà anche la fotografia dei dati, come i vecchi backup)');
+  ok(await w.eval('(function(){ var z=new Uint8Array(__bk1); var v=zipLeggi(z); var i=v.find(function(x){ return x.nome==="profili/anna/foto/f1.jpg"; }); var p=i.dati.byteOffset; z[p]^=255; return backupLeggi(z, function(){ return Promise.resolve(null); }).then(function(){ return "letto"; }, function(e){ return /non è un backup/.test(e.message) ? "rifiutato" : e.message; }); })()') === 'rifiutato',
+     'backup completo: un byte rovinato (anche in una foto) si riconosce e il file viene rifiutato');
+  /* con la password: tutto cifrato, e dentro anche i collegamenti dei telefoni */
+  w.eval('window.__telPrima=localStorage.getItem(TEL_KEY); localStorage.setItem(TEL_KEY, ' + J(J({ v: 2, profili: {}, prova: 'collegamenti-di-prova' })) + ');');
+  await w.eval('backupCostruisci("segreta1").then(function(r){ window.__bkCif=r.bytes; return true; })');
+  w.eval('if(window.__telPrima==null) localStorage.removeItem(TEL_KEY); else localStorage.setItem(TEL_KEY, window.__telPrima); TEL=null;');
+  ok(!w.eval('new TextDecoder().decode(__bkCif)').includes('Anna') && w.eval('pkJson(zipLeggi(__bkCif),"tms.json").cifrato') === true && w.eval('pkJson(zipLeggi(__bkCif),"tms.json").formato') === 'tms-backup',
+     'backup con password: tutto cifrato (nemmeno i nomi dei clienti si leggono)');
+  ok(await w.eval('backupLeggi(__bkCif, function(){ return Promise.resolve("sbagliata"); }).then(function(){ return "aperto"; }, function(e){ return e.message; })') === 'Password sbagliata.', 'backup con password: con quella sbagliata non si apre');
+  { const bc = await leggiTmsb(w, w.eval('__bkCif'), 'segreta1');
+    ok(bc && /collegamenti-di-prova/.test(bc.telefono || '') && bc.man.telefono === true && bc.man.conta.foto === 1, 'backup con password: dentro ci sono anche i collegamenti dei telefoni'); }
+  /* il backup automatico all'avvio è lo stesso backup completo, e si riapre dalla lista */
+  { const auto = (await w.eval('listaBackupAutomatici()'))[0];
+    ok(auto && /\.tmsb$/.test(auto.file || auto.nome || ''), 'backup automatico: è il backup completo .tmsb');
+    w.eval('ripristinaBackupAutomatico(' + J(auto.file || auto.nome) + ')'); await settle(150);
+    ok(/Ripristina tutto/.test(d.getElementById('modal').textContent) && /Riprendi solo un cliente/.test(d.getElementById('modal').textContent) && /Bruno/.test(d.getElementById('modal').textContent),
+       'backup automatico: si riapre col riepilogo e le due scelte (tutto o un cliente)');
+    w.eval('closeModal()'); }
+
+  /* B · riprendere un solo cliente: gli altri profili non si toccano */
+  await w.eval('deleteProfile("bruno",{confermato:true})'); await settle(200);
+  ok(!w.eval('profili.some(function(p){ return p.slug==="bruno"; })') && !fsmem._files.has('TMS_Dati/bruno/storico.json'), 'prova: Bruno tolto (va nel cestino dei profili)');
+  { const pr = w.eval('backupApri(__bk1)'); await settle(80);
+    const m = d.getElementById('modal').textContent;
+    ok(/Anna/.test(m) && /Bruno/.test(m) && /Video personali/.test(m) && /Profili fuori elenco/.test(m) && d.querySelector('[data-pk-scelta="tutto"]') && d.querySelector('[data-pk-scelta="cliente"]'),
+       'aprire un backup: riepilogo (profili, foto, video, fuori elenco) e le due scelte');
+    d.querySelector('[data-pk-scelta="cliente"]').click(); await settle(40);
+    ok(/Quale cliente/.test(d.getElementById('modal').textContent) && d.querySelector('[data-pk-scelta="anna"]') && d.querySelector('[data-pk-scelta="bruno"]'), 'Riprendi solo un cliente: chiede quale');
+    d.querySelector('[data-pk-scelta="bruno"]').click();
+    ok(await pr === 'bruno' && w.eval('profili.some(function(p){ return p.slug==="bruno"; })') && /90/.test(testo('TMS_Dati/bruno/storico.json') || '') && w.eval('activeProfile') === 'anna' && w.eval('profili.length') === 2,
+       'Riprendi solo un cliente: Bruno torna coi suoi dati, Anna resta com\'era e aperta'); }
+
+  /* C · il .tms porta gli esercizi personalizzati del cliente coi loro video */
+  await w.eval('pacchettoCostruisci("anna", null).then(function(r){ window.__tmsA=r; return true; })');
+  { const pk = JSON.parse(await w.eval('pacchettoLeggi(__tmsA.bytes, function(){ return Promise.resolve(null); }).then(function(p){ return JSON.stringify({pers:p.man.personalizzati, es:p.esercizi.map(function(e){ return e.nome; }), video:p.video.map(function(v){ return v.nome+":"+v.dati.length; })}); })'));
+    ok(w.eval('__tmsA.nPers') === 2 && pk.pers.includes('Affondi con elastico') && pk.pers.includes('Panca piana con bilanciere') && !pk.es.includes('Squat con bilanciere'),
+       'file .tms: dentro gli esercizi personalizzati del cliente (creati o cambiati), non quelli dell\'installazione');
+    ok(pk.video.length === 1 && pk.video[0] === 'affondi-elastico.mp4:300', 'file .tms: col video personale dell\'esercizio'); }
+  /* un altro PC: non ha l'esercizio creato né il video, e ha la panca dell'installazione com'era */
+  w.eval('DOC.esercizi=DOC.esercizi.filter(function(e){ return e.nome!=="Affondi con elastico"; }).map(function(e){ return e.nome==="Panca piana con bilanciere" ? ' + J(PANCA) + ' : e; }); rebuildEs();');
+  fsmem._files.delete('TMS_Dati/video/affondi-elastico.mp4');
+  { const pi = w.eval('pacchettoImporta(__tmsA.bytes)'); await settle(60);
+    d.querySelector('[data-pk-scelta="nuovo"]').click(); await settle(120);
+    const m = d.getElementById('modal').textContent;
+    ok(/stesso nome ma diversi/.test(m) && /Panca piana con bilanciere/.test(m) && !/Affondi con elastico/.test(m) && d.querySelector('[data-pk-scelta="miei"]') && d.querySelector('[data-pk-scelta="file"]'),
+       'file .tms: per un esercizio con lo stesso nome ma diverso chiede quale tenere (quello che manca si aggiunge e basta)');
+    d.querySelector('[data-pk-scelta="file"]').click();
+    ok(await pi === 'anna-2', 'file .tms: importato come cliente nuovo');
+    const es = JSON.parse(testo('TMS_Dati/esercizi.json') || '[]'), panca = es.find(e => e.nome === 'Panca piana con bilanciere'), aff = es.find(e => e.nome === 'Affondi con elastico');
+    ok(aff && aff.video === 'video/affondi-elastico.mp4' && panca && J(panca.muscoli_secondari) === J(['tricipiti']), 'file .tms: «Usa quelli del file» — esercizio aggiunto e quello diverso aggiornato, nel catalogo su disco');
+    ok(uguali(fsmem._files.get('TMS_Dati/video/affondi-elastico.mp4'), VIDEO), 'file .tms: il video personale arriva identico, byte per byte');
+    ok(w.eval('__avvisi').some(m2 => /esercizio aggiunto/.test(m2) && /esercizio aggiornato/.test(m2) && /video/.test(m2)), 'file .tms: l\'avviso dice cosa è arrivato nel catalogo'); }
+  /* «Tieni i miei»: il catalogo non cambia e un mio video non si sovrascrive */
+  w.eval('DOC.esercizi=DOC.esercizi.map(function(e){ return e.nome==="Panca piana con bilanciere" ? ' + J(PANCA) + ' : e; }); rebuildEs();');
+  await fsmem.writeFile('TMS_Dati/video/affondi-elastico.mp4', new Uint8Array([9, 9, 9]));
+  { const pi = w.eval('pacchettoImporta(__tmsA.bytes)'); await settle(60);
+    d.querySelector('[data-pk-scelta="nuovo"]').click(); await settle(120);
+    d.querySelector('[data-pk-scelta="miei"]').click();
+    ok(await pi === 'anna-3' && J(w.eval('DOC.esercizi.find(function(e){ return e.nome==="Panca piana con bilanciere"; }).muscoli_secondari')) === '[]' && uguali(fsmem._files.get('TMS_Dati/video/affondi-elastico.mp4'), [9, 9, 9]),
+       'file .tms: «Tieni i miei» — il catalogo resta il mio e il mio video non si sovrascrive'); }
+
+  /* D · profili fuori elenco: cartelle con i dati di un profilo che l'elenco non conosce */
+  ok(J(await w.eval('profiliFuoriElenco()')) === J([{ slug: 'vecchio', nome: 'Vecchio Cliente' }]), 'profili fuori elenco: trovato «vecchio» col nome del cliente (una cartella qualsiasi no)');
+  w.eval('profOpen=null; showTab("profilo")'); await settle(200);
+  ok(/Vecchio Cliente/.test(d.getElementById('prof-orfani').textContent) && d.getElementById('orf-rimetti') && d.getElementById('orf-cestina'), 'tab Profilo: avviso dei profili fuori elenco con «Rimettili in elenco» e «Mettili nel cestino»');
+  d.getElementById('orf-rimetti').click(); await settle(250);
+  ok(w.eval('profili.some(function(p){ return p.slug==="vecchio" && p.nome==="Vecchio Cliente"; })') && /vecchio/.test(testo('TMS_Dati/profili.json')) && d.getElementById('prof-orfani').textContent.trim() === '',
+     'profili fuori elenco: «Rimettili in elenco» li riporta nella lista (anche su disco) e l\'avviso sparisce');
+  await fsmem.writeFile('TMS_Dati/perso/storico.json', '[]');
+  w.eval('renderProfilo()'); await settle(200);
+  d.getElementById('orf-cestina').click(); await settle(250);
+  ok(![...fsmem._files.keys()].some(k => k.startsWith('TMS_Dati/perso/')) && [...fsmem._files.keys()].some(k => /^TMS_Dati\/_eliminati\/perso-[^/]+\/storico\.json$/.test(k)),
+     'profili fuori elenco: «Mettili nel cestino» sposta la cartella nel cestino dei profili');
+  /* una cartella che sta SOLO nei dati dell'installazione (seme, sola lettura): non si segnala e non va nel backup */
+  await fsmem.writeFile('TMS_Dati/template/scheda.json', J({ settimanale: [], mensile: [] }));
+  { const el = fsmem.elenca; fsmem.elenca = async p => (await el(p)).map(x => p === 'TMS_Dati' && x.nome === 'template' ? Object.assign({}, x, { seme: true }) : x);
+    const fuori = J(await w.eval('profiliFuoriElenco().then(function(l){ return l.map(function(o){ return o.slug; }); })'));
+    const bkS = await leggiTmsb(w, await w.eval('backupCostruisci(null).then(function(r){ return r.bytes; })'));
+    fsmem.elenca = el;
+    ok(!/template/.test(fuori) && !bkS.orfani.includes('template'), 'profili fuori elenco: una cartella che sta solo nei dati dell\'installazione non si segnala e non entra nel backup (lì non si scrive)');
+    ok(/template/.test(J(await w.eval('profiliFuoriElenco().then(function(l){ return l.map(function(o){ return o.slug; }); })'))), 'prova: la stessa cartella, scritta dall\'utente, si segnala'); }
+  fsmem._files.delete('TMS_Dati/template/scheda.json');
+
+  /* E · promemoria: nessuna copia dei backup fuori dal PC */
+  ok(w.eval('copiaFuoriRiquadro()') === '', 'promemoria della copia fuori dal PC: senza la funzione (browser) non compare');
+  { const est = new Map(); let cartella = '';
+    w.tmsScambio = { cartella: async () => cartella, scegli: async () => { cartella = 'D:\\Backup TMS'; return cartella; }, scollega: async () => { cartella = ''; },
+      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async () => [...est.keys()], togli: async n => { est.delete(n); } };
+    w.eval('localStorage.removeItem("tms-bk-esterno"); renderProfilo();'); await settle(100);
+    ok(d.getElementById('prof-copia-fuori') && /Nessuna copia dei backup fuori da questo PC/.test(d.getElementById('prof-copia-fuori').textContent), 'promemoria: nel tab Profilo una riga discreta se non c\'è una cartella per la copia');
+    d.getElementById('prof-copia-scegli').click();
+    for (let k = 0; k < 40 && !est.size; k++) await settle(50);
+    await settle(150);
+    ok([...est.keys()].some(n => /^TMS-backup-\d{4}-\d\d-\d\d\.tmsb$/.test(n)) && !d.getElementById('prof-copia-fuori'), 'promemoria: scelta la cartella parte la prima copia e la riga sparisce');
+    delete w.tmsScambio; w.eval('localStorage.removeItem("tms-bk-esterno")'); }
+
+  /* B · ripristinare tutto: i profili di adesso vanno nel cestino, prima resta una copia di sicurezza */
+  w.eval('localStorage.setItem("tms-theme","giorno"); localStorage.setItem("tms-video-pers","0");');
+  w.eval('DOC.storico.push({scheda:202650,esercizio:"Squat con bilanciere",seduta:1,macro:"Gambe",serie:1,rip:1,peso:150}); persist("storico");'); await settle(500);
+  { const pt = w.eval('backupApri(__bk1)'); await settle(80);
+    d.querySelector('[data-pk-scelta="tutto"]').click();
+    ok(await pt === true, 'Ripristina tutto: fatto');
+    await settle(200); }
+  ok(J(w.eval('profili.map(function(p){ return p.slug; })')) === J(['anna', 'bruno']) && w.eval('activeProfile') === 'anna' && w.eval('DOC.storico.length') === 1 && !w.eval('DOC.storico.some(function(r){ return +r.peso===150; })'),
+     'Ripristina tutto: tornano i profili e i dati del backup');
+  ok(['anna-2', 'anna-3'].every(s => !fsmem._files.has('TMS_Dati/' + s + '/scheda.json') && [...fsmem._files.keys()].some(k => k.startsWith('TMS_Dati/_eliminati/' + s + '-'))),
+     'Ripristina tutto: i profili di adesso sono nel cestino dei profili (recuperabili)');
+  ok(uguali(fsmem._files.get('TMS_Dati/anna/foto/f1.jpg'), FOTO) && testo('TMS_Dati/anna/appunti-coach.txt') === 'un file che il TMS non conosce' && uguali(fsmem._files.get('TMS_Dati/video/affondi-elastico.mp4'), VIDEO),
+     'Ripristina tutto: foto, video e ogni altro file tornano identici, byte per byte');
+  ok(testo('TMS_Dati/vecchio/scheda.json') !== null && testo('TMS_Dati/appunti/leggimi.txt') === 'non è un profilo', 'Ripristina tutto: anche le cartelle fuori elenco tornano com\'erano');
+  ok(w.eval('localStorage.getItem("tms-theme")') === 'notte' && w.eval('localStorage.getItem("tms-video-pers")') === '1' && w.eval('temaGet()') === 'notte', 'Ripristina tutto: tornano le impostazioni (tema notte, video personali)');
+  ok(w.eval('DOC.esercizi.length') === 3 && J(w.eval('DOC.esercizi.find(function(e){ return e.nome==="Panca piana con bilanciere"; }).muscoli_secondari')) === J(['tricipiti']) && w.eval('DOC.ricette.length') === 1 && w.eval('TACC.note.length') === 1,
+     'Ripristina tutto: tornano catalogo, ricette e taccuino');
+  { const cs = await w.eval('listaCopieDiSicurezza()'), f = cs[0] && (cs[0].file || cs[0].nome);
+    const sic = f ? await leggiTmsb(w, fsmem._files.get('TMS_Dati/backup_automatici/' + f)) : null;
+    ok(sic && /\.tmsb$/.test(f) && sic.snap.profili.some(p => p.slug === 'anna-2') && sic.snap.profiles.anna.storico.some(r => +r.peso === 150), 'Ripristina tutto: prima c\'è la copia di sicurezza completa dello stato di prima'); }
+  ok(w.eval('__avvisi').some(m => /Backup ripristinato/.test(m) && /2 profili/.test(m)), 'Ripristina tutto: l\'avviso riassume cosa è tornato');
+  ok(await w.eval('backupApri(new Uint8Array([80,75,3,4,1,2,3]))') === false && w.eval('__avvisi').some(m => /non è un backup del TMS/.test(m)), 'un file qualsiasi viene rifiutato con un messaggio chiaro');
+  w.eval('REF.esercizi=window.__refEs; conferma=_cf; avviso=_av; pkScarica=_pks; closeModal();');
+  await settle(600);   /* i semafori e l'avviso dei profili fuori elenco si aggiornano dopo */
+  ok(errors.length === 0, 'backup completo: nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   dom.window.close();
 }
 

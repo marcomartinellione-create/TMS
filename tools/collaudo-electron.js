@@ -112,18 +112,20 @@ app.whenReady().then(async () => {
     fs.mkdirSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi'), { recursive: true });
     fs.writeFileSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'pesata-1.json'), '{}');
     fs.writeFileSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'nota.txt'), 'x');
-    ok(JSON.stringify(await js('window.tmsScambio.elenca("prova/dal-telefono/eventi")')) === '["pesata-1.json"]', 'cartella condivisa: elenco dei soli .json');
+    ok(JSON.stringify(await js('window.tmsScambio.elenca("prova/dal-telefono/eventi")')) === '["pesata-1.json"]', 'cartella condivisa: elenco dei soli .json e .tmsb');
     await js('window.tmsScambio.togli("prova/dal-telefono/eventi/pesata-1.json")');
     ok(!fs.existsSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'pesata-1.json')), 'cartella condivisa: un file arrivato si toglie');
     const rifiutato = async code => { try { await js(code); return false; } catch (e) { return true; } };
     ok(await rifiutato('window.tmsScambio.scrivi("../fuori.json", "x")') && !fs.existsSync(path.join(path.dirname(tmpScambio), 'fuori.json')) &&
        await rifiutato('window.tmsScambio.leggi("../../x.json")'), 'cartella condivisa: niente uscite dalla cartella');
     ok(await rifiutato('window.tmsScambio.scrivi("prova/x.exe", "x")') && await rifiutato('window.tmsScambio.togli("prova/dal-telefono/eventi/nota.txt")') &&
-       fs.existsSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'nota.txt')), 'cartella condivisa: si scrivono e si tolgono solo file .json');
+       fs.existsSync(path.join(tmpScambio, 'prova', 'dal-telefono', 'eventi', 'nota.txt')), 'cartella condivisa: si scrivono e si tolgono solo file .json e .tmsb');
     /* la stessa cartella ora serve alla COPIA DEI BACKUP fuori dal PC (OneDrive, Drive, MEGA, chiavetta) */
     ok(await js('(async function(){ localStorage.setItem("tms-bk-esterno", JSON.stringify({scelta:true})); return await bkEstCopia(true); })()') === true &&
-       fs.readdirSync(tmpScambio).some(n => /^TMS-backup-\d{4}-\d\d-\d\d\.json$/.test(n) && JSON.parse(fs.readFileSync(path.join(tmpScambio, n), 'utf8'))._tms === 'backup'),
-       'copia dei backup: il backup completo arriva davvero nella cartella scelta');
+       fs.readdirSync(tmpScambio).some(n => { if (!/^TMS-backup-\d{4}-\d\d-\d\d\.tmsb$/.test(n)) return false;
+         const b = fs.readFileSync(path.join(tmpScambio, n));   /* archivio intero: «PK» in testa, indice centrale in coda, manifesto del backup */
+         return b.length > 1000 && b[0] === 0x50 && b[1] === 0x4b && b.readUInt32LE(b.length - 22) === 0x06054b50 && b.includes('tms-backup'); }),
+       'copia dei backup: il backup completo (.tmsb, binario integro) arriva davvero nella cartella scelta');
     await js('localStorage.removeItem("tms-bk-esterno")');
     ok(await js('(async function(){ var c=await telCifra({prova:"Squat"}, "K7QM3XRPA9TB4WZCHN5D"); var r=await telDecifra(c, "K7QM3XRPA9TB4WZCHN5D");' +
       ' return r.prova==="Squat" && c.indexOf("Squat")<0; })()'), 'cifratura dello scambio (HKDF + AES-GCM) disponibile nella pagina dell\'app');
@@ -148,6 +150,31 @@ app.whenReady().then(async () => {
     await js('createProfile("Prova Collaudo")');
     ok(await js('activeProfile==="prova-collaudo" && DOC.storico.length===0'), 'profilo ricreato con lo stesso nome: parte vuoto');
     ok((leggi('prova-collaudo/storico.json') || '').trim() === '[]', 'profilo ricreato: storico vuoto anche su disco');
+
+    /* ── backup completo (.tmsb) coi file veri: elenco delle cartelle, foto e video binari, «Ripristina tutto» ── */
+    fs.mkdirSync(path.join(DATI, 'prova-collaudo', 'foto'), { recursive: true });
+    const FOTO = Buffer.from([255, 216, 255, 224, 0, 1, 2, 3, 250, 251, 252]), VIDEO = Buffer.from(Array.from({ length: 5000 }, (x, i) => (i * 13) & 255));
+    fs.writeFileSync(path.join(DATI, 'prova-collaudo', 'foto', 'f2.jpg'), FOTO);
+    fs.mkdirSync(path.join(DATI, 'video'), { recursive: true });
+    fs.writeFileSync(path.join(DATI, 'video', 'collaudo.mp4'), VIDEO);
+    { const el = await js('window.tmsFS.elenca("TMS_Dati")');
+      ok(Array.isArray(el) && el.some(x => x.nome === 'profili.json' && !x.cartella) && el.some(x => x.nome === 'prova-collaudo' && x.cartella && !x.seme),
+         'ponte dati: elenco di una cartella (file e sottocartelle)');
+      ok(el.some(x => x.seme) && !el.some(x => x.nome === 'profili.json' && x.seme), 'ponte dati: nell\'elenco ci sono anche le voci dei soli dati iniziali, segnate (lì non si scrive)');
+      ok(JSON.stringify(await js('window.tmsFS.elenca("TMS_Dati/non-esiste")')) === '[]' && await rifiutato('window.tmsFS.elenca("../..")'), 'ponte dati: cartella assente = elenco vuoto; niente uscite dalla cartella dei dati'); }
+    { const r = await js('backupCostruisci(null).then(function(x){ window.__bkC=x.bytes; return {n:x.bytes.length, c:x.man.conta, p:profili.length}; })');
+      ok(r && r.c.profili === r.p && r.c.foto >= 1 && r.c.video === 1, 'backup completo: tutti i profili (' + (r ? r.c.profili : 0) + '), le foto (' + (r ? r.c.foto : 0) + ') e il video personale, ' + (r ? Math.round(r.n / 1024) : 0) + ' kB'); }
+    await js('DOC.storico.push({scheda:202602,esercizio:"Squat con bilanciere",seduta:1,test:false,macro:"Gambe",serie:1,rip:1,peso:777}); persistAll()');
+    await attendi(200);
+    fs.writeFileSync(path.join(DATI, 'video', 'collaudo.mp4'), 'rovinato');
+    ok(await js('backupLeggi(window.__bkC, function(){ return Promise.resolve(null); }).then(function(b){ return backupRipristinaTutto(b); })') === true, 'Ripristina tutto: fatto coi file veri');
+    await attendi(300);
+    ok(!(leggi('prova-collaudo/storico.json') || '').includes('777') && await js('activeProfile==="prova-collaudo" && !DOC.storico.some(function(r){ return +r.peso===777; })'),
+       'Ripristina tutto: i dati tornano quelli del backup (anche su disco)');
+    ok(fs.readFileSync(path.join(DATI, 'prova-collaudo', 'foto', 'f2.jpg')).equals(FOTO) && fs.readFileSync(path.join(DATI, 'video', 'collaudo.mp4')).equals(VIDEO),
+       'Ripristina tutto: foto e video riscritti identici, byte per byte (scrittura binaria attraverso il ponte)');
+    ok(fs.readdirSync(path.join(DATI, '_eliminati')).filter(n => n.startsWith('prova-collaudo-')).length >= 2, 'Ripristina tutto: i profili di prima sono nel cestino dei profili');
+    ok(fs.readdirSync(path.join(DATI, 'backup_automatici')).some(n => /^TMS-prima-del-ripristino-.+\.tmsb$/.test(n)), 'Ripristina tutto: prima c\'è la copia di sicurezza completa (.tmsb)');
 
     /* ── modifica e chiusura immediata (dentro i 350 ms di attesa del salvataggio) ── */
     await js('DOC.scheda.settimanale.push({giorno:"Lunedì",esercizio:"Squat con bilanciere",note:"CHIUSURA-TEST",serie:1,rip:1,peso:1,rest:""}); persist("scheda"); pendingSaves.size');

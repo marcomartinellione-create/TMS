@@ -55,6 +55,21 @@ const pkTesto=o=>new TextEncoder().encode(JSON.stringify(o));
 function pkJson(voci, nome){ const v=voci.find(x=>x.nome===nome); if(!v) return undefined; return JSON.parse(new TextDecoder().decode(v.dati)); }
 function pkB64(u8){ let s=''; for(let i=0;i<u8.length;i++) s+=String.fromCharCode(u8[i]); return btoa(s); }
 function pkDaB64(s){ const bin=atob(String(s||'')), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i); return u8; }
+/* cifratura dell'archivio intero (file .tms e backup .tmsb): fuori restano solo formato, versione e i parametri */
+async function pkCifraArchivio(interno, password, formato){
+  const sale=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12));
+  const cif=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv, additionalData:new TextEncoder().encode(TMS_AAD)}, await pkChiave(password, sale), interno));
+  return zipScrivi([{nome:'tms.json', dati:pkTesto({formato, versione:1, cifrato:true, kdf:{nome:'PBKDF2-SHA256', iterazioni:TMS_PBKDF2, sale:pkB64(sale)}, iv:pkB64(iv)})},
+    {nome:'contenuto.bin', dati:cif}]); }
+async function pkDecifraArchivio(voci, man, pw){
+  const cont=voci.find(v=>v.nome==='contenuto.bin'); if(!cont || !man.kdf || !man.iv) throw new Error(t('Il file è rovinato:')+' contenuto.bin');
+  try{ return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM', iv:pkDaB64(man.iv), additionalData:new TextEncoder().encode(TMS_AAD)},
+    await pkChiave(pw, pkDaB64(man.kdf.sale)), cont.dati)); }
+  catch(e){ throw new Error(t('Password sbagliata.')); } }
+/* un esercizio «personalizzato»: non c'è nel catalogo che arriva con l'installazione, oppure è stato cambiato */
+function pkStabile(o){ return JSON.stringify(o, (k,v)=>(v && typeof v==='object' && !Array.isArray(v))? Object.keys(v).sort().reduce((a,x)=>{ a[x]=v[x]; return a; }, {}) : v); }
+function pkPersonalizzato(e){ const n=String((e&&e.nome)||'').trim(), r=((typeof REF!=='undefined' && REF.esercizi)||[]).find(x=>String((x&&x.nome)||'').trim()===n);
+  return !r || pkStabile(r)!==pkStabile(e); }
 async function pkChiave(password, sale){
   const k=await crypto.subtle.importKey('raw', new TextEncoder().encode(String(password)), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey({name:'PBKDF2', salt:sale, iterations:TMS_PBKDF2, hash:'SHA-256'}, k, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']); }
@@ -89,16 +104,19 @@ async function pacchettoCostruisci(slug, password){
       voci.push({nome:'foto/'+nome, dati:new Uint8Array(await (await fh.getFile()).arrayBuffer())}); nFoto++; }
     catch(e){ logErrore('pacchetto/foto:'+nome, e); }   /* una foto mancante non ferma l'esportazione */
   }
+  /* gli esercizi che il cliente usa e che non sono quelli dell'installazione (creati o cambiati da te), coi loro
+     video personali: chi riceve il file non deve rifarli. Gli esercizi dell'installazione li ha già. */
   const ne=pkNomiEsercizi(parti.scheda, parti.storico), na=pkNomiAlimenti(parti.alimentazione);
-  voci.push({nome:'catalogo/esercizi.json', dati:pkTesto((DOC.esercizi||[]).filter(e=>e && ne.has(String(e.nome||'').trim())))});
+  const pers=(DOC.esercizi||[]).filter(e=>e && ne.has(String(e.nome||'').trim()) && pkPersonalizzato(e));
+  voci.push({nome:'catalogo/esercizi.json', dati:pkTesto(pers)});
   voci.push({nome:'catalogo/ricette.json', dati:pkTesto((DOC.ricette||[]).filter(r=>r && na.has(String(r.nome||'').trim())))});
-  const man={formato:TMS_FORMATO, versione:TMS_VERSIONE, app:APP_VERSION, creato:new Date().toISOString(), profilo:Object.assign({}, p), foto:nFoto};
+  let nVideo=0, vd=null; try{ vd=await dataDir.getDirectoryHandle('video',{create:false}); }catch(e){}
+  if(vd) for(const v of [...new Set(pers.map(e=>String((e&&e.video)||'').replace(/^video\//,'')).filter(x=>x && !/[\\/]/.test(x)))]){
+    try{ const fh=await vd.getFileHandle(v,{create:false}); voci.push({nome:'video/'+v, dati:new Uint8Array(await (await fh.getFile()).arrayBuffer())}); nVideo++; }catch(e){} }
+  const man={formato:TMS_FORMATO, versione:TMS_VERSIONE, app:APP_VERSION, creato:new Date().toISOString(), profilo:Object.assign({}, p), foto:nFoto,
+    personalizzati:pers.map(e=>e.nome), video:nVideo};
   const interno=zipScrivi([{nome:'tms.json', dati:pkTesto(man)}].concat(voci));
-  if(!password) return {bytes:interno, nFoto};
-  const sale=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12));
-  const cif=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv, additionalData:new TextEncoder().encode(TMS_AAD)}, await pkChiave(password, sale), interno));
-  return {bytes:zipScrivi([{nome:'tms.json', dati:pkTesto({formato:TMS_FORMATO, versione:TMS_VERSIONE, cifrato:true,
-    kdf:{nome:'PBKDF2-SHA256', iterazioni:TMS_PBKDF2, sale:pkB64(sale)}, iv:pkB64(iv)})}, {nome:'contenuto.bin', dati:cif}]), nFoto}; }
+  return {bytes:password? await pkCifraArchivio(interno, password, TMS_FORMATO) : interno, nFoto, nPers:pers.length, nVideo}; }
 
 /* ── lettura: archivio → contenuto verificato (password se serve). Errori con un messaggio da mostrare ── */
 async function pacchettoLeggi(bytes, chiediPw){
@@ -106,29 +124,29 @@ async function pacchettoLeggi(bytes, chiediPw){
   let man; try{ man=pkJson(voci, 'tms.json'); }catch(e){ man=null; }
   if(!man || man.formato!==TMS_FORMATO) throw new Error(t('Questo file non è un cliente del TMS (o è rovinato).'));
   if(+man.versione>TMS_VERSIONE) throw new Error(t('Il file viene da una versione più nuova del TMS: aggiorna l’app e riprova.'));
-  if(man.cifrato){
-    const cont=voci.find(v=>v.nome==='contenuto.bin'); if(!cont || !man.kdf || !man.iv) throw new Error(t('Questo file non è un cliente del TMS (o è rovinato).'));
-    const pw=await chiediPw(); if(pw==null) return null;
-    let interno;
-    try{ interno=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM', iv:pkDaB64(man.iv), additionalData:new TextEncoder().encode(TMS_AAD)},
-      await pkChiave(pw, pkDaB64(man.kdf.sale)), cont.dati)); }
-    catch(e){ throw new Error(t('Password sbagliata.')); }
-    return pacchettoLeggi(interno, async()=>null); }
+  if(man.cifrato){ const pw=await chiediPw(); if(pw==null) return null; return pacchettoLeggi(await pkDecifraArchivio(voci, man, pw), async()=>null); }
   const dati={};
   for(const k of ['scheda','storico','corpo','alimentazione']){
     try{ dati[k]=pkJson(voci, 'dati/'+k+'.json'); }catch(e){ throw new Error(t('Il file è rovinato:')+' dati/'+k+'.json'); }
     if(dati[k]===undefined) throw new Error(t('Il file è incompleto: manca')+' dati/'+k+'.json'); }
   let esercizi=[], ricette=[]; try{ esercizi=pkJson(voci,'catalogo/esercizi.json')||[]; ricette=pkJson(voci,'catalogo/ricette.json')||[]; }catch(e){}
   const foto=voci.filter(v=>/^foto\/[^/\\]+$/.test(v.nome)).map(v=>({nome:v.nome.slice(5), dati:v.dati}));
-  return {man, dati, foto, esercizi:Array.isArray(esercizi)? esercizi : [], ricette:Array.isArray(ricette)? ricette : []}; }
+  const video=voci.filter(v=>/^video\/[^/\\]+$/.test(v.nome)).map(v=>({nome:v.nome.slice(6), dati:v.dati}));
+  return {man, dati, foto, video, esercizi:Array.isArray(esercizi)? esercizi : [], ricette:Array.isArray(ricette)? ricette : []}; }
 
 /* ── importazione: un cliente nuovo, oppure al posto di quello che c'è già (il vecchio va nel cestino) ── */
 async function pacchettoImporta(bytes){
   if(!dataDir){ avviso(t('Il TMS non è collegato ai dati.')); return false; }
   if(scrittureBloccate){ mostraBloccoScritture(); return false; }
-  let pk; try{ pk=await pacchettoLeggi(bytes, ()=>chiediPassword(t('Cliente protetto da password'), t('Scrivi la password con cui è stato esportato.'), false)); }
+  let pk; try{ pk=await pacchettoLeggi(bytes, ()=>chiediPassword(t('Cliente protetto da password'), t('Scrivi la password con cui è stato esportato.'))); }
   catch(e){ avviso(String(e.message||e)); return false; }
   if(!pk) return false;
+  return pacchettoImportaPk(pk); }
+/* il cliente già letto (da un file .tms o da un backup .tmsb, «Riprendi solo un cliente») entra nella libreria */
+async function pacchettoImportaPk(pk){
+  if(!dataDir){ avviso(t('Il TMS non è collegato ai dati.')); return false; }
+  if(scrittureBloccate){ mostraBloccoScritture(); return false; }
+  pk.video=pk.video||[];
   const pr=pk.man.profilo||{}, nome=String(pr.nome||pr.slug||t('Cliente')).trim().slice(0,80);
   let slug=pslug(pr.slug||nome), sostituisci=false;
   const gia=profili.find(x=>x.slug===slug);
@@ -153,10 +171,29 @@ async function pacchettoImporta(bytes){
     if(pk.foto.length){ const fd=await pd.getDirectoryHandle('foto',{create:true});
       for(const f of pk.foto){ try{ const fh=await fd.getFileHandle(f.nome,{create:true}); const w=await fh.createWritable(); await w.write(f.dati); await w.close(); }
         catch(e){ logErrore('pacchetto/foto:'+f.nome, e); } } }
-    /* catalogo: si aggiunge solo quello che manca (il catalogo di chi riceve non cambia) */
-    const nomiEs=new Set((DOC.esercizi||[]).map(e=>String((e&&e.nome)||'').trim())); let nEs=0;
-    pk.esercizi.forEach(e=>{ const n=String((e&&e.nome)||'').trim(); if(n && !nomiEs.has(n)){ DOC.esercizi.push(e); nomiEs.add(n); nEs++; } });
-    if(nEs){ rebuildEs(); await writeJson(dataDir, FILES.esercizi, DOC.esercizi); }
+    /* catalogo: si aggiungono gli esercizi che mancano; quelli con lo stesso nome ma diversi si chiede quali tenere */
+    const conNome=n=>(DOC.esercizi||[]).find(e=>String((e&&e.nome)||'').trim()===n);
+    const nuovi=[], diversi=[];
+    pk.esercizi.forEach(e=>{ const n=String((e&&e.nome)||'').trim(); if(!n) return; const c=conNome(n); if(!c) nuovi.push(e); else if(pkStabile(c)!==pkStabile(e)) diversi.push(e); });
+    let usaFile=false;
+    if(diversi.length){
+      const sc=await sceltaModal(t('Esercizi con lo stesso nome ma diversi'),
+        t('Nel file ci sono esercizi che hai anche tu, ma con muscoli, istruzioni o video diversi:')+' '+diversi.map(e=>'<b>'+esc(e.nome)+'</b>').join(', ')+'. '+t('Il catalogo è unico per tutti i clienti.'),
+        [{id:'miei', testo:t('Tieni i miei')}, {id:'file', testo:t('Usa quelli del file')}]);
+      usaFile=(sc==='file'); }
+    nuovi.forEach(e=>DOC.esercizi.push(e));
+    if(usaFile) diversi.forEach(e=>{ const i=DOC.esercizi.findIndex(x=>String((x&&x.nome)||'').trim()===String(e.nome).trim()); if(i>=0) DOC.esercizi[i]=e; });
+    const nEs=nuovi.length, nCambiati=usaFile? diversi.length : 0;
+    if(nEs || nCambiati){ rebuildEs(); await writeJson(dataDir, FILES.esercizi, DOC.esercizi); }
+    /* i video personali degli esercizi arrivati (un tuo video non si sovrascrive, salvo «Usa quelli del file») */
+    let nVideo=0;
+    if(pk.video.length){
+      const daFile=new Set((usaFile? diversi : []).concat(nuovi).map(e=>String((e&&e.video)||'').replace(/^video\//,'')));
+      const vd=await dataDir.getDirectoryHandle('video',{create:true});
+      for(const v of pk.video){ if(!bkNomeSicuro(v.nome)) continue;
+        let c=false; try{ await vd.getFileHandle(v.nome,{create:false}); c=true; }catch(e){}
+        if(c && !daFile.has(v.nome)) continue;
+        try{ await bkScriviBin(vd, v.nome, v.dati); nVideo++; }catch(e){ logErrore('pacchetto/video:'+v.nome, e); } } }
     const nomiRic=new Set((DOC.ricette||[]).map(r=>String((r&&r.nome)||'').trim())); let nRic=0;
     pk.ricette.forEach(r=>{ const n=String((r&&r.nome)||'').trim(); if(n && !nomiRic.has(n)){ (DOC.ricette=DOC.ricette||[]).push(r); nomiRic.add(n); nRic++; } });
     if(nRic) await writeJson(dataDir, FILES.ricette, DOC.ricette);
@@ -166,7 +203,8 @@ async function pacchettoImporta(bytes){
     if(sostituisci && slug===activeProfile){ await loadProfile(); undoAzzera(); renderAll(); }
     else renderProfilo();
     avviso(t('Cliente importato:')+' «'+(profili.find(x=>x.slug===slug)||{}).nome+'»'+(pk.foto.length? ' · '+pk.foto.length+' '+t('foto') : '')+
-      (nEs? ' · '+nEs+' '+t(nEs===1?'esercizio aggiunto al catalogo':'esercizi aggiunti al catalogo') : '')+'. '+t('Per il telefono, ricollegalo col QR.'));
+      (nEs? ' · '+nEs+' '+t(nEs===1?'esercizio aggiunto al catalogo':'esercizi aggiunti al catalogo') : '')+(nCambiati? ' · '+nCambiati+' '+t(nCambiati===1?'esercizio aggiornato':'esercizi aggiornati') : '')+
+      (nVideo? ' · '+nVideo+' '+t('video') : '')+'. '+t('Per il telefono, ricollegalo col QR.'));
     return slug;
   }catch(e){ logErrore('pacchetto/importa', e); avviso(t('Importazione non riuscita:')+' '+(e.message||e)); return false; } }
 
@@ -188,15 +226,20 @@ async function pacchettoEsporta(slug, archivia){
   await deleteProfile(slug, {confermato:true}); }
 /* la finestra dell'esportazione: password facoltativa */
 function esportaModal(p, archivia){
+  return modalConPassword(t(archivia? 'Archivia' : 'Esporta')+' «'+p.nome+'»',
+    archivia? t('Il cliente diventa un file .tms con scheda, storico, misure, alimentazione, foto ed esercizi personalizzati; poi lo tolgo dalla lista. Lo riprendi quando vuoi con «Importa cliente».')
+      : t('Un file .tms con scheda, storico, misure, alimentazione, foto ed esercizi personalizzati (coi loro video), da passare a un collega o su un altro PC. Il telefono non viaggia col file: lì si ricollega col QR.'),
+    t(archivia? 'Archivia' : 'Esporta'), t('Senza la password il file non si apre: non c’è modo di recuperarla.')); }
+/* finestra con la password facoltativa (file .tms e backup .tmsb): torna {password} oppure null */
+function modalConPassword(titolo, testo, bottone, notaPw){
   return new Promise(ok=>{
-    modal(`${croceModal()}<h3>${t(archivia? 'Archivia' : 'Esporta')} «${esc(p.nome)}»</h3>
-      <div class="lat-nota" style="margin:0 0 10px">${archivia? t('Il cliente diventa un file .tms con scheda, storico, misure, alimentazione e foto; poi lo tolgo dalla lista. Lo riprendi quando vuoi con «Importa cliente».')
-        : t('Un file .tms con scheda, storico, misure, alimentazione e foto, da passare a un collega o su un altro PC. Il telefono non viaggia col file: lì si ricollega col QR.')}</div>
+    modal(`${croceModal()}<h3>${esc(titolo)}</h3>
+      <div class="lat-nota" style="margin:0 0 10px">${esc(testo)}</div>
       <label class="optchk"><input type="checkbox" id="pk-pw-on"> <span>${t('Proteggi con una password (consigliato se lo mandi per email: dentro ci sono dati sulla salute)')}</span></label>
       <div id="pk-pw-box" hidden><div class="field" style="margin-top:8px"><input id="pk-pw" type="password" autocomplete="new-password" placeholder="${t('Password')}" style="width:100%"></div>
         <div class="field" style="margin-top:6px"><input id="pk-pw2" type="password" autocomplete="new-password" placeholder="${t('Ripeti la password')}" style="width:100%"></div>
-        <div class="lat-nota">${t('Senza la password il file non si apre: non c’è modo di recuperarla.')}</div></div>
-      <div class="modal__actions"><button class="btn btn--ember" id="pk-ok">${ico('scarica','p')}${t(archivia? 'Archivia' : 'Esporta')}</button></div>`);
+        <div class="lat-nota">${esc(notaPw)}</div></div>
+      <div class="modal__actions"><button class="btn btn--ember" id="pk-ok">${ico('scarica','p')}${esc(bottone)}</button></div>`);
     modalChiudibile();
     let finito=false; const fine=v=>{ if(finito) return; finito=true; ok(v); };
     const chk=document.getElementById('pk-pw-on'), box=document.getElementById('pk-pw-box');
