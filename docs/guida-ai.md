@@ -118,6 +118,18 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   avvio. Si riprende con Ripristina scegliendo il file. Il percorso lo tiene il processo principale
   (ponte tmsScambio di electron/main.js, scritture chiuse in quella cartella, solo .json).
 - **Versione dell'app**: ⚙ Impostazioni › Informazioni.
+- **File .tms (un cliente in un file)**, tab Profilo: su ogni profilo «Esporta» (file «Nome.tms») e
+  «Archivia» (esporta e poi, chiesto se il file è salvato, toglie il profilo dalla lista: la cartella va nel
+  cestino dei profili); accanto a «Nuovo profilo» c'è «Importa cliente»; nell'app per PC si apre anche col
+  doppio clic (l'installer registra l'estensione; una sola istanza del TMS: col TMS aperto il file va a quello).
+  Il file è un archivio ZIP senza compressione: tms.json (formato «tms-cliente», versione, profilo), dati/
+  scheda.json, storico.json, corpo.json, alimentazione.json, le foto come immagini in foto/, catalogo/
+  esercizi.json e ricette.json con quelli che il cliente usa (all'arrivo si aggiungono solo quelli che
+  mancano). Password facoltativa (almeno 6 caratteri): tutto il contenuto cifrato AES-GCM 256 con chiave
+  PBKDF2-SHA256 (310.000 iterazioni); senza la password non si apre e non si recupera. All'importazione, se
+  il profilo esiste già si sceglie «Aggiungilo come nuovo» (nome con «(importato)») o «Sostituisci» (prima
+  una copia di sicurezza fra i backup ripristinabili, il vecchio nel cestino). I codici del telefono
+  collegato non viaggiano: sul PC che riceve il cliente si ricollega col QR.
 - **Correggere una riga già salvata**: nello **Storico** (tab Profilo, in cima alla pagina) ogni riga
   ha a destra una **matita**: apre un riquadro dove si cambiano serie, ripetizioni, peso,
   RIR e il segno di test, oppure si elimina quella riga soltanto. Esercizio e settimana non

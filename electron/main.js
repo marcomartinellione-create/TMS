@@ -152,7 +152,37 @@ function createWindow () {
   win.loadURL('app://tms/index.html');
 }
 
+// ── File .tms (un cliente esportato) aperto col doppio clic (2026-11-26) ──
+// L'installer registra l'estensione .tms; Windows avvia il TMS col percorso del file fra gli argomenti. Se il
+// TMS è già aperto, la seconda istanza si chiude subito e passa il file alla prima: UNA SOLA ISTANZA, perché
+// due finestre sugli stessi dati scriverebbero l'una sopra l'altra. Il file si legge qui (solo .tms, al
+// massimo 1 GB) e va alla pagina, che lo controlla e chiede conferma prima di importare (14b-pacchetto.js).
+let fileTmsInAttesa = null;
+const fileTmsDa = (argv) => (argv || []).map(String).find(a => /\.tms$/i.test(a) && fsSync.existsSync(a)) || null;
+async function leggiFileTms (p) {
+  const st = await fs.stat(p);
+  if (!st.isFile() || st.size > 1024 * 1024 * 1024) throw new Error('file .tms non valido');
+  return { nome: path.basename(p), dati: await fs.readFile(p) };
+}
+async function apriFileTms (p) {
+  try {
+    const f = await leggiFileTms(p), w = BrowserWindow.getAllWindows()[0];
+    if (w && !w.webContents.isLoading()) w.webContents.send('tms-file', f); else fileTmsInAttesa = f;
+  } catch (e) {}
+}
+if (!app.requestSingleInstanceLock()) { app.quit(); }
+else {
+  app.on('second-instance', (e, argv) => {
+    const w = BrowserWindow.getAllWindows()[0];
+    if (w) { if (w.isMinimized()) w.restore(); w.focus(); }
+    const p = fileTmsDa(argv); if (p) apriFileTms(p);
+  });
+  { const p = fileTmsDa(process.argv); if (p) leggiFileTms(p).then(f => { fileTmsInAttesa = f; }).catch(() => {}); }
+}
+
 app.whenReady().then(() => {
+  // la pagina, appena pronta, chiede se c'è un file .tms da aprire (arrivato prima che si mettesse in ascolto)
+  ipcMain.on('tms-file-chiedi', (e) => { if (fileTmsInAttesa) { const f = fileTmsInAttesa; fileTmsInAttesa = null; try { e.sender.send('tms-file', f); } catch (err) {} } });
   // ── Handler IPC del ponte dati locali ──
   ipcMain.handle('tmsfs:exists', async (e, rel) =>
     (await fileExists(safeJoin(WRITE_ROOT(), rel))) || (await fileExists(safeJoin(SEED_ROOT(), rel))));

@@ -41,6 +41,8 @@ async function init(){
     }catch(e){ logErrore('modalUpdate', e); } });
     try{ window.tmsUpdate.rispondi('chiedi'); }catch(e){}
   }
+  /* un file .tms aperto col doppio clic (app per PC): si importa appena i dati sono pronti */
+  if(window.tmsFile && window.tmsFile.onApri){ window.tmsFile.onApri(f=>{ pacchettoDaFile(f).catch(e=>logErrore('pacchetto/doppio-clic', e)); }); try{ window.tmsFile.chiedi(); }catch(e){} }
   /* ogni render di pagina passa da conColonne (scorrimento delle colonne conservato, altezza
      riadattata). Si sostituisce anche il nome globale, perché i render si chiamano fra loro per nome. */
   Object.keys(RENDERERS).forEach(k=>{ const orig=RENDERERS[k], nome=orig.name, avv=conColonne(k, orig);

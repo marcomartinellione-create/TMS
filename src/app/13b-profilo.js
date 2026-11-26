@@ -36,6 +36,8 @@ function renderProfilo(){
           ${isAct?`<span class="muted" style="align-self:center">${t('profilo attivo')}</span>`:`<button class="btn btn--ember" data-pact="${esc(p.slug)}">${t('Attiva')}</button>`}
           <button class="btn" data-pedit="${esc(p.slug)}">${ico('matita')}${t('Modifica parametri')}</button>
           <button class="btn" data-pren="${esc(p.slug)}">${ico('matita')}${t('Rinomina')}</button>
+          <button class="btn" data-pexp="${esc(p.slug)}" title="${t('Un file .tms con tutto il cliente, da passare a un collega o su un altro PC')}">${ico('scarica','p')}${t('Esporta')}</button>
+          ${profili.length>1?`<button class="btn" data-parc="${esc(p.slug)}" title="${t('Esporta il cliente in un file .tms e lo toglie dalla lista')}">${ico('scarica','p')}${t('Archivia')}</button>`:''}
           ${profili.length>1?`<button class="btn btn--danger" data-pdel="${esc(p.slug)}">${ico('x')}${t('Elimina')}</button>`:''}
         </div>`;
       } else { body=`<div class="muted" style="padding:8px">${t('Caricamento parametri…')}</div>`; }
@@ -58,7 +60,8 @@ function renderProfilo(){
   document.getElementById('panel-profilo').innerHTML=`
    <div class="bar"><div class="field" style="flex:1"><label>${t('Profili')}</label>
      <div style="font-family:var(--font-disp);font-size:20px;color:var(--ember-2);display:flex;align-items:center;gap:8px">${ico('utente')}${profili.length} ${t(profili.length===1?'profilo':'profili')}</div></div>
-     <button class="btn btn--ember no-print" id="prof-new">${t('＋ Nuovo profilo')}</button></div>
+     <span class="no-print" style="display:flex;gap:8px"><label class="btn" style="cursor:pointer" title="${t('Aggiunge un cliente da un file .tms')}">${ico('carica','p')}${t('Importa cliente')}<input type="file" id="prof-importa" accept=".tms" style="display:none"></label>
+     <button class="btn btn--ember" id="prof-new">${t('＋ Nuovo profilo')}</button></span></div>
    <div class="pag"><div class="pag__main">
    ${items||`<div class="empty">${t('Nessun profilo.')}</div>`}
    </div><aside class="pag__side no-print">${riepilogoProfiloAperto()}
@@ -75,6 +78,9 @@ function renderProfilo(){
   { const bk=document.getElementById('prof-backup'); if(bk) bk.onclick=()=>backupData(false); }
   { const bf=document.getElementById('prof-backup-full'); if(bf) bf.onclick=()=>backupData(true); }
   { const rs=document.getElementById('prof-restore'); if(rs) rs.onchange=e=>{ if(e.target.files&&e.target.files[0]){ restoreData(e.target.files[0]); e.target.value=''; } }; }
+  { const pi=document.getElementById('prof-importa'); if(pi) pi.onchange=async e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) await pacchettoImporta(new Uint8Array(await f.arrayBuffer())); }; }
+  document.querySelectorAll('#panel-profilo [data-pexp]').forEach(b=>b.onclick=ev=>{ if(ev) ev.stopPropagation(); pacchettoEsporta(b.dataset.pexp, false); });
+  document.querySelectorAll('#panel-profilo [data-parc]').forEach(b=>b.onclick=ev=>{ if(ev) ev.stopPropagation(); pacchettoEsporta(b.dataset.parc, true); });
   /* backup automatici (e copie fatte prima di un ripristino): un solo pulsante; aperto, mostra
      tutte le copie con il loro «ripristina». Resta aperto/chiuso fra un ridisegno e l'altro. */
   { const ab=document.getElementById('prof-autobk');

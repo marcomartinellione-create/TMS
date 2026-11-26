@@ -33,6 +33,12 @@ contextBridge.exposeInMainWorld('tmsFinestra', {
   colori: (color, symbolColor) => ipcRenderer.send('finestra:colori', String(color || ''), String(symbolColor || ''))
 });
 
+// File .tms aperto col doppio clic (2026-11-26): il main legge il file e lo passa alla pagina, che lo importa
+contextBridge.exposeInMainWorld('tmsFile', {
+  onApri: (cb) => ipcRenderer.on('tms-file', (_e, f) => { try { cb(f); } catch (err) {} }),
+  chiedi: () => ipcRenderer.send('tms-file-chiedi')
+});
+
 // Aggiornamenti con l'interfaccia DELL'APP (dal v1.0.73): il main manda gli eventi
 // dell'updater al renderer, che mostra il modale in stile pergamena e risponde.
 contextBridge.exposeInMainWorld('tmsUpdate', {

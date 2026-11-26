@@ -3680,6 +3680,57 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
          'Impostazioni: panoramica dei clienti collegati (ultimo dal telefono, cosa è arrivato, «Apri»)'); }
     w.eval('closeModal()');
     await w.eval('telStacca("giulia")'); w.eval('profili=profili.filter(function(x){ return x.slug!=="giulia"; })'); }
+  /* FILE .TMS (26/11/2026): esporta, importa, archivia un cliente; password facoltativa */
+  { w.eval('var _cf=conferma, _av=avviso, _pks=pkScarica; window.__avvisi=[]; conferma=function(){ return Promise.resolve(true); }; avviso=function(m){ window.__avvisi.push(String(m)); return Promise.resolve(); }; pkScarica=function(b,n){ window.__pk={b:b, n:n}; };');
+    ok(w.eval('(function(){ var v=[{nome:"a.json", dati:new TextEncoder().encode("{\\"x\\":1}")},{nome:"foto/f.jpg", dati:new Uint8Array([1,2,3,250])}]; var r=zipLeggi(zipScrivi(v)); return r.length===2 && r[1].nome==="foto/f.jpg" && r[1].dati[3]===250; })()'),
+       'file .tms: l\'archivio ZIP si scrive e si rilegge uguale');
+    ok(w.eval('(function(){ var z=zipScrivi([{nome:"a.json", dati:new TextEncoder().encode("ciao ciao")}]); z[38]^=255; try{ zipLeggi(z); return false; }catch(e){ return /rovinato/.test(e.message); } })()'), 'file .tms: un file rovinato si riconosce (controllo CRC)');
+    /* un esercizio personalizzato usato dal cliente: deve viaggiare col file */
+    w.eval('(function(){ var n=' + J(righePC()[0].esercizio) + '; if(!DOC.esercizi.some(function(e){ return e.nome===n; })) DOC.esercizi.push({nome:n, gruppo:"Gambe", personalizzato:true}); rebuildEs(); })()');
+    /* esporta senza password */
+    let pe = w.eval('pacchettoEsporta("prova", false)'); await settle(40);
+    ok(/Esporta/.test(d.getElementById('modal').textContent) && d.getElementById('pk-pw-on'), 'file .tms: «Esporta» chiede se proteggere con una password');
+    d.getElementById('pk-ok').click(); await pe;
+    ok(w.eval('__pk.n') === 'Cliente Prova.tms' && w.eval('__pk.b.length') > 200, 'file .tms: esce «Cliente Prova.tms»');
+    w.eval('window.__pkChiaro=__pk.b');
+    const letto = JSON.parse(await w.eval('pacchettoLeggi(__pkChiaro, function(){ return Promise.resolve(null); }).then(function(p){ return JSON.stringify({f:p.man.formato, s:p.man.profilo.slug, foto:p.foto.length, sch:!!p.dati.scheda, es:p.esercizi.length}); })'));
+    ok(letto.f === 'tms-cliente' && letto.s === 'prova' && letto.sch && letto.foto >= 1 && letto.es >= 1,
+       'file .tms: dentro ci sono scheda, storico, misure, alimentazione, foto (' + letto.foto + ') ed esercizi usati (' + letto.es + ')');
+    ok(!w.eval('new TextDecoder().decode(__pkChiaro)').includes(w.eval('telProf("prova").codice')), 'file .tms: il codice del telefono collegato non viaggia col file');
+    /* esporta con password */
+    pe = w.eval('pacchettoEsporta("prova", false)'); await settle(40);
+    d.getElementById('pk-pw-on').checked = true; d.getElementById('pk-pw-on').dispatchEvent(new w.Event('change'));
+    d.getElementById('pk-pw').value = 'segreta1'; d.getElementById('pk-pw2').value = 'segreta2'; d.getElementById('pk-ok').click(); await settle(20);
+    ok(w.eval('__avvisi').some(m => /non sono uguali/.test(m)), 'file .tms: le due password devono essere uguali');
+    d.getElementById('pk-pw2').value = 'segreta1'; d.getElementById('pk-ok').click(); await pe;
+    w.eval('window.__pkCif=__pk.b');
+    ok(!w.eval('new TextDecoder().decode(__pkCif)').includes('Cliente Prova') && w.eval('pkJson(zipLeggi(__pkCif),"tms.json").cifrato') === true, 'file .tms: con la password il contenuto è cifrato (nemmeno il nome si legge)');
+    ok(await w.eval('pacchettoLeggi(__pkCif, function(){ return Promise.resolve("sbagliata"); }).then(function(){ return "aperto"; }, function(e){ return e.message; })') === 'Password sbagliata.', 'file .tms: con la password sbagliata non si apre');
+    ok(await w.eval('pacchettoLeggi(__pkCif, function(){ return Promise.resolve("segreta1"); }).then(function(p){ return p.man.profilo.slug; })') === 'prova', 'file .tms: con la password giusta si apre');
+    /* importa: c'è già → «aggiungilo come nuovo» */
+    w.eval('window.__esTolto=DOC.esercizi.find(function(e){ return e.nome===' + J(righePC()[0].esercizio) + '; }); DOC.esercizi=DOC.esercizi.filter(function(e){ return e!==__esTolto; }); rebuildEs();');
+    let pi = w.eval('pacchettoImporta(__pkChiaro)'); await settle(40);
+    ok(d.querySelector('[data-pk-scelta="nuovo"]') && d.querySelector('[data-pk-scelta="sostituisci"]'), 'file .tms: se il cliente c\'è già chiede se aggiungerlo come nuovo o sostituirlo');
+    d.querySelector('[data-pk-scelta="nuovo"]').click();
+    const nuovo = await pi;
+    ok(nuovo === 'prova-2' && w.eval('profili.some(function(p){ return p.slug==="prova-2" && /importato/.test(p.nome); })') && fsmem._files.has('TMS_Dati/prova-2/scheda.json') && fsmem._files.has('TMS_Dati/prova-2/corpo.json')
+       && [...fsmem._files.keys()].some(k => k.startsWith('TMS_Dati/prova-2/foto/')), 'file .tms: importato come cliente nuovo, con i suoi file e le foto');
+    ok(w.eval('DOC.esercizi.some(function(e){ return e.nome===' + J(righePC()[0].esercizio) + '; })'), 'file .tms: l\'esercizio che mancava nel catalogo torna (si aggiunge solo quello che manca)');
+    ok(w.eval('activeProfile') === 'prova', 'file .tms: importare non cambia il profilo aperto');
+    /* archivia: esporta e toglie dalla lista */
+    pe = w.eval('pacchettoEsporta("prova-2", true)'); await settle(40);
+    ok(/Archivia/.test(d.getElementById('modal').textContent), 'file .tms: «Archivia» spiega cosa succede');
+    d.getElementById('pk-ok').click(); await pe; await settle(40);
+    ok(!w.eval('profili.some(function(p){ return p.slug==="prova-2"; })') && /prova/i.test(w.eval('__pk.n')), 'file .tms: archiviato, il cliente esce dalla lista (la cartella va nel cestino dei profili)');
+    /* importa sopra quello che c'è: «sostituisci» */
+    pi = w.eval('pacchettoImporta(__pkCif)'); await settle(40);
+    d.getElementById('pk-pwi').value = 'segreta1'; d.getElementById('pk-pwi-ok').click(); await settle(400);
+    d.querySelector('[data-pk-scelta="sostituisci"]').click();
+    ok(await pi === 'prova' && w.eval('activeProfile') === 'prova' && w.eval('DOC.scheda.settimanale.length') === righePC().length && w.eval('__avvisi').some(m => /Cliente importato/.test(m) && /QR/.test(m)),
+       'file .tms: sostituisce il cliente (il vecchio va nel cestino) e ricorda di ricollegare il telefono col QR');
+    await w.eval('pacchettoImporta(new Uint8Array([1,2,3,4]))');
+    ok(w.eval('__avvisi').some(m => /non è un cliente del TMS/.test(m)), 'file .tms: un file qualsiasi viene rifiutato con un messaggio chiaro');
+    w.eval('conferma=_cf; avviso=_av; pkScarica=_pks; closeModal();'); }
   /* fine seduta sul telefono, poi «💾 Salva nello Storico» sul PC: la settimana si cristallizza */
   scrivi('rpe-0', '7'); scrivi('min-0', '60'); await giroTel(); await giroPC();
   ok(J(w.eval('JSON.stringify(DOC.scheda.rpe.settimanale)')) === J(J({ [righePC()[0].giorno]: { rpe: 7, min: 60 } })), 'fatica e durata della seduta scritte sul telefono arrivano sul PC');

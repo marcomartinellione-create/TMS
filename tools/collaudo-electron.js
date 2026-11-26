@@ -85,6 +85,10 @@ app.whenReady().then(async () => {
     if (!pronto) throw new Error('avvio non riuscito');
     await js('conferma=function(){return Promise.resolve(true);}; avviso=function(){return Promise.resolve();}; var _d=document.getElementById("disc-ok"); if(_d) _d.click(); true');
     ok(await js('typeof window.tmsFS.cestina==="function"'), 'ponte dati: canale «cestina» esposto al renderer');
+    /* ── file .tms: esportare un cliente coi file veri (foto comprese) e rileggerlo; il doppio clic ha il suo canale ── */
+    ok(await js('typeof window.tmsFile.onApri==="function" && typeof window.tmsFile.chiedi==="function"'), 'file .tms: canale del doppio clic esposto alla pagina');
+    { const r = await js('pacchettoCostruisci(activeProfile).then(function(x){ return pacchettoLeggi(x.bytes, function(){ return Promise.resolve(null); }).then(function(p){ return {n:x.bytes.length, foto:x.nFoto, letteFoto:p.foto.length, slug:p.man.profilo.slug}; }); })');
+      ok(r && r.n > 1000 && r.slug && r.letteFoto === r.foto, 'file .tms: un cliente esportato dai file veri si rilegge intero (' + (r ? r.foto : 0) + ' foto, ' + (r ? Math.round(r.n / 1024) : 0) + ' kB)'); }
     /* ── barra della finestra nei colori dell'app (Windows): la barra in alto fa da barra del titolo ── */
     if (process.platform === 'win32') {
       ok(await js('window.tmsFinestra.barra===true && document.documentElement.classList.contains("barra-finestra") && getComputedStyle(document.querySelector(".topbar")).webkitAppRegion==="drag"'),

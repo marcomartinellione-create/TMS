@@ -372,10 +372,11 @@ async function createProfile(nome){
   saveCache();
   await switchProfile(s);
 }
-async function deleteProfile(slug){
+async function deleteProfile(slug, opt){
   if(profili.length<=1){ avviso(t('Deve restare almeno un profilo.')); return; }
   const p=profili.find(x=>x.slug===slug); if(!p) return;
-  if(!await conferma(t('Eliminare il profilo «')+p.nome+t('» e TUTTI i suoi dati? Operazione irreversibile.'))) return;
+  /* opt.confermato: la domanda l'ha già fatta chi chiama (archiviazione in un file .tms, 14b-pacchetto.js) */
+  if(!(opt&&opt.confermato) && !await conferma(t('Eliminare il profilo «')+p.nome+t('» e TUTTI i suoi dati? Operazione irreversibile.'))) return;
   if(scrittureBloccate){ mostraBloccoScritture(); return; }
   const elencoPrima=profili.slice();
   profili=profili.filter(x=>x.slug!==slug);
