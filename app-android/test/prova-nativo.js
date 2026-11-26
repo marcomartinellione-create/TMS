@@ -363,7 +363,9 @@ async function apri(opz = {}) {
     ok(d.getElementById('avv-box').hidden === false, 'promemoria: riquadro «🔔 Promemoria» nella schermata Collegamento');
     d.getElementById('avv-on').checked = true; d.getElementById('avv-on').dispatchEvent(new w.Event('change')); await attendi(700);
     const sch = reg.avv.find(x => x[0] === 'schedule'), canc = reg.avv.find(x => x[0] === 'cancel');
-    ok(reg.avv.some(x => x[0] === 'requestPermissions') && sch && sch[1].notifications.length === 28, 'promemoria: acceso, chiede il permesso e programma 28 sere');
+    /* 28 sere a partire da oggi; dopo le 21:00 (ora di serie) quella di stasera è già passata e non si programma */
+    const sere = new Date().getHours() >= 21 ? 27 : 28;
+    ok(reg.avv.some(x => x[0] === 'requestPermissions') && sch && sch[1].notifications.length === sere, 'promemoria: acceso, chiede il permesso e programma ' + sere + ' sere');
     const n0 = sch && sch[1].notifications[0];
     ok(n0 && n0.channelId === 'promemoria' && n0.smallIcon === 'ic_stat_tms' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(n0.schedule.at) && n0.schedule.allowWhileIdle === true && n0.extra && n0.extra.pagina,
        'promemoria: canale, icona, ora nel formato che legge Android, pagina da aprire');

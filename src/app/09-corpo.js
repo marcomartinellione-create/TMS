@@ -21,7 +21,7 @@ function composizioneLat(u,c){
       return `<div class="lat-num" style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px"><span>${t('Dalla prima misura')} <span class="muted">(${esc(schedaLabel(a.scheda))})</span></span><b>${d>=0?'+':'−'}${nf(Math.abs(d),1)} kg</b></div>`; })():''}</div>`;
 }
 function renderCorpo(){
-  const u=DOC.dati_utente; const c=bodyCalc(u);
+  const u=DOC.dati_utente; const c=bodyCalc(u), vista=corpoVista();
   const io=DOC.storico_io;
   const lbl=io.map(r=>schedaLabel(r.scheda));
   const wSeries=[{name:t('Peso'),color:'var(--orange-b)',data:io.map((r,i)=>({x:lbl[i],y:+r.peso}))}];
@@ -57,7 +57,8 @@ function renderCorpo(){
    <div id="foto-box"></div>
      </div>
      <aside class="pag__side">
-      <div class="corpo-graf">
+      ${htmlCorpoVista(vista)}
+      <div class="corpo-graf"${vista==='recupero'?' hidden':''}>
        <div class="chart-grid chart-grid--corpo">
          ${composizioneLat(u,c)}
          <div class="chart-box"><h4>${t('Peso')}${spiegaBtn('peso')}</h4>${lineChart(wSeries,{labels:lbl,h:130})}</div>
@@ -66,6 +67,7 @@ function renderCorpo(){
        </div>
        ${tipoCorpoLat(u)}
       </div>
+      <div id="recupero-box"${vista==='recupero'?'':' hidden'}>${htmlRecupero()}</div>
      </aside>
    </div>`;
   document.querySelectorAll('#panel-corpo [data-u]').forEach(inp=>inp.addEventListener('input',e=>{
@@ -76,11 +78,41 @@ function renderCorpo(){
     clearTimeout(rerenderT); rerenderT=setTimeout(()=>ridisegnaConFuoco('panel-corpo', renderCorpo),600);
   }));
   legaPesate();   /* 🗑 sulle pesate della bilancia (09c-pesate.js) */
+  legaRecupero(); /* sonno e dati del giorno dal bracciale (09e-recupero.js) */
+  legaCorpoVista();
   document.getElementById('btn-save-io').onclick=saveIoModal;
   document.getElementById('btn-undo-io').onclick=async()=>{ if(!io.length){avviso(t('Vuoto.'));return;}
     if(!await conferma(t('Elimino l\'ultima misura salvata?')))return; DOC.storico_io.pop(); persist('corpo'); renderCorpo(); };
   renderFotoSezione();  /* sezione 📸 Foto progressi (async per le immagini; sola lettura del disco) */
   updateStatusDots();
+}
+/* ── «Misure | Recupero» in cima alla colonna di destra (26/11/2026, scelta di Marco) ──
+   La colonna mostra o composizione e grafici delle misure, o il recupero dal bracciale (09e-recupero.js).
+   La scelta si ricorda PER PROFILO in localStorage ('tms-corpo-vista' = {slug:'recupero'}; senza voce vale
+   «Misure») e si rilegge ogni volta: niente copie in memoria, cambiando profilo vale quella del profilo
+   nuovo. Il titolo fermo della colonna segue la vista (TITOLI_PAG in 04-modal.js). */
+const CORPO_VISTA_KEY='tms-corpo-vista';
+function corpoVisteSalvate(){ try{ const m=JSON.parse(localStorage.getItem(CORPO_VISTA_KEY)||'{}'); return (m&&typeof m==='object'&&!Array.isArray(m))? m : {}; }catch(e){ return {}; } }
+function corpoVista(){ return corpoVisteSalvate()[activeProfile]==='recupero'? 'recupero' : 'misure'; }
+function corpoVistaImposta(v){ const m=corpoVisteSalvate();
+  if(v==='recupero') m[activeProfile]='recupero'; else delete m[activeProfile];
+  try{ localStorage.setItem(CORPO_VISTA_KEY, JSON.stringify(m)); }catch(e){} }
+function htmlCorpoVista(v){
+  const B=(k,ic,lab)=>`<button class="btn btn--sm${v===k?' is-on':''}" data-corpo-vista="${k}" aria-pressed="${v===k}">${ico(ic)}${t(lab)}</button>`;
+  return `<div class="corpo-vista no-print"><span class="gruppo" role="group" aria-label="${esc(t('Cosa mostra la colonna'))}">${B('misure','corpo','Misure')}${B('recupero','luna','Recupero')}</span></div>`;
+}
+function mostraCorpoVista(v){
+  const p=document.getElementById('panel-corpo'); if(!p) return;
+  const g=p.querySelector('.corpo-graf'), r=document.getElementById('recupero-box'), side=p.querySelector('.pag__side');
+  if(g) g.hidden=(v==='recupero'); if(r) r.hidden=(v!=='recupero');
+  p.querySelectorAll('[data-corpo-vista]').forEach(b=>{ const on=b.dataset.corpoVista===v; b.classList.toggle('is-on',on); b.setAttribute('aria-pressed',String(on)); });
+  if(side) side.scrollTop=0;
+  if(typeof adattaPag==='function') adattaPag();   /* il titolo fermo della colonna cambia con la vista */
+}
+function legaCorpoVista(){
+  document.querySelectorAll('#panel-corpo [data-corpo-vista]').forEach(b=>{ b.onclick=()=>{
+    const v=b.dataset.corpoVista==='recupero'? 'recupero' : 'misure'; if(v===corpoVista()) return;
+    corpoVistaImposta(v); mostraCorpoVista(v); }; });
 }
 function saveIoModal(){
   const w=isoWeek(new Date()); const u=DOC.dati_utente; const c=bodyCalc(u);

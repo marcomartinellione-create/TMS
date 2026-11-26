@@ -33,18 +33,20 @@ function setConn(state,txt){
 }
 
 /* dati del profilo attivo (scheda/storico/corpo/alimentazione); esercizi e ricette sono condivisi */
-function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,storico_fc:DOC.storico_fc,cardio:DOC.cardio,foto:DOC.foto,pesate:DOC.pesate,pesate_scartate:DOC.pesate_scartate,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
-function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.storico_fc=Array.isArray(d.storico_fc)?d.storico_fc:[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.pesate=Array.isArray(d.pesate)?d.pesate:[]; DOC.pesate_scartate=Array.isArray(d.pesate_scartate)?d.pesate_scartate:[]; DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; undoAzzera(); }
-function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],storico_risc:[],storico_fc:[],cardio:[],foto:[],pesate:[],pesate_scartate:[],dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
+function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,storico_fc:DOC.storico_fc,cardio:DOC.cardio,foto:DOC.foto,pesate:DOC.pesate,pesate_scartate:DOC.pesate_scartate,recupero:DOC.recupero,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
+function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.storico_fc=Array.isArray(d.storico_fc)?d.storico_fc:[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.pesate=Array.isArray(d.pesate)?d.pesate:[]; DOC.pesate_scartate=Array.isArray(d.pesate_scartate)?d.pesate_scartate:[]; DOC.recupero=recuperoNorm(d.recupero); DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; undoAzzera(); }
+function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],storico_risc:[],storico_fc:[],cardio:[],foto:[],pesate:[],pesate_scartate:[],recupero:{notti:[],giorni:[]},dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
 /* CONTENUTO DI corpo.json in un posto solo (2026-11-15, pesate della bilancia): prima
    l'oggetto era riscritto a mano in ogni salvataggio, e una parte nuova dimenticata in uno
    solo di quei punti sarebbe stata cancellata dal disco al primo salvataggio.
    corpoFile: dai dati (DOC o un profilo del backup) all'oggetto da scrivere;
-   corpoDaFile: dal file letto (null se assente) alle parti del profilo. */
+   corpoDaFile: dal file letto (null se assente) alle parti del profilo.
+   recupero (sonno e dati del giorno dal bracciale, 09e-recupero.js): recuperoNorm ne garantisce la forma
+   {notti:[], giorni:[]} anche nei corpo.json di prima, senza togliere nulla (migrazione idempotente). */
 function corpoFile(d){ d=d||{}; return {dati_utente:d.dati_utente||{}, storico_io:d.storico_io||[], storico_rpe:d.storico_rpe||[], storico_risc:d.storico_risc||[],
-  storico_fc:d.storico_fc||[], cardio:d.cardio||[], foto:d.foto||[], pesate:d.pesate||[], pesate_scartate:d.pesate_scartate||[]}; }
+  storico_fc:d.storico_fc||[], cardio:d.cardio||[], foto:d.foto||[], pesate:d.pesate||[], pesate_scartate:d.pesate_scartate||[], recupero:recuperoNorm(d.recupero)}; }
 function corpoDaFile(co){ co=co||{}; return {storico_io:co.storico_io, storico_rpe:co.storico_rpe, storico_risc:co.storico_risc, storico_fc:co.storico_fc, cardio:co.cardio, foto:co.foto,
-  pesate:co.pesate, pesate_scartate:co.pesate_scartate, dati_utente:co.dati_utente}; }
+  pesate:co.pesate, pesate_scartate:co.pesate_scartate, recupero:co.recupero, dati_utente:co.dati_utente}; }
 
 function saveCache(){ try{
   const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); const data=all.data||{};

@@ -4672,6 +4672,199 @@ console.log('--- T16: backup completo (.tmsb), ripristino di tutto o di un clien
   dom.window.close();
 }
 
+console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale), coi dati finti ---');
+{
+  /* 26/11/2026, bozza da far approvare a Marco: DOC.recupero = {notti, giorni} in corpo.json, valori derivati
+     (ore dormite, medie, «il suo solito», scarti) MAI salvati. I dati finti vengono da tools/recupero-finto.js
+     (seme fisso: sempre lo stesso cliente). Le settimane ISO 2026: 47 = 16–22 nov, 48 = 23–29 nov. */
+  const { generaRecuperoFinto } = require(path.join(ROOT, 'tools', 'recupero-finto.js'));
+  const J = o => JSON.stringify(o);
+  const finti = generaRecuperoFinto({ giorni: 42, seme: 7, fine: '2026-11-25' });
+
+  /* il generatore: ripetibile e nei limiti chiesti */
+  { const ancora = generaRecuperoFinto({ giorni: 42, seme: 7, fine: '2026-11-25' }), altro = generaRecuperoFinto({ giorni: 42, seme: 8, fine: '2026-11-25' });
+    ok(J(ancora) === J(finti) && J(altro) !== J(finti) && finti.notti.length === 42 && finti.giorni.length === 42 && finti.giorni[41].data === '2026-11-25',
+       'dati finti: stesso seme = stessi dati, 42 notti e 42 giorni fino al giorno chiesto');
+    const G = k => finti.giorni.map(g => g[k]), tra = (v, a, b) => v.every(x => x >= a && x <= b);
+    const media = v => v.reduce((a, b) => a + b, 0) / v.length, tp = G('tempPelle'), mT = media(tp);
+    ok(tra(G('rmssd'), 35, 75) && tra(G('fcRiposo'), 48, 60) && tra(G('spo2Med'), 93, 99) && tra(G('stressMed'), 15, 65) && tra(G('passi'), 3000, 15000) && tp.every(x => Math.abs(x - mT) <= 0.65),
+       'dati finti: RMSSD 35–75, FC a riposo 48–60, SpO2 93–99, stress 15–65, passi 3.000–15.000, pelle entro ±0,6 °C');
+    const ore = finti.notti.map(n => (new Date(n.fine) - new Date(n.inizio)) / 3600000), tot = { profondo: 0, leggero: 0, rem: 0, sveglio: 0 };
+    finti.notti.forEach(n => n.fasi.forEach(f => { tot[f[2]] += f[1] - f[0]; }));
+    const somma = Object.values(tot).reduce((a, b) => a + b, 0), q = k => tot[k] / somma;
+    ok(ore.every(h => h >= 5.5 - 1e-9 && h <= 8.5 + 1e-9) && q('profondo') > 0.12 && q('profondo') < 0.25 && q('rem') > 0.15 && q('rem') < 0.28 && q('sveglio') < 0.1,
+       'dati finti: 5,5–8,5 ore a letto, fasi in proporzioni plausibili (profondo ' + Math.round(100 * q('profondo')) + '%, REM ' + Math.round(100 * q('rem')) + '%, sveglio ' + Math.round(100 * q('sveglio')) + '%)');
+    const calo = finti.giorni.slice(31, 35).map(g => g.rmssd), resto = finti.giorni.slice(0, 31).map(g => g.rmssd);
+    ok(media(calo) < media(resto) - 8 && finti.notti.some(n => n.punteggio < 65) && finti.notti.some(n => n.sonnellini),
+       'dati finti: c\'è il calo di qualche giorno (RMSSD ' + Math.round(media(calo)) + ' contro ' + Math.round(media(resto)) + '), qualche notte storta e qualche sonnellino'); }
+
+  /* un profilo di prima, senza `recupero` in corpo.json */
+  const fsmem = makeTmsFS();
+  await fsmem.writeFile('TMS_Dati/profili.json', J({ list: [{ slug: 'rita', nome: 'Rita', creato: '2026-01-01' }], active: 'rita' }));
+  await fsmem.writeFile('TMS_Dati/rita/scheda.json', J({ settimanale: [], mensile: [] }));
+  await fsmem.writeFile('TMS_Dati/rita/storico.json', '[]');
+  await fsmem.writeFile('TMS_Dati/rita/corpo.json', J({ dati_utente: { nome: 'Rita', sesso: 'F', altezza: 168, nascita: '1992-03-01', peso: 61, massa_grassa: 0.24 },
+    storico_io: [{ scheda: 202647, eta: 34, livello: 1.5, peso: 61.4, metabolismo: 2000, bmi: 21.8, massa_grassa: 0.245, massa_magra: 46.4, massa_muscolare: 43, massa_ossea: 2.3, metab_basale: 1330, grasso_viscerale: 4 }] }));
+  await fsmem.writeFile('TMS_Dati/rita/alimentazione.json', J({ bulk: [], mant: [], cut: [] }));
+  const { dom, errors } = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true });
+  await settleConnect(dom, fsmem); await settle(400);
+  const w = dom.window, d = w.document, E = s => w.eval(s);
+  const corpoDisco = () => JSON.parse(fsmem._files.get('TMS_Dati/rita/corpo.json'));
+  const box = () => d.getElementById('recupero-box');
+  ok(errors.length === 0 && !E('scrittureBloccate'), 'recupero: avvio senza errori');
+
+  /* migrazione */
+  ok(E('JSON.stringify(DOC.recupero)') === '{"notti":[],"giorni":[]}', 'migrazione: un corpo.json senza «recupero» dà {notti:[], giorni:[]}');
+  { const strano = { notti: 'x', giorni: [1, null, [2], { data: '2026-11-20', passi: 5000 }], altro: 'resta' };
+    const n1 = E('JSON.stringify(recuperoNorm(' + J(strano) + '))'), n2 = E('JSON.stringify(recuperoNorm(recuperoNorm(' + J(strano) + ')))');
+    ok(n1 === '{"notti":[],"giorni":[{"data":"2026-11-20","passi":5000}],"altro":"resta"}' && n1 === n2 &&
+       E('JSON.stringify(recuperoNorm(null))') === '{"notti":[],"giorni":[]}' && E('JSON.stringify(recuperoNorm([1]))') === '{"notti":[],"giorni":[]}',
+       'migrazione: forma sbagliata sistemata senza perdere le voci buone né le altre chiavi, e rifarla non cambia nulla (idempotente)'); }
+  w.eval('persist("corpo")'); await settle(700);
+  ok(J(corpoDisco().recupero) === '{"notti":[],"giorni":[]}' && corpoDisco().storico_io.length === 1, 'migrazione: al primo salvataggio corpo.json ha «recupero» vuoto, il resto com\'era');
+
+  /* «Misure | Recupero» in cima alla colonna di destra: si parte da Misure */
+  w.eval('localStorage.removeItem("tms-corpo-vista"); showTab("corpo")'); await settle(200);
+  const lato = () => d.querySelector('#panel-corpo .pag__side'), graf = () => d.querySelector('#panel-corpo .corpo-graf');
+  const bottone = v => d.querySelector('#panel-corpo [data-corpo-vista="' + v + '"]');
+  ok(lato().firstElementChild.classList.contains('corpo-vista') && lato().querySelector('.corpo-vista > .gruppo > .btn.btn--sm[data-corpo-vista="misure"] + .btn.btn--sm[data-corpo-vista="recupero"]') &&
+     bottone('misure').classList.contains('is-on') && !bottone('recupero').classList.contains('is-on') && !graf().hidden && box().hidden && lato().getAttribute('data-titolo') === 'Composizione e andamento',
+     'interruttore «Misure | Recupero» in cima alla colonna di destra (blocco .gruppo dell\'app); si parte da Misure, col titolo di sempre');
+  bottone('recupero').click(); await settle(50);
+  ok(graf().hidden && !box().hidden && bottone('recupero').classList.contains('is-on') && bottone('recupero').getAttribute('aria-pressed') === 'true' && !bottone('misure').classList.contains('is-on') &&
+     lato().getAttribute('data-titolo') === 'Sonno e recupero' && E('localStorage.getItem("tms-corpo-vista")') === '{"rita":"recupero"}',
+     'clic su Recupero: si vede il recupero, il titolo della colonna diventa «Sonno e recupero», la scelta si ricorda per questo profilo');
+  w.eval('renderCorpo()'); await settle(50);
+  ok(graf().hidden && !box().hidden && bottone('recupero').classList.contains('is-on'), 'ridisegnando il tab la scelta resta');
+  w.eval('activeProfile="altro"; renderCorpo()'); await settle(50);
+  ok(!graf().hidden && box().hidden && E('corpoVista()') === 'misure', 'un altro profilo ha la sua scelta (Misure, finché non sceglie altro)');
+  w.eval('activeProfile="rita"; renderCorpo()'); await settle(50);
+  ok(!box().hidden && E('corpoVista()') === 'recupero', 'tornando al profilo la sua scelta c\'è ancora');
+  w.eval('localStorage.setItem("tms-corpo-vista","[rotto"); renderCorpo()'); await settle(50);
+  ok(!graf().hidden && E('corpoVista()') === 'misure', 'preferenza illeggibile: si torna a Misure senza errori');
+  w.eval('localStorage.setItem("tms-corpo-vista",\'{"rita":"recupero"}\'); renderCorpo()'); await settle(50);
+
+  /* stato vuoto: una riga, nessun riquadro */
+  ok(box() && box().querySelector('.recu-vuoto') && !box().querySelector('.recu-cards, svg:not(.ic), table') && /bracciale collegato/.test(box().textContent) && box().textContent.trim().length < 140,
+     'stato vuoto: una riga sola, niente riquadri né grafici');
+
+  /* pulizia di quello che arriva */
+  ok(E('pulisciNotte({id:"2026-11-20",inizio:"2026-11-19T23:00",fine:"2026-11-19T22:00",fasi:[]})') === null && E('pulisciNotte({inizio:"ieri",fine:"2026-11-20T07:00"})') === null &&
+     E('pulisciGiorno({data:"2026-13-40",passi:5})') === null && E('pulisciGiorno("x")') === null,
+     'pulizia: notte con orari impossibili o giorno senza data valida → scartati');
+  { const n = JSON.parse(E('JSON.stringify(pulisciNotte({inizio:"2026-11-19T23:00",fine:"2026-11-20T07:00",fasi:[[0,30,"leggero"],[30,20,"rem"],[40,90,"sonnambulo"],[90,9999,"rem"],[30,90,"profondo"]],punteggio:140,spo2:96,sonnellini:[{inizio:"2026-11-20T14:00",fine:"2026-11-20T14:30"},{inizio:"x"}],media:7,dormito:480}))'));
+    const g = JSON.parse(E('JSON.stringify(pulisciGiorno({data:"2026-11-20",passi:8000,fcRiposo:300,rmssd:"52",tempPelle:33.6,solito:50,scarto:2}))'));
+    ok(n.id === '2026-11-20' && J(n.fasi) === '[[0,30,"leggero"],[30,90,"profondo"]]' && !('punteggio' in n) && n.spo2 === 96 && n.sonnellini.length === 1 && !('media' in n) && !('dormito' in n) &&
+       J(g) === '{"data":"2026-11-20","passi":8000,"rmssd":52,"tempPelle":33.6}',
+       'pulizia: fasi impossibili, valori fuori intervallo e campi sconosciuti (anche quelli «calcolati») tolti; id = giorno del risveglio'); }
+
+  /* arrivano 42 notti e 42 giorni */
+  { const r = JSON.parse(E('JSON.stringify(recuperoUnisci(DOC,' + J(finti) + '))'));
+    ok(r.notti === 42 && r.giorni === 42 && r.nonValidi === 0 && E('DOC.recupero.notti.length') === 42 && E('DOC.recupero.giorni.length') === 42, 'unione: 42 notti e 42 giorni entrano'); }
+  { const nuova = Object.assign({}, finti.notti[41], { punteggio: 55 }), giorno = Object.assign({}, finti.giorni[41], { passi: 12345 });
+    const r = JSON.parse(E('JSON.stringify(recuperoUnisci(DOC,{notti:[' + J(nuova) + ',{id:"rotta"}],giorni:[' + J(giorno) + ']}))'));
+    ok(r.notti === 1 && r.giorni === 1 && r.nonValidi === 1 && E('DOC.recupero.notti.length') === 42 && E('DOC.recupero.notti[41].punteggio') === 55 && E('DOC.recupero.giorni[41].passi') === 12345,
+       'unione: la stessa notte o lo stesso giorno arrivati di nuovo prendono il posto dei vecchi (niente doppioni); quelli rotti si contano e si scartano');
+    E('recuperoUnisci(DOC,' + J({ notti: [finti.notti[41]], giorni: [finti.giorni[41]] }) + ')'); }
+
+  /* calcoli al volo */
+  { const ult = finti.notti[41], min = { profondo: 0, leggero: 0, rem: 0, sveglio: 0 }; ult.fasi.forEach(f => { min[f[2]] += f[1] - f[0]; });
+    ok(E('notteDormito(DOC.recupero.notti[41])') === min.profondo + min.leggero + min.rem && J(JSON.parse(E('JSON.stringify(notteMinuti(DOC.recupero.notti[41]))'))) === J(min),
+       'calcoli: minuti per fase e tempo dormito (profondo + leggero + REM) dalla notte');
+    /* il solito del 25/11: i 30 giorni prima (25/10–24/11), media ± deviazione standard campionaria */
+    const prima = finti.giorni.filter(g => g.data >= '2026-10-26' && g.data <= '2026-11-24').map(g => g.rmssd);
+    const m = prima.reduce((a, b) => a + b, 0) / prima.length, ds = Math.sqrt(prima.reduce((a, b) => a + (b - m) ** 2, 0) / (prima.length - 1));
+    const sol = JSON.parse(E('JSON.stringify(recSolito(recMappa(DOC.recupero),"rmssd","2026-11-25"))'));
+    ok(prima.length === 30 && sol.n === 30 && Math.abs(sol.media - m) < 1e-9 && Math.abs(sol.ds - ds) < 1e-9 && Math.abs(sol.lo - (m - 1.5 * ds)) < 1e-9 && Math.abs(sol.hi - (m + 1.5 * ds)) < 1e-9,
+       'calcoli: «il suo solito» = media ± 1,5 deviazioni standard dei 30 giorni prima, quel giorno escluso (' + m.toFixed(1) + ' ± ' + (1.5 * ds).toFixed(1) + ' ms)');
+    ok(E('recSolito(recMappa({notti:[],giorni:' + J(finti.giorni.slice(0, 6)) + '}),"rmssd","' + finti.giorni[6].data + '")') === null && E('recSolito(recMappa({notti:[],giorni:' + J(finti.giorni.slice(0, 7)) + '}),"rmssd","' + finti.giorni[7].data + '")') !== null,
+       'calcoli: con meno di 7 giorni il solito non si dice (con 7 sì)'); }
+
+  /* la sezione coi dati */
+  w.eval('recuperoPer=30; showTab("corpo")'); await settle(300);
+  { const b = box(), tess = [...b.querySelectorAll('.recu-cards .card')];
+    ok(tess.length === 7 && ['HRV (RMSSD)', 'FC a riposo', 'SpO2 notturna', 'Temperatura pelle', 'Respirazione', 'Stress medio', 'Passi'].every((k, i) => tess[i].querySelector('.card__k').textContent === k),
+       'sezione: sette riquadri dell\'ultimo giorno (HRV, FC a riposo, SpO2, pelle, respirazione, stress, passi)');
+    const g = finti.giorni[41];
+    ok(tess[0].querySelector('.card__v').textContent.startsWith(String(g.rmssd)) && tess[6].querySelector('.card__v').textContent === w.eval('nf(' + g.passi + ',0)') && /solito/.test(tess[0].querySelector('.card__sub').textContent),
+       'sezione: i riquadri mostrano i valori del bracciale dell\'ultimo giorno, con lo scarto dal suo solito');
+    ok(!/prontezza|readiness/i.test(b.textContent), 'sezione: nessun punteggio di «prontezza» inventato');
+    const notte = b.querySelector('.recu-notte');
+    ok(notte && notte.querySelector('svg.recu-ipno') && notte.querySelectorAll('svg.recu-ipno rect[fill^="var(--c-"], svg.recu-ipno rect[fill="var(--danger-b)"]').length === finti.notti[41].fasi.length &&
+       notte.textContent.includes(finti.notti[41].inizio.slice(11, 16)) && notte.textContent.includes(finti.notti[41].fine.slice(11, 16)) && notte.textContent.includes(String(finti.notti[41].punteggio)),
+       'sezione: ultima notte con orari, punteggio e l\'ipnogramma (un blocco per ogni tratto delle fasi)');
+    ok(b.querySelectorAll('svg.recu-barre g.recu-barra').length === 30 && b.querySelectorAll('svg.graf-lin').length === 2 && b.querySelectorAll('svg.graf-lin rect[fill="rgba(47,125,79,.12)"]').length === 2,
+       'sezione: 30 giorni → 30 barre del sonno per fase; HRV e FC a riposo con lineChart e la fascia del suo solito');
+    const righe = [...b.querySelectorAll('table.recu-sett tbody tr')];
+    ok(righe.length === 6 && /23\/11\/26/.test(righe[0].cells[0].textContent) && righe[0].cells[1].textContent === '3' && /16\/11\/26/.test(righe[1].cells[0].textContent) && righe[1].cells[7].textContent === '61,4' && righe[0].cells[7].textContent === '—',
+       'sezione: media della settimana (le ultime 6, la più recente in cima) affiancata alle misure del Corpo di quella settimana');
+    const sel = d.getElementById('recu-per'); sel.value = '7'; sel.dispatchEvent(new w.Event('change', { bubbles: true })); await settle(100);
+    ok(E('recuperoPer') === 7 && box().querySelectorAll('svg.recu-barre g.recu-barra').length === 7 && [...box().querySelectorAll('svg.recu-barre text.lbl')].filter(x => x.getAttribute('text-anchor') === 'middle' && / h/.test(x.textContent)).length === 7,
+       'sezione: «Ultimi 7 giorni» → 7 barre, con le ore dormite scritte sopra');
+    /* a 7 giorni la fascia del solito si vede intera: sta dentro il disegno (lineChart: P.t 10, fondo a 150−24) */
+    const fasce = [...box().querySelectorAll('svg.graf-lin rect[fill="rgba(47,125,79,.12)"]')];
+    ok(fasce.length === 2 && fasce.every(r => +r.getAttribute('y') >= 10 + 2 && +r.getAttribute('y') + +r.getAttribute('height') <= 126 - 2),
+       'sezione: a 7 giorni la fascia del suo solito sta tutta nel grafico, con un margine (la scala arriva ai suoi bordi)');
+    w.eval('recuperoPer=30'); }
+
+  /* lineChart: l'opzione nuova opts.scala non cambia nessun altro grafico */
+  { const casi = '(function(){ var S=function(n,k){ var a=[]; for(var i=0;i<n;i++) a.push({x:"w"+i, y:(i%5===3? null : Math.round((50+10*Math.sin(i*k)+i*0.7)*100)/100)}); return a; };' +
+      ' var casi=[lineChart([{name:"Peso",color:"var(--orange-b)",data:S(30,0.7)}],{h:130}),' +
+      ' lineChart([{name:"A",color:"red",data:S(12,1.1)},{name:"B",color:"blue",data:S(12,0.4),dash:"4 3",spess:1.5,punti:false}],{h:200,band:[48,55],rif:52}),' +
+      ' lineChart([{name:"C",color:"green",data:S(20,0.9)}],{fs:11,labels:S(20,1).map(function(p){return p.x;}),stacchi:[{i:8,testo:"Cut",sotto:"13 sett."}]}),' +
+      ' lineChart([{name:"D",color:"violet",data:[{x:"a",y:5},{x:"b",y:5}]}],{fmt:function(v){return v.toFixed(2);}}),' +
+      ' lineChart([{name:"E",color:"gold",data:[]}],{})];' +
+      ' return casi.join("\\n").replace(/gclip\\d+/g,"gclip#"); })()';
+    const impronta = require('crypto').createHash('md5').update(w.eval(casi)).digest('hex');
+    ok(impronta === '62e16cf218e98b2a09434940861c6811', 'lineChart: senza «scala» i grafici sono identici a prima (impronta di cinque grafici di prova: ' + impronta + ')');
+    const N = s => s.replace(/gclip\d+/g, 'gclip#');
+    const base = '[{name:"A",color:"red",data:[{x:"a",y:50},{x:"b",y:58},{x:"c",y:54}]}]';
+    ok(N(E('lineChart(' + base + ',{})')) === N(E('lineChart(' + base + ',{scala:[52,56]})')) && N(E('lineChart(' + base + ',{})')) === N(E('lineChart(' + base + ',{scala:[null,""]})')),
+       'lineChart: una «scala» dentro i dati, o vuota, non cambia nulla (allarga soltanto)');
+    const lbl = s => [...new w.DOMParser().parseFromString(s, 'text/html').querySelectorAll('text.lbl[text-anchor="end"]')].map(x => +x.textContent.replace(',', '.'));
+    const conScala = lbl(E('lineChart(' + base + ',{scala:[40,70]})'));
+    ok(Math.min(...conScala) <= 40 && Math.max(...conScala) >= 70 && Math.min(...lbl(E('lineChart(' + base + ',{})'))) > 45,
+       'lineChart: con «scala» [40, 70] l\'asse verticale arriva almeno da 40 a 70'); }
+
+  /* MAI valori derivati su disco */
+  w.eval('persist("corpo")'); await settle(700);
+  { const rec = corpoDisco().recupero, testo = J(rec);
+    const chiaviN = new Set(['id', 'inizio', 'fine', 'fasi', 'punteggio', 'sonnellini', 'spo2', 'resp', 'hrv']);
+    const chiaviG = new Set(['data', 'passi', 'fcRiposo', 'rmssd', 'sdnn', 'spo2Min', 'spo2Med', 'stressMed', 'stressMax', 'tempPelle', 'resp', 'pai', 'batteria']);
+    ok(J(Object.keys(rec).sort()) === '["giorni","notti"]' && rec.notti.length === 42 && rec.giorni.length === 42 &&
+       rec.notti.every(n => Object.keys(n).every(k => chiaviN.has(k))) && rec.giorni.every(g => Object.keys(g).every(k => chiaviG.has(k))) &&
+       !/"(media|solito|ds|lo|hi|dormito|scarto|minuti|settimana)"/.test(testo),
+       'su disco solo quello che dà il bracciale: niente medie, fasce, scarti, ore dormite'); }
+
+  /* voci rovinate in un file (la migrazione le lascia com'erano): il tab si disegna lo stesso, senza di loro */
+  w.eval('DOC.recupero.notti.push({id:"2026-11-26",fasi:[null,[1]]},{id:"2026-11-27",inizio:"2026-11-26T23:00",fine:"2026-11-27T07:00",fasi:[null,"x",[0,60,"profondo"]]}); DOC.recupero.giorni.push({data:"rotto"},{passi:3}); renderCorpo()');
+  ok(errors.length === 0 && box().querySelectorAll('.recu-cards .card').length === 7 && /27\/11/.test(box().querySelector('.recu-testa').textContent) &&
+     box().querySelectorAll('svg.recu-ipno rect[fill="var(--c-viola)"]').length === 1,
+     'voci rovinate in corpo.json: il tab si disegna, si mostrano solo quelle che passano i controlli');
+  w.eval('DOC.recupero.notti.splice(42); DOC.recupero.giorni.splice(42)');
+
+  /* traduzioni EN e guide */
+  { const sorg = ['09e-recupero.js', '09-corpo.js'].map(f => fs.readFileSync(path.join(ROOT, 'src', 'app', f), 'utf8')).join('\n');
+    const chiavi = new Set(['Sonno e recupero']);
+    for (const m of sorg.matchAll(/\bt\('((?:[^'\\]|\\.)*)'\)/g)) chiavi.add(m[1].replace(/\\'/g, '\''));
+    for (const m of fs.readFileSync(path.join(ROOT, 'src', 'app', '09e-recupero.js'), 'utf8').matchAll(/nome:'([^']+)'/g)) chiavi.add(m[1]);
+    const senza = [...chiavi].filter(k => typeof w.eval('EN[' + J(k) + ']') !== 'string');
+    ok(senza.length === 0 && E('EN["Recupero"]') === 'Recovery' && E('EN["Sonno e recupero"]') === 'Sleep and recovery',
+       'EN: tutte le scritte del tab Corpo e del Recupero hanno la traduzione (' + chiavi.size + ')' + (senza.length ? ' -> mancano: ' + senza.join(' | ') : '')); }
+  { const it = E('guidaRapida()') + E('guidaCompleta()'), en = E('guidaRapidaEN()') + E('guidaCompletaEN()'), ai = E('guidaAITesto()');
+    ok(/Misure \| Recupero/.test(it) && /1,5 deviazioni standard/.test(it) && /Measurements \| Recovery/.test(en) && /1\.5 standard deviations/.test(en) &&
+       /\*\*Recupero\*\*/.test(ai) && /DOC\.recupero/.test(ai) && /1,5 deviazioni standard/.test(ai) && /recupero dal bracciale/.test(ai),
+       'guide IT/EN e guida per AI descrivono il Recupero (interruttore, fascia ± 1,5, dati in corpo.json)'); }
+  /* tema notte e riapertura */
+  w.eval('document.documentElement.setAttribute("data-theme","notte"); renderCorpo(); document.documentElement.removeAttribute("data-theme")');
+  ok(errors.length === 0, 'recupero: nessun errore runtime (anche col tema notte)' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
+  dom.window.close();
+  { const di = await load({ idb: makeIDB(), tmsFS: fsmem, fsa: true }); await settleConnect(di.dom, fsmem); await settle(300);
+    ok(di.dom.window.eval('DOC.recupero.notti.length') === 42 && di.dom.window.eval('DOC.recupero.giorni[41].data') === '2026-11-25' && di.errors.length === 0,
+       'riaprendo l\'app il recupero si rilegge da corpo.json');
+    di.dom.window.close(); }
+}
+
 console.log('');
 console.log('RISULTATO: ' + pass + ' OK, ' + fail + ' FAIL');
 process.exit(fail ? 1 : 0);

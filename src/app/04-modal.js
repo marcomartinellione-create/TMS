@@ -114,7 +114,7 @@ const PAG_LARGO=1320;
 const TITOLI_PAG={
   profilo:['Profili','Profilo aperto e backup'], allenamento:['Scheda della settimana','Come sta venendo la scheda'],
   cardio:['Attività cardio','Settimana e carico'], storico:['Registrazioni salvate','Sintesi delle righe mostrate'],
-  corpo:['Dati corporei e foto','Composizione e andamento'], alimentazione:['Piano alimentare','Sintesi del piano','Indice nutrienti settimanale OMS/FAO'],
+  corpo:['Dati corporei e foto', ()=>corpoVista()==='recupero'? 'Sonno e recupero' : 'Composizione e andamento'],   /* segue «Misure | Recupero» (09-corpo.js) */ alimentazione:['Piano alimentare','Sintesi del piano','Indice nutrienti settimanale OMS/FAO'],
   analisi:['Periodi, carico e peso','Periodi e lettura'], report:['Anteprima del PDF','Strumenti del report'], esercizi:['Catalogo esercizi','Scheda dell’esercizio'],
 };
 function adattaPag(){
@@ -124,7 +124,8 @@ function adattaPag(){
        suo is-active cambiando tab sotto), ma quando la Stampa dieta è aperta va adattato uguale */
     document.querySelectorAll('.panel.is-active .pag, #panel-dieta .pag').forEach(p=>{
       const tab=(p.closest('.panel')||{id:''}).id.replace('panel-',''), tit=TITOLI_PAG[tab];
-      if(tit){ ['.pag__main','.pag__side','.pag__terza'].forEach((c,i)=>{ const el=p.querySelector(':scope > '+c); if(el&&tit[i]) el.setAttribute('data-titolo', t(tit[i])); }); }
+      /* un titolo può essere una funzione: quello del Corpo dipende dalla vista scelta */
+      if(tit){ ['.pag__main','.pag__side','.pag__terza'].forEach((c,i)=>{ const el=p.querySelector(':scope > '+c), ti=typeof tit[i]==='function'? tit[i]() : tit[i]; if(el&&ti) el.setAttribute('data-titolo', t(ti)); }); }
       /* le intestazioni delle tabelle restano ferme sotto il titolo: serve che il riquadro della
          tabella non scorra di lato per conto suo, quindi lo si «apre» solo se la tabella ci sta */
       p.querySelectorAll('.tbl-wrap').forEach(w=>{ const tb=w.querySelector('table');
