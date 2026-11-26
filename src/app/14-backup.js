@@ -92,7 +92,7 @@ async function salvaCopiaDiSicurezza(){
       MEGA o su una chiavetta — così sopravvive anche se il PC si rompe. La cartella la sceglie il selettore
       di Windows attraverso il ponte window.tmsScambio di electron/main.js: il percorso lo tiene main.js
       (userData/scambio.json), la pagina chiede solo nomi di file, le scritture restano chiuse lì dentro
-      (solo .json, scrittura atomica). Fra le copie col nostro nome (anche i vecchi .json) si tengono quelle
+      (solo .json e .tmsb, scrittura atomica). Fra le copie col nostro nome (anche i vecchi .json) si tengono quelle
       che dice bkDaTenere; gli altri file della cartella non si toccano. Il percorso vale solo se è stato
       scelto da qui (`scelta`): una cartella rimasta dal vecchio scambio con Google Drive non si usa da sola.
       Lo stato in localStorage (tms-bk-esterno): scelta, sceltaIl (quando è stata scelta la cartella),
