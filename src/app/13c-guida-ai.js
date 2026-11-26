@@ -674,7 +674,7 @@ cliente «Collega un telefono» crea il CODICE DI QUEL CLIENTE (20 caratteri, a 
 scrivere una volta sul suo telefono. Pulsanti: Copia; «Nuovo codice» (il vecchio telefono smette di
 funzionare finché non si scrive il nuovo; settimana e dati restano); «Stacca» (scollega: l'hub
 cancella i file di quel cliente); «QR» mostra il codice come QR (contenuto «TMS:» + il codice). Sul
-telefono: «Collegamento e promemoria» → «Inquadra il QR» (lettore di codici di Android, BarcodeDetector;
+telefono: «Impostazioni» → «Inquadra il QR» (lettore di codici di Android, BarcodeDetector;
 il collegamento parte da solo) oppure si scrive il codice dato dal proprio personal → «Collega».
 TUTTI I CLIENTI: oltre al profilo aperto, il PC controlla a turno (ogni 90 secondi uno) i telefoni dei
 profili non aperti e salva pesate, foto, giorni della dieta e sedute della fascia cardio direttamente nei loro file (corpo.json,
@@ -722,11 +722,15 @@ foto di prima in trasparenza e l'autoscatto da 3 o 10 s; si salva esattamente il
 senza permesso della fotocamera si ripiega su quella del telefono; col tasto a quattro frecce su una foto fatta, e da
 sola per quelle della galleria, si SPOSTA E RITAGLIA sulla sagoma (dito, due dita o barra; si parte
 sempre dall'originale; se la foto era già arrivata al PC la nuova porta «sostituisce» e lì prende
-il posto della vecchia, il file vecchio resta su disco); rimpicciolite a 1280 px JPEG), «Bilancia», «Fascia cardio» e «Collegamento e promemoria». Il tasto indietro
+il posto della vecchia, il file vecchio resta su disco); rimpicciolite a 1280 px JPEG), «Bilancia», «Fascia cardio» e «Impostazioni» (collegamento col TMS e promemoria, solo nell'APK; lingua IT/EN e i QR del sito, sempre: nella barra in alto non ci sono più, resta solo il battito). Il tasto indietro
 del telefono risale nell'app (video/QR, giorno → lista giorni → menu; solo dal menu l'app si
-chiude). Nella scheda si sceglie il **giorno**: APRIRLO AVVIA LA SEDUTA (inizio salvato sul telefono, resiste
-a un'app chiusa; uscire e rientrare non la fa ripartire; una seduta aperta alla volta; un giorno già chiuso in
-settimana non riparte da solo, c'è «Nuova seduta»). Sulle pagine dei giorni la barra in alto ha una seconda riga,
+chiude). Nella scheda si sceglie il **giorno**: aprendolo l'app CHIEDE «Inizio la seduta di oggi?» con «Inizia» e
+«Solo guardare». «Inizia» avvia la seduta (inizio salvato sul telefono, resiste a un'app chiusa; uscire e rientrare
+non la fa ripartire; una seduta aperta alla volta); «Solo guardare» lascia consultare la scheda senza seduta, per
+quel giorno di calendario non lo richiede, e nella zona in alto resta «Inizia la seduta». Se una seduta è già aperta
+non chiede niente; un giorno già chiuso in settimana non chiede, c'è «Nuova seduta». Una seduta avviata per sbaglio
+si toglie con «annulla seduta» (sotto il tempo, distinto da «Fine seduta»), che chiede conferma e non salva NIENTE:
+né durata, né fatica, né battito (la traccia si butta). Sulle pagine dei giorni la barra in alto ha una seconda riga,
 la ZONA DELLA SEDUTA: battito della fascia cardio colorato per zona (o «nessuna fascia» col tasto per collegarla),
 tempo trascorso, «Fine seduta». «Fine seduta» compila da sola la durata e chiede la fatica RPE (1-10) nei campi di
 fine giornata (senza Session-RPE spunta «Giorno completato»). Con la fascia collegata il battito della seduta si
@@ -809,7 +813,7 @@ Per tutta la misura suona musica-pesata.mp3 (data da Marco come libera da copyri
 personalizza). Al risultato: «Analisi completata», la musica si ferma, fanfara, vibrazione e una
 notifica del telefono (id 7300), poi i valori; un tocco o il tasto indietro la chiudono. Se si scende
 prima del risultato si chiude da sola.
-**PROMEMORIA** (notifiche locali, in «Collegamento e promemoria»): ogni sera all'ora scelta
+**PROMEMORIA** (notifiche locali, in «Impostazioni»): ogni sera all'ora scelta
 (predefinita 21:00) la pesata, il lunedì anche le foto, e la domanda sulla dieta (casella a parte,
 accesa di serie: con un piano alimentare l'APK chiede una volta il permesso delle notifiche); si
 programmano i 28 giorni successivi e si ricalcolano a ogni apertura, pesata, foto o dieta segnata: se
@@ -1006,7 +1010,7 @@ la Bilancia, le Foto o l'Alimentazione.
   Modifica parametri.
 - «Cambiare la fase alimentare (Bulk/Mant/Cut)» → Alimentazione → bottoni in cima al tab.
 - «Avere la scheda sul telefono» → Impostazioni › Telefono collegato («Attiva» con il codice d'invito, poi
-  «Collega un telefono» sul profilo del cliente) e, sul telefono, Collegamento e promemoria dove si scrive il codice. Da lì la
+  «Collega un telefono» sul profilo del cliente) e, sul telefono, Impostazioni dove si scrive il codice. Da lì la
   scheda è la stessa sui due e quello che si scrive in palestra arriva da solo nei Pesi.
 - «Salvare l'allenamento della settimana» → Pesi → Salva nello Storico.
 - «Registrare una corsa / un'attività cardio» → Cardio → ＋ Aggiungi attività (data, tipo,

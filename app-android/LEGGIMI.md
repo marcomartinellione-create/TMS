@@ -38,7 +38,13 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   WebView lo offre) e la bozza si salva ogni 15 s; con l'app in secondo piano Android può fermare la pagina e
   quei secondi restano vuoti (un servizio in primo piano è previsto con la fase successiva del bracciale,
   studio in `Doc/bracciale/PROPOSTA.md`).
-- **Seduta in corso** (dalla 1.5.0): aprire un giorno della scheda avvia la seduta (inizio salvato in IndexedDB,
+- **⚙ Impostazioni** (dalla 1.6.0, al posto di «Collegamento e promemoria»; pagina `#col`, voce `#vai-col`): collegamento
+  col TMS e promemoria (solo nell'APK), lingua (`#lang-btn`) e i QR del sito (`#qr-btn`), che prima stavano nella
+  barra in alto. Nella barra restano solo indietro, titolo e il battito (`#fc-chip`, zona della seduta).
+- **Seduta in corso** (dalla 1.5.0; dalla 1.6.0 con la conferma): aprendo un giorno l'app chiede «Inizio la seduta di
+  oggi?» («Inizia» / «Solo guardare»; «Solo guardare» si ricorda per quel giorno di calendario, `tms-sed-guardo`, e
+  lascia «Inizia la seduta» nella zona). «annulla seduta», con conferma, toglie una seduta avviata per sbaglio senza
+  salvare niente. Avviata la seduta (inizio salvato in IndexedDB,
   `tms-seduta-<slug>`: resiste a un'app chiusa; uscire e rientrare non la fa ripartire). La **zona della seduta** è
   una seconda riga della barra in alto sulle pagine dei giorni (`#sed-zona`, funzioni `sed*`): battito colorato per
   zona o «nessuna fascia», tempo, «Fine seduta», che compila la durata (`min-N`) e chiede la fatica (`rpe-N`).
@@ -47,7 +53,7 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   Cardio. Dopo 3 ore senza attività la seduta è «dimenticata»: l'app propone di chiuderla fino all'ultima attività.
   Durante una seduta la fascia resta collegata anche con l'app in secondo piano (Android può comunque fermare la
   pagina: quei secondi restano vuoti).
-- **🔗 Collegamento col TMS sul PC** («⚙ Collegamento e promemoria»): attraverso l'hub del TMS su
+- **🔗 Collegamento col TMS sul PC** («⚙ Impostazioni»): attraverso l'hub del TMS su
   Cloudflare (fino alla versione precedente all'hub passava da una cartella condivisa di Google Drive;
   ora niente cartella, niente app di sincronizzazione, niente account Google). Si scrive il codice
   del cliente che il personal ha creato sul PC in ⚙ Impostazioni › 🔗 Telefono collegato › «Collega

@@ -1045,8 +1045,8 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
     const sd = sub.window.document;
     ok(sd.getElementById('benvenuto').hidden === true && sd.getElementById('menu').hidden === false && sd.getElementById('home').hidden === true, 'app cliente: scheda memorizzata → parte dal MENU (Scheda + Alimentazione)');
     ok(sd.getElementById('vai-scheda') !== null && sd.getElementById('vai-alim') !== null, 'app cliente: due macro-sezioni nel menu');
-    /* pulsante QR in alto a destra + pannello «By Wander» (Instagram/YouTube/GitHub), come nel desktop */
-    ok(sd.getElementById('qr-btn') !== null && sd.getElementById('qrov') !== null, 'app cliente: pulsante QR in alto a destra + pannello');
+    /* pulsante QR (dal 27/11/2026 nelle Impostazioni) + pannello «By Wander» (Instagram/YouTube/GitHub), come nel desktop */
+    ok(sd.getElementById('qr-btn') !== null && sd.getElementById('qrov') !== null && sd.getElementById('col').contains(sd.getElementById('qr-btn')), 'app cliente: pulsante QR nelle Impostazioni + pannello');
     sd.getElementById('qr-btn').click();
     ok(sd.getElementById('qrov').style.display === 'flex' && sd.querySelectorAll('#qrov .qr-item').length === 3 && /instagram\.com/.test(sd.getElementById('qrov').innerHTML) && /youtube\.com/.test(sd.getElementById('qrov').innerHTML) && /github\.com/.test(sd.getElementById('qrov').innerHTML), 'app cliente: pannello QR coi tre riquadri (Instagram, YouTube, GitHub)');
     sd.getElementById('qrclose').click();
@@ -3493,6 +3493,8 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
     await settle(300);
     const w0 = sub.window, d0 = w0.document;
     d0.getElementById('vai-scheda').click(); await settle(20); d0.querySelector('[data-go="0"]').click(); await settle(30);
+    ok(w0.eval('SED.s') === null && /Inizio la seduta di oggi/.test(d0.getElementById('sed-zona').textContent), 'aprire un giorno chiede se iniziare la seduta (non parte da sola)');
+    d0.getElementById('sed-inizia').click(); await settle(20);
     ok(w0.eval('!!SED.s') && d0.getElementById('sed-zona').hidden === false && !d0.getElementById('sed-fc') && /0:0\d/.test(d0.getElementById('sed-t').textContent) && d0.getElementById('sed-fine') !== null,
        'seduta: senza fascia (né Bluetooth) parte lo stesso, con il tempo e «Fine seduta»');
     sub.window.close(); }
@@ -3507,6 +3509,13 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
   sd.getElementById('vai-scheda').click(); await settle(20);
   ok(sd.getElementById('sed-zona').hidden === true && sw.eval('SED.s') === null, 'nella lista dei giorni la seduta non parte ancora');
   sd.querySelector('[data-go="0"]').click(); await settle(30);
+  ok(sw.eval('SED.s') === null && sd.getElementById('sed-inizia') !== null && sd.getElementById('sed-guardo') !== null, 'aprire il giorno chiede «Inizio la seduta di oggi?» con «Inizia» e «Solo guardare»');
+  sd.getElementById('sed-guardo').click(); await settle(20);
+  ok(sw.eval('SED.s') === null && /solo da guardare/.test(sd.getElementById('sed-zona').textContent) && sd.getElementById('sed-nuova') !== null && /Inizia la seduta/.test(sd.getElementById('sed-nuova').textContent),
+     '«Solo guardare»: la scheda si consulta senza seduta, con «Inizia la seduta» nella zona in alto');
+  sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);
+  ok(sw.eval('SED.s') === null && !sd.getElementById('sed-inizia') && sd.getElementById('sed-nuova') !== null, 'rientrando nello stesso giorno (oggi) non lo richiede');
+  sd.getElementById('sed-nuova').click(); await settle(20);
   const inizio = sw.eval('SED.s.inizio');
   ok(sw.eval('SED.s.giorno') === 'Lunedì' && sd.getElementById('sed-zona').hidden === false && sw.document.body.classList.contains('con-seduta'),
      'aprire il giorno avvia la seduta: la zona compare nella barra in alto');
@@ -3547,6 +3556,7 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
   ok(sw.eval('SED.s') === null, 'un giorno già chiuso in settimana non fa ripartire la seduta da solo');
   /* seduta dimenticata aperta: dopo 3 ore senza attività si chiede di chiuderla fino all'ultima attività */
   sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="1"]').click(); await settle(30);
+  sd.getElementById('sed-inizia').click(); await settle(20);
   ok(sw.eval('SED.s.giorno') === 'Mercoledì', 'seduta del mercoledì aperta');
   sw.eval('SED.s.inizio=Date.now()-5*3600000; SED.s.ultima=Date.now()-4*3600000; sedSalva(true);');
   sd.getElementById('barra-ind').click(); await settle(20); sd.getElementById('barra-ind').click(); await settle(20);
@@ -3562,6 +3572,29 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
   sw.localStorage.setItem('tms-seduta-prova', J({ giorno: 'Mercoledì', settimana: 0, inizio: Date.now() - 600000, ultima: Date.now() - 60000, picco: 0, secchi: {} }));
   await sw.eval('sedCarica()');
   ok(sw.eval('SED.s && SED.s.giorno') === 'Mercoledì' && sw.eval('SED.dimenticata') === false, 'riaprendo l\'app la seduta aperta si ritrova (e non è «dimenticata» dopo 10 minuti)');
+  /* annullare una seduta avviata per sbaglio: con conferma, senza salvare niente */
+  sw.eval('navIndietro(); mostra("home");'); await settle(20); sd.querySelector('[data-go="1"]').click(); await settle(30);
+  const nFc = sw.eval('SEDUTE_PESI_FC.length'), min1 = sd.getElementById('min-1').value;
+  ok(sd.getElementById('sed-annulla-s') !== null && sd.getElementById('sed-fine') !== null && !sd.getElementById('sed-inizia'), 'seduta aperta: «annulla seduta» accanto al tempo, distinto da «Fine seduta»; rientrando niente domanda');
+  sd.getElementById('sed-annulla-s').click(); await settle(10);
+  ok(/Non si salva niente/.test(sd.getElementById('sed-zona').textContent) && sd.getElementById('sed-annulla-si') !== null && !sd.getElementById('sed-fine'), '«annulla seduta» chiede conferma');
+  sd.getElementById('sed-annulla-no').click(); await settle(10);
+  ok(sw.eval('!!SED.s') && sd.getElementById('sed-fine') !== null, '«No, continua»: la seduta resta aperta');
+  sw.eval('sedCampione(SED.s.inizio+1000, 120); sedCampione(SED.s.inizio+6000, 125);');
+  sd.getElementById('sed-annulla-s').click(); await settle(10); sd.getElementById('sed-annulla-si').click(); await settle(30);
+  ok(sw.eval('SED.s') === null && sw.localStorage.getItem('tms-seduta-prova') === null && sw.eval('SEDUTE_PESI_FC.length') === nFc && sd.getElementById('min-1').value === min1 && sd.getElementById('rpe-1').value === '',
+     'seduta annullata: niente durata, niente fatica, niente battito al PC; la traccia è buttata');
+  ok(sd.getElementById('sed-nuova') !== null && !sd.getElementById('sed-inizia'), 'dopo l\'annullamento la scheda resta da guardare, con «Inizia la seduta» se serve');
+  /* Impostazioni: collegamento e promemoria (nell'APK), lingua e QR; in alto solo il battito */
+  ok(!sd.getElementById('barra').querySelector('#lang-btn') && !sd.getElementById('barra').querySelector('#qr-btn'), 'barra in alto: niente più lingua e QR (resta solo il battito)');
+  sw.eval('navIndietro(); mostra("menu");'); await settle(20);
+  ok(sd.getElementById('vai-col').hidden === false && /Impostazioni/.test(sd.getElementById('vai-col').textContent) && /lingua e QR/.test(sd.getElementById('meta-col').textContent),
+     'menu: la voce «Impostazioni» c\'è sempre (fuori dall\'APK: lingua e QR)');
+  sd.getElementById('vai-col').click(); await settle(20);
+  ok(sd.getElementById('col').hidden === false && sd.getElementById('barra-titolo').textContent === 'Impostazioni' && sd.getElementById('col').contains(sd.getElementById('lang-btn')) &&
+     sd.getElementById('lang-btn').textContent === 'English' && sd.getElementById('col-box').hidden === true, 'Impostazioni: lingua e QR; il collegamento compare solo nell\'APK');
+  sd.getElementById('qr-btn').click(); await settle(10);
+  ok(sd.getElementById('qrov').style.display === 'flex', 'Impostazioni: il QR apre il pannello di sempre');
   sw.close();
 
   /* sul PC: battito della seduta nella scheda della settimana, poi con «Salva nello Storico» nello Storico; mai nel carico né nel Cardio */

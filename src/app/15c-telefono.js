@@ -531,7 +531,7 @@ function telQrModal(indietro){
   const p=telProf(); if(!telCollegato(p)) return;
   modal(`${croceModal()}<h3>${t('Collega il telefono di')} «${esc(profNome())}»</h3>
     <div class="tel-qr">${qrSvg(qrTestoCodice(p.codice), 240)}</div>
-    <div class="lat-nota" style="text-align:center">${t('Sul telefono del cliente: TMS Scheda › Collegamento e promemoria › «Inquadra il QR», e punta la fotocamera qui. Oppure scrivi il codice:')}<br><code class="tel-codice">${esc(telCodiceBello(p.codice))}</code></div>
+    <div class="lat-nota" style="text-align:center">${t('Sul telefono del cliente: TMS Scheda › Impostazioni › «Inquadra il QR», e punta la fotocamera qui. Oppure scrivi il codice:')}<br><code class="tel-codice">${esc(telCodiceBello(p.codice))}</code></div>
     <div class="lat-nota tel-avviso" style="text-align:center">${t('Chi inquadra questo QR può leggere i dati di questo cliente: mostralo solo a lui.')}</div>
     <div class="modal__actions"><button class="btn" id="tel-qr-indietro">${ico('indietro','p')}${t('Torna alle Impostazioni')}</button></div>`);
   document.getElementById('tel-qr-indietro').onclick=()=>indietro();
@@ -642,7 +642,7 @@ function telSezioneImpostazioni(){
       <div class="lat-nota tel-avviso">${t('Conservalo in un posto sicuro: serve per passare a un PC nuovo senza ricollegare i clienti. Chi lo ha può leggere i dati dei tuoi clienti sull\'hub.')}</div>`
     : `<div class="imp-riga"><span>${t('Personal attivo')}</span><span class="gruppo"><button class="btn btn--sm" id="imp-tel-mostra-rec">${t('Mostra il codice di recupero')}</button></span></div>`;
   const prof=telCollegato(p)? `<div class="imp-riga imp-codice"><span>${t('Codice del telefono di')} «${nome}»</span><code class="tel-codice" id="imp-tel-codice">${esc(telCodiceBello(p.codice))}</code><span class="gruppo"><button class="btn btn--sm" id="imp-tel-copia">${t('Copia')}</button><button class="btn btn--sm" id="imp-tel-qr">${t('QR')}</button><button class="btn btn--sm" id="imp-tel-nuovo">${t('Nuovo codice')}</button><button class="btn btn--sm" id="imp-tel-togli">${t('Stacca')}</button></span></div>
-      <div class="lat-nota">${t('Sul telefono del cliente: TMS Scheda › Collegamento e promemoria › «Inquadra il QR» (pulsante QR qui sopra) o scrivi questo codice. Si fa una volta sola.')}</div>
+      <div class="lat-nota">${t('Sul telefono del cliente: TMS Scheda › Impostazioni › «Inquadra il QR» (pulsante QR qui sopra) o scrivi questo codice. Si fa una volta sola.')}</div>
       <div class="lat-nota" id="imp-tel-stato">${telTestoStato()}</div>`
     : `<div class="imp-riga"><span>${t('Profilo')} «${nome}»</span><span class="gruppo"><button class="btn btn--sm btn--ember" id="imp-tel-prof">${t('Collega un telefono')}</button></span></div>
       <div class="lat-nota">${t('Crea il codice da scrivere sul telefono di questo cliente (o sul tuo, se il profilo è il tuo).')}</div>`;

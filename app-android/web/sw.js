@@ -3,7 +3,7 @@
    (e si aggiorna la copia in cache); offline si serve la copia in cache.
    Nessun dato dell'utente passa di qui: la cache contiene solo i file dell'app. */
 'use strict';
-const CACHE = 'tms-scheda-v30';
+const CACHE = 'tms-scheda-v31';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './qr-ig.png', './qr-yt.png', './qr-gh.png', './musica-pesata.mp3'];
 
 self.addEventListener('install', e => {

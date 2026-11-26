@@ -336,8 +336,8 @@ async function apri(opz = {}) {
 
   /* ── collegamento col PC del personal (dal 24/11/2026 passa dall'hub del TMS) e aggiornamento dell'APK ── */
   { const a = await apri({ cartella: true }), { w, d, reg } = a;
-    ok(d.getElementById('vai-col').hidden === false && typeof w.tmsCartella === 'undefined' && !d.getElementById('col-cartella'),
-       'collegamento: nel menu «⚙ Collegamento e promemoria», senza cartella da scegliere (passa dall’hub)');
+    ok(d.getElementById('vai-col').hidden === false && /Impostazioni/.test(d.getElementById('vai-col').textContent) && d.getElementById('col-box').hidden === false && d.getElementById('col').contains(d.getElementById('lang-btn')) && typeof w.tmsCartella === 'undefined' && !d.getElementById('col-cartella'),
+       'collegamento: nel menu «⚙ Impostazioni» (con lingua e QR), senza cartella da scegliere (passa dall’hub)');
     ok(typeof w.tmsAggiorna === 'object', 'aggiornamento: il plugin TmsCartella serve solo a scaricare l’APK nuovo (window.tmsAggiorna)');
     /* versione.json su GitHub (fetch finto): più nuova → domanda in stile app → sì → il plugin scarica url + impronta */
     const VJ = { versione: '9.9.9', file: 'TMS-Scheda-9.9.9.apk', sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', url: 'https://github.com/marcomartinellione-create/TMS/releases/download/v9.9.9/TMS-Scheda-9.9.9.apk', pubblicata: '2026-11-18' };

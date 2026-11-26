@@ -69,9 +69,8 @@
  .barra-ind:active{background:rgba(255,255,255,.14)}
  .barra-btn{flex:none;height:40px;min-width:44px;padding:0 10px;border:1px solid rgba(232,196,90,.38);border-radius:var(--r-sm);background:rgba(255,255,255,.06);color:var(--oro);font-weight:700;font-size:14px;letter-spacing:.04em}
  .barra-btn:active{background:rgba(255,255,255,.14)}
- #qr-btn{flex:none;width:40px;height:40px;padding:4px;border:1px solid rgba(232,196,90,.38);border-radius:var(--r-sm);background:#fff}
- #qr-btn img{width:100%;height:100%;display:block;image-rendering:pixelated;border-radius:3px}
- body:not([data-schermo="menu"]) #lang-btn, body:not([data-schermo="menu"]) #qr-btn{display:none}
+ #qr-btn img{width:30px;height:30px;display:block;image-rendering:pixelated;border-radius:3px;border:1px solid var(--filo)}
+ #vai-col .macro-ico .ic{stroke-width:1.8}
 
  /* ── pagina ── */
  main{max-width:620px;margin:0 auto;padding:18px 16px calc(28px + env(safe-area-inset-bottom))}
@@ -339,6 +338,7 @@
  .sed-tempo b{font-family:var(--serif);font-size:24px;color:var(--oro);font-variant-numeric:tabular-nums}
  .sed-tempo b .ic{width:20px;height:20px}
  .sed-tempo span{font-size:12px;color:var(--oro-t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .sed-link{align-self:flex-start;padding:2px 0 0;border:0;background:none;color:var(--oro-t);font-size:12px;text-decoration:underline;text-underline-offset:2px}
  .sed-btn{flex:none;height:44px;padding:0 12px;border:1px solid rgba(232,196,90,.38);border-radius:var(--r-sm);background:rgba(255,255,255,.06);color:#fdf3dc;font-weight:700;font-size:14px}
  .sed-btn:active{background:rgba(255,255,255,.14)}
  .sed-btn.ok{background:var(--acc);border-color:var(--acc)}
@@ -554,6 +554,7 @@
   <symbol id="i-pasto" viewBox="0 0 24 24"><path d="M5 3v6.2a2.5 2.5 0 0 0 5 0V3M7.5 3v18M17.5 21V3c-2.4 1.3-3.5 4-3.5 7.6V14h3.5"/></symbol>
   <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.6c0-.9.7-1.6 1.6-1.6h2.4l1.5-2.2h6l1.5 2.2h2.4c.9 0 1.6.7 1.6 1.6v9.3c0 .9-.7 1.6-1.6 1.6H5.1c-.9 0-1.6-.7-1.6-1.6z"/><circle cx="12" cy="13" r="3.6"/></symbol>
   <symbol id="i-bilancia" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M8 10.2a5.6 5.6 0 0 1 8 0"/><path d="M12 10.6l1.4-2"/></symbol>
+  <symbol id="i-ingranaggio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5"/><circle cx="12" cy="12" r="6.4"/></symbol>
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14.2a4.2 4.2 0 0 0 6 0l3-3a4.2 4.2 0 0 0-6-6l-1.1 1.1"/><path d="M14 9.8a4.2 4.2 0 0 0-6 0l-3 3a4.2 4.2 0 0 0 6 6l1.1-1.1"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.6l4.4 4.4L19 7.4"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
@@ -587,8 +588,6 @@
   <h1 id="barra-marchio"><svg class="ic"><use href="#i-sigillo"/></svg>TMS Scheda</h1>
   <div class="barra-titolo" id="barra-titolo" hidden></div>
   <button type="button" class="fc-chip" id="fc-chip" hidden title="Fascia cardio"><svg class="ic"><use href="#i-cuore"/></svg><span id="fc-chip-v">—</span></button>
-  <button type="button" id="lang-btn" class="barra-btn" title="Language / Lingua">EN</button>
-  <button type="button" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><img src="qr-ig.png" alt="QR"></button>
   <div class="sed-zona" id="sed-zona" hidden></div>
 </header>
 
@@ -613,6 +612,7 @@
     <p data-i18n-html>Per cominciare <b>collega l’app al TMS del tuo personal</b>: basta il <b>codice</b> che ti dà lui (nel suo TMS, ⚙ Impostazioni › Telefono collegato).</p>
     <button type="button" class="btn-big" id="col-da-ben" hidden><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Collega al TMS sul PC</span></button>
     <div class="fine" id="ben-solo-apk" data-i18n>Il collegamento c’è nell’app Android «TMS Scheda».</div>
+    <button type="button" class="btn-lite quieto" id="ben-imp"><svg class="ic"><use href="#i-ingranaggio"/></svg><span data-i18n>Impostazioni</span></button>
   </div>
   <div id="col-avvisi-ben"></div>
   <div class="privacy"><svg class="ic"><use href="#i-lucchetto"/></svg><span data-i18n-html>Scheda, allenamenti, pesate e foto passano dall’hub del TMS solo <b>cifrati</b> col tuo codice: l’hub non li può leggere e non li tiene, lo storico sta sul PC del tuo personal. L’app chiede a GitHub soltanto se c’è una versione nuova. Funziona anche offline.</span></div>
@@ -648,9 +648,9 @@
         <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
     </div>
     <div class="gruppo">
-      <button type="button" class="macro-card" id="vai-col" hidden>
-        <span class="macro-ico"><svg class="ic"><use href="#i-link"/></svg></span>
-        <span class="macro-l"><span class="macro-name" data-i18n>Collegamento e promemoria</span><span class="macro-meta" id="meta-col"></span></span>
+      <button type="button" class="macro-card" id="vai-col">
+        <span class="macro-ico"><svg class="ic"><use href="#i-ingranaggio"/></svg></span>
+        <span class="macro-l"><span class="macro-name" data-i18n>Impostazioni</span><span class="macro-meta" id="meta-col"></span></span>
         <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
     </div>
   </div>
@@ -704,7 +704,7 @@
 <!-- ── schermata COLLEGAMENTO E PROMEMORIA (solo nell'APK): codice che dà il personal (l'hub del TMS
        fa il resto), promemoria della sera. ── -->
 <div id="col" hidden>
-  <div class="box">
+  <div class="box" id="col-box">
     <div class="pick-title"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Collegamento col TMS sul PC</span></div>
     <p class="col-spieg" data-i18n-html>La scheda arriva da sola dal tuo personal e quello che scrivi, le pesate e le foto gli tornano da sole, attraverso l'<b>hub del TMS</b> su internet. Tutto è <b>cifrato</b> col tuo codice: l'hub vede solo file illeggibili e non tiene lo storico, che resta sul PC del tuo personal.</p>
     <div class="col-stato" id="col-stato"></div>
@@ -722,6 +722,14 @@
     <label class="col-riga"><input type="checkbox" id="avv-dieta"><span data-i18n>Ogni sera la domanda sulla dieta</span></label>
     <label class="col-riga"><span data-i18n>Alle ore</span><input type="time" id="avv-ora" value="21:00"></label>
     <div class="fine" id="avv-stato"></div>
+  </div>
+  <div class="box">
+    <div class="pick-title"><span data-i18n>Lingua</span><small>Language</small></div>
+    <button type="button" class="btn-lite" id="lang-btn" title="Language / Lingua">English</button>
+  </div>
+  <div class="box">
+    <div class="pick-title"><span data-i18n>Seguici</span></div>
+    <button type="button" class="btn-lite" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><img src="qr-ig.png" alt="QR"><span data-i18n>Instagram, YouTube e GitHub coi loro QR</span></button>
   </div>
 </div>
 
@@ -792,7 +800,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='4.1';
+const CVER='4.2';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1131,6 +1139,12 @@ const TT={en:{
   'La seduta di':'The session of', 'è aperta da':'has been open since', 'Chiudila':'Close it',
   'C’è una seduta coi pesi aperta':'A weights session is open',
   'il battito va già con quella. Chiudila per registrare una seduta di solo cardio.':'the heart rate already goes with it. Close it to record a cardio-only session.',
+  /* conferma d'avvio, annulla seduta, Impostazioni (27/11/2026) */
+  'Inizio la seduta di oggi?':'Start today’s session?', 'Inizia':'Start', 'Solo guardare':'Just look', 'solo da guardare':'just looking',
+  'annulla seduta':'cancel session', 'Annullo la seduta? Non si salva niente: né durata, né fatica, né battito.':'Cancel the session? Nothing is saved: no duration, no effort, no heart rate.',
+  'Sì, annulla la seduta':'Yes, cancel the session', 'No, continua':'No, keep going',
+  'Impostazioni':'Settings', 'Lingua':'Language', 'Seguici':'Follow us', 'Instagram, YouTube e GitHub coi loro QR':'Instagram, YouTube and GitHub with their QR codes',
+  'lingua e QR':'language and QR', 'collegamento, promemoria, lingua e QR':'link, reminders, language and QR',
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -1140,7 +1154,7 @@ function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ if(el.dataset.i18nSrc==null) el.dataset.i18nSrc=el.textContent.trim(); el.textContent=tt(el.dataset.i18nSrc); });
   document.querySelectorAll('[data-i18n-html]').forEach(el=>{ if(el.dataset.i18nHtmlSrc==null) el.dataset.i18nHtmlSrc=el.innerHTML.trim(); el.innerHTML=tt(el.dataset.i18nHtmlSrc); });
 }
-{ const lb=$('lang-btn'); if(lb){ lb.textContent=LANGP==='it'?'EN':'IT';
+{ const lb=$('lang-btn'); if(lb){ lb.textContent=LANGP==='it'? 'English' : 'Italiano';
   lb.onclick=()=>{ try{ localStorage.setItem('tms-scheda-lang',LANGP==='it'?'en':'it'); }catch(e){} location.reload(); }; } }
 if(document.documentElement) document.documentElement.lang=LANGP;
 applyI18n();
@@ -1358,7 +1372,7 @@ function mostra(id){ ['menu','home','alim','foto','bil','fc','col'].forEach(s=>{
 /* ── barra in alto: il marchio al menu; nelle altre schermate «‹ indietro» e il titolo. Si aggiorna
       da sola quando una schermata compare o sparisce (attributo hidden): così ogni strada (menu,
       tasto indietro del telefono, promemoria, collegamento) la tiene giusta. ── */
-const BARRA_TIT={home:'Scheda allenamento', alim:'Alimentazione', foto:'Foto progressi', bil:'Bilancia', fc:'Fascia cardio', col:'Collegamento e promemoria'};
+const BARRA_TIT={home:'Scheda allenamento', alim:'Alimentazione', foto:'Foto progressi', bil:'Bilancia', fc:'Fascia cardio', col:'Impostazioni'};
 function barraAggiorna(){
   if(!document || !document.body || !$('barra-ind')) return;   /* pagina già chiusa */
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
@@ -2276,9 +2290,13 @@ function renderFc(){
 }
 /* ── SEDUTA IN CORSO (richiesta di Marco, 26/11/2026: «quando vado sulla scheda automaticamente fa partire una
       sessione che devo chiudere, e durante la sessione in una zona dedicata mostra costantemente il battito»).
-      Aprire un giorno della scheda AVVIA la seduta e ne salva l'inizio (IndexedDB, per profilo: resiste a un'app
-      chiusa). Uscire e rientrare non la fa ripartire; resta aperta finché non si chiude. Una sola seduta aperta
-      alla volta; un giorno già chiuso in settimana (fatica+durata o «Giorno completato») non riparte da solo.
+      Aprire un giorno della scheda CHIEDE se iniziare la seduta (27/11/2026, Marco: «chiedi la conferma di avvio,
+      posso aprire la scheda anche solo per controllarla»): «Inizia» la avvia e ne salva l'inizio (IndexedDB, per
+      profilo: resiste a un'app chiusa); «Solo guardare» lascia consultare la scheda, con «Inizia la seduta» sempre
+      a portata nella zona, e per quel giorno di calendario non lo richiede più. Uscire e rientrare non fa ripartire
+      una seduta aperta; resta aperta finché non si chiude o si ANNULLA («annulla seduta», con conferma: avviata per
+      sbaglio, non si salva niente, né durata né fatica né battito). Una sola seduta aperta alla volta; un giorno già
+      chiuso in settimana (fatica+durata o «Giorno completato») non chiede niente.
       La ZONA DELLA SEDUTA è una seconda riga della barra in alto, sempre visibile sulle pagine dei giorni:
       battito (colorato per zona, o «nessuna fascia» con il tasto per collegarla), tempo trascorso, «Fine seduta».
       «Fine seduta» compila da sola la DURATA e chiede la FATICA (RPE) nei campi di fine giornata che esistono
@@ -2290,7 +2308,11 @@ function renderFc(){
       chiede se chiuderla, con la durata fino all'ultima attività. Mentre una seduta coi pesi è aperta la pagina
       «Fascia cardio» non avvia una registrazione a parte (il battito va già con la seduta). ── */
 const SED_DIMENTICATA=3*3600000;
-const SED={s:null, chiudi:false, fineAt:0, rpe:null, dimenticata:false, timer:null, bozzaT:0};
+const SED={s:null, chiudi:false, fineAt:0, rpe:null, dimenticata:false, timer:null, bozzaT:0, chiedi:'', annulla:false};
+/* i giorni aperti «solo per guardare» oggi: non si richiede di iniziare (si azzera il giorno dopo) */
+function sedGuardoLeggi(){ try{ const o=JSON.parse(localStorage.getItem('tms-sed-guardo')||'{}'); return (o && o.data===dataLoc(new Date()) && Array.isArray(o.giorni))? o.giorni : []; }catch(e){ return []; } }
+function sedGuardo(g){ const l=sedGuardoLeggi(); if(l.indexOf(g)<0) l.push(g);
+  try{ localStorage.setItem('tms-sed-guardo', JSON.stringify({data:dataLoc(new Date()), giorni:l})); }catch(e){} }
 let SEDUTE_PESI_FC=[];
 function sedKey(){ return 'tms-seduta-'+fcSlug(); }
 function fcpKey(){ return 'tms-fcp-'+fcSlug(); }
@@ -2310,14 +2332,21 @@ function sedGiornoVisibile(){ const p=[...document.querySelectorAll('.day-page')
 /* aprendo un giorno: parte la seduta, se non ce n'è già una aperta e quel giorno non è già chiuso */
 function sedApri(gi){
   if(GIORNI[gi]==null) return;
-  if(SED.s){ sedControlla(); if(!SED.dimenticata) sedAttivita(); sedZona(); return; }
-  if(giornoCompletato(gi)){ sedZona(); return; }
-  sedInizia(GIORNI[gi]); }
+  if(SED.s){ SED.chiedi=''; sedControlla(); if(!SED.dimenticata) sedAttivita(); sedZona(); return; }
+  SED.chiedi=(giornoCompletato(gi) || sedGuardoLeggi().indexOf(GIORNI[gi])>=0)? '' : GIORNI[gi];
+  sedZona(); }
 function sedInizia(g){
   const ora=Date.now();
   SED.s={giorno:g, settimana:+(((SCHEDA&&SCHEDA.sync)||{}).settimana)||0, inizio:ora, ultima:ora, picco:0, secchi:{}};
-  SED.chiudi=false; SED.dimenticata=false; SED.rpe=null;
+  SED.chiudi=false; SED.dimenticata=false; SED.rpe=null; SED.chiedi=''; SED.annulla=false;
   sedSalva(true); sedTimer(); sedZona(); }
+/* «annulla seduta»: avviata per sbaglio, non si salva niente (né durata, né fatica, né battito) */
+async function sedAnnulla(){
+  const s=SED.s; if(!s) return;
+  SED.s=null; SED.chiudi=false; SED.fineAt=0; SED.rpe=null; SED.dimenticata=false; SED.annulla=false; SED.chiedi=''; sedTimer();
+  sedGuardo(s.giorno);   /* resta aperto da guardare: «Inizia la seduta» è lì se serve */
+  await fcScriviKv(sedKey(), null);
+  sedZona(); sedAvvisoMenu(); fcAggiornaMenu(); }
 /* qualcosa fatto nella seduta: sposta «l'ultima attività» (serve a riconoscere una seduta dimenticata) */
 function sedAttivita(){ if(!SED.s || SED.dimenticata) return; SED.s.ultima=Date.now(); sedSalva(false); }
 function sedControlla(){ if(SED.s && !SED.chiudi && Date.now()-(+SED.s.ultima||+SED.s.inizio)>SED_DIMENTICATA) SED.dimenticata=true; sedAvvisoMenu(); }
@@ -2369,8 +2398,12 @@ function sedZona(){
   const s=SED.s, altro=s && GIORNI.indexOf(s.giorno)!==gi;
   let h=sedBattitoHtml();
   if(s){
-    h+='<div class="sed-tempo"><b id="sed-t">0:00</b><span>'+esc(altro? tt('seduta di')+' '+s.giorno : tt('seduta in corso'))+'</span></div>';
-    if(!SED.chiudi && !SED.dimenticata) h+='<button type="button" class="sed-btn" id="sed-fine">'+esc(tt('Fine seduta'))+'</button>';
+    const libera=!SED.chiudi && !SED.dimenticata && !SED.annulla;
+    h+='<div class="sed-tempo"><b id="sed-t">0:00</b><span>'+esc(altro? tt('seduta di')+' '+s.giorno : tt('seduta in corso'))+'</span>'+
+      (libera? '<button type="button" class="sed-link" id="sed-annulla-s">'+esc(tt('annulla seduta'))+'</button>' : '')+'</div>';
+    if(libera) h+='<button type="button" class="sed-btn" id="sed-fine">'+esc(tt('Fine seduta'))+'</button>';
+    if(SED.annulla) h+='<div class="sed-riga"><p>'+esc(tt('Annullo la seduta? Non si salva niente: né durata, né fatica, né battito.'))+'</p>'+
+      '<button type="button" class="sed-btn" id="sed-annulla-si">'+esc(tt('Sì, annulla la seduta'))+'</button><button type="button" class="sed-btn" id="sed-annulla-no">'+esc(tt('No, continua'))+'</button></div>';
     if(SED.dimenticata && !SED.chiudi){
       const minU=Math.max(1, Math.round(((+s.ultima||+s.inizio)-s.inizio)/60000));
       h+='<div class="sed-riga"><p>'+esc(tt('Questa seduta è aperta da molte ore.'))+' '+esc(tt('La chiudo con'))+' <b>'+minU+' min</b> '+esc(tt('(fino all’ultima cosa che hai segnato)?'))+'</p>'+
@@ -2380,10 +2413,13 @@ function sedZona(){
       h+='<div class="sed-riga"><p>'+esc(tt('Durata'))+' <b>'+min+' min</b>'+(useRpeScheda()? ' · '+esc(tt('Fatica della seduta (RPE)')) : '')+'</p>'+
         (useRpeScheda()? '<div class="sed-rpe">'+[1,2,3,4,5,6,7,8,9,10].map(n=>'<button type="button" data-sedrpe="'+n+'"'+(SED.rpe===n?' class="on"':'')+'>'+n+'</button>').join('')+'</div>' : '')+
         '<button type="button" class="sed-btn ok" id="sed-ok">'+esc(tt('Chiudi la seduta'))+'</button><button type="button" class="sed-btn" id="sed-annulla">'+esc(tt('Annulla'))+'</button></div>'; }
+  } else if(SED.chiedi===GIORNI[gi]){
+    h+='<div class="sed-riga"><p>'+esc(tt('Inizio la seduta di oggi?'))+'</p>'+
+      '<button type="button" class="sed-btn ok" id="sed-inizia">'+esc(tt('Inizia'))+'</button><button type="button" class="sed-btn" id="sed-guardo">'+esc(tt('Solo guardare'))+'</button></div>';
   } else {
     const chiusa=giornoCompletato(gi);
-    h+='<div class="sed-tempo"><b>'+(chiusa? ico('check') : '–')+'</b><span>'+esc(tt(chiusa? 'seduta chiusa' : 'nessuna seduta aperta'))+'</span></div>'+
-      '<button type="button" class="sed-btn" id="sed-nuova">'+esc(tt(chiusa? 'Nuova seduta' : 'Inizia la seduta'))+'</button>'; }
+    h+='<div class="sed-tempo"><b>'+(chiusa? ico('check') : '–')+'</b><span>'+esc(tt(chiusa? 'seduta chiusa' : 'solo da guardare'))+'</span></div>'+
+      '<button type="button" class="sed-btn'+(chiusa? '' : ' ok')+'" id="sed-nuova">'+esc(tt(chiusa? 'Nuova seduta' : 'Inizia la seduta'))+'</button>'; }
   z.innerHTML=h; sedTempo();
   const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
   on('sed-fc', ()=>{ if(FC.id) return; if(fcIdNoto()) fcAvvia(); else fcApri(); });
@@ -2393,6 +2429,11 @@ function sedZona(){
   on('sed-dim-chiudi', ()=>{ SED.dimenticata=false; sedFineApri(+SED.s.ultima||+SED.s.inizio); });
   on('sed-dim-continua', ()=>sedContinua());
   on('sed-nuova', ()=>{ if(!SED.s) sedInizia(GIORNI[gi]); });
+  on('sed-inizia', ()=>{ if(!SED.s) sedInizia(GIORNI[gi]); });
+  on('sed-guardo', ()=>{ sedGuardo(GIORNI[gi]); SED.chiedi=''; sedZona(); });
+  on('sed-annulla-s', ()=>{ SED.annulla=true; sedZona(); });
+  on('sed-annulla-si', ()=>{ sedAnnulla(); });
+  on('sed-annulla-no', ()=>{ SED.annulla=false; sedZona(); });
   z.querySelectorAll('[data-sedrpe]').forEach(b=>{ b.onclick=()=>{ SED.rpe=+b.getAttribute('data-sedrpe'); sedZona(); }; }); }
 /* al menu: una seduta dimenticata si segnala anche qui */
 function sedAvvisoMenu(){
@@ -3340,7 +3381,10 @@ function qrTrovato(codice){
   const inp=$('col-codice'); if(inp) inp.value=codice.match(/.{1,4}/g).join('-');
   colCollega(); }
 document.addEventListener('visibilitychange',()=>{ if(document.hidden && qrAperto()) qrChiudi(); });
-/* ── schermata «⚙ Collegamento e promemoria» ── */
+/* ── schermata «⚙ Impostazioni» (27/11/2026, Marco: «dove ora esiste "collegamento e promemoria" metti impostazioni,
+      mettici collegamento e promemoria e spostaci lingua e qrcode, lasciando in alto solo il battito cardiaco»):
+      collegamento col TMS (solo nell'APK), promemoria (solo nell'APK), lingua e QR (sempre). Gli id restano quelli
+      di prima (#col, #vai-col, #lang-btn, #qr-btn). ── */
 function colAvvisoMenu(testo){ COL.avviso=testo; clearTimeout(COL.avvisoT); COL.avvisoT=setTimeout(()=>{ COL.avviso=''; colRender(); }, 15000); colRender(); }
 async function colCollega(){
   if(!colPuo()) return;
@@ -3369,12 +3413,13 @@ function colApri(){ navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu'
 function colEsci(){ if(SCHEDA){ aggiornaStato(); mostra('menu'); } else { $('col').hidden=true; avvia(); } }
 function colRender(){
   const P=colPuo(), conf=colConf(), att=colAttivo();
-  ['vai-col','col-da-ben'].forEach(id=>{ const b=$(id); if(b) b.hidden=!P; });
+  { const b=$('col-da-ben'); if(b) b.hidden=!P; }
+  { const cb=$('col-box'); if(cb) cb.hidden=!P; }
   { const n=$('ben-solo-apk'); if(n) n.hidden=P; }
   const avv=$('avv-box'); if(avv) avv.hidden=!window.tmsAvvisi;
-  if(!P) return;
   const meta=$('meta-col');
-  if(meta) meta.textContent=att? (tt('collegato al PC')+(COL.ultimo?' · '+tt('controllato alle')+' '+colOraBreve(COL.ultimo):'')) : tt('scheda dal PC, pesate e foto al PC, promemoria');
+  if(!P){ if(meta) meta.textContent=tt('lingua e QR'); return; }
+  if(meta) meta.textContent=att? (tt('collegato al PC')+(COL.ultimo?' · '+tt('controllato alle')+' '+colOraBreve(COL.ultimo):'')) : tt('collegamento, promemoria, lingua e QR');
   /* avvisi in cima al menu (e al benvenuto) */
   const pz=[];
   if(COL.apk) pz.push('<div class="avviso col-avviso">'+ico('freccia-su')+'<span>'+esc(tt('C\'è TMS Scheda'))+' <b>'+esc(COL.apk.versione)+'</b></span><button type="button" data-col-az="apk"'+(COL.apkScarico?' disabled':'')+'>'+esc(COL.apkScarico? tt('Scarico…') : tt('Installa'))+'</button></div>');
@@ -3465,7 +3510,7 @@ function apriDaAvviso(pagina){
   else if(window.tmsBLE){ navEntra(); mostra('bil'); renderBil(); bilAvvia(); }
 }
 window.apriDaAvviso=apriDaAvviso;
-$('vai-col').onclick=colApri; $('col-da-ben').onclick=colApri;
+$('vai-col').onclick=colApri; $('col-da-ben').onclick=colApri; $('ben-imp').onclick=colApri;
 document.querySelectorAll('[data-col-esci]').forEach(b=>{ b.onclick=navIndietro; });
 $('col-collega').onclick=colCollega;
 $('col-qr').onclick=qrApri;
