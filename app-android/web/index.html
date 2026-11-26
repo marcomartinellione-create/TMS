@@ -294,6 +294,34 @@
  .bil-row.fuori .bil-g,.bil-row.fuori .bil-g b{color:var(--ink-4)}
  .bil-media{font-size:13.5px;color:var(--ink-2);margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--carta-2);line-height:1.45}
  .bil-avv{display:block;margin-top:6px;color:var(--ocra)}
+ /* ── fascia cardio ── */
+ #vai-fc .macro-ico{background:var(--err-t);color:var(--err)}
+ .fc-live{text-align:center;padding:22px 16px 18px}
+ #fc-sotto{color:var(--ink-3);font-size:13px}
+ .fc-bpm{font-family:var(--serif);font-size:72px;line-height:1.05;font-weight:700;color:var(--ink);margin:10px 0 2px;font-variant-numeric:tabular-nums;transition:color var(--svelto)}
+ .fc-bpm small{font-family:var(--sans);font-size:20px;font-weight:500;color:var(--ink-3);margin-left:2px}
+ .fc-bpm.z1{color:#5b6f86} .fc-bpm.z2{color:#2b7a9a} .fc-bpm.z3{color:var(--ok)} .fc-bpm.z4{color:var(--acc)} .fc-bpm.z5{color:var(--err)}
+ .fc-zona{font-size:14px;font-weight:600;color:var(--ink-2);min-height:20px}
+ .fc-zone{display:flex;gap:4px;margin:8px auto 10px;max-width:260px}
+ .fc-zone:empty{display:none}
+ .fc-zone i{flex:1;height:7px;border-radius:4px;opacity:.28}
+ .fc-zone i.z1{background:#5b6f86} .fc-zone i.z2{background:#2b7a9a} .fc-zone i.z3{background:var(--ok)} .fc-zone i.z4{background:var(--acc)} .fc-zone i.z5{background:var(--err)}
+ .fc-zone i.on{opacity:1;transform:scaleY(1.5)}
+ .fc-disp{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin:8px 0 0;padding:8px 14px;text-align:left;background:var(--carta-2);border:1px solid var(--filo-2);border-radius:var(--r-sm);color:var(--ink)}
+ .fc-disp .ic{width:22px;height:22px;color:var(--err);flex:none}
+ .fc-disp span{display:flex;flex-direction:column;min-width:0}
+ .fc-disp b{font-size:15px} .fc-disp small{font-size:12px;color:var(--ink-3)}
+ .fc-tre{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 8px;text-align:center}
+ .fc-tre b{display:block;font-family:var(--serif);font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
+ .fc-tre span{font-size:12.5px;color:var(--ink-3)}
+ .fc-in-reg{border-color:var(--err-f)}
+ .fc-sel{display:block;width:100%;height:48px;margin:6px 0 8px;padding:0 12px;border:1.5px solid var(--filo);border-radius:10px;background:#fff;font-family:var(--sans);font-size:16px;color:var(--ink)}
+ .fc-rec{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--err);animation:fc-pulsa 1s ease-in-out infinite alternate}
+ @keyframes fc-pulsa{from{opacity:1}to{opacity:.3}}
+ .fc-chip{flex:none;display:inline-flex;align-items:center;gap:5px;height:40px;padding:0 10px;border:1px solid rgba(232,196,90,.38);border-radius:var(--r-sm);background:rgba(255,255,255,.06);color:#fdf3dc;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+ .fc-chip .ic{width:18px;height:18px;color:#f08a7a}
+ .fc-chip.rec{border-color:#f08a7a}
+ .fc-chip.rec .ic{animation:fc-pulsa 1s ease-in-out infinite alternate}
 
  /* ── collegamento col PC e promemoria ── */
  .col-in{width:100%;height:54px;font-family:var(--sans);font-size:19px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 14px;border:1.5px solid transparent;border-radius:var(--r-sm);background:var(--campo);color:var(--ink);margin:6px 0 4px;font-variant-numeric:tabular-nums}
@@ -524,12 +552,14 @@
   <symbol id="i-appunti" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16" rx="2.2"/><path d="M9 4.5V3.4h6v1.1M8.6 10h6.8M8.6 13.5h6.8M8.6 17h4"/></symbol>
   <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.8" y="5.2" width="16.4" height="15" rx="2.2"/><path d="M3.8 9.8h16.4M8.2 3.4v3.4M15.8 3.4v3.4"/></symbol>
   <symbol id="i-fiamma" viewBox="0 0 24 24"><path d="M12 21c3.5 0 6-2.5 6-5.8 0-3.6-2.6-5.5-3.6-8.6-.7 1.6-1.6 2.6-2.6 3.1-.1-2.8-1.3-5.2-3.2-6.7.2 3.2-3.1 6.2-3.1 10.2C5.5 18.5 8.3 21 12 21z"/></symbol>
+  <symbol id="i-cuore" viewBox="0 0 24 24"><path d="M12 20.2s-7.6-4.6-7.6-10.4A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.6 2.6c0 5.8-7.6 10.4-7.6 10.4z"/><path d="M6 12.4h3.2l1.6-2.8 2.4 5.2 1.6-2.4H18"/></symbol>
 </defs></svg>
 
 <header class="barra" id="barra">
   <button type="button" class="barra-ind" id="barra-ind" hidden><svg class="ic"><use href="#i-indietro"/></svg><span id="barra-ind-t"></span></button>
   <h1 id="barra-marchio"><svg class="ic"><use href="#i-sigillo"/></svg>TMS Scheda</h1>
   <div class="barra-titolo" id="barra-titolo" hidden></div>
+  <button type="button" class="fc-chip" id="fc-chip" hidden title="Fascia cardio"><svg class="ic"><use href="#i-cuore"/></svg><span id="fc-chip-v">—</span></button>
   <button type="button" id="lang-btn" class="barra-btn" title="Language / Lingua">EN</button>
   <button type="button" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><img src="qr-ig.png" alt="QR"></button>
 </header>
@@ -583,6 +613,10 @@
         <span class="macro-ico"><svg class="ic"><use href="#i-bilancia"/></svg></span>
         <span class="macro-l"><span class="macro-name" data-i18n>Bilancia</span><span class="macro-meta" id="meta-bil"></span></span>
         <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
+      <button type="button" class="macro-card" id="vai-fc" hidden>
+        <span class="macro-ico"><svg class="ic"><use href="#i-cuore"/></svg></span>
+        <span class="macro-l"><span class="macro-name" data-i18n>Fascia cardio</span><span class="macro-meta" id="meta-fc"></span></span>
+        <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
     </div>
     <div class="gruppo">
       <button type="button" class="macro-card" id="vai-col" hidden>
@@ -620,6 +654,22 @@
   <div class="box"><div class="pick-title" data-i18n>Le tue pesate</div><div id="bil-lista"></div></div>
   <div class="fine" data-i18n-html>Le pesate restano su <b>questo telefono</b> e arrivano da sole sul PC: nel TMS la media di ogni settimana va da sola nello Storico misure.</div>
   <button type="button" class="btn-lite quieto" id="bil-dimentica" hidden data-i18n>Usa un’altra bilancia</button>
+</div>
+
+<!-- ── schermata FASCIA CARDIO (solo nell'APK: serve il Bluetooth del telefono). Battito in diretta da una
+       fascia cardio standard o da un bracciale che lo condivide; con «Registra» la seduta resta sul
+       telefono e va da sola al TMS collegato, nel tab Cardio. ── -->
+<div id="fc" hidden>
+  <p class="sez-nota" id="fc-chi"></p>
+  <div class="box fc-live"><div class="bil-stato" id="fc-stato"></div><div class="fc-bpm" id="fc-bpm">—</div>
+    <div class="fc-zona" id="fc-zona"></div><div class="fc-zone" id="fc-zone"></div><div class="bil-stato" id="fc-sotto"></div>
+    <div id="fc-trovati"></div>
+    <button type="button" class="btn-lite" id="fc-riprova" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span id="fc-riprova-t">Riprova</span></button></div>
+  <div id="fc-reg"></div>
+  <div class="box"><div class="pick-title" data-i18n>Le tue sedute</div><div id="fc-lista"></div></div>
+  <div class="fine" data-i18n-html>Va con le <b>fasce cardio Bluetooth</b> (Polar, Garmin, Wahoo…) e coi bracciali che condividono il battito. Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio.</div>
+  <button type="button" class="btn-lite quieto" id="fc-scollega" hidden data-i18n>Scollega</button>
+  <button type="button" class="btn-lite quieto" id="fc-dimentica" hidden data-i18n>Usa un’altra fascia</button>
 </div>
 
 <!-- ── schermata COLLEGAMENTO E PROMEMORIA (solo nell'APK): codice che dà il personal (l'hub del TMS
@@ -713,7 +763,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='3.9';
+const CVER='4.0';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1002,7 +1052,45 @@ const TT={en:{
   "Inquadra il QR che vedi sul PC":"Scan the QR shown on the PC",
   "Sul PC del tuo personal: ⚙ Impostazioni › Telefono collegato › QR.":"On your personal trainer's PC: ⚙ Settings › Linked phone › QR.",
   "Questo telefono non riesce a leggere i QR: scrivi il codice.":"This phone can't read QR codes: type the code.",
-  "Senza il permesso della fotocamera non posso leggere il QR: scrivi il codice.":"Without camera permission I can't read the QR: type the code."
+  "Senza il permesso della fotocamera non posso leggere il QR: scrivi il codice.":"Without camera permission I can't read the QR: type the code.",
+  /* fascia cardio (26/11/2026) */
+  'Fascia cardio':'Heart rate strap',
+  'Le tue sedute':'Your sessions',
+  'Va con le <b>fasce cardio Bluetooth</b> (Polar, Garmin, Wahoo…) e coi bracciali che condividono il battito. Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio.':'Works with <b>Bluetooth heart rate straps</b> (Polar, Garmin, Wahoo…) and with bands that share the heart rate. Sessions stay on <b>this phone</b> and reach the PC by themselves, in the Cardio tab.',
+  'Usa un’altra fascia':'Use another strap',
+  'Zona 1':'Zone 1', 'Zona 2':'Zone 2', 'Zona 3':'Zone 3', 'Zona 4':'Zone 4', 'Zona 5':'Zone 5',
+  'molto leggera':'very light', 'leggera':'light', 'moderata':'moderate', 'intensa':'hard', 'massimale':'maximum',
+  'Sotto la zona 1':'Below zone 1', 'della FC max':'of max HR',
+  'Corsa':'Running', 'Tapis roulant':'Treadmill', 'Camminata veloce':'Brisk walking', 'Bici':'Cycling', 'Cyclette':'Stationary bike',
+  'Nuoto':'Swimming', 'Vogatore':'Rowing machine', 'Ellittica':'Elliptical', 'Sci di fondo':'Cross-country skiing', 'Salto della corda':'Jump rope', 'HIIT':'HIIT',
+  'Senza il permesso «Dispositivi nelle vicinanze» l’app non può parlare con la fascia. Tocca «Riprova» e poi «Consenti».':'Without the “Nearby devices” permission the app can’t talk to the strap. Tap “Retry” and then “Allow”.',
+  'Su questo telefono, per cercare la fascia, Android vuole la Posizione accesa: accendila e tocca «Riprova». L’app non la usa e non la salva.':'On this phone Android wants Location on to look for the strap: turn it on and tap “Retry”. The app doesn’t use or store it.',
+  'La fascia si collega ma non lascia leggere il battito senza un abbinamento. Con un Amazfit Helio Strap: in Zepp accendi «Heart Rate Push», poi chiudi Zepp e tocca «Riprova». Se ancora non va, per quel bracciale serve il collegamento con la sua chiave, che arriverà in una versione successiva.':'The strap connects but won’t share the heart rate without pairing. With an Amazfit Helio Strap: turn on “Heart Rate Push” in Zepp, then close Zepp and tap “Retry”. If it still doesn’t work, that band needs the connection with its own key, coming in a later version.',
+  'la fascia':'the strap',
+  'Indossa la fascia (o il bracciale): cerco i dispositivi vicini…':'Put on the strap (or band): looking for nearby devices…',
+  'Tocca la tua quando compare qui sotto.':'Tap yours when it shows up below.',
+  'Cerco':'Looking for',
+  'Non la trovo ancora. Indossala: molte fasce si accendono solo a contatto con la pelle. Se sul telefono c’è l’app del produttore, chiudila: la fascia accetta un collegamento alla volta.':'Can’t find it yet. Put it on: many straps only wake up on skin contact. If the maker’s app is on this phone, close it: the strap accepts one connection at a time.',
+  'Mi collego a':'Connecting to', 'Collegata a':'Connected to', 'aspetto il battito…':'waiting for the heart rate…',
+  'Non sento il contatto con la pelle.':'No skin contact.',
+  'Inumidisci gli elettrodi e stringi la fascia sotto il petto (o il bracciale sul braccio).':'Wet the electrodes and tighten the strap under the chest (or the band on the arm).',
+  'Collegata, ma il battito non arriva.':'Connected, but no heart rate is coming in.',
+  'Stringi la fascia o il bracciale sulla pelle. Con un Amazfit Helio Strap: in Zepp accendi «Heart Rate Push» e chiudi Zepp. Se continua, per quel bracciale serve il collegamento con la sua chiave, che arriverà in una versione successiva.':'Tighten the strap or band on the skin. With an Amazfit Helio Strap: turn on “Heart Rate Push” in Zepp and close Zepp. If it goes on, that band needs the connection with its own key, coming in a later version.',
+  'Collegamento perso: riprovo…':'Connection lost: retrying…',
+  'La registrazione continua: i secondi senza battito restano vuoti.':'Recording goes on: the seconds without heart rate stay empty.',
+  'Fascia scollegata.':'Strap disconnected.',
+  'Senza nome':'No name',
+  'Non trovo ancora nulla. Indossa la fascia: molte si accendono solo a contatto con la pelle. Se sul telefono c’è l’app del produttore, chiudila.':'Nothing found yet. Put on the strap: many only wake up on skin contact. If the maker’s app is on this phone, close it.',
+  'Com’è andata?':'How did it go?', 'durata':'duration', 'FC media':'avg HR', 'picco':'peak', 'tempo':'time', 'Attività':'Activity',
+  'Fatica (RPE 0–10)':'Effort (RPE 0–10)', 'Buttare via questa registrazione?':'Throw this recording away?', 'Butta via':'Throw away',
+  'Salva la seduta':'Save the session', 'Registrazione in corso':'Recording', 'Registra':'Record',
+  'Tieni l’app aperta: lo schermo resta acceso finché registri.':'Keep the app open: the screen stays on while you record.',
+  'registrazione in corso':'recording', 'collegata':'connected',
+  'seduta questa settimana':'session this week', 'sedute questa settimana':'sessions this week',
+  'battito in diretta, sedute al coach':'live heart rate, sessions to your coach',
+  'Battito di':'Heart rate of', 'FC max':'Max HR', '(dal Profilo)':'(from the Profile)', '(stimata dall’età)':'(estimated from age)',
+  'La scheda non porta né la FC max né l’età: vedi il battito, ma non le zone.':'The program has neither max HR nor age: you see the heart rate, but not the zones.',
+  'Togli la seduta di':'Remove the session of', 'Togli questa seduta':'Remove this session', 'Ancora nessuna seduta registrata.':'No sessions recorded yet.',
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -1108,7 +1196,7 @@ function avvia(){
   const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
   if(!SCHEDA){ { const ct=$('ciao-t'); if(ct) ct.hidden=true; $('sub').hidden=false; $('sub').textContent=tt("Il taccuino digitale del Training Monitor System: qui annoti l'allenamento in palestra."); }
-    ben.hidden=false; ['menu','home','alim','foto','bil','col'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); colRender(); avvPianifica(); return; }
+    ben.hidden=false; ['menu','home','alim','foto','bil','fc','col'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); colRender(); avvPianifica(); return; }
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
@@ -1129,6 +1217,8 @@ function avvia(){
   pesLeggi().then(l=>{ PESATE=Array.isArray(l)?l:[]; const prima=JSON.stringify(PESATE);
     PESATE.forEach(p=>{ if(p&&p.imp&&p.grasso==null) pesComponi(p); });
     if(JSON.stringify(PESATE)!==prima) pesSalva(); renderBil(); avvPianifica(); }).catch(()=>{ PESATE=[]; renderBil(); });
+  /* sedute della fascia cardio (per profilo) e registrazione rimasta a metà */
+  SEDUTE_FC=[]; fcAggiornaMenu(); fcCarica().catch(()=>{});
   mostra('menu'); mostraInstallHint(); colRender(); avvPianifica();
 }
 /* ricostruisce lista giorni e pagine-giorno dal modello WROWS; poi riaggancia gli
@@ -1217,15 +1307,16 @@ function rigaEsercizio(r){
       (ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':'')+
     '</div></div>';
 }
-function mostra(id){ ['menu','home','alim','foto','bil','col'].forEach(s=>{ $(s).hidden=(id!==s); });
+function mostra(id){ ['menu','home','alim','foto','bil','fc','col'].forEach(s=>{ $(s).hidden=(id!==s); });
   if(id!=='bil') bilEsci();   /* fuori dalla pagina Bilancia il Bluetooth si ferma */
+  if(id!=='fc') fcLasciaPagina();   /* la fascia collegata resta collegata; la ricerca si ferma */
   if(id==='menu'){ colPresto(); alimMeta(); }   /* di nuovo al menu: è il momento giusto per gli aggiornamenti dal PC */
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
 /* ── barra in alto: il marchio al menu; nelle altre schermate «‹ indietro» e il titolo. Si aggiorna
       da sola quando una schermata compare o sparisce (attributo hidden): così ogni strada (menu,
       tasto indietro del telefono, promemoria, collegamento) la tiene giusta. ── */
-const BARRA_TIT={home:'Scheda allenamento', alim:'Alimentazione', foto:'Foto progressi', bil:'Bilancia', col:'Collegamento e promemoria'};
+const BARRA_TIT={home:'Scheda allenamento', alim:'Alimentazione', foto:'Foto progressi', bil:'Bilancia', fc:'Fascia cardio', col:'Collegamento e promemoria'};
 function barraAggiorna(){
   if(!document || !document.body || !$('barra-ind')) return;   /* pagina già chiusa */
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
@@ -1240,7 +1331,7 @@ function barraAggiorna(){
 }
 $('barra-ind').onclick=()=>navIndietro();
 { const oss=new MutationObserver(barraAggiorna);
-  ['benvenuto','menu','home','alim','foto','bil','col'].forEach(x=>{ const el=$(x); if(el) oss.observe(el,{attributes:true,attributeFilter:['hidden']}); });
+  ['benvenuto','menu','home','alim','foto','bil','fc','col'].forEach(x=>{ const el=$(x); if(el) oss.observe(el,{attributes:true,attributeFilter:['hidden']}); });
   oss.observe($('pagine'),{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']}); }
 /* fase visibile dentro la pagina-giorno ('w' riscaldamento · 'e' esercizi · 'f' fine) */
 function mostraFase(gi,fase){
@@ -1661,7 +1752,7 @@ function risali(){
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
   if(giorno){ aggiornaStato(); mostra('home'); return true; }
   if(!$('col').hidden){ colEsci(); return true; }
-  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden || !$('bil').hidden){ aggiornaStato(); mostra('menu'); return true; }
+  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden || !$('bil').hidden || !$('fc').hidden){ aggiornaStato(); mostra('menu'); return true; }
   return false;   /* siamo al menu: non c'è più nulla sopra, l'app può chiudersi */
 }
 window.addEventListener('popstate',()=>{ if(navLivelli>0) navLivelli--; risali(); });
@@ -1776,7 +1867,8 @@ function bilRisultato(p1, imp){
   bilScrivi(bilConferma(p1[0], BIL.outSeq++));
   bilNuovaPesata(g/1000, p1[8]&255, imp).then(()=>{ bilStato('fatto'); renderBil(); bilAggiornaMenu(); colPresto(); avvPianifica(); });
 }
-function bilScrivi(f){ if(!window.tmsBLE||!BIL.id) return; try{ Promise.resolve(window.tmsBLE.scrivi(BIL.id,'ffb1',f)).catch(()=>{}); }catch(e){} }
+const BIL_BLE={servizio:'ffb0', notifiche:['ffb2','ffb3']};   /* servizio e caratteristiche per il trasporto generico */
+function bilScrivi(f){ if(!window.tmsBLE||!BIL.id) return; try{ Promise.resolve(window.tmsBLE.scrivi(BIL.id,'ffb1',f,BIL_BLE.servizio)).catch(()=>{}); }catch(e){} }
 
 /* — collegamento: si cerca finché la pagina è aperta; la bilancia si fa vedere solo quando
      ci si sale sopra. La prima volta la si riconosce dal nome, poi dal suo indirizzo. — */
@@ -1799,7 +1891,7 @@ async function bilCollega(d){
   BIL.collegando=true;
   try{ await window.tmsBLE.fermaRicerca(); }catch(e){}
   BIL.outSeq=0; BIL.parte1=null; BIL.visteLive=false; BIL.ultimiGrammi=-1; BIL.live=null; BIL.fattoConn=false;
-  try{ await window.tmsBLE.collega(d.id,{onDati:bilMessaggio, onStaccato:bilStaccata}); }
+  try{ await window.tmsBLE.collega(d.id,{onDati:bilMessaggio, onStaccato:bilStaccata}, BIL_BLE); }
   catch(e){ BIL.collegando=false; if(BIL.attivo) setTimeout(bilCerca,1500); return; }
   BIL.collegando=false;
   if(!BIL.attivo){ try{ window.tmsBLE.stacca(d.id); }catch(e){} return; }
@@ -1816,6 +1908,319 @@ function bilEsci(){
     if(BIL.id){ try{ Promise.resolve(window.tmsBLE.stacca(BIL.id)).catch(()=>{}); }catch(e){} } }
   BIL.id=''; BIL.collegando=false;
   if(SCAN.on) scanChiudi(); SCAN.via=false; }
+/* ── FASCIA CARDIO Bluetooth (solo nell'APK: il trasporto è window.tmsBLE, in nativo.js). Fase 1a dello
+      studio del bracciale (Doc/bracciale/PROPOSTA.md, 26/11/2026): profilo standard Bluetooth SIG
+      «Heart Rate», servizio 0x180D, misura 0x2A37 (notify). Va con qualunque fascia cardio standard
+      (Polar, Garmin, Wahoo, Coospo…) e coi bracciali che condividono il battito (Amazfit Helio Strap con
+      «Heart Rate Push» acceso in Zepp). Formato della misura (Bluetooth SIG, Heart Rate Service 1.0,
+      caratteristica «Heart Rate Measurement»): byte 0 = flags — bit0 battito su 2 byte (altrimenti 1),
+      bit1 contatto con la pelle rilevato, bit2 contatto supportato, bit3 energia spesa presente (2 byte),
+      bit4 intervalli RR presenti (2 byte ciascuno, in 1/1024 di secondo, anche più d'uno); i numeri su
+      2 byte sono little-endian.
+      Il battito si VEDE sempre (anche durante la seduta coi pesi, nella barra in alto); si REGISTRA solo
+      con «Registra»: alla «Fine» la seduta cardio (sport, durata, FC media e picco, traccia ogni 5 s)
+      resta sul telefono (IndexedDB, chiave per profilo) e va da sola al PC collegato (file cifrato
+      tms-cardio sull'hub, come le pesate), dove entra nel tab Cardio. Il collegamento resta aperto
+      anche fuori da questa pagina; con l'app in secondo piano si chiude, tranne durante una registrazione
+      (che tiene lo schermo acceso). Una registrazione interrotta (app chiusa) non si perde: la bozza è
+      salvata ogni 15 secondi e alla riapertura si chiude come una seduta finita. ── */
+const FC_SERV='180d', FC_MISURA='2a37', FC_KEY_ID='tms-fascia-id', FC_KEY_NOME='tms-fascia-nome';
+const FC_PASSO=5, FC_SILENZIO=15000, FC_BOZZA_OGNI=15000;
+/* nomi delle fasce e dei bracciali più diffusi (la fascia che dichiara il servizio 0x180D va bene comunque) */
+const FC_NOMI=/polar|hrm|heart|helio|amazfit|tickr|wahoo|garmin|coospo|magene|suunto|kalenji|decathlon|cardio|verity|moofit|xoss|igpsport|scosche|whoop|fitcare|h10\b|h9\b/i;
+const FC_ZONE=[[0.5,'Zona 1','molto leggera'],[0.6,'Zona 2','leggera'],[0.7,'Zona 3','moderata'],[0.8,'Zona 4','intensa'],[0.9,'Zona 5','massimale']];
+/* gli sport sono gli stessi del tab Cardio del TMS (il nome italiano è il dato, tradotto solo a schermo) */
+const FC_SPORT=['Corsa','Tapis roulant','Camminata veloce','Bici','Cyclette','Nuoto','Vogatore','Ellittica','Sci di fondo','Salto della corda','HIIT'];
+const FC={voluto:false, riprendi:false, id:'', nome:'', collegando:false, cercando:false, cercaDa:0, trovati:[], stato:'', motivo:'', msg:'',
+  bpm:null, contatto:null, rr:false, ultimoBuono:0, dalCollegamento:0, gen:0, timer:null, reg:null, bozzaT:0, chiudi:null, scarta:false, togli:'', lock:null, sport:''};
+let SEDUTE_FC=[];
+function fcSlug(){ return (((SCHEDA&&SCHEDA.profilo)||{}).slug)||'cliente'; }
+function fcKey(){ return 'tms-fc-sedute-'+fcSlug(); }
+function fcBozzaKey(){ return 'tms-fc-bozza-'+fcSlug(); }
+async function fcScriviKv(k, v){   /* v null = togli */
+  const s=(v==null)? null : JSON.stringify(v);
+  try{ if(typeof indexedDB!=='undefined'){ await idbReq('readwrite',st=>(s==null? st.delete(k) : st.put(s,k))); return; } }catch(e){}
+  try{ if(s==null) localStorage.removeItem(k); else localStorage.setItem(k,s); }catch(e){} }
+async function fcLeggiKv(k){
+  try{ if(typeof indexedDB!=='undefined'){ const s=await idbReq('readonly',st=>st.get(k)); if(s) return JSON.parse(s); } }catch(e){}
+  try{ const s=localStorage.getItem(k); if(s) return JSON.parse(s); }catch(e){}
+  return null; }
+function fcSalva(){ return fcScriviKv(fcKey(), SEDUTE_FC); }
+/* all'avvio (o quando arriva la scheda): sedute salvate e registrazione rimasta a metà */
+async function fcCarica(){
+  const slug=fcSlug();
+  let l=null, b=null; try{ l=await fcLeggiKv(fcKey()); b=await fcLeggiKv(fcBozzaKey()); }catch(e){}
+  if(slug!==fcSlug()) return;
+  SEDUTE_FC=Array.isArray(l)? l : [];
+  if(b && !FC.reg && !FC.chiudi){
+    if(b.chiudi) FC.chiudi=b.chiudi;
+    else if(b.reg && b.reg.inizio){ FC.chiudi=fcComponi(b.reg, +b.reg.ultimo||+b.reg.inizio, b.nome||''); fcScriviKv(fcBozzaKey(), {chiudi:FC.chiudi}); } }
+  renderFc(); }
+
+/* — la misura del battito (caratteristica 0x2A37) — */
+function fcDecodifica(b){
+  if(!Array.isArray(b) || b.length<2) return null;
+  const f=b[0]&255, u16=(i)=>(b[i]&255)|((b[i+1]&255)<<8);
+  let i, bpm;
+  if(f&1){ if(b.length<3) return null; bpm=u16(1); i=3; } else { bpm=b[1]&255; i=2; }
+  const contatto=(f&4)? !!(f&2) : null;
+  let energia=null; if(f&8){ if(i+1<b.length) energia=u16(i); i+=2; }
+  const rr=[]; if(f&16){ for(; i+1<b.length; i+=2) rr.push(Math.round(u16(i)*1000/1024)); }
+  return {bpm, contatto, energia, rr}; }
+/* FC max: quella del Profilo del TMS se c'è, altrimenti stimata dall'età (Tanaka 2001), come il TMS */
+function fcMaxScheda(){ const c=(SCHEDA&&SCHEDA.corpo)||{};
+  if(+c.fcMax>0) return {v:+c.fcMax, da:'profilo'};
+  if(+c.eta>=10) return {v:Math.round(208-0.7*(+c.eta)), da:'eta'};
+  return null; }
+function fcZona(bpm){ const m=fcMaxScheda(); if(!m || !(bpm>0)) return null;
+  const p=bpm/m.v; let n=0; FC_ZONE.forEach((z,k)=>{ if(p>=z[0]) n=k+1; }); return {n, pct:Math.round(p*100)}; }
+function fcDati(car, b){
+  if(car!==FC_MISURA) return;
+  const m=fcDecodifica(b); if(!m) return;
+  const ora=Date.now();
+  FC.contatto=m.contatto; if(m.rr.length) FC.rr=true;
+  if(m.bpm>=25 && m.bpm<=250 && m.contatto!==false){
+    FC.bpm=m.bpm; FC.ultimoBuono=ora;
+    if(FC.reg) fcCampione(ora, m.bpm);
+    if(FC.stato!=='collegata') fcStato('collegata'); else fcMostraBattito(); }
+  else if(m.contatto===false){ FC.bpm=null; if(FC.stato!=='contatto') fcStato('contatto'); else fcMostraBattito(); }
+  fcChip(); }
+
+/* — collegamento: la prima volta si sceglie la fascia fra quelle trovate, poi la si ritrova da sola — */
+function fcIdNoto(){ try{ return localStorage.getItem(FC_KEY_ID)||''; }catch(e){ return ''; } }
+function fcNomeNoto(){ try{ return localStorage.getItem(FC_KEY_NOME)||''; }catch(e){ return ''; } }
+function fcPapabile(d){ return (d.servizi||[]).indexOf(FC_SERV)>=0 || FC_NOMI.test(d.nome||''); }
+async function fcAvvia(){
+  if(!window.tmsBLE) return;
+  FC.voluto=true;
+  if(FC.id || FC.collegando || FC.cercando){ renderFc(); return; }
+  const gen=++FC.gen; fcStato('preparo');
+  let r=null; try{ r=await window.tmsBLE.prepara(); }catch(e){ r={ok:false, motivo:'errore', msg:(e&&e.message)||String(e)}; }
+  if(gen!==FC.gen || !FC.voluto) return;
+  if(!r||!r.ok){ FC.voluto=false; fcStato('errore', r&&r.motivo, r&&r.msg); return; }
+  fcCerca(); }
+function fcCerca(){
+  if(!window.tmsBLE || !FC.voluto || FC.id || FC.collegando) return;
+  const noto=fcIdNoto(); FC.trovati=[]; FC.cercaDa=Date.now(); FC.cercando=true;
+  fcStato(noto? 'cerco-nota' : 'cerco');
+  Promise.resolve(window.tmsBLE.cerca(d=>(noto? d.id===noto : fcPapabile(d)), d=>{ if(noto) fcCollega(d); else fcTrovato(d); }))
+    .catch(e=>{ FC.cercando=false; FC.voluto=false; fcStato('errore','errore',(e&&e.message)||String(e)); }); }
+function fcTrovato(d){
+  if(!FC.cercando || FC.trovati.some(x=>x.id===d.id)) return;
+  FC.trovati.push(d); fcRenderTrovati(); }
+async function fcCollega(d){
+  if(FC.collegando || FC.id || !FC.voluto) return;
+  FC.collegando=true; FC.cercando=false; const gen=FC.gen;
+  try{ await window.tmsBLE.fermaRicerca(); }catch(e){}
+  FC.nome=d.nome||fcNomeNoto()||''; FC.trovati=[]; fcStato('collego');
+  try{ await window.tmsBLE.collega(d.id, {onDati:fcDati, onStaccato:fcStaccata}, {servizio:FC_SERV, notifiche:[FC_MISURA]}); }
+  catch(e){
+    FC.collegando=false;
+    if(e && e.motivo==='notifiche'){ FC.voluto=false; fcStato('errore','rifiutata',(e&&e.message)||''); return; }
+    if(FC.voluto && gen===FC.gen) setTimeout(()=>{ if(FC.voluto && !FC.id) fcCerca(); }, 2000);
+    return; }
+  FC.collegando=false;
+  if(!FC.voluto || gen!==FC.gen){ try{ Promise.resolve(window.tmsBLE.stacca(d.id)).catch(()=>{}); }catch(e){} return; }
+  FC.id=d.id; FC.bpm=null; FC.contatto=null; FC.dalCollegamento=Date.now(); FC.ultimoBuono=0;
+  try{ localStorage.setItem(FC_KEY_ID, d.id); if(FC.nome) localStorage.setItem(FC_KEY_NOME, FC.nome); }catch(e){}
+  clearInterval(FC.timer); FC.timer=setInterval(fcTic, 1000);
+  fcStato('attesa'); renderFc(); }
+function fcStaccata(){
+  FC.id=''; FC.bpm=null; clearInterval(FC.timer); FC.timer=null;
+  if(FC.voluto){ fcStato('persa'); setTimeout(()=>{ if(FC.voluto && !FC.id && !FC.cercando) fcCerca(); }, 1500); }
+  else fcStato('');
+  fcAggiornaMenu(); }
+/* «Scollega» o app in secondo piano: si ferma tutto (non durante una registrazione) */
+function fcScollega(){
+  FC.voluto=false; FC.gen++; FC.cercando=false; FC.trovati=[]; clearInterval(FC.timer); FC.timer=null;
+  if(window.tmsBLE){ try{ Promise.resolve(window.tmsBLE.fermaRicerca()).catch(()=>{}); }catch(e){}
+    if(FC.id){ try{ Promise.resolve(window.tmsBLE.stacca(FC.id)).catch(()=>{}); }catch(e){} } }
+  FC.id=''; FC.bpm=null; FC.collegando=false; fcStato(''); fcAggiornaMenu(); }
+/* uscendo dalla pagina: se la fascia è collegata resta collegata (il battito si vede nella barra);
+   se la si stava ancora cercando, la ricerca si ferma */
+function fcLasciaPagina(){ if(FC.cercando && !FC.id && !FC.reg) fcScollega(); }
+function fcDimentica(){
+  fcScollega();
+  try{ localStorage.removeItem(FC_KEY_ID); localStorage.removeItem(FC_KEY_NOME); }catch(e){}
+  FC.nome=''; if(!$('fc').hidden) fcAvvia(); else renderFc(); }
+/* ogni secondo, da collegati: il tempo della registrazione e il battito che non arriva */
+function fcTic(){
+  if(!FC.id) return;
+  const ora=Date.now(), rif=Math.max(FC.ultimoBuono, FC.dalCollegamento);
+  if(ora-rif>FC_SILENZIO){ const s=(FC.contatto===false)? 'contatto' : 'silenzio';
+    if(FC.stato!==s){ FC.bpm=null; fcStato(s); fcChip(); } }
+  fcRenderReg(true); }
+
+/* — registrazione: campioni raccolti in secchielli di 5 secondi — */
+function fcRegistra(){
+  if(!FC.id || FC.reg || FC.chiudi) return;
+  const ora=Date.now();
+  FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}};
+  FC.bozzaT=0; fcSalvaBozza(true); fcSchermo(true);
+  renderFc(); fcAggiornaMenu(); }
+function fcCampione(ora, bpm){
+  const r=FC.reg, k=Math.floor((ora-r.inizio)/1000/FC_PASSO); if(k<0) return;
+  const s=r.secchi[k]||(r.secchi[k]=[0,0]); s[0]+=bpm; s[1]++;
+  if(bpm>r.picco) r.picco=bpm; r.ultimo=ora;
+  fcSalvaBozza(false); }
+function fcSalvaBozza(subito){
+  if(!FC.reg) return; const ora=Date.now();
+  if(!subito && ora-FC.bozzaT<FC_BOZZA_OGNI) return;
+  FC.bozzaT=ora; fcScriviKv(fcBozzaKey(), {reg:FC.reg, nome:FC.nome}); }
+/* la seduta da una registrazione: durata, FC media (dei secchielli con dati), picco, traccia ogni 5 s */
+function fcComponi(r, fine, nome){
+  const n=Math.max(0, Math.ceil((fine-r.inizio)/1000/FC_PASSO)), fc=[]; let s=0, c=0;
+  for(let k=0;k<n;k++){ const x=r.secchi&&r.secchi[k];
+    if(x && x[1]){ const v=Math.round(x[0]/x[1]); fc.push(v); s+=v; c++; } else fc.push(null); }
+  while(fc.length && fc[fc.length-1]==null) fc.pop();
+  const d=new Date(r.inizio);
+  return {data:dataLoc(d), ora:oraLoc(d), durataSec:Math.max(0, Math.round((fine-r.inizio)/1000)),
+    fcMedia:c? Math.round(s/c) : null, fcPicco:r.picco||null, fc:fc, passo:FC_PASSO, dispositivo:nome||''}; }
+function fcFine(){
+  const r=FC.reg; if(!r) return;
+  FC.reg=null; FC.chiudi=fcComponi(r, Date.now(), FC.nome); FC.scarta=false;
+  fcScriviKv(fcBozzaKey(), {chiudi:FC.chiudi}); fcSchermo(false);
+  renderFc(); fcAggiornaMenu(); }
+async function fcSalvaSeduta(){
+  const c=FC.chiudi; if(!c) return;
+  const sp=$('fc-sport'), rp=$('fc-rpe'), tipo=(sp&&sp.value)||FC.sport||'Corsa', rpe=rp? rp.value : '';
+  FC.sport=tipo; try{ localStorage.setItem('tms-fc-sport', tipo); }catch(e){}
+  const s={id:c.data+'T'+c.ora+'|fc', data:c.data, ora:c.ora, tipo:tipo, durata:Math.max(1, Math.round(c.durataSec/60)),
+    rpe:(rpe===''? '' : +rpe), fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo, dispositivo:c.dispositivo||''};
+  if(!SEDUTE_FC.some(x=>x.id===s.id)) SEDUTE_FC.push(s);
+  FC.chiudi=null; FC.scarta=false;
+  await fcSalva(); await fcScriviKv(fcBozzaKey(), null);
+  try{ if(navigator.vibrate) navigator.vibrate(80); }catch(e){}
+  renderFc(); fcAggiornaMenu(); colPresto(); }
+async function fcScartaSeduta(){ FC.chiudi=null; FC.scarta=false; await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); }
+/* schermo acceso durante la registrazione (se il telefono lo permette): con lo schermo spento Android
+   può fermare la pagina e il battito di quei minuti mancherebbe */
+function fcSchermo(on){
+  try{ if(FC.lock){ FC.lock.release(); FC.lock=null; } }catch(e){}
+  if(!on) return;
+  try{ if(navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen').then(l=>{ if(FC.reg) FC.lock=l; else { try{ l.release(); }catch(e){} } }).catch(()=>{}); }catch(e){} }
+/* app in secondo piano / di nuovo davanti */
+function fcVisibilita(nascosta){
+  if(nascosta){ if(!FC.reg && (FC.id || FC.cercando || FC.collegando)){ FC.riprendi=true; fcScollega(); } return; }
+  if(FC.reg) fcSchermo(true);
+  if(FC.riprendi){ FC.riprendi=false; fcAvvia(); } }
+
+/* — pagina — */
+const FC_ERR={
+  permesso:'Senza il permesso «Dispositivi nelle vicinanze» l’app non può parlare con la fascia. Tocca «Riprova» e poi «Consenti».',
+  spento:'Il Bluetooth del telefono è spento: accendilo e tocca «Riprova».',
+  posizione:'Su questo telefono, per cercare la fascia, Android vuole la Posizione accesa: accendila e tocca «Riprova». L’app non la usa e non la salva.',
+  rifiutata:'La fascia si collega ma non lascia leggere il battito senza un abbinamento. Con un Amazfit Helio Strap: in Zepp accendi «Heart Rate Push», poi chiudi Zepp e tocca «Riprova». Se ancora non va, per quel bracciale serve il collegamento con la sua chiave, che arriverà in una versione successiva.',
+  errore:'Il Bluetooth non risponde.'};
+function fcStato(s, motivo, msg){
+  FC.stato=s;
+  if(s==='errore' && motivo!==undefined){ FC.motivo=motivo||'errore'; FC.msg=msg||''; }
+  const st=$('fc-stato'), so=$('fc-sotto'), rp=$('fc-riprova');
+  if(st){
+    let a='', b='';
+    const nn=FC.nome||fcNomeNoto(), nome=nn? '«'+nn+'»' : tt('la fascia');
+    if(s==='preparo') a=tt('Preparo il Bluetooth…');
+    else if(s==='cerco'){ a=tt('Indossa la fascia (o il bracciale): cerco i dispositivi vicini…');
+      b=tt('Tocca la tua quando compare qui sotto.'); }
+    else if(s==='cerco-nota'){ a=tt('Cerco')+' '+nome+'…';
+      if(Date.now()-FC.cercaDa>20000) b=tt('Non la trovo ancora. Indossala: molte fasce si accendono solo a contatto con la pelle. Se sul telefono c’è l’app del produttore, chiudila: la fascia accetta un collegamento alla volta.'); }
+    else if(s==='collego') a=tt('Mi collego a')+' '+nome+'…';
+    else if(s==='attesa') a=tt('Collegata a')+' '+nome+': '+tt('aspetto il battito…');
+    else if(s==='collegata') a=tt('Collegata a')+' '+nome;
+    else if(s==='contatto'){ a=tt('Non sento il contatto con la pelle.'); b=tt('Inumidisci gli elettrodi e stringi la fascia sotto il petto (o il bracciale sul braccio).'); }
+    else if(s==='silenzio'){ a=tt('Collegata, ma il battito non arriva.');
+      b=tt('Stringi la fascia o il bracciale sulla pelle. Con un Amazfit Helio Strap: in Zepp accendi «Heart Rate Push» e chiudi Zepp. Se continua, per quel bracciale serve il collegamento con la sua chiave, che arriverà in una versione successiva.'); }
+    else if(s==='persa'){ a=tt('Collegamento perso: riprovo…'); if(FC.reg) b=tt('La registrazione continua: i secondi senza battito restano vuoti.'); }
+    else if(s==='errore'){ a=tt(FC_ERR[FC.motivo]||FC_ERR.errore); if(FC.motivo==='errore' && FC.msg) b=String(FC.msg); }
+    else a=fcIdNoto()? tt('Fascia scollegata.') : '';
+    st.textContent=a; if(so) so.textContent=b; }
+  if(rp) rp.hidden=!(s==='errore' || (s==='' && !$('fc').hidden));
+  const rt=$('fc-riprova-t'); if(rt) rt.textContent=tt(s==='errore'? 'Riprova' : 'Collega');
+  fcMostraBattito(); fcRenderTrovati(); fcChip();
+  const sc=$('fc-scollega'); if(sc) sc.hidden=!(FC.id && !FC.reg);
+}
+function fcMostraBattito(){
+  const el=$('fc-bpm'), zz=$('fc-zona'), zb=$('fc-zone'); if(!el) return;
+  const v=(FC.id && FC.bpm)? FC.bpm : null, z=v? fcZona(v) : null;
+  el.innerHTML=v? esc(String(v))+' <small>bpm</small>' : '—';
+  el.className='fc-bpm'+(z? ' z'+z.n : '');
+  if(zz) zz.textContent=z? (z.n? tt(FC_ZONE[z.n-1][1])+' · '+tt(FC_ZONE[z.n-1][2]) : tt('Sotto la zona 1'))+' · '+z.pct+' % '+tt('della FC max') : '';
+  if(zb) zb.innerHTML=fcMaxScheda()? FC_ZONE.map((x,k)=>'<i class="z'+(k+1)+(z&&z.n===k+1?' on':'')+'"></i>').join('') : ''; }
+function fcRenderTrovati(){
+  const box=$('fc-trovati'); if(!box) return;
+  if(!(FC.cercando && FC.stato==='cerco')){ box.innerHTML=''; return; }
+  box.innerHTML=FC.trovati.length? FC.trovati.map((d,i)=>'<button type="button" class="fc-disp" data-fcd="'+i+'">'+ico('cuore')+
+      '<span><b>'+esc(d.nome||tt('Senza nome'))+'</b><small>'+esc(d.id)+'</small></span></button>').join('')
+    : (Date.now()-FC.cercaDa>20000? '<div class="fine">'+tt('Non trovo ancora nulla. Indossa la fascia: molte si accendono solo a contatto con la pelle. Se sul telefono c’è l’app del produttore, chiudila.')+'</div>' : '');
+  box.querySelectorAll('[data-fcd]').forEach(b=>{ b.onclick=()=>{ const d=FC.trovati[+b.getAttribute('data-fcd')]; if(d) fcCollega(d); }; }); }
+const fcDur=sec=>{ sec=Math.max(0,Math.round(sec)); const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60, z=n=>String(n).padStart(2,'0');
+  return (h? h+':'+z(m) : m)+':'+z(s); };
+function fcMediaReg(r){ let s=0, c=0; Object.keys(r.secchi).forEach(k=>{ const x=r.secchi[k]; if(x[1]){ s+=x[0]/x[1]; c++; } }); return c? Math.round(s/c) : null; }
+/* riquadro della registrazione: «Registra» · tempo, media, picco e «Fine» · «Com'è andata?» */
+function fcRenderReg(soloTempo){
+  const box=$('fc-reg'); if(!box || $('fc').hidden) return;
+  if(soloTempo){ const t0=$('fc-reg-t'); if(t0 && FC.reg){ t0.textContent=fcDur((Date.now()-FC.reg.inizio)/1000);
+      const m=fcMediaReg(FC.reg), md=$('fc-reg-m'), pk=$('fc-reg-p'); if(md) md.textContent=m||'—'; if(pk) pk.textContent=FC.reg.picco||'—'; } return; }
+  const sport=FC.sport||(()=>{ try{ return localStorage.getItem('tms-fc-sport')||''; }catch(e){ return ''; } })()||'Corsa';
+  if(FC.chiudi){ const c=FC.chiudi;
+    box.innerHTML='<div class="box"><div class="pick-title">'+tt('Com’è andata?')+'<small>'+esc(giornoBreve(c.data))+' '+esc(String(c.ora).slice(0,5))+'</small></div>'+
+      '<div class="fc-tre"><div><b>'+esc(fcDur(c.durataSec))+'</b><span>'+tt('durata')+'</span></div><div><b>'+(c.fcMedia||'—')+'</b><span>'+tt('FC media')+'</span></div><div><b>'+(c.fcPicco||'—')+'</b><span>'+tt('picco')+'</span></div></div>'+
+      '<label class="col-lab" for="fc-sport">'+tt('Attività')+'</label><select id="fc-sport" class="fc-sel">'+FC_SPORT.map(x=>'<option value="'+esc(x)+'"'+(x===sport?' selected':'')+'>'+esc(tt(x))+'</option>').join('')+'</select>'+
+      '<label class="col-lab" for="fc-rpe">'+tt('Fatica (RPE 0–10)')+'</label><select id="fc-rpe" class="fc-sel"><option value="">–</option>'+[0,1,2,3,4,5,6,7,8,9,10].map(n=>'<option value="'+n+'">'+n+'</option>').join('')+'</select>'+
+      (FC.scarta? '<div class="bil-row"><span class="bil-g">'+tt('Buttare via questa registrazione?')+'</span><button type="button" class="mini del" id="fc-scarta-si">'+tt('Butta via')+'</button><button type="button" class="mini" id="fc-scarta-no">'+tt('No')+'</button></div>'
+        : '<button type="button" class="btn-big" id="fc-salva">'+ico('check')+'<span>'+tt('Salva la seduta')+'</span></button><button type="button" class="btn-lite quieto" id="fc-scarta">'+tt('Butta via')+'</button>')+
+      '</div>';
+    const sv=$('fc-salva'); if(sv) sv.onclick=()=>{ fcSalvaSeduta(); };
+    const sc=$('fc-scarta'); if(sc) sc.onclick=()=>{ FC.scarta=true; fcRenderReg(); };
+    const si=$('fc-scarta-si'); if(si) si.onclick=()=>{ fcScartaSeduta(); };
+    const no=$('fc-scarta-no'); if(no) no.onclick=()=>{ FC.scarta=false; fcRenderReg(); };
+    return; }
+  if(FC.reg){
+    box.innerHTML='<div class="box fc-in-reg"><div class="pick-title"><i class="fc-rec"></i>'+tt('Registrazione in corso')+'</div>'+
+      '<div class="fc-tre"><div><b id="fc-reg-t">0:00</b><span>'+tt('tempo')+'</span></div><div><b id="fc-reg-m">—</b><span>'+tt('FC media')+'</span></div><div><b id="fc-reg-p">—</b><span>'+tt('picco')+'</span></div></div>'+
+      '<button type="button" class="btn-big" id="fc-fine">'+ico('check')+'<span>'+tt('Fine')+'</span></button>'+
+      '<div class="fine" style="margin:4px 0 0">'+tt('Tieni l’app aperta: lo schermo resta acceso finché registri.')+'</div></div>';
+    $('fc-fine').onclick=()=>fcFine(); fcRenderReg(true); return; }
+  box.innerHTML=FC.id? '<button type="button" class="btn-big" id="fc-registra">'+ico('play')+'<span>'+tt('Registra')+'</span></button>' : '';
+  const rg=$('fc-registra'); if(rg) rg.onclick=()=>fcRegistra(); }
+function fcAggiornaMenu(){
+  const vb=$('vai-fc'); if(vb) vb.hidden=!(window.tmsBLE && SCHEDA);
+  const mb=$('meta-fc');
+  if(mb){ const sett=lunediDi(dataLoc(new Date())), n=SEDUTE_FC.filter(s=>lunediDi(s.data)===sett).length;
+    mb.textContent=FC.reg? tt('registrazione in corso') : (FC.id && FC.bpm)? FC.bpm+' bpm · '+tt('collegata')
+      : n? n+' '+(n===1? tt('seduta questa settimana') : tt('sedute questa settimana')) : tt('battito in diretta, sedute al coach'); }
+  fcChip(); }
+/* il battito nella barra in alto, su tutte le schermate (tocca → pagina Fascia cardio) */
+function fcChip(){
+  const c=$('fc-chip'); if(!c) return;
+  c.hidden=!(FC.id || FC.reg);
+  const v=$('fc-chip-v'); if(v) v.textContent=(FC.id && FC.bpm)? String(FC.bpm) : '—';
+  c.classList.toggle('rec', !!FC.reg); }
+function fcApri(){ if(!window.tmsBLE || !SCHEDA) return; navEntra(); mostra('fc'); renderFc(); fcAvvia(); }
+function renderFc(){
+  fcAggiornaMenu();
+  const chi=$('fc-chi'); if(!chi) return;
+  const m=fcMaxScheda(), nome=((SCHEDA&&SCHEDA.profilo)||{}).nome||'';
+  chi.innerHTML=tt('Battito di')+' <b>'+esc(nome)+'</b>'+(m? ' · '+tt('FC max')+' '+m.v+' bpm '+(m.da==='profilo'? tt('(dal Profilo)') : tt('(stimata dall’età)'))
+    : '<span class="bil-avv">'+tt('La scheda non porta né la FC max né l’età: vedi il battito, ma non le zone.')+'</span>');
+  fcStato(FC.stato, undefined);
+  fcRenderReg();
+  const lista=$('fc-lista');
+  if(lista){
+    const ord=SEDUTE_FC.slice().sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora));
+    lista.innerHTML=ord.length? ord.slice(0,12).map(s=> FC.togli===s.id?
+        '<div class="bil-row"><span class="bil-g">'+tt('Togli la seduta di')+' '+esc(giornoBreve(s.data))+' '+esc(String(s.ora||'').slice(0,5))+'?</span>'+
+        '<button type="button" class="mini del" data-fcok="'+esc(s.id)+'">'+tt('Togli')+'</button><button type="button" class="mini" data-fcno="1">'+tt('No')+'</button></div>'
+      : '<div class="bil-row"><span class="bil-g">'+esc(giornoBreve(s.data))+' '+esc(String(s.ora||'').slice(0,5))+' · <b>'+esc(tt(s.tipo||''))+'</b> · '+(+s.durata||0)+' min'+
+        (s.fcMedia? ' · '+tt('FC media')+' '+s.fcMedia+(s.fcPicco? ' · '+tt('picco')+' '+s.fcPicco : '') : '')+colSegnoPesata(s)+'</span>'+
+        '<button type="button" class="mini del solo" data-fcx="'+esc(s.id)+'" title="'+esc(tt('Togli questa seduta'))+'" aria-label="'+esc(tt('Togli questa seduta'))+'">'+ico('cestino')+'</button></div>').join('')
+      : '<div class="fine" style="margin:4px 0">'+tt('Ancora nessuna seduta registrata.')+'</div>';
+    lista.querySelectorAll('[data-fcx]').forEach(b=>{ b.onclick=()=>{ FC.togli=b.getAttribute('data-fcx'); renderFc(); }; });
+    lista.querySelectorAll('[data-fcno]').forEach(b=>{ b.onclick=()=>{ FC.togli=''; renderFc(); }; });
+    lista.querySelectorAll('[data-fcok]').forEach(b=>{ b.onclick=async()=>{ const id=b.getAttribute('data-fcok');
+      SEDUTE_FC=SEDUTE_FC.filter(s=>s.id!==id); FC.togli=''; await fcSalva(); renderFc(); }; }); }
+  const dim=$('fc-dimentica'); if(dim) dim.hidden=!(fcIdNoto() && !FC.reg);
+}
 /* ── 🎮 SCHERMATA D'ANALISI della pesata (richiesta di Marco, 25/11/2026): «una schermata di caricamento, la
       forma stilizzata del corpo che si carica e sembra che venga analizzata, in stile videogioco anni 2000».
       Dei videogiochi si prendono SOLO l'animazione e l'impostazione: colori, forme e caratteri restano quelli
@@ -2186,6 +2591,11 @@ function wire(){
   const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled){ navEntra(); renderAlim(); mostra('alim'); } };
   const vf=$('vai-foto'); if(vf) vf.onclick=()=>{ navEntra(); mostra('foto'); };
   const vb=$('vai-bil'); if(vb) vb.onclick=()=>{ scanSblocca(); navEntra(); mostra('bil'); renderBil(); bilAvvia(); };
+  const vc=$('vai-fc'); if(vc) vc.onclick=()=>fcApri();
+  const fch=$('fc-chip'); if(fch) fch.onclick=()=>{ if($('fc').hidden) fcApri(); };
+  const fr=$('fc-riprova'); if(fr) fr.onclick=()=>fcAvvia();
+  const fdm=$('fc-dimentica'); if(fdm) fdm.onclick=()=>fcDimentica();
+  const fsc=$('fc-scollega'); if(fsc) fsc.onclick=()=>fcScollega();
 }
 function giornoIndex(g){ const i=GIORNI.indexOf(g); return i<0?0:i; }
 /* ── aggiungi / elimina / test 1RM / modifica un esercizio (agiscono su WROWS) ── */
@@ -2343,7 +2753,7 @@ $('qrov').onclick=e=>{ if(e.target===$('qrov')) $('qrov').style.display='none'; 
 $('bil-riprova').onclick=()=>{ bilEsci(); bilAvvia(); };
 $('bil-dimentica').onclick=()=>{ try{ localStorage.removeItem(BIL_KEY_ID); }catch(e){} bilEsci(); renderBil(); bilAvvia(); };
 /* app in secondo piano: il Bluetooth si ferma; tornando sulla pagina Bilancia riparte */
-document.addEventListener('visibilitychange',()=>{ if(document.hidden){ bilEsci(); if(!$('cam').hidden){ camFerma(); } } else { if(!$('bil').hidden) bilAvvia(); if(!$('cam').hidden) camAvviaFlusso().catch(()=>{}); } });
+document.addEventListener('visibilitychange',()=>{ fcVisibilita(document.hidden); if(document.hidden){ bilEsci(); if(!$('cam').hidden){ camFerma(); } } else { if(!$('bil').hidden) bilAvvia(); if(!$('cam').hidden) camAvviaFlusso().catch(()=>{}); } });
 /* barra della vista esercizio a schermo pieno */
 /* controlli fissi della barra timer di recupero */
 $('t-pause').onclick=timerToggle;
@@ -2470,6 +2880,8 @@ async function colRicevute(st){
   FOTO_VISTE.forEach(v=>{ const f=FOTO[v]; if(f && f.id && !f.pc && ric.has(String(f.id))){ f.pc=true; cf=true; } });
   if(cp){ await pesSalva(); if(!$('bil').hidden) renderBil(); }
   if(cf){ await fotoSalva(); renderFoto(); }
+  let cc=false; SEDUTE_FC.forEach(x=>{ if(x && !x.pc && ric.has(String(x.id))){ x.pc=true; cc=true; } });
+  if(cc){ await fcSalva(); if(!$('fc').hidden) renderFc(); }
   if(SCHEDA){ const o=dietaLeggi(); let cd=false;
     Object.keys(o.mod).forEach(d=>{ if(o.pc[d]!==o.mod[d] && ric.has(dietaId(d, o.mod[d]))){ o.pc[d]=o.mod[d]; cd=true; } });
     if(cd){ dietaScrivi(o); if(!$('alim').hidden) renderAlim(); } }
@@ -2640,8 +3052,15 @@ async function colEventi(){
     if(!f.id) f.id='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
     await colScrivi(dir+colNomeFile('foto', f.id), await colCifra({tipo:'tms-foto', foto:{id:f.id, tag:v, data:f.data||dataLoc(new Date()), img:f.img, sostituisce:f.sostituisce||undefined}}));
     f.ev=new Date().toISOString(); cf=true; }
+  /* sedute della fascia cardio: una per file, come le pesate */
+  let cc=false;
+  for(const s of SEDUTE_FC){ if(!daMandare(s)) continue;
+    await colScrivi(dir+colNomeFile('cardio', s.id), await colCifra({tipo:'tms-cardio', seduta:{id:s.id, data:s.data, ora:s.ora, tipo:s.tipo, durata:s.durata, rpe:s.rpe,
+      fcMedia:s.fcMedia, fcPicco:s.fcPicco, fc:s.fc, fcPasso:s.fcPasso, dispositivo:s.dispositivo}}));
+    s.ev=new Date().toISOString(); cc=true; }
   if(cp) await pesSalva();
   if(cf) await fotoSalva();
+  if(cc) await fcSalva();
   /* i giorni della dieta: un file per ogni cambio (sì, no o tolto), finché il PC non lo conferma */
   if(SCHEDA){ const o=dietaLeggi(), partiti=[];
     for(const d of Object.keys(o.mod).sort()){
@@ -2755,7 +3174,7 @@ function colStacca(){
   if(colCollegata()){ SCHEDA.collegata=false; salvaScheda(SCHEDA); }
   COL.msgErr=false; COL.msg=c.nome? tt('Scollegato da')+' «'+c.nome+'».' : ''; colRender();
 }
-function colApri(){ navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
+function colApri(){ navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil','fc'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
 function colEsci(){ if(SCHEDA){ aggiornaStato(); mostra('menu'); } else { $('col').hidden=true; avvia(); } }
 function colRender(){
   const P=colPuo(), conf=colConf(), att=colAttivo();

@@ -412,17 +412,19 @@ function telSettimanaSalvata(code){
 }
 
 /* ── pesate e foto dal telefono: si importano, si SALVANO, poi si tolgono dall'hub ── */
-/* i file arrivati dal telefono (pesate, foto, giorni della dieta), decifrati; quelli illeggibili restano sull'hub */
+/* i file arrivati dal telefono (pesate, foto, giorni della dieta, sedute della fascia cardio), decifrati;
+   quelli illeggibili restano sull'hub */
 async function telEventi(p, lista){
-  const pesate=[], foto=[], dieta=[], fatti=[];
+  const pesate=[], foto=[], dieta=[], cardio=[], fatti=[];
   const arrivati=(lista||[]).filter(x=>/^eventi\//.test(x.nome) && typeof x.testo==='string');
   for(const f of arrivati.slice().sort((a,b)=>a.nome<b.nome?-1:1)){
     let ev; try{ ev=await telDecifra(f.testo, p.codice); }catch(e){ continue; }   /* illeggibile: si lascia */
     if(ev && ev.tipo==='tms-pesata' && ev.pesata && pulisciPesata(ev.pesata)){ pesate.push(ev.pesata); fatti.push({nome:f.nome, id:String(ev.pesata.id)}); }
     else if(ev && ev.tipo==='tms-foto' && ev.foto && ev.foto.id && /^data:image\//.test(String(ev.foto.img||''))){ foto.push(ev.foto); fatti.push({nome:f.nome, id:String(ev.foto.id)}); }
     else if(ev && ev.tipo==='tms-dieta' && ev.id && /^\d{4}-\d\d-\d\d$/.test(String(ev.data||''))){ dieta.push(ev); fatti.push({nome:f.nome, id:String(ev.id)}); }
+    else if(ev && ev.tipo==='tms-cardio' && ev.seduta && pulisciCardioTel(ev.seduta)){ cardio.push(ev.seduta); fatti.push({nome:f.nome, id:String(ev.seduta.id)}); }
   }
-  return {pesate, foto, dieta, fatti};
+  return {pesate, foto, dieta, cardio, fatti};
 }
 /* arrivati e salvati: il telefono li vede «al PC» e dall'hub se ne vanno */
 async function telConfermaEventi(slug, p, fatti){
@@ -431,19 +433,21 @@ async function telConfermaEventi(slug, p, fatti){
   for(const f of fatti){ try{ await telTogli(p, 'dal-telefono/'+f.nome); }catch(e){ logErrore('telefono/togli', e); } }
 }
 async function telLeggiEventi(slug, p, lista){
-  const {pesate, foto, dieta, fatti}=await telEventi(p, lista);
+  const {pesate, foto, dieta, cardio, fatti}=await telEventi(p, lista);
   if(!fatti.length || activeProfile!==slug) return null;
-  let rp=null, nFoto=0, nDieta=0;
+  let rp=null, nFoto=0, nDieta=0, nCardio=0;
   if(pesate.length) rp=await importaPesate(pesate);
   if(foto.length) nFoto=await importaFotoRientro(foto);
   if(dieta.length) nDieta=telDietaApplica(dieta);
+  if(cardio.length) nCardio=importaCardioTel(cardio, new Set(p.ricevute||[]));   /* già ricevuta = non torna */
   /* salvataggio VERO su disco prima di togliere qualcosa dall'hub */
   clearTimeout(saveTimer); await flushSaves();
   if(activeProfile!==slug) return null;
   await telConfermaEventi(slug, p, fatti);                    /* il telefono vedrà ✔ «arrivata al PC» */
   if(curTab==='corpo') renderCorpo();
   if(nDieta && curTab==='alimentazione') renderAlimentazione();
-  return {pesate:rp, foto:nFoto, dieta:nDieta};
+  if(nCardio && curTab==='cardio') renderCardio();
+  return {pesate:rp, foto:nFoto, dieta:nDieta, cardio:nCardio};
 }
 /* «dieta seguita» segnata dal cliente sul telefono: DOC.alimentazione.aderenza = {data: {v:'si'|'no'|'', t:ora
    del cambio}}. Vince il cambio più recente (uno più vecchio arrivato dopo non torna indietro); un giorno
@@ -486,7 +490,7 @@ async function telGiroAltri(){
     const pan=TEL_PANORAMICA[slug]=TEL_PANORAMICA[slug]||{};
     pan.controllato=new Date().toISOString();
     const ore=lista.map(x=>+x.ora||0).filter(Boolean); if(ore.length) pan.ultimo=new Date(Math.max(...ore)).toISOString();
-    const {pesate, foto, dieta, fatti}=await telEventi(p, lista);
+    const {pesate, foto, dieta, cardio, fatti}=await telEventi(p, lista);
     if(!fatti.length) return;
     const pd=await dataDir.getDirectoryHandle(slug, {create:false});
     const rc=await leggiJson(pd, FILES.corpo), ra=await leggiJson(pd, FILES.alimentazione);
@@ -498,16 +502,18 @@ async function telGiroAltri(){
     const nFoto=await fotoUnisci(co, foto, async(fname, bytes)=>{ const fd=await pd.getDirectoryHandle('foto',{create:true});
       const fh=await fd.getFileHandle(fname,{create:true}); const wr=await fh.createWritable(); await wr.write(bytes); await wr.close(); });
     const nDieta=telDietaUnisci(al, dieta);
+    const nCardio=cardioUnisci(co, cardio, new Set(p.ricevute||[]));
     if(profiloCambi!==cambi || activeProfile===slug) return;         /* aperto nel frattempo: ci pensa il suo giro */
-    if(rp.nuove || nFoto) await writeJson(pd, FILES.corpo, co);
+    if(rp.nuove || nFoto || nCardio) await writeJson(pd, FILES.corpo, co);
     if(nDieta) await writeJson(pd, FILES.alimentazione, al);
     if(profiloCambi!==cambi || activeProfile===slug) return;         /* aperto mentre scrivevo: si rifà dopo */
     await telConfermaEventi(slug, p, fatti);
-    pan.arrivati={ora:new Date().toISOString(), pesate:rp.nuove, foto:nFoto, dieta:nDieta};
+    pan.arrivati={ora:new Date().toISOString(), pesate:rp.nuove, foto:nFoto, dieta:nDieta, cardio:nCardio};
     const pz=[];
     if(rp.nuove) pz.push(rp.nuove+' '+(rp.nuove===1?t('pesata nuova'):t('pesate nuove')));
     if(nFoto) pz.push(nFoto+' '+t('foto'));
     if(nDieta) pz.push(nDieta===1? t('un giorno della dieta') : nDieta+' '+t('giorni della dieta'));
+    if(nCardio) pz.push(nCardio===1? t('una seduta cardio') : nCardio+' '+t('sedute cardio'));
     const nome=(profili.find(x=>x.slug===slug)||{}).nome||slug;
     if(pz.length) telNotizia(t('Dal telefono di')+' '+nome+': '+pz.join(' · '));
   }catch(e){ logErrore('telefono/altri', e); }
@@ -531,11 +537,11 @@ function telPanoramicaHtml(){
   const righe=coll.map(x=>{ const p=st.profili[x.slug], pan=TEL_PANORAMICA[x.slug]||{}, att=x.slug===activeProfile;
     const ultimo=att? p.ultimoTelefono : (pan.ultimo || p.ultimoTelefono);
     const arr=pan.arrivati, pz=[];
-    if(arr){ if(arr.pesate) pz.push(arr.pesate+' '+t(arr.pesate===1?'pesata':'pesate')); if(arr.foto) pz.push(arr.foto+' '+t('foto')); if(arr.dieta) pz.push(arr.dieta+' '+t(arr.dieta===1?'giorno della dieta':'giorni della dieta')); }
+    if(arr){ if(arr.pesate) pz.push(arr.pesate+' '+t(arr.pesate===1?'pesata':'pesate')); if(arr.foto) pz.push(arr.foto+' '+t('foto')); if(arr.dieta) pz.push(arr.dieta+' '+t(arr.dieta===1?'giorno della dieta':'giorni della dieta')); if(arr.cardio) pz.push(arr.cardio+' '+t(arr.cardio===1?'seduta cardio':'sedute cardio')); }
     return `<div class="tel-cliente${att?' is-on':''}"><b>${esc(x.nome||x.slug)}</b><span>${ultimo? t('ultimo dal telefono')+' '+esc(telOra(ultimo)) : t('il telefono non ha ancora scritto niente')}${pz.length? ' · '+t('arrivate')+' '+esc(pz.join(', ')) : ''}</span>
       ${att? `<em>${t('aperto')}</em>` : `<button class="btn btn--sm" data-tel-apri="${esc(x.slug)}">${t('Apri')}</button>`}</div>`; }).join('');
   return `<div class="imp-etich" style="margin-top:10px">${t('Clienti collegati')}</div><div class="tel-clienti">${righe}</div>
-    <div class="lat-nota">${t('Il TMS controlla anche i telefoni dei profili non aperti e ne salva pesate, foto e giorni della dieta; le modifiche alla scheda si uniscono quando apri il profilo.')}</div>`;
+    <div class="lat-nota">${t('Il TMS controlla anche i telefoni dei profili non aperti e ne salva pesate, foto, giorni della dieta e sedute cardio; le modifiche alla scheda si uniscono quando apri il profilo.')}</div>`;
 }
 
 /* ── il giro: pesate e foto, scheda, stato. Solo il profilo ATTIVO (gli altri al loro turno). ── */
@@ -555,6 +561,7 @@ async function telGiro(){
     if(ev && ev.pesate && ev.pesate.nuove) pz.push(ev.pesate.nuove+' '+(ev.pesate.nuove===1?t('pesata nuova'):t('pesate nuove')));
     if(ev && ev.foto) pz.push(ev.foto+' '+t('foto nel tab Corpo'));
     if(ev && ev.dieta) pz.push(ev.dieta===1? t('un giorno della dieta') : ev.dieta+' '+t('giorni della dieta'));
+    if(ev && ev.cardio) pz.push(ev.cardio===1? t('una seduta cardio') : ev.cardio+' '+t('sedute cardio'));
     if(sc) pz.push(t('scheda aggiornata dal telefono'));
     if(pz.length) telNotizia(t('Dal telefono:')+' '+pz.join(' · '));
   }catch(e){ _telSporco=true; _telErr=String((e&&e.message)||e); logErrore('telefono/giro', e); }

@@ -27,6 +27,16 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   misure. Android chiede una volta «Dispositivi nelle
   vicinanze» (fino ad Android 11 la Posizione: lo pretende Android per cercare dispositivi Bluetooth).
   FitDays sullo stesso telefono può prendersi la bilancia: va chiuso o disinstallato.
+- **♥ Fascia cardio** (solo nell'APK, dalla 1.4.0): con una fascia cardio Bluetooth standard (Polar, Garmin,
+  Wahoo…) o un bracciale che condivide il battito (Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp)
+  si vede il battito in diretta, colorato per zona (FC max del Profilo o stimata dall'età), anche nella barra in
+  alto durante la seduta coi pesi. «Registra» e «Fine» salvano una seduta (sport, minuti, RPE, FC media, picco,
+  traccia ogni 5 s) che va da sola al TMS collegato, nel tab Cardio (file cifrato `tms-cardio` sull'hub). Profilo
+  standard Bluetooth SIG «Heart Rate»: servizio 0x180D, misura 0x2A37 (decodifica e logica nella pagina,
+  `fcDecodifica` e seguenti). Durante la registrazione lo schermo resta acceso (Screen Wake Lock, se la
+  WebView lo offre) e la bozza si salva ogni 15 s; con l'app in secondo piano Android può fermare la pagina e
+  quei secondi restano vuoti (un servizio in primo piano è previsto con la fase successiva del bracciale,
+  studio in `Doc/bracciale/PROPOSTA.md`).
 - **🔗 Collegamento col TMS sul PC** («⚙ Collegamento e promemoria»): attraverso l'hub del TMS su
   Cloudflare (fino alla versione precedente all'hub passava da una cartella condivisa di Google Drive;
   ora niente cartella, niente app di sincronizzazione, niente account Google). Si scrive il codice
@@ -111,7 +121,7 @@ Funziona solo perché ogni versione è firmata con la **stessa chiave** (vedi so
 | file | cosa |
 |---|---|
 | `scripts/prepara-www.js` | copia `web/` in `www/` (senza `sw.js`) e applica 4 modifiche con **conteggio asserito**: via il service worker, `confirm(` → `await tmsConferma(` (5 punti), `delEsercizio` async, `nativo.js` dopo lo script. Se la PWA cambia lì, si ferma e lo dice. `--verifica` controlla senza scrivere |
-| `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, scelta foto, `window.tmsIndietro`, `window.tmsAggiorna` (aggiornamento dell'APK da GitHub: scarica e installa, plugin `TmsCartella`; `window.tmsCartella` non esiste più), `window.tmsAvvisi` (promemoria), `window.tmsBLE` (trasporto Bluetooth della pagina Bilancia: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; il protocollo e la formula stanno nella PWA). Sostituisce funzioni globali della PWA (`isStandalone`, `alert`) e avvolge `avvia` |
+| `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, scelta foto, `window.tmsIndietro`, `window.tmsAggiorna` (aggiornamento dell'APK da GitHub: scarica e installa, plugin `TmsCartella`; `window.tmsCartella` non esiste più), `window.tmsAvvisi` (promemoria), `window.tmsBLE` (trasporto Bluetooth GENERICO delle pagine Bilancia e Fascia cardio: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; servizio e caratteristiche li passa la pagina — `collega(id, cb, {servizio, notifiche})`, `scrivi(id, car, byte, servizio)`, senza parametri valgono quelli della bilancia — e gli ascolti sono tenuti per dispositivo, così bilancia e fascia possono stare collegate insieme; protocolli e formule stanno nella PWA). Sostituisce funzioni globali della PWA (`isStandalone`, `alert`) e avvolge `avvia` |
 | `nativo/TmsFilePlugin.java` | plugin Capacitor «TmsFile»: `info` (versione di Android) e tasto indietro |
 | `nativo/TmsCartellaPlugin.java` | plugin «TmsCartella»: la pagina lo usa solo per scaricare e installare l'APK nuovo con controllo dell'impronta; i metodi per la cartella condivisa (scelta, lettura, scrittura, elenco) restano nel Java ma non sono più chiamati |
 | `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, via «Apri con» dal manifest, fotocamera visibile (`<queries>`), permesso della fotocamera (sagoma), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |

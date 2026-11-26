@@ -70,7 +70,7 @@ async function apri(opz = {}) {
           isLocationEnabled: async () => ({ value: false }),
           requestLEScan: async o => { reg.ble.push(['requestLEScan', o]); }, stopLEScan: async () => { reg.ble.push(['stopLEScan']); },
           connect: async o => { reg.ble.push(['connect', o]); },
-          startNotifications: async o => { reg.ble.push(['startNotifications', o]); },
+          startNotifications: async o => { reg.ble.push(['startNotifications', o]); if (opz.bleNotificheNo) throw new Error('Insufficient authentication'); },
           write: async o => { reg.ble.push(['write', o]); }, disconnect: async o => { reg.ble.push(['disconnect', o]); },
           addListener: async (ev, cb) => { reg.bleAscolti[ev] = cb; return { remove() { delete reg.bleAscolti[ev]; } }; }
         } } : {}),
@@ -295,6 +295,37 @@ async function apri(opz = {}) {
        'Bluetooth: la conferma va su FFB1 come testo esadecimale a 20 byte («00 03 00 b0 …»)');
     a.w.tmsIndietro(); await attendi(60);
     ok(reg.ble.some(x => x[0] === 'disconnect') && d.getElementById('menu').hidden === false, 'tasto indietro: dalla Bilancia si torna al menu e il collegamento si chiude');
+    a.dom.window.close(); }
+  /* ── fascia cardio: lo stesso trasporto con servizio 0x180D e misura 0x2A37; la bilancia collegata non la stacca ── */
+  { const a = await apri({ ble: true }); const { d, reg } = a;
+    const HR = '0000180d-0000-1000-8000-00805f9b34fb', MIS = '00002a37-0000-1000-8000-00805f9b34fb', ID = 'C8:0F:10:00:00:02';
+    ok(d.getElementById('vai-fc').hidden === false, 'con il plugin Bluetooth: la voce «Fascia cardio» c\'è');
+    d.getElementById('vai-fc').click(); await attendi(120);
+    reg.bleAscolti.onScanResult({ device: { deviceId: '11:22:33:44:55:66', name: 'Telefono di qualcuno' } });
+    reg.bleAscolti.onScanResult({ device: { deviceId: ID, name: '' }, uuids: [HR], rssi: -60 }); await attendi(60);
+    const bt = d.querySelectorAll('#fc-trovati [data-fcd]');
+    ok(bt.length === 1 && bt[0].textContent.indexOf(ID) >= 0, 'fascia: tra i dispositivi vicini compare solo quella che dichiara il servizio 0x180D (anche senza nome)');
+    bt[0].click(); await attendi(120);
+    const sn = reg.ble.filter(x => x[0] === 'startNotifications');
+    ok(reg.ble.some(x => x[0] === 'connect' && x[1].deviceId === ID) && sn.length === 1 && sn[0][1].service === HR && sn[0][1].characteristic === MIS,
+       'fascia: collegamento e notifiche sulla misura 0x2A37 del servizio 0x180D (UUID interi)');
+    reg.bleAscolti['notification|' + ID + '|' + HR + '|' + MIS]({ value: '16 8c 00 04' }); await attendi(60);
+    ok(/^140/.test(d.getElementById('fc-bpm').textContent) && d.getElementById('fc-chip-v').textContent === '140', 'fascia: la misura in esadecimale diventa 140 bpm sulla pagina e nella barra');
+    a.w.tmsIndietro(); await attendi(60);
+    ok(d.getElementById('menu').hidden === false && !reg.ble.some(x => x[0] === 'disconnect'), 'tasto indietro: dalla Fascia si torna al menu e la fascia resta collegata');
+    /* la bilancia si collega e si stacca: gli ascolti della fascia restano */
+    d.getElementById('vai-bil').click(); await attendi(120);
+    reg.bleAscolti.onScanResult({ device: { deviceId: '80:F4:16:00:00:01', name: 'HEALTHKEEP' } }); await attendi(120);
+    a.w.tmsIndietro(); await attendi(60);
+    ok(reg.ble.some(x => x[0] === 'disconnect' && x[1].deviceId === '80:F4:16:00:00:01') && !reg.ble.some(x => x[0] === 'disconnect' && x[1].deviceId === ID) &&
+       typeof reg.bleAscolti['notification|' + ID + '|' + HR + '|' + MIS] === 'function', 'bilancia e fascia insieme: chiudendo la bilancia la fascia resta collegata e ascoltata');
+    a.dom.window.close(); }
+  { const a = await apri({ ble: true, bleNotificheNo: true }); const { d, reg } = a;
+    d.getElementById('vai-fc').click(); await attendi(120);
+    reg.bleAscolti.onScanResult({ device: { deviceId: 'C8:0F:10:00:00:03', name: 'Amazfit Helio Strap' } }); await attendi(60);
+    d.querySelector('#fc-trovati [data-fcd]').click(); await attendi(150);
+    ok(reg.ble.some(x => x[0] === 'disconnect' && x[1].deviceId === 'C8:0F:10:00:00:03') && /Heart Rate Push/.test(d.getElementById('fc-stato').textContent),
+       'bracciale che rifiuta le notifiche: si stacca e lo dice (Heart Rate Push o chiave)');
     a.dom.window.close(); }
   { const a = await apri({ ble: true, bleNegato: true }); a.d.getElementById('vai-bil').click(); await attendi(120);
     ok(/Dispositivi nelle vicinanze/.test(a.d.getElementById('bil-stato').textContent) && a.d.getElementById('bil-riprova').hidden === false, 'permesso negato: lo dice e offre «Riprova»');

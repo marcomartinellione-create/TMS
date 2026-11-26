@@ -74,11 +74,13 @@ function costruisciSchedaJSON(videoMap, modificabile){
     .map(e=>({n:String(e.nome).trim(), g:String(e.macro||e.gruppo||'')})) : undefined;
   /* `corpo` (2026-11-15, bilancia Bluetooth nell'app del telefono): la formula della
      composizione corporea usa altezza, età e sesso, e alcune bilance li vogliono ricevere
-     prima di misurare. Solo questi tre dati; 0 o '' se il profilo non li ha. */
+     prima di misurare. Solo questi tre dati; 0 o '' se il profilo non li ha.
+     Dal 26/11/2026 (fascia cardio nell'app del telefono) anche FC max e FC a riposo del Profilo, se
+     scritte: servono alle zone del battito (senza FC max il telefono la stima dall'età, come il TMS). */
   const u=DOC.dati_utente||{};
   return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile, rpe:useRpeActive(),
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
-    corpo:{altezza:+u.altezza||0, sesso:(u.sesso==='F'||u.sesso==='M')?u.sesso:'', eta:etaOf(u)||0},
+    corpo:{altezza:+u.altezza||0, sesso:(u.sesso==='F'||u.sesso==='M')?u.sesso:'', eta:etaOf(u)||0, fcMax:+u.fcMax||0, fcRiposo:+u.fcRiposo||0},
     righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),
     video:videoMap, dieta:costruisciDietaJSON(), catalogo:catalogo};
 }

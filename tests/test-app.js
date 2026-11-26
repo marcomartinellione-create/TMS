@@ -3147,7 +3147,8 @@ console.log('--- T11: pesate della bilancia (dal telefono collegato) ---');
 
   /* la scheda per il telefono porta altezza, sesso ed età */
   { const c = JSON.parse(w.eval('JSON.stringify(costruisciSchedaJSON({}).corpo)'));
-    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30, 'scheda per il telefono: porta altezza, sesso ed età per la bilancia (e nient\'altro del corpo)'); }
+    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30 && Object.keys(c).join() === 'altezza,sesso,eta,fcMax,fcRiposo' && c.fcMax === (+w.eval('DOC.dati_utente.fcMax')||0),
+       'scheda per il telefono: porta altezza, sesso ed età per la bilancia, FC max e FC a riposo per le zone della fascia cardio (e nient\'altro del corpo)'); }
 
   /* pesate arrivate dal telefono */
   const pesate1 = [
@@ -3356,6 +3357,125 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
        'andata e ritorno: la pesata del telefono finisce nello Storico misure del PC (media della settimana)');
     ok(w.eval('DOC.pesate[0].imp.length') === 10 && errors.length === 0, 'andata e ritorno: le impedenze grezze arrivano intatte, nessun errore');
     dom.window.close(); }
+}
+
+console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta, profilo Bluetooth Heart Rate 0x180D) ---');
+{
+  /* misure 0x2A37 COSTRUITE qui secondo la specifica Bluetooth SIG (flags, battito u8/u16, energia, RR in 1/1024 s) */
+  const PWA = path.join(ROOT, 'app-android', 'web', 'index.html');
+  const J = o => JSON.stringify(o);
+  const scheda = { tipo: 'tms-scheda', versione: 1, app: '1.1.41', modificabile: false, rpe: true,
+    profilo: { slug: 'prova', nome: 'Cliente Prova' }, esportata: '2026-11-26', corpo: { altezza: 180, sesso: 'M', eta: 40, fcMax: 0, fcRiposo: 55 },
+    righe: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 80, rest: '2:00', rir: null, test: false, note: '', video: '' }],
+    riscaldamento: [], ultima: {}, video: {}, dieta: null };
+  const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+    beforeParse(win){ win.localStorage.setItem('tms-scheda-lang','it'); win.localStorage.setItem('tms-scheda-corrente', JSON.stringify(scheda)); win.scrollTo = () => {};
+      const B = win.__ble = { collegati: [], staccati: [], cercato: 0, rifiuta: false };
+      win.tmsBLE = { prepara: async () => ({ ok: true }),
+        cerca: async (filtro, trovato) => { B.cercato++; B.filtro = filtro; B.trovato = trovato; },
+        fermaRicerca: async () => {},
+        collega: async (id, cb, opz) => { B.collegati.push([id, opz]);
+          if (B.rifiuta) { const e = new Error('Insufficient authentication'); e.motivo = 'notifiche'; throw e; }
+          if (opz && opz.servizio === '180d') B.cb = cb; else B.cbBil = cb; },
+        scrivi: async () => {}, stacca: async id => { B.staccati.push(id); } }; } });
+  await settle(300);
+  const sw = sub.window, sd = sub.window.document, B = sw.__ble;
+  const dec = b => JSON.parse(sw.eval('JSON.stringify(fcDecodifica(' + J(b) + '))'));
+  /* decodifica della misura */
+  { const a = dec([0x00, 72]), b = dec([0x01, 0x9A, 0x00]), c = dec([0x16, 80, 0x00, 0x04, 0x00, 0x03]), e = dec([0x19, 0x64, 0x00, 0x10, 0x00, 0x00, 0x04]);
+    ok(a.bpm === 72 && a.contatto === null && a.rr.length === 0 && a.energia === null, 'fascia: battito su 1 byte, senza contatto né RR');
+    ok(b.bpm === 154, 'fascia: battito su 2 byte (flag bit0), little-endian');
+    ok(c.bpm === 80 && c.contatto === true && J(c.rr) === '[1000,750]', 'fascia: contatto rilevato e due intervalli RR (1024 → 1000 ms, 768 → 750 ms)');
+    ok(e.bpm === 100 && e.energia === 16 && J(e.rr) === '[1000]', 'fascia: battito u16 + energia spesa + RR: i campi si leggono nell\'ordine giusto');
+    ok(dec([0x04, 0]).contatto === false && dec([]) === null && dec([0x01, 5]) === null, 'fascia: contatto assente (supportato ma non rilevato); misure troppo corte scartate'); }
+  ok(sd.getElementById('vai-fc').hidden === false && /battito in diretta/.test(sd.getElementById('meta-fc').textContent), 'menu: nell\'APK (Bluetooth disponibile) c\'è «Fascia cardio»');
+  ok(J(JSON.parse(sw.eval('JSON.stringify(fcMaxScheda())'))) === J({ v: 180, da: 'eta' }), 'zone: senza FC max nel Profilo si stima dall\'età (208 − 0,7 × 40 = 180), come il TMS');
+  /* pagina: ricerca e scelta della fascia */
+  sd.getElementById('vai-fc').click(); await settle(50);
+  ok(sd.getElementById('fc').hidden === false && /Cliente Prova/.test(sd.getElementById('fc-chi').textContent) && /180 bpm/.test(sd.getElementById('fc-chi').textContent),
+     'pagina Fascia cardio: di chi è il battito e la FC max usata per le zone');
+  ok(B.cercato === 1 && B.filtro({ id: 'A', nome: 'Polar H10 1234', servizi: [] }) && B.filtro({ id: 'B', nome: '', servizi: ['180d'] }) &&
+     B.filtro({ id: 'C', nome: 'Amazfit Helio Strap', servizi: [] }) && !B.filtro({ id: 'D', nome: 'Mi Band 7', servizi: ['fee0'] }),
+     'ricerca: fasce col servizio 0x180D o col nome di una fascia nota (anche l\'Helio Strap), non altri dispositivi');
+  B.trovato({ id: 'AA:BB:CC:00:00:01', nome: 'Polar H10 1234', servizi: ['180d'] }); await settle(20);
+  ok(sd.querySelectorAll('#fc-trovati [data-fcd]').length === 1 && /Polar H10/.test(sd.getElementById('fc-trovati').textContent), 'ricerca: la fascia trovata compare nell\'elenco da toccare');
+  sd.querySelector('#fc-trovati [data-fcd]').click(); await settle(30);
+  ok(B.collegati.length === 1 && B.collegati[0][0] === 'AA:BB:CC:00:00:01' && J(B.collegati[0][1]) === J({ servizio: '180d', notifiche: ['2a37'] }),
+     'collegamento: servizio 0x180D, notifiche della misura 0x2A37 (trasporto generico)');
+  ok(sw.localStorage.getItem('tms-fascia-id') === 'AA:BB:CC:00:00:01' && /aspetto il battito/.test(sd.getElementById('fc-stato').textContent), 'collegamento: la fascia viene ricordata, si aspetta il battito');
+  /* battito e zone */
+  B.cb.onDati('2a37', [0x16, 140, 0x00, 0x04]); await settle(10);
+  ok(/^140/.test(sd.getElementById('fc-bpm').textContent) && sd.getElementById('fc-bpm').classList.contains('z3') && /Zona 3/.test(sd.getElementById('fc-zona').textContent) && /78 %/.test(sd.getElementById('fc-zona').textContent),
+     'battito in diretta: 140 bpm = 78 % della FC max → zona 3 (moderata)');
+  ok(sd.querySelectorAll('#fc-zone i.on').length === 1 && sd.querySelector('#fc-zone i.on').classList.contains('z3'), 'zone: la barra delle 5 zone accende la terza');
+  ok(sd.getElementById('fc-chip').hidden === false && sd.getElementById('fc-chip-v').textContent === '140', 'barra in alto: il battito si vede su tutte le schermate');
+  B.cb.onDati('2a37', [0x04, 0]); await settle(10);
+  ok(/contatto con la pelle/.test(sd.getElementById('fc-stato').textContent) && sd.getElementById('fc-bpm').textContent === '—', 'contatto assente: lo dice e non mostra un battito finto');
+  sw.eval('FC.contatto=null; FC.ultimoBuono=Date.now()-20000; FC.dalCollegamento=Date.now()-20000; fcTic();');
+  ok(/il battito non arriva/.test(sd.getElementById('fc-stato').textContent) && /Heart Rate Push/.test(sd.getElementById('fc-sotto').textContent),
+     'battito che non arriva (15 s): lo dice in parole chiare e rimanda a «Heart Rate Push» o alla chiave del bracciale');
+  B.cb.onDati('2a37', [0x00, 0]); await settle(10);
+  ok(sw.eval('FC.bpm') === null && sd.getElementById('fc-bpm').textContent === '—' && /il battito non arriva/.test(sd.getElementById('fc-stato').textContent),
+     'un battito 0 (bracciale che non condivide) non conta come battito: resta «il battito non arriva»');
+  B.cb.onDati('2a37', [0x00, 130]); await settle(10);
+  ok(/Collegata a «Polar H10 1234»/.test(sd.getElementById('fc-stato').textContent) && /^130/.test(sd.getElementById('fc-bpm').textContent), 'il battito torna: «Collegata», 130 bpm');
+  /* registrazione: «Registra» → campioni → «Fine» → «Com'è andata?» → «Salva la seduta» */
+  ok(sd.getElementById('fc-registra') !== null && sd.getElementById('fc-scollega').hidden === false, 'collegata: c\'è «Registra» (e «Scollega»)');
+  sd.getElementById('fc-registra').click(); await settle(20);
+  ok(sw.eval('!!FC.reg') && sd.getElementById('fc-fine') !== null && sd.getElementById('fc-chip').classList.contains('rec') && sd.getElementById('fc-scollega').hidden === true,
+     'Registra: parte la registrazione (pulsante «Fine», segno rosso nella barra, niente «Scollega»)');
+  ok(JSON.parse(sw.localStorage.getItem('tms-fc-bozza-prova') || '{}').reg, 'registrazione: la bozza si salva subito sul telefono (un\'app chiusa non la perde)');
+  sw.eval('FC.reg.inizio=Date.now()-125000; for(var k=0;k<25;k++) fcCampione(FC.reg.inizio+k*5000+1000, 120+k);');
+  sd.getElementById('fc-fine').click(); await settle(20);
+  { const c = JSON.parse(sw.eval('JSON.stringify(FC.chiudi)'));
+    ok(c && c.durataSec >= 125 && c.durataSec < 130 && c.fcMedia === 132 && c.fcPicco === 144 && c.fc.length === 25 && c.passo === 5 && c.dispositivo === 'Polar H10 1234',
+       'Fine: durata, FC media (132), picco (144) e traccia ogni 5 secondi'); }
+  ok(sd.getElementById('fc-sport') !== null && sd.getElementById('fc-sport').value === 'Corsa' && /Com’è andata/.test(sd.getElementById('fc-reg').textContent), 'Fine: chiede attività e fatica');
+  sd.getElementById('fc-sport').value = 'Bici'; sd.getElementById('fc-rpe').value = '6';
+  sd.getElementById('fc-salva').click(); await settle(30);
+  { const s = JSON.parse(sw.eval('JSON.stringify(SEDUTE_FC[0]||null)'));
+    ok(s && s.tipo === 'Bici' && s.durata === 2 && s.rpe === 6 && s.fcMedia === 132 && s.fcPicco === 144 && s.fc.length === 25 && s.fcPasso === 5 && s.id === s.data + 'T' + s.ora + '|fc',
+       'Salva: la seduta resta sul telefono (sport, minuti, RPE, FC media e picco, traccia)'); }
+  ok(JSON.parse(sw.localStorage.getItem('tms-fc-sedute-prova') || '[]').length === 1 && sw.localStorage.getItem('tms-fc-bozza-prova') === null && sd.querySelectorAll('#fc-lista .bil-row').length === 1,
+     'Salva: memoria del profilo, bozza tolta, la seduta nell\'elenco');
+  ok(/1 seduta questa settimana/.test(sd.getElementById('meta-fc').textContent) || /bpm/.test(sd.getElementById('meta-fc').textContent), 'menu: le sedute della settimana (o il battito, da collegati)');
+  /* butta via */
+  sd.getElementById('fc-registra').click(); await settle(10); sd.getElementById('fc-fine').click(); await settle(10);
+  sd.getElementById('fc-scarta').click(); await settle(10);
+  ok(sd.getElementById('fc-scarta-si') !== null && sw.eval('!!FC.chiudi'), 'Butta via: chiede conferma sulla riga');
+  sd.getElementById('fc-scarta-si').click(); await settle(20);
+  ok(sw.eval('FC.chiudi') === null && sw.eval('SEDUTE_FC.length') === 1 && sd.getElementById('fc-registra') !== null, 'Butta via: la registrazione sparisce, le sedute salvate restano');
+  /* registrazione interrotta (app chiusa a metà): alla riapertura diventa una seduta da chiudere */
+  sw.localStorage.setItem('tms-fc-bozza-prova', J({ reg: { inizio: Date.parse('2026-11-25T18:00:00'), ultimo: Date.parse('2026-11-25T18:01:00'), picco: 110, secchi: { 0: [200, 2], 1: [110, 1] } }, nome: 'Polar' }));
+  await sw.eval('fcCarica()'); await settle(20);
+  { const c = JSON.parse(sw.eval('JSON.stringify(FC.chiudi)'));
+    ok(c && c.data === '2026-11-25' && c.durataSec === 60 && c.fcMedia === 105 && c.fcPicco === 110 && /Com’è andata/.test(sd.getElementById('fc-reg').textContent),
+       'registrazione interrotta: alla riapertura si chiude come una seduta finita (niente battito perso)'); }
+  await sw.eval('fcScartaSeduta()');
+  /* fuori dalla pagina resta collegata; in secondo piano si stacca e poi si ricollega */
+  sd.getElementById('barra-ind').click(); await settle(30);
+  ok(sd.getElementById('menu').hidden === false && B.staccati.length === 0 && sd.getElementById('fc-chip').hidden === false, 'uscendo dalla pagina la fascia resta collegata (battito nella barra)');
+  /* la bilancia usa lo stesso trasporto con i suoi parametri, e la fascia non si stacca */
+  sd.getElementById('vai-bil').click(); await settle(30);
+  B.trovato({ id: '80:F4:16:00:00:01', nome: 'HEALTHKEEP' }); await settle(30);
+  { const ul = B.collegati[B.collegati.length - 1];
+    ok(ul[0] === '80:F4:16:00:00:01' && J(ul[1]) === J({ servizio: 'ffb0', notifiche: ['ffb2', 'ffb3'] }) && B.staccati.indexOf('AA:BB:CC:00:00:01') < 0,
+       'bilancia: stesso trasporto coi parametri suoi (FFB0, FFB2, FFB3); la fascia resta collegata'); }
+  sd.getElementById('barra-ind').click(); await settle(30);
+  sw.eval('fcVisibilita(true)');
+  ok(B.staccati.indexOf('AA:BB:CC:00:00:01') >= 0 && sw.eval('FC.riprendi') === true && sd.getElementById('fc-chip').hidden === true, 'app in secondo piano (senza registrare): la fascia si stacca');
+  const prima = B.cercato; sw.eval('fcVisibilita(false)'); await settle(30);
+  ok(B.cercato === prima + 1 && B.filtro({ id: 'AA:BB:CC:00:00:01', nome: '' }) && !B.filtro({ id: 'X', nome: 'Polar H9', servizi: ['180d'] }), 'app di nuovo davanti: la cerca per indirizzo e si ricollega');
+  B.trovato({ id: 'AA:BB:CC:00:00:01', nome: '' }); await settle(30);
+  ok(sw.eval('FC.id') === 'AA:BB:CC:00:00:01', 'ricollegata da sola alla fascia ricordata');
+  /* una fascia (o un bracciale) che rifiuta le notifiche senza abbinamento */
+  sw.eval('fcScollega()'); B.rifiuta = true;
+  sd.getElementById('vai-fc').click(); await settle(40);
+  B.trovato({ id: 'AA:BB:CC:00:00:01', nome: '' }); await settle(40);
+  ok(/non lascia leggere il battito/.test(sd.getElementById('fc-stato').textContent) && /Heart Rate Push/.test(sd.getElementById('fc-stato').textContent) && sd.getElementById('fc-riprova').hidden === false,
+     'fascia che rifiuta le notifiche: lo dice (Heart Rate Push, chiave del bracciale) e offre «Riprova»');
+  ok(['Fascia cardio', 'Registra', 'Com’è andata?', 'Zona 3', 'Collegata, ma il battito non arriva.'].every(k => sw.eval('TT.en[' + J(k) + ']')), 'fascia EN: i testi nuovi hanno la traduzione');
+  sw.close();
 }
 
 console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---');
@@ -3650,6 +3770,36 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
   ok(w.eval('telDietaApplica([{id:"x", data:"2026-11-21", valore:"no", ora:"2020-01-01T00:00:00.000Z"}])') === 0 && w.eval('DOC.alimentazione.aderenza["2026-11-21"].v') === 'si', 'PC: un cambio più vecchio arrivato in ritardo non torna indietro');
   sw.eval('dietaSegna("2026-11-20","")'); await sw.eval('colEventi()'); await giroPC(); await settle(450);
   ok(w.eval('DOC.alimentazione.aderenza["2026-11-20"].v') === '', 'PC: un giorno tolto sul telefono resta vuoto anche sul PC');
+  /* seduta della fascia cardio (26/11/2026): dal telefono al tab Cardio del PC, cifrata, senza doppioni */
+  { const fc = []; for (let k = 0; k < 24; k++) fc.push(k === 10 ? null : 120 + k);
+    sw.eval('SEDUTE_FC.push(' + J({ id: '2026-11-22T18:30:00|fc', data: '2026-11-22', ora: '18:30:00', tipo: 'Bici', durata: 2, rpe: 6, fcMedia: 132, fcPicco: 143, fc: fc, fcPasso: 5, dispositivo: 'Polar H10 1234' }) + ')');
+    await sw.eval('colEventi()');
+    const evC = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /cardio-/.test(k));
+    ok(evC.length === 1 && !/Polar|Bici|143/.test(H.file(LID, evC[0])), 'telefono: la seduta della fascia cardio diventa un file cifrato sull\'hub');
+    await giroPC(); await settle(450);
+    const s = JSON.parse(w.eval('JSON.stringify(DOC.cardio.find(function(x){ return x.id==="2026-11-22T18:30:00|fc"; })||null)'));
+    ok(s && s.tipo === 'Bici' && s.durata === 2 && s.rpe === 6 && s.fcMedia === 132 && s.fcPicco === 143 && s.fcMax === '' && s.fc.length === 24 && s.fc[10] === null && s.fcPasso === 5 && /Polar H10/.test(s.note),
+       'PC: la seduta entra nel tab Cardio (sport, minuti, RPE, FC media, picco, traccia del battito)');
+    ok(w.eval('trimpCardio(DOC.cardio.find(function(x){ return x.id==="2026-11-22T18:30:00|fc"; }))') > 0 && w.eval('srpeCardio(DOC.cardio.find(function(x){ return x.id==="2026-11-22T18:30:00|fc"; }))') === 12,
+       'PC: TRIMP calcolato da solo dalla FC media, sRPE = RPE × minuti');
+    ok(!H.file(LID, evC[0]) && /2026-11-22T18:30:00\|fc/.test(fsmem._files.get('TMS_Dati/prova/corpo.json') || ''), 'PC: salvata su disco (corpo.json), tolta subito dall\'hub');
+    await giroTel();
+    ok(sw.eval('SEDUTE_FC[0].pc===true'), 'telefono: la seduta risulta «al PC»');
+    ok(w.eval('importaCardioTel([' + J({ id: '2026-11-22T18:30:00|fc', data: '2026-11-22', durata: 2, fcMedia: 132 }) + '])') === 0 && w.eval('DOC.cardio.filter(function(x){ return x.id==="2026-11-22T18:30:00|fc"; }).length') === 1,
+       'PC: la stessa seduta arrivata di nuovo non si duplica');
+    w.eval('DOC.cardio=DOC.cardio.filter(function(x){ return x.id!=="2026-11-22T18:30:00|fc"; })');
+    ok(w.eval('importaCardioTel([' + J({ id: '2026-11-22T18:30:00|fc', data: '2026-11-22', durata: 2 }) + '], new Set(telProf().ricevute))') === 0, 'PC: una seduta tolta a mano dopo l\'arrivo non torna (è fra le ricevute)');
+    ok(w.eval('pulisciCardioTel({id:"x", data:"2026-11-22", durata:0})') === null && w.eval('pulisciCardioTel({id:"", data:"2026-11-22", durata:5})') === null &&
+       w.eval('pulisciCardioTel({id:"x", data:"2026-11-22", durata:5, fcMedia:400}).fcMedia') === '', 'PC: sedute senza id o durata scartate, battiti impossibili tolti');
+    /* il grafico del battito nel modulo della seduta; salvando il modulo la traccia resta */
+    const r = w.eval('(function(){ DOC.cardio.push(pulisciCardioTel(' + J({ id: 'g1|fc', data: '2026-11-23', ora: '07:00:00', tipo: 'Corsa', durata: 2, fcMedia: 132, fcPicco: 143, fc: fc, fcPasso: 5 }) + ')); return DOC.cardio.length-1; })()');
+    w.eval('showTab("cardio")'); await settle(20);
+    ok(d.querySelector('#panel-cardio [data-cfc="' + r + '"]') !== null, 'tab Cardio: accanto alla FC media il pulsante del battito della seduta');
+    d.querySelector('#panel-cardio [data-cfc="' + r + '"]').click(); await settle(20);
+    ok(d.querySelector('#modal svg') !== null && /Battito della seduta/.test(d.getElementById('modal').textContent), 'modulo della seduta: grafico del battito');
+    d.getElementById('c-ok').click(); await settle(20);
+    ok(w.eval('DOC.cardio[' + r + '].id') === 'g1|fc' && w.eval('DOC.cardio[' + r + '].fc.length') === 24, 'salvando il modulo restano id e traccia del battito');
+    w.eval('showTab("allenamento")'); }
   /* il calendario nel tab Alimentazione del PC */
   w.eval('aderMese="2026-11"; showTab("alimentazione");'); await settle(30);
   { const cal = d.getElementById('ader-cal');
@@ -3670,11 +3820,14 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     H.metti(L2, 'dal-telefono/eventi/pesata-g1.json', await cifra({ tipo: 'tms-pesata', pesata: { id: '2026-11-23T07:00:00|61.2', data: '2026-11-23', ora: '07:00:00', peso: 61.2 } }));
     H.metti(L2, 'dal-telefono/eventi/foto-g1.json', await cifra({ tipo: 'tms-foto', foto: { id: 'fg1', tag: 'fronte', data: '2026-11-23', img: 'data:image/jpeg;base64,/9j/AAAA' } }));
     H.metti(L2, 'dal-telefono/eventi/dieta-g1.json', await cifra({ tipo: 'tms-dieta', id: 'dieta|2026-11-23|g1', data: '2026-11-23', valore: 'si', ora: '2026-11-23T20:00:00.000Z' }));
+    H.metti(L2, 'dal-telefono/eventi/cardio-g1.json', await cifra({ tipo: 'tms-cardio', seduta: { id: '2026-11-23T18:00:00|fc', data: '2026-11-23', ora: '18:00:00', tipo: 'Corsa', durata: 30, rpe: 5, fcMedia: 145, fcPicco: 170, fc: [140, 150], fcPasso: 5 } }));
     const pesatePrima = w.eval('JSON.stringify(DOC.pesate)');
     await w.eval('telGiroAltri()');
     const co = JSON.parse(fsmem._files.get('TMS_Dati/giulia/corpo.json')), al = JSON.parse(fsmem._files.get('TMS_Dati/giulia/alimentazione.json'));
     ok(co.pesate.length === 1 && co.pesate[0].peso === 61.2 && co.foto.some(f => f.id === 'fg1' && fsmem._files.has('TMS_Dati/giulia/foto/' + f.file)) && al.aderenza['2026-11-23'].v === 'si',
        'clienti non aperti: pesata, foto e giorno della dieta salvati nei file di quel profilo, senza aprirlo');
+    ok(Array.isArray(co.cardio) && co.cardio.length === 1 && co.cardio[0].fcMedia === 145 && co.cardio[0].fc.length === 2 && w.eval('telProf("giulia").ricevute').indexOf('2026-11-23T18:00:00|fc') >= 0,
+       'clienti non aperti: anche la seduta della fascia cardio finisce nel loro corpo.json (tab Cardio)');
     ok(co.storico_io.find(r => r.scheda === sett).peso === 60 && co.dati_utente.peso === 61.2, 'clienti non aperti: i valori scritti a mano nello Storico misure restano, il peso del profilo si aggiorna');
     ok(w.eval('JSON.stringify(DOC.pesate)') === pesatePrima && w.eval('activeProfile') === 'prova', 'clienti non aperti: il profilo aperto non cambia');
     ok(H.nomi(L2, 'dal-telefono/eventi/').length === 0 && ['2026-11-23T07:00:00|61.2', 'fg1', 'dieta|2026-11-23|g1'].every(id => w.eval('telProf("giulia").ricevute').indexOf(id) >= 0),

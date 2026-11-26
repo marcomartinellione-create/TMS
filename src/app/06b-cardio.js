@@ -106,7 +106,7 @@ function renderCardio(){
       <td class="num cell-out">${au||'—'}</td>
       <td class="num">${s.distanza?nf(s.distanza,1):'—'}</td>
       <td class="num">${cardioRitmo(s)}</td>
-      <td class="num">${s.fcMedia?nf(s.fcMedia,0):'—'}</td>
+      <td class="num">${s.fcMedia?nf(s.fcMedia,0):'—'}${cardioHaTraccia(s)?` <button class="btn btn--sm" data-cfc="${idx}" title="${t('Battito della seduta')}">${ico('cardio','p')}</button>`:''}</td>
       <td class="num">${tr==null?'<span class="muted">—</span>':tr}</td>
       <td class="num">${s.quota?nf(s.quota,0):'—'}</td>
       <td class="l muted" style="font-size:11px">${esc(s.note||'')}</td>
@@ -132,6 +132,7 @@ function renderCardio(){
       if(!p){ avviso(t('Non riconosco questo file. Esporta l\'attività come .FIT, .TCX o .GPX dal tuo dispositivo o app (Garmin Connect, Polar Flow, Strava…) e riprova.')); return; }
       cardioModal(-1, p); }; }
   document.querySelectorAll('#panel-cardio [data-ced]').forEach(b=>b.onclick=()=>cardioModal(+b.dataset.ced));
+  document.querySelectorAll('#panel-cardio [data-cfc]').forEach(b=>b.onclick=()=>cardioModal(+b.dataset.cfc));
   document.querySelectorAll('#panel-cardio [data-cdel]').forEach(b=>b.onclick=async()=>{ const i=+b.dataset.cdel, s=cardioList()[i];
     if(!await conferma(t('Eliminare l\'attività «')+t((s&&s.tipo)||'')+t('» del')+' '+((s&&s.data)||'')+'?')) return;
     cardioList().splice(i,1); persist('corpo'); renderCardio(); });
@@ -151,6 +152,7 @@ function cardioModal(idx, preset){
     <div class="row"><div class="field"><label>${t('FC media (bpm)')} <span class="muted" style="text-transform:none">${t('per il TRIMP')}</span></label><input id="c-fc" type="number" min="0" value="${s.fcMedia??''}" placeholder="–"></div>
       <div class="field"><label>${t('FC max')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-fcmax" type="number" min="0" value="${s.fcMax??''}" placeholder="${t('da età')}" title="${t('La tua frequenza cardiaca massima, se la conosci. Vuota = quella del Profilo o stimata dall\'età.')}">${+s.fcPicco>0?`<div class="muted" style="font-size:11px;margin-top:3px">${t('picco in questa seduta:')} ${nf(s.fcPicco,0)} bpm</div>`:''}</div></div>
     <div class="field"><label>${t('Note')}</label><input id="c-note" value="${esc(s.note||'')}"></div>
+    ${cardioHaTraccia(s)?`<div class="field"><label>${t('Battito della seduta')} <span class="muted" style="text-transform:none">${esc(s.dispositivo||'')}</span></label>${graficoFcSeduta(s)}</div>`:''}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="c-ok">${t('Salva')}</button></div>`);
   const sel=document.getElementById('c-tipo'), altro=document.getElementById('c-tipo-altro');
   /* se il tipo non è tra le opzioni (preset/import con sport nuovo), apri "Altro…" precompilato */
@@ -175,7 +177,9 @@ function cardioModal(idx, preset){
       note:document.getElementById('c-note').value.trim()};
     if(!obj.tipo){ avviso(t('Scegli o indica lo sport.')); return; }
     if(!obj.durata){ avviso(t('Indica la durata in minuti.')); return; }
-    if(idx>=0) cardioList()[idx]=obj; else cardioList().push(obj);
+    /* i campi che il modulo non mostra (id, ora e traccia del battito delle sedute dal telefono) restano */
+    if(idx>=0){ ['id','ora','fc','fcPasso','dispositivo'].forEach(k=>{ if(s[k]!=null && s[k]!=='') obj[k]=s[k]; }); cardioList()[idx]=obj; }
+    else cardioList().push(obj);
     persist('corpo'); closeModal(); renderCardio();
   };
 }
@@ -328,4 +332,55 @@ function cardioReportBlock(){
      <div class="chart-box" style="margin-top:8px"><h4>${t('Carico cardio (sRPE) nel tempo')}</h4>${auChart}</div>
      <div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th class="l">${t('Data')}</th><th class="l">${t('Sport')}</th><th>${t('Min')}</th><th>km</th><th>${t('Ritmo')}</th><th>${t('FC media')}</th><th>sRPE</th><th>TRIMP</th></tr></thead><tbody>${rows}</tbody></table></div>
      <p class="muted" style="font-size:12px">${t('Carico interno delle attività cardio: <b>sRPE</b> = RPE×min (Foster), <b>TRIMP</b> dalla frequenza cardiaca (Banister). Passo/velocità e distanza dove rilevati.')}</p></div>`;
+}
+
+/* ── SEDUTE DALLA FASCIA CARDIO del telefono collegato (26/11/2026, fase 1a dello studio del bracciale,
+      Doc/bracciale/PROPOSTA.md). L'app «TMS Scheda» legge il battito da una fascia cardio Bluetooth
+      standard (profilo Heart Rate 0x180D) e, con «Registra», salva una seduta che arriva da sola
+      attraverso l'hub (evento tms-cardio, 15c-telefono.js, come le pesate). Qui diventa una voce di
+      DOC.cardio come quelle scritte a mano o importate da file: FC media → TRIMP automatico, il picco
+      va in fcPicco (vedi fcMaxPerSeduta), più la traccia del battito (fc: un valore ogni fcPasso
+      secondi, null dove mancava) per il grafico. I doppioni si riconoscono dall'id (già nel cardio o
+      già fra le ricevute del telefono: così una seduta tolta qui a mano non torna).
+      Seduta: {id, data 'AAAA-MM-GG', ora 'HH:MM:SS', tipo, durata min, rpe 0–10 | '', fcMedia, fcPicco,
+      fc:[bpm|null], fcPasso s, dispositivo}. Obbligatori id, data e durata. ── */
+function cardioHaTraccia(s){ return !!(s && Array.isArray(s.fc) && s.fc.filter(v=>v!=null).length>1); }
+function pulisciCardioTel(x){
+  if(!x || typeof x!=='object') return null;
+  const id=String(x.id||'').trim().slice(0,80); if(!id) return null;
+  const data=String(x.data||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(data) || isNaN(new Date(data+'T12:00:00').getTime())) return null;
+  const durata=Math.round(+x.durata); if(!(durata>=1 && durata<=1440)) return null;
+  const bpm=v=>{ const n=Math.round(+v); return (v!=null && v!=='' && n>=25 && n<=250)? n : ''; };
+  const rpe=(x.rpe==='' || x.rpe==null || !(+x.rpe>=0 && +x.rpe<=10))? '' : +x.rpe;
+  const disp=String(x.dispositivo||'').trim().slice(0,60);
+  const out={id:id, data:data, ora:/^\d{2}:\d{2}(:\d{2})?$/.test(String(x.ora||''))? String(x.ora) : '',
+    tipo:String(x.tipo||'').trim().slice(0,40)||'Cardio', durata:durata, rpe:rpe, distanza:'', quota:'',
+    fcMedia:bpm(x.fcMedia), fcMax:'', fcPicco:bpm(x.fcPicco), note:t('registrata col telefono')+(disp? ' ('+disp+')' : '')};
+  if(disp) out.dispositivo=disp;
+  const fc=Array.isArray(x.fc)? x.fc.slice(0,20000).map(v=>(bpm(v)===''? null : bpm(v))) : [];
+  if(fc.filter(v=>v!=null).length>1){ out.fc=fc; const ps=Math.round(+x.fcPasso); out.fcPasso=(ps>=1 && ps<=60)? ps : 5; }
+  return out;
+}
+/* unisce in T.cardio (DOC o il corpo.json di un cliente non aperto); ritorna quante sedute nuove */
+function cardioUnisci(T, arrivate, giaVisti){
+  if(!Array.isArray(T.cardio)) T.cardio=[];
+  const note=new Set(T.cardio.map(s=>s && s.id).filter(Boolean)); let n=0;
+  (arrivate||[]).forEach(x=>{ const s=pulisciCardioTel(x);
+    if(!s || note.has(s.id) || (giaVisti && giaVisti.has(s.id))) return;
+    T.cardio.push(s); note.add(s.id); n++; });
+  return n;
+}
+function importaCardioTel(arrivate, giaVisti){
+  const n=cardioUnisci(DOC, arrivate, giaVisti);
+  if(n){ persist('corpo'); if(typeof curTab!=='undefined' && curTab==='cardio') renderCardio(); }
+  return n;
+}
+/* il battito della seduta: minuti in basso, bpm a sinistra, la FC media tratteggiata */
+function graficoFcSeduta(s){
+  const passo=+s.fcPasso||5, fc=s.fc||[];
+  const dati=fc.map((v,i)=>({x:i, y:(v==null? null : +v)}));
+  const lab=fc.map((v,i)=>{ const sec=i*passo; return Math.floor(sec/60)+'′'; });
+  return lineChart([{name:t('Battito'), color:'var(--danger-b)', punti:false, data:dati}],
+    {labels:lab, h:170, rif:(+s.fcMedia>0? +s.fcMedia : null), fmt:v=>nf(v,0), fmtTip:v=>nf(v,0)+' bpm'});
 }
