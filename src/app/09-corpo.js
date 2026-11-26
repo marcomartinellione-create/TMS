@@ -66,6 +66,7 @@ function renderCorpo(){
        </div>
        ${tipoCorpoLat(u)}
       </div>
+      <div id="recupero-box">${htmlRecupero()}</div>
      </aside>
    </div>`;
   document.querySelectorAll('#panel-corpo [data-u]').forEach(inp=>inp.addEventListener('input',e=>{
@@ -76,6 +77,7 @@ function renderCorpo(){
     clearTimeout(rerenderT); rerenderT=setTimeout(()=>ridisegnaConFuoco('panel-corpo', renderCorpo),600);
   }));
   legaPesate();   /* 🗑 sulle pesate della bilancia (09c-pesate.js) */
+  legaRecupero(); /* sonno e dati del giorno dal bracciale (09e-recupero.js) */
   document.getElementById('btn-save-io').onclick=saveIoModal;
   document.getElementById('btn-undo-io').onclick=async()=>{ if(!io.length){avviso(t('Vuoto.'));return;}
     if(!await conferma(t('Elimino l\'ultima misura salvata?')))return; DOC.storico_io.pop(); persist('corpo'); renderCorpo(); };

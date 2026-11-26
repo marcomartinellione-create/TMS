@@ -512,6 +512,38 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
 .tipo-corpo__griglia .comp-griglia div{padding:9px 3px; font-size:11px}
 .tipo-corpo__nota{font-size:10.5px; margin-top:6px}
 @media (max-width:1400px){ .corpo-graf{grid-template-columns:1fr} }
+/* Corpo › Recupero (09e-recupero.js, bozza del 26/11/2026): sonno e dati del giorno dal bracciale, in fondo
+   alla colonna di destra. Qui c'è solo l'impaginazione: riquadri, colori e grafici sono quelli dell'app
+   (.cards, .lat, .chart-box, .tbl-wrap, lineChart). La fascia «fuori dal solito» usa l'arancio degli avvisi. */
+.recu-sec .recu-agg{font-family:var(--font-body); font-size:11.5px; font-weight:400; letter-spacing:0; color:var(--ink-3)}
+.recu-sec .recu-per{margin-left:auto; font-size:13px; font-family:var(--font-body); font-weight:400; letter-spacing:0}
+.recu-fuori, .recu-sec .recu-agg.recu-fuori{color:var(--orange); font-weight:600}
+.recu-vuoto{display:flex; align-items:center; gap:9px; font-size:12.5px; line-height:1.45; color:var(--ink-3); padding:0 2px 4px}
+.recu-vuoto .ic{flex:none; width:17px; height:17px; opacity:.75}
+.cards.recu-cards{grid-template-columns:repeat(auto-fit,minmax(138px,1fr)); gap:10px; margin:0 0 12px}
+.recu-cards .card{padding:11px 13px 10px}
+.recu-cards .card__v{font-size:21px}
+.recu-cards .card__sub{font-size:11px; line-height:1.35; color:var(--ink-3)}
+.recu-griglia{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr)); gap:12px; margin-bottom:12px}
+.recu-griglia > .chart-box, .recu-griglia > .lat{margin:0; min-width:0}
+.recu-notte__num{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0 0 8px}
+.recu-notte__num > div{display:flex; flex-direction:column; min-width:0}
+.recu-notte__num span{font-size:11.5px; color:var(--ink-3)}
+.recu-notte__num b{font-family:var(--font-num); font-size:20px; font-weight:400; line-height:1.2; color:var(--ember-2); font-variant-numeric:lining-nums tabular-nums; white-space:nowrap}
+.recu-notte__num small{font-size:10.5px; color:var(--ink-4)}
+.recu-fasi{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px 10px; margin-top:6px}
+.recu-fasi > div{display:grid; grid-template-columns:9px minmax(0,1fr); column-gap:6px; align-items:center}
+.recu-fasi i{width:9px; height:9px; border-radius:2px}
+.recu-fasi span{font-size:11.5px; color:var(--ink-3)}
+.recu-fasi b{grid-column:2; font-family:var(--font-num); font-size:15px; font-weight:400; color:var(--ink); font-variant-numeric:lining-nums tabular-nums; white-space:nowrap}
+.recu-fasi b small{font-family:var(--font-body); font-size:10.5px; color:var(--ink-4)}
+.recu-griglia .chart-box h4 .muted{font-family:var(--font-body); font-size:11.5px; font-weight:400; letter-spacing:0}
+.recu-tratto{display:inline-block; width:18px; border-top:1.5px dashed var(--ink-2); vertical-align:middle; margin-left:2px}
+.recu-tit{font-size:14px; font-weight:700; color:var(--ember-2); margin:6px 0 8px}
+table.recu-sett{font-size:12.5px}
+table.recu-sett th.recu-gruppo{font-size:11px; font-weight:400; opacity:.85}
+table.recu-sett .recu-col-corpo{border-left:2px solid var(--border-2)}
+table.recu-sett td:first-child{white-space:nowrap}
 .comp-anteprima{max-height:72vh; overflow:auto; background:#cfc6b3; padding:12px; border-radius:var(--r-sm)}
 .comp-anteprima .comp-pg{margin:0 auto; box-shadow:0 2px 10px rgba(0,0,0,.25)}
 /* ── ⚙ IMPOSTAZIONI (13e-impostazioni.js) ── */
