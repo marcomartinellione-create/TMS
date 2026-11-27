@@ -13,8 +13,8 @@ function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); r
 function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
 function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.43', APP_DATE='2026-11-26';
-const RELEASE_NOTE='TMS Scheda 1.6.0: la seduta chiede conferma prima di partire (Inizia o Solo guardare) e si può annullare se avviata per sbaglio. Allenamento ha due linguette: Palestra, con i giorni della scheda, e Cardio, dove si sceglie lo sport, si avvia la registrazione e a Fine si chiede solo la fatica. La voce Collegamento e promemoria diventa Impostazioni, con dentro anche lingua, QR e la fascia cardio; in alto resta solo il battito.'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.44', APP_DATE='2026-11-27';
+const RELEASE_NOTE='TMS Scheda 1.7.0: collegamento cifrato col bracciale Amazfit Helio Strap con la sua chiave (Impostazioni › Sensori › Bracciale; la chiave resta solo sul telefono), con firmware e batteria. Durante una seduta o una registrazione l’app resta attiva anche chiusa: una notifica mostra battito e tempo e il battito si registra anche a schermo spento. Uscendo dall’app con una seduta aperta compare una finestra mobile con battito, esercizio, recupero e tempo. Impostazioni ordinate in sezioni.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
    Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */

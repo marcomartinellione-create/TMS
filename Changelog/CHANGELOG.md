@@ -4,6 +4,20 @@
 
 ---
 
+### 2026-11-27 — TMS v1.1.44: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.43
+**Descrizione**:
+- TMS Scheda 1.7.0: collegamento cifrato col bracciale Amazfit Helio Strap con la sua chiave (Impostazioni › Sensori › Bracciale; la chiave resta solo sul telefono), con firmware e batteria. Durante una seduta o una registrazione l’app resta attiva anche chiusa: una notifica mostra battito e tempo e il battito si registra anche a schermo spento. Uscendo dall’app con una seduta aperta compare una finestra mobile con battito, esercizio, recupero e tempo. Impostazioni ordinate in sezioni.
+- Telefono: durante una seduta o una registrazione l'app resta attiva anche chiusa (servizio in primo piano con notifica fissa, battito preso anche a schermo spento) e uscendo diventa una finestra mobile col battito, l'esercizio, il recupero e il tempo
+- Merge branch 'main' into claude/bracciale-studio-2fb8a9
+- Telefono: collegamento cifrato col bracciale Zepp OS (Amazfit Helio Strap) con la sua chiave, in Impostazioni > Sensori > Bracciale, e Impostazioni ordinate in sezioni
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-27)
+
+---
+
 ### 2026-11-26 — TMS v1.1.43: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.42
