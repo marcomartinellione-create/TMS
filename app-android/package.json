@@ -1,6 +1,6 @@
 {
   "name": "tms-scheda-android",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "description": "TMS Scheda per Android (APK): impacchetta la pagina di app-android/web/ con Capacitor e aggiunge lo strato nativo (file, foto, bilancia Bluetooth, tasto indietro, avvisi in stile app).",
   "scripts": {

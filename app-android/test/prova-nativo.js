@@ -72,6 +72,7 @@ async function apri(opz = {}) {
           connect: async o => { reg.ble.push(['connect', o]); },
           startNotifications: async o => { reg.ble.push(['startNotifications', o]); if (opz.bleNotificheNo) throw new Error('Insufficient authentication'); },
           write: async o => { reg.ble.push(['write', o]); }, disconnect: async o => { reg.ble.push(['disconnect', o]); },
+          read: async o => { reg.ble.push(['read', o]); return { value: '33 2e 32 35 2e 30 2e 33' }; },
           addListener: async (ev, cb) => { reg.bleAscolti[ev] = cb; return { remove() { delete reg.bleAscolti[ev]; } }; }
         } } : {}),
         /* cartella condivisa finta (plugin TmsCartella): registra e risponde */
@@ -327,6 +328,14 @@ async function apri(opz = {}) {
     d.querySelector('#fc-trovati [data-fcd]').click(); await attendi(150);
     ok(reg.ble.some(x => x[0] === 'disconnect' && x[1].deviceId === 'C8:0F:10:00:00:03') && /Heart Rate Push/.test(d.getElementById('fc-stato').textContent),
        'bracciale che rifiuta le notifiche: si stacca e lo dice (Heart Rate Push o chiave)');
+    /* bracciale con la chiave: lettura del firmware (180A/2A26) e caratteristiche Huami con l'UUID intero */
+    const fw = await a.w.tmsBLE.leggi('C8:0F:10:00:00:03', '180a', '2a26'), rd = reg.ble.filter(x => x[0] === 'read').pop();
+    ok(String.fromCharCode.apply(null, fw) === '3.25.0.3' && rd[1].service === '0000180a-0000-1000-8000-00805f9b34fb' && rd[1].characteristic === '00002a26-0000-1000-8000-00805f9b34fb',
+       'bracciale: tmsBLE.leggi legge una caratteristica (firmware 180A/2A26) e restituisce i byte');
+    await a.w.tmsBLE.scrivi('C8:0F:10:00:00:03', '00000016-0000-3512-2118-0009af100700', [1], '0000fee0-0000-1000-8000-00805f9b34fb');
+    const wr = reg.ble.filter(x => x[0] === 'write').pop();
+    ok(wr[1].service === '0000fee0-0000-1000-8000-00805f9b34fb' && wr[1].characteristic === '00000016-0000-3512-2118-0009af100700' && wr[1].value === '01',
+       'bracciale: scrittura sulla caratteristica Huami 0016 del servizio FEE0 (UUID interi passano come sono)');
     a.dom.window.close(); }
   { const a = await apri({ ble: true, bleNegato: true }); a.d.getElementById('vai-bil').click(); await attendi(120);
     ok(/Dispositivi nelle vicinanze/.test(a.d.getElementById('bil-stato').textContent) && a.d.getElementById('bil-riprova').hidden === false, 'permesso negato: lo dice e offre «Riprova»');

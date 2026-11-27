@@ -777,6 +777,22 @@ Durante la registrazione: battito grande con le zone, tempo, FC media, picco, «
 la tiene sul telefono e la manda al PC (file 'tms-cardio', tab Cardio, con lo sport scelto). Senza fascia registra
 solo il tempo. Niente doppioni: con una seduta coi pesi aperta non si avvia, e con una registrazione cardio in corso
 il giorno della scheda non propone la seduta coi pesi. Bozza salvata ogni 15 s: un'app chiusa a metà non la perde.
+**IMPOSTAZIONI** in sezioni: «TMS sul PC» (collegamento), «Sensori» (fascia cardio e bracciale), «Promemoria», «App»
+(lingua Italiano | English e i QR del sito); accanto ai titoli lo stato («collegato», «chiave salvata»…).
+**BRACCIALE CON LA CHIAVE** (Impostazioni › Sensori › Bracciale, solo nell'APK): per i bracciali Zepp OS come
+l'Amazfit Helio Strap. Si incolla la CHIAVE del bracciale (16 byte: «0x» + 32 caratteri esadecimali, o senza «0x»;
+l'utente la recupera da solo dal suo account Zepp, per esempio col metodo descritto da Gadgetbridge); resta SOLO
+sul telefono (non va all'hub, al PC, nei file .tms/.tmsb né nei messaggi), si vede mascherata (ultime 4 cifre) e si
+può togliere. «Prova collegamento» cerca il bracciale, apre il canale cifrato sul servizio FEE0 (pezzi da 20 byte,
+autenticazione ECDH sulla curva sect163r2 e AES-128 sull'endpoint 0x0082, poi messaggi cifrati con la chiave di
+sessione, un contatore e il CRC-32), legge il firmware (180A/2A26) e la batteria (endpoint 0x0029) e mostra
+«Collegato · firmware X · batteria Y %»; poi stacca. Messaggi chiari per: chiave sbagliata (0x25/0x26), serve
+l'abbinamento con Zepp (0x81), bracciale non trovato o Zepp aperto, bracciale che non risponde. Un firmware non fra
+quelli provati (3.11.0, 3.20.0.1, 3.25.0.3) dà un avviso ma non blocca. La crittografia è scritta da zero nella
+pagina (protocollo studiato su Gadgetbridge e unstrap, vedi i crediti). C'è già la funzione di trasferimento dello
+storico (START/TRANSFER/ACK sull'endpoint 0x004B, dati sulla caratteristica 0005), non ancora usata: sonno,
+giorni e allenamenti del bracciale NON si scaricano ancora. Il battito in diretta resta quello della fascia (profilo
+standard 0x180D, senza chiave).
 **FASCIA CARDIO** (si collega in «Impostazioni»; solo nell'APK, serve il Bluetooth): qualunque fascia cardio Bluetooth standard
 (Polar, Garmin, Wahoo, Coospo…) e i bracciali che condividono il battito col profilo standard
 «Heart Rate» (servizio 0x180D, misura 0x2A37, specifica pubblica del Bluetooth SIG): per esempio

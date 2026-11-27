@@ -3688,6 +3688,159 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
     dom.window.close(); }
 }
 
+console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; bracciale finto con la crittografia di Node) ---');
+{
+  /* Il bracciale finto parla il protocollo descritto in Doc/bracciale/PROPOSTA.md (fase 1b) e cifra con Node
+     (crypto.createECDH('sect163r2'), aes-128-ecb, zlib.crc32): così la crittografia scritta da zero nella pagina si
+     confronta con una indipendente. Le chiavi sono FINTE. */
+  const nc = require('crypto'), zlib = require('zlib');
+  const PWA = path.join(ROOT, 'app-android', 'web', 'index.html');
+  const J = o => JSON.stringify(o);
+  const H = c => '0000' + c + '-0000-3512-2118-0009af100700', IN = H('0016'), OUT = H('0017'), DATI = H('0005');
+  const KF = Array.from(Buffer.from('00112233445566778899aabbccddeeff', 'hex')), KX = 'ffeeddccbbaa99887766554433221100';
+  const rev = b => Array.from(b).reverse();
+  const u32 = v => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255], r32 = (b, i) => (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24)) >>> 0;
+  const crc = b => zlib.crc32(Buffer.from(b)) >>> 0;
+  const ecb = (k, d, dec) => { const c = (dec ? nc.createDecipheriv : nc.createCipheriv)('aes-128-ecb', Buffer.from(k), null); c.setAutoPadding(false); return Array.from(Buffer.concat([c.update(Buffer.from(d)), c.final()])); };
+  const STORICO = Array.from(nc.randomBytes(70));
+  function finto(o){
+    const F = { o: o, cb: null, sid: 0x40, arr: null, kSess: null, tx: 0, ricevuti: [], acks: [] };
+    F.notifica = (car, b) => setTimeout(() => { if (F.cb) F.cb.onDati(car, b.slice()); }, 1);
+    F.pezzi = (ep, payload, cifra, sidFisso) => {
+      const sid = sidFisso != null ? sidFisso : (F.sid = (F.sid + 1) & 255); let corpo = payload;
+      if (cifra) { const base = payload.concat(u32(F.tx)); F.tx++; const p = base.concat(u32(crc(base))); while (p.length % 16) p.push(0); corpo = ecb(F.kSess.map(x => x ^ sid), p); }
+      const out = []; let i = 0, pos = 0;
+      while (true) { const primo = i === 0, sp = 20 - (primo ? 11 : 5), parte = corpo.slice(pos, pos + sp); pos += parte.length; const ult = pos >= corpo.length;
+        const fl = (primo ? 1 : 0) | (ult ? 2 : 0) | (ult ? 4 : 0) | (cifra ? 8 : 0);
+        out.push(primo ? [3, fl, 0, sid, 0].concat(u32(payload.length), [ep & 255, ep >> 8], parte) : [3, fl, 0, sid, i].concat(parte)); i++; if (ult) break; }
+      return out; };
+    F.manda = (ep, payload, cifra) => F.pezzi(ep, payload, cifra).forEach(p => F.notifica(OUT, p));
+    F.scrivi = (car, b) => {
+      if (car === OUT) { F.acks.push(b.slice()); return; }
+      if (car !== IN) return;
+      if (b.length === 1 && b[0] === 1) { F.notifica(IN, [0x02, 0x02, 0x01]); return; }
+      if (b[0] !== 3) return;
+      const fl = b[1];
+      if (fl & 1) F.arr = { sid: b[3], tot: r32(b, 5), ep: b[9] | (b[10] << 8), cif: !!(fl & 8), d: b.slice(11) }; else F.arr.d = F.arr.d.concat(b.slice(5));
+      if (!(fl & 2)) return;
+      const m = F.arr; F.arr = null; let p = m.d.slice(0, m.tot);
+      if (m.cif) { const pl = ecb(F.kSess.map(x => x ^ m.sid), m.d, true), base = pl.slice(0, m.tot + 4);
+        if (crc(base) !== r32(pl, m.tot + 4)) { F.ricevuti.push({ ep: m.ep, rotto: true }); return; } p = pl.slice(0, m.tot); }
+      F.ricevuti.push({ ep: m.ep, p: p, cif: m.cif }); F.gestisci(m.ep, p); };
+    F.gestisci = (ep, p) => {
+      if (ep === 0) { F.manda(0, [0x04, 0x01, 0x00, 0x82, 0x00, 0x29, 0x00, 0x4b, 0x00], false); return; }
+      if (ep === 0x82 && p[0] === 0x04) {
+        if (o.muto) return;
+        const e = nc.createECDH('sect163r2'); e.generateKeys(); F.rand = Array.from(nc.randomBytes(16));
+        const pp = p.slice(4, 52), telPub = Buffer.from([4].concat(rev(pp.slice(0, 21)), rev(pp.slice(24, 45))));
+        const sc = rev(e.computeSecret(telPub)).concat([0, 0, 0]);
+        F.kSess = sc.slice(8, 24).map((x, i) => x ^ o.chiave[i]); F.tx = r32(sc, 4);
+        const dp = e.getPublicKey(null, 'uncompressed');
+        F.manda(0x82, [0x10, 0x04, 0x01].concat(F.rand, rev(dp.slice(1, 22)), [0, 0, 0], rev(dp.slice(22, 43)), [0, 0, 0]), false); return; }
+      if (ep === 0x82 && p[0] === 0x05) {
+        const giusta = J(ecb(o.chiave, F.rand)) === J(p.slice(1, 17)) && J(ecb(F.kSess, F.rand)) === J(p.slice(17, 33));
+        F.manda(0x82, o.forma06 ? [0x06, giusta ? 0x01 : 0x26] : [0x10, 0x05, o.stato81 ? 0x81 : (giusta ? 0x01 : 0x26)], false); return; }
+      if (ep === 0x29 && p[0] === 0x03) { F.manda(0x29, [0x04, 0x00, o.batteria], true); return; }
+      if (ep === 0x4b && p[0] === 0x01) { F.manda(0x4b, [0x10, 0x01, 0x01].concat(u32(STORICO.length)), true); return; }
+      if (ep === 0x4b && p[0] === 0x02) { for (let k = 0; k * 19 < STORICO.length; k++) F.notifica(DATI, [k].concat(STORICO.slice(k * 19, k * 19 + 19)));
+        setTimeout(() => F.manda(0x4b, [0x10, 0x02, 0x01].concat(u32(crc(STORICO))), true), 20); return; }
+    };
+    return F; }
+  /* la pagina, con un trasporto Bluetooth finto che porta al bracciale finto */
+  const apri = async o => {
+    const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+      beforeParse(win){ conCrypto(win); win.localStorage.setItem('tms-scheda-lang', 'it'); win.scrollTo = () => {};
+        const F = win.__F = finto(o); const B = win.__B = { collegati: [], staccati: [], letti: [] };
+        win.tmsBLE = { prepara: async () => ({ ok: true }),
+          cerca: async (filtro, trovato) => { const d = { id: 'C8:0F:10:00:00:09', nome: 'Amazfit Helio Strap 1A2B', servizi: ['fee0'] }; if (o.visibile !== false && filtro(d)) setTimeout(() => trovato(d), 5); },
+          fermaRicerca: async () => {}, collega: async (id, cb, opz) => { B.collegati.push([id, opz]); F.cb = cb; },
+          scrivi: async (id, c, b) => { F.scrivi(c, b); }, leggi: async (id, s, c) => { B.letti.push([s, c]); return Array.from(Buffer.from(o.firmware || '3.25.0.3')); },
+          stacca: async id => { B.staccati.push(id); F.cb = null; } }; } });
+    await settle(200);
+    sub.window.eval('ZP_ATTESA.cerca=300; ZP_ATTESA.risposta=1500;');
+    return { sw: sub.window, sd: sub.window.document, F: sub.window.__F, B: sub.window.__B, chiudi: () => sub.window.close() };
+  };
+  const prova = async a => { a.sd.getElementById('zp-prova').click(); for (let k = 0; k < 60 && a.sw.eval('ZP.inCorso'); k++) await settle(50); };
+  /* crittografia della pagina contro Node */
+  { const a = await apri({ chiave: KF, batteria: 77 });
+    const { sw } = a;
+    const priv = sw.eval('JSON.stringify(zpPrivata())'), pv = JSON.parse(priv), pub = JSON.parse(sw.eval('JSON.stringify(zpPubblica(' + priv + '))'));
+    const e = nc.createECDH('sect163r2'); e.setPrivateKey(Buffer.from(rev(pv.slice(0, 21)))); const pn = e.getPublicKey(null, 'uncompressed');
+    ok(J(pub.slice(0, 21)) === J(rev(pn.slice(1, 22))) && J(pub.slice(24, 45)) === J(rev(pn.slice(22, 43))), 'bracciale: chiave pubblica sect163r2 calcolata nella pagina = quella di Node');
+    const o2 = nc.createECDH('sect163r2'); o2.generateKeys(); const op = o2.getPublicKey(null, 'uncompressed');
+    const sc = JSON.parse(sw.eval('JSON.stringify(zpCondiviso(' + priv + ',' + J(rev(op.slice(1, 22)).concat([0, 0, 0], rev(op.slice(22, 43)), [0, 0, 0])) + '))'));
+    ok(J(sc.slice(0, 21)) === J(rev(o2.computeSecret(pn))), 'bracciale: segreto condiviso ECDH = quello di Node');
+    const k = Array.from(nc.randomBytes(16)), d = Array.from(nc.randomBytes(32));
+    ok(J(await sw.eval('zpAesCifra(' + J(k) + ',' + J(d) + ')')) === J(ecb(k, d)) && J(await sw.eval('zpAesDecifra(' + J(k) + ',' + J(ecb(k, d)) + ')')) === J(d), 'bracciale: AES-128-ECB (con WebCrypto) = quello di Node, nei due versi');
+    ok(sw.eval('zpCrc32(' + J(d) + ')') === crc(d), 'bracciale: CRC-32 = quello di zlib');
+    /* la chiave: formato, salvataggio solo sul telefono, mascherata */
+    ok(sw.eval('zpChiavePulita("0x00112233445566778899AABBCCDDEEFF")') === '00112233445566778899aabbccddeeff' && sw.eval('zpChiavePulita(" 0011 2233 4455 6677 8899 aabb ccdd eeff ")') === '00112233445566778899aabbccddeeff' &&
+       sw.eval('zpChiavePulita("0x0011")') === null && sw.eval('zpChiavePulita("zz112233445566778899aabbccddeeff")') === null, 'chiave: accetta «0x…» o 32 caratteri esadecimali, rifiuta il resto');
+    a.sw.eval('colApri()'); await settle(20);
+    ok(a.sd.getElementById('zp-box').hidden === false && /Nessuna chiave/.test(a.sd.getElementById('zp-chiave-stato').textContent), 'Impostazioni › Bracciale: c\'è (nell\'APK), senza chiave');
+    a.sd.getElementById('zp-chiave').value = '0x0011'; a.sd.getElementById('zp-salva').click(); await settle(20);
+    ok(/32 lettere e numeri/.test(a.sd.getElementById('zp-stato').textContent), 'chiave incompleta: lo dice');
+    a.sd.getElementById('zp-chiave').value = '0x00112233445566778899aabbccddeeff'; a.sd.getElementById('zp-salva').click(); await settle(30);
+    ok(a.sd.getElementById('zp-chiave').value === '' && /0x•+eeff/.test(a.sd.getElementById('zp-chiave-stato').textContent) && !/00112233/.test(a.sd.getElementById('zp-box').textContent),
+       'chiave salvata: il campo si svuota e si vede solo mascherata (ultime 4 cifre)');
+    ok(Object.keys(sw.localStorage).filter(x => /^tms-/.test(x)).every(x => !/00112233445566778899aabbccddeeff/.test(sw.localStorage.getItem(x))), 'la chiave non sta in nessun dato «tms-» (quelli che viaggiano o si copiano)');
+    /* prova collegamento: chiave giusta */
+    await prova(a);
+    ok(/Collegato · firmware 3\.25\.0\.3 · batteria 77 %/.test(a.sd.getElementById('zp-stato').textContent) && a.sd.getElementById('zp-sotto').textContent === '',
+       'Prova collegamento: canale cifrato aperto, firmware e batteria letti («Collegato · firmware 3.25.0.3 · batteria 77 %»)');
+    ok(a.F.ricevuti.some(r => r.ep === 0x29 && r.cif && r.p[0] === 3) && a.B.letti.some(x => x[0] === '180a' && x[1] === '2a26') && J(a.B.collegati[0][1].notifiche) === J([IN, OUT, DATI]),
+       'la batteria si chiede sul canale cifrato (il bracciale finto la decifra e controlla il CRC), il firmware si legge in chiaro (180A/2A26)');
+    ok(a.sd.getElementById('zp-pill').textContent === 'collegato' && a.sd.getElementById('zp-pill').classList.contains('si') && a.sd.querySelectorAll('#col .imp-sez').length === 4 &&
+       a.sd.querySelectorAll('#imp-lingua button').length === 2 && a.sd.querySelector('#imp-lingua button.on').textContent === 'Italiano', 'Impostazioni in sezioni: stato «collegato» accanto al Bracciale, lingua come interruttore Italiano | English');
+    ok(a.B.staccati.length === 1 && a.sw.localStorage.getItem('tms-bracciale-id') === 'C8:0F:10:00:00:09', 'dopo la prova il bracciale si stacca e si ricorda');
+    /* trasferimento dello storico (START / TRANSFER / ACK) */
+    await sw.eval('(async()=>{ const S=zpSessione("C8", (c,b)=>window.tmsBLE.scrivi("C8",c,b,ZP_FEE0)); let coda=Promise.resolve();' +
+      ' await window.tmsBLE.collega("C8",{onDati:(c,b)=>{ coda=coda.then(()=>zpRicevi(S,c,b)); }},{servizio:ZP_FEE0, notifiche:[ZP_IN,ZP_OUT,ZP_DATI]});' +
+      ' await zpAutentica(S, zpChiaveByte("00112233445566778899aabbccddeeff")); window.__st=await zpStorico(S, 72, new Date(2026,10,20,0,0,0)); })()');
+    { const st = JSON.parse(sw.eval('JSON.stringify(window.__st)')), start = a.F.ricevuti.filter(r => r.ep === 0x4b);
+      ok(st.dimensione === 70 && J(st.dati) === J(STORICO) && start[0].p[0] === 1 && start[0].p[1] === 72 && r32(start[0].p.slice(2).concat([0, 0]), 0) % 65536 === 2026 && start[2].p[0] === 3 && start[2].p[1] === 1,
+         'storico: START (tipo, data), TRANSFER, dati controllati col CRC, ACK 03 01'); }
+    /* togliere la chiave */
+    a.sd.getElementById('zp-togli').click(); await settle(20);
+    ok(sw.eval('ZP.chiave') === null && /Nessuna chiave/.test(a.sd.getElementById('zp-chiave-stato').textContent) && !Object.keys(sw.localStorage).some(x => /00112233/.test(sw.localStorage.getItem(x) || '')), 'Togli la chiave: sparisce dal telefono');
+    a.chiudi(); }
+  /* chiave sbagliata · abbinamento con Zepp · bracciale che non si trova · bracciale muto · firmware nuovo · risposta «06 01» */
+  const conChiave = async (o, h) => { const a = await apri(o); a.sw.eval('colApri()'); a.sd.getElementById('zp-chiave').value = h || '00112233445566778899aabbccddeeff'; a.sd.getElementById('zp-salva').click(); await settle(30); await prova(a); return a; };
+  { const a = await conChiave({ chiave: KF, batteria: 50 }, KX);
+    ok(/Chiave sbagliata/.test(a.sd.getElementById('zp-stato').textContent) && a.B.staccati.length === 1, 'chiave sbagliata (0x26): «Chiave sbagliata…» e il bracciale si stacca'); a.chiudi(); }
+  { const a = await conChiave({ chiave: KF, batteria: 50, stato81: true });
+    ok(/abbinamento con Zepp/.test(a.sd.getElementById('zp-stato').textContent), 'stato 0x81: serve l\'abbinamento con Zepp'); a.chiudi(); }
+  { const a = await conChiave({ chiave: KF, batteria: 50, visibile: false });
+    ok(/Non trovo il bracciale/.test(a.sd.getElementById('zp-stato').textContent) && /Zepp/.test(a.sd.getElementById('zp-stato').textContent), 'bracciale non trovato: lo dice e ricorda di chiudere Zepp'); a.chiudi(); }
+  { const a = await conChiave({ chiave: KF, batteria: 50, muto: true });
+    ok(/non risponde al collegamento cifrato/.test(a.sd.getElementById('zp-stato').textContent), 'bracciale che non risponde all\'autenticazione (Zepp aperto?): lo dice'); a.chiudi(); }
+  { const a = await conChiave({ chiave: KF, batteria: 64, firmware: '3.30.0.1', forma06: true });
+    ok(/Collegato · firmware 3\.30\.0\.1 · batteria 64 %/.test(a.sd.getElementById('zp-stato').textContent) && /non è ancora fra quelli provati/.test(a.sd.getElementById('zp-sotto').textContent),
+       'firmware non ancora provato: avvisa senza bloccare (e la risposta «06 01» all\'autenticazione vale come «10 05 01»)'); a.chiudi(); }
+  { const a = await apri({ chiave: KF, batteria: 50 }); a.sw.eval('colApri()'); await prova(a);
+    ok(/Prima incolla la chiave/.test(a.sd.getElementById('zp-stato').textContent) && a.B.collegati.length === 0, 'senza chiave la prova non parte'); a.chiudi(); }
+  /* pezzi persi o fuori ordine, CRC errato */
+  { const a = await apri({ chiave: KF, batteria: 50 }), { sw, F } = a;
+    sw.eval('window.__w=[]; window.__S=zpSessione("X", async (c,b)=>{ window.__w.push([c,b]); }); window.__S.kSess=' + J(KF) + ';');
+    F.kSess = KF.slice(); F.tx = 5;
+    const lungo = Array.from(nc.randomBytes(40));
+    const pz = F.pezzi(0x29, lungo, true, 0x51);
+    for (const p of [pz[0], pz[2], pz[1]].concat(pz.slice(3))) await sw.eval('zpRicevi(window.__S, ' + J(OUT) + ', ' + J(p) + ')');
+    ok(sw.eval('window.__S.log.length') === 0 && sw.eval('window.__w.some(function(x){ return x[1][0]===4 && x[1][3]===3; })'), 'pezzo fuori ordine: messaggio scartato e conferma «pezzo perso» (stato 03) al bracciale');
+    sw.eval('window.__w=[];');
+    const pz2 = F.pezzi(0x29, lungo, true, 0x52); pz2.splice(1, 1);
+    for (const p of pz2) await sw.eval('zpRicevi(window.__S, ' + J(OUT) + ', ' + J(p) + ')');
+    ok(sw.eval('window.__S.log.length') === 0 && sw.eval('window.__w.some(function(x){ return x[1][3]===3; })'), 'pezzo perso: messaggio scartato e segnalato');
+    sw.eval('window.__w=[];');
+    const pz3 = F.pezzi(0x29, lungo, true, 0x53); pz3[1][7] ^= 0x55;
+    for (const p of pz3) await sw.eval('zpRicevi(window.__S, ' + J(OUT) + ', ' + J(p) + ')');
+    ok(sw.eval('window.__S.log.length') === 0 && sw.eval('window.__w.some(function(x){ return x[1][3]===10; })'), 'CRC errato (dati alterati): messaggio scartato e segnalato (stato 0x0A)');
+    const pz4 = F.pezzi(0x29, lungo, true, 0x54);
+    for (const p of pz4) await sw.eval('zpRicevi(window.__S, ' + J(OUT) + ', ' + J(p) + ')');
+    ok(sw.eval('window.__S.log.length') === 1 && sw.eval('window.__S.log[0].ep') === 0x29 && sw.eval('window.__S.log[0].n') === 40, 'e un messaggio integro, dopo, arriva giusto');
+    a.chiudi(); }
+}
+
 console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---');
 {
   const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);

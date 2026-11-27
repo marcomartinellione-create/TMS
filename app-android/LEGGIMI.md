@@ -44,6 +44,13 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
 - **⚙ Impostazioni** (dalla 1.6.0, al posto di «Collegamento e promemoria»; pagina `#col`, voce `#vai-col`): collegamento
   col TMS, promemoria e fascia cardio (`#fc-imp`; solo nell'APK), lingua (`#lang-btn`) e i QR del sito (`#qr-btn`), che prima stavano nella
   barra in alto. Nella barra restano solo indietro, titolo e il battito (`#fc-chip`, zona della seduta).
+- **Bracciale con la chiave** (dalla 1.7.0; Impostazioni › Sensori › Bracciale, `#zp-box`, funzioni `zp*`): chiave del
+  bracciale Zepp OS (Amazfit Helio Strap) salvata SOLO in IndexedDB (`bracciale-chiave`, fuori dalle chiavi `tms-*`),
+  mostrata mascherata. «Prova collegamento»: canale cifrato su FEE0 (pezzi v2 su 0016/0017, autenticazione ECDH
+  sect163r2 + AES-128 sull'endpoint 0x0082, messaggi cifrati con chiave di sessione XOR sessione, contatore e CRC-32),
+  firmware (180A/2A26, `tmsBLE.leggi`) e batteria (0x0029). Crittografia scritta da zero nella pagina (BigInt su
+  GF(2^163), AES-ECB con WebCrypto); `zpStorico` (START/TRANSFER/ACK su 0x004B) è pronto ma non ancora usato.
+  Protocollo studiato su Gadgetbridge (AGPL-3.0) e unstrap (MIT/Apache-2.0), niente codice copiato. Prove: T12d.
 - **Seduta in corso** (dalla 1.5.0; dalla 1.6.0 con la conferma): aprendo un giorno l'app chiede «Inizio la seduta di
   oggi?» («Inizia» / «Solo guardare»; «Solo guardare» si ricorda per quel giorno di calendario, `tms-sed-guardo`, e
   lascia «Inizia la seduta» nella zona). «annulla seduta», con conferma, toglie una seduta avviata per sbaglio senza

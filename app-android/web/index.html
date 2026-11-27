@@ -69,7 +69,31 @@
  .barra-ind:active{background:rgba(255,255,255,.14)}
  .barra-btn{flex:none;height:40px;min-width:44px;padding:0 10px;border:1px solid rgba(232,196,90,.38);border-radius:var(--r-sm);background:rgba(255,255,255,.06);color:var(--oro);font-weight:700;font-size:14px;letter-spacing:.04em}
  .barra-btn:active{background:rgba(255,255,255,.14)}
- #qr-btn img{width:30px;height:30px;display:block;image-rendering:pixelated;border-radius:3px;border:1px solid var(--filo)}
+ /* ── Impostazioni: sezioni, testata dei riquadri con l'icona nel quadratino e lo stato a destra ── */
+ .imp-sez{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:18px 4px 8px}
+ #col>.imp-sez:first-child{margin-top:4px}
+ .imp-sez[hidden]{display:none}
+ .imp-testa{display:flex;align-items:center;gap:11px;margin:0 0 8px}
+ .imp-ico{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--carta-3);color:var(--ink-2)}
+ .imp-ico .ic{width:20px;height:20px}
+ .imp-ico.blu{background:var(--carta-3);color:var(--ink-2)} .imp-ico.rosso{background:var(--err-t);color:var(--err)} .imp-ico.ocra{background:var(--ocra-t);color:var(--ocra)}
+ .imp-tit{flex:1;min-width:0;font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink);line-height:1.25}
+ .imp-tit small{display:block;font-family:var(--sans);font-size:12px;font-weight:500;color:var(--ink-3)}
+ .imp-pill{flex:none;font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--carta-2);color:var(--ink-3);border:1px solid var(--filo)}
+ .imp-pill:empty{display:none}
+ .imp-pill.si{background:var(--ok-t);color:var(--ok);border-color:transparent}
+ .imp-box .col-spieg{margin:0 0 8px}
+ .imp-box .bil-stato{text-align:left;min-height:0}
+ .imp-box .bil-stato:empty{display:none}
+ .imp-box .btn-big,.imp-box .btn-lite{margin:8px 0 0}
+ .imp-gruppo{margin-bottom:12px}
+ .imp-riga{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 14px 10px 16px}
+ .imp-riga+.macro-card{border-top:1px solid var(--filo)}
+ #col .imp-lingua{flex:none;margin:0;width:auto}
+ #col .imp-lingua button{flex:none;height:36px;padding:0 12px;overflow:visible;text-overflow:clip}
+ #zp-chiave{text-transform:none;letter-spacing:.03em;font-size:16px;font-weight:500}
+ .imp-qr .macro-ico{background:#fff;border:1px solid var(--filo)}
+ .imp-qr .macro-ico img{width:30px;height:30px;display:block;image-rendering:pixelated;border-radius:3px}
  #vai-col .macro-ico .ic{stroke-width:1.8}
 
  /* ── pagina ── */
@@ -704,9 +728,10 @@
 <!-- ── schermata COLLEGAMENTO E PROMEMORIA (solo nell'APK): codice che dà il personal (l'hub del TMS
        fa il resto), promemoria della sera. ── -->
 <div id="col" hidden>
-  <div class="box" id="col-box">
-    <div class="pick-title"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Collegamento col TMS sul PC</span></div>
-    <p class="col-spieg" data-i18n-html>La scheda arriva da sola dal tuo personal e quello che scrivi, le pesate e le foto gli tornano da sole, attraverso l'<b>hub del TMS</b> su internet. Tutto è <b>cifrato</b> col tuo codice: l'hub vede solo file illeggibili e non tiene lo storico, che resta sul PC del tuo personal.</p>
+  <div class="imp-sez" id="imp-sez-pc" data-i18n>TMS sul PC</div>
+  <div class="box imp-box" id="col-box">
+    <div class="imp-testa"><span class="imp-ico blu"><svg class="ic"><use href="#i-link"/></svg></span><span class="imp-tit"><span data-i18n>Collegamento</span><small data-i18n>col TMS del tuo personal</small></span><span class="imp-pill" id="col-pill"></span></div>
+    <p class="col-spieg" data-i18n-html>La scheda arriva dal tuo personal; allenamenti, pesate e foto gli tornano da soli. Tutto viaggia <b>cifrato</b> col tuo codice.</p>
     <div class="col-stato" id="col-stato"></div>
     <div id="col-codice-box"><button type="button" class="btn-big" id="col-qr" hidden><svg class="ic"><use href="#i-camera"/></svg><span data-i18n>Inquadra il QR</span></button>
       <div class="col-oppure" id="col-oppure" hidden data-i18n>oppure scrivi il codice</div>
@@ -716,29 +741,41 @@
     <button type="button" class="btn-lite" id="col-ora" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Controlla adesso</span></button>
     <button type="button" class="btn-lite quieto" id="col-stacca" hidden data-i18n>Scollega</button>
   </div>
-  <div class="box" id="fc-imp" hidden>
-    <div class="pick-title"><svg class="ic"><use href="#i-cuore"/></svg><span data-i18n>Fascia cardio</span></div>
-    <p class="col-spieg" data-i18n-html>Va con le <b>fasce cardio Bluetooth</b> (Polar, Garmin, Wahoo…) e coi bracciali che condividono il battito (Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp).</p>
+  <div class="imp-sez" id="imp-sez-sens" data-i18n>Sensori</div>
+  <div class="box imp-box" id="fc-imp" hidden>
+    <div class="imp-testa"><span class="imp-ico rosso"><svg class="ic"><use href="#i-cuore"/></svg></span><span class="imp-tit"><span data-i18n>Fascia cardio</span><small data-i18n>il battito in diretta</small></span><span class="imp-pill" id="fc-pill"></span></div>
+    <p class="col-spieg" data-i18n-html>Fasce cardio Bluetooth (Polar, Garmin, Wahoo…) e bracciali che condividono il battito, come l’Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp.</p>
     <div class="bil-stato" id="fc-stato"></div><div class="bil-stato" id="fc-sotto"></div>
     <div id="fc-trovati"></div>
     <button type="button" class="btn-lite" id="fc-riprova" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span id="fc-riprova-t">Collega</span></button>
     <button type="button" class="btn-lite quieto" id="fc-scollega" hidden data-i18n>Scollega</button>
     <button type="button" class="btn-lite quieto" id="fc-dimentica" hidden data-i18n>Usa un’altra fascia</button>
   </div>
-  <div class="box" id="avv-box" hidden>
-    <div class="pick-title"><svg class="ic"><use href="#i-campana"/></svg><span data-i18n>Promemoria</span></div>
+  <div class="box imp-box" id="zp-box" hidden>
+    <div class="imp-testa"><span class="imp-ico ocra"><svg class="ic"><use href="#i-lucchetto"/></svg></span><span class="imp-tit"><span data-i18n>Bracciale</span><small data-i18n>Amazfit Helio Strap, con la chiave</small></span><span class="imp-pill" id="zp-pill"></span></div>
+    <p class="col-spieg" data-i18n-html>Con la <b>chiave del bracciale</b> l’app apre un collegamento cifrato, come Zepp. La chiave resta <b>solo su questo telefono</b>. Chiudi Zepp mentre l’app usa il bracciale.</p>
+    <div class="bil-stato" id="zp-chiave-stato"></div>
+    <label class="col-lab" for="zp-chiave" data-i18n>Chiave del bracciale</label>
+    <input id="zp-chiave" class="col-in" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="0x…">
+    <button type="button" class="btn-lite" id="zp-salva"><svg class="ic"><use href="#i-check"/></svg><span data-i18n>Salva la chiave</span></button>
+    <button type="button" class="btn-big" id="zp-prova"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Prova collegamento</span></button>
+    <div class="bil-stato" id="zp-stato"></div><div class="bil-stato" id="zp-sotto"></div>
+    <button type="button" class="btn-lite quieto" id="zp-togli" hidden data-i18n>Togli la chiave</button>
+  </div>
+  <div class="imp-sez" id="imp-sez-avv" data-i18n>Promemoria</div>
+  <div class="box imp-box" id="avv-box" hidden>
     <label class="col-riga"><input type="checkbox" id="avv-on"><span data-i18n>Ogni sera la pesata, il lunedì anche le foto</span></label>
     <label class="col-riga"><input type="checkbox" id="avv-dieta"><span data-i18n>Ogni sera la domanda sulla dieta</span></label>
     <label class="col-riga"><span data-i18n>Alle ore</span><input type="time" id="avv-ora" value="21:00"></label>
     <div class="fine" id="avv-stato"></div>
   </div>
-  <div class="box">
-    <div class="pick-title"><span data-i18n>Lingua</span><small>Language</small></div>
-    <button type="button" class="btn-lite" id="lang-btn" title="Language / Lingua">English</button>
-  </div>
-  <div class="box">
-    <div class="pick-title"><span data-i18n>Seguici</span></div>
-    <button type="button" class="btn-lite" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><img src="qr-ig.png" alt="QR"><span data-i18n>Instagram, YouTube e GitHub coi loro QR</span></button>
+  <div class="imp-sez" data-i18n>App</div>
+  <div class="gruppo imp-gruppo">
+    <div class="imp-riga"><span class="imp-ico"><svg class="ic"><use href="#i-sigillo"/></svg></span><span class="imp-tit"><span data-i18n>Lingua</span><small>Language</small></span>
+      <span class="fasi imp-lingua" id="imp-lingua"><button type="button" id="lang-btn" title="Language / Lingua">English</button></span></div>
+    <button type="button" class="macro-card imp-qr" id="qr-btn" title="Seguici · Instagram, YouTube, GitHub"><span class="macro-ico"><img src="qr-ig.png" alt="QR"></span>
+      <span class="macro-l"><span class="macro-name" data-i18n>Seguici</span><span class="macro-meta" data-i18n>Instagram, YouTube e GitHub coi loro QR</span></span>
+      <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
   </div>
 </div>
 
@@ -809,7 +846,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='4.3';
+const CVER='4.4';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1164,6 +1201,30 @@ const TT={en:{
   'Va con le <b>fasce cardio Bluetooth</b> (Polar, Garmin, Wahoo…) e coi bracciali che condividono il battito (Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp).':'Works with <b>Bluetooth heart rate straps</b> (Polar, Garmin, Wahoo…) and with bands that share the heart rate (Amazfit Helio Strap with “Heart Rate Push” on in Zepp).',
   /* Allenamento: Palestra o Cardio (27/11/2026) */
   'Allenamento':'Training', 'Palestra':'Gym', 'Scegli lo sport: poi avvii la registrazione.':'Pick the sport: then you start recording.',
+  /* bracciale con la chiave (27/11/2026) */
+  'Bracciale (Amazfit Helio Strap)':'Band (Amazfit Helio Strap)',
+  'Con la <b>chiave del bracciale</b> l’app apre un collegamento cifrato col bracciale, come fa Zepp. La chiave resta <b>solo su questo telefono</b>: non va al tuo personal, né su internet. Zepp va chiuso mentre l’app usa il bracciale.':'With the <b>band’s key</b> the app opens an encrypted link with the band, like Zepp does. The key stays <b>only on this phone</b>: it doesn’t go to your coach or to the internet. Zepp must be closed while the app uses the band.',
+  'Chiave del bracciale':'Band key', 'Salva la chiave':'Save the key', 'Prova collegamento':'Test the link', 'Togli la chiave':'Remove the key',
+  'Chiave salvata su questo telefono:':'Key saved on this phone:', 'Nessuna chiave salvata.':'No key saved.',
+  'Cerco il bracciale…':'Looking for the band…', 'Mi collego al bracciale…':'Connecting to the band…', 'Apro il collegamento cifrato…':'Opening the encrypted link…',
+  'Chiave salvata. Tocca «Prova collegamento».':'Key saved. Tap “Test the link”.', 'firmware':'firmware', 'batteria':'battery',
+  'Questo firmware non è ancora fra quelli provati col TMS: se qualcosa non va, dillo al tuo personal.':'This firmware hasn’t been tested with TMS yet: if something goes wrong, tell your coach.',
+  'La chiave ha 32 lettere e numeri (da 0 a 9 e da a a f), con o senza «0x» davanti: ricontrolla di averla incollata tutta.':'The key has 32 letters and digits (0 to 9 and a to f), with or without “0x” in front: check you pasted all of it.',
+  'Prima incolla la chiave del bracciale.':'Paste the band’s key first.',
+  'Chiave sbagliata: il bracciale l’ha rifiutata. Ricontrolla di averla incollata tutta; se hai rifatto l’abbinamento con Zepp, la chiave è cambiata.':'Wrong key: the band refused it. Check you pasted all of it; if you paired again with Zepp, the key has changed.',
+  'Il bracciale vuole l’abbinamento con Zepp: abbinalo una volta in Zepp (senza scollegarlo dopo), chiudi Zepp e riprova.':'The band wants to be paired with Zepp: pair it once in Zepp (without unpairing afterwards), close Zepp and try again.',
+  'Il bracciale ha rifiutato il collegamento. Chiudi Zepp e riprova.':'The band refused the link. Close Zepp and try again.',
+  'Non trovo il bracciale. Tienilo vicino al telefono; se Zepp è aperto, chiudilo (Impostazioni del telefono › App › Zepp › Arresto forzato): il bracciale accetta un collegamento alla volta.':'Can’t find the band. Keep it near the phone; if Zepp is open, close it (phone Settings › Apps › Zepp › Force stop): the band accepts one link at a time.',
+  'Il bracciale non risponde: avvicinalo al telefono e riprova.':'The band doesn’t answer: bring it closer to the phone and try again.',
+  'Il bracciale non risponde al collegamento cifrato. Chiudi Zepp (Arresto forzato) e riprova.':'The band doesn’t answer the encrypted link. Close Zepp (Force stop) and try again.',
+  'Il bracciale non lascia aprire il canale: chiudi Zepp e riprova.':'The band won’t open the channel: close Zepp and try again.',
+  'Chiudi prima la registrazione o la seduta in corso: il bracciale serve a quella.':'Close the recording or session in progress first: the band is busy with it.',
+  'Il bracciale ha risposto in un modo che non conosco: forse il firmware è cambiato.':'The band answered in a way I don’t know: maybe the firmware changed.',
+  /* Impostazioni in sezioni (27/11/2026) */
+  'TMS sul PC':'TMS on the PC', 'Collegamento':'Link', 'col TMS del tuo personal':'with your coach’s TMS', 'il battito in diretta':'live heart rate', 'Bracciale':'Band', 'Amazfit Helio Strap, con la chiave':'Amazfit Helio Strap, with the key', 'collegato':'linked', 'Sensori':'Sensors', 'App':'App', 'non collegato':'not linked', 'ricordata':'remembered', 'chiave salvata':'key saved', 'senza chiave':'no key',
+  'La scheda arriva dal tuo personal; allenamenti, pesate e foto gli tornano da soli. Tutto viaggia <b>cifrato</b> col tuo codice.':'The program comes from your coach; workouts, weigh-ins and photos go back by themselves. Everything travels <b>encrypted</b> with your code.',
+  'Fasce cardio Bluetooth (Polar, Garmin, Wahoo…) e bracciali che condividono il battito, come l’Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp.':'Bluetooth heart rate straps (Polar, Garmin, Wahoo…) and bands that share the heart rate, like the Amazfit Helio Strap with “Heart Rate Push” on in Zepp.',
+  'Con la <b>chiave del bracciale</b> l’app apre un collegamento cifrato, come Zepp. La chiave resta <b>solo su questo telefono</b>. Chiudi Zepp mentre l’app usa il bracciale.':'With the <b>band’s key</b> the app opens an encrypted link, like Zepp. The key stays <b>only on this phone</b>. Close Zepp while the app uses the band.',
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -1173,6 +1234,9 @@ function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ if(el.dataset.i18nSrc==null) el.dataset.i18nSrc=el.textContent.trim(); el.textContent=tt(el.dataset.i18nSrc); });
   document.querySelectorAll('[data-i18n-html]').forEach(el=>{ if(el.dataset.i18nHtmlSrc==null) el.dataset.i18nHtmlSrc=el.innerHTML.trim(); el.innerHTML=tt(el.dataset.i18nHtmlSrc); });
 }
+{ const sl=$('imp-lingua'), lb0=$('lang-btn');
+  if(sl && lb0){ const cur=document.createElement('button'); cur.type='button'; cur.className='on'; cur.textContent=LANGP==='it'? 'Italiano' : 'English';
+    if(LANGP==='it') sl.insertBefore(cur, lb0); else sl.appendChild(cur); } }
 { const lb=$('lang-btn'); if(lb){ lb.textContent=LANGP==='it'? 'English' : 'Italiano';
   lb.onclick=()=>{ try{ localStorage.setItem('tms-scheda-lang',LANGP==='it'?'en':'it'); }catch(e){} location.reload(); }; } }
 if(document.documentElement) document.documentElement.lang=LANGP;
@@ -2228,6 +2292,7 @@ function fcStato(s, motivo, msg){
   const rt=$('fc-riprova-t'); if(rt) rt.textContent=tt(s==='errore'? 'Riprova' : 'Collega');
   fcMostraBattito(); fcRenderTrovati(); fcChip();
   const sc=$('fc-scollega'); if(sc) sc.hidden=!(FC.id && !FC.reg);
+  const fp=$('fc-pill'); if(fp){ fp.textContent=FC.id? tt('collegata') : fcIdNoto()? (FC.nome||fcNomeNoto()||tt('ricordata')) : ''; fp.classList.toggle('si', !!FC.id); }
   sedZonaFc();
 }
 function fcMostraBattito(){
@@ -2503,6 +2568,261 @@ function sedAvvisoMenu(){
     '<p>'+esc(tt('La seduta di'))+' <b>'+esc(s.giorno)+'</b> '+esc(tt('è aperta da'))+' '+esc(giornoBreve(dataLoc(d)))+' '+esc(oraLoc(d).slice(0,5))+'.</p>'+
     '<button type="button" class="btn-big" id="sed-avv-apri">'+esc(tt('Chiudila'))+'</button></div>';
   const b=$('sed-avv-apri'); if(b) b.onclick=()=>{ const gi=sedGi(); if(gi>=0){ navEntra(); apriGiorno(gi); } else { SED.dimenticata=false; sedFineApri(+s.ultima||+s.inizio); sedChiudi(); } }; }
+/* ── BRACCIALE ZEPP OS CON LA CHIAVE (fase 1b dello studio del bracciale, Doc/bracciale/PROPOSTA.md, 27/11/2026).
+      Amazfit Helio Strap e gli altri Zepp OS: canale cifrato sul servizio FEE0 con la chiave del bracciale (16 byte
+      che nascono dall'abbinamento con Zepp; l'utente la recupera da solo e la incolla in Impostazioni › Bracciale).
+      Il protocollo è stato STUDIATO, non copiato, su: Gadgetbridge (codeberg.org/Freeyourgadget/Gadgetbridge,
+      AGPL-3.0: ZeppOsAuthenticationService, Huami2021ChunkedEncoder/Decoder, ZeppOsBatteryService) e la documentazione
+      del progetto unstrap (github.com/sayed0am/unstrap, MIT o Apache-2.0: docs/protocol/01-transport-auth-realtime.md
+      e 02-history-sync.md). Tutto il codice qui sotto è scritto da zero. La curva sect163r2 è quella della norma
+      pubblica SEC 2 / NIST B-163. ── */
+/* — crittografia del bracciale Zepp OS (scritta da zero; curva e algoritmi da norme pubbliche):
+     · curva binaria NIST B-163 / SEC 2 sect163r2: y² + xy = x³ + x² + b su GF(2^163), polinomio
+       x^163 + x^7 + x^6 + x^3 + 1; moltiplicazione scalare con la scala di Montgomery di López e Dahab
+       (coordinate proiettive, una sola inversione alla fine, recupero della y);
+     · AES-128 a blocco singolo (ECB) con WebCrypto: si cifra un blocco con AES-CBC e IV zero e si tengono
+       i primi 16 byte; per decifrare si aggiunge un blocco che fa da riempimento valido;
+     · CRC-32 (lo stesso di zlib). — */
+const ZP_F=(1n<<163n)|(1n<<7n)|(1n<<6n)|(1n<<3n)|1n, ZP_TOP=1n<<163n;
+const ZP_B=0x020A601907B8C953CA1481EB10512F78744A3205FDn;
+const ZP_GX=0x03F0EBA16286A2D57EA0991168D4994637E8343E36n, ZP_GY=0x00D51FBC6C71A0094FA2CDD545B11C5C0C797324F1n;
+function zpMul(a, b){ let r=0n; while(b){ if(b&1n) r^=a; b>>=1n; a<<=1n; if(a&ZP_TOP) a^=ZP_F; } return r; }
+function zpQ(a){ return zpMul(a, a); }
+function zpInv(a){ /* a^(2^163 - 2) */ let r=1n, x=a;
+  for(let i=1;i<163;i++){ x=zpQ(x); r=zpMul(r, x); } return r; }
+/* k·P per la curva sect163r2 (a = 1): restituisce {x, y} */
+function zpScalare(k, px, py){
+  let X1=px, Z1=1n, X2=zpQ(zpQ(px))^ZP_B, Z2=zpQ(px);
+  const bits=k.toString(2);
+  for(let i=1;i<bits.length;i++){
+    const t1=zpMul(X1,Z2), t2=zpMul(X2,Z1);
+    if(bits[i]==='1'){ const Z=zpQ(t1^t2); X1=zpMul(px,Z)^zpMul(t1,t2); Z1=Z;
+      const x2=zpQ(X2), z2=zpQ(Z2); X2=zpQ(x2)^zpMul(ZP_B, zpQ(z2)); Z2=zpMul(x2, z2); }
+    else { const Z=zpQ(t1^t2); X2=zpMul(px,Z)^zpMul(t1,t2); Z2=Z;
+      const x1=zpQ(X1), z1=zpQ(Z1); X1=zpQ(x1)^zpMul(ZP_B, zpQ(z1)); Z1=zpMul(x1, z1); } }
+  /* recupero della y (López-Dahab) */
+  const iZ1=zpInv(Z1), x3=zpMul(X1, iZ1);
+  const z12=zpMul(Z1, Z2), den=zpInv(zpMul(px, z12));
+  const num=zpMul(X1^zpMul(px,Z1), X2^zpMul(px,Z2)) ^ zpMul(zpQ(px)^py, z12);
+  const y3=zpMul(zpMul(px^x3, num), den)^py;
+  return {x:x3, y:y3}; }
+const zpLE=(bytes)=>{ let v=0n; for(let i=bytes.length-1;i>=0;i--) v=(v<<8n)|BigInt(bytes[i]&255); return v; };
+const zpInLE=(v, n)=>{ const o=[]; for(let i=0;i<n;i++){ o.push(Number(v&255n)); v>>=8n; } return o; };
+/* chiave privata del telefono: 24 byte casuali, i bit dal 163 in su a zero */
+function zpPrivata(){ const b=new Uint8Array(24); crypto.getRandomValues(b); b[20]&=0x07; b[21]=0; b[22]=0; b[23]=0; if(!b.some(x=>x)) b[0]=1; return Array.from(b); }
+/* pubblica = X‖Y, 24+24 byte little-endian */
+function zpPubblica(priv){ const p=zpScalare(zpLE(priv), ZP_GX, ZP_GY); return zpInLE(p.x, 24).concat(zpInLE(p.y, 24)); }
+/* segreto condiviso = X di priv·(pubblica del bracciale), 24 byte little-endian */
+function zpCondiviso(priv, pub){ const p=zpScalare(zpLE(priv), zpLE(pub.slice(0,24)), zpLE(pub.slice(24,48))); return zpInLE(p.x, 24); }
+const ZP_IV0=new Uint8Array(16);
+async function zpAesChiave(k){ return crypto.subtle.importKey('raw', new Uint8Array(k), {name:'AES-CBC'}, false, ['encrypt','decrypt']); }
+/* AES-128-ECB: ogni blocco da solo */
+async function zpAesCifra(k, dati){ const ck=await zpAesChiave(k), out=[];
+  for(let i=0;i<dati.length;i+=16){ const r=new Uint8Array(await crypto.subtle.encrypt({name:'AES-CBC', iv:ZP_IV0}, ck, new Uint8Array(dati.slice(i,i+16))));
+    for(let j=0;j<16;j++) out.push(r[j]); }
+  return out; }
+async function zpAesDecifra(k, dati){ const ck=await zpAesChiave(k), out=[];
+  for(let i=0;i<dati.length;i+=16){ const c=dati.slice(i,i+16);
+    const pad=new Uint8Array(await crypto.subtle.encrypt({name:'AES-CBC', iv:ZP_IV0}, ck, new Uint8Array(c.map(x=>x^16)))).slice(0,16);
+    const r=new Uint8Array(await crypto.subtle.decrypt({name:'AES-CBC', iv:ZP_IV0}, ck, new Uint8Array(c.concat(Array.from(pad)))));
+    for(let j=0;j<16;j++) out.push(r[j]); }
+  return out; }
+const ZP_CRC_T=(()=>{ const t=[]; for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)? (0xEDB88320^(c>>>1)) : (c>>>1); t.push(c>>>0); } return t; })();
+function zpCrc32(b){ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=ZP_CRC_T[(c^b[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+const zpU32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+const zpLeggi32=(b,i)=>((b[i]&255)|((b[i+1]&255)<<8)|((b[i+2]&255)<<16)|((b[i+3]&255)<<24))>>>0;
+/* — il canale Zepp OS (pezzi «v2» sulle caratteristiche 0016/0017 del servizio FEE0):
+     primo pezzo   03 | flags | 00 | sessione | 00 | lunghezza u32 LE | endpoint u16 LE | dati
+     pezzi seguenti 03 | flags | 00 | sessione | indice | dati
+     flags: 01 primo, 02 ultimo, 04 chiede conferma, 08 cifrato. 20 byte per scrittura (MTU 23).
+     Il telefono scrive i pezzi su 0016 e conferma su 0017 (04 00 sessione stato indice); il bracciale scrive su
+     0017 e conferma su 0016. Messaggio cifrato: payload ‖ contatore u32 ‖ CRC32(payload‖contatore), zeri fino a
+     16, AES-128-ECB con la chiave di sessione XOR il numero di sessione. — */
+const ZP_HUAMI=c=>'0000'+c+'-0000-3512-2118-0009af100700';
+const ZP_FEE0='0000fee0-0000-1000-8000-00805f9b34fb', ZP_IN=ZP_HUAMI('0016'), ZP_OUT=ZP_HUAMI('0017'), ZP_DATI=ZP_HUAMI('0005');
+const ZP_PEZZO=20, ZP_FW_PROVATI=['3.11.0','3.20.0.1','3.25.0.3'];
+const ZP_ATTESA={cerca:20000, risposta:8000};   /* millisecondi (le prove li accorciano) */
+/* una sessione col bracciale: id del dispositivo, contatori, chiave di sessione, messaggi in arrivo */
+function zpSessione(id, scrivi){ return {id:id, scrivi:scrivi, sid:0, tx:0, kSess:null, cifrato:false, arr:null, attese:[], dati:[], versione:null, log:[]}; }
+async function zpManda(S, endpoint, payload, cifra){
+  S.sid=(S.sid+1)&255; const sid=S.sid;
+  let corpo=payload.slice();
+  if(cifra){ const ctr=S.tx; S.tx=(S.tx+1)>>>0;
+    const base=payload.concat(zpU32(ctr)), piano=base.concat(zpU32(zpCrc32(base)));
+    while(piano.length%16) piano.push(0);
+    corpo=await zpAesCifra(S.kSess.map(x=>x^sid), piano); }
+  const pezzi=[]; let i=0, pos=0;
+  while(pos<corpo.length || i===0){
+    const primo=(i===0), spazio=ZP_PEZZO-(primo? 11 : 5), parte=corpo.slice(pos, pos+spazio); pos+=parte.length;
+    const ultimo=(pos>=corpo.length);
+    const flags=(primo?1:0)|(ultimo?2:0)|((ultimo || i%16===15)?4:0)|(cifra?8:0);
+    pezzi.push(primo? [0x03, flags, 0x00, sid, 0x00].concat(zpU32(payload.length), [endpoint&255, (endpoint>>8)&255], parte)
+      : [0x03, flags, 0x00, sid, i&255].concat(parte));
+    i++; if(ultimo) break; }
+  for(const p of pezzi) await S.scrivi(ZP_IN, p);
+  return sid; }
+/* aspetta un messaggio dal bracciale su quell'endpoint (filtro facoltativo sul contenuto) */
+function zpAspetta(S, endpoint, ms, filtro){
+  return new Promise((ok, no)=>{ const a={ep:endpoint, filtro:filtro, ok:ok};
+    a.t=setTimeout(()=>{ S.attese=S.attese.filter(x=>x!==a); const e=new Error('nessuna risposta'); e.motivo='silenzio'; e.endpoint=endpoint; no(e); }, ms);
+    S.attese.push(a); }); }
+function zpConsegna(S, ep, payload){
+  const a=S.attese.find(x=>x.ep===ep && (!x.filtro || x.filtro(payload)));
+  if(a){ clearTimeout(a.t); S.attese=S.attese.filter(x=>x!==a); a.ok(payload); return; }
+  S.log.push({ep:ep, n:payload.length}); }
+/* un pezzo arrivato dal bracciale (caratteristica, byte) */
+async function zpRicevi(S, car, b){
+  if(car===ZP_DATI){ S.dati.push(b); return; }                      /* storico: pacchetti grezzi */
+  if(car===ZP_IN){ if(b[0]===0x02 && S.versione==null) S.versione=b.slice(); return; }   /* versione; le conferme del bracciale si ignorano */
+  if(car!==ZP_OUT || b[0]!==0x03 || b.length<5) return;
+  const flags=b[1], sid=b[3], idx=b[4];
+  if(flags&1){ if(b.length<11) return;
+    S.arr={sid:sid, idx:0, tot:zpLeggi32(b,5), ep:b[9]|(b[10]<<8), cifrato:!!(flags&8), dati:b.slice(11)}; }
+  else if(!S.arr || S.arr.sid!==sid || idx!==((S.arr.idx+1)&255)){            /* pezzo perso o fuori ordine */
+    S.arr=null; await S.scrivi(ZP_OUT, [0x04, 0x00, sid, 0x03, idx]); return; }
+  else { S.arr.idx=idx; S.arr.dati=S.arr.dati.concat(b.slice(5)); }
+  if(!(flags&2)){ if(flags&4) await S.scrivi(ZP_OUT, [0x04, 0x00, sid, 0x01, idx]); return; }
+  const m=S.arr; S.arr=null;
+  let payload=m.dati.slice(0, m.cifrato? m.dati.length : m.tot);
+  if(m.cifrato){
+    if(!S.kSess || m.dati.length<Math.ceil((m.tot+8)/16)*16){ await S.scrivi(ZP_OUT, [0x04, 0x00, sid, 0x0A, idx]); return; }
+    const piano=await zpAesDecifra(S.kSess.map(x=>x^sid), m.dati.slice(0, Math.ceil((m.tot+8)/16)*16));
+    const base=piano.slice(0, m.tot+4);
+    if(zpCrc32(base)!==zpLeggi32(piano, m.tot+4)){ await S.scrivi(ZP_OUT, [0x04, 0x00, sid, 0x0A, idx]); return; }   /* CRC errato: si scarta */
+    payload=piano.slice(0, m.tot); }
+  if(flags&4) await S.scrivi(ZP_OUT, [0x04, 0x00, sid, 0x01, idx]);
+  zpConsegna(S, m.ep, payload); }
+/* avvio e autenticazione (endpoint 0x0082, in chiaro). Errori con .motivo: 'chiave' (0x25/0x26),
+   'abbinamento' (0x81), 'silenzio' (nessuna risposta), 'risposta' (risposta che non si capisce) */
+async function zpAutentica(S, chiave){
+  await S.scrivi(ZP_IN, [0x01]);                                     /* versione del protocollo */
+  await new Promise(r=>setTimeout(r, 300));
+  await zpManda(S, 0x0000, [0x03], false);                           /* elenco degli endpoint */
+  try{ S.endpoint=await zpAspetta(S, 0x0000, 2000); }catch(e){ S.endpoint=null; }
+  const priv=zpPrivata(), pub=zpPubblica(priv);
+  await zpManda(S, 0x0082, [0x04, 0x02, 0x00, 0x02].concat(pub), false);
+  const r=await zpAspetta(S, 0x0082, ZP_ATTESA.risposta);
+  if(r[0]===0x10 && r[1]===0x04 && r[2]!==0x01){ const e=new Error('autenticazione'); e.codice=r[2]; e.motivo=zpMotivo(r[2]); throw e; }
+  if(r.length<64){ const e=new Error('risposta corta'); e.motivo='risposta'; throw e; }
+  const casuale=r.slice(r.length-64, r.length-48), pubB=r.slice(r.length-48);
+  const sc=zpCondiviso(priv, pubB);
+  const kSess=sc.slice(8, 24).map((x,i)=>x^chiave[i]);
+  const prova=(await zpAesCifra(chiave, casuale)).concat(await zpAesCifra(kSess, casuale));
+  await zpManda(S, 0x0082, [0x05].concat(prova), false);
+  const r2=await zpAspetta(S, 0x0082, ZP_ATTESA.risposta);
+  const st=(r2[0]===0x10)? r2[2] : r2[1];
+  if(st!==0x01){ const e=new Error('autenticazione'); e.codice=st; e.motivo=zpMotivo(st); throw e; }
+  S.kSess=kSess; S.tx=zpLeggi32(sc, 0); S.cifrato=true;
+  return true; }
+function zpMotivo(st){ return (st===0x25 || st===0x26)? 'chiave' : st===0x81? 'abbinamento' : 'rifiuto'; }
+/* batteria (endpoint 0x0029: richiesta 03, risposta 04 + stato + percentuale) */
+async function zpBatteria(S){
+  await zpManda(S, 0x0029, [0x03], true);
+  const r=await zpAspetta(S, 0x0029, 5000, p=>p[0]===0x04);
+  const v=(r.length>=3)? r[2] : r[1];
+  return (v>=0 && v<=100)? v : null; }
+/* — trasferimento dello STORICO (pronto per le fasi successive: sonno, giorni, allenamenti). Controllo
+     sull'endpoint 0x004B, dati come notifiche sulla caratteristica 0005 (primo byte = numero del pacchetto).
+     01 START tipo + data e ora locali (anno u16 LE, mese, giorno, ore, minuti, secondi, fuso in quarti d'ora) 01
+     → 10 01 01 + dimensione u32; 02 TRANSFER → pacchetti → 10 02 01 + CRC32 dei dati; 03 01 conferma
+     (va mandata dopo ogni START, anche quando non c'è niente). Restituisce i byte dei dati. — */
+async function zpStorico(S, tipo, da){
+  const d=new Date(da), fuso=Math.round(-d.getTimezoneOffset()/15)&255, an=d.getFullYear();
+  await zpManda(S, 0x004B, [0x01, tipo&255, an&255, (an>>8)&255, d.getMonth()+1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds(), fuso, 0x01], true);
+  const r=await zpAspetta(S, 0x004B, 8000, p=>p[0]===0x10 && p[1]===0x01);
+  if(r[2]!==0x01){ const e=new Error('storico'); e.codice=r[2]; e.motivo='storico'; throw e; }
+  const dim=zpLeggi32(r, 3);
+  let dati=[];
+  if(dim){ S.dati=[];
+    await zpManda(S, 0x004B, [0x02], true);
+    const f=await zpAspetta(S, 0x004B, 30000, p=>p[0]===0x10 && p[1]===0x02);
+    S.dati.forEach(p=>{ dati=dati.concat(p.slice(1)); });
+    if(f[2]!==0x01 || zpCrc32(dati)!==zpLeggi32(f, 3)){ const e=new Error('storico'); e.motivo='crc'; throw e; } }
+  await zpManda(S, 0x004B, [0x03, 0x01], true);
+  return {dimensione:dim, dati:dati}; }
+/* — Impostazioni › Bracciale: la CHIAVE del bracciale (16 byte, «0x…» o 32 caratteri esadecimali) resta SOLO su
+     questo telefono (IndexedDB, chiave «bracciale-chiave»): non va all'hub, al PC, nei file né nei messaggi; si
+     mostra mascherata e si può togliere. «Prova collegamento»: cerca il bracciale, apre il canale cifrato, legge
+     firmware e batteria, poi stacca. Se la fascia cardio collegata è lo stesso bracciale, la stacca per la prova e
+     la ricollega dopo; durante una registrazione o una seduta la prova non parte. — */
+const ZP_KEY='bracciale-chiave', ZP_KEY_ID='tms-bracciale-id';
+const ZP={chiave:null, stato:'', motivo:'', fw:'', batteria:null, inCorso:false, nome:''};
+function zpChiavePulita(t){ const h=String(t||'').replace(/\s+/g,'').replace(/^0x/i,'');
+  return /^[0-9a-f]{32}$/i.test(h)? h.toLowerCase() : null; }
+function zpChiaveByte(h){ const o=[]; for(let i=0;i<32;i+=2) o.push(parseInt(h.slice(i,i+2),16)); return o; }
+function zpMaschera(h){ return h? '0x'+'•'.repeat(8)+h.slice(-4) : ''; }
+async function zpCaricaChiave(){ const v=await fcLeggiKv(ZP_KEY); ZP.chiave=(typeof v==='string' && zpChiavePulita(v))? v : null; zpRender(); }
+async function zpSalvaChiave(){
+  const inp=$('zp-chiave'), h=zpChiavePulita(inp? inp.value : '');
+  if(!h){ ZP.stato='errore'; ZP.motivo='formato'; zpRender(); return; }
+  ZP.chiave=h; await fcScriviKv(ZP_KEY, h); if(inp) inp.value='';
+  ZP.stato='salvata'; ZP.motivo=''; zpRender(); }
+async function zpTogliChiave(){ ZP.chiave=null; await fcScriviKv(ZP_KEY, null); ZP.stato=''; ZP.fw=''; ZP.batteria=null; zpRender(); }
+const ZP_TESTI={
+  formato:'La chiave ha 32 lettere e numeri (da 0 a 9 e da a a f), con o senza «0x» davanti: ricontrolla di averla incollata tutta.',
+  manca:'Prima incolla la chiave del bracciale.',
+  chiave:'Chiave sbagliata: il bracciale l’ha rifiutata. Ricontrolla di averla incollata tutta; se hai rifatto l’abbinamento con Zepp, la chiave è cambiata.',
+  abbinamento:'Il bracciale vuole l’abbinamento con Zepp: abbinalo una volta in Zepp (senza scollegarlo dopo), chiudi Zepp e riprova.',
+  rifiuto:'Il bracciale ha rifiutato il collegamento. Chiudi Zepp e riprova.',
+  nontrovo:'Non trovo il bracciale. Tienilo vicino al telefono; se Zepp è aperto, chiudilo (Impostazioni del telefono › App › Zepp › Arresto forzato): il bracciale accetta un collegamento alla volta.',
+  lontano:'Il bracciale non risponde: avvicinalo al telefono e riprova.',
+  silenzio:'Il bracciale non risponde al collegamento cifrato. Chiudi Zepp (Arresto forzato) e riprova.',
+  notifiche:'Il bracciale non lascia aprire il canale: chiudi Zepp e riprova.',
+  occupato:'Chiudi prima la registrazione o la seduta in corso: il bracciale serve a quella.',
+  risposta:'Il bracciale ha risposto in un modo che non conosco: forse il firmware è cambiato.',
+  errore:'Il Bluetooth non risponde.'};
+function zpRender(){
+  const box=$('zp-box'); if(!box) return;
+  box.hidden=!window.tmsBLE;
+  const cs=$('zp-chiave-stato'); if(cs) cs.innerHTML=ZP.chiave? tt('Chiave salvata su questo telefono:')+' <b>'+esc(zpMaschera(ZP.chiave))+'</b>' : tt('Nessuna chiave salvata.');
+  const tg=$('zp-togli'); if(tg) tg.hidden=!ZP.chiave;
+  const zp=$('zp-pill'); if(zp){ zp.textContent=ZP.stato==='ok'? tt('collegato') : ZP.chiave? tt('chiave salvata') : tt('senza chiave'); zp.classList.toggle('si', ZP.stato==='ok'); }
+  const pv=$('zp-prova'); if(pv) pv.disabled=ZP.inCorso;
+  const st=$('zp-stato'), so=$('zp-sotto'); if(!st) return;
+  let a='', b='';
+  if(ZP.stato==='cerco') a=tt('Cerco il bracciale…');
+  else if(ZP.stato==='collego') a=tt('Mi collego al bracciale…');
+  else if(ZP.stato==='auth') a=tt('Apro il collegamento cifrato…');
+  else if(ZP.stato==='salvata') a=tt('Chiave salvata. Tocca «Prova collegamento».');
+  else if(ZP.stato==='ok'){ a=tt('Collegato')+(ZP.fw? ' · '+tt('firmware')+' '+ZP.fw : '')+(ZP.batteria!=null? ' · '+tt('batteria')+' '+ZP.batteria+' %' : '');
+    if(ZP.fw && ZP_FW_PROVATI.indexOf(ZP.fw)<0) b=tt('Questo firmware non è ancora fra quelli provati col TMS: se qualcosa non va, dillo al tuo personal.'); }
+  else if(ZP.stato==='errore') a=tt(ZP_TESTI[ZP.motivo]||ZP_TESTI.errore);
+  st.textContent=a; if(so) so.textContent=b; }
+async function zpProva(){
+  if(!window.tmsBLE || ZP.inCorso) return;
+  if(!ZP.chiave){ ZP.stato='errore'; ZP.motivo='manca'; zpRender(); return; }
+  if(FC.reg || SED.s){ ZP.stato='errore'; ZP.motivo='occupato'; zpRender(); return; }
+  ZP.inCorso=true; ZP.fw=''; ZP.batteria=null;
+  let ricollega=false, id='';
+  try{
+    const r=await window.tmsBLE.prepara(); if(!r || !r.ok){ ZP.stato='errore'; ZP.motivo='errore'; return; }
+    /* quale bracciale: quello già provato, la fascia collegata se è un Amazfit, o il primo che si fa vedere */
+    let noto=''; try{ noto=localStorage.getItem(ZP_KEY_ID)||''; }catch(e){}
+    if(!noto && fcIdNoto() && /amazfit|helio/i.test(fcNomeNoto()||'')) noto=fcIdNoto();
+    if(FC.id && (FC.id===noto || /amazfit|helio/i.test(FC.nome||''))){ ricollega=true; noto=noto||FC.id; fcScollega(); await new Promise(x=>setTimeout(x, 500)); }
+    ZP.stato='cerco'; zpRender();
+    const d=await new Promise(ok=>{ const t=setTimeout(()=>{ ok(null); }, ZP_ATTESA.cerca);
+      Promise.resolve(window.tmsBLE.cerca(x=>(noto? x.id===noto : (/amazfit|helio/i.test(x.nome||'') || (x.servizi||[]).indexOf('fee0')>=0)), x=>{ clearTimeout(t); ok(x); })).catch(()=>{ clearTimeout(t); ok(null); }); });
+    try{ await window.tmsBLE.fermaRicerca(); }catch(e){}
+    if(!d){ ZP.stato='errore'; ZP.motivo='nontrovo'; return; }
+    id=d.id; ZP.nome=d.nome||''; ZP.stato='collego'; zpRender();
+    const S=zpSessione(id, (car, byte)=>window.tmsBLE.scrivi(id, car, byte, ZP_FEE0));
+    let coda=Promise.resolve();
+    try{ await window.tmsBLE.collega(id, {onDati:(car, byte)=>{ coda=coda.then(()=>zpRicevi(S, car, byte)).catch(()=>{}); }, onStaccato:()=>{}},
+      {servizio:ZP_FEE0, notifiche:[ZP_IN, ZP_OUT, ZP_DATI]}); }
+    catch(e){ ZP.stato='errore'; ZP.motivo=(e && e.motivo==='notifiche')? 'notifiche' : 'lontano'; id=''; return; }
+    try{ localStorage.setItem(ZP_KEY_ID, id); }catch(e){}
+    ZP.stato='auth'; zpRender();
+    await zpAutentica(S, zpChiaveByte(ZP.chiave));
+    /* firmware (Device Information, in chiaro) e batteria (canale cifrato) */
+    try{ if(window.tmsBLE.leggi){ const fw=await window.tmsBLE.leggi(id, '180a', '2a26'); ZP.fw=String.fromCharCode.apply(null, (fw||[]).filter(x=>x>=32 && x<127)).trim(); } }catch(e){}
+    try{ ZP.batteria=await zpBatteria(S); }catch(e){ ZP.batteria=null; }
+    ZP.stato='ok';
+  }catch(e){ ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; }
+  finally{
+    if(id){ try{ await window.tmsBLE.stacca(id); }catch(e){} }
+    ZP.inCorso=false; zpRender();
+    if(ricollega) fcAvvia(); } }
 /* ── 🎮 SCHERMATA D'ANALISI della pesata (richiesta di Marco, 25/11/2026): «una schermata di caricamento, la
       forma stilizzata del corpo che si carica e sembra che venga analizzata, in stile videogioco anni 2000».
       Dei videogiochi si prendono SOLO l'animazione e l'impostazione: colori, forme e caratteri restano quelli
@@ -3470,12 +3790,14 @@ function colStacca(){
   if(colCollegata()){ SCHEDA.collegata=false; salvaScheda(SCHEDA); }
   COL.msgErr=false; COL.msg=c.nome? tt('Scollegato da')+' «'+c.nome+'».' : ''; colRender();
 }
-function colApri(){ try{ fcStato(FC.stato); }catch(e){} navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil','fc'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
+function colApri(){ try{ fcStato(FC.stato); zpRender(); }catch(e){} navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil','fc'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
 function colEsci(){ if(SCHEDA){ aggiornaStato(); mostra('menu'); } else { $('col').hidden=true; avvia(); } }
 function colRender(){
   const P=colPuo(), conf=colConf(), att=colAttivo();
   { const b=$('col-da-ben'); if(b) b.hidden=!P; }
-  { const cb=$('col-box'); if(cb) cb.hidden=!P; }
+  { const cb=$('col-box'); if(cb) cb.hidden=!P; const sz=$('imp-sez-pc'); if(sz) sz.hidden=!P;
+    const sn=$('imp-sez-sens'); if(sn) sn.hidden=!window.tmsBLE; const sa=$('imp-sez-avv'); if(sa) sa.hidden=!window.tmsAvvisi;
+    const pl=$('col-pill'); if(pl){ const on=P && colAttivo(); pl.textContent=on? tt('collegato') : tt('non collegato'); pl.classList.toggle('si', on); } }
   { const fi=$('fc-imp'); if(fi) fi.hidden=!window.tmsBLE; }
   { const n=$('ben-solo-apk'); if(n) n.hidden=P; }
   const avv=$('avv-box'); if(avv) avv.hidden=!window.tmsAvvisi;
@@ -3573,6 +3895,8 @@ function apriDaAvviso(pagina){
 }
 window.apriDaAvviso=apriDaAvviso;
 $('vai-col').onclick=colApri; $('col-da-ben').onclick=colApri; $('ben-imp').onclick=colApri;
+$('zp-salva').onclick=()=>{ zpSalvaChiave(); }; $('zp-prova').onclick=()=>{ zpProva(); }; $('zp-togli').onclick=()=>{ zpTogliChiave(); };
+zpCaricaChiave().catch(()=>{});
 document.querySelectorAll('[data-col-esci]').forEach(b=>{ b.onclick=navIndietro; });
 $('col-collega').onclick=colCollega;
 $('col-qr').onclick=qrApri;

@@ -170,6 +170,8 @@ if(BLE){
         const err=new Error((e&&e.message)||String(e)); err.motivo='notifiche'; throw err; }
     },
     scrivi(id, c, bytes, servizio){ return BLE.write({deviceId:id, service:UUID(servizio||BIL.servizio), characteristic:UUID(c), value:inHex(bytes)}); },
+    /* lettura di una caratteristica (per esempio il firmware del bracciale, 180A/2A26): restituisce i byte */
+    async leggi(id, servizio, c){ const r=await BLE.read({deviceId:id, service:UUID(servizio), characteristic:UUID(c)}); return daHex(r && r.value); },
     async stacca(id){ via(id); try{ await BLE.disconnect({deviceId:id}); }catch(e){} }
   };
   try{ bilAggiornaMenu(); }catch(e){}     /* le voci «⚖ Bilancia» e «Fascia cardio» del menu compaiono solo adesso */
