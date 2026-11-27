@@ -97,7 +97,7 @@ function schedeAggr(sf){
   const map={};
   storicoSet(sf).forEach(r=>{ if(r.test) return; const s=+r.scheda; if(!map[s])map[s]={scheda:s,tl:0,pctSum:0,pctN:0,grp:{},sets:{},setsD:{},setsI:{},band:{},tonn:0};
     const _t=sTL(r), _p=sPct(r), ser=+r.serie||0; map[s].tl+=_t; if(_p){map[s].pctSum+=_p; map[s].pctN++;}
-    const g=r.macro||'Altro'; map[s].grp[g]=(map[s].grp[g]||0)+_t;
+    const g=macroDi(r)||'Altro'; map[s].grp[g]=(map[s].grp[g]||0)+_t;
     /* le SERIE si contano come nel ⚖ Bilanciamento: piene sui muscoli primari, mezze sui
        secondari (pesi del profilo), tenendo a parte dirette e indirette. Il TL sopra resta
        invece sul solo gruppo dello storico — è un'altra cosa. Se l'esercizio non è più a

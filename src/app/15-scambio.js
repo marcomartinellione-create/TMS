@@ -76,11 +76,13 @@ function costruisciSchedaJSON(videoMap, modificabile){
      composizione corporea usa altezza, età e sesso, e alcune bilance li vogliono ricevere
      prima di misurare. Solo questi tre dati; 0 o '' se il profilo non li ha.
      Dal 26/11/2026 (fascia cardio nell'app del telefono) anche FC max e FC a riposo del Profilo, se
-     scritte: servono alle zone del battito (senza FC max il telefono la stima dall'età, come il TMS). */
+     scritte: servono alle zone del battito (senza FC max il telefono la stima dall'età, come il TMS).
+     Dal 27/11/2026 anche peso e massa grassa (frazione): servono alla stima delle calorie bruciate del telefono */
   const u=DOC.dati_utente||{};
   return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile, rpe:useRpeActive(),
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
-    corpo:{altezza:+u.altezza||0, sesso:(u.sesso==='F'||u.sesso==='M')?u.sesso:'', eta:etaOf(u)||0, fcMax:+u.fcMax||0, fcRiposo:+u.fcRiposo||0},
+    corpo:{altezza:+u.altezza||0, sesso:(u.sesso==='F'||u.sesso==='M')?u.sesso:'', eta:etaOf(u)||0, fcMax:+u.fcMax||0, fcRiposo:+u.fcRiposo||0,
+      peso:+u.peso||0, massa_grassa:+u.massa_grassa||0},   /* peso e grasso: per la stima delle calorie del telefono (1.10.0) */
     righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),
     video:videoMap, dieta:costruisciDietaJSON(), catalogo:catalogo};
 }

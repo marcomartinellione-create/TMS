@@ -12,37 +12,66 @@
    di sopra cifrato (AES-GCM 256, chiave PBKDF2-SHA256 dalla password). I codici del telefono collegato NON
    viaggiano: sul PC che riceve, il cliente si ricollega col QR. */
 const TMS_FORMATO='tms-cliente', TMS_VERSIONE=1, TMS_PBKDF2=310000, TMS_AAD='tms-cliente-v1';
+/* sottocartelle del profilo coi dati GREZZI (regola dei dati grezzi, 27/11/2026): vanno nel cliente esportato e nel backup */
+const PK_GREZZI=['bracciale','sedute'];
 
 /* ── ZIP senza compressione (metodo 0, nomi in UTF-8) ── */
 const ZIP_CRC=(()=>{ const tb=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)? (0xEDB88320^(c>>>1)) : (c>>>1); tb[n]=c>>>0; } return tb; })();
 function zipCrc(b){ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=ZIP_CRC[(c^b[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
 function zipUnisci(pezzi){ const n=pezzi.reduce((a,p)=>a+p.length,0), out=new Uint8Array(n); let o=0; pezzi.forEach(p=>{ out.set(p,o); o+=p.length; }); return out; }
+/* Oltre 65.535 file o 4 GB di archivio si scrive il formato ZIP64 (APPNOTE 6.3.x: record «zip64 end of central directory»
+   col suo localizzatore, e la posizione di una voce a 8 byte nel campo extra 0x0001); sotto quei limiti l'archivio resta
+   il formato classico di sempre, che ogni programma apre (27/11/2026, valutazione della crescita dei dati) */
+const ZIP_M16=0xFFFF, ZIP_M32=0xFFFFFFFF;
 function zipScrivi(voci){
   const enc=new TextEncoder(), parti=[], centrale=[], d=new Date(); let off=0;
   const ora=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF, giorno=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
   for(const v of voci){
     const nome=enc.encode(v.nome), dati=v.dati, crc=zipCrc(dati);
+    if(dati.length>=ZIP_M32) throw new Error('file troppo grande per l\'archivio: '+v.nome);
     const h=new DataView(new ArrayBuffer(30));
     h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true); h.setUint16(10,ora,true); h.setUint16(12,giorno,true);
     h.setUint32(14,crc,true); h.setUint32(18,dati.length,true); h.setUint32(22,dati.length,true); h.setUint16(26,nome.length,true); h.setUint16(28,0,true);
     parti.push(new Uint8Array(h.buffer), nome, dati);
-    const c=new DataView(new ArrayBuffer(46));
-    c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true); c.setUint16(10,0,true); c.setUint16(12,ora,true); c.setUint16(14,giorno,true);
-    c.setUint32(16,crc,true); c.setUint32(20,dati.length,true); c.setUint32(24,dati.length,true); c.setUint16(28,nome.length,true); c.setUint32(42,off,true);
+    const lontano=off>=ZIP_M32, c=new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true); c.setUint16(4,lontano?45:20,true); c.setUint16(6,lontano?45:20,true); c.setUint16(8,0x0800,true); c.setUint16(10,0,true); c.setUint16(12,ora,true); c.setUint16(14,giorno,true);
+    c.setUint32(16,crc,true); c.setUint32(20,dati.length,true); c.setUint32(24,dati.length,true); c.setUint16(28,nome.length,true); c.setUint16(30,lontano?12:0,true); c.setUint32(42,lontano?ZIP_M32:off,true);
     centrale.push(new Uint8Array(c.buffer), nome);
+    if(lontano){ const x=new DataView(new ArrayBuffer(12)); x.setUint16(0,1,true); x.setUint16(2,8,true); x.setBigUint64(4,BigInt(off),true); centrale.push(new Uint8Array(x.buffer)); }
     off+=30+nome.length+dati.length; }
-  const lungC=centrale.reduce((a,p)=>a+p.length,0), e=new DataView(new ArrayBuffer(22));
-  e.setUint32(0,0x06054b50,true); e.setUint16(8,voci.length,true); e.setUint16(10,voci.length,true); e.setUint32(12,lungC,true); e.setUint32(16,off,true);
-  return zipUnisci(parti.concat(centrale, [new Uint8Array(e.buffer)])); }
+  const lungC=centrale.reduce((a,p)=>a+p.length,0), n=voci.length, z64=(n>=ZIP_M16 || off>=ZIP_M32 || lungC>=ZIP_M32), coda=[];
+  if(z64){
+    const r=new DataView(new ArrayBuffer(56));
+    r.setUint32(0,0x06064b50,true); r.setBigUint64(4,44n,true); r.setUint16(12,45,true); r.setUint16(14,45,true); r.setUint32(16,0,true); r.setUint32(20,0,true);
+    r.setBigUint64(24,BigInt(n),true); r.setBigUint64(32,BigInt(n),true); r.setBigUint64(40,BigInt(lungC),true); r.setBigUint64(48,BigInt(off),true);
+    const l=new DataView(new ArrayBuffer(20));
+    l.setUint32(0,0x07064b50,true); l.setUint32(4,0,true); l.setBigUint64(8,BigInt(off+lungC),true); l.setUint32(16,1,true);
+    coda.push(new Uint8Array(r.buffer), new Uint8Array(l.buffer)); }
+  const e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true); e.setUint16(8,z64?ZIP_M16:n,true); e.setUint16(10,z64?ZIP_M16:n,true); e.setUint32(12,z64?ZIP_M32:lungC,true); e.setUint32(16,z64?ZIP_M32:off,true);
+  coda.push(new Uint8Array(e.buffer));
+  return zipUnisci(parti.concat(centrale, coda)); }
 function zipLeggi(b){
   if(!(b instanceof Uint8Array)) b=new Uint8Array(b);
   const dv=new DataView(b.buffer, b.byteOffset, b.byteLength), dec=new TextDecoder();
   let fine=-1; for(let i=b.length-22; i>=Math.max(0, b.length-65557); i--) if(dv.getUint32(i,true)===0x06054b50){ fine=i; break; }
   if(fine<0) throw new Error('non è un archivio');
-  const n=dv.getUint16(fine+10,true); let p=dv.getUint32(fine+16,true); const voci=[];
+  let n=dv.getUint16(fine+10,true), p=dv.getUint32(fine+16,true); const voci=[];
+  /* ZIP64: il localizzatore sta subito prima della fine dell'indice */
+  if(fine>=20 && dv.getUint32(fine-20,true)===0x07064b50){
+    const r=Number(dv.getBigUint64(fine-12,true));
+    if(!(r>=0 && r+56<=b.length) || dv.getUint32(r,true)!==0x06064b50) throw new Error('indice dell\'archivio rovinato');
+    n=Number(dv.getBigUint64(r+32,true)); p=Number(dv.getBigUint64(r+48,true)); }
   for(let k=0;k<n;k++){
     if(dv.getUint32(p,true)!==0x02014b50) throw new Error('indice dell\'archivio rovinato');
-    const metodo=dv.getUint16(p+10,true), crc=dv.getUint32(p+16,true), dim=dv.getUint32(p+20,true), lnome=dv.getUint16(p+28,true), lextra=dv.getUint16(p+30,true), lcomm=dv.getUint16(p+32,true), loc=dv.getUint32(p+42,true);
+    const metodo=dv.getUint16(p+10,true), crc=dv.getUint32(p+16,true), lnome=dv.getUint16(p+28,true), lextra=dv.getUint16(p+30,true), lcomm=dv.getUint16(p+32,true);
+    let dim=dv.getUint32(p+24,true), dimC=dv.getUint32(p+20,true), loc=dv.getUint32(p+42,true);
+    /* campo extra ZIP64 (0x0001): dimensione, dimensione compressa e posizione a 8 byte, solo quelle che non stavano in 4 */
+    if(dim===ZIP_M32 || dimC===ZIP_M32 || loc===ZIP_M32){
+      for(let q=p+46+lnome, fineX=q+lextra; q+4<=fineX; ){ const id=dv.getUint16(q,true), sz=dv.getUint16(q+2,true);
+        if(id===1){ let o=q+4; if(dim===ZIP_M32){ dim=Number(dv.getBigUint64(o,true)); o+=8; } if(dimC===ZIP_M32){ dimC=Number(dv.getBigUint64(o,true)); o+=8; }
+          if(loc===ZIP_M32){ loc=Number(dv.getBigUint64(o,true)); } }
+        q+=4+sz; } }
     const nome=dec.decode(b.subarray(p+46, p+46+lnome));
     if(metodo!==0) throw new Error('archivio compresso: non è un file del TMS');
     if(dv.getUint32(loc,true)!==0x04034b50) throw new Error('voce dell\'archivio rovinata');
@@ -104,6 +133,12 @@ async function pacchettoCostruisci(slug, password){
       voci.push({nome:'foto/'+nome, dati:new Uint8Array(await (await fh.getFile()).arrayBuffer())}); nFoto++; }
     catch(e){ logErrore('pacchetto/foto:'+nome, e); }   /* una foto mancante non ferma l'esportazione */
   }
+  /* i dati GREZZI nelle sottocartelle del profilo (campioni del bracciale, un file al mese; dal 27/11/2026, regola dei
+     dati grezzi): vanno col cliente così come sono */
+  let nGrezzi=0;
+  for(const sub of PK_GREZZI){ let sd=null; try{ sd=await pd.getDirectoryHandle(sub,{create:false}); }catch(e){}
+    if(!sd) continue; const el=await bkElenco(sd); if(!el) continue;
+    for(const x of el.filter(v=>!v.cartella && /^[\w.-]+$/.test(v.nome))){ try{ voci.push({nome:sub+'/'+x.nome, dati:await bkLeggiFile(sd, x.nome)}); nGrezzi++; }catch(e){ logErrore('pacchetto/'+sub+':'+x.nome, e); } } }
   /* gli esercizi che il cliente usa e che non sono quelli dell'installazione (creati o cambiati da te), coi loro
      video personali: chi riceve il file non deve rifarli. Gli esercizi dell'installazione li ha già. */
   const ne=pkNomiEsercizi(parti.scheda, parti.storico), na=pkNomiAlimenti(parti.alimentazione);
@@ -114,7 +149,7 @@ async function pacchettoCostruisci(slug, password){
   if(vd) for(const v of [...new Set(pers.map(e=>String((e&&e.video)||'').replace(/^video\//,'')).filter(x=>x && !/[\\/]/.test(x)))]){
     try{ const fh=await vd.getFileHandle(v,{create:false}); voci.push({nome:'video/'+v, dati:new Uint8Array(await (await fh.getFile()).arrayBuffer())}); nVideo++; }catch(e){} }
   const man={formato:TMS_FORMATO, versione:TMS_VERSIONE, app:APP_VERSION, creato:new Date().toISOString(), profilo:Object.assign({}, p), foto:nFoto,
-    personalizzati:pers.map(e=>e.nome), video:nVideo};
+    personalizzati:pers.map(e=>e.nome), video:nVideo, grezzi:nGrezzi};
   const interno=zipScrivi([{nome:'tms.json', dati:pkTesto(man)}].concat(voci));
   return {bytes:password? await pkCifraArchivio(interno, password, TMS_FORMATO) : interno, nFoto, nPers:pers.length, nVideo}; }
 
@@ -132,7 +167,8 @@ async function pacchettoLeggi(bytes, chiediPw){
   let esercizi=[], ricette=[]; try{ esercizi=pkJson(voci,'catalogo/esercizi.json')||[]; ricette=pkJson(voci,'catalogo/ricette.json')||[]; }catch(e){}
   const foto=voci.filter(v=>/^foto\/[^/\\]+$/.test(v.nome)).map(v=>({nome:v.nome.slice(5), dati:v.dati}));
   const video=voci.filter(v=>/^video\/[^/\\]+$/.test(v.nome)).map(v=>({nome:v.nome.slice(6), dati:v.dati}));
-  return {man, dati, foto, video, esercizi:Array.isArray(esercizi)? esercizi : [], ricette:Array.isArray(ricette)? ricette : []}; }
+  const grezzi=voci.filter(v=>PK_GREZZI.some(s=>v.nome.startsWith(s+'/')) && /^[\w-]+\/[\w.-]+$/.test(v.nome));
+  return {man, dati, foto, video, grezzi, esercizi:Array.isArray(esercizi)? esercizi : [], ricette:Array.isArray(ricette)? ricette : []}; }
 
 /* ── importazione: un cliente nuovo, oppure al posto di quello che c'è già (il vecchio va nel cestino) ── */
 async function pacchettoImporta(bytes){
@@ -171,6 +207,7 @@ async function pacchettoImportaPk(pk){
     if(pk.foto.length){ const fd=await pd.getDirectoryHandle('foto',{create:true});
       for(const f of pk.foto){ try{ const fh=await fd.getFileHandle(f.nome,{create:true}); const w=await fh.createWritable(); await w.write(f.dati); await w.close(); }
         catch(e){ logErrore('pacchetto/foto:'+f.nome, e); } } }
+    for(const g of (pk.grezzi||[])){ try{ await bkScriviBin(pd, g.nome, g.dati); }catch(e){ logErrore('pacchetto/'+g.nome, e); } }
     /* catalogo: si aggiungono gli esercizi che mancano; quelli con lo stesso nome ma diversi si chiede quali tenere */
     const conNome=n=>(DOC.esercizi||[]).find(e=>String((e&&e.nome)||'').trim()===n);
     const nuovi=[], diversi=[];

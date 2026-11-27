@@ -102,6 +102,9 @@ const FOODBYNAME = {}; FOOD.forEach(f=>FOODBYNAME[String(f.nome).trim()]=f);
 function esLookup(n){ return ESBYNAME[String(n==null?'':n).trim()]; }
 function fattore(n){ const e=esLookup(n); return (e && e.fattore) || 1; }
 function gruppoOf(n){ const e=esLookup(n); return (e && (e.macro||e.gruppo)) || ''; }
+/* il gruppo muscolare di una riga dello storico: quello del catalogo di OGGI (regola dei dati grezzi, 27/11/2026: si
+   ricava, non si salva); il `macro` scritto nelle righe vecchie vale solo se l'esercizio non è più nel catalogo */
+function macroDi(r){ return gruppoOf(r && r.esercizio) || (r && r.macro) || ''; }
 function videoOf(n){ const e=esLookup(n); return (e && e.video) ? String(e.video).trim() : ''; }
 
 /* -- VOLUME PER GRUPPO: anche il lavoro INDIRETTO ------------------------------
@@ -275,9 +278,8 @@ function rowSeduta(map,r){ return (r.esercizio && map[r.esercizio] && map[r.eser
 function migrateStorico(){
   let changed=false;
   DOC.storico.forEach(r=>{ if(r.seduta==null){ const v=parseVariante(r.esercizio);
-    r.esercizio=v.nome; r.seduta=v.seduta; if(v.test)r.test=true; r.macro=r.macro||gruppoOf(v.nome); changed=true; }
-    /* nuova logica: rimuovi i valori calcolati salvati (1RM/%1RM/TL/fascia) — ora si ricalcolano */
-    if(!r.macro){ r.macro=gruppoOf(r.esercizio); changed=true; }
+    r.esercizio=v.nome; r.seduta=v.seduta; if(v.test)r.test=true; changed=true; }
+    /* nuova logica: rimuovi i valori calcolati salvati (1RM/%1RM/TL/fascia) — ora si ricalcolano (il gruppo: macroDi) */
     if(('rm1' in r)||('pct1rm' in r)||('tl' in r)||('fascia' in r)){ delete r.rm1; delete r.pct1rm; delete r.tl; delete r.fascia; changed=true; }
   });
   return changed;

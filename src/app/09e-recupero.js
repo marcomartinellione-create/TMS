@@ -120,7 +120,17 @@ function recMappa(R){
   const M={}, voce=d=>M[d]||(M[d]={data:d, g:null, n:null});
   R.giorni.forEach(g=>{ const d=recDataOk(g.data); if(d) voce(d).g=g; });
   R.notti.forEach(n=>{ const d=recDataOk(n.id)||recDataOk(String(n.fine||'').slice(0,10)); if(d) voce(d).n=n; });
+  /* i giorni coi CAMPIONI del bracciale (APK 1.10.0, 09f-bracciale.js): i valori del giorno e SpO2, respirazione e HRV
+     della notte si calcolano qui dai campioni e prendono il posto delle medie arrivate dai telefoni di prima */
+  brDateCaricate().forEach(d=>{ const g=brGiornoValori(d, R.notti); if(g){ const v=voce(d); v.g=Object.assign({}, v.g||{}, g); v.grezzo=true; } });
+  Object.keys(M).forEach(d=>{ const x=M[d]; if(x.n){ const nv=brNotteValori(x.n); if(nv) x.n=Object.assign({}, x.n, nv); } });
   return M;
+}
+/* i mesi di campioni che servono ai grafici (periodo + i 30 giorni del «suo solito»), letti in sottofondo; arrivati,
+   la colonna si ridisegna (una volta: i mesi già letti non si rileggono) */
+function recCaricaGrezzi(){
+  brCarica(brMesiRecenti(recuperoPer+31)).then(nuovo=>{ if(!nuovo) return;
+    const b=document.getElementById('recupero-box'); if(b){ b.innerHTML=htmlRecupero(); legaRecupero(); } }).catch(e=>logErrore('recupero/campioni', e));
 }
 /* il valore k di un giorno; HRV, SpO2 e respirazione della notte fanno da ripiego se il riassunto non li ha */
 function recValore(x,k){
@@ -227,7 +237,8 @@ function htmlRecupero(){
   /* si disegna solo quello che passa i controlli (la migrazione lascia le voci come sono: una notte rovinata
      in un file non deve rompere il tab); la pulizia qui serve al disegno e non si salva */
   const R0=recuperoNorm(DOC.recupero), R={notti:R0.notti.map(pulisciNotte).filter(Boolean), giorni:R0.giorni.map(pulisciGiorno).filter(Boolean)};
-  if(!R.notti.length && !R.giorni.length)
+  recCaricaGrezzi();
+  if(!R.notti.length && !R.giorni.length && !brDateCaricate().length)
     return `<div class="recu-vuoto">${ico('luna')}<span>${t('Sonno, HRV e battito a riposo compaiono qui quando il cliente porta un bracciale collegato all’app del telefono.')}</span></div>`;
   const M=recMappa(R), tutte=Object.keys(M).sort(), ultimo=tutte[tutte.length-1];
   const date=[]; for(let i=recuperoPer-1;i>=0;i--) date.push(recPiuGiorni(ultimo,-i));
@@ -297,11 +308,13 @@ function htmlRecupero(){
     <div class="cards recu-cards">${tessere.join('')}</div>
     <div class="recu-griglia">${notteHtml}${sonno}</div>
     <div class="recu-griglia">${grHrv}${grFc}</div>
+    ${htmlCalorie(date)}
     <h4 class="recu-tit">${t('Media della settimana')}</h4>
     ${tabella}
-    <div class="lat-nota">${t('Tutti i valori sono quelli calcolati dal bracciale; il TMS non dà un voto al recupero. «Il suo solito» è la media ± 1,5 deviazioni standard dei 30 giorni prima dell’ultimo dato (la fascia verde nei grafici); servono almeno 7 giorni. La temperatura della pelle si legge come scarto dal suo solito.')}</div>`;
+    <div class="lat-nota">${t('Sonno, fasi, punteggio e battito a riposo sono quelli del bracciale; le medie del giorno (HRV, SpO2, stress, pelle, respirazione) il TMS le calcola dai campioni del bracciale ogni volta che le mostra. Il TMS non dà un voto al recupero. «Il suo solito» è la media ± 1,5 deviazioni standard dei 30 giorni prima dell’ultimo dato (la fascia verde nei grafici); servono almeno 7 giorni. La temperatura della pelle si legge come scarto dal suo solito.')}</div>`;
 }
 function legaRecupero(){
   const s=document.getElementById('recu-per');
   if(s) s.onchange=()=>{ recuperoPer=(+s.value===7)? 7 : 30; const b=document.getElementById('recupero-box'); if(b){ b.innerHTML=htmlRecupero(); legaRecupero(); } };
+  legaCalorie();
 }

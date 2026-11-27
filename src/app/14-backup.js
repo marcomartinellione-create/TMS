@@ -56,13 +56,16 @@ async function backupAutomaticoSeServe(){
     const ultimo=indice.list.length?indice.list[indice.list.length-1]:null;
     if(ultimo && ultimo.data && (Date.parse(oggi)-Date.parse(ultimo.data)) < AUTOBK_GIORNI*86400000) return false;
     const nomeFile='TMS-auto-'+oggi+'.tmsb';
-    await bkScriviBin(dir, nomeFile, (await backupCostruisci(null)).bytes);   /* completo: foto e video compresi */
+    /* a deposito (27/11/2026): i file grandi una volta sola in backup_automatici/deposito (14c-backup-tmsb.js) */
+    const dep=await bkDepLocale(), r=await bkCostruisciDeposito(dep, nomeFile);
+    await bkScriviBin(dir, nomeFile, r.bytes);
     indice.list=indice.list.filter(x=>x&&x.file!==nomeFile);
     indice.list.push({file:nomeFile,data:oggi});
     const tieni=bkDaTenere(indice.list, oggi).tieni;
     for(const vecchio of indice.list.filter(x=>!tieni.includes(x))){ try{ await dir.removeEntry(vecchio.file); }catch(e){} }
     indice.list=tieni;
     await writeJson(dir,'indice.json',indice);
+    await bkDepPulisci(dep, r.ind, tieni.map(x=>x.file).concat((indice.sicurezza||[]).map(x=>x.file)));
     return true;
   }catch(e){ logErrore('backupAutomatico', e); return false; }
 }
@@ -80,10 +83,12 @@ async function salvaCopiaDiSicurezza(){
   if(!Array.isArray(indice.sicurezza)) indice.sicurezza=[];
   const ora=new Date().toISOString();
   const nomeFile='TMS-prima-del-ripristino-'+ora.slice(0,19).replace(/[:T]/g,'-')+'.tmsb';
-  await bkScriviBin(dir, nomeFile, (await backupCostruisci(null)).bytes);
+  const dep=await bkDepLocale(), r=await bkCostruisciDeposito(dep, nomeFile);   /* a deposito, come i settimanali */
+  await bkScriviBin(dir, nomeFile, r.bytes);
   indice.sicurezza.push({file:nomeFile,data:ora.slice(0,10),ora:ora.slice(11,16)});
   while(indice.sicurezza.length>SICUR_MAX){ const v=indice.sicurezza.shift(); try{ await dir.removeEntry(v.file); }catch(e){} }
   await writeJson(dir,'indice.json',indice);
+  await bkDepPulisci(dep, r.ind, (indice.list||[]).map(x=>x.file).concat(indice.sicurezza.map(x=>x.file)));
   return nomeFile;
 }
 /* ── COPIA FUORI DAL PC (25/11/2026, richiesta di Marco): lo storico di tutti i clienti vive solo su questo
@@ -137,9 +142,12 @@ async function bkEstCopia(forza){
   _bkEstIn=true;
   try{
     const nome='TMS-backup-'+oggi+'.tmsb';
-    await window.tmsScambio.scrivi(nome, (await backupCostruisci(null)).bytes);   /* il backup completo (.tmsb) */
+    /* a deposito (27/11/2026): i file grandi una volta sola in <cartella>/deposito, il .tmsb porta il resto e l'elenco */
+    const dep=bkDepEsterno(), r=await bkCostruisciDeposito(dep, nome);
+    await window.tmsScambio.scrivi(nome, r.bytes);
     try{ const nostri=((await window.tmsScambio.elenca(''))||[]).filter(n=>BKEST_NOME.test(n)), tieni=bkDaTenere(nostri, oggi).tieni;
-      for(const v of nostri.filter(n=>!tieni.includes(n))) await window.tmsScambio.togli(v); }
+      for(const v of nostri.filter(n=>!tieni.includes(n))) await window.tmsScambio.togli(v);
+      await bkDepPulisci(dep, r.ind, tieni); }
     catch(e){ logErrore('backupEsterno/rotazione', e); }
     bkEstSalva({scelta:true, sceltaIl:st.sceltaIl, ultima:bkAdesso().toISOString(), file:nome});
     { const r=document.getElementById('prof-copia-ko'); if(r) r.remove(); }   /* l'avviso nel tab Profilo non serve più */
@@ -159,11 +167,11 @@ function bkSezioneImpostazioni(){
   if(!bkEstDisponibile()) return '';
   const c=_bkEstCartella;
   return `<div class="imp-sez" id="imp-bk"><h4>${t('Copia dei backup')}</h4>
-    <div class="lat-nota" style="margin:0 0 8px">${t('Ogni settimana il TMS fa un backup completo di tutti i profili, foto comprese. Scegli una cartella fuori da questo PC, per esempio dentro OneDrive, Google Drive o MEGA, o su una chiavetta: lì ne va una copia, così lo storico dei clienti resta al sicuro anche se il PC si rompe. Si tengono le ultime cinque copie e, per un anno, la prima di ogni mese.')}</div>
+    <div class="lat-nota" style="margin:0 0 8px">${t('Ogni settimana il TMS fa un backup completo di tutti i profili, foto comprese. Scegli una cartella fuori da questo PC, per esempio dentro OneDrive, Google Drive o MEGA, o su una chiavetta: lì ne va una copia, così lo storico dei clienti resta al sicuro anche se il PC si rompe. Si tengono le ultime cinque copie e, per un anno, la prima di ogni mese. Le foto e gli altri file grandi stanno una volta sola nella sottocartella «deposito», che serve a tutte le copie: non toglierla.')}</div>
     <div class="imp-riga imp-codice"><span>${t('Cartella')}</span><code class="tel-codice imp-bk-percorso" id="imp-bk-cartella">${c? esc(c) : esc(t('nessuna'))}</code>
       <span class="gruppo"><button class="btn btn--sm${c?'':' btn--ember'}" id="imp-bk-scegli">${t(c?'Cambia…':'Scegli…')}</button>${c?`<button class="btn btn--sm" id="imp-bk-ora">${t('Copia adesso')}</button><button class="btn btn--sm" id="imp-bk-togli">${t('Togli')}</button>`:''}</span></div>
     ${c? `<div class="lat-nota" id="imp-bk-stato">${bkEstTestoStato()}</div>
-    <div class="lat-nota">${t('La copia non è cifrata: usa una cartella che vedi solo tu. Per riprenderla: tab Profilo › Ripristina, e scegli il file da quella cartella.')}</div>` : ''}
+    <div class="lat-nota">${t('La copia non è cifrata: usa una cartella che vedi solo tu. Per riprenderla: tab Profilo › Ripristina, e scegli il file da quella cartella (su un PC nuovo, prima scegli qui la stessa cartella: le foto le prende dal suo deposito).')}</div>` : ''}
   </div>`; }
 function bkAgganciaImpostazioni(riapri){
   const su=(id,fn)=>{ const b=document.getElementById(id); if(b) b.onclick=async()=>{ b.disabled=true;

@@ -19,6 +19,8 @@ async function readProfileFull(slug){
       const pd=await dataDir.getDirectoryHandle(slug,{create:false});
       const sc=await readJson(pd,FILES.scheda), st=await readJson(pd,FILES.storico),
             co=await readJson(pd,FILES.corpo), al=await readJson(pd,FILES.alimentazione);
+      /* i valori calcolati dello Storico misure (medie della bilancia, BMI…) attaccati in memoria, come nel profilo aperto */
+      if(co && Array.isArray(co.storico_io)) ioAttacca(co);
       return {scheda:sc||{settimanale:[],mensile:[]}, storico:st||[],
         storico_io:(co&&co.storico_io)||[], storico_rpe:(co&&co.storico_rpe)||[],
         cardio:(co&&co.cardio)||[], dati_utente:(co&&co.dati_utente)||{},

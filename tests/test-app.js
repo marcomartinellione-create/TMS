@@ -64,6 +64,9 @@ function makeIDB(seedHandle){
 const SNAP_BK = 'backupCostruisci(null).then(function(r){ return backupLeggi(r.bytes, function(){ return Promise.resolve(null); }); }).then(function(b){ return b.snap; })';
 const SNAP_BK_JSON = SNAP_BK + '.then(function(s){ return JSON.stringify(s); })';
 /* legge un .tmsb (byte) dentro la finestra: il contenuto, come lo dà backupLeggi */
+/* la cartella fuori dal PC finta (ponte tmsScambio): elenca per sottocartella e legge testo, come electron/main.js */
+function estElenca(est, rel){ rel = String(rel || ''); return [...est.keys()].filter(k => rel ? (k.startsWith(rel + '/') && !k.slice(rel.length + 1).includes('/')) : !k.includes('/')).map(k => rel ? k.slice(rel.length + 1) : k); }
+function estLeggi(est, n){ if (!est.has(n)) return { stato: 'assente' }; const v = est.get(n); return { stato: 'ok', testo: typeof v === 'string' ? v : Buffer.from(v).toString('utf8') }; }
 async function leggiTmsb(w, bytes, pw){ w.__bkLeggi = bytes; return JSON.parse(await w.eval('backupLeggi(window.__bkLeggi, function(){ return Promise.resolve(' + JSON.stringify(pw || null) + '); }).then(function(b){ return JSON.stringify(b ? {man:b.man, snap:b.snap, file:Object.keys(b.file).reduce(function(o,k){ o[k]=b.file[k].map(function(f){ return f.nome; }); return o; },{}), orfani:Object.keys(b.orfani), video:b.video.map(function(v){ return v.nome+":"+v.dati.length; }), libreria:b.libreria.map(function(f){ return f.nome; }), impostazioni:b.impostazioni, telefono:b.telefono} : null); })')); }
 
 function makeTmsFS(){
@@ -952,6 +955,10 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   { const pr=d.getElementById('panel-progressi').innerHTML;
     ok(pr.includes('Cardio · progressione per sport') && d.getElementById('prog-cardio-sport')!==null, 'Progressi: sezione cardio per sport con selettore');
     ok(pr.includes('Passo') && pr.includes('Distanza') && pr.includes('FC media'), 'Progressi cardio: grafici passo/distanza/FC per la Corsa'); }
+  /* regola dei dati grezzi (27/11/2026): il gruppo muscolare di una riga dello storico si ricava dal catalogo di oggi */
+  ok(w.eval('macroDi({esercizio:"Squat con bilanciere"})') === w.eval('gruppoOf("Squat con bilanciere")') && w.eval('gruppoOf("Squat con bilanciere")') !== '' &&
+     w.eval('macroDi({esercizio:"Esercizio che non esiste più", macro:"Pettorali"})') === 'Pettorali' && w.eval('macroDi({esercizio:"Squat con bilanciere", macro:"Vecchio"})') !== 'Vecchio',
+     'storico: il gruppo muscolare viene dal catalogo di oggi (quello scritto nelle righe vecchie vale solo per un esercizio tolto dal catalogo)');
   /* v1.1.4: selettore «Dati da analizzare» — tutto il percorso oppure un singolo Training Set */
   { const stoPre = w.eval('DOC.storico.length');
     ok(w.eval('schedeAggr("__tutti__").length') === w.eval('schedeAggr().length'), 'Progressi/filtro: «tutto il percorso» equivale a nessun filtro (chiamanti esistenti invariati)');
@@ -3130,7 +3137,8 @@ console.log('--- T11: pesate della bilancia (dal telefono collegato) ---');
   let domande = [], risposte = [];
   w.alert = () => {}; w.confirm = m => { domande.push(String(m)); return risposte.length ? risposte.shift() : true; };
   const corpoDisco = () => JSON.parse(fsmem._files.get('TMS_Dati/anna/corpo.json'));
-  const riga = c => w.eval('JSON.stringify((DOC.storico_io||[]).find(function(r){return +r.scheda===' + c + ';})||null)');
+  /* la riga con anche i valori CALCOLATI (attaccati in memoria, non enumerabili: regola dei dati grezzi) */
+  const riga = c => w.eval('(function(r){ if(!r) return "null"; var o={}; ["scheda","pesate","n_pesate","peso","massa_grassa","acqua","metab_basale","bmi","metabolismo","massa_magra","massa_muscolare","massa_ossea","grasso_viscerale","livello"].forEach(function(k){ if(r[k]!==undefined) o[k]=r[k]; }); return JSON.stringify(o); })((DOC.storico_io||[]).find(function(r){return +r.scheda===' + c + ';}))');
   const R = c => JSON.parse(riga(c));
   const importa = async obj => { await w.eval('importaPesate(' + J(obj.pesate || []) + ')'); await settle(150); };
   const P = (data, ora, peso, x) => Object.assign({ id: data + 'T' + ora + '|' + peso, data: data, ora: ora, peso: peso }, x || {});
@@ -3148,8 +3156,9 @@ console.log('--- T11: pesate della bilancia (dal telefono collegato) ---');
 
   /* la scheda per il telefono porta altezza, sesso ed età */
   { const c = JSON.parse(w.eval('JSON.stringify(costruisciSchedaJSON({}).corpo)'));
-    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30 && Object.keys(c).join() === 'altezza,sesso,eta,fcMax,fcRiposo' && c.fcMax === (+w.eval('DOC.dati_utente.fcMax')||0),
-       'scheda per il telefono: porta altezza, sesso ed età per la bilancia, FC max e FC a riposo per le zone della fascia cardio (e nient\'altro del corpo)'); }
+    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30 && Object.keys(c).join() === 'altezza,sesso,eta,fcMax,fcRiposo,peso,massa_grassa' && c.fcMax === (+w.eval('DOC.dati_utente.fcMax')||0) &&
+       c.peso === (+w.eval('DOC.dati_utente.peso')||0) && c.massa_grassa === (+w.eval('DOC.dati_utente.massa_grassa')||0),
+       'scheda per il telefono: porta altezza, sesso ed età per la bilancia, FC max e FC a riposo per le zone della fascia cardio, peso e massa grassa per la stima delle calorie (e nient\'altro del corpo)'); }
 
   /* pesate arrivate dal telefono */
   const pesate1 = [
@@ -3176,8 +3185,10 @@ console.log('--- T11: pesate della bilancia (dal telefono collegato) ---');
      'campi del tab Corpo all\'ultima pesata (16/11)');
   await settle(500);
   { const c = corpoDisco();
-    ok(Array.isArray(c.pesate) && c.pesate.length === 5 && c.storico_io.some(r => r.scheda === 202646 && r.n_pesate === 2) && Array.isArray(c.pesate_scartate),
-       'corpo.json su disco: pesate e medie salvate'); }
+    const r46 = c.storico_io.find(r => r.scheda === 202646) || {};
+    ok(Array.isArray(c.pesate) && c.pesate.length === 5 && r46.pesate === 1 && !('peso' in r46) && !('n_pesate' in r46) && !('bmi' in r46) && Array.isArray(c.pesate_scartate) &&
+       !c.storico_io.some(r => 'bmi' in r || 'massa_magra' in r || 'metabolismo' in r || 'eta' in r),
+       'corpo.json su disco: le pesate; nello Storico la settimana della bilancia è solo {scheda, pesate:1} e nessuna riga tiene BMI, massa magra, fabbisogno o età (si calcolano)'); }
 
   /* le stesse pesate di nuovo: niente doppioni, nessuna domanda */
   const ioPrima = w.eval('JSON.stringify(DOC.storico_io)');
@@ -3313,7 +3324,10 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
   dati('ffb2', fr(4, 0x07, 0, 0xA2, [1, 0x19].concat(u24(99000))).map((x, i) => i === 19 ? (x + 3) & 0x1F : x)); await settle(10);
   ok(/72,4/.test(sd.getElementById('bil-peso').textContent), 'un messaggio col controllo di somma sbagliato viene ignorato');
   dati('ffb3', P1); dati('ffb3', P2); await settle(60);
-  { const p = JSON.parse(sw.eval('JSON.stringify(PESATE[0]||null)'));
+  { const salvata = JSON.parse(sw.eval('JSON.stringify(PESATE[0]||null)'));
+    ok(salvata && salvata.peso === 72.4 && JSON.stringify(salvata.imp) === JSON.stringify(IMP) && salvata.altezza > 100 && salvata.eta > 10 && !('grasso' in salvata) && !('bmr' in salvata) && !('bmi' in salvata),
+       'regola dei dati grezzi: della pesata si salvano peso, impedenze e il contesto (altezza, età, sesso), la composizione no');
+    const p = JSON.parse(sw.eval('(function(p){ return JSON.stringify(Object.assign({}, p, {grasso:p.grasso, eta_met:p.eta_met, muscolo:p.muscolo, acqua:p.acqua, bmr:p.bmr, ossa:p.ossa, proteine:p.proteine, bmi:p.bmi})); })(PESATE[0])'));
     ok(p && p.peso === 72.4 && p.grasso === 15.8 && p.eta_met === 28 && JSON.stringify(p.imp) === JSON.stringify(IMP) && /^\d{4}-\d{2}-\d{2}$/.test(p.data) && /^\d{2}:\d{2}:\d{2}$/.test(p.ora) && p.id === p.data + 'T' + p.ora + '|72.4',
        'risultato: pesata salvata con peso, composizione (grasso 15,8 %, età metabolica 28), impedenze grezze, data e ora');
     ok(p && p.muscolo > 40 && p.acqua > 40 && p.bmr > 1000 && p.ossa > 2 && p.proteine > 10 && p.bmi > 20, 'risultato: anche muscolo, acqua, metabolismo, ossa, proteine e BMI'); }
@@ -3330,7 +3344,8 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
   ok(soloPes.pesate.length === 1 && !sd.getElementById('bil-invia'), 'pesata salvata sul telefono, niente più «📤 Manda solo le pesate» (vanno da sole al PC collegato)');
   /* composizione recuperata: scheda senza altezza → solo peso e misure grezze; poi arriva la scheda giusta */
   { const r = JSON.parse(sw.eval('(function(){ var c=SCHEDA.corpo; SCHEDA.corpo=null; var p=pesComponi({peso:72.4, imp:' + JSON.stringify(IMP) + '}); var a=JSON.stringify(p); SCHEDA.corpo=c; pesComponi(p); return JSON.stringify([JSON.parse(a), p]); })()'));
-    ok(!('grasso' in r[0]) && r[1].grasso === 15.8, 'senza altezza ed età si tiene la pesata grezza; con la scheda giusta la composizione si completa'); }
+    ok(!('grasso' in r[0]) && r[1].grasso === undefined && sw.eval('(function(){ var p={peso:72.4, imp:' + JSON.stringify(IMP) + '}; pesComponi(p); return p.grasso; })()') === 15.8,
+       'senza altezza ed età si tiene la pesata grezza; con la scheda giusta la composizione si calcola (in memoria)'); }
   /* togliere una pesata: conferma sulla riga, niente finestre di sistema */
   sd.querySelector('#bil-lista [data-pesx]').click(); await settle(10);
   ok(sd.querySelector('#bil-lista [data-pesok]') !== null && sw.eval('PESATE.length') === 1, '🗑: chiede conferma sulla riga');
@@ -3353,9 +3368,10 @@ console.log('--- T12: bilancia nell\'app del telefono (PWA + trasporto finto) --
     const w = dom.window; w.alert = () => {}; w.confirm = () => true;
     await w.eval('importaPesate(' + J(soloPes.pesate) + ')'); await settle(150);
     const p0 = soloPes.pesate[0], code = w.eval('settimanaPesata(' + J(p0) + ')');
-    const riga = JSON.parse(w.eval('JSON.stringify(DOC.storico_io.find(function(r){return +r.scheda===' + code + ';})||null)'));
-    ok(riga && riga.n_pesate === 1 && riga.peso === 72.4 && riga.massa_grassa === 0.158 && riga.metab_basale === p0.bmr && Math.abs(riga.metabolismo - p0.bmr * 1.4) < 1e-6,
-       'andata e ritorno: la pesata del telefono finisce nello Storico misure del PC (media della settimana)');
+    const riga = JSON.parse(w.eval('(function(r){ if(!r) return "null"; var o={}; ["scheda","pesate","n_pesate","peso","massa_grassa","acqua","metab_basale","bmi","metabolismo","massa_magra","massa_muscolare","massa_ossea","grasso_viscerale","livello"].forEach(function(k){ if(r[k]!==undefined) o[k]=r[k]; }); return JSON.stringify(o); })(DOC.storico_io.find(function(r){return +r.scheda===' + code + ';}))'));
+    const bmrPC = w.eval('DOC.pesate[0].bmr');
+    ok(riga && riga.pesate === 1 && riga.n_pesate === 1 && riga.peso === 72.4 && riga.massa_grassa === 0.158 && bmrPC > 1000 && riga.metab_basale === bmrPC && Math.abs(riga.metabolismo - bmrPC * 1.4) < 1e-6,
+       'andata e ritorno: dalla pesata grezza del telefono il PC ricalcola la composizione (grasso 15,8 % come il telefono) e la media della settimana nello Storico misure');
     ok(w.eval('DOC.pesate[0].imp.length') === 10 && errors.length === 0, 'andata e ritorno: le impedenze grezze arrivano intatte, nessun errore');
     dom.window.close(); }
 }
@@ -3463,7 +3479,10 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
      'Fine: come la seduta coi pesi, nella fascia in alto la durata e la fatica (RPE 1–10), poi «Salva la seduta»');
   sd.querySelector('#sed-zona [data-fcrpe="6"]').click(); await settle(10);
   sd.getElementById('fc-salva').click(); await settle(30);
-  { const s = JSON.parse(sw.eval('JSON.stringify(SEDUTE_FC[0]||null)'));
+  { const s = JSON.parse(sw.eval('(function(s){ return JSON.stringify({tipo:s.tipo, disc:s.disc, variante:s.variante, durata:s.durata, rpe:s.rpe, fcMedia:s.fcMedia, fcPicco:s.fcPicco, fc:s.fc, fcPasso:s.fcPasso, id:s.id, data:s.data, ora:s.ora, distanza:s.distanza, quota:s.quota, tempoMov:s.tempoMov, parziali:s.parziali, percorso:s.percorso, grezzo:s.grezzo, inizio:s.inizio}); })(SEDUTE_FC[0])'));
+    const salvata = JSON.parse(sw.localStorage.getItem('tms-fc-sedute-prova') || '[]')[0] || {}, gr = JSON.parse(sw.localStorage.getItem('tms-fc-g-prova|' + s.id) || 'null');
+    ok(salvata.grezzo === 1 && salvata.inizio > 0 && !('fcMedia' in salvata) && !('fcPicco' in salvata) && !('fc' in salvata) && gr && typeof gr.hr === 'string' && gr.hr.length > 100,
+       'Salva (regola dei dati grezzi): nella memoria del telefono il battito al secondo nella sua voce, nessuna FC media, picco o traccia calcolata');
     ok(s && s.tipo === 'Cyclette' && s.disc === 'Bici' && s.variante === 'Cyclette' && s.durata === 2 && s.rpe === 6 && s.fcMedia === 132 && s.fcPicco === 144 && s.fc.length === 25 && s.fcPasso === 5 && s.id === s.data + 'T' + s.ora + '|fc' && s.distanza === undefined,
        'Salva: la seduta resta sul telefono (sport, disciplina, sottocategoria, minuti, RPE, FC media e picco, traccia; al chiuso niente distanza)'); }
   ok(JSON.parse(sw.localStorage.getItem('tms-fc-sedute-prova') || '[]').length === 1 && sw.localStorage.getItem('tms-fc-bozza-prova') === null && sd.querySelectorAll('#fc-lista .bil-row').length === 1,
@@ -3521,9 +3540,13 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   /* niente doppioni: con una registrazione cardio in corso (anche senza fascia) il giorno della scheda non avvia la seduta coi pesi */
   sw.eval('fcRegistra()'); await settle(10);
   ok(sw.eval('!!FC.reg'), 'la registrazione cardio parte anche senza fascia (registra il tempo)');
-  sw.eval('navEntra(); mostra("home");'); await settle(10); sd.querySelector('[data-go="0"]').click(); await settle(30);
-  ok(sw.eval('SED.s') === null && !sd.getElementById('sed-inizia') && !sd.getElementById('sed-nuova') && /registrazione cardio in corso/.test(sd.getElementById('sed-zona').textContent),
-     'registrazione cardio in corso: la seduta coi pesi non parte e la zona lo dice');
+  sw.eval('navEntra(); mostra("home");'); await settle(10);
+  ok(sd.getElementById('sed-zona').hidden === false && /in corso/.test(sd.getElementById('sed-zona').textContent) && sd.getElementById('sed-torna'),
+     'registrazione cardio in corso: fuori dalla sua pagina i dettagli restano in alto, col tasto «Torna all' + B + 'allenamento»');
+  { let msg = ''; sw.alert = m => { msg = String(m); };
+    sd.querySelector('[data-go="0"]').click(); await settle(30);
+    ok(sw.eval('SED.s') === null && /allenamento in corso/.test(msg) && sd.getElementById('fc').hidden === false,
+       'registrazione cardio in corso: un giorno dei pesi NON si apre (un allenamento alla volta), l' + B + 'avviso lo dice e si torna alla registrazione'); }
   await sw.eval('fcAnnullaReg()');
   /* GPS DELLE ATTIVITÀ ALL'APERTO (1.9.0): il servizio Android finto passa le posizioni di una corsa (3,3 km in linea, 30 m di
      salita misurata col barometro, un punto impreciso e un salto impossibile); la pagina fa distanza, dislivello, parziali, percorso */
@@ -3558,10 +3581,19 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
       ok(dentro && v.z >= 12 && v.z <= 17, 'mappa: lo zoom (' + v.z + ') fa stare tutto il percorso nel riquadro'); }
     sd.getElementById('fc-fine').click(); await settle(30);
     sd.getElementById('fc-salva').click(); await settle(30);
-    const s = JSON.parse(sw.eval('JSON.stringify(SEDUTE_FC[SEDUTE_FC.length-1])'));
+    const s = JSON.parse(sw.eval('(function(s){ return JSON.stringify({tipo:s.tipo, disc:s.disc, variante:s.variante, durata:s.durata, rpe:s.rpe, fcMedia:s.fcMedia, fcPicco:s.fcPicco, fc:s.fc, fcPasso:s.fcPasso, id:s.id, data:s.data, ora:s.ora, distanza:s.distanza, quota:s.quota, tempoMov:s.tempoMov, parziali:s.parziali, percorso:s.percorso, grezzo:s.grezzo, inizio:s.inizio}); })(SEDUTE_FC[SEDUTE_FC.length-1])'));
     ok(s.tipo === 'Corsa' && s.variante === 'All’aperto' && s.distanza > 3.2 && s.distanza < 3.32 && s.quota >= 26 && s.quota <= 31 && s.tempoMov > 1050 && s.parziali.length === 3 &&
        s.percorso.length > 1 && s.percorso.length <= 400 && s.percorso.every(p => p.length === 3),
-       'Salva: la seduta porta distanza, dislivello, tempo in movimento, parziali e il percorso semplificato (al massimo 400 punti) per il PC');
+       'Salva: la seduta mostra distanza, dislivello, tempo in movimento, parziali e il percorso, calcolati dai punti GPS grezzi');
+    { const salvate = JSON.parse(sw.localStorage.getItem('tms-fc-sedute-prova') || '[]'), x = salvate[salvate.length - 1] || {}, gr = JSON.parse(sw.localStorage.getItem('tms-fc-g-prova|' + s.id) || 'null');
+      ok(!('distanza' in x) && !('percorso' in x) && !('parziali' in x) && x.grezzo === 1 && gr && Array.isArray(gr.fix) && gr.fix.length >= 40 && gr.fix.every(f => f.length === 7),
+         'Salva (regola dei dati grezzi): in memoria TUTTI i punti GPS come sono arrivati (' + (gr ? gr.fix.length : 0) + ', anche gli scartati), nessuna distanza o percorso calcolato');
+      globalThis.__corsa = { s: s, gr: gr }; }
+    /* riaprendo l'app i valori si rifanno dal grezzo, uguali */
+    sw.eval('SEDUTE_FC=[]'); await sw.eval('fcCarica()');
+    const r = JSON.parse(sw.eval('(function(s){ return JSON.stringify({tipo:s.tipo, disc:s.disc, variante:s.variante, durata:s.durata, rpe:s.rpe, fcMedia:s.fcMedia, fcPicco:s.fcPicco, fc:s.fc, fcPasso:s.fcPasso, id:s.id, data:s.data, ora:s.ora, distanza:s.distanza, quota:s.quota, tempoMov:s.tempoMov, parziali:s.parziali, percorso:s.percorso, grezzo:s.grezzo, inizio:s.inizio}); })(SEDUTE_FC[SEDUTE_FC.length-1])'));
+    ok(r.distanza === s.distanza && r.quota === s.quota && r.tempoMov === s.tempoMov && J(r.parziali) === J(s.parziali) && J(r.percorso) === J(s.percorso),
+       'riaprendo l\'app distanza, dislivello, parziali e percorso si ricalcolano dal grezzo e sono gli stessi');
     ok(sw.eval('JSON.stringify(gpsSemplifica([[0,43,11,0],[1,43.0001,11,0],[2,43.0002,11,0],[3,43.0003,11.00002,0]], 2).map(function(p){return p[0];}))') === '[0,3]',
        'Douglas-Peucker: una retta resta coi due estremi');
     sw.tmsSeduta = undefined; }
@@ -3615,11 +3647,16 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
      'senza fascia collegata: «nessuna fascia» con il tasto per collegarla');
   ok(sd.getElementById('fc-chip').hidden === true, 'con la zona della seduta il battito piccolo della barra non si ripete');
   sd.getElementById('barra-ind').click(); await settle(30);
-  ok(sd.getElementById('home').hidden === false && sd.getElementById('sed-zona').hidden === true && sw.eval('SED.s.inizio') === inizio, 'tornando ai giorni la seduta resta aperta (la zona si nasconde)');
+  ok(sd.getElementById('home').hidden === false && sd.getElementById('sed-zona').hidden === false && sd.getElementById('sed-torna') && /Seduta · Lunedì/.test(sd.getElementById('sed-zona').textContent) && sw.eval('SED.s.inizio') === inizio,
+     'tornando ai giorni la seduta resta aperta e i suoi dettagli restano in alto (battito, tempo, «Torna all' + B + 'allenamento»)');
   sd.querySelector('[data-go="0"]').click(); await settle(30);
   ok(sw.eval('SED.s.inizio') === inizio, 'rientrando nel giorno la seduta NON riparte');
-  sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="1"]').click(); await settle(30);
-  ok(sw.eval('SED.s.giorno') === 'Lunedì' && /seduta di Lunedì/.test(sd.getElementById('sed-zona').textContent), 'aprendo un altro giorno resta la seduta aperta (una alla volta) e lo dice');
+  sd.getElementById('barra-ind').click(); await settle(20);
+  { let msg = ''; const alPrima = sw.alert; sw.alert = m => { msg = String(m); };
+    sd.querySelector('[data-go="1"]').click(); await settle(30);
+    ok(sw.eval('SED.s.giorno') === 'Lunedì' && /allenamento in corso/.test(msg) && sd.getElementById('day-0').hidden === false && sd.getElementById('day-1').hidden === true,
+       'un altro giorno NON si apre finché la seduta è aperta (un allenamento alla volta): avviso e si torna a Lunedì');
+    sw.alert = alPrima; }
   sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);
   /* la fascia: un tocco su «nessuna fascia» la cerca; collegata, il battito va da solo nella seduta */
   sd.getElementById('sed-fc').click(); await settle(30);
@@ -3640,9 +3677,12 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
   sd.getElementById('sed-ok').click(); await settle(40);
   ok(sd.getElementById('min-0').value === '60' && sd.getElementById('rpe-0').value === '7' && sw.eval('SED.s') === null && sw.localStorage.getItem('tms-seduta-prova') === null,
      'seduta chiusa: durata e fatica nei campi di fine giornata (vanno al PC come sempre), seduta tolta dal telefono');
-  { const f = JSON.parse(sw.eval('JSON.stringify(SEDUTE_PESI_FC[0]||null)'));
+  { const f = JSON.parse(sw.eval('(function(s){ return s? JSON.stringify({giorno:s.giorno, fcMedia:s.fcMedia, fcPicco:s.fcPicco, fc:s.fc, fcPasso:s.fcPasso, dispositivo:s.dispositivo, durataSec:s.durataSec, hr:s.hr, inizio:s.inizio}) : "null"; })(SEDUTE_PESI_FC[0])'));
     ok(f && f.giorno === 'Lunedì' && f.fcMedia === 125 && f.fcPicco === 130 && f.fc.length === 11 && f.fcPasso === 5 && f.dispositivo === 'Polar H10 1234' && f.durataSec >= 3600,
-       'battito della seduta: media, picco, traccia e dispositivo, legati al giorno'); }
+       'battito della seduta: media, picco, traccia e dispositivo, legati al giorno');
+    const salvata = JSON.parse(sw.eval('JSON.stringify(SEDUTE_PESI_FC[0])'));
+    ok(typeof salvata.hr === 'string' && salvata.inizio > 0 && !('fcMedia' in salvata) && !('fcPicco' in salvata) && !('fc' in salvata),
+       'regola dei dati grezzi: si salva il battito al secondo, FC media, picco e traccia si calcolano'); }
   ok(/seduta chiusa/.test(sd.getElementById('sed-zona').textContent) && sd.getElementById('sed-nuova') !== null && sd.getElementById('stato-0').innerHTML !== '', 'dopo la chiusura: «seduta chiusa» (e il giorno risulta completato)');
   sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);
   ok(sw.eval('SED.s') === null, 'un giorno già chiuso in settimana non fa ripartire la seduta da solo');
@@ -3997,12 +4037,15 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
     ok(J(D.s[37].map(v => v[1])) === J([97, 95]) && J(D.s[38].map(v => v[1])) === J([94, 96]) && D.s[78][0][1] === 62.3 && J(D.s[73].map(v => v[1])) === J([45, 51]),
        'SpO2 (37 col byte di versione, valore & 0x7F; 38), HRV RMSSD (73) e SDNN in centesimi di ms (78)');
     const ev = () => JSON.parse(sw.eval('JSON.stringify(Object.keys(ZPD.eventi).sort().map(function(k){ return [k, ZPD.eventi[k].tipo, ZPD.eventi[k].dati]; }))'));
-    const E1 = ev(), gY = (E1.find(e => e[0] === 'giorno|' + ymd(Y)) || [])[2] || {}, sY = (E1.find(e => e[0] === 'sonno|' + ymd(Y)) || [])[2] || {};
-    ok(J(gY) === J({ data: ymd(Y), passi: 200, fcRiposo: 54, rmssd: 48, sdnn: 62.3, spo2Min: 95, spo2Med: 96, stressMed: 36, stressMax: 50, tempPelle: 33.7, resp: 15 }),
-       'evento tms-giorno di ieri nel formato di recuperoUnisci: passi, FC a riposo, RMSSD, SDNN, SpO2, stress, pelle (della notte), respirazione');
-    ok(sY.id === ymd(Y) && sY.spo2 === 95 && sY.resp === 15 && sY.hrv === 48 && sY.punteggio === 82 && !('_da' in sY) && !('_ts' in sY),
-       'evento tms-sonno: la notte con SpO2, respirazione e HRV presi dentro la notte, senza i campi interni del telefono');
-    ok(E1.length === 3 && E1.some(e => e[0] === 'giorno|' + ymd(oggi) && e[2].batteria === 77), 'e un giorno di oggi con la batteria (3 eventi in tutto)');
+    const E1 = ev(), bY = (E1.find(e => e[0] === 'bracciale|' + ymd(Y)) || [])[2] || {}, sY = (E1.find(e => e[0] === 'sonno|' + ymd(Y)) || [])[2] || {};
+    ok(J(JSON.parse(sw.eval('JSON.stringify(zpGiornoValori(' + J(ymd(Y)) + '))'))) === J({ data: ymd(Y), passi: 200, fcRiposo: 54, rmssd: 48, sdnn: 62.3, spo2Min: 95, spo2Med: 96, stressMed: 36, stressMax: 50, tempPelle: 33.7, resp: 15 }),
+       'i valori del giorno di ieri (per la Salute del telefono): passi, FC a riposo, RMSSD, SDNN, SpO2, stress, pelle (della notte), respirazione');
+    ok(bY.data === ymd(Y) && bY.n === 1440 && typeof bY.att === 'string' && typeof bY.str === 'string' && typeof bY.pel === 'string' && bY.att.length === 5760 &&
+       J(bY.hrv.map(c => c[1])) === J([45, 51]) && J(bY.spo.map(c => c[1])) === J([97, 95]) && J(bY.rip.map(c => c[1])) === J([54]) && !('passi' in bY) && !('rmssd' in bY) && !('stressMed' in bY),
+       'evento tms-bracciale di ieri: i CAMPIONI (al minuto in base64, gli altri con l\'ora), nessuna media calcolata dal telefono (regola dei dati grezzi)');
+    ok(sY.id === ymd(Y) && sY.punteggio === 82 && sY.fasi.length === 5 && !('spo2' in sY) && !('resp' in sY) && !('hrv' in sY) && !('_da' in sY) && !('_ts' in sY),
+       'evento tms-sonno: solo quello che dice il bracciale (orari, fasi, punteggio, sonnellini); SpO2, respirazione e HRV li calcola il PC');
+    ok(E1.length === 3 && E1.some(e => e[0] === 'bracciale|' + ymd(oggi) && e[2].bat === 77), 'e i campioni di oggi con la batteria (3 eventi in tutto)');
     ok(/Ultima sincronizzazione: oggi \d\d:\d\d · 1 notte, 2 giorni/.test(sd.getElementById('zp-sinc-stato').textContent) && /Sincronizzato · batteria 77 %/.test(sd.getElementById('zp-stato').textContent),
        'riquadro: «Sincronizzato · batteria 77 %» e «Ultima sincronizzazione: oggi hh:mm · 1 notte, 2 giorni»');
     ok(sd.getElementById('zp-box').classList.contains('imp-ok') && !sd.getElementById('zp-box').classList.contains('aperta') && sd.getElementById('zp-pill').textContent === 'collegato',
@@ -4205,16 +4248,16 @@ console.log('--- T12e: seduta in primo piano (servizio Android finto), battiti r
   sw.eval('startTimer("Squat con bilanciere", 90)'); await settle(10);
   sw.tmsInPip(true); await settle(10);
   { const v = sd.getElementById('pip-vista');
-    ok(sd.body.classList.contains('in-pip') && v.hidden === false && /148/.test(v.textContent) && v.querySelector('.pip-bpm.z4') && /Squat con bilanciere/.test(v.textContent) &&
-       /1:(29|30)/.test(v.querySelector('.pip-rec').textContent) && /^\d+:\d\d$/.test(v.querySelector('.pip-t').textContent),
-       'finestra mobile: battito grande col colore della zona, esercizio, recupero in corso e tempo della seduta'); }
+    ok(sd.body.classList.contains('in-pip') && v.hidden === false && /148/.test(v.textContent) && v.querySelector('.pip-bpm.z4') && !/Squat/.test(v.textContent) &&
+       !v.querySelector('.pip-rec') && !v.querySelector('.pip-t') && v.textContent.trim() === '148',
+       'finestra mobile: SOLO il battito, grande e col colore della zona (niente esercizio, recupero, tempo)'); }
   sw.tmsInPip(false); await settle(20);
   ok(!sd.body.classList.contains('in-pip') && sd.getElementById('pip-vista').hidden === true, 'uscendo dalla finestra mobile la pagina torna normale');
   sw.eval('timerClose(); FC.id=""; FC.bpm=null;');
   /* «Fine seduta»: prima si prendono i battiti del servizio, poi si chiude e il servizio si ferma */
   N.campioni.push([t0 + 601000, 140]);
   sd.getElementById('sed-fine').click(); await settle(10); sd.getElementById('sed-ok').click(); await settle(60);
-  { const f = JSON.parse(sw.eval('JSON.stringify(SEDUTE_PESI_FC[SEDUTE_PESI_FC.length-1]||null)'));
+  { const f = JSON.parse(sw.eval('(function(s){ return s? JSON.stringify({giorno:s.giorno, fcMedia:s.fcMedia, fcPicco:s.fcPicco, fc:s.fc, fcPasso:s.fcPasso, dispositivo:s.dispositivo, durataSec:s.durataSec, hr:s.hr, inizio:s.inizio}) : "null"; })(SEDUTE_PESI_FC[SEDUTE_PESI_FC.length-1])'));
     ok(f && f.fc.length >= 120 && f.fc.slice(0, 120).every(v => v != null) && f.fcPicco === 140, 'la seduta chiusa porta la traccia completa, coi battiti a schermo spento');
     ok(J(N.chiamate.slice(-2)) === J([['ferma'], ['pip', false]]), '«Fine seduta»: il servizio si ferma e niente più finestra mobile'); }
   /* annulla seduta: il servizio si ferma */
@@ -4395,7 +4438,7 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
   /* copia dei backup fuori dal PC: cartella scelta col selettore (ponte tmsScambio, qui finto in memoria) */
   { const est = new Map(); let cartella = 'C:\\Users\\x\\OneDrive\\TMS backup';
     w.tmsScambio = { cartella: async () => cartella, scegli: async () => cartella, scollega: async () => { cartella = ''; },
-      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async () => [...est.keys()], togli: async n => { est.delete(n); } };
+      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async r => estElenca(est, r), leggi: async n => estLeggi(est, n), togli: async n => { est.delete(n); } };
     w.eval('localStorage.removeItem("tms-bk-esterno")');
     ok(await w.eval('bkEstCartella()') === '', 'backup fuori dal PC: una cartella rimasta dal vecchio scambio con Drive non si usa da sola');
     await w.eval('impostazioniModal()');
@@ -4403,7 +4446,11 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     d.getElementById('imp-bk-scegli').click();
     for (let k = 0; k < 40 && !est.size; k++) await settle(50);
     await settle(100);
-    const nomi = [...est.keys()];
+    const nomi = [...est.keys()].filter(n => !n.includes('/'));
+    { const indE = est.has('deposito/indice.json') ? JSON.parse(est.get('deposito/indice.json')) : null, nomeB = [...est.keys()].find(n => /^TMS-backup-.*\.tmsb$/.test(n));
+      ok(indE && indE.backup && Array.isArray(indE.backup[nomeB]) && indE.backup[nomeB].every(s => est.has('deposito/' + s + '.json')) &&
+         [...est.keys()].filter(n => n.startsWith('deposito/') && n !== 'deposito/indice.json').every(n => /^deposito\/[0-9a-f]{64}\.json$/.test(n)),
+         'backup fuori dal PC: i file grandi nella sottocartella «deposito» (uno per impronta) col suo indice'); }
     ok(nomi.length === 1 && /^TMS-backup-\d{4}-\d\d-\d\d\.tmsb$/.test(nomi[0]) && typeof est.get(nomi[0]) !== 'string' && (await leggiTmsb(w, est.get(nomi[0]))).man.formato === 'tms-backup', 'backup fuori dal PC: scelta la cartella, la prima copia (backup completo .tmsb) parte subito');
     ok(/OneDrive/.test(d.getElementById('imp-bk-cartella').textContent) && /Ultima copia/.test(d.getElementById('imp-bk-stato').textContent), 'impostazioni: cartella scelta e ultima copia');
     ok(await w.eval('bkEstCopia()') === false, 'backup fuori dal PC: una a settimana (subito dopo non ne rifà un\'altra)');
@@ -4552,6 +4599,27 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
        'PC: la stessa seduta arrivata di nuovo non si duplica');
     w.eval('DOC.cardio=DOC.cardio.filter(function(x){ return x.id!=="2026-11-22T18:30:00|fc"; })');
     ok(w.eval('importaCardioTel([' + J({ id: '2026-11-22T18:30:00|fc', data: '2026-11-22', durata: 2 }) + '], new Set(telProf().ricevute))') === 0, 'PC: una seduta tolta a mano dopo l\'arrivo non torna (è fra le ricevute)');
+    /* dall'APK 1.10.0 la seduta arriva col GREZZO (battito al secondo, punti GPS): il PC lo tiene in sedute/<id>.json e
+       ricalcola lui distanza, dislivello, parziali, percorso, FC media e picco, uguali a quelli del telefono */
+    if (globalThis.__corsa) { const C = globalThis.__corsa, idG = '2026-11-21T08:00:00|fc';
+      const sG = { id: idG, data: '2026-11-21', ora: '08:00:00', tipo: 'Corsa', durata: 20, rpe: 7, dispositivo: 'Polar H10', disc: 'Corsa', variante: 'All’aperto', inizio: C.s.inizio, grezzo: 1 };
+      await sw.eval('(async function(){ var s=' + J(sG) + '; await fcScriviKv(fcGrezzoKey(s.id), ' + J(C.gr) + '); SEDUTE_FC.push(fcAttacca(s, fcDaGrezzo(s, ' + J(C.gr) + '))); await fcSalva(); })()');
+      const tel = JSON.parse(sw.eval('(function(s){ return JSON.stringify({d:s.distanza, q:s.quota, m:s.tempoMov, p:s.parziali, r:s.percorso, f:s.fcMedia, k:s.fcPicco}); })(SEDUTE_FC[SEDUTE_FC.length-1])'));
+      await sw.eval('colEventi()');
+      const evG = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /cardio-2026-11-21/.test(k));
+      ok(evG.length === 1, 'telefono: la seduta col grezzo va sull\'hub (cifrata)');
+      await giroPC(); await settle(450);
+      const fileG = [...fsmem._files.keys()].find(k => /^TMS_Dati\/prova\/sedute\/2026-11-21T08_00_00_fc\.json$/.test(k)), corpoG = JSON.parse(fsmem._files.get('TMS_Dati/prova/corpo.json') || '{}');
+      const eG = (corpoG.cardio || []).find(x => x.id === idG) || {};
+      ok(fileG && JSON.parse(fsmem._files.get(fileG)).fix.length === C.gr.fix.length && eG.grezzo === 1 && !('distanza' in eG) && !('percorso' in eG) && !('fcMedia' in eG) && !('hr' in eG) && !('fix' in eG),
+         'PC: il grezzo in sedute/<id>.json così come è arrivato; in corpo.json la seduta SENZA valori calcolati (regola dei dati grezzi)');
+      await w.eval('sgAssicura()');
+      const pc = JSON.parse(w.eval('(function(s){ return JSON.stringify({d:s.distanza, q:s.quota, m:s.tempoMov, p:s.parziali, r:s.percorso, f:s.fcMedia, k:s.fcPicco}); })(DOC.cardio.find(function(x){ return x.id===' + J(idG) + '; }))'));
+      ok(pc.d === tel.d && pc.q === tel.q && pc.m === tel.m && J(pc.p) === J(tel.p) && J(pc.r) === J(tel.r) && pc.d > 3.2 && (tel.f == null ? (pc.f == null || pc.f === '') : pc.f === tel.f),
+         'PC: dal grezzo ricalcola ESATTAMENTE distanza (' + pc.d + ' km), dislivello, tempo in movimento, parziali e percorso del telefono');
+      ok(!/"distanza"/.test(w.eval('JSON.stringify(DOC.cardio.find(function(x){ return x.id===' + J(idG) + '; }))')), 'PC: i valori calcolati stanno solo in memoria (JSON.stringify non li vede)');
+      w.eval('showTab("cardio")'); await settle(60);
+      ok(d.getElementById('panel-cardio').textContent.indexOf(w.eval('nf(' + pc.d + ',1)')) >= 0, 'tab Cardio: la seduta col grezzo mostra la distanza calcolata (' + w.eval('nf(' + pc.d + ',1)') + ' km)'); }
     ok(w.eval('pulisciCardioTel({id:"x", data:"2026-11-22", durata:0})') === null && w.eval('pulisciCardioTel({id:"", data:"2026-11-22", durata:5})') === null &&
        w.eval('pulisciCardioTel({id:"x", data:"2026-11-22", durata:5, fcMedia:400}).fcMedia') === '', 'PC: sedute senza id o durata scartate, battiti impossibili tolti');
     /* il grafico del battito nel modulo della seduta; salvando il modulo la traccia resta */
@@ -4710,7 +4778,7 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     sw.eval('SEDUTE_PESI_FC.push(' + J({ id: 'p|2026-11-24T17:00:00.000Z', giorno: g0, settimana: sett, data: '2026-11-24', ora: '18:00:00', durataSec: 3600, fcMedia: 118, fcPicco: 151, fc: [110, 120, 130], fcPasso: 5, dispositivo: 'Polar H10' }) + ')');
     await sw.eval('colEventi()');
     const evS = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /sedutafc-/.test(k));
-    ok(evS.length === 1 && !/Polar|151/.test(H.file(LID, evS[0])), 'telefono: il battito della seduta coi pesi diventa un file cifrato sull\'hub');
+    ok(evS.length === 1 && !/Polar|151/.test(H.file(LID, evS[0])), 'telefono: il battito della seduta coi pesi diventa un file cifrato sull\'hub' + (evS.length === 1 ? '' : ' → ' + J(evS) + ' ' + sw.eval('JSON.stringify(SEDUTE_PESI_FC.map(function(x){ return [x.id, x.ev||null, !!x.pc]; }))')));
     const nCardio = w.eval('DOC.cardio.length');
     await giroPC(); await settle(450);
     ok(w.eval('(DOC.scheda.fcSedute||{})[' + J(g0) + '] && DOC.scheda.fcSedute[' + J(g0) + '].fcMedia') === 118 && w.eval('DOC.cardio.length') === nCardio,
@@ -4725,34 +4793,64 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     const Yd = ymd(ieri), Pd = ymd(altro);
     const N = { id: Yd, inizio: Pd + 'T23:18', fine: Yd + 'T06:52', fasi: [[0, 12, 'sveglio'], [12, 52, 'leggero'], [52, 97, 'profondo'], [97, 133, 'rem'], [133, 454, 'leggero']], punteggio: 82,
       _da: new Date(Pd + 'T23:18').getTime(), _a: new Date(Yd + 'T06:52').getTime(), _ts: 1 };
-    await sw.eval('(async function(){ await zpdCarica(); ZPD.notti[' + J(Yd) + ']=' + J(N) + '; ZPD.passi[' + J(Yd) + ']=8421; ZPD.s[58]=[[' + (N._a + 3600000) + ',54]]; })()');
-    ok(sw.eval('zpPreparaEventi()') === 2, 'telefono: dalla notte e dal giorno scaricati dal bracciale nascono due eventi (tms-sonno, tms-giorno)');
+    /* i campioni di ieri: un'ora di camminata (100 passi al minuto, battito 110), mezz'ora a 150 bpm, e dentro la notte HRV,
+       SpO2, respirazione, pelle; più battito a riposo, SpO2 e stress del giorno */
+    const y0 = new Date(Yd + 'T00:00:00').getTime(), mi = m => y0 + m * 60000;
+    const S1 = [], S19 = [], S46 = [];
+    for (let k = 0; k < 60; k++) S1.push([mi(9 * 60 + k), 100, 110]);
+    for (let k = 0; k < 30; k++) S1.push([mi(18 * 60 + k), 0, 150]);
+    for (let k = 0; k < 4; k++) S19.push([mi(10 * 60 + k), 20 + 10 * k]);
+    for (let k = 0; k < 3; k++) S46.push([mi(3 * 60 + k), 33.5 + 0.1 * k]);
+    await sw.eval('(async function(){ await zpdCarica(); ZPD.notti[' + J(Yd) + ']=' + J(N) + '; ZPD.s[1]=' + J(S1) + '; ZPD.passi[' + J(Yd) + ']=6000;' +
+      'ZPD.s[19]=' + J(S19) + '; ZPD.s[46]=' + J(S46) + '; ZPD.s[58]=[[' + (N._a + 3600000) + ',54]]; ZPD.s[73]=[[' + mi(120) + ',45],[' + mi(240) + ',51]];' +
+      'ZPD.s[78]=[[' + mi(120) + ',62.3]]; ZPD.s[37]=[[' + mi(200) + ',97],[' + mi(700) + ',95]]; ZPD.s[38]=[[' + mi(100) + ',94],[' + mi(300) + ',96]]; ZPD.s[56]=[[' + mi(150) + ',14],[' + mi(250) + ',16]];' +
+      'ZPD.s[18]=[[' + mi(900) + ',60]]; })()');
+    ok(sw.eval('zpPreparaEventi()') === 2, 'telefono: dalla notte e dai campioni di ieri nascono due eventi (tms-sonno, tms-bracciale)');
+    const telG = JSON.parse(sw.eval('JSON.stringify(zpGiornoValori(' + J(Yd) + '))')), telN = JSON.parse(sw.eval('JSON.stringify(zpNotteValori(ZPD.notti[' + J(Yd) + ']))'));
     await sw.eval('zpdSalva()');   /* come alla fine di una sincronizzazione vera: i dati del bracciale si salvano */
     await sw.eval('colEventi()');
-    const evR = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /\/(sonno|giorno)-/.test(k));
-    ok(evR.length === 2 && evR.some(k => k.indexOf('sonno-' + Yd) >= 0) && evR.every(k => !/profondo|8421|leggero/.test(H.file(LID, k))), 'telefono: sull\'hub un file per la notte e uno per il giorno, cifrati');
+    const evR = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /\/(sonno|bracciale)-/.test(k));
+    ok(evR.length === 2 && evR.some(k => k.indexOf('sonno-' + Yd) >= 0) && evR.every(k => !/profondo|leggero|"att"/.test(H.file(LID, k))), 'telefono: sull\'hub un file per la notte e uno per i campioni del giorno, cifrati');
     await giroPC(); await settle(450);
-    const R = JSON.parse(w.eval('JSON.stringify(DOC.recupero)')), nP = R.notti.find(n => n.id === Yd), gP = R.giorni.find(g => g.data === Yd);
-    ok(nP && nP.punteggio === 82 && nP.fasi.length === 5 && nP.inizio === Pd + 'T23:18' && gP && gP.passi === 8421 && gP.fcRiposo === 54 && !('_da' in nP),
-       'PC: la notte e il giorno entrano in DOC.recupero (recuperoUnisci), nel formato del contratto');
-    ok(evR.every(k => !H.file(LID, k)) && /8421/.test(fsmem._files.get('TMS_Dati/prova/corpo.json') || ''), 'PC: salvati in corpo.json e tolti dall\'hub');
+    const mese = Yd.slice(0, 7), fileB = 'TMS_Dati/prova/bracciale/' + mese + '.json';
+    const R = JSON.parse(w.eval('JSON.stringify(DOC.recupero)')), nP = R.notti.find(n => n.id === Yd);
+    ok(nP && nP.punteggio === 82 && nP.fasi.length === 5 && nP.inizio === Pd + 'T23:18' && !('_da' in nP) && !R.giorni.some(g => g.data === Yd),
+       'PC: la notte entra in DOC.recupero; del giorno NESSUNA media salvata in corpo.json');
+    const FB = JSON.parse(fsmem._files.get(fileB) || 'null');
+    ok(FB && FB.formato === 'tms-bracciale' && FB.giorni[Yd] && FB.giorni[Yd].att === JSON.parse(sw.eval('JSON.stringify(ZPD.eventi[' + J('bracciale|' + Yd) + '].dati)')).att && !/passi|rmssd/.test(JSON.stringify(FB)),
+       'PC: i campioni stanno così come sono in bracciale/' + mese + '.json (un file al mese)');
+    ok(evR.every(k => !H.file(LID, k)), 'PC: salvati e tolti dall\'hub');
+    await w.eval('brCarica(brMesiTra(' + J(Pd.slice(0, 7)) + ',' + J(mese) + '))');
+    const pcG = JSON.parse(w.eval('JSON.stringify(brGiornoValori(' + J(Yd) + ', DOC.recupero.notti))')), pcN = JSON.parse(w.eval('JSON.stringify(brNotteValori(DOC.recupero.notti.find(function(n){ return n.id===' + J(Yd) + '; })))'));
+    ok(J(pcG) === J(Object.assign({}, telG, { passi: 6000 })) && pcG.rmssd === 48 && pcG.spo2Min === 95 && pcG.stressMax === 60 && pcG.tempPelle === 33.6 && pcG.resp === 15,
+       'PC: dai campioni ricalcola ESATTAMENTE i valori che il telefono calcolava prima (passi, FC a riposo, HRV, SpO2, stress, pelle della notte, respirazione): ' + J(pcG));
+    ok(pcN && pcN.spo2 === telN.spo2 && pcN.resp === telN.resp && pcN.hrv === telN.hrv, 'PC: SpO2, respirazione e HRV della notte uguali a quelli del telefono');
+    if(!w.eval('(DOC.pesate||[]).length')) w.eval('DOC.dati_utente.peso=DOC.dati_utente.peso||80');   /* senza pesate: il peso del profilo */
+    const kc = JSON.parse(w.eval('JSON.stringify(kcGiorno(' + J(Yd) + '))'));
+    ok(kc && kc.completo && kc.tot === kc.bas + kc.vit + kc.mov + kc.dig && kc.mov > 300 && Math.abs(kc.dig - kc.tot * 0.1) <= 1 && kc.pal > 1.3 && kc.pal < 2.2,
+       'PC: le calorie di ieri si calcolano dai campioni (metabolismo ' + (kc && kc.bas) + ' + vita quotidiana ' + (kc && kc.vit) + ' + movimento ' + (kc && kc.mov) + ' + digestione ' + (kc && kc.dig) + ' = ' + (kc && kc.tot) + ', livello ' + (kc && kc.pal.toFixed(2)) + ')');
     await giroTel();
-    ok(sw.eval('Object.keys(ZPD.eventi).every(function(k){ return ZPD.eventi[k].pc===true; })'), 'telefono: notte e giorno risultano «al PC»');
+    ok(sw.eval('Object.keys(ZPD.eventi).every(function(k){ return ZPD.eventi[k].pc===true; })'), 'telefono: notte e campioni risultano «al PC»');
     sw.eval('colRender()');
     ok(sd.getElementById('col-box').classList.contains('imp-ok') && !sd.getElementById('col-box').classList.contains('aperta') && sd.querySelector('#col-box .imp-apri'),
        'telefono collegato al PC: in Impostazioni i comandi del collegamento stanno nella tendina «Gestisci», chiusa');
-    /* i passi di un giorno crescono: il giorno si rimanda (id nuovo) e sul PC prende il posto del vecchio */
-    sw.eval('ZPD.passi[' + J(Yd) + ']=9050');
-    ok(sw.eval('zpPreparaEventi()') === 1, 'telefono: cambiato il giorno, un solo evento nuovo (la notte uguale non si rimanda)');
+    /* lo stesso giorno arriva di nuovo con un minuto in più e senza i minuti di sera (potati): sul PC si FONDE */
+    sw.eval('ZPD.s[1]=ZPD.s[1].filter(function(v){ return v[2]!==150; }).concat([[' + mi(20 * 60) + ',120,120]])');
+    ok(sw.eval('zpPreparaEventi()') === 1, 'telefono: cambiati i campioni, un solo evento nuovo (la notte uguale non si rimanda)');
     await sw.eval('zpdSalva()');
     await sw.eval('colEventi()'); await giroPC(); await settle(450);
-    ok(w.eval('DOC.recupero.giorni.filter(function(g){ return g.data===' + J(Yd) + '; }).length') === 1 && w.eval('DOC.recupero.giorni.find(function(g){ return g.data===' + J(Yd) + '; }).passi') === 9050 &&
-       w.eval('DOC.recupero.notti.filter(function(n){ return n.id===' + J(Yd) + '; }).length') === 1, 'PC: lo stesso giorno arrivato di nuovo sostituisce il vecchio (niente doppioni)');
+    w.eval('BR_CACHE.slug=null'); await w.eval('brCarica([' + J(mese) + '])');
+    ok(w.eval('brGiornoValori(' + J(Yd) + ', DOC.recupero.notti).passi') === 6120 && w.eval('brMinuti(' + J(Yd) + ').bpm[18*60+5]') === 150 &&
+       w.eval('DOC.recupero.notti.filter(function(n){ return n.id===' + J(Yd) + '; }).length') === 1,
+       'PC: lo stesso giorno arrivato di nuovo si fonde minuto per minuto (il minuto nuovo entra, quelli che il telefono non ha più restano)');
     /* Corpo › Recupero si riempie da solo */
     w.eval('localStorage.setItem("tms-corpo-vista", JSON.stringify({prova:"recupero"})); showTab("corpo")'); await settle(150);
-    const rb = d.getElementById('recupero-box'), nt = rb && rb.querySelector('.recu-notte');
-    ok(rb && !rb.hidden && nt && /23:18/.test(nt.textContent) && /06:52/.test(nt.textContent) && /82/.test(nt.textContent) && /9\.?050/.test(rb.textContent),
-       'PC: Corpo › Recupero mostra l\'ultima notte (23:18 → 06:52, punteggio 82) e i passi');
+    await settle(150);
+    const rb2 = d.getElementById('recupero-box');
+    ok(rb2 && !rb2.hidden && rb2.querySelector('.recu-notte') && /23:18/.test(rb2.textContent) && /06:52/.test(rb2.textContent) && /82/.test(rb2.textContent) && /6\.?120/.test(rb2.textContent),
+       'PC: Corpo › Recupero mostra l\'ultima notte (23:18 → 06:52, punteggio 82) e i passi calcolati dai campioni');
+    ok(rb2.querySelector('.recu-kcal') && /Calorie bruciate/.test(rb2.textContent) && rb2.querySelectorAll('.recu-kcal svg rect').length > 3 && /Livello di attività misurato/.test(rb2.textContent),
+       'PC: nel Recupero il riquadro «Calorie bruciate» (barre per giorno, media, livello di attività misurato, dieta)');
     w.eval('localStorage.removeItem("tms-corpo-vista"); showTab("allenamento")'); await settle(50); }
   ok(sd.getElementById('ck-0').textContent === '✔', 'telefono: la riga dello squat è spuntata ✔ (toccata questa settimana)');
   w.eval('telSettimanaSalvata(202647)'); await settle(20); await giroPC(); await giroTel(); await settle(50);
@@ -5236,7 +5334,7 @@ console.log('--- T16: backup completo (.tmsb), ripristino di tutto o di un clien
   ok(w.eval('copiaFuoriRiquadro()') === '', 'promemoria della copia fuori dal PC: senza la funzione (browser) non compare');
   { const est = new Map(); let cartella = '';
     w.tmsScambio = { cartella: async () => cartella, scegli: async () => { cartella = 'D:\\Backup TMS'; return cartella; }, scollega: async () => { cartella = ''; },
-      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async () => [...est.keys()], togli: async n => { est.delete(n); } };
+      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async r => estElenca(est, r), leggi: async n => estLeggi(est, n), togli: async n => { est.delete(n); } };
     w.eval('localStorage.removeItem("tms-bk-esterno"); renderProfilo();'); await settle(100);
     ok(d.getElementById('prof-copia-fuori') && /Nessuna copia dei backup fuori da questo PC/.test(d.getElementById('prof-copia-fuori').textContent), 'promemoria: nel tab Profilo una riga discreta se non c\'è una cartella per la copia');
     d.getElementById('prof-copia-scegli').click();
@@ -5311,11 +5409,52 @@ console.log('--- T16: backup completo (.tmsb), ripristino di tutto o di un clien
     ok(await w.eval('backupAutomaticoSeServe()') === true, 'backup automatico: la settimana dopo, un altro');
     const dic = JSON.parse(testo(AB + 'indice.json')).list.map(x => x.file);
     ok(dic.length === 13 && !dic.includes('TMS-auto-2025-12-03.tmsb') && !dic.includes('TMS-auto-2026-10-28.tmsb') && dic.includes('TMS-auto-2026-10-07.tmsb') && dic.includes('TMS-auto-2026-12-03.tmsb'),
-       'backup automatico: passato un mese, esce la copia di 13 mesi fa e la settimanale che non è più fra le ultime 5'); }
+       'backup automatico: passato un mese, esce la copia di 13 mesi fa e la settimanale che non è più fra le ultime 5');
+    /* ── A DEPOSITO (27/11/2026): i file grandi una volta sola, ripristino dal deposito, pulizia ── */
+    const DEP = AB + 'deposito/', blob = () => [...fsmem._files.keys()].filter(k => k.startsWith(DEP) && /\.bin$/.test(k));
+    const slugB = w.eval('activeProfile'), foto = new Uint8Array(100000); for (let i = 0; i < foto.length; i++) foto[i] = (i * 7919) & 255;
+    await fsmem.writeFile('TMS_Dati/' + slugB + '/foto/prova-deposito.jpg', foto);
+    ora('2026-12-10T09:00:00Z');
+    ok(await w.eval('backupAutomaticoSeServe()') === true, 'deposito: backup della settimana con una foto nuova');
+    const n1 = blob().length, f10 = AB + 'TMS-auto-2026-12-10.tmsb', bk10 = await leggiTmsb(w, fsmem._files.get(f10));
+    /* la foto torna intera dal deposito: backupLeggi la rimette fra i file del profilo, con le sue dimensioni */
+    w.__bk10 = fsmem._files.get(AB + 'TMS-auto-2026-12-10.tmsb');
+    const fotoBk = JSON.parse(await w.eval('backupLeggi(window.__bk10, function(){ return Promise.resolve(null); }).then(function(b){ var f=(b.file[' + JSON.stringify(slugB) + ']||[]).find(function(x){ return x.nome==="foto/prova-deposito.jpg"; }); return JSON.stringify(f? {dati:{length:f.dati.length}, uguale:f.dati[12345]===((12345*7919)&255)} : null); })'));
+    w.__f10 = fsmem._files.get(f10);
+    const inl = JSON.parse(w.eval('(function(){ var v=zipLeggi(window.__f10); return JSON.stringify({nomi:v.map(function(x){ return x.nome; }), dep:JSON.parse(new TextDecoder().decode(v.find(function(x){ return x.nome==="deposito.json"; }).dati))}); })()'));
+    const nomeFoto = 'profili/' + slugB + '/foto/prova-deposito.jpg';
+    ok(n1 > 0 && bk10.man.deposito === true && bk10.man.versione === 2 && fotoBk && fotoBk.dati.length === 100000 && fotoBk.uguale && !inl.nomi.includes(nomeFoto) && inl.dep.some(x => x.nome === nomeFoto && x.dim === 100000),
+       "deposito: il backup (.tmsb) è piccolo e porta l'elenco; la foto (100 KB) sta nel deposito e torna intera col ripristino");
+    ora('2026-12-17T09:00:00Z');
+    ok(await w.eval('backupAutomaticoSeServe()') === true && blob().length === n1, 'deposito: la settimana dopo, senza file cambiati, nel deposito non si aggiunge niente (spazio ≈ quello dei dati)');
+    { const ia = JSON.parse(testo(AB + 'indice.json')), ind = JSON.parse(testo(DEP + 'indice.json')), tenuti = ia.list.map(x => x.file).concat((ia.sicurezza || []).map(x => x.file));
+      ok(ind.backup['TMS-auto-2026-12-17.tmsb'].length > 0 && Object.keys(ind.backup).every(n => tenuti.includes(n)), "deposito: l'indice dice le impronte di ogni backup tenuto (solo di quelli)"); }
+    /* un file del deposito che nessun backup usa più si cancella; uno usato resta */
+    await fsmem.writeFile(DEP + '0'.repeat(64) + '.bin', new Uint8Array(40000));
+    ora('2026-12-24T09:00:00Z');
+    ok(await w.eval('backupAutomaticoSeServe()') === true && !fsmem._files.has(DEP + '0'.repeat(64) + '.bin') && blob().length === n1, 'deposito: tolti i backup vecchi, le impronte che nessuno usa più se ne vanno');
+    /* senza l' indice, con file già nel deposito: non si cancella niente (meglio spazio che un backup monco) */
+    fsmem._files.delete(DEP + 'indice.json');
+    await fsmem.writeFile(DEP + '1'.repeat(64) + '.bin', new Uint8Array(40000));
+    ora('2026-12-31T09:00:00Z');
+    ok(await w.eval('backupAutomaticoSeServe()') === true && fsmem._files.has(DEP + '1'.repeat(64) + '.bin') && JSON.parse(testo(DEP + 'indice.json')).incompleto === true,
+       "deposito: sparito l'indice, il TMS non cancella più niente dal deposito");
+    /* un file del deposito che manca: il backup non si ripristina a metà */
+    { const via = blob().find(k => !/^(0|1){64}/.test(k.slice(DEP.length))), copia = fsmem._files.get(via); fsmem._files.delete(via);
+      let err = ''; try { await leggiTmsb(w, fsmem._files.get(AB + 'TMS-auto-2026-12-31.tmsb')); } catch (e) { err = String(e && e.message || e); }
+      ok(/ne mancano/.test(err), 'deposito: se manca un file del deposito il ripristino si ferma e lo dice'); fsmem._files.set(via, copia); }
+    fsmem._files.delete('TMS_Dati/' + slugB + '/foto/prova-deposito.jpg'); }
+  /* ZIP64: oltre 65.535 file l'archivio passa al formato ZIP64 e si rilegge; sotto resta quello classico */
+  { const tanti = Array.from({ length: 70000 }, (_, i) => ({ nome: 'f/' + i + '.txt', dati: [i & 255] }));
+    w.__z = tanti; const r = JSON.parse(w.eval('(function(){ var v=window.__z.map(function(x){ return {nome:x.nome, dati:new Uint8Array(x.dati)}; }); var b=zipScrivi(v), l=zipLeggi(b);' +
+      ' var dv=new DataView(b.buffer); var z64=false; for(var i=b.length-22-20; i<b.length-22; i++){ if(dv.getUint32(i,true)===0x07064b50){ z64=true; break; } }' +
+      ' var piccolo=zipScrivi([{nome:"a.txt", dati:new Uint8Array([1])}]), dvp=new DataView(piccolo.buffer); return JSON.stringify({n:l.length, ultimo:l[l.length-1].nome, d:l[69999].dati[0], z64:z64, classico:dvp.getUint32(0,true)===0x04034b50 && zipLeggi(piccolo).length===1 && piccolo.length<200}); })()'));
+    delete w.__z;
+    ok(r.n === 70000 && r.ultimo === 'f/69999.txt' && r.d === (69999 & 255) && r.z64 && r.classico, 'ZIP64: 70.000 file si scrivono e si rileggono (record zip64); un archivio piccolo resta nel formato classico'); }
   /* la stessa regola nella cartella fuori dal PC (finta), e l'avviso se la copia non riesce da più di 14 giorni */
   { const est = new Map(); let cartella = 'E:\\Chiavetta TMS';
     w.tmsScambio = { cartella: async () => cartella, scegli: async () => cartella, scollega: async () => { cartella = ''; },
-      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async () => [...est.keys()], togli: async n => { est.delete(n); } };
+      scrivi: async (n, tx) => { est.set(n, tx); }, elenca: async r => estElenca(est, r), leggi: async n => estLeggi(est, n), togli: async n => { est.delete(n); } };
     for (const g of GIORNI.filter(g => g !== '2026-11-25')) est.set(nomeEst(g), '{}');
     est.set('altro.json', '{}'); est.set('Foto vacanze.tmsb', '{}');
     ora('2026-11-26T09:00:00Z');
@@ -5548,6 +5687,35 @@ console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale)
     ok(/Misure \| Recupero/.test(it) && /1,5 deviazioni standard/.test(it) && /Measurements \| Recovery/.test(en) && /1\.5 standard deviations/.test(en) &&
        /\*\*Recupero\*\*/.test(ai) && /DOC\.recupero/.test(ai) && /1,5 deviazioni standard/.test(ai) && /recupero dal bracciale/.test(ai),
        'guide IT/EN e guida per AI descrivono il Recupero (interruttore, fascia ± 1,5, dati in corpo.json)'); }
+  /* ── DATI CORPOREI DALLA BILANCIA (27/11/2026): pulsanti nel riquadro, campi bloccati con una pesata recente ── */
+  { w.eval('localStorage.removeItem("tms-corpo-vista"); DOC.pesate=[]; corpoSblocco=""; showTab("corpo")'); await settle(150);
+    const P = () => d.getElementById('panel-corpo'), main = () => P().querySelector('.pag__main');
+    const spenti = () => [...P().querySelectorAll('[data-u]')].filter(i => i.disabled).map(i => i.dataset.u).join(',');
+    const BIL = 'peso,massa_grassa,massa_muscolare,massa_ossea,metab_basale,grasso_viscerale,acqua';
+    ok(main().querySelector('.corpo-form + .bar.corpo-azioni #btn-save-io') && main().querySelector('.corpo-azioni #btn-undo-io') &&
+       !P().querySelector(':scope > .bar #btn-save-io') && spenti() === '' && !d.getElementById('btn-sblocca-io') && !P().querySelector('.corpo-bil'),
+       'Corpo: «Salva misure» e «Annulla ultimo» stanno nel riquadro «Dati corporei», sotto i campi; senza bilancia tutto si scrive a mano');
+    const oggi = new Date(), gg = x => { const t = new Date(oggi); t.setDate(t.getDate() - x); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+    w.eval('DOC.pesate=[{id:"vecchia",data:"' + gg(75) + '",ora:"07:00",peso:60}]; renderCorpo()'); await settle(50);
+    ok(spenti() === '' && !d.getElementById('btn-sblocca-io'), 'una bilancia ferma da più di due mesi non blocca i campi');
+    w.eval('DOC.pesate.push({id:"recente",data:"' + gg(2) + '",ora:"07:12:30",peso:60.6,grasso:23.5,muscolo:43.4,acqua:52}); renderCorpo()'); await settle(50);
+    ok(spenti() === BIL && !P().querySelector('[data-u="livello_attivita"]').disabled && d.getElementById('btn-save-io').disabled && d.getElementById('btn-undo-io').disabled &&
+       P().querySelector('.pag__main > .sec #btn-sblocca-io') && /dalla bilancia/.test(P().querySelector('.corpo-bil').textContent) && /07:12/.test(P().querySelector('.corpo-bil').textContent),
+       'con una pesata recente i campi della bilancia sono bloccati (il livello di attività no), «Salva misure» e «Annulla ultimo» spenti, nota con l\'ultima pesata');
+    d.getElementById('btn-sblocca-io').click(); await settle(80);
+    ok(spenti() === '' && !d.getElementById('btn-save-io').disabled && d.getElementById('btn-blocca-io') && /prossima pesata/.test(P().querySelector('.corpo-bil').textContent),
+       '«Modifica a mano» apre i campi e riaccende i pulsanti');
+    { const p = P().querySelector('[data-u="peso"]'); p.value = '59'; p.dispatchEvent(new w.Event('input', { bubbles: true })); }
+    ok(E('DOC.dati_utente.peso') === 59, 'aperti a mano, i campi si scrivono come sempre');
+    w.eval('activeProfile="altro"; renderCorpo()'); await settle(50);
+    ok(spenti() === BIL, 'l\'apertura a mano vale solo per quel profilo');
+    w.eval('activeProfile="rita"; renderCorpo()'); await settle(50);
+    d.getElementById('btn-blocca-io').click(); await settle(80);
+    ok(spenti() === BIL && E('DOC.dati_utente.peso') === 60.6 && E('DOC.dati_utente.massa_grassa') === 0.235 && E('DOC.dati_utente.massa_muscolare') === 43.4,
+       '«Usa i dati della bilancia» richiude i campi e rimette i valori dell\'ultima pesata');
+    w.eval('LANG="en"; renderCorpo()'); await settle(50);
+    ok(/Edit by hand/.test(P().textContent) && /come from the scale/.test(P().querySelector('.corpo-bil').textContent), 'in inglese: «Edit by hand» e la nota tradotta');
+    w.eval('LANG="it"; DOC.pesate=[]; corpoSblocco=""; renderCorpo()'); await settle(50); }
   /* tema notte e riapertura */
   w.eval('document.documentElement.setAttribute("data-theme","notte"); renderCorpo(); document.documentElement.removeAttribute("data-theme")');
   ok(errors.length === 0, 'recupero: nessun errore runtime (anche col tema notte)' + (errors.length ? ' -> ' + errors.join(' | ') : ''));

@@ -447,6 +447,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar{display:none}
    simmetriche. Ora la casella è fissa e il testo dell'unità cresce dopo, mai il contrario) */
 .corpo-campo__in input{width:72px; flex:0 0 auto; min-width:0}
 .corpo-campo__in .muted{font-size:10.5px}
+/* dati corporei che arrivano dalla bilancia: in sola lettura (stato come i pulsanti spenti), pulsanti nel riquadro */
+.corpo-campo__in input:disabled{opacity:.62; cursor:not-allowed}
+.corpo-campo__in input:disabled:hover{border-color:var(--border-2)}
+.corpo-bil-btn{margin-left:auto; font-family:var(--font-body); letter-spacing:0}
+.corpo-bil{font-size:11px; margin-top:8px; line-height:1.45}
+.corpo-azioni{margin:8px 0 0; gap:6px}
 /* pesate della bilancia (dal telefono): tabella compatta per la colonna stretta del Corpo;
    in grigio le pesate che non entrano nella media (dopo la prima del giorno) */
 .tbl-pesate{font-size:12px}

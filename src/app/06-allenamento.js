@@ -849,7 +849,7 @@ function saveSchedaModal(){
       /* `set`: Training Set con cui è stata svolta la settimana — serve al selettore dei
          Progressi per analizzare un percorso alla volta (righe più vecchie: campo assente). */
       DOC.storico.push({scheda:code,esercizio:r.esercizio,seduta:rowSeduta(smap,r),test:!!r.test,
-        macro:gruppoOf(r.esercizio),serie:+r.serie||0,rip:+r.rip||0,peso:+r.peso||0,rest:r.rest||'',
+        serie:+r.serie||0,rip:+r.rip||0,peso:+r.peso||0,rest:r.rest||'',
         rir:(r.rir===''||r.rir==null)?null:+r.rir,set:(ensureSets()||{}).setAttivo||''}); added++; });
     /* Foster: committa il carico interno dei giorni allenati in storico_rpe e azzera la bozza RPE della modalità salvata */
     if(useRpeActive()){ const days=schedaDays(schedaRows()), draft=schedaRpe();

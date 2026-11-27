@@ -415,7 +415,7 @@ function telSettimanaSalvata(code){
 /* i file arrivati dal telefono (pesate, foto, giorni della dieta, sedute della fascia cardio), decifrati;
    quelli illeggibili restano sull'hub */
 async function telEventi(p, lista){
-  const pesate=[], foto=[], dieta=[], cardio=[], sedFc=[], notti=[], giorni=[], fatti=[];
+  const pesate=[], foto=[], dieta=[], cardio=[], sedFc=[], notti=[], giorni=[], brac=[], fatti=[];
   const arrivati=(lista||[]).filter(x=>/^eventi\//.test(x.nome) && typeof x.testo==='string');
   for(const f of arrivati.slice().sort((a,b)=>a.nome<b.nome?-1:1)){
     let ev; try{ ev=await telDecifra(f.testo, p.codice); }catch(e){ continue; }   /* illeggibile: si lascia */
@@ -428,8 +428,10 @@ async function telEventi(p, lista){
     /* sonno e dati del giorno dal bracciale (27/11/2026): vanno nel Recupero del tab Corpo (09e-recupero.js) */
     else if(ev && ev.tipo==='tms-sonno' && ev.id && pulisciNotte(ev.notte)){ notti.push(ev.notte); fatti.push({nome:f.nome, id:String(ev.id)}); }
     else if(ev && ev.tipo==='tms-giorno' && ev.id && pulisciGiorno(ev.giorno)){ giorni.push(ev.giorno); fatti.push({nome:f.nome, id:String(ev.id)}); }
+    /* i CAMPIONI di un giorno del bracciale (APK 1.10.0, regola dei dati grezzi): vanno nei file del mese (09f-bracciale.js) */
+    else if(ev && ev.tipo==='tms-bracciale' && ev.id && pulisciBracciale(ev.giorno)){ brac.push(ev.giorno); fatti.push({nome:f.nome, id:String(ev.id), brData:String(ev.giorno.data)}); }
   }
-  return {pesate, foto, dieta, cardio, sedFc, notti, giorni, fatti};
+  return {pesate, foto, dieta, cardio, sedFc, notti, giorni, brac, fatti};
 }
 /* arrivati e salvati: il telefono li vede «al PC» e dall'hub se ne vanno */
 async function telConfermaEventi(slug, p, fatti){
@@ -438,15 +440,23 @@ async function telConfermaEventi(slug, p, fatti){
   for(const f of fatti){ try{ await telTogli(p, 'dal-telefono/'+f.nome); }catch(e){ logErrore('telefono/togli', e); } }
 }
 async function telLeggiEventi(slug, p, lista){
-  const {pesate, foto, dieta, cardio, sedFc, notti, giorni, fatti}=await telEventi(p, lista);
+  const {pesate, foto, dieta, cardio, sedFc, notti, giorni, brac, fatti:arrivati}=await telEventi(p, lista);
+  let fatti=arrivati;
   if(!fatti.length || activeProfile!==slug) return null;
+  const pd=profileDir;
   let rp=null, nFoto=0, nDieta=0, nCardio=0, nSedFc=0, nRec=0;
+  /* i campioni del bracciale si scrivono subito nei file dei mesi; un mese che non si legge resta sull'hub */
+  if(brac.length){ const r=await braccialeUnisci(pd, brac); nRec+=r.giorni; if(r.falliti.size) fatti=fatti.filter(f=>!(f.brData && r.falliti.has(f.brData))); }
+  /* il grezzo delle sedute (battito al secondo, GPS) nel suo file; una seduta che non si scrive resta sull'hub */
+  const sfa=await sgSalvaArrivate(pd, cardio.concat(sedFc));
+  if(sfa.size){ fatti=fatti.filter(f=>!sfa.has(f.id)); for(let i=cardio.length-1;i>=0;i--) if(sfa.has(String(cardio[i].id))) cardio.splice(i,1);
+    for(let i=sedFc.length-1;i>=0;i--) if(sfa.has(String(sedFc[i].id))) sedFc.splice(i,1); }
   if(pesate.length) rp=await importaPesate(pesate);
   if(foto.length) nFoto=await importaFotoRientro(foto);
   if(dieta.length) nDieta=telDietaApplica(dieta);
   if(cardio.length) nCardio=importaCardioTel(cardio, new Set(p.ricevute||[]));   /* già ricevuta = non torna */
   if(sedFc.length){ nSedFc=sedutaFcUnisci(DOC, sedFc, p, new Set(p.ricevute||[])); if(nSedFc){ persist('scheda'); persist('corpo'); } }
-  if(notti.length || giorni.length){ const r=recuperoUnisci(DOC, {notti:notti, giorni:giorni}); nRec=r.notti+r.giorni; if(nRec) persist('corpo'); }
+  if(notti.length || giorni.length){ const r=recuperoUnisci(DOC, {notti:notti, giorni:giorni}); nRec+=r.notti+r.giorni; if(r.notti+r.giorni) persist('corpo'); }
   /* salvataggio VERO su disco prima di togliere qualcosa dall'hub */
   clearTimeout(saveTimer); await flushSaves();
   if(activeProfile!==slug) return null;
@@ -500,14 +510,17 @@ async function telGiroAltri(){
     const pan=TEL_PANORAMICA[slug]=TEL_PANORAMICA[slug]||{};
     pan.controllato=new Date().toISOString();
     const ore=lista.map(x=>+x.ora||0).filter(Boolean); if(ore.length) pan.ultimo=new Date(Math.max(...ore)).toISOString();
-    const ev=await telEventi(p, lista), {pesate, foto, dieta, cardio, notti, giorni}=ev;
+    const ev=await telEventi(p, lista), {pesate, foto, dieta, cardio, notti, giorni, brac}=ev;
     /* il battito delle sedute coi pesi resta sull'hub finché non si apre il profilo (va nella sua scheda) */
-    const fatti=ev.fatti.filter(f=>!f.soloAperto);
+    let fatti=ev.fatti.filter(f=>!f.soloAperto);
     if(!fatti.length) return;
     const pd=await dataDir.getDirectoryHandle(slug, {create:false});
     const rc=await leggiJson(pd, FILES.corpo), ra=await leggiJson(pd, FILES.alimentazione);
     if(rc.stato==='illeggibile' || ra.stato==='illeggibile') return;      /* mai sopra un file che non si legge */
     if(profiloCambi!==cambi || activeProfile===slug) return;
+    /* il grezzo delle sedute cardio nel suo file, prima di unirle */
+    const sfa=await sgSalvaArrivate(pd, cardio);
+    if(sfa.size){ fatti=fatti.filter(f=>!sfa.has(f.id)); for(let i=cardio.length-1;i>=0;i--) if(sfa.has(String(cardio[i].id))) cardio.splice(i,1); }
     const co=(rc.stato==='ok' && rc.dati && typeof rc.dati==='object')? rc.dati : corpoFile({});
     const al=(ra.stato==='ok' && ra.dati && typeof ra.dati==='object')? ra.dati : {bulk:[],mant:[],cut:[]};
     const rp=await pesateUnisci(co, pesate, async()=>false);          /* i valori scritti a mano restano */
@@ -515,9 +528,11 @@ async function telGiroAltri(){
       const fh=await fd.getFileHandle(fname,{create:true}); const wr=await fh.createWritable(); await wr.write(bytes); await wr.close(); });
     const nDieta=telDietaUnisci(al, dieta);
     const nCardio=cardioUnisci(co, cardio, new Set(p.ricevute||[]));
-    const rRec=(notti.length || giorni.length)? recuperoUnisci(co, {notti:notti, giorni:giorni}) : {notti:0, giorni:0}, nRec=rRec.notti+rRec.giorni;
+    const rRec=(notti.length || giorni.length)? recuperoUnisci(co, {notti:notti, giorni:giorni}) : {notti:0, giorni:0};
+    let nRec=rRec.notti+rRec.giorni;
     if(profiloCambi!==cambi || activeProfile===slug) return;         /* aperto nel frattempo: ci pensa il suo giro */
-    if(rp.nuove || nFoto || nCardio || nRec) await writeJson(pd, FILES.corpo, co);
+    if(brac.length){ const r=await braccialeUnisci(pd, brac); nRec+=r.giorni; if(r.falliti.size) fatti=fatti.filter(f=>!(f.brData && r.falliti.has(f.brData))); }
+    if(rp.nuove || nFoto || nCardio || rRec.notti+rRec.giorni) await writeJson(pd, FILES.corpo, co);
     if(nDieta) await writeJson(pd, FILES.alimentazione, al);
     if(profiloCambi!==cambi || activeProfile===slug) return;         /* aperto mentre scrivevo: si rifà dopo */
     await telConfermaEventi(slug, p, fatti);

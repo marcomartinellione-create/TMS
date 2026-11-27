@@ -45,7 +45,12 @@ async function init(){
   if(window.tmsFile && window.tmsFile.onApri){ window.tmsFile.onApri(f=>{ pacchettoDaFile(f).catch(e=>logErrore('pacchetto/doppio-clic', e)); }); try{ window.tmsFile.chiedi(); }catch(e){} }
   /* ogni render di pagina passa da conColonne (scorrimento delle colonne conservato, altezza
      riadattata). Si sostituisce anche il nome globale, perché i render si chiamano fra loro per nome. */
-  Object.keys(RENDERERS).forEach(k=>{ const orig=RENDERERS[k], nome=orig.name, avv=conColonne(k, orig);
+  Object.keys(RENDERERS).forEach(k=>{ const orig=RENDERERS[k], nome=orig.name, col=conColonne(k, orig);
+    /* dopo ogni disegno: le sedute col grezzo che non hanno ancora i valori li calcolano (06c-sedute-grezze.js) */
+    const avv=function(){
+      /* prima: i valori calcolati del corpo attaccati in memoria (regola dei dati grezzi, 09c-pesate.js / 09-corpo.js) */
+      try{ ioAttacca(DOC); corpoProfiloAttacca(); }catch(e){ logErrore('attacca', e); }
+      const r=col.apply(this, arguments); try{ sgDopoDisegno(); }catch(e){} return r; };
     RENDERERS[k]=avv; try{ if(nome && window[nome]===orig) window[nome]=avv; }catch(e){} });
   window.addEventListener('resize', adattaPag);
   await migrateLegacyStore();

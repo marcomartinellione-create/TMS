@@ -34,7 +34,9 @@ function setConn(state,txt){
 
 /* dati del profilo attivo (scheda/storico/corpo/alimentazione); esercizi e ricette sono condivisi */
 function docProfileData(){ return {scheda:DOC.scheda,storico:DOC.storico,storico_io:DOC.storico_io,storico_rpe:DOC.storico_rpe,storico_risc:DOC.storico_risc,storico_fc:DOC.storico_fc,cardio:DOC.cardio,foto:DOC.foto,pesate:DOC.pesate,pesate_scartate:DOC.pesate_scartate,recupero:DOC.recupero,dati_utente:DOC.dati_utente,alimentazione:DOC.alimentazione}; }
-function applyProfileData(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.storico_fc=Array.isArray(d.storico_fc)?d.storico_fc:[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.pesate=Array.isArray(d.pesate)?d.pesate:[]; DOC.pesate_scartate=Array.isArray(d.pesate_scartate)?d.pesate_scartate:[]; DOC.recupero=recuperoNorm(d.recupero); DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; undoAzzera(); }
+/* i dati di un profilo in DOC; poi i valori calcolati del corpo attaccati in memoria (regola dei dati grezzi) */
+function applyProfileData(d){ applyProfileData0(d); try{ ioAttacca(DOC); }catch(e){} }
+function applyProfileData0(d){ d=d||{}; DOC.scheda=d.scheda||{settimanale:[],mensile:[]}; DOC.storico=d.storico||[]; DOC.storico_io=d.storico_io||[]; DOC.storico_rpe=d.storico_rpe||[]; DOC.storico_risc=d.storico_risc||[]; DOC.storico_fc=Array.isArray(d.storico_fc)?d.storico_fc:[]; DOC.cardio=d.cardio||[]; DOC.foto=d.foto||[]; DOC.pesate=Array.isArray(d.pesate)?d.pesate:[]; DOC.pesate_scartate=Array.isArray(d.pesate_scartate)?d.pesate_scartate:[]; DOC.recupero=recuperoNorm(d.recupero); DOC.dati_utente=d.dati_utente||{}; DOC.alimentazione=d.alimentazione||{bulk:[],mant:[],cut:[]}; undoAzzera(); }
 function blankDOC(){ return {scheda:{settimanale:[],mensile:[]},storico:[],storico_io:[],storico_rpe:[],storico_risc:[],storico_fc:[],cardio:[],foto:[],pesate:[],pesate_scartate:[],recupero:{notti:[],giorni:[]},dati_utente:{},alimentazione:{bulk:[],mant:[],cut:[]}}; }
 /* CONTENUTO DI corpo.json in un posto solo (2026-11-15, pesate della bilancia): prima
    l'oggetto era riscritto a mano in ogni salvataggio, e una parte nuova dimenticata in uno
@@ -48,8 +50,10 @@ function corpoFile(d){ d=d||{}; return {dati_utente:d.dati_utente||{}, storico_i
 function corpoDaFile(co){ co=co||{}; return {storico_io:co.storico_io, storico_rpe:co.storico_rpe, storico_risc:co.storico_risc, storico_fc:co.storico_fc, cardio:co.cardio, foto:co.foto,
   pesate:co.pesate, pesate_scartate:co.pesate_scartate, recupero:co.recupero, dati_utente:co.dati_utente}; }
 
+/* la copia nel browser serve solo a mostrare subito il profilo aperto all'avvio (poi valgono i file): si tiene SOLO quello,
+   così resta sotto il limite di localStorage anche con tanti clienti (27/11/2026, valutazione della crescita dei dati) */
 function saveCache(){ try{
-  const all=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); const data=all.data||{};
+  const data={};
   if(activeProfile) data[activeProfile]=docProfileData();
   localStorage.setItem(CACHE_KEY,JSON.stringify({esercizi:DOC.esercizi,ricette:DOC.ricette,profili:profili,active:activeProfile,data:data}));
 }catch(e){} }

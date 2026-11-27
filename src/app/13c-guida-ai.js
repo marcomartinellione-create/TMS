@@ -130,7 +130,14 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   a ciascuno. Si tengono le ultime 5 copie settimanali più la più vecchia di ogni mese (la prima copia di
   quel mese fra quelle presenti) per gli ultimi 12 mesi, quello in corso compreso; quelle tenute solo come
   copia del mese hanno l'etichetta «mensile». Non si fanno copie in più: si sceglie solo quali tenere. Le
-  copie di sicurezza «prima del ripristino» hanno la loro regola (le ultime 3).
+  copie di sicurezza «prima del ripristino» hanno la loro regola (le ultime 3). BACKUP A DEPOSITO: queste
+  copie (e la copia fuori dal PC) non ripetono i file grandi: un file da 32 KB in su (foto, video, catalogo,
+  campioni del bracciale, sedute) sta UNA volta sola in backup_automatici/deposito/<impronta SHA-256>.bin e
+  il .tmsb (versione 2) porta i file piccoli più l'elenco deposito.json; deposito/indice.json dice quali
+  impronte usa ogni copia tenuta e quelle che nessuna usa più si cancellano (se l'indice non si legge non si
+  cancella niente). Il ripristino prende i file dal deposito controllando l'impronta di ognuno; se ne manca
+  uno non ripristina niente. Il backup scaricato a mano è sempre completo (versione 1). Oltre 65.535 file o
+  4 GB l'archivio passa al formato ZIP64.
 - **Profili fuori elenco**: se nella cartella dei dati c'è una cartella con i file di un profilo
   (scheda/storico/corpo/alimentazione.json) che profili.json non elenca, il tab Profilo lo segnala col
   nome del cliente: «Rimettili in elenco» oppure «Mettili nel cestino» (cestino dei profili).
@@ -139,9 +146,11 @@ Sito: https://marcomartinellione-create.github.io/TMS/ · Tutorial: canale YouTu
   cartella dei dati né un disco intero) e ogni settimana ci va il backup completo
   (TMS-backup-AAAA-MM-GG.tmsb; si tengono con la stessa regola dei backup automatici, le ultime 5 più la
   prima di ogni mese per 12 mesi, e i vecchi TMS-backup-AAAA-MM-GG.json contano come le altre; gli altri
-  file della cartella non si toccano); «Copia adesso» la fa subito. La copia non è cifrata. Se la
-  cartella non si raggiunge lo dice e riprova al prossimo avvio. Si riprende con Ripristina scegliendo il
-  file. Finché non è scelta una cartella, nel tab Profilo una riga lo ricorda con «Scegli una cartella…».
+  file della cartella non si toccano); «Copia adesso» la fa subito. I file grandi stanno una volta sola nella
+  sottocartella «deposito» (<impronta>.json, in base64, perché quel ponte scrive solo .json e .tmsb), che
+  serve a tutte le copie. La copia non è cifrata. Se la cartella non si raggiunge lo dice e riprova al
+  prossimo avvio. Si riprende con Ripristina scegliendo il file (su un PC nuovo prima si sceglie la stessa
+  cartella in Copia dei backup, così i file grandi si prendono dal suo deposito). Finché non è scelta una cartella, nel tab Profilo una riga lo ricorda con «Scegli una cartella…».
   Se l'ultima copia riuscita ha più di 14 giorni (o, se non ne è mai riuscita una, sono passati 14 giorni
   da quando è stata scelta la cartella), nel tab Profilo una riga dice da quando non riesce, con la data
   e il motivo se è noto (per esempio «il TMS non trova più la cartella scelta»), e ha i pulsanti
@@ -508,16 +517,23 @@ Due modi per registrare una seduta:
 - **Pesate della bilancia** (riquadro «Pesate della bilancia» nel tab Corpo, visibile solo
   se ce ne sono): pesate di una bilancia Bluetooth arrivate da sole dall'app del telefono
   collegata, salvate in corpo.json (DOC.pesate; gli id tolti a mano in DOC.pesate_scartate,
-  così se arrivano di nuovo non tornano). Ogni pesata porta data, ora,
-  peso e, se la bilancia ha misurato con le maniglie, la composizione già calcolata dal
-  telefono (grasso %, acqua %, muscolo kg, ossa kg, proteine %, viscerale, metabolismo basale,
-  età metabolica) più le impedenze grezze, che si conservano soltanto. All'import, per ogni
-  settimana ISO con almeno una pesata NUOVA, la MEDIA va da sola nello Storico misure, senza
-  «Salva misure»: una pesata al giorno, la prima (la prima completa, se quel giorno ce n'è
-  una con la composizione); BMI dall'altezza del profilo, fabbisogno = basale medio × livello
-  di attività del profilo; la riga porta 'n_pesate'. Se la settimana ha già una misura scritta
-  a mano (senza 'n_pesate') il TMS chiede una volta sola («Sostituisci» / «Tienili»). I campi
-  del tab Corpo prendono i valori dell'ultima pesata, se è la più recente. Le pesate già
+  così se arrivano di nuovo non tornano). Ogni pesata porta data, ora, peso, le 10 impedenze
+  della bilancia e il contesto della misura (altezza, età, sesso): REGOLA DEI DATI GREZZI, si
+  salvano solo le misure; la composizione (grasso %, acqua %, muscolo kg, ossa kg, proteine %,
+  viscerale, metabolismo basale, età metabolica, BMI) il TMS la CALCOLA ogni volta dalle
+  impedenze con la formula WLA25 (pesateAttacca; la stessa del telefono) e non la salva. Per
+  ogni settimana ISO con le pesate lo Storico misure ha una riga {scheda, pesate:1} e i suoi
+  valori sono la MEDIA della settimana calcolata quando si mostra: una pesata al giorno, la
+  prima (la prima completa, se quel giorno ce n'è una con la composizione). In ogni riga BMI
+  (altezza del profilo), massa magra e fabbisogno (basale × livello di attività) si calcolano,
+  non si salvano. Se la settimana ha già una misura scritta a mano il TMS chiede una volta
+  sola («Sostituisci» / «Tienili»). I campi
+  del tab Corpo prendono i valori dell'ultima pesata, se è la più recente. Con una pesata negli
+  ultimi 60 giorni i campi che la bilancia misura (peso, grasso, muscolo, ossa, basale,
+  viscerale, acqua) sono in sola lettura e «Salva misure nello Storico» e «Annulla ultimo»
+  (nel riquadro «Dati corporei») spenti; il livello di attività resta libero. «Modifica a
+  mano» li apre per quel profilo finché l'app resta aperta (corpoSblocco), «Usa i dati
+  della bilancia» li richiude e rimette i valori dell'ultima pesata. Le pesate già
   arrivate (stesso id) non si doppiano. Il su una pesata la toglie e ricalcola la media
   della sua settimana (una misura scritta a mano non viene mai toccata); Ctrl+Z la rimette.
   Il su ogni pesata (e «Rapporto dell'ultima» nel titolo del riquadro) apre il RAPPORTO DI
@@ -555,9 +571,22 @@ Due modi per registrare una seduta:
   ricalcolano al volo e NON si salvano. Il TMS NON calcola un punteggio di prontezza o di recupero
   suo: mostra i valori del bracciale e gli scarti dal solito di quel cliente. I dati arrivano da
   soli dall'app del telefono (Impostazioni › Bracciale, «Sincronizza», o all'apertura dell'app):
-  eventi cifrati tms-sonno e tms-giorno sull'hub, importati con recuperoUnisci anche per i
-  clienti non aperti (nel loro corpo.json) e poi tolti dall'hub; voci senza orari validi restano
-  sull'hub, non entrano.
+  eventi cifrati tms-sonno (la notte del bracciale) e tms-bracciale (i CAMPIONI di un giorno:
+  passi e battito al minuto, stress, pelle, HRV, SpO2, respirazione, battito a riposo) sull'hub,
+  importati anche per i clienti non aperti e poi tolti dall'hub. Le notti stanno in corpo.json,
+  i campioni in TMS_Dati/<profilo>/bracciale/AAAA-MM.json (un file al mese, 09f-bracciale.js);
+  le medie del giorno e SpO2, respirazione e HRV della notte si calcolano dai campioni quando
+  si mostrano. I giorni arrivati da telefoni vecchi (evento tms-giorno, solo medie) restano.
+  Sotto i grafici il riquadro CALORIE BRUCIATE (09g-calorie.js): per ogni giorno una stima
+  calcolata dai campioni, dal sonno, dalle sedute e dalle misure di quel giorno (metabolismo a
+  riposo con Cunningham 1980 sulla massa magra o Mifflin-St Jeor 1990; vita quotidiana coi
+  fattori FAO/WHO/UNU 2004, 1,0 dormendo e 1,4 da svegli; passi al minuto a MET secondo
+  CADENCE-Adults 2019; battito oltre il 40 % della riserva cardiaca con Keytel 2005; sedute
+  cardio col battito o coi MET del Compendium 2024, pesi coi MET del Compendium 3,5 / 5 / 6
+  secondo la fatica RPE ≤ 5 / 6–7 / ≥ 8; digestione 10 % del totale), la media, il LIVELLO DI
+  ATTIVITÀ MISURATO (totale / metabolismo a riposo sui giorni interi col bracciale portato,
+  pulsante «Usa» per metterlo nel profilo) e il bilancio con la dieta del periodo. È una
+  stima, non salvata.
 - **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
@@ -745,9 +774,11 @@ pagina torna attiva (o prima della «Fine») li prende e riempie solo i tratti d
 traccia non ha buchi né doppioni. Il servizio parte con «Inizia» o «Avvia registrazione» e si ferma a «Fine» o
 «Annulla». La prima volta l'app chiede, spiegandolo, di non ottimizzare la batteria per lei (una volta sola).
 FINESTRA MOBILE (Picture-in-Picture, come YouTube): con una seduta o una registrazione aperta, uscendo dall'app col
-tasto Home o col gesto, l'app diventa una piccola finestra con battito (colore della zona), esercizio in corso o
-sport, recupero in corso e tempo della seduta; senza seduta aperta l'app si chiude come sempre, e sui telefoni senza
-PiP resta la notifica. Sulle pagine dei giorni la barra in alto ha una seconda riga,
+tasto Home o col gesto, l'app diventa una piccola finestra col SOLO battito, grande e col colore della zona (scelta di
+Marco); senza seduta aperta l'app si chiude come sempre, e sui telefoni senza PiP resta la notifica «Allenamento in
+corso» (cosa, battito, tempo che scorre; anche sullo schermo bloccato). UN ALLENAMENTO ALLA VOLTA: con una seduta o una
+registrazione aperta gli altri giorni e le altre discipline non si aprono (avviso e ritorno a quello in corso), e su
+ogni altra pagina dell'app i suoi dettagli restano in alto col tasto «Torna all'allenamento». Sulle pagine dei giorni la barra in alto ha una seconda riga,
 la ZONA DELLA SEDUTA: battito della fascia cardio colorato per zona (o «nessuna fascia» col tasto per collegarla),
 tempo trascorso, «Fine seduta». «Fine seduta» compila da sola la durata e chiede la fatica RPE (1-10) nei campi di
 fine giornata (senza Session-RPE spunta «Giorno completato»). Con la fascia collegata il battito della seduta si
@@ -833,15 +864,27 @@ battito a riposo (58), passi (1, attività al minuto) e la batteria. Un cursore 
 (ultimo record + 1 minuto per sonno e HRV, + 30 s per la SpO2, + 1 s per gli altri; le serie al minuto ripartono dal
 minuto dopo l'ultimo), e ogni tipo si scarica a pezzi finché il cursore avanza (la prima volta gli ultimi 2 giorni,
 7 per sonno e stress); un tipo rifiutato o col CRC sbagliato si salta; un minuto scaricato due volte non raddoppia. I campioni al minuto restano sul telefono; al PC vanno, cifrati attraverso l'hub, una notte
-per giorno del risveglio (evento tms-sonno) e un riassunto per giorno (tms-giorno), nel formato di Corpo › Recupero
-(vedi la voce Recupero). Sotto il tasto: «Ultima sincronizzazione: oggi 07:12 · 1 notte, 2 giorni». Allenamenti
+per giorno del risveglio (evento tms-sonno) e i campioni di ogni giorno (evento tms-bracciale: niente medie, le
+calcola il PC), vedi la voce Recupero. Sotto il tasto: «Ultima sincronizzazione: oggi 07:12 · 1 notte, 2 giorni». Allenamenti
 registrati sul bracciale NON si scaricano ancora. Il battito in diretta resta quello della fascia (profilo standard
 0x180D, senza chiave).
+**WIDGET DELLA GIORNATA** (APK 1.10.0, schermata Home del telefono, nativo/TmsWidget.java): a sinistra il punteggio del
+sonno della notte finita oggi dentro un anello a torta delle fasi (profondo, REM, leggero, sveglio), a destra battito con
+l'ora della misura, passi con la barretta dell'obiettivo e calorie stimate. I numeri li prepara la pagina (widgetAggiorna:
+dopo ogni sincronizzazione, anche quella dei 30 minuti ad app chiusa, all'avvio e uscendo dall'app); il servizio del
+«sempre collegato» aggiorna il battito al più una volta al minuto. Toccandolo si apre la Salute.
 **SALUTE** (APK 1.9.0, voce «Salute» del menu del telefono, solo nell'APK; fatta come le app professionali): in alto il
 battito adesso col colore della zona e l'ANELLO DEI PASSI di oggi contro l'OBIETTIVO (di serie 8.000, si sceglie fra
 5.000 e 15.000 col tasto «Obiettivo», resta sul telefono); con la chiave del bracciale e la pagina aperta i passi arrivano
 IN DIRETTA dal bracciale (endpoint 0x0016) con metri e kcal; i passi degli ultimi 7 giorni in barre con la linea
-dell'obiettivo; il RECUPERO in sei riquadri (HRV, battito a riposo, SpO2, temperatura della pelle come scarto dal solito,
+dell'obiettivo; le CALORIE DI OGGI (APK 1.10.0, kcalGiorno: una STIMA da mezzanotte ad adesso, minuto per minuto, in tre
+parti): metabolismo a riposo con Cunningham 1980 (500 + 22 × massa magra, dalla pesata del telefono o dalla massa grassa
+del PC) o, senza grasso, Mifflin-St Jeor 1990; vita quotidiana coi multipli del metabolismo della FAO/WHO/UNU 2004 (dormire
+1,0 secondo le fasi del bracciale, sveglio senza camminare 1,4); movimento dai passi al minuto (100 passi/min = 3 MET,
+130 = 6 MET, CADENCE-Adults 2019; kcal/min = MET × 3,5 × kg / 200), dal battito oltre il 40 % della riserva cardiaca con
+l'equazione di Keytel 2005 e dalle sedute registrate col telefono (cardio col battito della fascia o coi MET del
+Compendium 2024, pesi coi MET del Compendium secondo la fatica RPE) più la digestione (10 % del totale); il PC fa lo
+stesso calcolo dai campioni (Corpo › Recupero, «Calorie bruciate»); il RECUPERO in sei riquadri (HRV, battito a riposo, SpO2, temperatura della pelle come scarto dal solito,
 respirazione, stress) col colore dello stato rispetto al SOLITO della persona (media e deviazione standard dei 14 giorni
 prima, servono almeno 4 giorni; SpO2, stress e punteggio del sonno con soglie fisse): verde nella norma, ocra da tenere
 d'occhio, rosso lontano dal solito, grigio senza abbastanza storia, ognuno con la linea dei 14 giorni; l'ULTIMO RIPOSO (la
@@ -849,8 +892,11 @@ notte appena passata, o il sonnellino più recente se è più nuovo) col puntegg
 (sveglio, REM, leggero, profondo), tempo e percentuale di ogni fase, HRV della notte e battito a riposo; il battito di
 oggi minuto per minuto (dalle registrazioni del bracciale) e lo stress di oggi a mezz'ore coi colori dei livelli. «Aggiorna»
 sincronizza subito. Senza la chiave il battito c'è lo stesso e la parte del sonno porta a Impostazioni › Sensori ›
-Bracciale. Legge i dati già sul telefono; al PC vanno solo gli eventi tms-sonno e tms-giorno (lo storico è in Corpo ›
-Recupero).
+Bracciale. Legge i dati già sul telefono; al PC vanno gli eventi tms-sonno e tms-bracciale (lo storico è in Corpo ›
+Recupero). REGOLA DEI DATI GREZZI anche sul telefono: le sedute registrate salvano il battito al secondo e i punti GPS
+così come arrivano (voce a parte per seduta); FC media e picco, distanza, dislivello, parziali e percorso si calcolano
+quando la seduta si carica, e al PC va il grezzo (che il PC conserva in TMS_Dati/<profilo>/sedute/ e ricalcola con lo
+stesso codice, 06c-sedute-grezze.js). Le pesate salvano peso, impedenze e contesto; la composizione si calcola.
 **SEMPRE COLLEGATO** (APK 1.8.1; Impostazioni › Sensori, interruttore «Tieni sempre collegato», ACCESO di serie): con
 un bracciale (chiave salvata e bracciale già trovato una volta) o una fascia salvati, un servizio Android in primo
 piano tiene il collegamento anche con l'app chiusa o tolta dalle app recenti, riparte all'accensione del telefono e

@@ -365,6 +365,7 @@ function pulisciCardioTel(x){
   if(disp) out.dispositivo=disp;
   const vr=String(x.variante||'').trim().slice(0,40); if(vr && vr!==out.tipo) out.variante=vr;
   const tm=Math.round(+x.tempoMov); if(tm>0 && tm<=durata*60+60) out.tempoMov=tm;
+  const dsc=String(x.disc||'').trim().slice(0,40); if(dsc) out.disc=dsc;
   if(Array.isArray(x.parziali)){ const pz=x.parziali.slice(0,300).map(v=>Math.round(+v)).filter(v=>v>0 && v<=86400); if(pz.length) out.parziali=pz; }
   if(Array.isArray(x.percorso)){
     const pr=x.percorso.slice(0,1000).filter(p=>Array.isArray(p) && isFinite(+p[0]) && isFinite(+p[1]) && Math.abs(+p[0])<=90 && Math.abs(+p[1])<=180)
@@ -372,6 +373,10 @@ function pulisciCardioTel(x){
     if(pr.length>1) out.percorso=pr; }
   const fc=Array.isArray(x.fc)? x.fc.slice(0,20000).map(v=>(bpm(v)===''? null : bpm(v))) : [];
   if(fc.filter(v=>v!=null).length>1){ out.fc=fc; const ps=Math.round(+x.fcPasso); out.fcPasso=(ps>=1 && ps<=60)? ps : 5; }
+  /* dall'APK 1.10.0 la seduta arriva col GREZZO (06c-sedute-grezze.js): il grezzo è già nel suo file, qui restano grezzo:1 e
+     l'inizio; FC media, picco, distanza, dislivello… si calcolano quando si carica, quindi nessun valore calcolato si salva */
+  if(x.grezzo && +x.inizio>0){ out.grezzo=1; out.inizio=Math.round(+x.inizio);
+    ['fcMedia','fcPicco','distanza','quota','tempoMov','parziali','percorso','fc','fcPasso'].forEach(k=>{ delete out[k]; }); }
   return out;
 }
 /* il percorso registrato col GPS del telefono SULLA MAPPA (27/11/2026, Marco: «sì, aggiungi la mappa»): tessere di
@@ -455,13 +460,17 @@ function pulisciSedutaFc(x){
   const data=String(x.data||'').slice(0,10);
   if(!id || !giorno || !/^\d{4}-\d{2}-\d{2}$/.test(data) || isNaN(new Date(data+'T12:00:00').getTime())) return null;
   const bpm=v=>{ const n=Math.round(+v); return (v!=null && v!=='' && n>=25 && n<=250)? n : null; };
-  const media=bpm(x.fcMedia); if(media==null) return null;
+  const media=bpm(x.fcMedia), grezzo=!!(x.grezzo && +x.inizio>0); if(media==null && !grezzo) return null;
   const durataSec=Math.round(+x.durataSec); if(!(durataSec>=30 && durataSec<=86400)) return null;
   const out={id:id, giorno:giorno, settimana:Math.max(0, Math.round(+x.settimana)||0), data:data,
     ora:/^\d{2}:\d{2}(:\d{2})?$/.test(String(x.ora||''))? String(x.ora) : '', durataSec:durataSec, fcMedia:media, fcPicco:bpm(x.fcPicco)||media,
     dispositivo:String(x.dispositivo||'').trim().slice(0,60)};
+  /* fatica RPE della seduta (dal telefono 1.10.0): serve alle calorie dei pesi (MET del Compendium secondo la fatica) */
+  if(x.rpe!=='' && x.rpe!=null && +x.rpe>=0 && +x.rpe<=10) out.rpe=+x.rpe;
   const fc=Array.isArray(x.fc)? x.fc.slice(0,20000).map(bpm) : [];
   if(fc.filter(v=>v!=null).length>1){ out.fc=fc; const ps=Math.round(+x.fcPasso); out.fcPasso=(ps>=1 && ps<=60)? ps : 5; }
+  /* col grezzo (APK 1.10.0): FC media e picco si calcolano quando si carica, non si salvano */
+  if(grezzo){ out.grezzo=1; out.inizio=Math.round(+x.inizio); delete out.fcMedia; delete out.fcPicco; delete out.fc; delete out.fcPasso; }
   return out;
 }
 /* unisce in T (DOC) il battito arrivato; p = collegamento del profilo (settimana, ultima salvata).

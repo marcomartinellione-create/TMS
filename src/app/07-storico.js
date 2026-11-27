@@ -7,7 +7,7 @@ function pannelloStorico(rows){
   if(!rows.length) return `<div class="lat"><h4>${t('In sintesi')}</h4><div class="empty">${t('Nessuna riga con questi filtri.')}</div></div>`;
   const sett={}, perEx={}, per={}, D={}, I={}; GRUPPI_PESI.forEach(g=>{ per[g]=0; D[g]=0; I[g]=0; });
   rows.forEach(r=>{ const s=+r.scheda||0, x=sTL(r); sett[s]=(sett[s]||0)+x; perEx[r.esercizio]=(perEx[r.esercizio]||0)+x;
-    const acc=accumulaSerie({}, r.esercizio, +r.serie||0, r.macro||'');
+    const acc=accumulaSerie({}, r.esercizio, +r.serie||0, macroDi(r));
     Object.keys(acc.per).forEach(g=>{ if(g in per){ per[g]+=acc.per[g]; D[g]+=acc.D[g]||0; I[g]+=acc.I[g]||0; } }); });
   const codici=Object.keys(sett).map(Number).sort((a,b)=>a-b), ult=codici.slice(-12), nS=codici.length||1;
   const maxS=Math.max(1,...ult.map(c=>sett[c])), totTL=codici.reduce((a,c)=>a+sett[c],0);
@@ -24,7 +24,7 @@ function renderStorico(){
   const schede=[...new Set(DOC.storico.map(r=>+r.scheda))].sort((a,b)=>b-a);
   let rows=DOC.storico.filter(r=>
     (!stFilt.esercizio||String(r.esercizio||'').toLowerCase().includes(stFilt.esercizio.toLowerCase()))&&
-    (!stFilt.macro||r.macro===stFilt.macro)&&
+    (!stFilt.macro||macroDi(r)===stFilt.macro)&&
     (!stFilt.scheda||(+r.scheda)===(+stFilt.scheda)));
   const totTL=rows.reduce((a,r)=>a+sTL(r),0);
   let body='',last=null;
@@ -37,7 +37,7 @@ function renderStorico(){
       ${(DOC.storico_fc||[]).map((f,k)=>(+f.scheda)===(+r.scheda)? `<span class="fc-sed" style="display:inline-flex;gap:5px;align-items:center;font-weight:400">${esc(giornoNome(f.giorno))} ${sedutaFcPill(f, `data-fcst="${k}"`)}</span>` : '').join('')}
       <button class="btn btn--sm btn--del no-print" data-delsched="${r.scheda}" title="${esc(t('Elimina tutte le righe di questa settimana'))}" aria-label="${esc(t('Elimina tutte le righe di questa settimana'))}">${ico('cestino','p')}</button></div></td></tr>`;}
     const [fl,fc]=fascia(sPct(r));
-    body+=`<tr${r.test?' style="background:rgba(122,62,168,.06)"':''}><td class="l">${esc(exName(r.esercizio))}</td><td>${esc(t(r.macro)||'')}</td><td class="num">${(+r.seduta||1)}${r.test?' '+ico('stella','p pieno'):''}</td>
+    body+=`<tr${r.test?' style="background:rgba(122,62,168,.06)"':''}><td class="l">${esc(exName(r.esercizio))}</td><td>${esc(t(macroDi(r))||'')}</td><td class="num">${(+r.seduta||1)}${r.test?' '+ico('stella','p pieno'):''}</td>
       <td class="num">${nf(r.serie,0)}</td><td class="num">${nf(r.rip,0)}</td><td class="num">${nf(r.peso,1)}</td>
       <td class="num">${(r.rir==null||r.rir==='')?'–':r.rir}</td><td class="num cell-calc">${nf(rmMostrato(r),1)}</td><td class="num cell-calc">${nf(sPct(r),1)}</td>
       <td class="num cell-out">${nfk(sTL(r))}</td><td><span class="fascia ${fc}">${t(fl)}</span></td>

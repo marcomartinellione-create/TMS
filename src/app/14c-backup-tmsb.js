@@ -6,6 +6,7 @@
      libreria/<file>             profili.json, esercizi.json, ricette.json, taccuino.json
      profili/<slug>/<file>       OGNI file di ogni profilo (scheda, storico, corpo, alimentazione, copie delle migrazioni…)
      profili/<slug>/foto/<file>  tutte le foto
+     profili/<slug>/bracciale/<AAAA-MM>.json   i campioni grezzi del bracciale (PK_GREZZI: le sottocartelle dei dati grezzi)
      video/<file>                i video personali degli esercizi
      orfani/<slug>/…             cartelle di profili rimaste fuori dall'elenco (al ripristino tornano come cartelle)
      impostazioni.json           tema, stile della notte, lingua, video personali sì/no
@@ -14,9 +15,14 @@
    Con la password tutto è cifrato come il .tms. Dopo averlo costruito lo si rilegge (controllo d'integrità). È lo stesso
    per il backup che scarichi, quello automatico di ogni settimana, la copia nella cartella scelta e la copia di
    sicurezza prima di un ripristino. Il ripristino legge anche i vecchi backup .json (14-backup.js, restoreDataJson). */
-const BK_FORMATO='tms-backup', BK_VERSIONE=1, BK_SPECIALI=['_eliminati','backup_automatici','video'];
+/* BK_VERSIONE = la versione più alta che questa app sa LEGGERE; il backup completo si scrive ancora come versione 1 (lo
+   aprono anche le app di prima), quello «a deposito» come versione 2 (un'app di prima lo rifiuta invece di riprenderlo a metà) */
+const BK_FORMATO='tms-backup', BK_VERSIONE=2, BK_V_COMPLETO=1, BK_V_DEPOSITO=2, BK_SPECIALI=['_eliminati','backup_automatici','video'];
 const BK_IMPOSTAZIONI=['tms-theme','tms-notte','tms-lang','tms-video-pers'];
-async function bkElenco(dh){ try{ if(dh && typeof dh.elenca==='function'){ const l=await dh.elenca(); if(Array.isArray(l)) return l; } }catch(e){} return null; }
+async function bkElenco(dh){ try{ if(dh && typeof dh.elenca==='function'){ const l=await dh.elenca(); if(Array.isArray(l)) return l; } }catch(e){}
+  /* cartella del browser (File System Access): si scorre */
+  try{ if(dh && typeof dh.values==='function'){ const l=[]; for await (const h of dh.values()) l.push({nome:h.name, cartella:h.kind==='directory'}); return l; } }catch(e){}
+  return null; }
 async function bkLeggiFile(dh, nome){ const fh=await dh.getFileHandle(nome,{create:false}); return new Uint8Array(await (await fh.getFile()).arrayBuffer()); }
 /* scrive un file (anche in sottocartelle: «foto/x.jpg»); i nomi strani non passano */
 function bkNomeSicuro(nome){ const p=String(nome||'').split('/'); return p.length && p.every(x=>x && x!=='.' && x!=='..' && !/[\\:*?"<>|]/.test(x)); }
@@ -25,22 +31,33 @@ async function bkScriviBin(dh, nome, dati){
   const p=nome.split('/'); for(let i=0;i<p.length-1;i++) dh=await dh.getDirectoryHandle(p[i],{create:true});
   const fh=await dh.getFileHandle(p[p.length-1],{create:true}), w=await fh.createWritable(); await w.write(dati); await w.close(); }
 /* tutti i file di una cartella di profilo (con l'elenco; senza, quelli che si conoscono) e le sue foto */
+/* le voci si LEGGONO quando servono (leggi), una alla volta: il backup a deposito non tiene in memoria tutto insieme.
+   Una voce che non si legge si salta, col suo errore nel registro, come prima (`assente` = non c'è e basta) */
 async function bkCartellaProfilo(pd, base, voci){
   let foto=0;
   const el=await bkElenco(pd);
   const files=el? el.filter(x=>!x.cartella).map(x=>x.nome) : [FILES.scheda, FILES.storico, FILES.corpo, FILES.alimentazione, 'storico.backup.json'];
-  for(const f of files){ try{ voci.push({nome:base+f, dati:await bkLeggiFile(pd, f)}); }catch(e){ if(!(e&&e.name==='NotFoundError')) logErrore('backup:'+base+f, e); } }
+  for(const f of files) voci.push({nome:base+f, leggi:()=>bkLeggiFile(pd, f), assenteOk:true});
   let fd=null; try{ fd=await pd.getDirectoryHandle('foto',{create:false}); }catch(e){}
   if(fd){
     let nomi=null; const ef=await bkElenco(fd); if(ef) nomi=ef.filter(x=>!x.cartella).map(x=>x.nome);
     if(!nomi){ nomi=[]; try{ const co=await readJson(pd, FILES.corpo); nomi=((co&&co.foto)||[]).map(x=>x&&x.file).filter(Boolean); }catch(e){} }
-    for(const f of nomi){ try{ voci.push({nome:base+'foto/'+f, dati:await bkLeggiFile(fd, f)}); foto++; }catch(e){ logErrore('backup/foto:'+f, e); } } }
+    for(const f of nomi){ voci.push({nome:base+'foto/'+f, leggi:()=>bkLeggiFile(fd, f), foto:true}); foto++; } }
+  /* le sottocartelle dei dati grezzi (campioni del bracciale, sedute): ogni file così com'è */
+  for(const sub of PK_GREZZI){ let sd=null; try{ sd=await pd.getDirectoryHandle(sub,{create:false}); }catch(e){}
+    if(!sd) continue; const el=await bkElenco(sd); if(!el) continue;
+    for(const x of el.filter(v=>!v.cartella)) voci.push({nome:base+sub+'/'+x.nome, leggi:()=>bkLeggiFile(sd, x.nome)}); }
   return foto; }
-async function backupCostruisci(password){
+/* i dati di una voce (null se non si legge: errore nel registro, tranne «non c'è») */
+async function bkDati(v){
+  if(v.dati) return v.dati;
+  try{ return await v.leggi(); }catch(e){ if(!(v.muto || (v.assenteOk && e && e.name==='NotFoundError'))) logErrore('backup:'+v.nome, e); return null; } }
+/* tutte le voci del backup (lette dopo, una alla volta) e i conteggi; la password decide se va anche telefono.json */
+async function bkEnumera(password){
   if(!dataDir) throw new Error(t('Il TMS non è collegato ai dati.'));
   if(profileDir){ clearTimeout(saveTimer); try{ await persistAll(); }catch(e){ logErrore('backup/salva', e); } }   /* le ultime modifiche, su disco */
   const voci=[], conta={profili:0, foto:0, video:0, orfani:0};
-  for(const f of [FILES.profili, FILES.esercizi, FILES.ricette, 'taccuino.json']){ try{ voci.push({nome:'libreria/'+f, dati:await bkLeggiFile(dataDir, f)}); }catch(e){} }
+  for(const f of [FILES.profili, FILES.esercizi, FILES.ricette, 'taccuino.json']) voci.push({nome:'libreria/'+f, leggi:()=>bkLeggiFile(dataDir, f), muto:true});
   for(const p of profili){
     let pd; try{ pd=await dataDir.getDirectoryHandle(p.slug,{create:false}); }catch(e){ continue; }
     conta.foto+=await bkCartellaProfilo(pd, 'profili/'+p.slug+'/', voci); conta.profili++; }
@@ -52,15 +69,105 @@ async function backupCostruisci(password){
   if(vd){
     let nomi=null; const ev=await bkElenco(vd); if(ev) nomi=ev.filter(x=>!x.cartella).map(x=>x.nome);
     if(!nomi) nomi=[...new Set((DOC.esercizi||[]).map(e=>String((e&&e.video)||'').replace(/^video\//,'')).filter(Boolean))];
-    for(const f of nomi){ try{ voci.push({nome:'video/'+f, dati:await bkLeggiFile(vd, f)}); conta.video++; }catch(e){} } }
+    for(const f of nomi){ voci.push({nome:'video/'+f, leggi:()=>bkLeggiFile(vd, f), muto:true}); conta.video++; } }
   const imp={}; BK_IMPOSTAZIONI.forEach(k=>{ try{ const v=localStorage.getItem(k); if(v!=null) imp[k]=v; }catch(e){} });
   voci.push({nome:'impostazioni.json', dati:pkTesto(imp)});
   let tel=false;
   if(password){ try{ const v=localStorage.getItem(TEL_KEY); if(v){ voci.push({nome:'telefono.json', dati:new TextEncoder().encode(v)}); tel=true; } }catch(e){} }
-  const man={formato:BK_FORMATO, versione:BK_VERSIONE, app:APP_VERSION, creato:new Date().toISOString(), profili:profili.map(p=>({slug:p.slug, nome:p.nome})), conta, telefono:tel};
+  return {voci, conta, telefono:tel}; }
+/* il backup COMPLETO (scaricato a mano, anche con la password): tutte le voci dentro, versione 1 */
+async function backupCostruisci(password){
+  const E=await bkEnumera(password), voci=[];
+  for(const v of E.voci){ const d=await bkDati(v); if(d) voci.push({nome:v.nome, dati:d}); else if(v.foto) E.conta.foto--; else if(v.muto && /^video\//.test(v.nome)) E.conta.video--; }
+  const man={formato:BK_FORMATO, versione:BK_V_COMPLETO, app:APP_VERSION, creato:new Date().toISOString(), profili:profili.map(p=>({slug:p.slug, nome:p.nome})), conta:E.conta, telefono:E.telefono};
   const interno=zipScrivi([{nome:'tms.json', dati:pkTesto(man)}].concat(voci));
   zipLeggi(interno);   /* si rilegge tutto, coi controlli d'integrità, prima di consegnarlo */
-  return {bytes:password? await pkCifraArchivio(interno, password, BK_FORMATO) : interno, conta, man}; }
+  return {bytes:password? await pkCifraArchivio(interno, password, BK_FORMATO) : interno, conta:E.conta, man}; }
+
+/* ── BACKUP «A DEPOSITO» (27/11/2026; Marco: «sì, fallo» alla proposta di Doc/coordinamento/DIMENSIONI_DATI.md) ──────────
+   I backup automatici di ogni settimana, la copia fuori dal PC e la copia di sicurezza prima di un ripristino non ripetono
+   più i file grandi: un file da BK_SOGLIA in su va UNA volta sola nella cartella «deposito», col nome della sua impronta
+   SHA-256, e il backup (.tmsb, versione 2, deposito:true) porta i file piccoli più l'elenco deposito.json [{nome, sha,
+   dim}]. Una foto che non cambia, un mese chiuso del bracciale, una seduta finita si salvano una volta per sempre: lo
+   spazio resta circa quello dei dati invece di 17 volte tanto, e il backup si fa un file alla volta, senza tenere tutto
+   in memoria. Ogni file nuovo nel deposito si rilegge e se ne ricontrolla l'impronta.
+   deposito/indice.json = {versione:1, backup:{<nome del backup>:[impronte]}}: il backup si segna PRIMA di scriverlo; tolto
+   un backup vecchio, le impronte che nessun backup tenuto usa più si cancellano (bkDepPulisci). Se l'indice non si legge
+   o manca mentre nel deposito ci sono già file, non si cancella niente (meglio un po' di spazio che un backup monco).
+   Locale: backup_automatici/deposito/<sha>.bin, binario (ponte dei dati). Fuori dal PC: <cartella>/deposito/<sha>.json =
+   {sha, dim, b64} (il ponte della cartella scelta, electron/main.js, accetta solo .json e .tmsb e legge testo).
+   Il backup scaricato a mano resta COMPLETO (backupCostruisci). Il ripristino di un backup a deposito prende i file dal
+   deposito di questo PC o da quello della cartella scelta in Impostazioni › Copia dei backup (bkRisolvi), controllando
+   l'impronta di ognuno; se ne manca anche uno, non ripristina niente e lo dice. ── */
+const BK_SOGLIA=32*1024, BK_DEP_DIR='deposito';
+async function bkSha(u8){ const h=new Uint8Array(await crypto.subtle.digest('SHA-256', u8)); let s=''; for(let i=0;i<h.length;i++) s+=(h[i]<16?'0':'')+h[i].toString(16); return s; }
+function bkB64(u8){ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null, u8.subarray(i, i+0x8000)); return btoa(s); }
+const BK_SHA_RE=/^[0-9a-f]{64}$/;
+/* il deposito di questo PC (backup_automatici/deposito) */
+async function bkDepLocale(){
+  const dir=await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:true}), dd=await dir.getDirectoryHandle(BK_DEP_DIR,{create:true});
+  const leggi=sha=>bkLeggiFile(dd, sha+'.bin');
+  return {nome:'locale',
+    async elenco(){ const l=(await bkElenco(dd))||[]; return new Set(l.filter(x=>!x.cartella && /^[0-9a-f]{64}\.bin$/.test(x.nome)).map(x=>x.nome.slice(0,64))); },
+    async scrivi(sha, u8){ await bkScriviBin(dd, sha+'.bin', u8); if(await bkSha(await leggi(sha))!==sha) throw new Error('deposito: il file scritto non torna ('+sha.slice(0,12)+')'); },
+    leggi, async togli(sha){ await dd.removeEntry(sha+'.bin'); },
+    async indice(){ return leggiJson(dd, 'indice.json'); }, async salvaIndice(o){ await writeJson(dd, 'indice.json', o); } }; }
+/* il deposito della cartella fuori dal PC (window.tmsScambio) */
+function bkDepEsterno(){
+  const S=window.tmsScambio, nome=sha=>BK_DEP_DIR+'/'+sha+'.json';
+  const leggi=async sha=>{ const r=await S.leggi(nome(sha)); if(!r || r.stato!=='ok') return null; const o=JSON.parse(r.testo); return (o && o.sha===sha)? pkDaB64(o.b64) : null; };
+  return {nome:'esterno',
+    async elenco(){ const l=(await S.elenca(BK_DEP_DIR))||[]; return new Set(l.filter(n=>/^[0-9a-f]{64}\.json$/.test(n)).map(n=>n.slice(0,64))); },
+    async scrivi(sha, u8){ await S.scrivi(nome(sha), JSON.stringify({sha:sha, dim:u8.length, b64:bkB64(u8)}));
+      const r=await leggi(sha); if(!r || await bkSha(r)!==sha) throw new Error('deposito: il file scritto non torna ('+sha.slice(0,12)+')'); },
+    leggi, async togli(sha){ await S.togli(nome(sha)); },
+    async indice(){ let r=null; try{ r=await S.leggi(BK_DEP_DIR+'/indice.json'); }catch(e){ return {stato:'illeggibile'}; }
+      if(!r || r.stato!=='ok') return {stato:(r && r.stato) || 'assente'}; try{ return {stato:'ok', dati:JSON.parse(r.testo)}; }catch(e){ return {stato:'illeggibile'}; } },
+    async salvaIndice(o){ await S.scrivi(BK_DEP_DIR+'/indice.json', JSON.stringify(o)); } }; }
+/* l'indice del deposito: {dati, sicuro}. sicuro=false (indice illeggibile, o mancante con file già nel deposito): si scrive
+   ma non si cancella niente */
+async function bkDepIndice(dep, presenti){
+  const r=await dep.indice();
+  if(r && r.stato==='ok' && r.dati && typeof r.dati==='object' && r.dati.backup && typeof r.dati.backup==='object')
+    return {dati:r.dati, sicuro:!r.dati.incompleto};
+  const vuoto={versione:1, backup:{}};
+  if(r && r.stato==='illeggibile') return {dati:vuoto, sicuro:false, nonSalvare:true};
+  if(presenti.size) vuoto.incompleto=true;   /* l'indice è sparito con dei file già dentro: da qui non si cancella più */
+  return {dati:vuoto, sicuro:!presenti.size}; }
+/* un backup a deposito chiamato `nomeFile`: i file grandi nel deposito (una volta), il resto nel .tmsb. Torna i byte del
+   .tmsb e l'indice da aggiornare dopo averlo scritto */
+async function bkCostruisciDeposito(dep, nomeFile){
+  const E=await bkEnumera(null), presenti=await dep.elenco(), ind=await bkDepIndice(dep, presenti);
+  const piccoli=[], lista=[], usati=new Set();
+  for(const v of E.voci){
+    const d=await bkDati(v);
+    if(!d){ if(v.foto) E.conta.foto--; else if(v.muto && /^video\//.test(v.nome)) E.conta.video--; continue; }
+    if(d.length<BK_SOGLIA){ piccoli.push({nome:v.nome, dati:d}); continue; }
+    const sha=await bkSha(d);
+    if(!presenti.has(sha)){ await dep.scrivi(sha, d); presenti.add(sha); }
+    lista.push({nome:v.nome, sha:sha, dim:d.length}); usati.add(sha); }
+  /* il backup si segna nell'indice PRIMA di esistere: un'interruzione dopo non lascia un backup senza le sue impronte */
+  ind.dati.backup[nomeFile]=[...usati];
+  if(!ind.nonSalvare) await dep.salvaIndice(ind.dati);
+  const man={formato:BK_FORMATO, versione:BK_V_DEPOSITO, deposito:true, app:APP_VERSION, creato:new Date().toISOString(), profili:profili.map(p=>({slug:p.slug, nome:p.nome})), conta:E.conta, telefono:false};
+  const interno=zipScrivi([{nome:'tms.json', dati:pkTesto(man)}].concat(piccoli, [{nome:'deposito.json', dati:pkTesto(lista)}]));
+  zipLeggi(interno);
+  return {bytes:interno, conta:E.conta, man, ind}; }
+/* dopo la rotazione: le impronte che nessun backup tenuto usa più se ne vanno (solo con un indice sicuro) */
+async function bkDepPulisci(dep, ind, tenuti){
+  const tieni=new Set(tenuti.map(String)), vivi=new Set();
+  Object.keys(ind.dati.backup).forEach(n=>{ if(!tieni.has(n)) delete ind.dati.backup[n]; else (ind.dati.backup[n]||[]).forEach(s=>vivi.add(s)); });
+  if(!ind.nonSalvare) await dep.salvaIndice(ind.dati);
+  if(!ind.sicuro) return 0;
+  let n=0;
+  for(const sha of await dep.elenco()){ if(vivi.has(sha)) continue; try{ await dep.togli(sha); n++; }catch(e){ logErrore('deposito/togli', e); } }
+  return n; }
+/* un file del deposito per il ripristino: prima quello di questo PC, poi quello della cartella fuori dal PC */
+async function bkRisolvi(sha){
+  if(!BK_SHA_RE.test(String(sha))) return null;
+  try{ if(dataDir){ const dd=await (await dataDir.getDirectoryHandle(AUTOBK_DIR,{create:false})).getDirectoryHandle(BK_DEP_DIR,{create:false}); return await bkLeggiFile(dd, sha+'.bin'); } }catch(e){}
+  try{ if(bkEstDisponibile() && bkEstStato().scelta) return await bkDepEsterno().leggi(sha); }catch(e){}
+  return null; }
 
 /* ── lettura: il contenuto del backup, e la stessa «fotografia» dei vecchi backup .json (snap) ── */
 async function backupLeggi(bytes, chiediPw){
@@ -69,6 +176,17 @@ async function backupLeggi(bytes, chiediPw){
   if(!man || man.formato!==BK_FORMATO) throw new Error(t('Questo file non è un backup del TMS (o è rovinato).'));
   if(+man.versione>BK_VERSIONE) throw new Error(t('Il file viene da una versione più nuova del TMS: aggiorna l’app e riprova.'));
   if(man.cifrato){ const pw=await chiediPw(); if(pw==null) return null; return backupLeggi(await pkDecifraArchivio(voci, man, pw), async()=>null); }
+  /* backup a deposito: i file grandi dal deposito, ognuno con la sua impronta controllata; ne manca uno = niente ripristino */
+  if(man.deposito){
+    let lista=null; try{ lista=pkJson(voci, 'deposito.json'); }catch(e){}
+    if(!Array.isArray(lista)) throw new Error(t('Questo backup è rovinato: manca l’elenco del deposito.'));
+    const mancano=[];
+    for(const it of lista){ if(!it || !it.nome || !BK_SHA_RE.test(String(it.sha))){ mancano.push(String(it && it.nome)); continue; }
+      let d=null; try{ d=await bkRisolvi(it.sha); }catch(e){}
+      if(!d || await bkSha(d)!==it.sha){ mancano.push(it.nome); continue; }
+      voci.push({nome:String(it.nome), dati:d}); }
+    if(mancano.length) throw new Error(t('Questo backup tiene i file grandi (foto, video, dati del bracciale…) nel suo deposito, e ne mancano')+' '+mancano.length+'. '+
+      t('Se è una copia fuori dal PC, scegli la sua cartella in Impostazioni › Copia dei backup e riprova.')); }
   const dec=new TextDecoder(), js=v=>{ if(!v) return undefined; try{ return JSON.parse(dec.decode(v.dati)); }catch(e){ return undefined; } };
   const voce=n=>voci.find(x=>x.nome===n);
   const raccogli=pref=>{ const r={}; voci.forEach(v=>{ if(!v.nome.startsWith(pref)) return; const m=v.nome.slice(pref.length).match(/^([^/]+)\/(.+)$/);
