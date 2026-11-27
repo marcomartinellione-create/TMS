@@ -209,7 +209,9 @@ if(SEDP){
     pip:a=>SEDP.pip({attivo:!!a}), batteria:()=>SEDP.batteria(), chiediBatteria:()=>SEDP.chiediBatteria(),
     sempre:o=>SEDP.sempre(o||{attivo:false}), stato:()=>SEDP.stato(), sincFatta:o=>SEDP.sincFatta(o||{}),
     /* GPS delle attività all'aperto (1.9.0): punti presi dal servizio, permesso della posizione */
-    posizioni:o=>SEDP.posizioni(o||{}), permessoPosizione:()=>SEDP.permessoPosizione()
+    posizioni:o=>SEDP.posizioni(o||{}), permessoPosizione:()=>SEDP.permessoPosizione(),
+    /* widget della giornata (1.10.0): i numeri al widget; aperta dal widget? (una volta sola) */
+    widget:o=>SEDP.widget(o||{}), widgetAperto:()=>SEDP.widgetAperto()
   };
   const inHex=b=>Array.from(b||[]).map(n=>('0'+((n&255).toString(16))).slice(-2)).join(' ');
   const daHex=v=>{ const h=String(v||'').replace(/[^0-9a-f]/gi,''), o=[]; for(let i=0;i+1<h.length;i+=2) o.push(parseInt(h.slice(i,i+2),16)); return o; };
@@ -225,6 +227,7 @@ if(SEDP){
   try{ SEDP.addListener('pip', ev=>{ try{ if(window.tmsInPip) window.tmsInPip(!!(ev && ev.attivo)); }catch(e){} }); }catch(e){}
   try{ SEDP.addListener('sempre', ev=>{ try{ if(window.tmsSempreStato) window.tmsSempreStato(ev||{}); }catch(e){} }); }catch(e){}
   try{ SEDP.addListener('sincronizza', ()=>{ try{ if(window.tmsSincServizio) window.tmsSincServizio(); }catch(e){} }); }catch(e){}
+  try{ SEDP.addListener('widget', ()=>{ try{ if(window.tmsDaWidget) window.tmsDaWidget(); }catch(e){} }); }catch(e){}
   try{ natAggiorna(); }catch(e){}     /* una seduta già aperta all'avvio: servizio e finestra mobile subito */
   try{ sempreRender(); if(ZP.pronta) natSempreAvvio(); }catch(e){}   /* chiave già letta: il servizio subito */
 }

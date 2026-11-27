@@ -104,6 +104,7 @@ async function apri(opz = {}) {
           sempre: async o => { reg.chiamate.push(['sempre', o]); },
           stato: async () => { reg.chiamate.push(['stato']); return Object.assign({ voluto: true, attivo: false, collegato: false }, opz.statoSempre || {}); },
           sincFatta: async o => { reg.chiamate.push(['sincFatta', o]); },
+          widget: async o => { reg.chiamate.push(['widget', o]); }, widgetAperto: async () => ({ si: !!opz.daWidget }),
           bleStato: async () => Object.assign({ collegato: false }, opz.statoSempre || {}),
           bleNotifiche: async o => { reg.chiamate.push(['bleNotifiche', o]); return { valore: '' }; },
           bleScrivi: async o => { reg.chiamate.push(['bleScrivi', o]); return { valore: '' }; },
@@ -432,6 +433,65 @@ async function apri(opz = {}) {
        'senza fascia né bracciale salvati il servizio non parte e la pagina spiega cosa fare');
     a.dom.window.close(); }
 
+  /* ── calorie di oggi e widget della giornata (1.10.0) ── */
+  { const sc = JSON.parse(JSON.stringify(SCHEDA)); sc.corpo = { altezza: 180, sesso: 'M', eta: 40, fcMax: 0, fcRiposo: 55, peso: 80, massa_grassa: 0.15 };
+    const a = await apri({ seduta: true, ble: true, scheda: sc }), { w, d, reg } = a, E = s => w.eval(s);
+    await attendi(150);
+    const prof = E('kcProfilo()');
+    ok(prof && Math.round(prof.rmr) === 1996 && prof.da === 'cunningham' && prof.soglia === 105,
+       'calorie: con peso e grasso del PC il metabolismo a riposo è di Cunningham 1980 (500 + 22 × 68 kg = 1996); soglia del battito al 40 % della riserva (105)');
+    E('SCHEDA.corpo.massa_grassa=0');
+    ok(Math.round(E('kcProfilo().rmr')) === 1730 && E('kcProfilo().da') === 'mifflin', 'calorie: senza grasso Mifflin-St Jeor (uomo, 80 kg, 180 cm, 40 anni = 1730)');
+    E('SCHEDA.corpo.massa_grassa=0.15; SCHEDA.corpo.peso=0');
+    ok(E('kcProfilo()') === null && /servono il peso/.test(E('salHtmlKcal()')), 'calorie: senza peso niente stima, e la Salute dice cosa serve');
+    E('SCHEDA.corpo.peso=80');
+    ok(Math.abs(E('kcKeytel(130, kcProfilo())') - 12.16) < 0.05 && E('kcMetCadenza(100)') === 3 && E('kcMetCadenza(130)') === 6 && E('kcMetCadenza(160)') === 9,
+       'calorie: Keytel 2005 (130 bpm, uomo di 80 kg e 40 anni ≈ 12,2 kcal al minuto); cadenza 100 = 3 MET, 130 = 6 MET (CADENCE-Adults)');
+    /* un giorno intero finto: notte fino alle 7 con mezz'ora sveglio, un'ora a 110 passi al minuto, mezz'ora a 150 bpm senza passi */
+    E(`(function(){ const g='2026-11-20', d0=new Date(g+'T00:00:00').getTime();
+      ZPD=zpdVuoto(); ZPD.notti[g]={id:g, _da:d0-3600000, _a:d0+7*3600000, fasi:[[0,120,'leggero'],[120,150,'sveglio'],[150,480,'profondo']]};
+      ZPD.s[1]=[]; for(let k=0;k<60;k++) ZPD.s[1].push([d0+(8*60+k)*60000, 110, null]);
+      for(let k=0;k<30;k++) ZPD.s[1].push([d0+(18*60+k)*60000, 0, 150]);
+      SEDUTE_FC=[]; SEDUTE_PESI_FC=[]; })()`);
+    const k1 = E('kcGiorno("2026-11-20")');
+    ok(k1 && k1.bas === 1996 && Math.abs(k1.vit - 582) <= 2 && Math.abs(k1.mov - 617) <= 3 && Math.abs(k1.tot - (k1.bas + k1.vit + k1.mov + k1.dig)) <= 1 && Math.abs(k1.dig - k1.tot * 0.1) <= 1 && k1.passi === 60 && k1.battito === 30,
+       'calorie: giorno intero = metabolismo 1996 + vita quotidiana (1050 minuti svegli × 0,4) 582 + movimento (passi a 4 MET, battito con Keytel) 617 + digestione (10 % del totale) → ' + (k1 && k1.tot));
+    E('SEDUTE_PESI_FC=[{id:"p|x", data:"2026-11-20", ora:"10:00", durataSec:3600, fc:new Array(720).fill(160), fcPasso:5}]');
+    const k2 = E('kcGiorno("2026-11-20")');
+    E('SEDUTE_PESI_FC[0].rpe=9');
+    const k2b = E('kcGiorno("2026-11-20")');
+    ok(k2b && Math.abs((k2b.mov - k1.mov) - 388) <= 2, 'calorie: la stessa ora di pesi con fatica 9 vale 6 MET (Compendium 02050, «vigorous»): +388');
+    E('SEDUTE_PESI_FC=[]; SEDUTE_FC=[{data:"2026-11-20", ora:"12:00", durataSec:1800, fc:[], passo:5, tipo:"Bici", disc:"Bici", variante:"Strada"}]');
+    const k3 = E('kcGiorno("2026-11-20")');
+    ok(k2 && Math.abs((k2.mov - k1.mov) - 178) <= 2 && k3 && Math.abs((k3.mov - k1.mov) - 236) <= 2,
+       'calorie: un\'ora di pesi vale 3,5 MET anche col battito alto (+178), mezz\'ora di bici senza battito 7 MET del Compendium (+236)');
+    E('SEDUTE_FC=[]');
+    /* la Salute: il riquadro delle calorie */
+    await E('salApri()'); await attendi(80);
+    const box = d.getElementById('sal-kcal');
+    ok(box && /kcal/.test(box.textContent) && box.querySelectorAll('.sal-kc-bar i').length === 4 && /Digestione/.test(box.textContent) && /Metabolismo a riposo/.test(box.textContent) && /Cunningham/.test(box.textContent) && /stima fino alle/.test(box.textContent),
+       'Salute: «Calorie di oggi» col totale fino ad adesso, la barra in quattro parti (metabolismo, vita quotidiana, movimento, digestione) e da dove viene il metabolismo');
+    /* il widget */
+    const oggi = E('dataLoc(new Date())');
+    E(`(function(){ const g='${oggi}', d0=new Date(g+'T00:00:00').getTime();
+      ZPD.notti[g]={id:g, inizio:g+'T00:10', fine:g+'T07:10', punteggio:82, _da:d0+600000, _a:d0+600000+420*60000,
+        fasi:[[0,60,'profondo'],[60,90,'rem'],[90,400,'leggero'],[400,420,'sveglio']]}; ZPD.passi[g]=6240; })()`);
+    E('widgetAggiorna(true)'); await attendi(20);
+    const wg = reg.chiamate.filter(x => x[0] === 'widget').pop();
+    ok(wg && wg[1].g === oggi && wg[1].passi === 6240 && wg[1].obi === 8000 && wg[1].kcal > 0 && wg[1].sonno && wg[1].sonno.p === 82 &&
+       JSON.stringify(wg[1].sonno.f) === '[60,30,310,20]' && wg[1].sonno.min === 400 && wg[1].L.passi === 'passi',
+       'widget: la pagina manda passi, obiettivo, calorie, sonno (punteggio 82, fasi profondo/REM/leggero/sveglio in minuti) e i testi nella lingua dell\'app');
+    const n = reg.chiamate.filter(x => x[0] === 'widget').length;
+    E('widgetAggiorna()'); await attendi(20);
+    ok(reg.chiamate.filter(x => x[0] === 'widget').length === n, 'widget: senza «forza» al massimo una volta al minuto');
+    E('mostra("menu")'); reg.ascolti['seduta:widget'](); await attendi(80);
+    ok(d.getElementById('sal').hidden === false, 'widget: toccandolo con l\'app aperta si va alla Salute');
+    a.dom.window.close(); }
+  { const a = await apri({ seduta: true, ble: true, daWidget: true }), { d } = a;
+    await attendi(250);
+    ok(d.getElementById('sal').hidden === false, 'widget: aprendo l\'app dal widget si arriva alla Salute');
+    a.dom.window.close(); }
+
   /* ── collegamento col PC del personal (dal 24/11/2026 passa dall'hub del TMS) e aggiornamento dell'APK ── */
   { const a = await apri({ cartella: true }), { w, d, reg } = a;
     ok(d.getElementById('vai-col').hidden === false && /Impostazioni/.test(d.getElementById('vai-col').textContent) && d.getElementById('col-box').hidden === false && d.getElementById('col').contains(d.getElementById('lang-btn')) && typeof w.tmsCartella === 'undefined' && !d.getElementById('col-cartella'),
@@ -547,6 +607,14 @@ async function apri(opz = {}) {
        /BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/.test(man1) && /android.hardware.location.gps" android:required="false"/.test(man1),
        'patch-android: GPS delle attività all\'aperto (posizione anche da Android 12, servizio «location»); la ricerca Bluetooth resta senza posizione');
     ok(fs.existsSync(path.join(java, 'TmsAvvioReceiver.java')) && fs.existsSync(path.join(java, 'TmsSedutaService.java')), 'patch-android: copia anche TmsAvvioReceiver.java');
+    { const res = path.join(T, 'android/app/src/main/res'), lay = fs.existsSync(path.join(res, 'layout/tms_widget.xml')) ? fs.readFileSync(path.join(res, 'layout/tms_widget.xml'), 'utf8') : '';
+      const ids = [...fs.readFileSync(path.join(QUI, 'nativo/TmsWidget.java'), 'utf8').matchAll(/id\(c, "id", "(tms_w_\w+)"\)/g)].map(m => m[1]);
+      ok(/<receiver android:name=".TmsWidget" android:exported="false" android:label="@string\/tms_w_nome">/.test(man1) && /android.appwidget.action.APPWIDGET_UPDATE/.test(man1) &&
+         /android:resource="@xml\/tms_widget_info"/.test(man1) && man1.split('".TmsWidget"').length === 2 && fs.existsSync(path.join(java, 'TmsWidget.java')),
+         'patch-android: widget della giornata (ricevitore non esportato con le sue informazioni, TmsWidget.java copiato, rilanciato non si doppia)');
+      ok(lay && ids.length >= 9 && ids.every(i => lay.includes('@+id/' + i + '"')) && ['tms_w_cuore', 'tms_w_passi', 'tms_w_fiamma', 'tms_widget_sfondo', 'tms_w_anello_vuoto'].every(n => fs.existsSync(path.join(res, 'drawable', n + '.xml'))) &&
+         /targetCellWidth="4"/.test(fs.readFileSync(path.join(res, 'xml/tms_widget_info.xml'), 'utf8')) && /your day/.test(fs.readFileSync(path.join(res, 'values-en/tms_widget.xml'), 'utf8')),
+         'patch-android: layout del widget con tutti gli id che TmsWidget.java usa (' + ids.length + '), icone, sfondo, informazioni (4 × 2) e testi IT/EN'); }
     ok(/versionName "1\.8\.1"/.test(fs.readFileSync(path.join(T, 'android/app/build.gradle'), 'utf8')) || VERSIONE !== '1.8.1', 'patch-android: versione dell\'APK dal package.json (' + VERSIONE + ')');
     try { fs.rmSync(T, { recursive: true, force: true }); } catch (e) {} }
 

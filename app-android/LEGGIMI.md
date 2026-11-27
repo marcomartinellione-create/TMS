@@ -106,6 +106,36 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
     di oggi a mezz'ore.
   · **Misure compatte e uguali ovunque**: blocco «STESSE MISURE OVUNQUE» in fondo al foglio di stile (solo dimensioni, ~10 %
     in meno; colori, caratteri e raggi invariati).
+- **APK 1.10.0 (CVER 5.1, cache v39), 27/11/2026, richieste di Marco** («ragioniamo insieme su come inserire una stima delle
+  calorie bruciate», «rifatti a paper scientifici», «un widget per il telefono che sintetizza la giornata»):
+  · **Calorie di oggi** (`kcProfilo`, `kcGiorno`, `salHtmlKcal`; riquadro `#sal-kcal` della Salute): STIMA minuto per minuto
+    da mezzanotte ad adesso. Metabolismo a riposo: Cunningham 1980 (500 + 22 × massa magra; grasso dall'ultima pesata del
+    telefono o `SCHEDA.corpo.massa_grassa` del PC), senza grasso Mifflin-St Jeor 1990; vita quotidiana coi multipli FAO/WHO/UNU
+    2004 (dormire 1,0 dalle fasi del bracciale, sveglio 1,4); passi del tipo 1 (`ZPD.s[1]` = [ora, passi, bpm]) a MET dalla
+    cadenza (CADENCE-Adults 2019: 100 = 3 MET, 130 = 6), kcal/min = MET × 3,5 × kg / 200; battito oltre il 40 % della
+    riserva (ACSM 2011) con Keytel 2005; sedute del telefono (`SEDUTE_FC` con battito → Keytel, senza → MET del Compendium
+    2024 `KC_MET`; `SEDUTE_PESI_FC` a 3,5 MET). PROPOSTA da rivedere con Marco: al PC non va. Il PC ora manda nella scheda
+    anche `corpo.peso` e `corpo.massa_grassa` (`15-scambio.js`).
+  · **Regola dei dati grezzi** (Marco, 27/11/2026): si salvano solo le misure. Bracciale: al PC l'evento `tms-bracciale`
+    coi CAMPIONI del giorno (`zpGiornoGrezzo`: base64 al minuto per passi+battito, stress, pelle; elenchi con l'ora per
+    HRV, SpO2, respirazione, battito a riposo), niente più `tms-giorno`; `tms-sonno` senza medie (`zpNotteEvento`). Sedute:
+    battito al secondo (`r.hr`) e punti GPS grezzi (`r.fix`, `fcFix`) salvati in una voce per seduta (`fcGrezzoKey`); FC
+    media e picco, traccia a 5 s, distanza, dislivello, parziali e percorso calcolati da `fcDaGrezzo` e attaccati NON
+    enumerabili (`fcAttacca`): JSON.stringify non li vede. Pesi: `hr` (base64) nella voce. Pesate: peso, impedenze e
+    contesto (altezza, età, sesso), composizione non enumerabile (`pesComponi`). Calorie: digestione 10 %, pesi coi MET
+    del Compendium secondo l'RPE (`kcMetPesi`).
+  · **Prova di Marco sul telefono (27/11/2026, sera)**: finestra mobile col SOLO battito, grande, a misura della
+    finestra (unità vh/vw; PiP 3:2, `pipRender`); niente zoom (viewport `maximum-scale=1,user-scalable=no`); notifica
+    «Allenamento in corso» (canale `allenamento`, importanza normale ma muta, visibile sullo schermo bloccato, tempo che
+    scorre col cronometro; permesso delle notifiche chiesto alla prima seduta, `natPermessoNotifiche`); con un allenamento
+    aperto i suoi dettagli restano in alto su ogni pagina (`sedZona` fuori dalla pagina, tasto «Torna all'allenamento»,
+    `allenTorna`) e non se ne apre un altro (`allenBloccato` in `apriGiorno` e sulle discipline: avviso e ritorno).
+  · **Widget della giornata** (`nativo/TmsWidget.java`, risorse e ricevitore da `scripts/patch-android.js` punto 4b): anello a
+    torta delle fasi del sonno col punteggio al centro, battito con l'ora, passi con barretta dell'obiettivo, calorie. La
+    pagina manda i numeri (`widgetAggiorna`: dopo ogni sincronizzazione, all'avvio, uscendo dall'app, Salute aperta una volta
+    al minuto) con `TmsSeduta.widget` o, dalla pagina invisibile del servizio, `TmsServizio.widget`; il servizio aggiorna il
+    battito (`TmsWidget.battito`, una volta al minuto). Toccandolo: azione `…WIDGET` → `MainActivity.onNewIntent` →
+    `TmsSedutaPlugin.daWidget` → evento «widget» o, all'avvio, `widgetAperto()` → `salDaWidget` (non durante una seduta).
 - **❤ Salute** (dalla 1.8.1; voce `#vai-sal` del menu, pagina `#sal`, funzioni `sal*`): battito adesso (`FC.bpm` della
   fascia collegata nella pagina, o `bpm` dello stato del servizio, aggiornato ogni 5 s), zona (`fcZona`), passi di oggi
   (`ZPD.passi`, ora dal cursore del tipo 1), batteria, ultimo campione di stress (19/18), SpO2 (37), pelle (46),

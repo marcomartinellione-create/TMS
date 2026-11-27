@@ -79,6 +79,27 @@ public class TmsSedutaPlugin extends Plugin {
         p.notifyListeners("bleDati", r, false);
     }
 
+    /* WIDGET DELLA GIORNATA (1.10.0): l'app aperta dal widget. Con la pagina già pronta l'evento «widget»; all'avvio
+       (la pagina non ascolta ancora) resta un segno che la pagina legge con widgetAperto quando ha caricato i dati */
+    private static boolean daWidgetInAttesa = false;
+    static void daWidget() {
+        TmsSedutaPlugin p = istanza;
+        if (p != null && p.getBridge() != null && p.hasListeners("widget")) { daWidgetInAttesa = false; p.notifyListeners("widget", new JSObject(), false); }
+        else daWidgetInAttesa = true;
+    }
+
+    @PluginMethod
+    public void widget(PluginCall call) {
+        TmsWidget.salva(getContext(), call.getData().toString());
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void widgetAperto(PluginCall call) {
+        JSObject r = new JSObject(); r.put("si", daWidgetInAttesa); daWidgetInAttesa = false;
+        call.resolve(r);
+    }
+
     /* la MainActivity avvisa quando entra o esce dalla finestra mobile */
     static void pipCambiato(boolean attivo) {
         TmsSedutaPlugin p = istanza; if (p == null) return;

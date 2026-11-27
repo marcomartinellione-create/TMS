@@ -5,12 +5,12 @@
    1. local.properties: dove sta l'Android SDK (sennò Gradle lo cerca nelle variabili d'ambiente,
       che un .bat lanciato col doppio clic può non vedere);
    2. sorgenti nativi (MainActivity + plugin TmsFile, TmsCartella e TmsSeduta + servizio TmsSedutaService +
-      ricevitore TmsAvvioReceiver) da nativo/;
+      ricevitore TmsAvvioReceiver + widget TmsWidget) da nativo/;
    3. AndroidManifest: permesso di vibrare (timer), niente più «Apri con» per i .json,
       fotocamera visibile all'app (per «Scatta una foto»), Bluetooth della bilancia senza posizione,
       installazione dell'APK nuovo dalla cartella condivisa; icona bianca dei promemoria;
    4. stile: barra di stato scura come la PWA, schermata d'avvio nera con la stella
-      (le immagini le fa scripts/immagini.ps1);
+      (le immagini le fa scripts/immagini.ps1); 4b. widget della giornata (layout, icone, testi);
    5. build.gradle: versione dall'package.json, firma con la chiave del progetto (firma/),
       compilazione fuori da OneDrive. */
 'use strict';
@@ -52,7 +52,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
 {
   const dest = path.join(MAIN, 'java', ...PKG.split('.'));
   fs.mkdirSync(dest, { recursive: true });
-  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java', 'TmsSedutaPlugin.java', 'TmsSedutaService.java', 'TmsAvvioReceiver.java']) {
+  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java', 'TmsSedutaPlugin.java', 'TmsSedutaService.java', 'TmsAvvioReceiver.java', 'TmsWidget.java']) {
     fs.copyFileSync(path.join(QUI, 'nativo', f), path.join(dest, f));
   }
   console.log('sorgenti nativi copiati in ' + path.relative(QUI, dest));
@@ -156,13 +156,24 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
       '            </intent-filter>\n' +
       '        </receiver>\n    </application>');
   }
+  /* WIDGET DELLA GIORNATA (1.10.0): il ricevitore del widget (gli aggiornamenti li manda solo il sistema) */
+  if (!s.includes('android:name=".TmsWidget"')) {
+    if (s.split('</application>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</application>)'); process.exit(1); }
+    s = s.replace('</application>', '    <!-- TMS: widget della giornata (battito, passi, calorie, sonno) -->\n' +
+      '        <receiver android:name=".TmsWidget" android:exported="false" android:label="@string/tms_w_nome">\n' +
+      '            <intent-filter>\n' +
+      '                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />\n' +
+      '            </intent-filter>\n' +
+      '            <meta-data android:name="android.appwidget.provider" android:resource="@xml/tms_widget_info" />\n' +
+      '        </receiver>\n    </application>');
+  }
   /* FINESTRA MOBILE (Picture-in-Picture, come YouTube): l'attività la dichiara; entra e esce la MainActivity */
   if (!s.includes('android:supportsPictureInPicture')) {
     if (s.split('<activity').length !== 2) { console.error('patch-android: AndroidManifest inatteso (<activity>)'); process.exit(1); }
     s = s.replace('<activity', '<activity\n            android:supportsPictureInPicture="true"\n            android:resizeableActivity="true"');
   }
   scrivi(f, s);
-  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte, seduta in primo piano, sempre collegato, finestra mobile');
+  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte, seduta in primo piano, sempre collegato, finestra mobile, widget');
   /* icona dei promemoria (barra delle notifiche): una sagoma bianca, Android la colora da sé */
   scrivi(path.join(RES, 'drawable', 'ic_stat_tms.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona dei promemoria (bilancia). Generato da scripts/patch-android.js -->\n' +
@@ -214,6 +225,66 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
     '    <item><bitmap android:gravity="center" android:src="@drawable/tms_logo" /></item>\n' +
     '</layer-list>\n');
   console.log('stile: barre scure, pagina chiara, avvio nero con la stella');
+}
+
+/* 4b) WIDGET DELLA GIORNATA (1.10.0): layout, informazioni, sfondo, icone e testi del widget (nativo/TmsWidget.java).
+   Colori e forme dell'app: carta chiara, bordo a filo, angoli come i riquadri, icone a tratto come quelle della pagina
+   (cuore, passi, fiamma dei simboli di web/index.html), numeri in serif. Il ricevitore lo mette il punto 3. */
+{
+  const ic = (nome, paths) => scrivi(path.join(RES, 'drawable', nome + '.xml'),
+    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona del widget. Generato da scripts/patch-android.js -->\n' +
+    '<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">\n' +
+    paths.map(d => '    <path android:strokeColor="#FFB4470D" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="' + d + '" />\n').join('') +
+    '</vector>\n');
+  ic('tms_w_cuore', ['M12 20.2s-7.6-4.6-7.6-10.4A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.6 2.6c0 5.8-7.6 10.4-7.6 10.4z', 'M6 12.4h3.2l1.6-2.8 2.4 5.2 1.6-2.4H18']);
+  ic('tms_w_passi', ['M8.2 13.6c-1.7.2-2.9-1.6-3-4.1-.1-2.6.8-4.6 2.4-4.7 1.6-.1 2.6 1.9 2.7 4.4.1 1.6-.4 4.2-2.1 4.4zM6.4 16.2l3.4-.4c.4 1.6-.1 3.2-1.5 3.4-1.4.1-1.9-1.4-1.9-3z',
+    'M15.8 10.6c1.7.2 2.9-1.6 3-4.1.1-2.6-.8-4.6-2.4-4.7-1.6-.1-2.6 1.9-2.7 4.4-.1 1.6.4 4.2 2.1 4.4zM17.6 13.2l-3.4-.4c-.4 1.6.1 3.2 1.5 3.4 1.4.1 1.9-1.4 1.9-3z']);
+  ic('tms_w_fiamma', ['M12 21c3.5 0 6-2.5 6-5.8 0-3.6-2.6-5.5-3.6-8.6-.7 1.6-1.6 2.6-2.6 3.1-.1-2.8-1.3-5.2-3.2-6.7.2 3.2-3.1 6.2-3.1 10.2C5.5 18.5 8.3 21 12 21z']);
+  scrivi(path.join(RES, 'drawable', 'tms_widget_sfondo.xml'),
+    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: fondo del widget (carta, filo). Generato da scripts/patch-android.js -->\n' +
+    '<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n' +
+    '    <solid android:color="#FFFDFAF5" />\n    <stroke android:width="1dp" android:color="#FFE6DBC6" />\n    <corners android:radius="22dp" />\n</shape>\n');
+  scrivi(path.join(RES, 'drawable', 'tms_w_anello_vuoto.xml'),
+    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: anello del sonno prima dei dati. Generato da scripts/patch-android.js -->\n' +
+    '<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">\n' +
+    '    <stroke android:width="8dp" android:color="#FFEDE4D2" />\n    <size android:width="76dp" android:height="76dp" />\n</shape>\n');
+  const riga = (icona, idV, idU, testoV, testoU, sopra) =>
+    '        <LinearLayout\n            android:layout_width="match_parent"\n            android:layout_height="wrap_content"\n' +
+    (sopra ? '            android:layout_marginTop="' + sopra + '"\n' : '') +
+    '            android:gravity="center_vertical"\n            android:orientation="horizontal">\n' +
+    '            <ImageView\n                android:layout_width="16dp"\n                android:layout_height="16dp"\n                android:importantForAccessibility="no"\n                android:src="@drawable/' + icona + '" />\n' +
+    '            <TextView\n                android:id="@+id/' + idV + '"\n                android:layout_width="wrap_content"\n                android:layout_height="wrap_content"\n                android:layout_marginStart="8dp"\n' +
+    '                android:fontFamily="serif"\n                android:maxLines="1"\n                android:text="' + testoV + '"\n                android:textColor="#FF1C1208"\n                android:textSize="19sp"\n                android:textStyle="bold" />\n' +
+    '            <TextView\n                android:id="@+id/' + idU + '"\n                android:layout_width="wrap_content"\n                android:layout_height="wrap_content"\n                android:layout_marginStart="5dp"\n' +
+    '                android:ellipsize="end"\n                android:maxLines="1"\n                android:text="' + testoU + '"\n                android:textColor="#FF6B5A40"\n                android:textSize="11sp" />\n' +
+    '        </LinearLayout>\n';
+  scrivi(path.join(RES, 'layout', 'tms_widget.xml'),
+    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: widget della giornata (battito, passi, calorie, sonno). Generato da scripts/patch-android.js -->\n' +
+    '<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"\n    android:id="@+id/tms_w_radice"\n    android:layout_width="match_parent"\n    android:layout_height="match_parent"\n' +
+    '    android:background="@drawable/tms_widget_sfondo"\n    android:gravity="center_vertical"\n    android:orientation="horizontal"\n    android:padding="12dp">\n\n' +
+    '    <LinearLayout\n        android:layout_width="wrap_content"\n        android:layout_height="wrap_content"\n        android:gravity="center_horizontal"\n        android:orientation="vertical">\n' +
+    '        <ImageView\n            android:id="@+id/tms_w_anello"\n            android:layout_width="76dp"\n            android:layout_height="76dp"\n            android:contentDescription="@string/tms_w_sonno"\n            android:src="@drawable/tms_w_anello_vuoto" />\n' +
+    '        <TextView\n            android:id="@+id/tms_w_sonno"\n            android:layout_width="wrap_content"\n            android:layout_height="wrap_content"\n            android:layout_marginTop="4dp"\n            android:maxLines="1"\n' +
+    '            android:text="@string/tms_w_sonno"\n            android:textColor="#FF6B5A40"\n            android:textSize="11sp" />\n    </LinearLayout>\n\n' +
+    '    <LinearLayout\n        android:layout_width="0dp"\n        android:layout_height="wrap_content"\n        android:layout_marginStart="14dp"\n        android:layout_weight="1"\n        android:orientation="vertical">\n' +
+    riga('tms_w_cuore', 'tms_w_bpm', 'tms_w_bpm_u', '—', 'bpm', '') +
+    riga('tms_w_passi', 'tms_w_passi', 'tms_w_passi_u', '—', '', '5dp') +
+    '        <ImageView\n            android:id="@+id/tms_w_barra"\n            android:layout_width="match_parent"\n            android:layout_height="4dp"\n            android:layout_marginStart="24dp"\n            android:layout_marginTop="3dp"\n' +
+    '            android:importantForAccessibility="no"\n            android:scaleType="fitXY" />\n' +
+    riga('tms_w_fiamma', 'tms_w_kcal', 'tms_w_kcal_u', '—', 'kcal', '5dp') +
+    '        <TextView\n            android:id="@+id/tms_w_agg"\n            android:layout_width="wrap_content"\n            android:layout_height="wrap_content"\n            android:layout_marginTop="5dp"\n            android:maxLines="1"\n' +
+    '            android:text="TMS Scheda"\n            android:textColor="#FFA08D6E"\n            android:textSize="10sp" />\n    </LinearLayout>\n</LinearLayout>\n');
+  scrivi(path.join(RES, 'xml', 'tms_widget_info.xml'),
+    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: informazioni del widget della giornata. Generato da scripts/patch-android.js -->\n' +
+    '<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"\n    android:description="@string/tms_w_desc"\n    android:initialLayout="@layout/tms_widget"\n' +
+    '    android:minHeight="110dp"\n    android:minResizeHeight="100dp"\n    android:minResizeWidth="200dp"\n    android:minWidth="250dp"\n    android:previewLayout="@layout/tms_widget"\n' +
+    '    android:resizeMode="horizontal|vertical"\n    android:targetCellHeight="2"\n    android:targetCellWidth="4"\n    android:updatePeriodMillis="1800000"\n    android:widgetCategory="home_screen" />\n');
+  const testi = (cart, nome, desc, sonno) => scrivi(path.join(RES, cart, 'tms_widget.xml'),
+    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: testi del widget. Generato da scripts/patch-android.js -->\n<resources>\n' +
+    '    <string name="tms_w_nome">' + nome + '</string>\n    <string name="tms_w_desc">' + desc + '</string>\n    <string name="tms_w_sonno">' + sonno + '</string>\n</resources>\n');
+  testi('values', 'TMS · la giornata', 'Battito, passi, calorie e sonno di oggi', 'sonno');
+  testi('values-en', 'TMS · your day', 'Heart rate, steps, calories and sleep today', 'sleep');
+  console.log('widget della giornata: layout, informazioni, sfondo, icone e testi');
 }
 
 /* 5) build.gradle: versione, firma, compilazione fuori da OneDrive */

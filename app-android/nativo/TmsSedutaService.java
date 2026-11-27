@@ -112,6 +112,9 @@ public class TmsSedutaService extends Service {
     static final int ID_NOTIFICA = 7400;
     static final int ID_AVVISO = 7401;
     static final String CANALE = "seduta";
+    /* «Allenamento in corso» (APK 1.10.0): canale con importanza normale ma SENZA suono né vibrazione, così la notifica si
+       vede nella barra e sullo schermo bloccato (quello «seduta», basso, resta per i telefoni che ce l'hanno già) */
+    static final String CANALE_ALLEN = "allenamento";
     static final String CANALE_SEMPRE = "collegamento";
     static final String PREF = "tms-sempre";
     static final long MAX_CAMPIONI = 6L * 3600L;              /* 6 ore a un battito al secondo */
@@ -414,6 +417,10 @@ public class TmsSedutaService extends Service {
         s.setDescription("Battito e tempo della seduta, mentre l'allenamento è aperto");
         s.setShowBadge(false);
         nm.createNotificationChannel(s);
+        NotificationChannel a = new NotificationChannel(CANALE_ALLEN, "Allenamento in corso", NotificationManager.IMPORTANCE_DEFAULT);
+        a.setDescription("Battito e tempo dell'allenamento in corso");
+        a.setShowBadge(false); a.setSound(null, null); a.enableVibration(false); a.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        nm.createNotificationChannel(a);
         NotificationChannel k = new NotificationChannel(CANALE_SEMPRE, "Bracciale collegato", NotificationManager.IMPORTANCE_LOW);
         k.setDescription("Il collegamento col bracciale o la fascia, anche ad app chiusa");
         k.setShowBadge(false); k.setSound(null, null); k.enableVibration(false);
@@ -437,12 +444,16 @@ public class TmsSedutaService extends Service {
 
     private Notification notifica() {
         boolean fresco = ultimoBpm > 0 && System.currentTimeMillis() - ultimoT < (attivo ? 15000 : 60000);
-        Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, attivo ? CANALE : CANALE_SEMPRE) : new Notification.Builder(this);
+        Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, attivo ? CANALE_ALLEN : CANALE_SEMPRE) : new Notification.Builder(this);
         if (attivo) {
+            /* «Allenamento in corso»: cosa (Seduta · Lunedì, Corsa · All'aperto), battito, e il tempo che scorre da solo */
             long sec = inizio > 0 ? Math.max(0, (System.currentTimeMillis() - inizio) / 1000) : 0;
             String tempo = (sec >= 3600 ? (sec / 3600) + ":" + due((sec % 3600) / 60) : String.valueOf((sec % 3600) / 60)) + ":" + due(sec % 60);
-            b.setContentTitle(titolo.isEmpty() ? "TMS Scheda" : titolo).setContentText((fresco ? "♥ " + ultimoBpm + " bpm · " : "") + tempo)
+            String testo = (titolo.isEmpty() ? "" : titolo) + (fresco ? (titolo.isEmpty() ? "" : " · ") + "♥ " + ultimoBpm + " bpm" : "");
+            b.setContentTitle(en() ? "Workout in progress" : "Allenamento in corso").setContentText(testo.isEmpty() ? tempo : testo)
              .setCategory(Notification.CATEGORY_WORKOUT);
+            if (inizio > 0) b.setWhen(inizio).setUsesChronometer(true).setShowWhen(true);
+            if (Build.VERSION.SDK_INT >= 21) b.setVisibility(Notification.VISIBILITY_PUBLIC);
         } else {
             String cosa = "fascia".equals(tipoSempre) ? (en() ? "Heart rate strap" : "Fascia") : (en() ? "Band" : "Bracciale");
             Collegamento l = linkSempre();
@@ -464,7 +475,8 @@ public class TmsSedutaService extends Service {
             if (Build.VERSION.SDK_INT >= 23) b.addAction(new Notification.Action.Builder(null, en() ? "Disconnect" : "Scollega", ps).build());
             else b.addAction(0, en() ? "Disconnect" : "Scollega", ps);
         }
-        b.setSmallIcon(icona(this)).setContentIntent(apriApp(this)).setOngoing(true).setOnlyAlertOnce(true).setShowWhen(false);
+        b.setSmallIcon(icona(this)).setContentIntent(apriApp(this)).setOngoing(true).setOnlyAlertOnce(true);
+        if (!attivo || inizio <= 0) b.setShowWhen(false);
         if (Build.VERSION.SDK_INT >= 21) b.setColor(0xFF9A5B1F);
         if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
         return b.build();
@@ -581,6 +593,8 @@ public class TmsSedutaService extends Service {
     /* ponte per la pagina invisibile (window.TmsServizio): le chiamate arrivano su un thread di WebView */
     private final class PonteServizio {
         @JavascriptInterface public String stato() { return TmsSedutaService.this.stato().toString(); }
+        /* i numeri del widget della giornata, preparati dalla pagina invisibile dopo la sincronizzazione */
+        @JavascriptInterface public void widget(final String json) { TmsWidget.salva(TmsSedutaService.this, json); }
         @JavascriptInterface public void richiesta(final int id, final String json) {
             mano.post(() -> ponte(json, (ok, valore, err) ->
                 allaPagina("window.tmsPonteEsito&&window.tmsPonteEsito(" + id + "," + ok + "," + JSONObject.quote(ok ? hex(valore) : (err == null ? "errore" : err)) + ")")));
@@ -805,6 +819,7 @@ public class TmsSedutaService extends Service {
         if (bpm < 25 || bpm > 250 || senzaContatto) return;
         long ora = System.currentTimeMillis();
         ultimoBpm = bpm; ultimoT = ora;
+        TmsWidget.battito(this, bpm);   /* il widget della giornata, al più una volta al minuto */
         if (attivo && da.equals(dispSeduta)) {
             synchronized (CAMPIONI) {
                 CAMPIONI.add(new long[]{ora, bpm});

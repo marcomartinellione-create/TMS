@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>TMS Scheda — il taccuino digitale da palestra</title>
 <meta name="description" content="Il taccuino digitale del Training Monitor System: la scheda e la dieta si creano nel TMS sul PC (dal coach o da te), qui le annoti in palestra — riscaldamento, video, grammi, serie, pesi e fatica. Tutto offline: i dati restano sul telefono.">
 <meta name="theme-color" content="#140a02">
@@ -427,6 +427,17 @@
  .sal-fasi-tot small{font-size:11px}
  .sal-fasi-tot em{grid-column:1/-1;display:block;height:4px;border-radius:2px;background:var(--carta-3);overflow:hidden}
  .sal-fasi-tot u{display:block;height:100%;text-decoration:none}
+ /* calorie di oggi (stima): il totale, la barra in tre parti coi colori dell'app, la legenda */
+ .sal-kc{display:flex;align-items:baseline;gap:8px;margin:2px 0 8px;font-variant-numeric:tabular-nums}
+ .sal-kc b{font-family:var(--serif);font-size:30px;line-height:1;color:var(--ink)}
+ .sal-kc span{font-size:12.5px;color:var(--ink-3)}
+ .sal-kc-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--carta-2);margin:0 0 8px}
+ .sal-kc-bar i{display:block;height:100%}
+ .k-bas{background:var(--ink-4)} .k-vit{background:var(--oro-2)} .k-mov{background:var(--acc)} .k-dig{background:var(--ocra)}
+ .sal-kc-leg{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:12.5px;color:var(--ink-3)}
+ .sal-kc-leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+ .sal-kc-leg b{font-family:var(--serif);font-size:13.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+ .sal-kc-nota{font-size:11.5px;color:var(--ink-4);margin-top:6px;line-height:1.4}
  .sal-notte3{margin:4px 0 0}
  .sal-notte3 b{font-size:17px}
  .sal-asse{stroke:var(--filo);stroke-width:1}
@@ -715,8 +726,8 @@
  body.in-pip>:not(#pip-vista){display:none!important}
  body.in-pip #pip-vista{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:fixed;inset:0;padding:8px;
    background:linear-gradient(155deg,#3d230b 0%,#1c0d02 72%);color:#fdf3dc;text-align:center;overflow:hidden}
- .pip-bpm{display:flex;align-items:center;gap:6px;font-family:var(--serif);font-size:46px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
- .pip-bpm .ic{width:24px;height:24px;color:#f08a7a}
+ .pip-bpm{display:flex;align-items:center;gap:4vw;font-family:var(--serif);font-size:min(58vh,30vw);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+ .pip-bpm .ic{width:min(30vh,16vw);height:min(30vh,16vw);color:#f08a7a}
  .pip-bpm.z1 b{color:#a9bdd2} .pip-bpm.z2 b{color:#86c6de} .pip-bpm.z3 b{color:#8fe0ac} .pip-bpm.z4 b{color:#f2b483} .pip-bpm.z5 b{color:#f08a7a}
  .pip-zona{font-size:12px;color:var(--oro-t)}
  .pip-cosa{max-width:100%;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -976,6 +987,7 @@
     <div id="sal-obi"></div>
   </div>
   <div class="box"><div class="pick-title"><svg class="ic"><use href="#i-passi"/></svg><span data-i18n>Passi, ultimi 7 giorni</span></div><div id="sal-sett"></div></div>
+  <div class="box"><div class="pick-title"><svg class="ic"><use href="#i-fiamma"/></svg><span data-i18n>Calorie di oggi</span><small data-i18n>stima</small></div><div id="sal-kcal"></div></div>
   <div class="box"><div class="pick-title"><svg class="ic"><use href="#i-cuore"/></svg><span data-i18n>Recupero</span><small id="sal-rec-n"></small></div><div id="sal-misure"></div></div>
   <div class="box"><div class="pick-title"><svg class="ic"><use href="#i-calendario"/></svg><span data-i18n>Ultimo riposo</span></div><div id="sal-sonno"></div></div>
   <div class="box" id="sal-fc-box" hidden><div class="pick-title"><svg class="ic"><use href="#i-cuore"/></svg><span data-i18n>Battito di oggi</span><small id="sal-fc-n"></small></div><div id="sal-fc"></div></div>
@@ -1122,7 +1134,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='5.0';
+const CVER='5.1';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1539,6 +1551,14 @@ const TT={en:{
   'Scegli la disciplina: poi il tipo, e avvii la registrazione.':'Pick the discipline: then the type, and start recording.',
   'Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio. Il battito c’è se colleghi una <b>fascia cardio</b> (Impostazioni); il percorso c’è nelle attività <b>all’aperto</b>, col GPS del telefono, sulla mappa di OpenStreetMap (serve internet).':'Sessions stay on <b>this phone</b> and reach the PC by themselves, in the Cardio tab. Heart rate is there if you link a <b>heart rate strap</b> (Settings); the route is there for <b>outdoor</b> activities, with the phone’s GPS, on the OpenStreetMap map (needs internet).',
   /* salute professionale, passi e obiettivo (1.9.0) */
+  'Calorie di oggi':'Today’s calories', 'stima':'estimate', 'stima fino alle':'estimate up to', 'Metabolismo a riposo':'Resting metabolism',
+  'Vita quotidiana':'Daily living', 'Movimento (passi, battito, sedute)':'Movement (steps, heart rate, sessions)', 'kcal al giorno':'kcal a day', 'Digestione':'Digestion',
+  'Metabolismo dalla massa magra (Cunningham), ':'Metabolism from lean mass (Cunningham), ',
+  'Metabolismo da peso, altezza, età e sesso (Mifflin-St Jeor), ':'Metabolism from weight, height, age and sex (Mifflin-St Jeor), ',
+  'Per le calorie servono il peso (dalla bilancia o dal PC) e altezza, età e sesso del profilo.':'Calories need the weight (from the scale or the PC) and the profile’s height, age and sex.',
+  'sonno':'sleep', 'aggiornato alle':'updated at',
+  'in corso':'in progress', 'Torna all’allenamento':'Back to the workout', 'C’è un allenamento in corso':'A workout is in progress',
+  'Chiudilo con «Fine» o annullalo, prima di aprirne un altro.':'Finish it with “End” or cancel it before opening another one.',
   'Passi, ultimi 7 giorni':'Steps, last 7 days', 'Battito di oggi':'Today’s heart rate', 'Stress di oggi':'Today’s stress', 'passi':'steps', 'di':'of',
   'buona':'good', 'un po’ bassa':'a bit low', 'bassa':'low', 'rilassato':'relaxed', 'normale':'normal', 'medio':'medium', 'alto':'high',
   'nella norma':'normal', 'da tenere d’occhio':'keep an eye on it', 'serve qualche giorno':'needs a few days', 'sopra il solito':'above usual',
@@ -1682,7 +1702,8 @@ function avvia(){
      se la scheda porta altezza ed età */
   PESATE=[]; PES_TOGLI=''; bilAggiornaMenu();
   pesLeggi().then(l=>{ PESATE=Array.isArray(l)?l:[]; const prima=JSON.stringify(PESATE);
-    PESATE.forEach(p=>{ if(p&&p.imp&&p.grasso==null) pesComponi(p); });
+    /* la composizione dalle impedenze, ogni volta (le pesate di prima la avevano salvata: al prossimo salvataggio se ne va) */
+    PESATE.forEach(p=>{ if(p&&p.imp) pesComponi(p); });
     if(JSON.stringify(PESATE)!==prima) pesSalva(); renderBil(); avvPianifica(); }).catch(()=>{ PESATE=[]; renderBil(); });
   /* sedute della fascia cardio (per profilo) e registrazione rimasta a metà */
   SEDUTE_FC=[]; fcAggiornaMenu(); fcCarica().catch(()=>{});
@@ -1781,6 +1802,7 @@ function mostra(id){ ['menu','home','alim','foto','bil','fc','sal','col'].forEac
   if(id!=='fc' && id!=='col' && id!=='sal') fcLasciaPagina();   /* la fascia collegata resta collegata; la ricerca si ferma */
   if(id==='menu'){ colPresto(); alimMeta(); }   /* di nuovo al menu: è il momento giusto per gli aggiornamenti dal PC */
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
+  try{ sedZona(); }catch(e){}   /* i dettagli dell'allenamento in corso seguono su ogni pagina */
   try{ window.scrollTo(0,0); }catch(e){} }
 /* ── barra in alto: il marchio al menu; nelle altre schermate «‹ indietro» e il titolo. Si aggiorna
       da sola quando una schermata compare o sparisce (attributo hidden): così ogni strada (menu,
@@ -1812,6 +1834,7 @@ function mostraFase(gi,fase){
 }
 /* apre il giorno: parte dal riscaldamento se c'è e non hai ancora segnato niente */
 function apriGiorno(gi){
+  if(allenBloccato({giorno:GIORNI[gi]})) return;
   const g=GIORNI[gi]; mostra('day-'+gi);
   const haW=warmDelGiorno(g).length>0;
   const iniziato=wrowsDelGiorno(g).some(r=>exFatto(r.rid));
@@ -2292,13 +2315,21 @@ function etaMetabolica(eta, sesso, grasso){
   const M=[[14,-3],[19,-2],[24,-1],[27,1],[30,2],[33,3],[36,4]], D=[[24,-3],[28,-2],[32,-1],[35,1],[38,2],[42,3],[45,4],[46,0]];
   const f=(sesso==='F'?D:M).find(x=>grasso<x[0]); return eta+(f?f[1]:5); }
 const d1=x=>Math.round(x*10)/10;
-/* completa una pesata con la composizione (altezza, età e sesso arrivano con la scheda) */
+/* la composizione di una pesata (APK 1.10.0, regola dei dati grezzi di Marco: «tutti i dati vengono salvati come tali e
+   non come risultato di calcoli»): della pesata si salvano peso, impedenze e il CONTESTO della misura (altezza, età, sesso
+   presi dalla scheda al momento della pesata); grasso, acqua, muscolo, ossa, proteine, BMI, viscerale, metabolismo ed età
+   metabolica si calcolano e si attaccano alla pesata in memoria come proprietà NON enumerabili: non vanno né nella memoria
+   del telefono né al PC, che li ricalcola con la stessa formula (src/app/09c-pesate.js, pesateAttacca). Le pesate senza
+   impedenze tengono quello che hanno. */
+const PES_CALCOLATI=['grasso','acqua','muscolo','ossa','proteine','bmi','visc','bmr','eta_met'];
 function pesComponi(p){
-  const c=(SCHEDA&&SCHEDA.corpo)||{}, alt=+c.altezza||0, eta=+c.eta||0;
-  const w=p.imp? wla25(alt, p.peso, p.imp) : null;
-  if(w){ ['grasso','acqua','muscolo','ossa','proteine','bmi'].forEach(k=>{ p[k]=d1(w[k]); }); p.visc=w.visc; p.bmr=w.bmr;
-    const em=etaMetabolica(eta, c.sesso, w.grasso); if(em) p.eta_met=em; }
-  else if(alt>=100) p.bmi=d1(p.peso*10000/(alt*alt));
+  const c=(SCHEDA&&SCHEDA.corpo)||{}, alt=+p.altezza||+c.altezza||0, eta=+p.eta||+c.eta||0, sesso=p.sesso||c.sesso;
+  const w=p.imp? wla25(alt, p.peso, p.imp) : null, v={};
+  if(w){ ['grasso','acqua','muscolo','ossa','proteine','bmi'].forEach(k=>{ v[k]=d1(w[k]); }); v.visc=w.visc; v.bmr=w.bmr;
+    const em=etaMetabolica(eta, sesso, w.grasso); if(em) v.eta_met=em; }
+  else if(alt>=100) v.bmi=d1(p.peso*10000/(alt*alt));
+  if(!wla25ImpOk(p.imp) && !w){ if(v.bmi!=null && p.bmi==null) Object.defineProperty(p, 'bmi', {value:v.bmi, enumerable:false, writable:true, configurable:true}); return p; }
+  PES_CALCOLATI.forEach(k=>{ if(v[k]!==undefined) Object.defineProperty(p, k, {value:v[k], enumerable:false, writable:true, configurable:true}); else delete p[k]; });
   return p; }
 function dataLoc(d){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
 function oraLoc(d){ const z=n=>String(n).padStart(2,'0'); return z(d.getHours())+':'+z(d.getMinutes())+':'+z(d.getSeconds()); }
@@ -2308,6 +2339,8 @@ async function bilNuovaPesata(pesoKg, bpm, imp){
   p.id=p.data+'T'+p.ora+'|'+p.peso;
   if(bpm>=25&&bpm<=250) p.bpm=bpm;
   if(wla25ImpOk(imp)) p.imp=imp;
+  /* il contesto della misura: altezza, età e sesso che la formula usa (dalla scheda, adesso) */
+  { const c=(SCHEDA&&SCHEDA.corpo)||{}; if(+c.altezza>=100) p.altezza=+c.altezza; if(+c.eta>=5) p.eta=+c.eta; if(c.sesso==='M'||c.sesso==='F') p.sesso=c.sesso; }
   pesComponi(p);
   PESATE.push(p); BIL.ultima=p;
   await pesSalva();
@@ -2451,6 +2484,8 @@ async function fcCarica(){
   let l=null, b=null; try{ l=await fcLeggiKv(fcKey()); b=await fcLeggiKv(fcBozzaKey()); }catch(e){}
   if(slug!==fcSlug()) return;
   SEDUTE_FC=Array.isArray(l)? l : [];
+  for(const s of SEDUTE_FC){ if(!s || !s.grezzo) continue; let g=null; try{ g=await fcLeggiKv(fcGrezzoKey(s.id)); }catch(e){}
+    if(slug!==fcSlug()) return; if(g) fcAttacca(s, fcDaGrezzo(s, g)); }
   if(b && !FC.reg && !FC.chiudi){
     if(b.chiudi) FC.chiudi=b.chiudi;
     else if(b.reg && b.reg.inizio){ FC.chiudi=fcComponi(b.reg, +b.reg.ultimo||+b.reg.inizio, b.nome||''); fcScriviKv(fcBozzaKey(), {chiudi:FC.chiudi}); } }
@@ -2565,19 +2600,51 @@ async function fcRegistra(){
   if(gps){ FC.avvio=true; sedZona(); const ok=await gpsPermesso(); FC.avvio=false; if(!ok){ gps=false; GPS.stato='negato'; } }
   if(FC.reg || FC.chiudi || SED.s) return;
   const ora=Date.now();
-  FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}, tipo:v[1], disc:disc, variante:v[0], gps:gps? gpsTraccia() : null}; FC.annulla=false;
+  FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}, hr:[], fix:gps? [] : null, tipo:v[1], disc:disc, variante:v[0], gps:gps? gpsTraccia() : null}; FC.annulla=false;
   FC.bozzaT=0; fcSalvaBozza(true); fcSchermo(true); fcTicReg(true);
   renderFc(); fcAggiornaMenu(); natAggiorna();
   if(FC.reg && FC.reg.gps) gpsAvvia(); }
 function fcCampione(ora, bpm){
   const r=FC.reg, k=Math.floor((ora-r.inizio)/1000/FC_PASSO); if(k<0) return;
   const s=r.secchi[k]||(r.secchi[k]=[0,0]); s[0]+=bpm; s[1]++;
+  if(Array.isArray(r.hr)) r.hr[Math.floor((ora-r.inizio)/1000)]=bpm;   /* il grezzo: un battito al secondo */
   if(bpm>r.picco) r.picco=bpm; r.ultimo=ora;
   fcSalvaBozza(false); }
 function fcSalvaBozza(subito){
   if(!FC.reg) return; const ora=Date.now();
   if(!subito && ora-FC.bozzaT<FC_BOZZA_OGNI) return;
   FC.bozzaT=ora; fcScriviKv(fcBozzaKey(), {reg:FC.reg, nome:FC.nome}); }
+/* ── DATI GREZZI DELLE SEDUTE (APK 1.10.0; regola di Marco: «tutti i dati vengono salvati come tali e non come risultato
+      di calcoli»). Si conservano il battito al secondo e i punti GPS così come arrivano; FC media e picco, traccia ogni 5 s,
+      distanza, dislivello, tempo in movimento, parziali e percorso si CALCOLANO quando la seduta si carica (fcDaGrezzo) e si
+      attaccano alla seduta in memoria come proprietà NON enumerabili: JSON.stringify non le vede, quindi non finiscono né
+      nella memoria del telefono né al PC (che li ricalcola lui, 06c-sedute-grezze.js, con lo stesso codice).
+      Grezzo di una seduta cardio, voce sua «tms-fc-g-<profilo>|<id>»: {hr: base64, un byte per secondo dall'inizio (0 =
+      niente), fix: [[ms dall'inizio, lat×1e6, lon×1e6, quota dm, precisione dm, velocità cm/s, pressione Pa]…] (null = niente)}.
+      Le sedute coi pesi tengono il loro hr (base64) dentro la voce, sono piccole. Le sedute di prima (≤ 1.9.0) hanno solo i
+      valori calcolati allora e restano come sono. ── */
+const FC_CALCOLATI=['fcMedia','fcPicco','fc','fcPasso','distanza','quota','discesa','tempoMov','parziali','percorso'];
+function fcGrezzoKey(id){ return 'tms-fc-g-'+fcSlug()+'|'+id; }
+function fcFix(r, p){ if(!r || !Array.isArray(r.fix)) return; const t=+p[0]; if(!(t>0)) return;
+  const R=(v,k)=>(v==null || v==='' || !isFinite(+v))? null : Math.round(+v*k);
+  r.fix.push([t-r.inizio, R(p[1],1e6), R(p[2],1e6), R(p[3],10), R(p[4],10), R(p[5],100), R(p[6],100)]); }
+function fcHrB64(hr){ const n=(hr||[]).length, u=new Uint8Array(n); for(let i=0;i<n;i++){ const v=+hr[i]; u[i]=(v>=25 && v<=250)? v : 0; } return zpB64(u); }
+function fcHrDa64(s){ try{ const b=atob(String(s||'')), u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }catch(e){ return new Uint8Array(0); } }
+/* i valori di una seduta dal suo grezzo: battito a 5 s, media e picco; il GPS ripassato punto per punto come in diretta */
+function fcDaGrezzo(s, g){
+  const out={}, hr=fcHrDa64(g && g.hr), n=hr.length;
+  if(n){ const fc=[]; let somma=0, c=0, picco=0;
+    for(let k=0;k*FC_PASSO<n;k++){ let a=0, b=0;
+      for(let j=k*FC_PASSO;j<Math.min(n, (k+1)*FC_PASSO);j++) if(hr[j]){ a+=hr[j]; b++; if(hr[j]>picco) picco=hr[j]; }
+      if(b){ const v=Math.round(a/b); fc.push(v); somma+=v; c++; } else fc.push(null); }
+    while(fc.length && fc[fc.length-1]==null) fc.pop();
+    out.fc=fc; out.fcPasso=FC_PASSO; out.fcMedia=c? Math.round(somma/c) : null; out.fcPicco=picco||null; }
+  if(g && Array.isArray(g.fix) && g.fix.length){ const tr=gpsTraccia(), ini=+s.inizio||0, disc=s.disc||fcDiscDi(s), D=(v,k)=>v==null? null : v/k;
+    g.fix.forEach(f=>{ if(Array.isArray(f)) gpsPunto(tr, [ini+f[0], D(f[1],1e6), D(f[2],1e6), D(f[3],10), D(f[4],10), D(f[5],100), D(f[6],100)], disc, false); });
+    Object.assign(out, gpsRiassunto(tr, ini)); }
+  return out; }
+/* i valori calcolati attaccati alla seduta in memoria, invisibili a JSON.stringify */
+function fcAttacca(s, v){ FC_CALCOLATI.forEach(k=>{ if(v && v[k]!==undefined) Object.defineProperty(s, k, {value:v[k], enumerable:false, writable:true, configurable:true}); }); return s; }
 /* la seduta da una registrazione: durata, FC media (dei secchielli con dati), picco, traccia ogni 5 s */
 function fcComponi(r, fine, nome){
   const n=Math.max(0, Math.ceil((fine-r.inizio)/1000/FC_PASSO)), fc=[]; let s=0, c=0;
@@ -2589,6 +2656,11 @@ function fcComponi(r, fine, nome){
     fcMedia:c? Math.round(s/c) : null, fcPicco:r.picco||null, fc:fc, passo:FC_PASSO, dispositivo:nome||'', tipo:r.tipo||'',
     disc:r.disc||'', variante:r.variante||''};
   if(r.gps) Object.assign(out, gpsRiassunto(r.gps, r.inizio));
+  /* il grezzo va con la seduta; i valori si rifanno dal grezzo, come li rifarà il PC */
+  if(Array.isArray(r.hr) || Array.isArray(r.fix)){ out.inizio=r.inizio; out.hr=fcHrB64(r.hr||[]); if(Array.isArray(r.fix)) out.fix=r.fix.slice();
+    const v=fcDaGrezzo({inizio:r.inizio, disc:r.disc, tipo:r.tipo}, {hr:out.hr, fix:out.fix});
+    if(r.hr && r.hr.some(x=>x>0)){ out.fc=v.fc; out.fcMedia=v.fcMedia; out.fcPicco=v.fcPicco; }
+    if(out.fix) ['distanza','quota','discesa','tempoMov','parziali','percorso'].forEach(k=>{ if(v[k]!==undefined) out[k]=v[k]; else delete out[k]; }); }
   return out; }
 async function fcFine(){
   const r=FC.reg; if(!r) return;
@@ -2604,9 +2676,15 @@ async function fcSalvaSeduta(){
   const tipo=c.tipo||fcSportScelto();
   FC.sport=tipo; try{ localStorage.setItem('tms-fc-sport', tipo); }catch(e){}
   const s={id:c.data+'T'+c.ora+'|fc', data:c.data, ora:c.ora, tipo:tipo, durata:Math.max(1, Math.round(c.durataSec/60)),
-    rpe:(FC.rpe==null? '' : +FC.rpe), fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo, dispositivo:c.dispositivo||''};
+    rpe:(FC.rpe==null? '' : +FC.rpe), dispositivo:c.dispositivo||''};
   if(c.disc) s.disc=c.disc; if(c.variante) s.variante=c.variante;
-  ['distanza','quota','discesa','tempoMov','percorso','parziali'].forEach(k=>{ if(c[k]!=null) s[k]=c[k]; });
+  if(c.hr!=null || c.fix){
+    /* dalla 1.10.0: il grezzo nella sua voce, i valori calcolati solo in memoria */
+    s.inizio=c.inizio; s.grezzo=1;
+    if(!SEDUTE_FC.some(x=>x.id===s.id)) await fcScriviKv(fcGrezzoKey(s.id), {hr:c.hr||'', fix:c.fix||[]});
+    fcAttacca(s, fcDaGrezzo(s, {hr:c.hr, fix:c.fix})); }
+  else { Object.assign(s, {fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo});
+    ['distanza','quota','discesa','tempoMov','percorso','parziali'].forEach(k=>{ if(c[k]!=null) s[k]=c[k]; }); }
   if(!SEDUTE_FC.some(x=>x.id===s.id)) SEDUTE_FC.push(s);
   FC.chiudi=null; FC.scarta=false; FC.rpe=null;
   await fcSalva(); await fcScriviKv(fcBozzaKey(), null);
@@ -2719,10 +2797,10 @@ function gpsDist(a1, o1, a2, o2){ const dA=gpsRad(a2-a1), dO=gpsRad(o2-o1);
   return 2*6371008.8*Math.asin(Math.min(1, Math.sqrt(s))); }
 function gpsQuotaBaro(hPa){ return 44330*(1-Math.pow(hPa/1013.25, 1/5.255)); }
 /* un punto del servizio: [ora ms, lat, lon, quota m, precisione m, velocità m/s, pressione hPa]; true se tenuto */
-function gpsPunto(tr, p, disc){
+function gpsPunto(tr, p, disc, vivo){
   const t=+p[0], lat=+p[1], lon=+p[2], acc=(p[4]==null || !isFinite(+p[4]))? 99 : +p[4];
   if(!(t>0) || !isFinite(lat) || !isFinite(lon) || Math.abs(lat)>90 || Math.abs(lon)>180 || (lat===0 && lon===0)) return false;
-  GPS.acc=acc; GPS.ricevuti++;
+  if(vivo!==false){ GPS.acc=acc; GPS.ricevuti++; }
   if(acc>GPS_PREC) return false;
   if(tr.baro==null) tr.baro=(+p[6]>0);
   let h=tr.baro? ((+p[6]>0)? gpsQuotaBaro(+p[6]) : null) : ((p[3]!=null && isFinite(+p[3]))? +p[3] : null);
@@ -2757,7 +2835,7 @@ function gpsAvvia(){
   if(ts && ts.posizioni){ GPS.timer=setInterval(()=>{ gpsLeggi().then(()=>{ fcAggiornaGps(); gpsDisegna(); }); }, 2000); return; }
   if(navigator.geolocation && navigator.geolocation.watchPosition){
     GPS.watch=navigator.geolocation.watchPosition(pos=>{ const c=pos.coords||{};
-        if(FC.reg && FC.reg.gps) gpsPunto(FC.reg.gps, [pos.timestamp||Date.now(), c.latitude, c.longitude, c.altitude, c.accuracy, c.speed, 0], FC.reg.disc);
+        if(FC.reg && FC.reg.gps){ const p=[pos.timestamp||Date.now(), c.latitude, c.longitude, c.altitude, c.accuracy, c.speed, null]; fcFix(FC.reg, p); gpsPunto(FC.reg.gps, p, FC.reg.disc); }
         GPS.concesso=true; fcAggiornaGps(); gpsDisegna(); },
       err=>{ GPS.stato=(err && err.code===1)? 'negato' : 'errore'; gpsStatoTesto(); },
       {enableHighAccuracy:true, maximumAge:0, timeout:30000}); } }
@@ -2767,7 +2845,7 @@ async function gpsLeggi(){
   if(!x) return;
   if(x.acceso!=null) GPS.acceso=x.acceso!==false; if(x.concesso!=null) GPS.concesso=!!x.concesso; GPS.barometro=!!x.barometro;
   let n=0;
-  (x.punti||[]).forEach(p=>{ if(+p[0]>GPS.ultimo) GPS.ultimo=+p[0]; if(FC.reg===r && gpsPunto(r.gps, p, r.disc)) n++; });
+  (x.punti||[]).forEach(p=>{ if(+p[0]>GPS.ultimo) GPS.ultimo=+p[0]; if(FC.reg===r){ fcFix(r, p); if(gpsPunto(r.gps, p, r.disc)) n++; } });
   if(n) fcSalvaBozza(false); }
 function gpsFerma(){ clearInterval(GPS.timer); GPS.timer=null;
   if(GPS.watch!=null && navigator.geolocation){ try{ navigator.geolocation.clearWatch(GPS.watch); }catch(e){} }
@@ -2907,7 +2985,7 @@ function fcAggiornaGps(){
   set('fc-d', fcFmtKm(dist)); set('fc-v', fcFmtRitmo(disc, dist, mov)); set('fc-q', sal!=null? Math.round(sal)+'<small> m</small>' : '—');
   set('fc-mv', mov? esc(fcDur(mov)) : '—');
   if(tr) gpsStatoTesto(); }
-function fcTicReg(on){ clearInterval(FC.tReg); FC.tReg=(on && FC.reg)? setInterval(()=>{ if(!FC.reg){ fcTicReg(false); return; } fcAggiornaTempo(); }, 1000) : null; }
+function fcTicReg(on){ clearInterval(FC.tReg); FC.tReg=(on && FC.reg)? setInterval(()=>{ if(!FC.reg){ fcTicReg(false); return; } fcAggiornaTempo(); }, 1000) : null; sedTimer(); }
 function fcRenderReg(soloTempo){
   if(soloTempo){ fcAggiornaTempo(); return; }
   const box=$('fc-reg'); if(!box) return;
@@ -2992,7 +3070,7 @@ function homeSport(){
     const gps=d.v.some(x=>x[2]);
     return '<button type="button" class="day-card" data-fcvai="'+esc(d.n)+'"><span class="day-l"><span class="day-name">'+esc(tt(d.n))+'</span>'+
       (meta? '<span class="day-meta">'+esc(meta)+'</span>' : '')+'</span><span class="day-r">'+(gps? '<span class="fc-gps-seg" title="GPS">'+ico('posizione','p')+'</span>' : '')+'<span class="chev">'+ico('avanti')+'</span></span></button>'; }).join('');
-  box.querySelectorAll('[data-fcvai]').forEach(b=>{ b.onclick=()=>{ if(!FC.reg && !FC.chiudi){ FC.disc=b.getAttribute('data-fcvai'); try{ localStorage.setItem('tms-fc-disc', FC.disc); }catch(e){} } FC.lato='a'; fcApri(); }; });
+  box.querySelectorAll('[data-fcvai]').forEach(b=>{ b.onclick=()=>{ if(allenBloccato({disc:b.getAttribute('data-fcvai')})) return; if(!FC.reg && !FC.chiudi){ FC.disc=b.getAttribute('data-fcvai'); try{ localStorage.setItem('tms-fc-disc', FC.disc); }catch(e){} } FC.lato='a'; fcApri(); }; });
   homeLato(HOME_LATO || (FC.reg? 'c' : 'p')); }
 function fcAggiornaMenu(){
   try{ homeSport(); }catch(e){}
@@ -3037,7 +3115,7 @@ function renderFc(){
     lista.querySelectorAll('[data-fcx]').forEach(b=>{ b.onclick=()=>{ FC.togli=b.getAttribute('data-fcx'); renderFc(); }; });
     lista.querySelectorAll('[data-fcno]').forEach(b=>{ b.onclick=()=>{ FC.togli=''; renderFc(); }; });
     lista.querySelectorAll('[data-fcok]').forEach(b=>{ b.onclick=async()=>{ const id=b.getAttribute('data-fcok');
-      SEDUTE_FC=SEDUTE_FC.filter(s=>s.id!==id); FC.togli=''; await fcSalva(); renderFc(); }; }); }
+      SEDUTE_FC=SEDUTE_FC.filter(s=>s.id!==id); FC.togli=''; await fcSalva(); await fcScriviKv(fcGrezzoKey(id), null); renderFc(); }; }); }
   const dim=$('fc-dimentica'); if(dim) dim.hidden=!(fcIdNoto() && !FC.reg);
 }
 /* ── SEDUTA IN CORSO (richiesta di Marco, 26/11/2026: «quando vado sulla scheda automaticamente fa partire una
@@ -3077,7 +3155,8 @@ async function sedCarica(){
   try{ s=await fcLeggiKv(sedKey()); l=await fcLeggiKv(fcpKey()); }catch(e){}
   if(slug!==fcSlug()) return;
   SEDUTE_PESI_FC=Array.isArray(l)? l : [];
-  if(s && s.inizio && s.giorno!=null && !SED.s){ SED.s=s; if(!s.secchi) s.secchi={}; sedTimer(); }
+  SEDUTE_PESI_FC.forEach(x=>{ if(x && x.hr) fcAttacca(x, fcDaGrezzo(x, {hr:x.hr})); });   /* FC media e picco dal grezzo */
+  if(s && s.inizio && s.giorno!=null && !SED.s){ SED.s=s; if(!s.secchi) s.secchi={}; if(!Array.isArray(s.hr)) s.hr=[]; sedTimer(); }
   sedControlla(); sedZona(); natAggiorna(); }
 function sedGi(){ return SED.s? GIORNI.indexOf(SED.s.giorno) : -1; }
 function sedGiornoVisibile(){ const p=[...document.querySelectorAll('.day-page')].find(x=>!x.hidden); return p? +String(p.id).slice(4) : -1; }
@@ -3090,7 +3169,7 @@ function sedApri(gi){
 function sedInizia(g){
   if(FC.reg) return;   /* niente doppioni: c'è una registrazione cardio in corso */
   const ora=Date.now();
-  SED.s={giorno:g, settimana:+(((SCHEDA&&SCHEDA.sync)||{}).settimana)||0, inizio:ora, ultima:ora, picco:0, secchi:{}};
+  SED.s={giorno:g, settimana:+(((SCHEDA&&SCHEDA.sync)||{}).settimana)||0, inizio:ora, ultima:ora, picco:0, secchi:{}, hr:[]};
   SED.chiudi=false; SED.dimenticata=false; SED.rpe=null; SED.chiedi=''; SED.annulla=false;
   sedSalva(true); sedTimer(); sedZona(); natAggiorna(); }
 /* «annulla seduta»: avviata per sbaglio, non si salva niente (né durata, né fatica, né battito) */
@@ -3107,10 +3186,11 @@ function sedCampione(ora, bpm){
   const s=SED.s; if(!s) return;
   const k=Math.floor((ora-s.inizio)/1000/FC_PASSO); if(k<0) return;
   const x=s.secchi[k]||(s.secchi[k]=[0,0]); x[0]+=bpm; x[1]++;
+  if(!Array.isArray(s.hr)) s.hr=[]; s.hr[Math.floor((ora-s.inizio)/1000)]=bpm;   /* il grezzo: un battito al secondo */
   if(bpm>(s.picco||0)) s.picco=bpm;
   if(FC.nome) s.nome=FC.nome;
   sedSalva(false); }
-function sedTimer(){ clearInterval(SED.timer); SED.timer=SED.s? setInterval(()=>{ sedTempo(); }, 1000) : null; }
+function sedTimer(){ clearInterval(SED.timer); SED.timer=(SED.s || FC.reg)? setInterval(()=>{ sedTempo(); }, 1000) : null; }
 /* «Fine seduta»: si apre la riga per chiudere (durata già compilata, fatica da scegliere) */
 function sedFineApri(fineAt){ if(!SED.s) return; SED.chiudi=true; SED.fineAt=fineAt||0; SED.rpe=null; sedZona(); }
 function sedCampo(id, v){ const el=$(id); if(!el) return;
@@ -3121,11 +3201,14 @@ async function sedChiudi(){
   await natRecupera();   /* i battiti presi dal servizio a schermo spento entrano prima di chiudere */
   const fine=SED.fineAt||Date.now(), gi=sedGi(), min=Math.max(1, Math.round((fine-s.inizio)/60000));
   if(gi>=0){ if(useRpeScheda()){ sedCampo('min-'+gi, min); if(SED.rpe!=null) sedCampo('rpe-'+gi, SED.rpe); } else sedCampo('fatto-'+gi, true); }
-  const c=fcComponi({inizio:s.inizio, secchi:s.secchi||{}, picco:s.picco||0}, fine, s.nome||'');
+  const c=fcComponi({inizio:s.inizio, secchi:s.secchi||{}, picco:s.picco||0, hr:Array.isArray(s.hr)? s.hr : null}, fine, s.nome||'');
   if(c.fcMedia){
     const id='p|'+new Date(s.inizio).toISOString();
-    if(!SEDUTE_PESI_FC.some(x=>x.id===id)) SEDUTE_PESI_FC.push({id:id, giorno:s.giorno, settimana:+s.settimana||0, data:c.data, ora:c.ora,
-      durataSec:c.durataSec, fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo, dispositivo:c.dispositivo});
+    if(!SEDUTE_PESI_FC.some(x=>x.id===id)){
+      const x={id:id, giorno:s.giorno, settimana:+s.settimana||0, data:c.data, ora:c.ora, durataSec:c.durataSec, dispositivo:c.dispositivo, rpe:(SED.rpe==null? '' : SED.rpe)};
+      if(c.hr){ x.inizio=s.inizio; x.hr=c.hr; fcAttacca(x, fcDaGrezzo(x, {hr:c.hr})); }   /* 1.10.0: il grezzo; FC media e picco si calcolano */
+      else Object.assign(x, {fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo});
+      SEDUTE_PESI_FC.push(x); }
     await fcpSalva(); }
   SED.s=null; SED.chiudi=false; SED.fineAt=0; SED.rpe=null; SED.dimenticata=false; sedTimer();
   await fcScriviKv(sedKey(), null);
@@ -3140,14 +3223,37 @@ function sedBattitoHtml(){
   if(FC.id || FC.collegando || FC.cercando) return '<button type="button" class="sed-fc" id="sed-fc">'+ico('cuore')+'<b>…</b><span>'+esc(tt(FC.id? 'aspetto il battito' : 'cerco la fascia'))+'</span></button>';
   return '<button type="button" class="sed-fc sed-no" id="sed-fc">'+ico('cuore')+'<span class="sed-due"><span>'+esc(tt('nessuna fascia'))+'</span><u>'+esc(tt('Collega'))+'</u></span></button>'; }
 function sedTempo(){
-  const t0=$('sed-t'); if(!t0 || !SED.s) return;
-  t0.textContent=fcDur((((SED.chiudi && SED.fineAt) || Date.now())-SED.s.inizio)/1000); }
+  const t0=$('sed-t'); if(!t0) return;
+  if(SED.s) t0.textContent=fcDur((((SED.chiudi && SED.fineAt) || Date.now())-SED.s.inizio)/1000);
+  else if(FC.reg) t0.textContent=fcDur((Date.now()-FC.reg.inizio)/1000); }
+/* ── UN ALLENAMENTO ALLA VOLTA (27/11/2026, Marco: «se ho avviato un allenamento non mi fa aprire altri allenamenti fino a
+      che non ho finito quello avviato»; scelta: bloccare). Con una seduta coi pesi o una registrazione cardio aperta, gli
+      altri giorni e le altre discipline non si aprono: un avviso e si torna a quello in corso. ── */
+function allenAttivo(){ return SED.s? {tipo:'pesi', giorno:SED.s.giorno} : FC.reg? {tipo:'cardio', disc:FC.reg.disc||fcDiscDi(FC.reg)} : null; }
+function allenTorna(){ const a=allenAttivo(); if(!a) return;
+  navLivelli=0; mostra('menu'); navEntra();
+  if(a.tipo==='pesi'){ const gi=GIORNI.indexOf(a.giorno); if(gi>=0) apriGiorno(gi); }
+  else { FC.lato='a'; mostra('fc'); renderFc(); } }
+function allenBloccato(cosa){
+  const a=allenAttivo(); if(!a) return false;
+  if(a.tipo==='pesi' && cosa.giorno!=null && cosa.giorno===a.giorno) return false;
+  if(a.tipo==='cardio' && cosa.disc && cosa.disc===a.disc) return false;
+  try{ alert(tt('C’è un allenamento in corso')+' ('+natTitolo()+'). '+tt('Chiudilo con «Fine» o annullalo, prima di aprirne un altro.')); }catch(e){}
+  allenTorna(); return true; }
 /* la zona della seduta (seconda riga della barra in alto): visibile sulle pagine dei giorni */
 function sedZona(){
   const z=$('sed-zona'); if(!z) return;
   /* sulla pagina Cardio la fascia scura è quella della registrazione (come la seduta coi pesi) */
   if(SCHEDA && $('fc') && !$('fc').hidden){ z.hidden=false; document.body.classList.add('con-seduta'); fcChip(); fcZonaRender(z); return; }
   const gi=sedGiornoVisibile(), vis=!!SCHEDA && gi>=0;
+  /* fuori dalla pagina dell'allenamento (menu, Salute, Alimentazione…) i suoi dettagli restano in alto, col tasto per tornarci
+     (27/11/2026, Marco: «quando avviato un allenamento se si naviga nell'app in altro restano i dettagli») */
+  if(!vis && SCHEDA && allenAttivo()){
+    z.hidden=false; document.body.classList.add('con-seduta'); fcChip();
+    z.innerHTML=sedBattitoHtml()+'<div class="sed-tempo"><b id="sed-t">0:00</b><span>'+esc(natTitolo())+' · '+esc(tt('in corso'))+'</span></div>'+
+      '<button type="button" class="sed-btn" id="sed-torna">'+esc(tt('Torna all’allenamento'))+'</button>';
+    sedTempo(); const tb=$('sed-torna'); if(tb) tb.onclick=allenTorna; const fb=$('sed-fc'); if(fb) fb.onclick=()=>{ if(!FC.id) fcCollegaDa(); };
+    return; }
   z.hidden=!vis; document.body.classList.toggle('con-seduta', vis);
   fcChip();
   if(!vis) return;
@@ -3611,7 +3717,46 @@ function zpNotteValori(n){
   const hv=zpVal(73, n._da, n._a); if(hv.length) out.hrv=Math.round(zpMedia(hv));
   return out; }
 function zpFirma(o){ const t=JSON.stringify(o); let h=0x811c9dc5; for(let i=0;i<t.length;i++){ h^=t.charCodeAt(i); h=Math.imul(h, 0x01000193)>>>0; } return h.toString(16); }
-/* eventi da mandare al PC: una notte per giorno del risveglio e un giorno per data (ultimi 14 giorni) */
+/* ── CAMPIONI GREZZI DEL GIORNO PER IL PC (APK 1.10.0; regola di Marco del 27/11/2026: «tutti i dati vengono salvati
+      come tali e non come risultato di calcoli»). Al PC vanno i CAMPIONI del bracciale, non le medie: il PC calcola lui
+      passi, HRV, SpO2, stress, pelle, respirazione e calorie quando li mostra (src/app/09f-bracciale.js, stesso formato).
+      Un giorno = {data, n (minuti del giorno locale: 1440, o 1380/1500 col cambio d'ora),
+        att: base64 di n×3 byte [passi u16 LE (0xFFFF = minuto senza dati), battito u8 (0 = niente)] (tipo 1),
+        str: base64 di n byte, stress al minuto (0xFF = niente) (tipo 19),
+        pel: base64 di n×2 byte, pelle in centesimi di °C, i16 LE (0x7FFF = niente) (tipo 46),
+        s18 (stress singolo, 18), hrv (RMSSD ms, 73), sdnn (ms, 78), spo (SpO2 %, 37), spn (SpO2 nel sonno, 38),
+        res (respiri al minuto, 56), rip (battito a riposo del bracciale, 58): [[secondi dalla mezzanotte, valore]…],
+        bat: batteria %}. Solo data e n sono sempre presenti. — */
+function zpB64(u){ let s=''; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null, u.subarray(i, i+0x8000)); return btoa(s); }
+function zpGiornoGrezzo(data){
+  const d0=new Date(data+'T00:00:00').getTime(), x=new Date(data+'T12:00:00'); x.setDate(x.getDate()+1);
+  const d1=new Date(dataLoc(x)+'T00:00:00').getTime(), n=Math.round((d1-d0)/60000), g={data:data, n:n};
+  const K=t=>Math.floor((t-d0)/60000), dentro=t=>t>=d0 && t<d1;
+  const att=new Uint8Array(n*3); for(let k=0;k<n;k++){ att[3*k]=0xFF; att[3*k+1]=0xFF; } let na=0;
+  ((ZPD && ZPD.s[1])||[]).forEach(v=>{ if(!dentro(v[0])) return; const k=K(v[0]), p=Math.max(0, Math.min(65534, Math.round(+v[1]||0)));
+    att[3*k]=p&255; att[3*k+1]=p>>8; att[3*k+2]=(v[2]>=25 && v[2]<=250)? v[2] : 0; na++; });
+  if(na) g.att=zpB64(att);
+  const str=new Uint8Array(n).fill(0xFF); let ns=0;
+  ((ZPD && ZPD.s[19])||[]).forEach(v=>{ if(dentro(v[0]) && v[1]>=0 && v[1]<=100){ str[K(v[0])]=v[1]; ns++; } });
+  if(ns) g.str=zpB64(str);
+  const pel=new Uint8Array(n*2); for(let k=0;k<n;k++){ pel[2*k]=0xFF; pel[2*k+1]=0x7F; } let np=0;
+  ((ZPD && ZPD.s[46])||[]).forEach(v=>{ if(!dentro(v[0])) return; const c=Math.round(v[1]*100); if(!(c>-32768 && c<32767)) return;
+    const k=K(v[0]), u=c<0? c+65536 : c; pel[2*k]=u&255; pel[2*k+1]=u>>8; np++; });
+  if(np) g.pel=zpB64(pel);
+  [['s18',18],['hrv',73],['sdnn',78],['spo',37],['spn',38],['res',56],['rip',58]].forEach(c=>{
+    const l=((ZPD && ZPD.s[c[1]])||[]).filter(v=>dentro(v[0]) && isFinite(v[1])).map(v=>[Math.round((v[0]-d0)/1000), v[1]]).sort((a,b)=>a[0]-b[0]);
+    if(l.length) g[c[0]]=l; });
+  if(ZPD && ZPD.batt[data]!=null) g.bat=ZPD.batt[data];
+  return Object.keys(g).length>2? g : null; }
+/* la notte per il PC: solo quello che dice il bracciale (orari, fasi, punteggio, sonnellini); SpO2, respirazione e HRV
+   della notte il PC li calcola dai campioni */
+function zpNotteEvento(n){
+  const out={id:n.id, inizio:n.inizio, fine:n.fine, fasi:n.fasi};
+  if(n.punteggio!=null) out.punteggio=n.punteggio; if(n.sonnellini) out.sonnellini=n.sonnellini;
+  return out; }
+/* eventi da mandare al PC: una notte per giorno del risveglio e i campioni di ogni giorno (ultimi 14 giorni). I campioni
+   al minuto il telefono li tiene pochi giorni (zpPota): un giorno finito da più di due giorni non si ricostruisce più
+   (avrebbe meno dati di quello già pronto, e il PC lo sostituirebbe con uno più povero) */
 function zpPreparaEventi(){
   const da=dataLoc(new Date(Date.now()-14*86400000)), date=new Set();
   Object.keys(ZPD.notti).forEach(d=>{ if(d>=da) date.add(d); });
@@ -3620,9 +3765,11 @@ function zpPreparaEventi(){
   let n=0;
   const metti=(chiave, tipo, dati)=>{ const f=zpFirma(dati), e=ZPD.eventi[chiave];
     if(e && e.firma===f) return; ZPD.eventi[chiave]={id:chiave+'|'+f, tipo:tipo, dati:dati, firma:f, ev:null, pc:false}; n++; };
+  const fermo=dataLoc(new Date(Date.now()-2*86400000));
   [...date].sort().forEach(d=>{
-    if(ZPD.notti[d]) metti('sonno|'+d, 'tms-sonno', zpNotteValori(ZPD.notti[d]));
-    const g=zpGiornoValori(d); if(g) metti('giorno|'+d, 'tms-giorno', g); });
+    if(ZPD.notti[d]) metti('sonno|'+d, 'tms-sonno', zpNotteEvento(ZPD.notti[d]));
+    if(d<fermo && ZPD.eventi['bracciale|'+d]) return;
+    const g=zpGiornoGrezzo(d); if(g) metti('bracciale|'+d, 'tms-bracciale', g); });
   return n; }
 /* lo scarico: i tipi che il bracciale offre, uno dopo l'altro; ogni tipo a pezzi finché il cursore avanza (al massimo
    ZP_GIRI pezzi per volta). Un tipo che il bracciale rifiuta o che arriva rovinato si salta (il cursore resta dov'era,
@@ -3777,13 +3924,13 @@ async function zpSincronizza(manuale){
     zpPota();
     const nuovi=zpPreparaEventi();
     esito={notti:Object.keys(ZPD.notti).filter(d=>d>=dataLoc(new Date(Date.now()-14*86400000))).length,
-      giorni:Object.keys(ZPD.eventi).filter(k=>/^giorno\|/.test(k)).length, nuovi:nuovi, tipi:fatti};
+      giorni:Object.keys(ZPD.eventi).filter(k=>/^bracciale\|/.test(k)).length, nuovi:nuovi, tipi:fatti};
     ZPD.ultima=Date.now(); ZPD.esito=esito; await zpdSalva();
     ZP.stato='sincok'; zpSegnaOk(true); zpDiag('fatto: '+esito.notti+' notti, '+esito.giorni+' giorni, '+nuovi+' eventi nuovi per il PC');
   }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; zpDiag('ERRORE: '+ZP.motivo+(e && e.message? ' ('+e.message+')' : ''));
     if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento' || ZP.motivo==='riabbina') zpSegnaOk(false); }
   finally{ await zpChiudi(c); ZP.inCorso=false; zpLock(false); zpDiagSalva(); zpRender(); }
-  if(esito){ colPresto(); natSempre(); }
+  if(esito){ colPresto(); natSempre(); widgetAggiorna(true); }
   return esito; }
 /* all'apertura dell'app: una sincronizzazione se l'ultima è di più di mezz'ora fa (in silenzio) */
 async function zpSincAuto(){
@@ -4122,7 +4269,8 @@ function salVivo(){
         '<span>'+esc(tt('di'))+' '+salNum(obi)+'</span></div></div>'+
         '<div class="sal-passi-t">'+esc(tt('passi oggi'))+(p.v!=null? ' · '+Math.round(f*100)+' %' : '')+'</div>'+
         '<div class="sal-passi-q">'+(p.live? '<i class="sal-live"></i>'+esc(tt('in diretta')) : p.t? esc(tt('aggiornati alle'))+' '+esc(salQuando(p.t)) : '')+
-        (p.live && p.dist? ' · '+salDec(p.dist/1000, 2)+' km' : '')+(p.live && p.kcal? ' · '+p.kcal+' kcal' : '')+'</div>'; } } }
+        (p.live && p.dist? ' · '+salDec(p.dist/1000, 2)+' km' : '')+(p.live && p.kcal? ' · '+p.kcal+' kcal' : '')+'</div>'; } }
+  widgetAggiorna(); }
 function salRenderObi(){
   const o=$('sal-obi'); if(!o) return;
   const obi=salObiettivo();
@@ -4135,6 +4283,7 @@ function renderSal(){
   const tre=$('sal-tre'); if(tre) tre.dataset.f='';
   salVivo(); salRenderObi();
   const sett=$('sal-sett'); if(sett) sett.innerHTML=salHtmlSett();
+  const kc=$('sal-kcal'); if(kc) kc.innerHTML=salHtmlKcal();
   const mis=$('sal-misure'); if(mis) mis.innerHTML=salHtmlMisure();
   const so=$('sal-sonno'); if(so) so.innerHTML=salHtmlRiposo();
   const fc=salHtmlFc(), fb=$('sal-fc-box'), fe=$('sal-fc'); if(fb) fb.hidden=!fc; if(fe) fe.innerHTML=fc;
@@ -4194,6 +4343,140 @@ async function salLiveFerma(){
   if(c && c.S){ try{ await zpManda(c.S, 0x0016, [0x05, 0x00]); }catch(e){} }
   try{ await zpChiudi(c); }catch(e){}
   ZP.inCorso=false; zpLock(false); }
+/* ── CALORIE BRUCIATE OGGI (27/11/2026, Marco: «ragioniamo insieme su come inserire una stima delle calorie bruciate»,
+      «per il calcolo delle calorie rifatti a paper scientifici»). PROPOSTA da rivedere con Marco: sta solo sul telefono
+      (Salute e widget), al PC non va ancora. Minuto per minuto, da mezzanotte ad adesso:
+      · METABOLISMO A RIPOSO (RMR): con la massa magra (ultima pesata del telefono, o massa grassa del PC) l'equazione di
+        Cunningham 1980, RMR = 500 + 22 × massa magra (una delle cinque che negli sportivi non sbagliano in media:
+        O'Neill et al., Sports Med 2023); senza, Mifflin-St Jeor 1990 (la più giusta nella popolazione generale:
+        Frankenfield et al., J Am Diet Assoc 2005).
+      · VITA QUOTIDIANA: multipli del metabolismo del metodo fattoriale FAO/WHO/UNU (Human energy requirements, 2004):
+        dormire 1,0 (le fasi del bracciale; i minuti «sveglio» della notte no), sveglio senza camminare 1,4 (tempo libero
+        leggero). Anche i minuti non ancora scaricati dal bracciale valgono così.
+      · PASSI (attività al minuto del bracciale): 100 passi al minuto = 3 MET, 130 = 6 MET (CADENCE-Adults: Tudor-Locke et
+        al., IJBNPA 2019), in linea anche oltre (fino a 12 MET); sotto i 100, la parte del minuto passata a camminare
+        (passi/100) a 3 MET. kcal al minuto = MET × 3,5 × kg / 200.
+      · BATTITO: dalla soglia dell'attività moderata (40 % della riserva cardiaca, o 64 % della FC max senza il battito a
+        riposo: ACSM, Garber et al., MSSE 2011) l'equazione di Keytel et al. (J Sports Sci 2005) da battito, peso, età e
+        sesso, quando dà più dei passi.
+      · SEDUTE registrate col telefono: cardio col battito della fascia minuto per minuto (Keytel), senza battito i MET della
+        disciplina dal Compendium 2024 (Herrmann et al., J Sport Health Sci 2024); pesi a 3,5 MET (Compendium 02054: più
+        esercizi, 8–15 ripetizioni), perché nei pesi il battito sale più del consumo.
+      La digestione (≈ 10 % di quello che si mangia) non è contata a parte. Le stime dei dispositivi da polso sbagliano
+      anche di molto (O'Driscoll et al., Br J Sports Med 2020): è una STIMA, e lo dice. ── */
+/* MET del Compendium 2024: 12150 corsa 8,0 · 17160 camminata 3,5 · 01014 bici 7,0 · 01009 mountain bike 8,5 ·
+   01200 cyclette 6,8 · 18240 nuoto 5,8 · 02071 vogatore 5,0 · 02048 ellittica 5,0 · 19090 sci di fondo 8,5 ·
+   02068 salto della corda 11,0 · 02040 circuito vigoroso (HIIT) 7,5 · 02054 pesi 3,5 */
+const KC_MET={'Corsa':8, 'Tapis roulant':8, 'Camminata veloce':3.5, 'Bici':7, 'Cyclette':6.8, 'Nuoto':5.8, 'Vogatore':5,
+  'Ellittica':5, 'Sci di fondo':8.5, 'Salto della corda':11, 'HIIT':7.5}, KC_SVEGLIO=1.4, KC_SONNO=1.0, KC_DIGESTIONE=0.10;
+/* pesi: MET del Compendium (02054 3,5 · 02052 5,0 · 02050 6,0) scelti dalla fatica RPE della seduta (≤ 5 / 6–7 / ≥ 8), mai dal
+   battito (Mitchell et al., Sports Med 2024; Lee et al., Sensors 2026). Uguale al PC (09g-calorie.js, kcMetPesi) */
+function kcMetPesi(rpe){ return !(rpe>=0 && rpe!=='' && rpe!=null)? 3.5 : rpe<=5? 3.5 : rpe<=7? 5 : 6; }
+function kcMetSeduta(s){ if(s && s.variante==='Mountain bike') return 8.5; return (s && KC_MET[s.tipo]) || null; }
+function kcUltimaPesata(){ const l=(typeof PESATE!=='undefined' && Array.isArray(PESATE))? PESATE.filter(p=>p && +p.peso>0) : [];
+  return l.length? l.slice().sort((a,b)=>String(a.data+' '+(a.ora||'')).localeCompare(String(b.data+' '+(b.ora||'')))).pop() : null; }
+/* chi è: peso, metabolismo a riposo e soglia del battito (null se manca il peso o un'equazione) */
+function kcProfilo(){
+  const c=(SCHEDA && SCHEDA.corpo)||{}, ul=kcUltimaPesata();
+  const peso=(ul? +ul.peso : 0) || (+c.peso||0);
+  const gr=(ul && ul.grasso!=null && isFinite(+ul.grasso))? +ul.grasso : (+c.massa_grassa>0? +c.massa_grassa*100 : null);
+  const alt=+c.altezza||0, eta=+c.eta||0, sesso=(c.sesso==='F' || c.sesso==='M')? c.sesso : '';
+  if(!(peso>=30 && peso<=300)) return null;
+  let rmr=0, da='';
+  if(gr!=null && gr>=3 && gr<=70){ rmr=500+22*peso*(1-gr/100); da='cunningham'; }
+  else if(alt>=120 && eta>=10 && sesso){ rmr=10*peso+6.25*alt-5*eta+(sesso==='M'? 5 : -161); da='mifflin'; }
+  if(!(rmr>=600 && rmr<=4500)) return null;
+  const g=(ZPD && zpGiornoValori(dataLoc(new Date())))||{}, rip=+g.fcRiposo||+c.fcRiposo||0, mx=(fcMaxScheda()||{}).v||0;
+  const soglia=eta>=10? ((rip>=30 && mx>rip)? rip+0.4*(mx-rip) : (mx? 0.64*mx : 0)) : 0;
+  return {peso:peso, rmr:rmr, da:da, eta:eta, sesso:sesso, soglia:Math.round(soglia)}; }
+/* Keytel 2005, senza VO2max: kJ al minuto → kcal (a sesso ignoto la media delle due) */
+function kcKeytel(hr, P){
+  const m=-55.0969+0.6309*hr+0.1988*P.peso+0.2017*P.eta, f=-20.4022+0.4472*hr-0.1263*P.peso+0.074*P.eta;
+  return Math.max(0, (P.sesso==='M'? m : P.sesso==='F'? f : (m+f)/2)/4.184); }
+const kcDaMet=(met, P)=>met*3.5*P.peso/200;
+function kcMetCadenza(p){ return p>=100? Math.min(12, 3+0.1*(p-100)) : 3; }
+/* le sedute del telefono di quel giorno: [inizio ms, fine ms, battiti al minuto (o null), MET senza battito, pesi?] */
+function kcSedute(data){
+  const out=[], usa=(s, pesi)=>{ if(!s || s.data!==data || !(+s.durataSec>0)) return;
+    const a=new Date(s.data+'T'+String(s.ora||'00:00').slice(0,5)+':00').getTime(); if(!isFinite(a)) return;
+    const passo=+(s.passo||s.fcPasso)||5, fc=Array.isArray(s.fc)? s.fc : [], perMin=60/passo, bpm=[];
+    for(let k=0;k*60<s.durataSec;k++){ const v=fc.slice(k*perMin, (k+1)*perMin).filter(x=>x>0); bpm.push(v.length? v.reduce((x,y)=>x+y, 0)/v.length : null); }
+    out.push({a:a, b:a+s.durataSec*1000, bpm:bpm, met:pesi? kcMetPesi(s.rpe) : kcMetSeduta(s), pesi:pesi}); };
+  (typeof SEDUTE_FC!=='undefined'? SEDUTE_FC : []).forEach(s=>usa(s, false));
+  (typeof SEDUTE_PESI_FC!=='undefined'? SEDUTE_PESI_FC : []).forEach(s=>usa(s, true));
+  return out; }
+/* il giorno (fino ad adesso, se è oggi): kcal totali divise in metabolismo, vita quotidiana e movimento */
+function kcGiorno(data){
+  const P=kcProfilo(); if(!P) return null;
+  const d0=new Date(data+'T00:00:00').getTime(), adesso=Date.now(), fine=Math.min(d0+86400000, adesso);
+  if(!(fine>d0)) return null;
+  const n=Math.ceil((fine-d0)/60000), rMin=P.rmr/1440, M=t=>Math.floor((t-d0)/60000);
+  const att=new Map(); ((ZPD && ZPD.s[1])||[]).forEach(v=>{ const k=M(v[0]); if(k>=0 && k<n) att.set(k, v); });
+  const dorme=new Uint8Array(n), segna=(a, b, v)=>{ for(let k=Math.max(0, M(a));k<Math.min(n, M(b-1)+1);k++) dorme[k]=v; };
+  if(ZPD) Object.keys(ZPD.notti).forEach(id=>{ const x=ZPD.notti[id]; if(!x || !(x._a>d0) || !(x._da<fine)) return;
+    segna(x._da, x._a, 1); (x.fasi||[]).forEach(f=>{ if(f && f[2]==='sveglio') segna(x._da+f[0]*60000, x._da+f[1]*60000, 0); });
+    (x.sonnellini||[]).forEach(z=>{ const a=new Date(z.inizio).getTime(), b=new Date(z.fine).getTime(); if(a<b) segna(a, b, 1); }); });
+  const sed=kcSedute(data);
+  let bas=0, vit=0, mov=0, conPassi=0, conBattito=0;
+  for(let k=0;k<n;k++){
+    const t=d0+k*60000, dor=!!dorme[k], base=rMin*(dor? KC_SONNO : KC_SVEGLIO); let ee=base;
+    const s=sed.find(x=>t>=x.a && t<x.b);
+    if(s){ const hr=s.bpm[Math.floor((t-s.a)/60000)];
+      if(s.pesi) ee=Math.max(base, kcDaMet(s.met, P));
+      else if(hr && P.soglia && hr>=P.soglia){ ee=Math.max(base, kcKeytel(hr, P)); conBattito++; }
+      else if(s.met) ee=Math.max(base, kcDaMet(s.met, P)); }
+    else { const v=att.get(k);
+      if(v){ const p=+v[1]||0, hr=+v[2]||0;
+        if(p>0){ const q=Math.min(1, p/100); ee=Math.max(base, q*kcDaMet(kcMetCadenza(p), P)+(1-q)*base); conPassi++; }
+        if(hr && P.soglia && hr>=P.soglia){ const k2=kcKeytel(hr, P); if(k2>ee){ ee=k2; conBattito++; } } } }
+    bas+=rMin; vit+=Math.max(0, base-rMin); mov+=Math.max(0, ee-base); }
+  /* digestione: il 10 % del totale (FAO/WHO/UNU 2004, § 2.3), come sul PC */
+  const dig=(bas+vit+mov)*KC_DIGESTIONE/(1-KC_DIGESTIONE);
+  return {tot:Math.round(bas+vit+mov+dig), bas:Math.round(bas), vit:Math.round(vit), mov:Math.round(mov), dig:Math.round(dig), da:P.da, rmr:Math.round(P.rmr),
+    fino:fine, passi:conPassi, battito:conBattito}; }
+function salHtmlKcal(){
+  const k=kcGiorno(dataLoc(new Date()));
+  if(!k) return '<div class="bil-stato">'+esc(tt('Per le calorie servono il peso (dalla bilancia o dal PC) e altezza, età e sesso del profilo.'))+'</div>';
+  const P=x=>Math.max(0, Math.round(1000*x/k.tot)/10);
+  return '<div class="sal-kc"><b>'+salNum(k.tot)+'</b><span>kcal · '+esc(tt('stima fino alle'))+' '+esc(oraLoc(new Date(k.fino)).slice(0,5))+'</span></div>'+
+    '<div class="sal-kc-bar"><i class="k-bas" style="width:'+P(k.bas)+'%"></i><i class="k-vit" style="width:'+P(k.vit)+'%"></i><i class="k-mov" style="width:'+P(k.mov)+'%"></i><i class="k-dig" style="width:'+P(k.dig)+'%"></i></div>'+
+    '<div class="sal-kc-leg"><span><i class="k-bas"></i>'+esc(tt('Metabolismo a riposo'))+'</span><b>'+salNum(k.bas)+'</b>'+
+    '<span><i class="k-vit"></i>'+esc(tt('Vita quotidiana'))+'</span><b>'+salNum(k.vit)+'</b>'+
+    '<span><i class="k-mov"></i>'+esc(tt('Movimento (passi, battito, sedute)'))+'</span><b>'+salNum(k.mov)+'</b>'+
+    '<span><i class="k-dig"></i>'+esc(tt('Digestione'))+'</span><b>'+salNum(k.dig)+'</b></div>'+
+    '<div class="sal-kc-nota">'+esc(tt(k.da==='cunningham'? 'Metabolismo dalla massa magra (Cunningham), ' : 'Metabolismo da peso, altezza, età e sesso (Mifflin-St Jeor), '))+salNum(k.rmr)+' '+esc(tt('kcal al giorno'))+'.</div>'; }
+/* ── WIDGET DELLA GIORNATA (27/11/2026, Marco: «creiamo un widget per il telefono dove sintetizza la giornata: battito,
+      passi, calorie, sonno (un numero, punteggio, con attorno un cerchio che è il grafico a torta delle fasi)») ──
+   La pagina prepara i numeri e li passa al lato Android: TmsSeduta.widget dalla pagina dell'app, TmsServizio.widget dalla
+   pagina invisibile del servizio (ogni 30 minuti, anche ad app chiusa). Il widget (nativo/TmsWidget.java) li disegna; il
+   battito lo aggiorna anche il servizio del «sempre collegato», al più una volta al minuto. Si aggiorna: dopo ogni
+   sincronizzazione, all'avvio, uscendo dall'app e, con la Salute aperta, al più una volta al minuto. Toccandolo si apre
+   la Salute (se non c'è una seduta aperta). Il sonno è quello della notte finita oggi: il punteggio del bracciale al
+   centro, intorno le fasi (profondo, REM, leggero, sveglio) in proporzione. */
+const WID={t:0};
+function widgetDati(){
+  const oggi=dataLoc(new Date()), p=salPassiOggi(), k=kcGiorno(oggi), r=salUltimoRiposo();
+  let sonno=null;
+  if(r && r.notte && r.notte.id===oggi){ const n=r.notte, fasi=n.fasi||[], m=x=>fasi.filter(f=>f[2]===x).reduce((a,f)=>a+(f[1]-f[0]), 0);
+    const f=[m('profondo'), m('rem'), m('leggero'), m('sveglio')];
+    sonno={p:n.punteggio!=null? n.punteggio : null, f:f, min:(f[0]+f[1]+f[2]) || Math.round((new Date(n.fine)-new Date(n.inizio))/60000)}; }
+  let bpm=salBpm(), bpmT=bpm? Date.now() : 0;
+  if(!bpm){ const u=((ZPD && ZPD.s[1])||[]).reduce((a,v)=>(v[2]>0 && (!a || v[0]>a[0]))? v : a, null); if(u){ bpm=u[2]; bpmT=u[0]; } }
+  return {g:oggi, t:Date.now(), passi:p.v, obi:salObiettivo(), kcal:k? k.tot : null, bpm:bpm||null, bpmT:bpmT||0, sonno:sonno,
+    L:{passi:tt('passi'), di:tt('di'), sonno:tt('sonno'), agg:tt('aggiornato alle'), stima:tt('stima')}}; }
+function widgetAggiorna(forza){
+  const ts=window.tmsSeduta, srv=window.TmsServizio;
+  if(!(ts && ts.widget) && !(srv && srv.widget)) return;
+  if(!forza && Date.now()-WID.t<60000) return;
+  let d=null; try{ d=widgetDati(); }catch(e){ return; }
+  WID.t=Date.now();
+  try{ if(ts && ts.widget) Promise.resolve(ts.widget(d)).catch(()=>{}); else srv.widget(JSON.stringify(d)); }catch(e){} }
+/* toccando il widget: la Salute (non se c'è una seduta o una registrazione aperta) */
+function salDaWidget(){
+  if(!(window.tmsBLE && SCHEDA) || FC.reg || SED.s) return;
+  const pg=$('sal'); if(pg && !pg.hidden) return;
+  navLivelli=0; mostra('menu'); salApri(); }
+window.tmsDaWidget=salDaWidget;
 /* ── SEDUTA ATTIVA ANCHE CON L'APP CHIUSA (27/11/2026, Marco: «quando parte una sessione di allenamento l'app non
       si chiude mai davvero, resta attiva in background, così da prendere costantemente i dati dal bracciale» e
       «quando chiudo l'app vorrei un'isola floating con battito, esercizio, tempo di recupero»). Solo nell'APK
@@ -4217,13 +4500,19 @@ function natAggiorna(){
   if(att){
     const nuovo=!NAT.on; NAT.on=true; if(nuovo) NAT.ultimo=natInizio();
     try{ Promise.resolve(ts.avvia({titolo:natTitolo(), inizio:natInizio(), dispositivo:FC.id||fcIdNoto()||'', gps:!!(FC.reg && FC.reg.gps)})).catch(()=>{}); }catch(e){}
-    if(nuovo) natBatteria(); }
+    if(nuovo) Promise.resolve(natBatteria()).then(natPermessoNotifiche).catch(()=>{}); }
   else if(NAT.on){ NAT.on=false; try{ Promise.resolve(ts.ferma()).catch(()=>{}); }catch(e){} }
   try{ Promise.resolve(ts.pip(att)).catch(()=>{}); }catch(e){} }
+/* la notifica «Allenamento in corso» (27/11/2026, Marco: «notifica di sistema allenamento in corso»): da Android 13 serve il
+   permesso delle notifiche; si chiede alla prima seduta, una volta (poi decide Android) */
+async function natPermessoNotifiche(){
+  try{ if(localStorage.getItem('tms-notifiche-chieste')) return; localStorage.setItem('tms-notifiche-chieste', new Date().toISOString()); }catch(e){ return; }
+  try{ if(window.tmsAvvisi && window.tmsAvvisi.permesso) await window.tmsAvvisi.permesso(true); }catch(e){} }
 /* i battiti presi dal servizio mentre la pagina era ferma: solo dove la traccia è vuota */
 function natRiempi(r, t, bpm){
   const k=Math.floor((t-r.inizio)/1000/FC_PASSO); if(k<0) return;
   const x=r.secchi[k];
+  if(Array.isArray(r.hr)){ const sec=Math.floor((t-r.inizio)/1000); if(!(r.hr[sec]>0)) r.hr[sec]=bpm; }
   if(!x){ r.secchi[k]=[bpm, 1, 1]; }
   else if(x[2]){ x[0]+=bpm; x[1]++; }          /* secchiello già riempito dal servizio: si somma */
   else return;                                   /* la pagina c'era: i suoi campioni bastano */
@@ -4252,17 +4541,12 @@ async function natBatteria(sempre){
   const ok=window.tmsConferma? await window.tmsConferma(testo) : false;
   if(ok){ try{ await ts.chiediBatteria(); }catch(e){} } }
 /* ── finestra mobile: la pagina lo sa dall'evento «pip» del nativo (window.tmsInPip) ── */
+/* SOLO IL BATTITO (27/11/2026, Marco: «floating window: ora solo battito», «no zoom»): il numero grande col colore della
+   zona, a misura della finestrella (unità vh/vw), dalla fascia o dal bracciale sempre collegato */
 function pipRender(){
   const v=$('pip-vista'); if(!v) return;
-  const bpm=(FC.id && FC.bpm)? FC.bpm : null, z=bpm? fcZona(bpm) : null;
-  const inizio=natInizio(), sec=inizio? (Date.now()-inizio)/1000 : 0;
-  const cosa=FC.reg? tt(FC.reg.tipo||'') : SED.s? (SED.es || SED.s.giorno) : '';
-  const tb=$('tbar'), rec=(tb && tb.classList.contains('show'))? timerResta() : null;
-  v.innerHTML='<div class="pip-bpm'+(z&&z.n? ' z'+z.n : '')+'">'+(bpm? ico('cuore')+'<b>'+bpm+'</b>' : ico('cuore')+'<b>—</b>')+'</div>'+
-    (z&&z.n? '<div class="pip-zona">'+esc(tt(FC_ZONE[z.n-1][1]))+'</div>' : '')+
-    '<div class="pip-cosa">'+esc(cosa)+'</div>'+
-    (rec!=null? '<div class="pip-rec">'+ico('timer')+'<b>'+esc(fmtSec(rec))+'</b></div>' : '')+
-    '<div class="pip-t">'+esc(fcDur(sec))+'</div>'; }
+  const bpm=salBpm(), z=bpm? fcZona(bpm) : null;
+  v.innerHTML='<div class="pip-bpm'+(z&&z.n? ' z'+z.n : '')+'">'+ico('cuore')+'<b>'+(bpm? bpm : '—')+'</b></div>'; }
 window.tmsInPip=function(on){
   NAT.pip=!!on;
   document.body.classList.toggle('in-pip', NAT.pip);
@@ -5112,8 +5396,12 @@ async function colEventi(){
   /* sedute della fascia cardio: una per file, come le pesate */
   let cc=false;
   for(const s of SEDUTE_FC){ if(!daMandare(s)) continue;
-    await colScrivi(dir+colNomeFile('cardio', s.id), await colCifra({tipo:'tms-cardio', seduta:{id:s.id, data:s.data, ora:s.ora, tipo:s.tipo, durata:s.durata, rpe:s.rpe,
-      fcMedia:s.fcMedia, fcPicco:s.fcPicco, fc:s.fc, fcPasso:s.fcPasso, dispositivo:s.dispositivo}}));
+    const sd={id:s.id, data:s.data, ora:s.ora, tipo:s.tipo, durata:s.durata, rpe:s.rpe, dispositivo:s.dispositivo, disc:s.disc, variante:s.variante};
+    if(s.grezzo){ let g=null; try{ g=await fcLeggiKv(fcGrezzoKey(s.id)); }catch(e){}
+      if(!g) continue;                                   /* il grezzo non si legge: si riprova dopo */
+      Object.assign(sd, {inizio:s.inizio, hr:g.hr||'', fix:g.fix||[]}); }
+    else FC_CALCOLATI.forEach(k=>{ if(s[k]!=null) sd[k]=s[k]; });   /* sedute di prima: i valori di allora, GPS compreso */
+    await colScrivi(dir+colNomeFile('cardio', s.id), await colCifra({tipo:'tms-cardio', seduta:sd}));
     s.ev=new Date().toISOString(); cc=true; }
   if(cp) await pesSalva();
   if(cf) await fotoSalva();
@@ -5121,8 +5409,9 @@ async function colEventi(){
   /* battito delle sedute coi pesi: un file per seduta, legato al giorno della scheda */
   let cpf=false;
   for(const x of SEDUTE_PESI_FC){ if(!daMandare(x)) continue;
-    await colScrivi(dir+colNomeFile('sedutafc', x.id), await colCifra({tipo:'tms-seduta-fc', seduta:{id:x.id, giorno:x.giorno, settimana:x.settimana, data:x.data, ora:x.ora,
-      durataSec:x.durataSec, fcMedia:x.fcMedia, fcPicco:x.fcPicco, fc:x.fc, fcPasso:x.fcPasso, dispositivo:x.dispositivo}}));
+    const sd={id:x.id, giorno:x.giorno, settimana:x.settimana, data:x.data, ora:x.ora, durataSec:x.durataSec, dispositivo:x.dispositivo, rpe:(x.rpe==null? '' : x.rpe)};
+    if(x.hr) Object.assign(sd, {inizio:x.inizio, hr:x.hr}); else Object.assign(sd, {fcMedia:x.fcMedia, fcPicco:x.fcPicco, fc:x.fc, fcPasso:x.fcPasso});
+    await colScrivi(dir+colNomeFile('sedutafc', x.id), await colCifra({tipo:'tms-seduta-fc', seduta:sd}));
     x.ev=new Date().toISOString(); cpf=true; }
   if(cpf) await fcpSalva();
   /* sonno e dati del giorno dal bracciale: un file per notte e uno per giorno (il più recente prende il posto) */
@@ -5368,7 +5657,11 @@ $('sempre-on').onchange=e=>{ try{ localStorage.setItem(SEMPRE_KEY, e.target.chec
 zpCaricaChiave().then(()=>zpdCarica()).then(()=>{ zpRender(); ZP.pronta=true;
   if(window.TmsServizio){ servizioGiro(); return; }          /* pagina invisibile del servizio: scarica, manda e chiude */
   natSempreAvvio().catch(()=>{});
+  setTimeout(()=>{ widgetAggiorna(true); }, 2500);   /* il widget coi dati già sul telefono */
+  Promise.resolve(window.tmsSeduta && window.tmsSeduta.widgetAperto && window.tmsSeduta.widgetAperto()).then(r=>{ if(r && r.si) salDaWidget(); }).catch(()=>{});
   setTimeout(()=>{ zpSincAuto().catch(()=>{}); }, 3000); }).catch(()=>{ if(window.TmsServizio) servizioFine(null); });
+/* uscendo dall'app il widget prende gli ultimi numeri */
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && !window.TmsServizio && ZPD) widgetAggiorna(true); });
 /* tornando nell'app: i dati del bracciale si rileggono (il servizio può averli scaricati ad app chiusa) e lo stato
    del «sempre collegato» si riprende (anche «Scollega» toccato nella notifica) */
 document.addEventListener('visibilitychange',()=>{ if(document.hidden || window.TmsServizio) return;

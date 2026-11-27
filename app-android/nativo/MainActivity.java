@@ -2,6 +2,7 @@ package com.trainingmonitorsystem.scheda;
 
 import android.app.PictureInPictureParams;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -17,6 +18,8 @@ import com.getcapacitor.BridgeActivity;
    l'attività entra da sola nella finestra mobile: da Android 12 con setAutoEnterEnabled, prima con
    onUserLeaveHint. La pagina riceve l'evento «pip» e mostra la vista compatta (battito, esercizio, recupero,
    tempo). Senza seduta aperta l'app si chiude come sempre; se il telefono non ha il PiP, resta la notifica.
+   WIDGET DELLA GIORNATA (1.10.0): toccandolo l'app si apre con l'azione TmsWidget.AZIONE; qui (anche all'avvio:
+   BridgeActivity.load passa l'intent d'avvio a onNewIntent) lo si dice al plugin, che porta la pagina alla Salute.
    Sorgente in app-android/nativo/, copiato nel progetto Android da scripts/patch-android.js. */
 public class MainActivity extends BridgeActivity {
 
@@ -35,7 +38,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     private PictureInPictureParams parametri(boolean auto) {
-        PictureInPictureParams.Builder b = new PictureInPictureParams.Builder().setAspectRatio(new Rational(4, 5));
+        PictureInPictureParams.Builder b = new PictureInPictureParams.Builder().setAspectRatio(new Rational(3, 2));
         if (Build.VERSION.SDK_INT >= 31) b.setAutoEnterEnabled(auto).setSeamlessResizeEnabled(false);
         return b.build();
     }
@@ -53,6 +56,15 @@ public class MainActivity extends BridgeActivity {
         super.onUserLeaveHint();
         if (pipVoluto && pipSupportato(this) && Build.VERSION.SDK_INT < 31) {
             try { enterPictureInPictureMode(parametri(false)); } catch (Exception e) { }
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null && TmsWidget.AZIONE.equals(intent.getAction())) {
+            TmsSedutaPlugin.daWidget();
+            intent.setAction(Intent.ACTION_MAIN);   /* una volta sola: non di nuovo se l'attività si ricrea */
         }
     }
 
