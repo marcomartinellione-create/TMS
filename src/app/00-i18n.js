@@ -1371,6 +1371,7 @@ const EN={
   "Battito della seduta":"Session heart rate",
   "picco":"peak",
   "il battito di una seduta":"one session's heart rate",
+  "sonno e recupero dal bracciale":"sleep and recovery from the band",
   "battiti di sedute":"sessions' heart rates",
   "Grafico del battito della seduta":"Session heart rate chart",
   "Il battito della seduta coi pesi si vede qui e nello Storico: non entra nel carico (TL, ACWR) né nel tab Cardio.":"The weights session's heart rate shows here and in the History: it doesn't go into the load (TL, ACWR) or the Cardio tab.",

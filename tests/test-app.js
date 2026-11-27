@@ -3703,8 +3703,10 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
   const crc = b => zlib.crc32(Buffer.from(b)) >>> 0;
   const ecb = (k, d, dec) => { const c = (dec ? nc.createDecipheriv : nc.createCipheriv)('aes-128-ecb', Buffer.from(k), null); c.setAutoPadding(false); return Array.from(Buffer.concat([c.update(Buffer.from(d)), c.final()])); };
   const STORICO = Array.from(nc.randomBytes(70));
+  /* ora del primo record come la manda il bracciale: anno u16, mese, giorno, ore, minuti, secondi (UTC+1), fuso in quarti d'ora */
+  const oraZ = ms => { const d = new Date(ms + 4 * 900000), y = d.getUTCFullYear(); return [y & 255, y >> 8, d.getUTCMonth() + 1, d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), 4]; };
   function finto(o){
-    const F = { o: o, cb: null, sid: 0x40, arr: null, kSess: null, tx: 0, ricevuti: [], acks: [] };
+    const F = { o: o, cb: null, sid: 0x40, arr: null, kSess: null, tx: 0, ricevuti: [], acks: [], starts: [], dati: STORICO, tipo: 0 };
     F.notifica = (car, b) => setTimeout(() => { if (F.cb) F.cb.onDati(car, b.slice()); }, 1);
     F.pezzi = (ep, payload, cifra, sidFisso) => {
       const sid = sidFisso != null ? sidFisso : (F.sid = (F.sid + 1) & 255); let corpo = payload;
@@ -3741,9 +3743,16 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
         const giusta = J(ecb(o.chiave, F.rand)) === J(p.slice(1, 17)) && J(ecb(F.kSess, F.rand)) === J(p.slice(17, 33));
         F.manda(0x82, o.forma06 ? [0x06, giusta ? 0x01 : 0x26] : [0x10, 0x05, o.stato81 ? 0x81 : (giusta ? 0x01 : 0x26)], false); return; }
       if (ep === 0x29 && p[0] === 0x03) { F.manda(0x29, [0x04, 0x00, o.batteria], true); return; }
-      if (ep === 0x4b && p[0] === 0x01) { F.manda(0x4b, [0x10, 0x01, 0x01].concat(u32(STORICO.length)), true); return; }
-      if (ep === 0x4b && p[0] === 0x02) { for (let k = 0; k * 19 < STORICO.length; k++) F.notifica(DATI, [k].concat(STORICO.slice(k * 19, k * 19 + 19)));
-        setTimeout(() => F.manda(0x4b, [0x10, 0x02, 0x01].concat(u32(crc(STORICO))), true), 20); return; }
+      if (ep === 0x4b && p[0] === 0x01) {
+        /* START: tipo, data locale e fuso in quarti d'ora; la risposta porta dimensione e ora del primo record */
+        const tipo = p[1], da = Date.UTC(p[2] | (p[3] << 8), p[4] - 1, p[5], p[6], p[7], p[8]) - (p[9] > 127 ? p[9] - 256 : p[9]) * 900000;
+        F.starts.push({ tipo: tipo, da: da }); F.tipo = tipo;
+        if (o.rifiuta && o.rifiuta.indexOf(tipo) >= 0) { F.manda(0x4b, [0x10, 0x01, 0x02], true); return; }
+        let inizio = Date.UTC(2026, 10, 20); F.dati = STORICO;
+        if (o.storico) { const s = o.storico(tipo, da); F.dati = s.dati; inizio = s.inizio || da; }
+        F.manda(0x4b, [0x10, 0x01, 0x01].concat(u32(F.dati.length), oraZ(inizio)), true); return; }
+      if (ep === 0x4b && p[0] === 0x02) { const D = F.dati; for (let k = 0; k * 19 < D.length; k++) F.notifica(DATI, [k].concat(D.slice(k * 19, k * 19 + 19)));
+        setTimeout(() => F.manda(0x4b, [0x10, 0x02, 0x01].concat(u32((crc(D) ^ (o.crcRotto === F.tipo ? 1 : 0)) >>> 0)), true), 20); return; }
     };
     return F; }
   /* la pagina, con un trasporto Bluetooth finto che porta al bracciale finto */
@@ -3839,6 +3848,102 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
     for (const p of pz4) await sw.eval('zpRicevi(window.__S, ' + J(OUT) + ', ' + J(p) + ')');
     ok(sw.eval('window.__S.log.length') === 1 && sw.eval('window.__S.log[0].ep') === 0x29 && sw.eval('window.__S.log[0].n') === 40, 'e un messaggio integro, dopo, arriva giusto');
     a.chiudi(); }
+  /* SONNO E DATI DEL GIORNO (27/11/2026): un bracciale finto con record veri per ogni tipo, nei layout dello studio
+     (Doc/bracciale/PROPOSTA.md). Tutto «ieri» (Y = mezzanotte locale di ieri), così niente cade nel futuro. */
+  { const oggi = new Date(); oggi.setHours(0, 0, 0, 0);
+    const Y = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - 1).getTime(), ora = (h, m) => Y + h * 3600000 + (m || 0) * 60000;
+    const z = n => String(n).padStart(2, '0'), ymd = ms => { const d = new Date(ms); return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); };
+    const loc = ms => { const d = new Date(ms); return ymd(ms) + 'T' + z(d.getHours()) + ':' + z(d.getMinutes()); };
+    const ts = ms => u32(Math.floor(ms / 1000)), i16 = v => [v & 255, (v >> 8) & 255];
+    /* notte: minuti dalla mezzanotte del giorno prima (ora = mezzanotte + (raw − 1440) min), fine della fase compresa */
+    const notte = new Array(594).fill(0);
+    ts(ora(6, 52)).forEach((b, i) => { notte[i] = b; }); ts(Y - 3600000).forEach((b, i) => { notte[4 + i] = b; });
+    notte[22] = 82; notte[23] = 1; i16(900).concat(i16(940)).forEach((b, i) => { notte[24 + i] = b; });   /* sonnellino di l'altroieri 15:00–15:40 */
+    const fasi = [[1398, 1409, 7], [1410, 1449, 4], [1450, 1494, 5], [1495, 1530, 8], [1531, 1851, 4]];
+    notte[84] = fasi.length; fasi.forEach((f, k) => { i16(f[0]).concat(i16(f[1]), [f[2]]).forEach((b, i) => { notte[86 + k * 5 + i] = b; }); });
+    const minuto = v => [0, 0, v & 255, 0, 0, 0, 0, 0], vuoto = [255, 255, 255, 255, 255, 255, 255, 255], pelle = c => [0, 0, c & 255, (c >> 8) & 255, 0, 0, 0, 0];
+    const REC = {
+      72: [notte],
+      73: [ts(ora(2)).concat([4, 45]), ts(ora(4)).concat([4, 51])],
+      78: [ts(ora(5)).concat([4], u32(6230))],
+      37: [ts(ora(10)).concat([97 | 0x80], new Array(60).fill(0)), ts(ora(11)).concat([95], new Array(60).fill(0))],
+      38: [ts(ora(1)).concat([94, 0]), ts(ora(3)).concat([96, 0])],
+      18: [ts(ora(12)).concat([40])],
+      56: [ts(ora(3)).concat([4, 14, 0, 0]), ts(ora(5)).concat([4, 16, 0, 0])],
+      58: [ts(ora(7, 30)).concat([4, 54])],
+      86: [ts(ora(7, 30)).concat([4, 55, 0, 0])] };
+    const MIN = { 19: { inizio: ora(8), m: [[20], [30], [255], [40], [50]] }, 46: { inizio: ora(2), m: [pelle(3360), pelle(3380), pelle(0x7FFF)] },
+      1: { inizio: ora(9), m: [minuto(120), vuoto, minuto(80), minuto(0)] } };
+    /* il bracciale finto manda i record dall'ora chiesta in poi (non cancella niente: l'ACK 03 01 non toglie i dati) */
+    const storico = (tipo, da) => {
+      if (MIN[tipo]) { const s = MIN[tipo], k0 = Math.max(0, Math.ceil((da - s.inizio) / 60000)), resto = s.m.slice(k0);
+        return { dati: [].concat(...resto), inizio: s.inizio + k0 * 60000 }; }
+      const r = (REC[tipo] || []).filter(x => r32(x, 0) * 1000 >= da), d = [].concat(...r);
+      return { dati: (tipo === 37 && d.length) ? [2].concat(d) : d, inizio: r.length ? r32(r[0], 0) * 1000 : da }; };
+    const sinc = async a => { a.sd.getElementById('zp-sinc').click(); await settle(30); for (let k = 0; k < 120 && a.sw.eval('ZP.inCorso'); k++) await settle(50); };
+    const a = await apri({ chiave: KF, batteria: 77, storico: storico }), { sw, sd, F } = a;
+    sw.eval('colApri()'); await settle(20);
+    ok(!sd.getElementById('zp-box').classList.contains('imp-ok') && sd.getElementById('zp-sinc').hidden && !sd.getElementById('zp-chiave-box').hidden,
+       'Impostazioni › Bracciale senza chiave: niente tendina, si vede subito dove incollare la chiave; «Sincronizza» non c\'è');
+    ok(!sd.getElementById('col-box').classList.contains('imp-ok') && !sd.getElementById('fc-imp').classList.contains('imp-ok'),
+       'Impostazioni: TMS sul PC e fascia non collegati → i comandi per collegarli si vedono subito (nessuna tendina)');
+    sd.getElementById('zp-chiave').value = '00112233445566778899aabbccddeeff'; sd.getElementById('zp-salva').click(); await settle(30);
+    ok(!sd.getElementById('zp-sinc').hidden && sd.getElementById('zp-chiave-box').hidden, 'chiave salvata: compare «Sincronizza», il campo della chiave si chiude');
+    await sinc(a);
+    const ZPD = () => JSON.parse(sw.eval('JSON.stringify(ZPD)'));
+    let D = ZPD();
+    const tipiChiesti = F.starts.map(s => s.tipo);
+    ok(J(tipiChiesti) === J([72, 73, 78, 37, 38, 18, 19, 46, 56, 58, 86, 1]) && F.starts.every(s => s.da === new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - ((s.tipo === 72 || s.tipo === 19) ? 7 : 2)).getTime()),
+       'Sincronizza: chiede i 12 tipi dello storico, la prima volta dagli ultimi 2 giorni (7 per sonno e stress al minuto)');
+    const acks = () => F.ricevuti.filter(r => r.ep === 0x4b && r.p[0] === 3 && r.p[1] === 1).length, trasf = () => F.ricevuti.filter(r => r.ep === 0x4b && r.p[0] === 2).length;
+    ok(acks() === 12 && trasf() === 12 && F.ricevuti.filter(r => r.ep === 0x4b).every(r => r.cif), 'ogni START ha il suo TRANSFER (dati col CRC) e il suo ACK 03 01, tutto sul canale cifrato');
+    const nY = D.notti[ymd(Y)];
+    ok(nY && nY.inizio === loc(Y - 42 * 60000) && nY.fine === loc(Y + 412 * 60000) && J(nY.fasi) === J([[0, 12, 'sveglio'], [12, 52, 'leggero'], [52, 97, 'profondo'], [97, 133, 'rem'], [133, 454, 'leggero']]) &&
+       nY.punteggio === 82 && J(nY.sonnellini) === J([{ inizio: loc(Y - 540 * 60000), fine: loc(Y - 500 * 60000) }]),
+       'sonno (tipo 72): notte ' + (nY ? nY.inizio + ' → ' + nY.fine : '?') + ', fasi in minuti dall\'inizio (fine compresa), punteggio 82, sonnellino');
+    ok(D.passi[ymd(Y)] === 200 && J(D.s[19].map(v => v[1])) === J([20, 30, 40, 50]) && J(D.s[46].map(v => v[1])) === J([33.6, 33.8]) && D.s[19][2][0] === ora(8, 3),
+       'serie al minuto (1 passi, 19 stress, 46 pelle): ora dal primo record + N minuti, minuti vuoti (0xFF, 0x7FFF) saltati');
+    ok(J(D.s[37].map(v => v[1])) === J([97, 95]) && J(D.s[38].map(v => v[1])) === J([94, 96]) && D.s[78][0][1] === 62.3 && J(D.s[73].map(v => v[1])) === J([45, 51]),
+       'SpO2 (37 col byte di versione, valore & 0x7F; 38), HRV RMSSD (73) e SDNN in centesimi di ms (78)');
+    const ev = () => JSON.parse(sw.eval('JSON.stringify(Object.keys(ZPD.eventi).sort().map(function(k){ return [k, ZPD.eventi[k].tipo, ZPD.eventi[k].dati]; }))'));
+    const E1 = ev(), gY = (E1.find(e => e[0] === 'giorno|' + ymd(Y)) || [])[2] || {}, sY = (E1.find(e => e[0] === 'sonno|' + ymd(Y)) || [])[2] || {};
+    ok(J(gY) === J({ data: ymd(Y), passi: 200, fcRiposo: 54, rmssd: 48, sdnn: 62.3, spo2Min: 95, spo2Med: 96, stressMed: 36, stressMax: 50, tempPelle: 33.7, resp: 15 }),
+       'evento tms-giorno di ieri nel formato di recuperoUnisci: passi, FC a riposo, RMSSD, SDNN, SpO2, stress, pelle (della notte), respirazione');
+    ok(sY.id === ymd(Y) && sY.spo2 === 95 && sY.resp === 15 && sY.hrv === 48 && sY.punteggio === 82 && !('_da' in sY) && !('_ts' in sY),
+       'evento tms-sonno: la notte con SpO2, respirazione e HRV presi dentro la notte, senza i campi interni del telefono');
+    ok(E1.length === 3 && E1.some(e => e[0] === 'giorno|' + ymd(oggi) && e[2].batteria === 77), 'e un giorno di oggi con la batteria (3 eventi in tutto)');
+    ok(/Ultima sincronizzazione: oggi \d\d:\d\d · 1 notte, 2 giorni/.test(sd.getElementById('zp-sinc-stato').textContent) && /Sincronizzato · batteria 77 %/.test(sd.getElementById('zp-stato').textContent),
+       'riquadro: «Sincronizzato · batteria 77 %» e «Ultima sincronizzazione: oggi hh:mm · 1 notte, 2 giorni»');
+    ok(sd.getElementById('zp-box').classList.contains('imp-ok') && !sd.getElementById('zp-box').classList.contains('aperta') && sd.getElementById('zp-pill').textContent === 'collegato',
+       'tutto verde: i comandi del bracciale stanno nella tendina «Gestisci», chiusa');
+    sd.querySelector('#zp-box .imp-apri').click(); await settle(10);
+    ok(sd.getElementById('zp-box').classList.contains('aperta'), '«Gestisci» apre la tendina (Sincronizza, Prova collegamento, Togli la chiave)');
+    ok(F.ricevuti.some(r => r.ep === 0x29) && a.B.staccati.length === 1, 'chiede la batteria e alla fine stacca il bracciale');
+    ok(Object.keys(D.cursori).length === 12 && D.cursori[1] === ora(9, 3) + 1000 && D.cursori[72] === ora(6, 52) + 1000 && D.cursori[73] === ora(4) + 1000,
+       'un cursore per tipo: ultimo record + 1 s (serie al minuto: inizio + N minuti)');
+    /* seconda sincronizzazione: si riparte dai cursori, niente doppioni */
+    sw.eval('ZPD.ultima=0'); const s0 = F.starts.length, a0 = acks(), t0 = trasf();
+    await sinc(a);
+    D = ZPD();
+    ok(F.starts.slice(s0).every(s => s.da === D.cursori[s.tipo]) && acks() - a0 === 12 && trasf() - t0 === 0,
+       'la volta dopo riparte dai cursori: niente di nuovo, nessun TRANSFER, ma l\'ACK dopo ogni START anche a dimensione 0');
+    ok(D.passi[ymd(Y)] === 200 && D.s[73].length === 2 && D.esito.nuovi === 0 && J(ev()) === J(E1), 'nessun doppione: passi sempre 200, stessi campioni, nessun evento nuovo');
+    a.chiudi();
+    /* un tipo rifiutato e uno col CRC sbagliato si saltano, il resto arriva */
+    { const b = await apri({ chiave: KF, batteria: 60, storico: storico, rifiuta: [38], crcRotto: 46 });
+      b.sw.eval('colApri()'); await settle(20); b.sd.getElementById('zp-chiave').value = '00112233445566778899aabbccddeeff'; b.sd.getElementById('zp-salva').click(); await settle(30);
+      await sinc(b);
+      const Db = JSON.parse(b.sw.eval('JSON.stringify(ZPD)'));
+      ok(Db.esito.tipi[38] === 'rifiutato' && Db.esito.tipi[46] === 'crc' && !Db.cursori[46] && !Db.cursori[38] && Db.passi[ymd(Y)] === 200 && Db.notti[ymd(Y)] && /Sincronizzato/.test(b.sd.getElementById('zp-stato').textContent),
+         'tipo rifiutato (38) o con CRC sbagliato (46): si salta senza spostarne il cursore, gli altri tipi arrivano');
+      b.chiudi(); }
+    /* con la fascia in registrazione non si sincronizza */
+    { const b = await apri({ chiave: KF, batteria: 60, storico: storico });
+      b.sw.eval('colApri()'); await settle(20); b.sd.getElementById('zp-chiave').value = '00112233445566778899aabbccddeeff'; b.sd.getElementById('zp-salva').click(); await settle(30);
+      b.sw.eval('FC.reg={}'); await sinc(b);
+      ok(b.F.starts.length === 0 && /occupato|seduta|registrazione/i.test(b.sd.getElementById('zp-stato').textContent + ' ' + b.sw.eval('ZP.motivo')), 'durante una registrazione o una seduta «Sincronizza» aspetta');
+      b.sw.eval('FC.reg=null'); b.chiudi(); }
+  }
 }
 
 console.log('--- T12e: seduta in primo piano (servizio Android finto), battiti recuperati a schermo spento, finestra mobile ---');
@@ -4295,6 +4400,16 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     H.metti(L2, 'dal-telefono/eventi/sedutafc-g1.json', await cifra({ tipo: 'tms-seduta-fc', seduta: { id: 'p|g1', giorno: 'Giorno 1', settimana: 1, data: '2026-11-24', ora: '18:00:00', durataSec: 3000, fcMedia: 120, fcPicco: 150, fc: [110, 130], fcPasso: 5 } }));
     await w.eval('telGiroAltri()');
     ok(H.nomi(L2, 'dal-telefono/eventi/').length === 1 && w.eval('telProf("giulia").ricevute').indexOf('p|g1') < 0, 'clienti non aperti: il battito di una seduta coi pesi aspetta sull\'hub che si apra il profilo');
+    /* sonno e giorno dal bracciale di un cliente non aperto: nel suo corpo.json, senza aprirlo */
+    H.metti(L2, 'dal-telefono/eventi/sonno-2026-11-25.json', await cifra({ tipo: 'tms-sonno', id: 'sonno|2026-11-25|ab12', notte: { id: '2026-11-25', inizio: '2026-11-24T23:00', fine: '2026-11-25T07:00', fasi: [[0, 480, 'leggero']], punteggio: 77 } }));
+    H.metti(L2, 'dal-telefono/eventi/giorno-2026-11-25.json', await cifra({ tipo: 'tms-giorno', id: 'giorno|2026-11-25|cd34', giorno: { data: '2026-11-25', passi: 6100, rmssd: 52 } }));
+    H.metti(L2, 'dal-telefono/eventi/sonno-rotto.json', await cifra({ tipo: 'tms-sonno', id: 'sonno|x|1', notte: { id: 'x', inizio: 'ieri', fine: 'oggi' } }));
+    await w.eval('telGiroAltri()');
+    { const co2 = JSON.parse(fsmem._files.get('TMS_Dati/giulia/corpo.json'));
+      ok(co2.recupero && co2.recupero.notti.length === 1 && co2.recupero.notti[0].punteggio === 77 && co2.recupero.giorni[0].passi === 6100 && w.eval('telProf("giulia").ricevute').indexOf('giorno|2026-11-25|cd34') >= 0 &&
+         !H.file(L2, 'dal-telefono/eventi/giorno-2026-11-25.json') && H.file(L2, 'dal-telefono/eventi/sonno-rotto.json'),
+         'clienti non aperti: notte e giorno dal bracciale nel loro corpo.json (Recupero); una notte senza orari validi resta sull\'hub'); }
+    H.sql.prepare('DELETE FROM file WHERE lid = ? AND percorso = ?').run(L2, 'dal-telefono/eventi/sonno-rotto.json');
     /* la panoramica nelle Impostazioni */
     await w.eval('impostazioniModal()');
     { const righe = [...d.querySelectorAll('#imp-tel .tel-cliente')];
@@ -4374,6 +4489,40 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     ok(!H.file(LID, evS[0]), 'PC: salvato, il file del battito se ne va dall\'hub');
     await giroTel();
     ok(sw.eval('SEDUTE_PESI_FC[0].pc===true'), 'telefono: il battito della seduta risulta «al PC»'); }
+  /* sonno e dati del giorno dal bracciale (27/11/2026): telefono → hub (cifrati) → PC → DOC.recupero → Corpo › Recupero */
+  { const z = n => String(n).padStart(2, '0'), ymd = d => d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+    const ieri = new Date(); ieri.setHours(0, 0, 0, 0); ieri.setDate(ieri.getDate() - 1);
+    const altro = new Date(ieri.getTime()); altro.setDate(altro.getDate() - 1);
+    const Yd = ymd(ieri), Pd = ymd(altro);
+    const N = { id: Yd, inizio: Pd + 'T23:18', fine: Yd + 'T06:52', fasi: [[0, 12, 'sveglio'], [12, 52, 'leggero'], [52, 97, 'profondo'], [97, 133, 'rem'], [133, 454, 'leggero']], punteggio: 82,
+      _da: new Date(Pd + 'T23:18').getTime(), _a: new Date(Yd + 'T06:52').getTime(), _ts: 1 };
+    await sw.eval('(async function(){ await zpdCarica(); ZPD.notti[' + J(Yd) + ']=' + J(N) + '; ZPD.passi[' + J(Yd) + ']=8421; ZPD.s[58]=[[' + (N._a + 3600000) + ',54]]; })()');
+    ok(sw.eval('zpPreparaEventi()') === 2, 'telefono: dalla notte e dal giorno scaricati dal bracciale nascono due eventi (tms-sonno, tms-giorno)');
+    await sw.eval('colEventi()');
+    const evR = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /\/(sonno|giorno)-/.test(k));
+    ok(evR.length === 2 && evR.some(k => k.indexOf('sonno-' + Yd) >= 0) && evR.every(k => !/profondo|8421|leggero/.test(H.file(LID, k))), 'telefono: sull\'hub un file per la notte e uno per il giorno, cifrati');
+    await giroPC(); await settle(450);
+    const R = JSON.parse(w.eval('JSON.stringify(DOC.recupero)')), nP = R.notti.find(n => n.id === Yd), gP = R.giorni.find(g => g.data === Yd);
+    ok(nP && nP.punteggio === 82 && nP.fasi.length === 5 && nP.inizio === Pd + 'T23:18' && gP && gP.passi === 8421 && gP.fcRiposo === 54 && !('_da' in nP),
+       'PC: la notte e il giorno entrano in DOC.recupero (recuperoUnisci), nel formato del contratto');
+    ok(evR.every(k => !H.file(LID, k)) && /8421/.test(fsmem._files.get('TMS_Dati/prova/corpo.json') || ''), 'PC: salvati in corpo.json e tolti dall\'hub');
+    await giroTel();
+    ok(sw.eval('Object.keys(ZPD.eventi).every(function(k){ return ZPD.eventi[k].pc===true; })'), 'telefono: notte e giorno risultano «al PC»');
+    sw.eval('colRender()');
+    ok(sd.getElementById('col-box').classList.contains('imp-ok') && !sd.getElementById('col-box').classList.contains('aperta') && sd.querySelector('#col-box .imp-apri'),
+       'telefono collegato al PC: in Impostazioni i comandi del collegamento stanno nella tendina «Gestisci», chiusa');
+    /* i passi di un giorno crescono: il giorno si rimanda (id nuovo) e sul PC prende il posto del vecchio */
+    sw.eval('ZPD.passi[' + J(Yd) + ']=9050');
+    ok(sw.eval('zpPreparaEventi()') === 1, 'telefono: cambiato il giorno, un solo evento nuovo (la notte uguale non si rimanda)');
+    await sw.eval('colEventi()'); await giroPC(); await settle(450);
+    ok(w.eval('DOC.recupero.giorni.filter(function(g){ return g.data===' + J(Yd) + '; }).length') === 1 && w.eval('DOC.recupero.giorni.find(function(g){ return g.data===' + J(Yd) + '; }).passi') === 9050 &&
+       w.eval('DOC.recupero.notti.filter(function(n){ return n.id===' + J(Yd) + '; }).length') === 1, 'PC: lo stesso giorno arrivato di nuovo sostituisce il vecchio (niente doppioni)');
+    /* Corpo › Recupero si riempie da solo */
+    w.eval('localStorage.setItem("tms-corpo-vista", JSON.stringify({prova:"recupero"})); showTab("corpo")'); await settle(150);
+    const rb = d.getElementById('recupero-box'), nt = rb && rb.querySelector('.recu-notte');
+    ok(rb && !rb.hidden && nt && /23:18/.test(nt.textContent) && /06:52/.test(nt.textContent) && /82/.test(nt.textContent) && /9\.?050/.test(rb.textContent),
+       'PC: Corpo › Recupero mostra l\'ultima notte (23:18 → 06:52, punteggio 82) e i passi');
+    w.eval('localStorage.removeItem("tms-corpo-vista"); showTab("allenamento")'); await settle(50); }
   ok(sd.getElementById('ck-0').textContent === '✔', 'telefono: la riga dello squat è spuntata ✔ (toccata questa settimana)');
   w.eval('telSettimanaSalvata(202647)'); await settle(20); await giroPC(); await giroTel(); await settle(50);
   ok(w.eval('telProf().settimana') === 2 && sw.eval('SCHEDA.sync.settimana') === 2, 'Salva nello Storico: la settimana sale a 2 sul PC e sul telefono');

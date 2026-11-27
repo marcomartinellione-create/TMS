@@ -57,8 +57,23 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   mostrata mascherata. «Prova collegamento»: canale cifrato su FEE0 (pezzi v2 su 0016/0017, autenticazione ECDH
   sect163r2 + AES-128 sull'endpoint 0x0082, messaggi cifrati con chiave di sessione XOR sessione, contatore e CRC-32),
   firmware (180A/2A26, `tmsBLE.leggi`) e batteria (0x0029). Crittografia scritta da zero nella pagina (BigInt su
-  GF(2^163), AES-ECB con WebCrypto); `zpStorico` (START/TRANSFER/ACK su 0x004B) è pronto ma non ancora usato.
-  Protocollo studiato su Gadgetbridge (AGPL-3.0) e unstrap (MIT/Apache-2.0), niente codice copiato. Prove: T12d.
+  GF(2^163), AES-ECB con WebCrypto). Protocollo studiato su Gadgetbridge (AGPL-3.0) e unstrap (MIT/Apache-2.0),
+  niente codice copiato. Prove: T12d.
+- **Sonno e dati del giorno dal bracciale** (dalla 1.8.0; tasto «Sincronizza» `#zp-sinc` e `zpSincAuto` all'apertura,
+  al massimo ogni 30 min, mai con `FC.reg` o `SED.s`): `zpSincronizza` → `zpApri` (cerca, collega, autentica) →
+  `zpScarica` (per ogni tipo di `ZP_TIPI` = 72, 73, 78, 37, 38, 18, 19, 46, 56, 58, 86, 1: `zpStorico` START/TRANSFER/ACK
+  su 0x004B, con l'ora del primo record dalla risposta allo START) → `zpDecodifica` → `zpMetti`. Stato in IndexedDB
+  (`tms-zp-dati`, `ZPD`): cursori per tipo (ultimo record + 1 s; la prima volta 2 giorni, 7 per 72 e 19), serie
+  (potate a 45 giorni, 10 per le serie al minuto), passi per giorno, notti per giorno del risveglio, batteria,
+  eventi. `zpPreparaEventi` fa una notte (`tms-sonno`) e un giorno (`tms-giorno`) per data degli ultimi 14 giorni nel
+  formato di `src/app/09e-recupero.js`; id = chiave + impronta del contenuto, così un giorno cambiato si rimanda e
+  il PC sostituisce quello vecchio. Partono con `colEventi` (file `sonno-AAAA-MM-GG.json`, `giorno-…`) e tornano
+  «al PC» con `colRicevute`. Da verificare sul campo: i layout segnati «da verificare» in `Doc/bracciale/PROPOSTA.md`
+  e se lo scarico toglie i dati dal bracciale (unstrap dice di no). Prove: T12d (bracciale finto con record veri per
+  ogni tipo) e T14 (telefono → hub → PC → Corpo › Recupero).
+- **Impostazioni ordinate** (dalla 1.8.0): in ogni sezione collegata e verde (TMS sul PC `#col-box`, fascia `#fc-imp`,
+  bracciale `#zp-box`) i comandi stanno in `.imp-azioni`, nascosti finché non si tocca «Gestisci» (`.imp-apri`,
+  classi `imp-ok` e `aperta`, funzione `impTendina`); senza collegamento si vedono subito.
 - **Seduta in corso** (dalla 1.5.0; dalla 1.6.0 con la conferma): aprendo un giorno l'app chiede «Inizio la seduta di
   oggi?» («Inizia» / «Solo guardare»; «Solo guardare» si ricorda per quel giorno di calendario, `tms-sed-guardo`, e
   lascia «Inizia la seduta» nella zona). «annulla seduta», con conferma, toglie una seduta avviata per sbaglio senza

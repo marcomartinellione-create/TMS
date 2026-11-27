@@ -546,7 +546,11 @@ Due modi per registrare una seduta:
   PRIMA dell'ultimo dato (quel giorno escluso; almeno 7 valori, altrimenti non si dice); un valore
   fuori fascia si scrive in arancio con lo scarto. Ore dormite, medie, fasce e scarti si
   ricalcolano al volo e NON si salvano. Il TMS NON calcola un punteggio di prontezza o di recupero
-  suo: mostra i valori del bracciale e gli scarti dal solito di quel cliente.
+  suo: mostra i valori del bracciale e gli scarti dal solito di quel cliente. I dati arrivano da
+  soli dall'app del telefono (Impostazioni › Bracciale, «Sincronizza», o all'apertura dell'app):
+  eventi cifrati tms-sonno e tms-giorno sull'hub, importati con recuperoUnisci anche per i
+  clienti non aperti (nel loro corpo.json) e poi tolti dall'hub; voci senza orari validi restano
+  sull'hub, non entrano.
 - **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
@@ -799,10 +803,19 @@ sessione, un contatore e il CRC-32), legge il firmware (180A/2A26) e la batteria
 «Collegato · firmware X · batteria Y %»; poi stacca. Messaggi chiari per: chiave sbagliata (0x25/0x26), serve
 l'abbinamento con Zepp (0x81), bracciale non trovato o Zepp aperto, bracciale che non risponde. Un firmware non fra
 quelli provati (3.11.0, 3.20.0.1, 3.25.0.3) dà un avviso ma non blocca. La crittografia è scritta da zero nella
-pagina (protocollo studiato su Gadgetbridge e unstrap, vedi i crediti). C'è già la funzione di trasferimento dello
-storico (START/TRANSFER/ACK sull'endpoint 0x004B, dati sulla caratteristica 0005), non ancora usata: sonno,
-giorni e allenamenti del bracciale NON si scaricano ancora. Il battito in diretta resta quello della fascia (profilo
-standard 0x180D, senza chiave).
+pagina (protocollo studiato su Gadgetbridge e unstrap, vedi i crediti). «Sincronizza» (e da solo all'apertura
+dell'app, se l'ultima volta è di più di mezz'ora prima; mai durante una seduta o una registrazione) scarica dallo
+storico del bracciale (START/TRANSFER/ACK sull'endpoint 0x004B, dati sulla caratteristica 0005, CRC-32 controllato,
+ACK dopo ogni START anche senza dati) i tipi: sonno (72, punteggio e fasi calcolati dal bracciale), HRV RMSSD (73) e
+SDNN (78), SpO2 (37, e 38 nel sonno), stress (18 e 19 al minuto), temperatura della pelle (46), respirazione (56),
+battito a riposo (58, 86), passi (1, attività al minuto) e la batteria. Un cursore per tipo: la volta dopo riparte
+dall'ultimo record + 1 secondo (la prima volta gli ultimi 2 giorni, 7 per sonno e stress); un tipo rifiutato o col
+CRC sbagliato si salta. I campioni al minuto restano sul telefono; al PC vanno, cifrati attraverso l'hub, una notte
+per giorno del risveglio (evento tms-sonno) e un riassunto per giorno (tms-giorno), nel formato di Corpo › Recupero
+(vedi la voce Recupero). Sotto il tasto: «Ultima sincronizzazione: oggi 07:12 · 1 notte, 2 giorni». Allenamenti
+registrati sul bracciale NON si scaricano ancora. Il battito in diretta resta quello della fascia (profilo standard
+0x180D, senza chiave). In tutte le sezioni delle Impostazioni, quando la sezione è collegata e verde, i comandi
+(collega, scollega, prova, chiave…) stanno nel menù «Gestisci»; senza collegamento si vedono subito.
 **FASCIA CARDIO** (si collega in «Impostazioni»; solo nell'APK, serve il Bluetooth): qualunque fascia cardio Bluetooth standard
 (Polar, Garmin, Wahoo, Coospo…) e i bracciali che condividono il battito col profilo standard
 «Heart Rate» (servizio 0x180D, misura 0x2A37, specifica pubblica del Bluetooth SIG): per esempio
@@ -818,8 +831,8 @@ fascia», che porta alle Impostazioni. Se il battito non arriva per 15 secondi, 
 l'app lo dice in parole chiare (stringere la fascia; con l'Helio Strap accendere «Heart Rate Push» e
 chiudere Zepp; altrimenti per quel bracciale servirà il collegamento con la sua chiave, non ancora
 disponibile). Fuori dalla pagina la fascia resta collegata; con l'app in secondo piano si stacca e
-poi si ricollega, tranne durante una registrazione. Allenamenti registrati sul bracciale, sonno e
-gli altri dati del bracciale NON si leggono ancora.
+poi si ricollega, tranne durante una registrazione. Sonno e dati del giorno del bracciale si scaricano col
+collegamento con la chiave (vedi sopra); gli allenamenti registrati sul bracciale NON si leggono ancora.
 **PESATE E FOTO** sono un file ciascuno: il PC le importa (pesate con 'importaPesate': la media di
 ogni settimana va da sola nello Storico misure, vedi la voce «Pesate della bilancia»; foto con
 'importaFotoRientro': file veri in TMS_Dati/<profilo>/foto/ + metadati in DOC.foto, tag

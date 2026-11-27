@@ -82,6 +82,13 @@
  .imp-pill{flex:none;font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--carta-2);color:var(--ink-3);border:1px solid var(--filo)}
  .imp-pill:empty{display:none}
  .imp-pill.si{background:var(--ok-t);color:var(--ok);border-color:transparent}
+ /* tendina: con la sezione collegata (stato verde) i comandi stanno chiusi sotto «Gestisci» */
+ .imp-apri{display:none;flex:none;align-items:center;gap:2px;height:32px;padding:0 6px 0 10px;border:1px solid var(--filo);border-radius:999px;background:var(--carta);color:var(--ink-2);font-size:12.5px;font-weight:600}
+ .imp-apri .ic{width:16px;height:16px;transform:rotate(90deg);transition:transform var(--svelto)}
+ .imp-box.imp-ok .imp-apri{display:inline-flex}
+ .imp-box.imp-ok.aperta .imp-apri .ic{transform:rotate(-90deg)}
+ .imp-box.imp-ok:not(.aperta) .imp-azioni,.imp-box.imp-ok:not(.aperta) .col-spieg{display:none}
+ .imp-box.imp-ok:not(.aperta) .imp-testa{margin-bottom:4px}
  .imp-box .col-spieg{margin:0 0 8px}
  .imp-box .bil-stato{text-align:left;min-height:0}
  .imp-box .bil-stato:empty{display:none}
@@ -745,9 +752,10 @@
 <div id="col" hidden>
   <div class="imp-sez" id="imp-sez-pc" data-i18n>TMS sul PC</div>
   <div class="box imp-box" id="col-box">
-    <div class="imp-testa"><span class="imp-ico blu"><svg class="ic"><use href="#i-link"/></svg></span><span class="imp-tit"><span data-i18n>Collegamento</span><small data-i18n>col TMS del tuo personal</small></span><span class="imp-pill" id="col-pill"></span></div>
+    <div class="imp-testa"><span class="imp-ico blu"><svg class="ic"><use href="#i-link"/></svg></span><span class="imp-tit"><span data-i18n>Collegamento</span><small data-i18n>col TMS del tuo personal</small></span><span class="imp-pill" id="col-pill"></span><button type="button" class="imp-apri" data-apri="col-box" aria-expanded="false"><span data-i18n>Gestisci</span><svg class="ic"><use href="#i-avanti"/></svg></button></div>
     <p class="col-spieg" data-i18n-html>La scheda arriva dal tuo personal; allenamenti, pesate e foto gli tornano da soli. Tutto viaggia <b>cifrato</b> col tuo codice.</p>
     <div class="col-stato" id="col-stato"></div>
+    <div class="imp-azioni">
     <div id="col-codice-box"><button type="button" class="btn-big" id="col-qr" hidden><svg class="ic"><use href="#i-camera"/></svg><span data-i18n>Inquadra il QR</span></button>
       <div class="col-oppure" id="col-oppure" hidden data-i18n>oppure scrivi il codice</div>
       <label class="col-lab" for="col-codice" data-i18n>Codice di collegamento</label>
@@ -755,27 +763,35 @@
       <button type="button" class="btn-big" id="col-collega"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Collega</span></button></div>
     <button type="button" class="btn-lite" id="col-ora" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Controlla adesso</span></button>
     <button type="button" class="btn-lite quieto" id="col-stacca" hidden data-i18n>Scollega</button>
+    </div>
   </div>
   <div class="imp-sez" id="imp-sez-sens" data-i18n>Sensori</div>
   <div class="box imp-box" id="fc-imp" hidden>
-    <div class="imp-testa"><span class="imp-ico rosso"><svg class="ic"><use href="#i-cuore"/></svg></span><span class="imp-tit"><span data-i18n>Fascia cardio</span><small data-i18n>il battito in diretta</small></span><span class="imp-pill" id="fc-pill"></span></div>
+    <div class="imp-testa"><span class="imp-ico rosso"><svg class="ic"><use href="#i-cuore"/></svg></span><span class="imp-tit"><span data-i18n>Fascia cardio</span><small data-i18n>il battito in diretta</small></span><span class="imp-pill" id="fc-pill"></span><button type="button" class="imp-apri" data-apri="fc-imp" aria-expanded="false"><span data-i18n>Gestisci</span><svg class="ic"><use href="#i-avanti"/></svg></button></div>
     <p class="col-spieg" data-i18n-html>Fasce cardio Bluetooth (Polar, Garmin, Wahoo…) e bracciali che condividono il battito, come l’Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp.</p>
     <div class="bil-stato" id="fc-stato"></div><div class="bil-stato" id="fc-sotto"></div>
+    <div class="imp-azioni">
     <div id="fc-trovati"></div>
     <button type="button" class="btn-lite" id="fc-riprova" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span id="fc-riprova-t">Collega</span></button>
     <button type="button" class="btn-lite quieto" id="fc-scollega" hidden data-i18n>Scollega</button>
     <button type="button" class="btn-lite quieto" id="fc-dimentica" hidden data-i18n>Usa un’altra fascia</button>
+    </div>
   </div>
   <div class="box imp-box" id="zp-box" hidden>
-    <div class="imp-testa"><span class="imp-ico ocra"><svg class="ic"><use href="#i-lucchetto"/></svg></span><span class="imp-tit"><span data-i18n>Bracciale</span><small data-i18n>Amazfit Helio Strap, con la chiave</small></span><span class="imp-pill" id="zp-pill"></span></div>
+    <div class="imp-testa"><span class="imp-ico ocra"><svg class="ic"><use href="#i-lucchetto"/></svg></span><span class="imp-tit"><span data-i18n>Bracciale</span><small data-i18n>Amazfit Helio Strap, con la chiave</small></span><span class="imp-pill" id="zp-pill"></span><button type="button" class="imp-apri" data-apri="zp-box" aria-expanded="false"><span data-i18n>Gestisci</span><svg class="ic"><use href="#i-avanti"/></svg></button></div>
     <p class="col-spieg" data-i18n-html>Con la <b>chiave del bracciale</b> l’app apre un collegamento cifrato, come Zepp. La chiave resta <b>solo su questo telefono</b>. Chiudi Zepp mentre l’app usa il bracciale.</p>
+    <div class="bil-stato" id="zp-stato"></div><div class="bil-stato" id="zp-sotto"></div><div class="bil-stato" id="zp-sinc-stato"></div>
+    <div class="imp-azioni">
     <div class="bil-stato" id="zp-chiave-stato"></div>
+    <div id="zp-chiave-box">
     <label class="col-lab" for="zp-chiave" data-i18n>Chiave del bracciale</label>
     <input id="zp-chiave" class="col-in" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="0x…">
     <button type="button" class="btn-lite" id="zp-salva"><svg class="ic"><use href="#i-check"/></svg><span data-i18n>Salva la chiave</span></button>
-    <button type="button" class="btn-big" id="zp-prova"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Prova collegamento</span></button>
-    <div class="bil-stato" id="zp-stato"></div><div class="bil-stato" id="zp-sotto"></div>
+    </div>
+    <button type="button" class="btn-big" id="zp-sinc" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Sincronizza</span></button>
+    <button type="button" class="btn-lite" id="zp-prova"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Prova collegamento</span></button>
     <button type="button" class="btn-lite quieto" id="zp-togli" hidden data-i18n>Togli la chiave</button>
+    </div>
   </div>
   <div class="imp-sez" id="imp-sez-avv" data-i18n>Promemoria</div>
   <div class="box imp-box" id="avv-box" hidden>
@@ -861,7 +877,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='4.5';
+const CVER='4.6';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1243,6 +1259,9 @@ const TT={en:{
   /* seduta in primo piano e finestra mobile (27/11/2026) */
   'Seduta':'Session',
   'Per non perdere il battito con lo schermo spento, durante la seduta Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti». Fuori dalle sedute l’app non lavora in sottofondo.':'To keep the heart rate with the screen off, Android must let the app work during the session. In the next window tap “Allow”. Outside sessions the app doesn’t work in the background.',
+  /* sonno e dati del giorno dal bracciale (27/11/2026) */
+  'Gestisci':'Manage', 'Sincronizza':'Sync', 'Scarico sonno e dati del giorno…':'Downloading sleep and daily data…', 'Sincronizzato':'Synced',
+  'Ultima sincronizzazione:':'Last sync:', 'oggi':'today', 'notte':'night', 'notti':'nights',
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -2316,6 +2335,7 @@ function fcStato(s, motivo, msg){
   fcMostraBattito(); fcRenderTrovati(); fcChip();
   const sc=$('fc-scollega'); if(sc) sc.hidden=!(FC.id && !FC.reg);
   const fp=$('fc-pill'); if(fp){ fp.textContent=FC.id? tt('collegata') : fcIdNoto()? (FC.nome||fcNomeNoto()||tt('ricordata')) : ''; fp.classList.toggle('si', !!FC.id); }
+  impTendina('fc-imp', !!FC.id);
   sedZonaFc();
 }
 function fcMostraBattito(){
@@ -2764,7 +2784,134 @@ async function zpStorico(S, tipo, da){
     S.dati.forEach(p=>{ dati=dati.concat(p.slice(1)); });
     if(f[2]!==0x01 || zpCrc32(dati)!==zpLeggi32(f, 3)){ const e=new Error('storico'); e.motivo='crc'; throw e; } }
   await zpManda(S, 0x004B, [0x03, 0x01], true);
-  return {dimensione:dim, dati:dati}; }
+  return {dimensione:dim, dati:dati, inizio:zpOraRisposta(r, 7)}; }
+/* ── SONNO E DATI DEL GIORNO DAL BRACCIALE (fasi 2–3 dello studio, 27/11/2026). Col canale cifrato si scaricano
+      i tipi dello storico (layout da unstrap, docs/protocol/02-history-sync.md; riscritto da zero):
+        72 sonno (594 byte: punteggio, fasi principali e sonnellini) · 73 HRV RMSSD · 78 HRV SDNN (centesimi di ms) ·
+        37 SpO2 (con byte di versione + 65 byte, o 5 byte) · 38 SpO2 nel sonno · 18 stress singolo · 19 stress al
+        minuto · 46 temperatura della pelle al minuto (centesimi di °C, 0x7FFF = niente) · 56 respirazione ·
+        58/86 battito a riposo · 1 attività al minuto (8 byte: il terzo sono i passi; 8 × 0xFF = minuto vuoto).
+      Un CURSORE per tipo: la volta dopo si riparte dall'ultimo record + 1 s (le serie al minuto: inizio + N minuti);
+      la prima volta gli ultimi 2 giorni (7 per sonno e stress). I campioni restano sul telefono; al PC vanno, cifrati
+      attraverso l'hub come le pesate, una NOTTE per giorno del risveglio (evento tms-sonno) e un GIORNO per data
+      (tms-giorno), nei formati di src/app/09e-recupero.js (recuperoUnisci). Un giorno che cambia (i passi di oggi)
+      si rimanda con un id nuovo; il PC sostituisce la voce dello stesso giorno. ── */
+const ZPD_KEY='tms-zp-dati', ZP_TIPI=[72, 73, 78, 37, 38, 18, 19, 46, 56, 58, 86, 1], ZP_SINC_OGNI=30*60000;
+const ZP_FASE={4:'leggero', 5:'profondo', 7:'sveglio', 8:'rem'};
+let ZPD=null;
+function zpdVuoto(){ return {cursori:{}, s:{}, passi:{}, notti:{}, batt:{}, eventi:{}, ultima:0, esito:null}; }
+async function zpdCarica(){ if(ZPD) return ZPD; let v=null; try{ v=await fcLeggiKv(ZPD_KEY); }catch(e){}
+  ZPD=Object.assign(zpdVuoto(), (v && typeof v==='object')? v : {}); return ZPD; }
+function zpdSalva(){ return fcScriviKv(ZPD_KEY, ZPD); }
+/* ora del primo record nella risposta allo START: anno u16, mese, giorno, ore, minuti, secondi, fuso (quarti d'ora) */
+function zpOraRisposta(r, o){ if(r.length<o+8) return null;
+  const tz=r[o+7]>127? r[o+7]-256 : r[o+7];
+  return Date.UTC(r[o]|(r[o+1]<<8), r[o+2]-1, r[o+3], r[o+4], r[o+5], r[o+6]) - tz*900000; }
+function zpLoc(ms){ const d=new Date(ms), z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes()); }
+function zpGiornoDi(ms){ return dataLoc(new Date(ms)); }
+function zpCursore(tipo){ const c=ZPD.cursori[tipo]; if(c) return c;
+  const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((tipo===72 || tipo===19)? 7 : 2)); return d.getTime(); }
+/* un record di sonno (594 byte) → notte nel formato del PC */
+function zpNotte(r){
+  if(!r || r.length<594) return null;
+  const i16=o=>{ const v=(r[o]|(r[o+1]<<8)); return v>32767? v-65536 : v; };
+  const belong=zpLeggi32(r, 4), g=new Date((belong+7200)*1000), mezzanotte=new Date(g.getFullYear(), g.getMonth(), g.getDate()).getTime();
+  const ora=m=>mezzanotte+(m-1440)*60000;                    /* minuti dalla mezzanotte del giorno prima */
+  /* inizio e fine dalle fasi (sicure nel layout); senza fasi, i due i16 a 10 e 12 (da verificare sul campo) */
+  const grezze=[];
+  for(let k=0;k<Math.min(r[84], 50);k++){ const o=86+k*5, a=i16(o), b=i16(o+2), t=ZP_FASE[r[o+4]];
+    if(t && b>=a) grezze.push([a, b+1, t]); }                    /* la fine di una fase è compresa */
+  let st=grezze.length? Math.min(...grezze.map(f=>f[0])) : i16(10), fi=grezze.length? Math.max(...grezze.map(f=>f[1])) : i16(12);
+  if(!(fi-st>=20 && fi-st<=20*60)) return null;
+  const fasi=grezze.map(f=>[f[0]-st, f[1]-st, f[2]]);
+  const sonnellini=[];
+  for(let k=0;k<Math.min(r[23]>127? 0 : r[23], 10);k++){ const o=24+k*6, a=i16(o), b=i16(o+2); if(b>a) sonnellini.push({inizio:zpLoc(ora(a)), fine:zpLoc(ora(b))}); }
+  const n={id:zpGiornoDi(ora(fi)), inizio:zpLoc(ora(st)), fine:zpLoc(ora(fi)), fasi:fasi, _da:ora(st), _a:ora(fi), _ts:zpLeggi32(r, 0)};
+  if(r[22]>0 && r[22]<=100) n.punteggio=r[22];
+  if(sonnellini.length) n.sonnellini=sonnellini;
+  return n; }
+/* i byte di un tipo → campioni [ora ms, valore] (o notti), e il cursore nuovo */
+function zpDecodifica(tipo, dati, inizio){
+  const out=[], ts=o=>zpLeggi32(dati, o)*1000; let fine=0;
+  const ogni=(dim, f)=>{ for(let o=0;o+dim<=dati.length;o+=dim){ const x=f(o); if(x){ out.push(x); if(x[0]>fine) fine=x[0]; } } };
+  if(tipo===72){ for(let o=0;o+594<=dati.length;o+=594){ const n=zpNotte(dati.slice(o, o+594)); if(n){ out.push(n); fine=Math.max(fine, n._ts*1000, n._a); } } }
+  else if(tipo===73) ogni(6, o=>[ts(o), dati[o+5]]);
+  else if(tipo===78) ogni(9, o=>[ts(o), Math.round(zpLeggi32(dati, o+5)/10)/10]);
+  else if(tipo===58) ogni(6, o=>[ts(o), dati[o+5]]);
+  else if(tipo===86) ogni(8, o=>[ts(o), dati[o+5]]);
+  else if(tipo===56) ogni(8, o=>[ts(o), dati[o+5]]);
+  else if(tipo===18) ogni(5, o=>[ts(o), dati[o+4]]);
+  else if(tipo===37){ const v2=dati.length>1 && dati[0]===2 && (dati.length-1)%65===0, d0=v2? 1 : 0, dim=v2? 65 : 5;
+    for(let o=d0;o+dim<=dati.length;o+=dim){ const t=zpLeggi32(dati, o)*1000, v=dati[o+4]&0x7F; out.push([t, v]); if(t>fine) fine=t; } }
+  else if(tipo===38){ const v2=dati.length>1 && dati[0]===2 && (dati.length-1)%30===0, d0=v2? 1 : 0, dim=v2? 30 : 6;
+    for(let o=d0;o+dim<=dati.length;o+=dim){ const t=zpLeggi32(dati, o)*1000; out.push([t, dati[o+4]]); if(t>fine) fine=t; } }
+  else if(tipo===19 || tipo===46 || tipo===1){ const dim=(tipo===19)? 1 : 8, n=Math.floor(dati.length/dim);
+    if(inizio){ for(let k=0;k<n;k++){ const o=k*dim, t=inizio+k*60000;
+        if(tipo===19){ if(dati[o]!==0xFF) out.push([t, dati[o]]); }
+        else if(tipo===46){ const v=(dati[o+2]|(dati[o+3]<<8)); if(v!==0x7FFF){ const c=v>32767? v-65536 : v; out.push([t, c/100]); } }
+        else { if(!dati.slice(o, o+8).every(x=>x===0xFF)) out.push([t, dati[o+2]]); } }
+      if(n) fine=inizio+(n-1)*60000; } }
+  return {voci:out, cursore:fine? fine+1000 : 0}; }
+/* i campioni nel posto giusto (serie per tipo, passi per giorno, notti per giorno del risveglio) */
+function zpMetti(tipo, voci){
+  if(tipo===72){ voci.forEach(n=>{ ZPD.notti[n.id]=n; }); return; }
+  if(tipo===1){ voci.forEach(v=>{ const g=zpGiornoDi(v[0]); ZPD.passi[g]=(ZPD.passi[g]||0)+v[1]; }); return; }
+  const l=ZPD.s[tipo]||(ZPD.s[tipo]=[]); voci.forEach(v=>l.push(v)); }
+function zpPota(){ const ora=Date.now(), lim={19:10, 46:10};
+  Object.keys(ZPD.s).forEach(t=>{ const g=(lim[t]||45)*86400000; ZPD.s[t]=ZPD.s[t].filter(v=>ora-v[0]<g); });
+  const vecchio=dataLoc(new Date(ora-70*86400000));
+  ['passi','notti','batt'].forEach(k=>{ Object.keys(ZPD[k]).forEach(d=>{ if(d<vecchio) delete ZPD[k][d]; }); });
+  Object.keys(ZPD.eventi).forEach(k=>{ if(k.slice(-10)<vecchio) delete ZPD.eventi[k]; }); }
+const zpMedia=v=>v.length? v.reduce((a,b)=>a+b,0)/v.length : null;
+const zpTond=(v,d)=>v==null? undefined : Math.round(v*Math.pow(10,d))/Math.pow(10,d);
+/* valori di una finestra di tempo (la notte) o di un giorno di calendario */
+function zpVal(tipo, da, a){ return (ZPD.s[tipo]||[]).filter(v=>v[0]>=da && v[0]<a).map(v=>v[1]); }
+function zpGiornoValori(data){
+  const d0=new Date(data+'T00:00:00').getTime(), d1=d0+86400000, n=ZPD.notti[data], win=n? [n._da, n._a] : [d0, d1];
+  const g={data:data}, s=(k,v)=>{ if(v!==undefined && v!==null && isFinite(v)) g[k]=v; };
+  if(ZPD.passi[data]!=null) g.passi=ZPD.passi[data];
+  const rip=zpVal(58, d0, d1); s('fcRiposo', rip.length? rip[rip.length-1] : (zpVal(86, d0, d1).pop()));
+  s('rmssd', zpTond(zpMedia(zpVal(73, d0, d1)), 0));
+  s('sdnn', zpTond(zpMedia(zpVal(78, d0, d1)), 1));
+  const sp=zpVal(37, d0, d1).filter(v=>v>=50); if(sp.length){ s('spo2Min', Math.min(...sp)); s('spo2Med', zpTond(zpMedia(sp), 0)); }
+  const st=zpVal(19, d0, d1).concat(zpVal(18, d0, d1)).filter(v=>v<=100); if(st.length){ s('stressMed', zpTond(zpMedia(st), 0)); s('stressMax', Math.max(...st)); }
+  let tp=zpVal(46, win[0], win[1]); if(!tp.length) tp=zpVal(46, d0, d1); s('tempPelle', zpTond(zpMedia(tp.filter(v=>v>=25 && v<=42)), 2));
+  let rs=zpVal(56, win[0], win[1]); if(!rs.length) rs=zpVal(56, d0, d1); s('resp', zpTond(zpMedia(rs.filter(v=>v>=4 && v<=40)), 1));
+  if(ZPD.batt[data]!=null) g.batteria=ZPD.batt[data];
+  return Object.keys(g).length>1? g : null; }
+function zpNotteValori(n){
+  const out={id:n.id, inizio:n.inizio, fine:n.fine, fasi:n.fasi};
+  if(n.punteggio!=null) out.punteggio=n.punteggio; if(n.sonnellini) out.sonnellini=n.sonnellini;
+  const sp=zpVal(38, n._da, n._a).filter(v=>v>=70 && v<=100); if(sp.length) out.spo2=Math.round(zpMedia(sp));
+  const rs=zpVal(56, n._da, n._a).filter(v=>v>=4 && v<=40); if(rs.length) out.resp=zpTond(zpMedia(rs), 1);
+  const hv=zpVal(73, n._da, n._a); if(hv.length) out.hrv=Math.round(zpMedia(hv));
+  return out; }
+function zpFirma(o){ const t=JSON.stringify(o); let h=0x811c9dc5; for(let i=0;i<t.length;i++){ h^=t.charCodeAt(i); h=Math.imul(h, 0x01000193)>>>0; } return h.toString(16); }
+/* eventi da mandare al PC: una notte per giorno del risveglio e un giorno per data (ultimi 14 giorni) */
+function zpPreparaEventi(){
+  const da=dataLoc(new Date(Date.now()-14*86400000)), date=new Set();
+  Object.keys(ZPD.notti).forEach(d=>{ if(d>=da) date.add(d); });
+  Object.keys(ZPD.passi).concat(Object.keys(ZPD.batt)).forEach(d=>{ if(d>=da) date.add(d); });
+  Object.keys(ZPD.s).forEach(t=>ZPD.s[t].forEach(v=>{ const d=zpGiornoDi(v[0]); if(d>=da) date.add(d); }));
+  let n=0;
+  const metti=(chiave, tipo, dati)=>{ const f=zpFirma(dati), e=ZPD.eventi[chiave];
+    if(e && e.firma===f) return; ZPD.eventi[chiave]={id:chiave+'|'+f, tipo:tipo, dati:dati, firma:f, ev:null, pc:false}; n++; };
+  [...date].sort().forEach(d=>{
+    if(ZPD.notti[d]) metti('sonno|'+d, 'tms-sonno', zpNotteValori(ZPD.notti[d]));
+    const g=zpGiornoValori(d); if(g) metti('giorno|'+d, 'tms-giorno', g); });
+  return n; }
+/* lo scarico: tutti i tipi, uno dopo l'altro. Un tipo che il bracciale rifiuta si salta; il silenzio ferma tutto */
+async function zpScarica(S){
+  const fatti={};
+  for(const t of ZP_TIPI){
+    let r;
+    try{ r=await zpStorico(S, t, zpCursore(t)); }
+    catch(e){ if(e && (e.motivo==='storico' || e.motivo==='crc')){ fatti[t]=(e.motivo==='crc')? 'crc' : 'rifiutato'; continue; } throw e; }
+    if(!r.dimensione){ fatti[t]=0; continue; }
+    const d=zpDecodifica(t, r.dati, r.inizio);
+    zpMetti(t, d.voci); fatti[t]=d.voci.length;
+    if(d.cursore && d.cursore>(ZPD.cursori[t]||0)) ZPD.cursori[t]=d.cursore; }   /* il cursore si salva solo coi dati */
+  return fatti; }
 /* — Impostazioni › Bracciale: la CHIAVE del bracciale (16 byte, «0x…» o 32 caratteri esadecimali) resta SOLO su
      questo telefono (IndexedDB, chiave «bracciale-chiave»): non va all'hub, al PC, nei file né nei messaggi; si
      mostra mascherata e si può togliere. «Prova collegamento»: cerca il bracciale, apre il canale cifrato, legge
@@ -2801,53 +2948,110 @@ function zpRender(){
   box.hidden=!window.tmsBLE;
   const cs=$('zp-chiave-stato'); if(cs) cs.innerHTML=ZP.chiave? tt('Chiave salvata su questo telefono:')+' <b>'+esc(zpMaschera(ZP.chiave))+'</b>' : tt('Nessuna chiave salvata.');
   const tg=$('zp-togli'); if(tg) tg.hidden=!ZP.chiave;
-  const zp=$('zp-pill'); if(zp){ zp.textContent=ZP.stato==='ok'? tt('collegato') : ZP.chiave? tt('chiave salvata') : tt('senza chiave'); zp.classList.toggle('si', ZP.stato==='ok'); }
+  const verde=!!ZP.chiave && zpVerde();
+  const zp=$('zp-pill'); if(zp){ zp.textContent=verde? tt('collegato') : ZP.chiave? tt('chiave salvata') : tt('senza chiave'); zp.classList.toggle('si', verde); }
+  impTendina('zp-box', verde);
+  const kb=$('zp-chiave-box'); if(kb) kb.hidden=!!ZP.chiave;          /* con la chiave salvata, il campo serve solo per cambiarla: «Togli la chiave» */
+  const sb=$('zp-sinc'); if(sb){ sb.hidden=!ZP.chiave; sb.disabled=ZP.inCorso; }
+  const ss=$('zp-sinc-stato'); if(ss) ss.textContent=zpSincTesto();
   const pv=$('zp-prova'); if(pv) pv.disabled=ZP.inCorso;
   const st=$('zp-stato'), so=$('zp-sotto'); if(!st) return;
   let a='', b='';
   if(ZP.stato==='cerco') a=tt('Cerco il bracciale…');
   else if(ZP.stato==='collego') a=tt('Mi collego al bracciale…');
   else if(ZP.stato==='auth') a=tt('Apro il collegamento cifrato…');
+  else if(ZP.stato==='scarico') a=tt('Scarico sonno e dati del giorno…');
+  else if(ZP.stato==='sincok') a=tt('Sincronizzato')+(ZP.batteria!=null? ' · '+tt('batteria')+' '+ZP.batteria+' %' : '')+'.';
   else if(ZP.stato==='salvata') a=tt('Chiave salvata. Tocca «Prova collegamento».');
   else if(ZP.stato==='ok'){ a=tt('Collegato')+(ZP.fw? ' · '+tt('firmware')+' '+ZP.fw : '')+(ZP.batteria!=null? ' · '+tt('batteria')+' '+ZP.batteria+' %' : '');
     if(ZP.fw && ZP_FW_PROVATI.indexOf(ZP.fw)<0) b=tt('Questo firmware non è ancora fra quelli provati col TMS: se qualcosa non va, dillo al tuo personal.'); }
   else if(ZP.stato==='errore') a=tt(ZP_TESTI[ZP.motivo]||ZP_TESTI.errore);
   st.textContent=a; if(so) so.textContent=b; }
+/* apre il canale col bracciale: cerca, collega, autentica. Restituisce {S, id, ricollega}; errori con .motivo */
+async function zpApri(){
+  const c={S:null, id:'', ricollega:false};
+  const r=await window.tmsBLE.prepara(); if(!r || !r.ok){ const e=new Error('bluetooth'); e.motivo='errore'; throw e; }
+  /* quale bracciale: quello già provato, la fascia collegata se è un Amazfit, o il primo che si fa vedere */
+  let noto=''; try{ noto=localStorage.getItem(ZP_KEY_ID)||''; }catch(e){}
+  if(!noto && fcIdNoto() && /amazfit|helio/i.test(fcNomeNoto()||'')) noto=fcIdNoto();
+  if(FC.id && (FC.id===noto || /amazfit|helio/i.test(FC.nome||''))){ c.ricollega=true; noto=noto||FC.id; fcScollega(); await new Promise(x=>setTimeout(x, 500)); }
+  ZP.stato='cerco'; zpRender();
+  const d=await new Promise(ok=>{ const t=setTimeout(()=>{ ok(null); }, ZP_ATTESA.cerca);
+    Promise.resolve(window.tmsBLE.cerca(x=>(noto? x.id===noto : (/amazfit|helio/i.test(x.nome||'') || (x.servizi||[]).indexOf('fee0')>=0)), x=>{ clearTimeout(t); ok(x); })).catch(()=>{ clearTimeout(t); ok(null); }); });
+  try{ await window.tmsBLE.fermaRicerca(); }catch(e){}
+  if(!d){ const e=new Error('non trovato'); e.motivo='nontrovo'; e.ctx=c; throw e; }
+  const id=d.id; ZP.nome=d.nome||''; ZP.stato='collego'; zpRender();
+  const S=zpSessione(id, (car, byte)=>window.tmsBLE.scrivi(id, car, byte, ZP_FEE0));
+  let coda=Promise.resolve();
+  try{ await window.tmsBLE.collega(id, {onDati:(car, byte)=>{ coda=coda.then(()=>zpRicevi(S, car, byte)).catch(()=>{}); }, onStaccato:()=>{}},
+    {servizio:ZP_FEE0, notifiche:[ZP_IN, ZP_OUT, ZP_DATI]}); }
+  catch(e){ const x=new Error('collega'); x.motivo=(e && e.motivo==='notifiche')? 'notifiche' : 'lontano'; x.ctx=c; throw x; }
+  c.id=id; c.S=S;
+  try{ localStorage.setItem(ZP_KEY_ID, id); }catch(e){}
+  ZP.stato='auth'; zpRender();
+  try{ await zpAutentica(S, zpChiaveByte(ZP.chiave)); }catch(e){ e.ctx=c; throw e; }
+  return c; }
+async function zpChiudi(c){ if(!c) return; if(c.id){ try{ await window.tmsBLE.stacca(c.id); }catch(e){} } if(c.ricollega) fcAvvia(); }
+/* stato «verde» del bracciale: l'ultima prova o sincronizzazione è andata bene (si ricorda) */
+function zpVerde(){ try{ return !!localStorage.getItem('tms-zp-ok'); }catch(e){ return ZP.stato==='ok'; } }
+function zpSegnaOk(ok){ try{ if(ok) localStorage.setItem('tms-zp-ok', new Date().toISOString()); else localStorage.removeItem('tms-zp-ok'); }catch(e){} }
+function zpSincTesto(){
+  if(!ZP.chiave || !ZPD || !ZPD.ultima) return '';
+  const d=new Date(ZPD.ultima), oggi=dataLoc(new Date())===dataLoc(d), e=ZPD.esito||{};
+  return tt('Ultima sincronizzazione:')+' '+(oggi? tt('oggi') : giornoBreve(dataLoc(d)))+' '+oraLoc(d).slice(0,5)+
+    (e.notti!=null? ' · '+e.notti+' '+(e.notti===1? tt('notte') : tt('notti'))+', '+e.giorni+' '+(e.giorni===1? tt('giorno') : tt('giorni')) : ''); }
 async function zpProva(){
   if(!window.tmsBLE || ZP.inCorso) return;
   if(!ZP.chiave){ ZP.stato='errore'; ZP.motivo='manca'; zpRender(); return; }
   if(FC.reg || SED.s){ ZP.stato='errore'; ZP.motivo='occupato'; zpRender(); return; }
   ZP.inCorso=true; ZP.fw=''; ZP.batteria=null;
-  let ricollega=false, id='';
+  let c=null;
   try{
-    const r=await window.tmsBLE.prepara(); if(!r || !r.ok){ ZP.stato='errore'; ZP.motivo='errore'; return; }
-    /* quale bracciale: quello già provato, la fascia collegata se è un Amazfit, o il primo che si fa vedere */
-    let noto=''; try{ noto=localStorage.getItem(ZP_KEY_ID)||''; }catch(e){}
-    if(!noto && fcIdNoto() && /amazfit|helio/i.test(fcNomeNoto()||'')) noto=fcIdNoto();
-    if(FC.id && (FC.id===noto || /amazfit|helio/i.test(FC.nome||''))){ ricollega=true; noto=noto||FC.id; fcScollega(); await new Promise(x=>setTimeout(x, 500)); }
-    ZP.stato='cerco'; zpRender();
-    const d=await new Promise(ok=>{ const t=setTimeout(()=>{ ok(null); }, ZP_ATTESA.cerca);
-      Promise.resolve(window.tmsBLE.cerca(x=>(noto? x.id===noto : (/amazfit|helio/i.test(x.nome||'') || (x.servizi||[]).indexOf('fee0')>=0)), x=>{ clearTimeout(t); ok(x); })).catch(()=>{ clearTimeout(t); ok(null); }); });
-    try{ await window.tmsBLE.fermaRicerca(); }catch(e){}
-    if(!d){ ZP.stato='errore'; ZP.motivo='nontrovo'; return; }
-    id=d.id; ZP.nome=d.nome||''; ZP.stato='collego'; zpRender();
-    const S=zpSessione(id, (car, byte)=>window.tmsBLE.scrivi(id, car, byte, ZP_FEE0));
-    let coda=Promise.resolve();
-    try{ await window.tmsBLE.collega(id, {onDati:(car, byte)=>{ coda=coda.then(()=>zpRicevi(S, car, byte)).catch(()=>{}); }, onStaccato:()=>{}},
-      {servizio:ZP_FEE0, notifiche:[ZP_IN, ZP_OUT, ZP_DATI]}); }
-    catch(e){ ZP.stato='errore'; ZP.motivo=(e && e.motivo==='notifiche')? 'notifiche' : 'lontano'; id=''; return; }
-    try{ localStorage.setItem(ZP_KEY_ID, id); }catch(e){}
-    ZP.stato='auth'; zpRender();
-    await zpAutentica(S, zpChiaveByte(ZP.chiave));
+    c=await zpApri();
     /* firmware (Device Information, in chiaro) e batteria (canale cifrato) */
-    try{ if(window.tmsBLE.leggi){ const fw=await window.tmsBLE.leggi(id, '180a', '2a26'); ZP.fw=String.fromCharCode.apply(null, (fw||[]).filter(x=>x>=32 && x<127)).trim(); } }catch(e){}
-    try{ ZP.batteria=await zpBatteria(S); }catch(e){ ZP.batteria=null; }
-    ZP.stato='ok';
-  }catch(e){ ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; }
-  finally{
-    if(id){ try{ await window.tmsBLE.stacca(id); }catch(e){} }
-    ZP.inCorso=false; zpRender();
-    if(ricollega) fcAvvia(); } }
+    try{ if(window.tmsBLE.leggi){ const fw=await window.tmsBLE.leggi(c.id, '180a', '2a26'); ZP.fw=String.fromCharCode.apply(null, (fw||[]).filter(x=>x>=32 && x<127)).trim(); } }catch(e){}
+    try{ ZP.batteria=await zpBatteria(c.S); }catch(e){ ZP.batteria=null; }
+    ZP.stato='ok'; zpSegnaOk(true);
+  }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento') zpSegnaOk(false); }
+  finally{ await zpChiudi(c); ZP.inCorso=false; zpRender(); } }
+/* SINCRONIZZA: scarica sonno e dati del giorno, prepara gli eventi per il PC, stacca. Senza interfaccia: la usa il
+   tasto, l'apertura dell'app e (in futuro) lo scarico periodico in sottofondo. Restituisce l'esito o null. */
+async function zpSincronizza(manuale){
+  if(!window.tmsBLE || !ZP.chiave || ZP.inCorso) return null;
+  if(FC.reg || SED.s){ if(manuale){ ZP.stato='errore'; ZP.motivo='occupato'; zpRender(); } return null; }
+  ZP.inCorso=true; await zpdCarica();
+  let c=null, esito=null;
+  try{
+    c=await zpApri();
+    ZP.stato='scarico'; zpRender();
+    const fatti=await zpScarica(c.S);
+    try{ const b=await zpBatteria(c.S); if(b!=null){ ZP.batteria=b; ZPD.batt[dataLoc(new Date())]=b; } }catch(e){}
+    zpPota();
+    const nuovi=zpPreparaEventi();
+    esito={notti:Object.keys(ZPD.notti).filter(d=>d>=dataLoc(new Date(Date.now()-14*86400000))).length,
+      giorni:Object.keys(ZPD.eventi).filter(k=>/^giorno\|/.test(k)).length, nuovi:nuovi, tipi:fatti};
+    ZPD.ultima=Date.now(); ZPD.esito=esito; await zpdSalva();
+    ZP.stato='sincok'; zpSegnaOk(true);
+  }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento') zpSegnaOk(false); }
+  finally{ await zpChiudi(c); ZP.inCorso=false; zpRender(); }
+  if(esito) colPresto();
+  return esito; }
+/* all'apertura dell'app: una sincronizzazione se l'ultima è di più di mezz'ora fa (in silenzio) */
+async function zpSincAuto(){
+  if(!window.tmsBLE || !ZP.chiave || ZP.inCorso || FC.reg || SED.s) return;
+  await zpdCarica(); if(Date.now()-(ZPD.ultima||0)<ZP_SINC_OGNI) return;
+  return zpSincronizza(false); }
+/* eventi verso il PC (li manda colEventi come le pesate) e conferme (colRicevute) */
+async function zpEventiDaMandare(daMandare, scrivi){
+  await zpdCarica(); let n=0;
+  for(const k of Object.keys(ZPD.eventi)){ const e=ZPD.eventi[k]; if(!daMandare(e)) continue;
+    const corpo=(e.tipo==='tms-sonno')? {tipo:e.tipo, id:e.id, notte:e.dati} : {tipo:e.tipo, id:e.id, giorno:e.dati};
+    await scrivi(colNomeFile(k.split('|')[0], k.split('|')[1]), corpo); e.ev=new Date().toISOString(); n++; }
+  if(n) await zpdSalva(); return n; }
+async function zpEventiRicevuti(ric){
+  if(!ZPD) return; let n=0;
+  Object.keys(ZPD.eventi).forEach(k=>{ const e=ZPD.eventi[k]; if(!e.pc && ric.has(String(e.id))){ e.pc=true; n++; } });
+  if(n) await zpdSalva(); }
 /* ── SEDUTA ATTIVA ANCHE CON L'APP CHIUSA (27/11/2026, Marco: «quando parte una sessione di allenamento l'app non
       si chiude mai davvero, resta attiva in background, così da prendere costantemente i dati dal bracciale» e
       «quando chiudo l'app vorrei un'isola floating con battito, esercizio, tempo di recupero»). Solo nell'APK
@@ -3588,6 +3792,7 @@ async function colRicevute(st){
   if(cc){ await fcSalva(); if(!$('fc').hidden) renderFc(); }
   let cpf=false; SEDUTE_PESI_FC.forEach(x=>{ if(x && !x.pc && ric.has(String(x.id))){ x.pc=true; cpf=true; } });
   if(cpf) await fcpSalva();
+  await zpEventiRicevuti(ric);
   if(SCHEDA){ const o=dietaLeggi(); let cd=false;
     Object.keys(o.mod).forEach(d=>{ if(o.pc[d]!==o.mod[d] && ric.has(dietaId(d, o.mod[d]))){ o.pc[d]=o.mod[d]; cd=true; } });
     if(cd){ dietaScrivi(o); if(!$('alim').hidden) renderAlim(); } }
@@ -3774,6 +3979,8 @@ async function colEventi(){
       durataSec:x.durataSec, fcMedia:x.fcMedia, fcPicco:x.fcPicco, fc:x.fc, fcPasso:x.fcPasso, dispositivo:x.dispositivo}}));
     x.ev=new Date().toISOString(); cpf=true; }
   if(cpf) await fcpSalva();
+  /* sonno e dati del giorno dal bracciale: un file per notte e uno per giorno (il più recente prende il posto) */
+  await zpEventiDaMandare(daMandare, async (nome, corpo)=>{ await colScrivi(dir+nome, await colCifra(corpo)); });
   /* i giorni della dieta: un file per ogni cambio (sì, no o tolto), finché il PC non lo conferma */
   if(SCHEDA){ const o=dietaLeggi(), partiti=[];
     for(const d of Object.keys(o.mod).sort()){
@@ -3862,6 +4069,16 @@ function qrTrovato(codice){
   const inp=$('col-codice'); if(inp) inp.value=codice.match(/.{1,4}/g).join('-');
   colCollega(); }
 document.addEventListener('visibilitychange',()=>{ if(document.hidden && qrAperto()) qrChiudi(); });
+/* — tendina delle sezioni collegate (27/11/2026, Marco: «le parti di "collega" "scollega" sono nascoste in un menù a
+     tendina se è tutto green, collegato; solo se non è collegato nulla compare il prompt "collega"») — */
+function impTendina(id, ok){
+  const b=$(id); if(!b) return;
+  const era=b.classList.contains('imp-ok');
+  b.classList.toggle('imp-ok', !!ok);
+  if(!ok || !era) b.classList.remove('aperta');
+  const t=b.querySelector('.imp-apri'); if(t) t.setAttribute('aria-expanded', b.classList.contains('aperta')? 'true' : 'false'); }
+document.addEventListener('click', e=>{ const t=e.target && e.target.closest && e.target.closest('.imp-apri'); if(!t) return;
+  const b=$(t.getAttribute('data-apri')); if(!b) return; b.classList.toggle('aperta'); t.setAttribute('aria-expanded', b.classList.contains('aperta')? 'true' : 'false'); });
 /* ── schermata «⚙ Impostazioni» (27/11/2026, Marco: «dove ora esiste "collegamento e promemoria" metti impostazioni,
       mettici collegamento e promemoria e spostaci lingua e qrcode, lasciando in alto solo il battito cardiaco»):
       collegamento col TMS (solo nell'APK), promemoria (solo nell'APK), lingua e QR (sempre). Gli id restano quelli
@@ -3897,7 +4114,8 @@ function colRender(){
   { const b=$('col-da-ben'); if(b) b.hidden=!P; }
   { const cb=$('col-box'); if(cb) cb.hidden=!P; const sz=$('imp-sez-pc'); if(sz) sz.hidden=!P;
     const sn=$('imp-sez-sens'); if(sn) sn.hidden=!window.tmsBLE; const sa=$('imp-sez-avv'); if(sa) sa.hidden=!window.tmsAvvisi;
-    const pl=$('col-pill'); if(pl){ const on=P && colAttivo(); pl.textContent=on? tt('collegato') : tt('non collegato'); pl.classList.toggle('si', on); } }
+    const pl=$('col-pill'); if(pl){ const on=P && colAttivo(); pl.textContent=on? tt('collegato') : tt('non collegato'); pl.classList.toggle('si', on); }
+    impTendina('col-box', P && colAttivo()); }
   { const fi=$('fc-imp'); if(fi) fi.hidden=!window.tmsBLE; }
   { const n=$('ben-solo-apk'); if(n) n.hidden=P; }
   const avv=$('avv-box'); if(avv) avv.hidden=!window.tmsAvvisi;
@@ -3996,7 +4214,8 @@ function apriDaAvviso(pagina){
 window.apriDaAvviso=apriDaAvviso;
 $('vai-col').onclick=colApri; $('col-da-ben').onclick=colApri; $('ben-imp').onclick=colApri;
 $('zp-salva').onclick=()=>{ zpSalvaChiave(); }; $('zp-prova').onclick=()=>{ zpProva(); }; $('zp-togli').onclick=()=>{ zpTogliChiave(); };
-zpCaricaChiave().catch(()=>{});
+$('zp-sinc').onclick=()=>{ zpSincronizza(true); };
+zpCaricaChiave().then(()=>zpdCarica()).then(()=>{ zpRender(); setTimeout(()=>{ zpSincAuto().catch(()=>{}); }, 3000); }).catch(()=>{});
 document.querySelectorAll('[data-col-esci]').forEach(b=>{ b.onclick=navIndietro; });
 $('col-collega').onclick=colCollega;
 $('col-qr').onclick=qrApri;
