@@ -4,6 +4,22 @@
 
 ---
 
+### 2026-11-27 — TMS v1.1.45: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.44
+**Descrizione**:
+- App del telefono TMS Scheda 1.9.0: il Cardio è diviso in discipline (Corsa, Camminata, Bici, Nuoto…) e aprendone una si sceglie solo fra le sue sottocategorie, per esempio Strada, Mountain bike o Cyclette; la pagina è fatta come un giorno della Palestra. Nelle attività all’aperto il GPS del telefono registra il percorso anche a schermo spento e lo mostra sulla mappa di OpenStreetMap, con distanza, passo, dislivello, tempo in movimento e parziali al km: tutto arriva da solo al PC, nel tab Cardio, col percorso sulla mappa. La sezione Salute ha l’anello dei passi con l’obiettivo del giorno, i passi in diretta dal bracciale, il recupero a colori rispetto al proprio solito, il sonno a livelli e il battito e lo stress della giornata. Il bracciale resta collegato anche ad app chiusa, sonno e dati del giorno arrivano nel Corpo › Recupero del PC e il collegamento col bracciale è più affidabile, con i dettagli tecnici da copiare se qualcosa non va. L’interfaccia del telefono è più compatta. Sul PC l’avviso dello storico compare solo quando manca una settimana.
+- Unione del ramo del bracciale (telefono 1.8.0–1.9.0) con la v1.1.44 e l'avviso dello storico
+- Telefono 1.9.0: Cardio a discipline fatto come la Palestra, GPS all'aperto con la mappa (anche sul PC), Salute con passi, obiettivo e stati a colori, collegamento col bracciale più affidabile, interfaccia più compatta
+- Telefono 1.8.1: bracciale sempre collegato anche ad app chiusa e sezione Salute
+- Telefono 1.8.0: sonno e dati del giorno dal bracciale al PC (Corpo › Recupero) e Impostazioni ordinate
+- Pesi e Corpo: l'avviso dello storico compare solo quando manca una settimana; con lo storico in regola non si vede nulla
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-27)
+
+---
+
 ### 2026-11-27 — TMS v1.1.44: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.43
