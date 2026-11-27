@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.42 (2026-11-26). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.43 (2026-11-26). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -726,7 +726,17 @@ non la fa ripartire; una seduta aperta alla volta); «Solo guardare» lascia con
 quel giorno di calendario non lo richiede, e nella zona in alto resta «Inizia la seduta». Se una seduta è già aperta
 non chiede niente; un giorno già chiuso in settimana non chiede, c'è «Nuova seduta». Una seduta avviata per sbaglio
 si toglie con «annulla seduta» (sotto il tempo, distinto da «Fine seduta»), che chiede conferma e non salva NIENTE:
-né durata, né fatica, né battito (la traccia si butta). Sulle pagine dei giorni la barra in alto ha una seconda riga,
+né durata, né fatica, né battito (la traccia si butta). SEDUTA ATTIVA ANCHE CON L'APP CHIUSA (solo nell'APK): con
+una seduta coi pesi o una registrazione Cardio aperta gira un servizio in primo piano Android (notifica fissa con
+battito e tempo, un tocco riapre l'app) che tiene un suo collegamento con la fascia o il bracciale (profilo
+standard 0x180D) e conserva i battiti con l'ora anche quando Android ferma la pagina a schermo spento; quando la
+pagina torna attiva (o prima della «Fine») li prende e riempie solo i tratti di 5 secondi rimasti vuoti, così la
+traccia non ha buchi né doppioni. Il servizio parte con «Inizia» o «Avvia registrazione» e si ferma a «Fine» o
+«Annulla». La prima volta l'app chiede, spiegandolo, di non ottimizzare la batteria per lei (una volta sola).
+FINESTRA MOBILE (Picture-in-Picture, come YouTube): con una seduta o una registrazione aperta, uscendo dall'app col
+tasto Home o col gesto, l'app diventa una piccola finestra con battito (colore della zona), esercizio in corso o
+sport, recupero in corso e tempo della seduta; senza seduta aperta l'app si chiude come sempre, e sui telefoni senza
+PiP resta la notifica. Sulle pagine dei giorni la barra in alto ha una seconda riga,
 la ZONA DELLA SEDUTA: battito della fascia cardio colorato per zona (o «nessuna fascia» col tasto per collegarla),
 tempo trascorso, «Fine seduta». «Fine seduta» compila da sola la durata e chiede la fatica RPE (1-10) nei campi di
 fine giornata (senza Session-RPE spunta «Giorno completato»). Con la fascia collegata il battito della seduta si

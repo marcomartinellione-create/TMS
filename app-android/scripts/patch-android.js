@@ -4,7 +4,7 @@
 
    1. local.properties: dove sta l'Android SDK (sennò Gradle lo cerca nelle variabili d'ambiente,
       che un .bat lanciato col doppio clic può non vedere);
-   2. sorgenti nativi (MainActivity + plugin TmsFile e TmsCartella) da nativo/;
+   2. sorgenti nativi (MainActivity + plugin TmsFile, TmsCartella e TmsSeduta + servizio TmsSedutaService) da nativo/;
    3. AndroidManifest: permesso di vibrare (timer), niente più «Apri con» per i .json,
       fotocamera visibile all'app (per «Scatta una foto»), Bluetooth della bilancia senza posizione,
       installazione dell'APK nuovo dalla cartella condivisa; icona bianca dei promemoria;
@@ -51,7 +51,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
 {
   const dest = path.join(MAIN, 'java', ...PKG.split('.'));
   fs.mkdirSync(dest, { recursive: true });
-  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java']) {
+  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java', 'TmsSedutaPlugin.java', 'TmsSedutaService.java']) {
     fs.copyFileSync(path.join(QUI, 'nativo', f), path.join(dest, f));
   }
   console.log('sorgenti nativi copiati in ' + path.relative(QUI, dest));
@@ -106,8 +106,32 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
   if (!s.includes('android.permission.USE_EXACT_ALARM')) {
     s = s.replace('</manifest>', '    <!-- TMS: notifica di fine recupero al secondo giusto -->\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n</manifest>');
   }
+  /* SEDUTA IN PRIMO PIANO (27/11/2026): durante una seduta o una registrazione il servizio TmsSedutaService
+     tiene il collegamento Bluetooth del battito e la notifica fissa. Android 14 vuole il tipo del servizio
+     (connectedDevice) e il suo permesso; CHANGE_NETWORK_STATE (permesso normale) è uno dei prerequisiti di
+     connectedDevice e vale anche quando l'utente non ha mai collegato una fascia (seduta senza battito);
+     WAKE_LOCK per non perdere i battiti col telefono in tasca; la richiesta di non ottimizzare la batteria
+     la fa la pagina una volta sola, spiegata prima */
+  if (!s.includes('<!-- TMS: seduta in primo piano -->')) {
+    s = s.replace('</manifest>', '    <!-- TMS: seduta in primo piano -->\n' +
+      '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n' +
+      '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />\n' +
+      '    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />\n' +
+      '    <uses-permission android:name="android.permission.WAKE_LOCK" />\n' +
+      '    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />\n</manifest>');
+  }
+  if (!s.includes('android:name=".TmsSedutaService"')) {
+    if (s.split('</application>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</application>)'); process.exit(1); }
+    s = s.replace('</application>', '    <!-- TMS: seduta in primo piano (battito a schermo spento, notifica fissa) -->\n' +
+      '        <service android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice" />\n    </application>');
+  }
+  /* FINESTRA MOBILE (Picture-in-Picture, come YouTube): l'attività la dichiara; entra e esce la MainActivity */
+  if (!s.includes('android:supportsPictureInPicture')) {
+    if (s.split('<activity').length !== 2) { console.error('patch-android: AndroidManifest inatteso (<activity>)'); process.exit(1); }
+    s = s.replace('<activity', '<activity\n            android:supportsPictureInPicture="true"\n            android:resizeableActivity="true"');
+  }
   scrivi(f, s);
-  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte');
+  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte, seduta in primo piano, finestra mobile');
   /* icona dei promemoria (barra delle notifiche): una sagoma bianca, Android la colora da sé */
   scrivi(path.join(RES, 'drawable', 'ic_stat_tms.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona dei promemoria (bilancia). Generato da scripts/patch-android.js -->\n' +

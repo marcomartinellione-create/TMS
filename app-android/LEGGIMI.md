@@ -44,6 +44,14 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
 - **⚙ Impostazioni** (dalla 1.6.0, al posto di «Collegamento e promemoria»; pagina `#col`, voce `#vai-col`): collegamento
   col TMS, promemoria e fascia cardio (`#fc-imp`; solo nell'APK), lingua (`#lang-btn`) e i QR del sito (`#qr-btn`), che prima stavano nella
   barra in alto. Nella barra restano solo indietro, titolo e il battito (`#fc-chip`, zona della seduta).
+- **Seduta attiva anche con l'app chiusa** (dalla 1.7.0): con una seduta coi pesi o una registrazione Cardio aperta
+  gira il servizio in primo piano `TmsSedutaService` (tipo `connectedDevice`): notifica fissa con battito e tempo
+  (id 7400, canale «Seduta in corso»), un SUO collegamento Bluetooth alla fascia (0x180D/0x2A37) e un buffer dei
+  battiti con l'ora, anche quando Android mette in pausa la WebView; wake lock parziale (max 6 h). La pagina
+  (`natAggiorna`, `natRecupera`) lo avvia e lo ferma e, quando torna attiva, prende i battiti e riempie solo i
+  secchielli vuoti. Ottimizzazione della batteria: chiesta una volta (`tms-batteria-chiesta`). **Finestra mobile**
+  (PiP): la `MainActivity` entra da sola in PiP se c'è una seduta aperta (`setAutoEnterEnabled` da Android 12,
+  `onUserLeaveHint` prima) e avvisa la pagina (evento «pip» → `window.tmsInPip`), che mostra `#pip-vista`.
 - **Bracciale con la chiave** (dalla 1.7.0; Impostazioni › Sensori › Bracciale, `#zp-box`, funzioni `zp*`): chiave del
   bracciale Zepp OS (Amazfit Helio Strap) salvata SOLO in IndexedDB (`bracciale-chiave`, fuori dalle chiavi `tms-*`),
   mostrata mascherata. «Prova collegamento»: canale cifrato su FEE0 (pezzi v2 su 0016/0017, autenticazione ECDH
@@ -149,8 +157,10 @@ Funziona solo perché ogni versione è firmata con la **stessa chiave** (vedi so
 | `scripts/prepara-www.js` | copia `web/` in `www/` (senza `sw.js`) e applica 4 modifiche con **conteggio asserito**: via il service worker, `confirm(` → `await tmsConferma(` (5 punti), `delEsercizio` async, `nativo.js` dopo lo script. Se la PWA cambia lì, si ferma e lo dice. `--verifica` controlla senza scrivere |
 | `nativo/nativo.js` | lo strato nativo della pagina: avvisi/conferme in stile app, scelta foto, `window.tmsIndietro`, `window.tmsAggiorna` (aggiornamento dell'APK da GitHub: scarica e installa, plugin `TmsCartella`; `window.tmsCartella` non esiste più), `window.tmsAvvisi` (promemoria), `window.tmsBLE` (trasporto Bluetooth GENERICO delle pagine Bilancia e Fascia cardio: plugin `@capacitor-community/bluetooth-le` 6.1, MIT, chiamato senza bundler; servizio e caratteristiche li passa la pagina — `collega(id, cb, {servizio, notifiche})`, `scrivi(id, car, byte, servizio)`, senza parametri valgono quelli della bilancia — e gli ascolti sono tenuti per dispositivo, così bilancia e fascia possono stare collegate insieme; protocolli e formule stanno nella PWA). Sostituisce funzioni globali della PWA (`isStandalone`, `alert`) e avvolge `avvia` |
 | `nativo/TmsFilePlugin.java` | plugin Capacitor «TmsFile»: `info` (versione di Android) e tasto indietro |
+| `nativo/TmsSedutaPlugin.java` | plugin «TmsSeduta»: `avvia/ferma` del servizio della seduta, `campioni({da})` (i battiti presi a schermo spento), `pip({attivo})` (finestra mobile), `batteria/chiediBatteria`; evento «pip» verso la pagina |
+| `nativo/TmsSedutaService.java` | servizio in primo piano della seduta: notifica fissa, collegamento Bluetooth Heart Rate proprio, buffer dei battiti, wake lock parziale |
 | `nativo/TmsCartellaPlugin.java` | plugin «TmsCartella»: la pagina lo usa solo per scaricare e installare l'APK nuovo con controllo dell'impronta; i metodi per la cartella condivisa (scelta, lettura, scrittura, elenco) restano nel Java ma non sono più chiamati |
-| `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, via «Apri con» dal manifest, fotocamera visibile (`<queries>`), permesso della fotocamera (sagoma), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), stile, firma, versione, compilazione fuori da OneDrive |
+| `scripts/patch-android.js` | adatta il progetto generato da `cap add android`: sorgenti nativi, via «Apri con» dal manifest, fotocamera visibile (`<queries>`), permesso della fotocamera (sagoma), permesso di vibrare, Bluetooth della bilancia senza posizione (`BLUETOOTH_SCAN` con `neverForLocation`, posizione solo fino ad Android 11), servizio in primo piano della seduta (`FOREGROUND_SERVICE_CONNECTED_DEVICE`, `CHANGE_NETWORK_STATE`, `WAKE_LOCK`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, `<service>` di tipo `connectedDevice`), finestra mobile (`supportsPictureInPicture` sull'attività), stile, firma, versione, compilazione fuori da OneDrive |
 | `scripts/immagini.ps1` | icona adattiva, icone e stella d'avvio da `web/icon-512.png` |
 | `test/prova-nativo.js` | prova in jsdom con un plugin finto (`npm run prova`, da questa cartella) |
 

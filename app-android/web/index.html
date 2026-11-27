@@ -566,6 +566,20 @@
  .riga-ic{display:flex;gap:10px;align-items:flex-start}
  .riga-ic>.ic{margin-top:1px;flex:none}
  .avviso.ok>.ic{color:var(--ok)}
+ /* ── finestra mobile (Picture-in-Picture): solo la vista compatta, coi colori della barra in alto ── */
+ #pip-vista{display:none}
+ body.in-pip{background:var(--brace)}
+ body.in-pip>:not(#pip-vista){display:none!important}
+ body.in-pip #pip-vista{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:fixed;inset:0;padding:8px;
+   background:linear-gradient(155deg,#3d230b 0%,#1c0d02 72%);color:#fdf3dc;text-align:center;overflow:hidden}
+ .pip-bpm{display:flex;align-items:center;gap:6px;font-family:var(--serif);font-size:46px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+ .pip-bpm .ic{width:24px;height:24px;color:#f08a7a}
+ .pip-bpm.z1 b{color:#a9bdd2} .pip-bpm.z2 b{color:#86c6de} .pip-bpm.z3 b{color:#8fe0ac} .pip-bpm.z4 b{color:#f2b483} .pip-bpm.z5 b{color:#f08a7a}
+ .pip-zona{font-size:12px;color:var(--oro-t)}
+ .pip-cosa{max-width:100%;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .pip-rec{display:flex;align-items:center;gap:5px;font-family:var(--serif);font-size:24px;font-weight:700;color:var(--oro);font-variant-numeric:tabular-nums}
+ .pip-rec .ic{width:18px;height:18px}
+ .pip-t{font-size:13px;color:var(--oro-t);font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body data-schermo="menu">
@@ -615,6 +629,7 @@
   <button type="button" class="fc-chip" id="fc-chip" hidden title="Fascia cardio"><svg class="ic"><use href="#i-cuore"/></svg><span id="fc-chip-v">—</span></button>
   <div class="sed-zona" id="sed-zona" hidden></div>
 </header>
+<div id="pip-vista" hidden></div>
 
 <div id="qrov"><div class="qr-panel">
   <button type="button" id="qrclose" aria-label="Chiudi"><svg class="ic"><use href="#i-x"/></svg></button>
@@ -846,7 +861,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='4.4';
+const CVER='4.5';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1225,6 +1240,9 @@ const TT={en:{
   'La scheda arriva dal tuo personal; allenamenti, pesate e foto gli tornano da soli. Tutto viaggia <b>cifrato</b> col tuo codice.':'The program comes from your coach; workouts, weigh-ins and photos go back by themselves. Everything travels <b>encrypted</b> with your code.',
   'Fasce cardio Bluetooth (Polar, Garmin, Wahoo…) e bracciali che condividono il battito, come l’Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp.':'Bluetooth heart rate straps (Polar, Garmin, Wahoo…) and bands that share the heart rate, like the Amazfit Helio Strap with “Heart Rate Push” on in Zepp.',
   'Con la <b>chiave del bracciale</b> l’app apre un collegamento cifrato, come Zepp. La chiave resta <b>solo su questo telefono</b>. Chiudi Zepp mentre l’app usa il bracciale.':'With the <b>band’s key</b> the app opens an encrypted link, like Zepp. The key stays <b>only on this phone</b>. Close Zepp while the app uses the band.',
+  /* seduta in primo piano e finestra mobile (27/11/2026) */
+  'Seduta':'Session',
+  'Per non perdere il battito con lo schermo spento, durante la seduta Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti». Fuori dalle sedute l’app non lavora in sottofondo.':'To keep the heart rate with the screen off, Android must let the app work during the session. In the next window tap “Allow”. Outside sessions the app doesn’t work in the background.',
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -2164,6 +2182,7 @@ async function fcCollega(d){
   FC.collegando=false;
   if(!FC.voluto || gen!==FC.gen){ try{ Promise.resolve(window.tmsBLE.stacca(d.id)).catch(()=>{}); }catch(e){} return; }
   FC.id=d.id; FC.bpm=null; FC.contatto=null; FC.dalCollegamento=Date.now(); FC.ultimoBuono=0;
+  if(natAttiva()) natAggiorna();   /* il servizio della seduta si collega anche lui alla fascia */
   try{ localStorage.setItem(FC_KEY_ID, d.id); if(FC.nome) localStorage.setItem(FC_KEY_NOME, FC.nome); }catch(e){}
   clearInterval(FC.timer); FC.timer=setInterval(fcTic, 1000);
   fcStato('attesa'); renderFc(); }
@@ -2200,7 +2219,7 @@ function fcRegistra(){
   const ora=Date.now();
   FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}, tipo:fcSportScelto()}; FC.annulla=false;
   FC.bozzaT=0; fcSalvaBozza(true); fcSchermo(true);
-  renderFc(); fcAggiornaMenu(); }
+  renderFc(); fcAggiornaMenu(); natAggiorna(); }
 function fcCampione(ora, bpm){
   const r=FC.reg, k=Math.floor((ora-r.inizio)/1000/FC_PASSO); if(k<0) return;
   const s=r.secchi[k]||(r.secchi[k]=[0,0]); s[0]+=bpm; s[1]++;
@@ -2219,11 +2238,14 @@ function fcComponi(r, fine, nome){
   const d=new Date(r.inizio);
   return {data:dataLoc(d), ora:oraLoc(d), durataSec:Math.max(0, Math.round((fine-r.inizio)/1000)),
     fcMedia:c? Math.round(s/c) : null, fcPicco:r.picco||null, fc:fc, passo:FC_PASSO, dispositivo:nome||'', tipo:r.tipo||''}; }
-function fcFine(){
+async function fcFine(){
   const r=FC.reg; if(!r) return;
-  FC.reg=null; FC.chiudi=fcComponi(r, Date.now(), FC.nome); FC.scarta=false;
+  const fine=Date.now();
+  await natRecupera();   /* i battiti presi dal servizio a schermo spento entrano prima di chiudere */
+  if(FC.reg!==r) return;
+  FC.reg=null; FC.chiudi=fcComponi(r, fine, FC.nome); FC.scarta=false;
   fcScriviKv(fcBozzaKey(), {chiudi:FC.chiudi}); fcSchermo(false);
-  renderFc(); fcAggiornaMenu(); }
+  renderFc(); fcAggiornaMenu(); natAggiorna(); }
 async function fcSalvaSeduta(){
   const c=FC.chiudi; if(!c) return;
   const rp=$('fc-rpe'), tipo=c.tipo||fcSportScelto(), rpe=rp? rp.value : '';
@@ -2237,7 +2259,7 @@ async function fcSalvaSeduta(){
   renderFc(); fcAggiornaMenu(); colPresto(); }
 /* «annulla registrazione»: avviata per sbaglio, non si salva niente */
 async function fcAnnullaReg(){ if(!FC.reg) return; FC.reg=null; FC.annulla=false; fcSchermo(false);
-  await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); }
+  await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); natAggiorna(); }
 /* «Collega la fascia» (pagina Cardio, zona della seduta): quella ricordata si cerca subito, altrimenti si sceglie in Impostazioni */
 function fcCollegaDa(){ if(!window.tmsBLE) return; if(fcIdNoto()){ fcAvvia(); return; } colApri(); fcAvvia(); }
 async function fcScartaSeduta(){ FC.chiudi=null; FC.scarta=false; await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); }
@@ -2251,6 +2273,7 @@ function fcSchermo(on){
 function fcVisibilita(nascosta){
   if(nascosta){ if(!FC.reg && !SED.s && (FC.id || FC.cercando || FC.collegando)){ FC.riprendi=true; fcScollega(); } return; }
   if(SED.s){ sedControlla(); sedZona(); }
+  natRecupera().then(n=>{ if(n){ try{ renderFc(); sedZona(); }catch(e){} } });
   if(FC.reg) fcSchermo(true);
   if(FC.riprendi){ FC.riprendi=false; fcAvvia(); } }
 
@@ -2448,7 +2471,7 @@ async function sedCarica(){
   if(slug!==fcSlug()) return;
   SEDUTE_PESI_FC=Array.isArray(l)? l : [];
   if(s && s.inizio && s.giorno!=null && !SED.s){ SED.s=s; if(!s.secchi) s.secchi={}; sedTimer(); }
-  sedControlla(); sedZona(); }
+  sedControlla(); sedZona(); natAggiorna(); }
 function sedGi(){ return SED.s? GIORNI.indexOf(SED.s.giorno) : -1; }
 function sedGiornoVisibile(){ const p=[...document.querySelectorAll('.day-page')].find(x=>!x.hidden); return p? +String(p.id).slice(4) : -1; }
 /* aprendo un giorno: parte la seduta, se non ce n'è già una aperta e quel giorno non è già chiuso */
@@ -2462,14 +2485,14 @@ function sedInizia(g){
   const ora=Date.now();
   SED.s={giorno:g, settimana:+(((SCHEDA&&SCHEDA.sync)||{}).settimana)||0, inizio:ora, ultima:ora, picco:0, secchi:{}};
   SED.chiudi=false; SED.dimenticata=false; SED.rpe=null; SED.chiedi=''; SED.annulla=false;
-  sedSalva(true); sedTimer(); sedZona(); }
+  sedSalva(true); sedTimer(); sedZona(); natAggiorna(); }
 /* «annulla seduta»: avviata per sbaglio, non si salva niente (né durata, né fatica, né battito) */
 async function sedAnnulla(){
   const s=SED.s; if(!s) return;
   SED.s=null; SED.chiudi=false; SED.fineAt=0; SED.rpe=null; SED.dimenticata=false; SED.annulla=false; SED.chiedi=''; sedTimer();
   sedGuardo(s.giorno);   /* resta aperto da guardare: «Inizia la seduta» è lì se serve */
   await fcScriviKv(sedKey(), null);
-  sedZona(); sedAvvisoMenu(); fcAggiornaMenu(); }
+  sedZona(); sedAvvisoMenu(); fcAggiornaMenu(); natAggiorna(); }
 /* qualcosa fatto nella seduta: sposta «l'ultima attività» (serve a riconoscere una seduta dimenticata) */
 function sedAttivita(){ if(!SED.s || SED.dimenticata) return; SED.s.ultima=Date.now(); sedSalva(false); }
 function sedControlla(){ if(SED.s && !SED.chiudi && Date.now()-(+SED.s.ultima||+SED.s.inizio)>SED_DIMENTICATA) SED.dimenticata=true; sedAvvisoMenu(); }
@@ -2488,6 +2511,7 @@ function sedCampo(id, v){ const el=$(id); if(!el) return;
   try{ el.dispatchEvent(new Event('input', {bubbles:true})); }catch(e){} }
 async function sedChiudi(){
   const s=SED.s; if(!s) return;
+  await natRecupera();   /* i battiti presi dal servizio a schermo spento entrano prima di chiudere */
   const fine=SED.fineAt||Date.now(), gi=sedGi(), min=Math.max(1, Math.round((fine-s.inizio)/60000));
   if(gi>=0){ if(useRpeScheda()){ sedCampo('min-'+gi, min); if(SED.rpe!=null) sedCampo('rpe-'+gi, SED.rpe); } else sedCampo('fatto-'+gi, true); }
   const c=fcComponi({inizio:s.inizio, secchi:s.secchi||{}, picco:s.picco||0}, fine, s.nome||'');
@@ -2499,7 +2523,7 @@ async function sedChiudi(){
   SED.s=null; SED.chiudi=false; SED.fineAt=0; SED.rpe=null; SED.dimenticata=false; sedTimer();
   await fcScriviKv(sedKey(), null);
   try{ if(navigator.vibrate) navigator.vibrate(80); }catch(e){}
-  sedZona(); sedAvvisoMenu(); fcAggiornaMenu(); colPresto(); }
+  sedZona(); sedAvvisoMenu(); fcAggiornaMenu(); colPresto(); natAggiorna(); }
 /* la seduta dimenticata era ancora in corso: si riparte a contare l'attività da adesso */
 function sedContinua(){ if(!SED.s) return; SED.dimenticata=false; SED.chiudi=false; SED.s.ultima=Date.now(); sedSalva(true); sedZona(); sedAvvisoMenu(); }
 function sedBattitoHtml(){
@@ -2608,8 +2632,9 @@ function zpScalare(k, px, py){
   return {x:x3, y:y3}; }
 const zpLE=(bytes)=>{ let v=0n; for(let i=bytes.length-1;i>=0;i--) v=(v<<8n)|BigInt(bytes[i]&255); return v; };
 const zpInLE=(v, n)=>{ const o=[]; for(let i=0;i<n;i++){ o.push(Number(v&255n)); v>>=8n; } return o; };
-/* chiave privata del telefono: 24 byte casuali, i bit dal 163 in su a zero */
-function zpPrivata(){ const b=new Uint8Array(24); crypto.getRandomValues(b); b[20]&=0x07; b[21]=0; b[22]=0; b[23]=0; if(!b.some(x=>x)) b[0]=1; return Array.from(b); }
+/* chiave privata del telefono: 24 byte casuali, i bit dal 162 in su a zero (così è sempre sotto l'ordine della
+   curva, n ≈ 2^162: una chiave valida per qualunque implementazione di ECDH) */
+function zpPrivata(){ const b=new Uint8Array(24); crypto.getRandomValues(b); b[20]&=0x03; b[21]=0; b[22]=0; b[23]=0; if(!b.some(x=>x)) b[0]=1; return Array.from(b); }
 /* pubblica = X‖Y, 24+24 byte little-endian */
 function zpPubblica(priv){ const p=zpScalare(zpLE(priv), ZP_GX, ZP_GY); return zpInLE(p.x, 24).concat(zpInLE(p.y, 24)); }
 /* segreto condiviso = X di priv·(pubblica del bracciale), 24 byte little-endian */
@@ -2823,6 +2848,80 @@ async function zpProva(){
     if(id){ try{ await window.tmsBLE.stacca(id); }catch(e){} }
     ZP.inCorso=false; zpRender();
     if(ricollega) fcAvvia(); } }
+/* ── SEDUTA ATTIVA ANCHE CON L'APP CHIUSA (27/11/2026, Marco: «quando parte una sessione di allenamento l'app non
+      si chiude mai davvero, resta attiva in background, così da prendere costantemente i dati dal bracciale» e
+      «quando chiudo l'app vorrei un'isola floating con battito, esercizio, tempo di recupero»). Solo nell'APK
+      (window.tmsSeduta, plugin TmsSeduta in nativo.js):
+      · con una seduta coi pesi o una registrazione Cardio aperta gira il SERVIZIO IN PRIMO PIANO Android: notifica
+        fissa con battito e tempo, e un suo collegamento Bluetooth alla fascia (profilo 0x180D) che mette i battiti
+        con l'ora in un buffer anche a schermo spento, quando Android ferma la pagina;
+      · quando la pagina torna attiva (schermo acceso, uscita dalla finestra mobile, prima della «Fine») prende i
+        battiti del servizio e riempie SOLO i secchielli da 5 s rimasti vuoti: niente buchi e niente doppioni;
+      · uscendo dall'app con una seduta aperta Android apre la FINESTRA MOBILE (Picture-in-Picture): la pagina
+        mostra la vista compatta (#pip-vista) col battito, l'esercizio o lo sport, il recupero e il tempo;
+      · la prima volta chiede di non ottimizzare la batteria per l'app, spiegandolo (una volta sola). ── */
+const NAT={on:false, ultimo:0, pip:false, pipT:null};
+function natAttiva(){ return !!(FC.reg || SED.s); }
+function natTitolo(){ return FC.reg? tt('Cardio')+' · '+tt(FC.reg.tipo||'') : SED.s? tt('Seduta')+' · '+SED.s.giorno : ''; }
+function natInizio(){ return FC.reg? FC.reg.inizio : SED.s? SED.s.inizio : 0; }
+/* a ogni inizio, fine o cambio (anche la fascia che si collega dopo): servizio e finestra mobile come serve */
+function natAggiorna(){
+  const ts=window.tmsSeduta; if(!ts) return;
+  const att=natAttiva();
+  if(att){
+    const nuovo=!NAT.on; NAT.on=true; if(nuovo) NAT.ultimo=natInizio();
+    try{ Promise.resolve(ts.avvia({titolo:natTitolo(), inizio:natInizio(), dispositivo:FC.id||fcIdNoto()||''})).catch(()=>{}); }catch(e){}
+    if(nuovo) natBatteria(); }
+  else if(NAT.on){ NAT.on=false; try{ Promise.resolve(ts.ferma()).catch(()=>{}); }catch(e){} }
+  try{ Promise.resolve(ts.pip(att)).catch(()=>{}); }catch(e){} }
+/* i battiti presi dal servizio mentre la pagina era ferma: solo dove la traccia è vuota */
+function natRiempi(r, t, bpm){
+  const k=Math.floor((t-r.inizio)/1000/FC_PASSO); if(k<0) return;
+  const x=r.secchi[k];
+  if(!x){ r.secchi[k]=[bpm, 1, 1]; }
+  else if(x[2]){ x[0]+=bpm; x[1]++; }          /* secchiello già riempito dal servizio: si somma */
+  else return;                                   /* la pagina c'era: i suoi campioni bastano */
+  if(bpm>(r.picco||0)) r.picco=bpm;
+  if(t>(+r.ultimo||0)) r.ultimo=t; }
+async function natRecupera(){
+  const ts=window.tmsSeduta; if(!ts || !NAT.on) return 0;
+  let r=null; try{ r=await ts.campioni({da:NAT.ultimo}); }catch(e){ return 0; }
+  const l=(r && r.campioni) || []; let n=0;
+  for(const c of l){ const t=+c[0], bpm=+c[1]; if(!(t>0) || !(bpm>=25 && bpm<=250)) continue;
+    if(t>NAT.ultimo) NAT.ultimo=t;
+    if(FC.reg){ if(t>=FC.reg.inizio){ natRiempi(FC.reg, t, bpm); n++; } }
+    else if(SED.s){ if(t>=SED.s.inizio){ natRiempi(SED.s, t, bpm); n++; } } }
+  if(n){ if(FC.reg) fcSalvaBozza(true); else if(SED.s) sedSalva(true); }
+  return n; }
+/* ottimizzazione della batteria: si chiede UNA volta, spiegandola prima */
+async function natBatteria(){
+  const ts=window.tmsSeduta; if(!ts || !ts.batteria) return;
+  try{ if(localStorage.getItem('tms-batteria-chiesta')) return; }catch(e){ return; }
+  let b=null; try{ b=await ts.batteria(); }catch(e){ return; }
+  if(!b || b.esclusa) return;
+  try{ localStorage.setItem('tms-batteria-chiesta', new Date().toISOString()); }catch(e){}
+  const testo=tt('Per non perdere il battito con lo schermo spento, durante la seduta Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti». Fuori dalle sedute l’app non lavora in sottofondo.');
+  const ok=window.tmsConferma? await window.tmsConferma(testo) : false;
+  if(ok){ try{ await ts.chiediBatteria(); }catch(e){} } }
+/* ── finestra mobile: la pagina lo sa dall'evento «pip» del nativo (window.tmsInPip) ── */
+function pipRender(){
+  const v=$('pip-vista'); if(!v) return;
+  const bpm=(FC.id && FC.bpm)? FC.bpm : null, z=bpm? fcZona(bpm) : null;
+  const inizio=natInizio(), sec=inizio? (Date.now()-inizio)/1000 : 0;
+  const cosa=FC.reg? tt(FC.reg.tipo||'') : SED.s? (SED.es || SED.s.giorno) : '';
+  const tb=$('tbar'), rec=(tb && tb.classList.contains('show'))? timerResta() : null;
+  v.innerHTML='<div class="pip-bpm'+(z&&z.n? ' z'+z.n : '')+'">'+(bpm? ico('cuore')+'<b>'+bpm+'</b>' : ico('cuore')+'<b>—</b>')+'</div>'+
+    (z&&z.n? '<div class="pip-zona">'+esc(tt(FC_ZONE[z.n-1][1]))+'</div>' : '')+
+    '<div class="pip-cosa">'+esc(cosa)+'</div>'+
+    (rec!=null? '<div class="pip-rec">'+ico('timer')+'<b>'+esc(fmtSec(rec))+'</b></div>' : '')+
+    '<div class="pip-t">'+esc(fcDur(sec))+'</div>'; }
+window.tmsInPip=function(on){
+  NAT.pip=!!on;
+  document.body.classList.toggle('in-pip', NAT.pip);
+  const v=$('pip-vista'); if(v) v.hidden=!NAT.pip;
+  clearInterval(NAT.pipT); NAT.pipT=null;
+  if(NAT.pip){ pipRender(); NAT.pipT=setInterval(pipRender, 1000); }
+  else { natRecupera().then(()=>{ try{ renderFc(); sedZona(); }catch(e){} }); } };
 /* ── 🎮 SCHERMATA D'ANALISI della pesata (richiesta di Marco, 25/11/2026): «una schermata di caricamento, la
       forma stilizzata del corpo che si carica e sembra che venga analizzata, in stile videogioco anni 2000».
       Dei videogiochi si prendono SOLO l'animazione e l'impostazione: colori, forme e caratteri restano quelli
@@ -3315,7 +3414,7 @@ function timerTick(){
   if(!document.hidden){ timerBeep(); timerAvvisoVia(); }   /* in secondo piano ci pensa la notifica */
 }
 function timerRun(){ clearInterval(timerId); timerId=setInterval(timerTick, 250); }
-function startTimer(nome,sec){ sec=+sec||0; if(sec<=0) sec=90; sedAttivita();
+function startTimer(nome,sec){ sec=+sec||0; if(sec<=0) sec=90; sedAttivita(); if(nome) SED.es=nome;
   const bar=$('tbar'); if(!bar) return;
   timerPaused=false; timerLeft=sec; timerFine=Date.now()+sec*1000; $('t-ex').textContent=nome||'';
   bar.classList.remove('done'); bar.classList.add('show'); document.body.classList.add('timer-su'); $('t-pause').innerHTML=ico('pausa'); $('t-time').textContent=fmtSec(timerLeft);
@@ -3367,7 +3466,8 @@ $('t-x').onclick=timerClose;
 { const fi=$('foto-file'); if(fi) fi.onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(f&&fotoVistaAttesa) fotoAggiungi(fotoVistaAttesa,f); }; }
 /* autosalvataggio: solo sui campi «fatto» del cliente (non sui campi del pannello Modifica) */
 document.addEventListener('input',e=>{ const id=e.target&&e.target.id;
-  if(id && /^(s|r|p|rir|n|rpe|min|fatto)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); sedAttivita(); } });
+  if(id && /^(s|r|p|rir|n|rpe|min|fatto)-\d+$/.test(id)){ TOCCATI.add(id); salvaBozza(); aggiornaStato(); sedAttivita();
+    const m=/^(s|r|p|rir|n)-(\d+)$/.exec(id), rw=m? rowById(+m[2]) : null; if(rw && rw.esercizio) SED.es=rw.esercizio; } });
 
 /* ════ 🔗 SCHEDA COLLEGATA COL TMS DEL PERSONAL, 🔔 PROMEMORIA, ⬆ AGGIORNAMENTO DELL'APK (solo nell'APK) ════
    Dal 24/11/2026 telefono e PC si passano i file attraverso l'HUB DEL TMS (Cloudflare, hub/worker.js),

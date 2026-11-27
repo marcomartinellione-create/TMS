@@ -92,6 +92,14 @@ async function apri(opz = {}) {
           createChannel: async o => { reg.avv.push(['createChannel', o]); },
           schedule: async o => { reg.avv.push(['schedule', o]); },
           addListener: (ev, cb) => { reg.avvAscolti[ev] = cb; return { remove() {} }; }
+        } } : {}),
+        /* seduta in primo piano e finestra mobile finte (plugin TmsSeduta) */
+        ...(opz.seduta ? { TmsSeduta: {
+          avvia: async o => { reg.chiamate.push(['avvia', o]); }, ferma: async () => { reg.chiamate.push(['ferma']); },
+          campioni: async o => { reg.chiamate.push(['campioni', o]); return { campioni: [], attivo: true }; },
+          pip: async o => { reg.chiamate.push(['pip', o]); return { supportato: true }; },
+          batteria: async () => ({ esclusa: true }), chiediBatteria: async () => { reg.chiamate.push(['chiediBatteria']); },
+          addListener: (ev, cb) => { reg.ascolti['seduta:' + ev] = cb; return { remove() {} }; }
         } } : {}) }
       };
       win.fetch = async url => {
@@ -342,6 +350,20 @@ async function apri(opz = {}) {
     a.dom.window.close(); }
   { const a = await apri({ ble: true, bleSpento: true, sdk: 30 }); a.d.getElementById('vai-bil').click(); await attendi(120);
     ok(/spento/.test(a.d.getElementById('bil-stato').textContent) && a.reg.ble.some(x => x[0] === 'requestEnable'), 'Bluetooth spento: chiede di accenderlo e poi lo dice');
+    a.dom.window.close(); }
+
+  /* ── seduta in primo piano e finestra mobile (plugin TmsSeduta) ── */
+  { const a = await apri({ seduta: true }); const { w, d, reg } = a;
+    ok(typeof w.tmsSeduta === 'object' && typeof reg.ascolti['seduta:pip'] === 'function', 'seduta: il ponte col plugin TmsSeduta c\'è e ascolta l\'evento «pip»');
+    w.eval('sedInizia(GIORNI[0])'); await attendi(60);
+    const av = reg.chiamate.filter(x => x[0] === 'avvia').pop(), pp = reg.chiamate.filter(x => x[0] === 'pip').pop();
+    ok(av && /Seduta/.test(av[1].titolo) && av[1].inizio > 0 && pp && pp[1].attivo === true, 'seduta: «Inizia» avvia il servizio in primo piano e prepara la finestra mobile ({attivo:true})');
+    reg.ascolti['seduta:pip']({ attivo: true }); await attendi(30);
+    ok(d.body.classList.contains('in-pip') && d.getElementById('pip-vista').hidden === false, 'finestra mobile: l\'evento del nativo mostra la vista compatta');
+    reg.ascolti['seduta:pip']({ attivo: false }); await attendi(30);
+    ok(!d.body.classList.contains('in-pip') && reg.chiamate.some(x => x[0] === 'campioni'), 'uscendo dalla finestra mobile la pagina torna normale e prende i battiti del servizio');
+    await w.eval('sedAnnulla()'); await attendi(40);
+    ok(reg.chiamate.some(x => x[0] === 'ferma') && reg.chiamate.filter(x => x[0] === 'pip').pop()[1].attivo === false, 'seduta annullata: servizio fermo, niente finestra mobile');
     a.dom.window.close(); }
 
   /* ── collegamento col PC del personal (dal 24/11/2026 passa dall'hub del TMS) e aggiornamento dell'APK ── */

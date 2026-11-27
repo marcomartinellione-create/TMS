@@ -3841,6 +3841,89 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
     a.chiudi(); }
 }
 
+console.log('--- T12e: seduta in primo piano (servizio Android finto), battiti recuperati a schermo spento, finestra mobile ---');
+{
+  const PWA = path.join(ROOT, 'app-android', 'web', 'index.html');
+  const J = o => JSON.stringify(o);
+  const scheda = { tipo: 'tms-scheda', versione: 1, app: '1.1.43', modificabile: false, rpe: true,
+    profilo: { slug: 'prova', nome: 'Cliente Prova' }, esportata: '2026-11-27', corpo: { altezza: 180, sesso: 'M', eta: 40, fcMax: 0, fcRiposo: 55 },
+    righe: [{ giorno: 'Lunedì', esercizio: 'Squat con bilanciere', serie: 3, rip: 5, peso: 80, rest: '2:00', rir: null, test: false, note: '', video: '' }],
+    riscaldamento: [], ultima: {}, video: {}, dieta: null };
+  const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
+    beforeParse(win){ win.localStorage.setItem('tms-scheda-lang', 'it'); win.localStorage.setItem('tms-scheda-corrente', J(scheda)); win.scrollTo = () => {};
+      const N = win.__N = { chiamate: [], campioni: [], esclusa: false, conferme: 0 };
+      win.tmsSeduta = { avvia: async o => { N.chiamate.push(['avvia', o]); }, ferma: async () => { N.chiamate.push(['ferma']); },
+        campioni: async o => { N.chiamate.push(['campioni', o]); return { campioni: N.campioni.filter(c => c[0] > o.da), attivo: true }; },
+        pip: async a => { N.chiamate.push(['pip', a]); return { supportato: true }; },
+        batteria: async () => ({ esclusa: N.esclusa }), chiediBatteria: async () => { N.chiamate.push(['chiediBatteria']); } };
+      win.tmsConferma = async () => { N.conferme++; return true; }; } });
+  await settle(300);
+  const sw = sub.window, sd = sw.document, N = sw.__N;
+  const ult = nome => N.chiamate.filter(c => c[0] === nome).pop();
+  /* seduta coi pesi: «Inizia» avvia il servizio e la finestra mobile */
+  sd.getElementById('vai-scheda').click(); await settle(20); sd.querySelector('#days [data-go="0"]').click(); await settle(30);
+  ok(!N.chiamate.some(c => c[0] === 'avvia'), 'aprendo il giorno senza «Inizia» il servizio non parte');
+  sd.getElementById('sed-inizia').click(); await settle(40);
+  { const a = ult('avvia');
+    ok(a && a[1].titolo === 'Seduta · Lunedì' && a[1].inizio === sw.eval('SED.s.inizio') && J(ult('pip')) === J(['pip', true]),
+       '«Inizia»: parte il servizio in primo piano (titolo e inizio della seduta) e la finestra mobile è pronta'); }
+  ok(N.conferme === 1 && N.chiamate.filter(c => c[0] === 'chiediBatteria').length === 1 && !!sw.localStorage.getItem('tms-batteria-chiesta'),
+     'la prima volta chiede di non ottimizzare la batteria, spiegandolo');
+  /* battiti presi dal servizio mentre la pagina era ferma (schermo spento 10 minuti) */
+  sw.eval('SED.s.inizio=Date.now()-605000; NAT.ultimo=SED.s.inizio;');   /* la seduta è iniziata 10 minuti fa */
+  const t0 = sw.eval('SED.s.inizio');
+  sw.eval('sedCampione(' + (t0 + 1000) + ', 100); sedCampione(' + (t0 + 6000) + ', 102);');   /* la pagina era viva nei primi 10 secondi */
+  for (let s = 1; s <= 600; s++) N.campioni.push([t0 + s * 1000, 110 + (s % 20)]);
+  sw.eval('fcVisibilita(false)'); await settle(40);
+  { const sc = JSON.parse(sw.eval('JSON.stringify(SED.s.secchi)'));
+    const chiavi = Object.keys(sc).map(Number).sort((a, b) => a - b);
+    ok(sc[0][0] === 100 && sc[0][1] === 1 && sc[1][0] === 102 && sc[1][1] === 1, 'tornando attiva la pagina tiene i suoi campioni dove c\'erano (niente doppioni)');
+    ok(chiavi.length === 121 && chiavi.every((k, i) => k === i) && sc[2][2] === 1, 'i battiti del servizio riempiono i 10 minuti a schermo spento: nessun buco nella traccia'); }
+  { const prima = N.chiamate.filter(c => c[0] === 'campioni').length; sw.eval('fcVisibilita(false)'); await settle(30);
+    const ul = ult('campioni');
+    ok(N.chiamate.filter(c => c[0] === 'campioni').length === prima + 1 && ul[1].da === t0 + 600000 && Object.keys(JSON.parse(sw.eval('JSON.stringify(SED.s.secchi)'))).length === 121,
+       'al giro dopo chiede solo i battiti nuovi (dopo l\'ultimo preso)'); }
+  /* finestra mobile: vista compatta */
+  sw.eval('FC.id="AA"; FC.bpm=148;');
+  sw.eval('startTimer("Squat con bilanciere", 90)'); await settle(10);
+  sw.tmsInPip(true); await settle(10);
+  { const v = sd.getElementById('pip-vista');
+    ok(sd.body.classList.contains('in-pip') && v.hidden === false && /148/.test(v.textContent) && v.querySelector('.pip-bpm.z4') && /Squat con bilanciere/.test(v.textContent) &&
+       /1:(29|30)/.test(v.querySelector('.pip-rec').textContent) && /^\d+:\d\d$/.test(v.querySelector('.pip-t').textContent),
+       'finestra mobile: battito grande col colore della zona, esercizio, recupero in corso e tempo della seduta'); }
+  sw.tmsInPip(false); await settle(20);
+  ok(!sd.body.classList.contains('in-pip') && sd.getElementById('pip-vista').hidden === true, 'uscendo dalla finestra mobile la pagina torna normale');
+  sw.eval('timerClose(); FC.id=""; FC.bpm=null;');
+  /* «Fine seduta»: prima si prendono i battiti del servizio, poi si chiude e il servizio si ferma */
+  N.campioni.push([t0 + 601000, 140]);
+  sd.getElementById('sed-fine').click(); await settle(10); sd.getElementById('sed-ok').click(); await settle(60);
+  { const f = JSON.parse(sw.eval('JSON.stringify(SEDUTE_PESI_FC[SEDUTE_PESI_FC.length-1]||null)'));
+    ok(f && f.fc.length >= 120 && f.fc.slice(0, 120).every(v => v != null) && f.fcPicco === 140, 'la seduta chiusa porta la traccia completa, coi battiti a schermo spento');
+    ok(J(N.chiamate.slice(-2)) === J([['ferma'], ['pip', false]]), '«Fine seduta»: il servizio si ferma e niente più finestra mobile'); }
+  /* annulla seduta: il servizio si ferma */
+  sd.getElementById('barra-ind').click(); await settle(20); sd.getElementById('barra-ind').click(); await settle(20);
+  sw.eval('sedInizia("Lunedì")'); await settle(20);
+  ok(ult('avvia') && N.conferme === 1, 'seduta nuova: il servizio riparte, la batteria non si richiede più');
+  await sw.eval('sedAnnulla()'); await settle(20);
+  ok(J(N.chiamate.slice(-2)) === J([['ferma'], ['pip', false]]), '«annulla seduta»: il servizio si ferma');
+  /* Cardio: «Avvia registrazione» e «annulla registrazione» */
+  sw.eval('fcApri(); fcRegistra();'); await settle(30);
+  ok(ult('avvia')[1].titolo === 'Cardio · Corsa' && J(ult('pip')) === J(['pip', true]), 'Cardio: «Avvia registrazione» avvia il servizio (titolo con lo sport)');
+  await sw.eval('fcAnnullaReg()'); await settle(20);
+  ok(J(N.chiamate.slice(-2)) === J([['ferma'], ['pip', false]]), 'Cardio: «annulla registrazione» ferma il servizio');
+  N.campioni.length = 0;
+  sw.eval('fcRegistra(); FC.reg.inizio=Date.now()-125000; NAT.ultimo=FC.reg.inizio;'); await settle(20);
+  const r0 = sw.eval('FC.reg.inizio');
+  for (let s = 1; s <= 120; s++) N.campioni.push([r0 + s * 1000, 130]);
+  sd.getElementById('fc-fine').click(); await settle(60);
+  { const c = JSON.parse(sw.eval('JSON.stringify(FC.chiudi)'));
+    ok(c && c.fcMedia === 130 && c.fc.length >= 24 && c.fc.every(v => v === 130) && J(N.chiamate.slice(-2)) === J([['ferma'], ['pip', false]]),
+       'Cardio: a «Fine» la traccia ha i battiti del servizio e il servizio si ferma'); }
+  ok(sw.eval('TT.en["Per non perdere il battito con lo schermo spento, durante la seduta Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti». Fuori dalle sedute l’app non lavora in sottofondo."]') !== undefined,
+     'la spiegazione della batteria ha la traduzione');
+  sw.close();
+}
+
 console.log('--- T13: rapporto di composizione corporea (PDF da una pesata) ---');
 {
   const fsmem = makeTmsFS(); const J = o => JSON.stringify(o);

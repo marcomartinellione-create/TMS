@@ -15,7 +15,7 @@
    passa dall'hub del TMS (dal 24/11/2026; prima da una cartella di Google Drive). */
 /* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa, scanAperta, scanChiudi, qrAperto, qrChiudi,
    avvia, risali, chiudiVideo, mostraInstallHint, camApri, bilAggiornaMenu, fcAggiornaMenu, colRender,
-   avvRender, avvPianifica */
+   avvRender, avvPianifica, natAggiorna */
 (function(){
 'use strict';
 const N=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TmsFile)||null;
@@ -189,6 +189,19 @@ if(CART){
     scarica(url, sha256){ return CART.scaricaApk({url:String(url||''), sha256:String(sha256||'')}); }
   };
   try{ colRender(); }catch(e){}
+}
+
+/* ── 🏋 SEDUTA IN PRIMO PIANO e FINESTRA MOBILE (plugin TmsSeduta, TmsSedutaService, MainActivity): il servizio
+      Android che tiene viva la seduta (notifica fissa, battiti a schermo spento) e il Picture-in-Picture. La
+      pagina decide quando (natAggiorna) e riceve l'evento «pip» (window.tmsInPip). ── */
+const SEDP=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TmsSeduta)||null;
+if(SEDP){
+  window.tmsSeduta={
+    avvia:o=>SEDP.avvia(o), ferma:()=>SEDP.ferma(), campioni:o=>SEDP.campioni(o||{}),
+    pip:a=>SEDP.pip({attivo:!!a}), batteria:()=>SEDP.batteria(), chiediBatteria:()=>SEDP.chiediBatteria()
+  };
+  try{ SEDP.addListener('pip', ev=>{ try{ if(window.tmsInPip) window.tmsInPip(!!(ev && ev.attivo)); }catch(e){} }); }catch(e){}
+  try{ natAggiorna(); }catch(e){}     /* una seduta già aperta all'avvio: servizio e finestra mobile subito */
 }
 
 /* ── 🔔 PROMEMORIA (@capacitor/local-notifications): il TRASPORTO dei promemoria della PWA, che
