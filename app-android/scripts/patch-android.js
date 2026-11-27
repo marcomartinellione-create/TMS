@@ -4,7 +4,8 @@
 
    1. local.properties: dove sta l'Android SDK (sennò Gradle lo cerca nelle variabili d'ambiente,
       che un .bat lanciato col doppio clic può non vedere);
-   2. sorgenti nativi (MainActivity + plugin TmsFile, TmsCartella e TmsSeduta + servizio TmsSedutaService) da nativo/;
+   2. sorgenti nativi (MainActivity + plugin TmsFile, TmsCartella e TmsSeduta + servizio TmsSedutaService +
+      ricevitore TmsAvvioReceiver) da nativo/;
    3. AndroidManifest: permesso di vibrare (timer), niente più «Apri con» per i .json,
       fotocamera visibile all'app (per «Scatta una foto»), Bluetooth della bilancia senza posizione,
       installazione dell'APK nuovo dalla cartella condivisa; icona bianca dei promemoria;
@@ -51,7 +52,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
 {
   const dest = path.join(MAIN, 'java', ...PKG.split('.'));
   fs.mkdirSync(dest, { recursive: true });
-  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java', 'TmsSedutaPlugin.java', 'TmsSedutaService.java']) {
+  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java', 'TmsSedutaPlugin.java', 'TmsSedutaService.java', 'TmsAvvioReceiver.java']) {
     fs.copyFileSync(path.join(QUI, 'nativo', f), path.join(dest, f));
   }
   console.log('sorgenti nativi copiati in ' + path.relative(QUI, dest));
@@ -82,6 +83,19 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
       '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />\n';
     if (s.split('</manifest>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</manifest>)'); process.exit(1); }
     s = s.replace('</manifest>', ble + '</manifest>');
+  }
+  /* GPS DELLE ATTIVITÀ ALL'APERTO (APK 1.9.0): la posizione serve davvero (percorso, distanza, dislivello), anche
+     da Android 12 in poi: si toglie il limite a Android 11 dalle due righe qui sopra (la ricerca Bluetooth resta
+     «neverForLocation»: dalle ricerche l'app non ricava dove sei). Il servizio della seduta diventa anche di tipo
+     «location» (con FOREGROUND_SERVICE_LOCATION) così il GPS continua a schermo spento; GPS non obbligatorio per
+     installare l'app */
+  s = s.replace('<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="30" />', '<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />')
+       .replace('<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />', '<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />')
+       .replace('android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice" />', 'android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice|location" />');
+  if (!s.includes('android.permission.FOREGROUND_SERVICE_LOCATION')) {
+    s = s.replace('</manifest>', '    <!-- TMS: GPS delle attività all\'aperto (anche a schermo spento) -->\n' +
+      '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />\n' +
+      '    <uses-feature android:name="android.hardware.location.gps" android:required="false" />\n</manifest>');
   }
   /* da Android 11 un'app «vede» le altre solo se lo dichiara: senza questa riga Capacitor non
      trova l'app Fotocamera e «Scatta una foto» ripiega sulla galleria (visto sull'emulatore) */
@@ -123,7 +137,24 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
   if (!s.includes('android:name=".TmsSedutaService"')) {
     if (s.split('</application>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</application>)'); process.exit(1); }
     s = s.replace('</application>', '    <!-- TMS: seduta in primo piano (battito a schermo spento, notifica fissa) -->\n' +
-      '        <service android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice" />\n    </application>');
+      '        <service android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice|location" />\n    </application>');
+  }
+  /* SEMPRE COLLEGATO (APK 1.8.1): il servizio riparte all'accensione del telefono e dopo un aggiornamento dell'app
+     (TmsAvvioReceiver, esportato perché BOOT_COMPLETED e MY_PACKAGE_REPLACED arrivano dal sistema: sono trasmissioni
+     protette, nessun'altra app può mandarle, e il ricevitore ignora tutto il resto) */
+  if (!s.includes('android.permission.RECEIVE_BOOT_COMPLETED')) {
+    s = s.replace('</manifest>', '    <!-- TMS: sempre collegato, riavvio all\'accensione del telefono -->\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n</manifest>');
+  }
+  if (!s.includes('android:name=".TmsAvvioReceiver"')) {
+    if (s.split('</application>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</application>)'); process.exit(1); }
+    s = s.replace('</application>', '    <!-- TMS: sempre collegato (riavvio all\'accensione e dopo un aggiornamento) -->\n' +
+      '        <receiver android:name=".TmsAvvioReceiver" android:exported="true">\n' +
+      '            <intent-filter>\n' +
+      '                <action android:name="android.intent.action.BOOT_COMPLETED" />\n' +
+      '                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />\n' +
+      '                <action android:name="android.intent.action.QUICKBOOT_POWERON" />\n' +
+      '            </intent-filter>\n' +
+      '        </receiver>\n    </application>');
   }
   /* FINESTRA MOBILE (Picture-in-Picture, come YouTube): l'attività la dichiara; entra e esce la MainActivity */
   if (!s.includes('android:supportsPictureInPicture')) {
@@ -131,7 +162,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
     s = s.replace('<activity', '<activity\n            android:supportsPictureInPicture="true"\n            android:resizeableActivity="true"');
   }
   scrivi(f, s);
-  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte, seduta in primo piano, finestra mobile');
+  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte, seduta in primo piano, sempre collegato, finestra mobile');
   /* icona dei promemoria (barra delle notifiche): una sagoma bianca, Android la colora da sé */
   scrivi(path.join(RES, 'drawable', 'ic_stat_tms.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona dei promemoria (bilancia). Generato da scripts/patch-android.js -->\n' +

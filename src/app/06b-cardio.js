@@ -100,7 +100,7 @@ function renderCardio(){
   const rows=list.map(s=>{ const idx=cardioList().indexOf(s); const au=srpeCardio(s), tr=trimpCardio(s);
     return `<tr>
       <td class="l mono" style="font-size:12px">${esc(s.data||'—')}</td>
-      <td class="l">${esc(t(s.tipo)||'—')}</td>
+      <td class="l">${esc(t(s.tipo)||'—')}${s.variante?` <span class="muted" style="font-size:11px">· ${esc(t(s.variante))}</span>`:''}${cardioHaPercorso(s)?` <button class="btn btn--sm" data-cfc="${idx}" title="${t('Percorso')}">${ico('posizione','p')}</button>`:''}</td>
       <td class="num">${nf(s.durata,0)}</td>
       <td class="num">${s.rpe===''||s.rpe==null?'—':nf(s.rpe,1)}</td>
       <td class="num cell-out">${au||'—'}</td>
@@ -153,6 +153,7 @@ function cardioModal(idx, preset){
       <div class="field"><label>${t('FC max')} <span class="muted" style="text-transform:none">${t('facolt.')}</span></label><input id="c-fcmax" type="number" min="0" value="${s.fcMax??''}" placeholder="${t('da età')}" title="${t('La tua frequenza cardiaca massima, se la conosci. Vuota = quella del Profilo o stimata dall\'età.')}">${+s.fcPicco>0?`<div class="muted" style="font-size:11px;margin-top:3px">${t('picco in questa seduta:')} ${nf(s.fcPicco,0)} bpm</div>`:''}</div></div>
     <div class="field"><label>${t('Note')}</label><input id="c-note" value="${esc(s.note||'')}"></div>
     ${cardioHaTraccia(s)?`<div class="field"><label>${t('Battito della seduta')} <span class="muted" style="text-transform:none">${esc(s.dispositivo||'')}</span></label>${graficoFcSeduta(s)}</div>`:''}
+    ${cardioHaPercorso(s)?`<div class="field"><label>${t('Percorso')} <span class="muted" style="text-transform:none">${t('GPS del telefono')}${s.tempoMov?' · '+t('in movimento')+' '+Math.floor(s.tempoMov/60)+' min':''}</span></label>${graficoPercorso(s)}</div>`:''}
     <div class="modal__actions"><button class="btn" onclick="closeModal()">${t('Annulla')}</button><button class="btn btn--ember" id="c-ok">${t('Salva')}</button></div>`);
   const sel=document.getElementById('c-tipo'), altro=document.getElementById('c-tipo-altro');
   /* se il tipo non è tra le opzioni (preset/import con sport nuovo), apri "Altro…" precompilato */
@@ -354,14 +355,66 @@ function pulisciCardioTel(x){
   const bpm=v=>{ const n=Math.round(+v); return (v!=null && v!=='' && n>=25 && n<=250)? n : ''; };
   const rpe=(x.rpe==='' || x.rpe==null || !(+x.rpe>=0 && +x.rpe<=10))? '' : +x.rpe;
   const disp=String(x.dispositivo||'').trim().slice(0,60);
+  /* GPS delle attività all'aperto (APK 1.9.0): distanza km, dislivello D+ m, tempo in movimento, parziali al km e il
+     percorso semplificato ([lat, lon, quota]); la sottocategoria scelta sul telefono (Strada, Cyclette…) in «variante» */
+  const km=+x.distanza, dp=+x.quota;
   const out={id:id, data:data, ora:/^\d{2}:\d{2}(:\d{2})?$/.test(String(x.ora||''))? String(x.ora) : '',
-    tipo:String(x.tipo||'').trim().slice(0,40)||'Cardio', durata:durata, rpe:rpe, distanza:'', quota:'',
+    tipo:String(x.tipo||'').trim().slice(0,40)||'Cardio', durata:durata, rpe:rpe,
+    distanza:(km>0 && km<=1000)? Math.round(km*100)/100 : '', quota:(x.quota!=null && x.quota!=='' && dp>=0 && dp<=20000)? Math.round(dp) : '',
     fcMedia:bpm(x.fcMedia), fcMax:'', fcPicco:bpm(x.fcPicco), note:t('registrata col telefono')+(disp? ' ('+disp+')' : '')};
   if(disp) out.dispositivo=disp;
+  const vr=String(x.variante||'').trim().slice(0,40); if(vr && vr!==out.tipo) out.variante=vr;
+  const tm=Math.round(+x.tempoMov); if(tm>0 && tm<=durata*60+60) out.tempoMov=tm;
+  if(Array.isArray(x.parziali)){ const pz=x.parziali.slice(0,300).map(v=>Math.round(+v)).filter(v=>v>0 && v<=86400); if(pz.length) out.parziali=pz; }
+  if(Array.isArray(x.percorso)){
+    const pr=x.percorso.slice(0,1000).filter(p=>Array.isArray(p) && isFinite(+p[0]) && isFinite(+p[1]) && Math.abs(+p[0])<=90 && Math.abs(+p[1])<=180)
+      .map(p=>[Math.round(+p[0]*1e5)/1e5, Math.round(+p[1]*1e5)/1e5, (p[2]==null || !isFinite(+p[2]))? null : Math.round(+p[2])]);
+    if(pr.length>1) out.percorso=pr; }
   const fc=Array.isArray(x.fc)? x.fc.slice(0,20000).map(v=>(bpm(v)===''? null : bpm(v))) : [];
   if(fc.filter(v=>v!=null).length>1){ out.fc=fc; const ps=Math.round(+x.fcPasso); out.fcPasso=(ps>=1 && ps<=60)? ps : 5; }
   return out;
 }
+/* il percorso registrato col GPS del telefono SULLA MAPPA (27/11/2026, Marco: «sì, aggiungi la mappa»): tessere di
+   OpenStreetMap (tile.openstreetmap.org, © collaboratori di OpenStreetMap, dati ODbL; attribuzione sempre visibile)
+   disegnate dentro lo stesso SVG nella proiezione delle tessere (Web Mercator), allo zoom più grande che fa stare tutto
+   il percorso; tessere dello zoom dopo a mezza misura per la nitidezza. Da internet solo le tessere della zona: a
+   OpenStreetMap non va il percorso; senza internet resta il percorso su fondo chiaro. Partenza verde, arrivo arancio,
+   la scala; sotto il profilo della quota e i parziali al chilometro. Stessi conti della pagina del telefono. */
+function cardioHaPercorso(s){ return !!(s && Array.isArray(s.percorso) && s.percorso.length>1); }
+const cardioMapX=(lon, z)=>(lon+180)/360*256*Math.pow(2, z);
+const cardioMapY=(lat, z)=>{ const r=Math.max(-85, Math.min(85, lat))*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256*Math.pow(2, z); };
+function graficoPercorso(s){
+  const pts=s.percorso, W=520, H=280, P=18, la=pts.map(p=>p[0]), lo=pts.map(p=>p[1]);
+  const a0=Math.min(...la), a1=Math.max(...la), o0=Math.min(...lo), o1=Math.max(...lo);
+  let z=17; for(; z>2; z--) if(cardioMapX(o1, z)-cardioMapX(o0, z)<=W-2*P && cardioMapY(a0, z)-cardioMapY(a1, z)<=H-2*P) break;
+  const ox=(cardioMapX(o0, z)+cardioMapX(o1, z))/2-W/2, oy=(cardioMapY(a0, z)+cardioMapY(a1, z))/2-H/2;
+  const X=i=>(cardioMapX(pts[i][1], z)-ox).toFixed(1), Y=i=>(cardioMapY(pts[i][0], z)-oy).toFixed(1);
+  const d=pts.map((p,i)=>(i? 'L' : 'M')+X(i)+' '+Y(i)).join('');
+  const zz=Math.min(19, z+1), n=Math.pow(2, zz); let tess='';
+  for(let ty=Math.max(0, Math.floor(oy*2/256)); ty<=Math.min(n-1, Math.floor((oy*2+H*2)/256)); ty++)
+    for(let tx=Math.floor(ox*2/256); tx<=Math.floor((ox*2+W*2)/256); tx++)
+      tess+=`<image href="https://tile.openstreetmap.org/${zz}/${((tx%n)+n)%n}/${ty}.png" x="${((tx*256-ox*2)/2).toFixed(1)}" y="${((ty*256-oy*2)/2).toFixed(1)}" width="128" height="128" preserveAspectRatio="none"/>`;
+  const mPx=156543.03392*Math.cos(pts[0][0]*Math.PI/180)/Math.pow(2, z), bar=[20,50,100,200,500,1000,2000,5000,10000,20000,50000].filter(v=>v/mPx<=W/3).pop()||20, bpx=bar/mPx;
+  let h=`<svg viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--border);border-radius:var(--r-sm)" role="img" aria-label="${esc(t('Percorso'))}">`+
+    `<g style="filter:sepia(.28) saturate(.75) brightness(1.03)">${tess}</g>`+
+    `<path d="${d}" fill="none" stroke="var(--paper)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`+
+    `<path d="${d}" fill="none" stroke="var(--ember)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`+
+    `<circle cx="${X(0)}" cy="${Y(0)}" r="6" fill="var(--ok)" stroke="var(--paper)" stroke-width="2"/><circle cx="${X(pts.length-1)}" cy="${Y(pts.length-1)}" r="6" fill="var(--ember)" stroke="var(--paper)" stroke-width="2"/>`+
+    `<rect x="${(W-P-bpx-5).toFixed(1)}" y="${H-31}" width="${(bpx+10).toFixed(1)}" height="24" rx="4" fill="var(--paper)" opacity=".85"/>`+
+    `<path d="M${(W-P-bpx).toFixed(1)} ${H-12}h${bpx.toFixed(1)}" stroke="var(--ink-3)" stroke-width="2"/><text x="${W-P}" y="${H-17}" text-anchor="end" font-size="11" fill="var(--ink-3)">${bar>=1000? (bar/1000)+' km' : bar+' m'}</text>`+
+    `<text x="6" y="${H-6}" font-size="10" fill="var(--ink-3)" stroke="var(--paper)" stroke-width="3" paint-order="stroke" stroke-linejoin="round">${esc(t('© collaboratori di OpenStreetMap'))}</text></svg>`;
+  const hs=pts.map(p=>p[2]).filter(v=>v!=null);
+  if(hs.length>2 && Math.max(...hs)-Math.min(...hs)>=2){
+    const dist=[0]; for(let i=1;i<pts.length;i++){ const a=pts[i-1], b=pts[i], r=Math.PI/180, dA=(b[0]-a[0])*r, dO=(b[1]-a[1])*r;
+      const q=Math.sin(dA/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dO/2)**2; dist.push(dist[i-1]+2*6371008.8*Math.asin(Math.min(1, Math.sqrt(q)))); }
+    const PW=520, PH=70, h0=Math.min(...hs), h1=Math.max(...hs), tot=dist[dist.length-1]||1;
+    const lin=pts.map((p,i)=>p[2]==null? '' : `L${(dist[i]/tot*PW).toFixed(1)} ${(PH-4-(p[2]-h0)/(h1-h0)*(PH-14)).toFixed(1)}`).join('').replace(/^L/, 'M');
+    h+=`<div class="muted" style="font-size:11px;margin:8px 0 2px;display:flex;justify-content:space-between"><span>${t('Quota')}</span><span>${Math.round(h0)}–${Math.round(h1)} m</span></div>`+
+      `<svg viewBox="0 0 ${PW} ${PH}" preserveAspectRatio="none" style="display:block;width:100%;height:70px"><path d="${lin}L${PW} ${PH}L0 ${PH}Z" fill="var(--gold-t)" opacity=".6"/><path d="${lin}" fill="none" stroke="var(--gold-2)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`; }
+  if(Array.isArray(s.parziali) && s.parziali.length){
+    const inf=sportInfo(s.tipo), rit=sec=>inf.ritmo==='velocita'? nf(3600/sec,1)+' km/h' : Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')+'/km';
+    h+=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${s.parziali.map((sec,i)=>`<span class="pill" style="font-size:11px">${i+1} km · ${rit(sec)}</span>`).join('')}</div>`; }
+  return h; }
 /* unisce in T.cardio (DOC o il corpo.json di un cliente non aperto); ritorna quante sedute nuove */
 function cardioUnisci(T, arrivate, giaVisti){
   if(!Array.isArray(T.cardio)) T.cardio=[];

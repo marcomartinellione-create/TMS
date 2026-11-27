@@ -1,6 +1,7 @@
 {
   "appId": "com.trainingmonitorsystem.scheda",
   "appName": "TMS Scheda",
+  "appendUserAgent": "TMS-Scheda",
   "webDir": "www",
   "server": {
     "androidScheme": "https",

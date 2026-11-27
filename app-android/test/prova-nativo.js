@@ -72,6 +72,7 @@ async function apri(opz = {}) {
           connect: async o => { reg.ble.push(['connect', o]); },
           startNotifications: async o => { reg.ble.push(['startNotifications', o]); if (opz.bleNotificheNo) throw new Error('Insufficient authentication'); },
           write: async o => { reg.ble.push(['write', o]); }, disconnect: async o => { reg.ble.push(['disconnect', o]); },
+          writeWithoutResponse: async o => { reg.ble.push(['writeWithoutResponse', o]); if (opz.senzaRispostaNo) throw new Error('Write type not supported'); },
           read: async o => { reg.ble.push(['read', o]); return { value: '33 2e 32 35 2e 30 2e 33' }; },
           addListener: async (ev, cb) => { reg.bleAscolti[ev] = cb; return { remove() { delete reg.bleAscolti[ev]; } }; }
         } } : {}),
@@ -99,6 +100,14 @@ async function apri(opz = {}) {
           campioni: async o => { reg.chiamate.push(['campioni', o]); return { campioni: [], attivo: true }; },
           pip: async o => { reg.chiamate.push(['pip', o]); return { supportato: true }; },
           batteria: async () => ({ esclusa: true }), chiediBatteria: async () => { reg.chiamate.push(['chiediBatteria']); },
+          /* sempre collegato e ponte verso il bracciale del servizio (1.8.1) */
+          sempre: async o => { reg.chiamate.push(['sempre', o]); },
+          stato: async () => { reg.chiamate.push(['stato']); return Object.assign({ voluto: true, attivo: false, collegato: false }, opz.statoSempre || {}); },
+          sincFatta: async o => { reg.chiamate.push(['sincFatta', o]); },
+          bleStato: async () => Object.assign({ collegato: false }, opz.statoSempre || {}),
+          bleNotifiche: async o => { reg.chiamate.push(['bleNotifiche', o]); return { valore: '' }; },
+          bleScrivi: async o => { reg.chiamate.push(['bleScrivi', o]); return { valore: '' }; },
+          bleLeggi: async o => { reg.chiamate.push(['bleLeggi', o]); return { valore: '33 2e 32' }; },
           addListener: (ev, cb) => { reg.ascolti['seduta:' + ev] = cb; return { remove() {} }; }
         } } : {}) }
       };
@@ -309,7 +318,7 @@ async function apri(opz = {}) {
   { const a = await apri({ ble: true }); const { d, reg } = a;
     const HR = '0000180d-0000-1000-8000-00805f9b34fb', MIS = '00002a37-0000-1000-8000-00805f9b34fb', ID = 'C8:0F:10:00:00:02';
     d.getElementById('vai-scheda').click(); await attendi(30); d.querySelector('#home-fasi [data-hf="c"]').click(); await attendi(30);
-    ok(d.querySelectorAll('#home-sport [data-fcvai]').length === 12, 'Allenamento › Cardio: gli sport da scegliere');
+    ok(d.querySelectorAll('#home-sport [data-fcvai]').length === 10, 'Allenamento › Cardio: le discipline da scegliere (10, con le loro sottocategorie)');
     a.w.eval('fcApri()'); await attendi(60); d.getElementById('fc-collega').click(); await attendi(120);   /* la fascia si sceglie in Impostazioni */
     reg.bleAscolti.onScanResult({ device: { deviceId: '11:22:33:44:55:66', name: 'Telefono di qualcuno' } });
     reg.bleAscolti.onScanResult({ device: { deviceId: ID, name: '' }, uuids: [HR], rssi: -60 }); await attendi(60);
@@ -344,6 +353,17 @@ async function apri(opz = {}) {
     const wr = reg.ble.filter(x => x[0] === 'write').pop();
     ok(wr[1].service === '0000fee0-0000-1000-8000-00805f9b34fb' && wr[1].characteristic === '00000016-0000-3512-2118-0009af100700' && wr[1].value === '01',
        'bracciale: scrittura sulla caratteristica Huami 0016 del servizio FEE0 (UUID interi passano come sono)');
+    /* il canale del bracciale si scrive «senza risposta» (come Zepp, unstrap e Gadgetbridge) */
+    const nW = reg.ble.filter(x => x[0] === 'write').length;
+    await a.w.tmsBLE.scrivi('C8:0F:10:00:00:03', '00000016-0000-3512-2118-0009af100700', [3, 7, 0], '0000fee0-0000-1000-8000-00805f9b34fb', true);
+    const wn = reg.ble.filter(x => x[0] === 'writeWithoutResponse').pop();
+    ok(wn && wn[1].characteristic === '00000016-0000-3512-2118-0009af100700' && wn[1].value === '03 07 00' && reg.ble.filter(x => x[0] === 'write').length === nW,
+       'bracciale: con «senzaRisposta» la scrittura è writeWithoutResponse (e niente write in più)');
+    a.dom.window.close(); }
+  { const a = await apri({ ble: true, senzaRispostaNo: true }), reg = a.reg;
+    await a.w.tmsBLE.scrivi('C8:0F:10:00:00:03', '00000017-0000-3512-2118-0009af100700', [4, 0, 1, 1, 0], '0000fee0-0000-1000-8000-00805f9b34fb', true);
+    ok(reg.ble.some(x => x[0] === 'writeWithoutResponse') && reg.ble.filter(x => x[0] === 'write').pop()[1].value === '04 00 01 01 00',
+       'bracciale: se il telefono non accetta la scrittura «senza risposta», si riprova con quella normale');
     a.dom.window.close(); }
   { const a = await apri({ ble: true, bleNegato: true }); a.d.getElementById('vai-bil').click(); await attendi(120);
     ok(/Dispositivi nelle vicinanze/.test(a.d.getElementById('bil-stato').textContent) && a.d.getElementById('bil-riprova').hidden === false, 'permesso negato: lo dice e offre «Riprova»');
@@ -364,6 +384,52 @@ async function apri(opz = {}) {
     ok(!d.body.classList.contains('in-pip') && reg.chiamate.some(x => x[0] === 'campioni'), 'uscendo dalla finestra mobile la pagina torna normale e prende i battiti del servizio');
     await w.eval('sedAnnulla()'); await attendi(40);
     ok(reg.chiamate.some(x => x[0] === 'ferma') && reg.chiamate.filter(x => x[0] === 'pip').pop()[1].attivo === false, 'seduta annullata: servizio fermo, niente finestra mobile');
+    a.dom.window.close(); }
+
+  /* ── sempre collegato (1.8.1): interruttore, servizio, stato dalla notifica, ponte verso il bracciale ── */
+  { const a = await apri({ seduta: true, ble: true, ls: { 'tms-fascia-id': 'AA:BB:CC:00:11:22', 'tms-fascia-nome': 'Polar H10 1234' } }), { w, d, reg } = a;
+    await attendi(120);
+    const ult = () => reg.chiamate.filter(x => x[0] === 'sempre').pop();
+    ok(['sempre', 'sincronizza', 'bleDati'].every(k => typeof reg.ascolti['seduta:' + k] === 'function') && typeof w.tmsPonte === 'object',
+       'sempre collegato: il ponte col servizio c\'è e ascolta «sempre», «sincronizza» e «bleDati»');
+    ok(d.getElementById('sempre-box').hidden === false && d.getElementById('sempre-on').checked === true,
+       'Impostazioni › Sensori: «Tieni sempre collegato» c\'è ed è acceso di serie');
+    ok(d.getElementById('vai-sal').hidden === false && /Salute/.test(d.getElementById('vai-sal').textContent), 'menu: nell\'APK c\'è la voce «Salute» (stesso stile delle altre)');
+    ok(ult() && ult()[1].attivo === true && ult()[1].dispositivo === 'AA:BB:CC:00:11:22' && ult()[1].tipo === 'fascia' && ult()[1].chiave === false && ult()[1].lingua === 'it',
+       'all\'apertura la pagina passa al servizio la fascia salvata (indirizzo, tipo, lingua): resta collegata anche ad app chiusa');
+    ok(/Zepp non può collegarsi/.test(d.getElementById('sempre-box').textContent) && /batteria/.test(d.getElementById('sempre-box').textContent),
+       'la spiegazione dice del consumo di batteria e che, acceso, Zepp non può collegarsi');
+    reg.ascolti['seduta:sempre']({ attivo: true, collegato: true, id: 'AA:BB:CC:00:11:22', bpm: 62, batteria: 80, ultimaSinc: 0 }); await attendi(20);
+    ok(/Fascia collegata · ♥ 62 · batteria 80 %/.test(d.getElementById('sempre-stato').textContent) && d.getElementById('sempre-pill').classList.contains('si'),
+       'lo stato del servizio arriva alla pagina: «Fascia collegata · ♥ 62 · batteria 80 %»');
+    reg.ascolti['seduta:sempre']({ attivo: true, collegato: false, id: 'AA:BB:CC:00:11:22' }); await attendi(20);
+    ok(/In ricerca/.test(d.getElementById('sempre-stato').textContent), 'staccato: «In ricerca: si ricollega da solo quando torna vicino»');
+    const el = d.getElementById('sempre-on'); el.checked = false; el.dispatchEvent(new w.Event('change')); await attendi(20);
+    ok(ult()[1].attivo === false && w.localStorage.getItem('tms-sempre') === '0' && /Spento/.test(d.getElementById('sempre-stato').textContent), 'spento dall\'interruttore: il servizio lo lascia (sempre({attivo:false}))');
+    el.checked = true; el.dispatchEvent(new w.Event('change')); await attendi(20);
+    ok(ult()[1].attivo === true, 'riacceso: il servizio riprende la fascia');
+    /* ponte: scrive in esadecimale, legge in byte, i dati arrivano a chi ascolta */
+    await w.eval('tmsPonte.scrivi("fee0", "00000016-0000-3512-2118-0009af100700", [1, 2, 255])');
+    const sc = reg.chiamate.filter(x => x[0] === 'bleScrivi').pop();
+    ok(sc && sc[1].valore === '01 02 ff' && sc[1].servizio === 'fee0', 'ponte: scrivi passa al servizio in esadecimale («01 02 ff»)');
+    ok(JSON.stringify(await w.eval('tmsPonte.leggi("180a", "2a26")')) === '[51,46,50]', 'ponte: leggi restituisce i byte');
+    w.eval('window.__pd=[]; tmsPonte.ascolta(function(c,b){ window.__pd.push([c,b]); })');
+    reg.ascolti['seduta:bleDati']({ car: '00000017-0000-3512-2118-0009af100700', valore: '03 01 00' });
+    ok(JSON.stringify(w.eval('window.__pd')) === JSON.stringify([['00000017-0000-3512-2118-0009af100700', [3, 1, 0]]]), 'ponte: i dati del bracciale arrivano alla pagina in byte');
+    /* sincronizzazione dei 30 minuti chiesta dal servizio: senza chiave non scarica e risponde subito */
+    await reg.ascolti['seduta:sincronizza'](); await attendi(30);
+    const sf = reg.chiamate.filter(x => x[0] === 'sincFatta').pop();
+    ok(sf && sf[1].ok === false, 'evento «sincronizza»: la pagina risponde al servizio (sincFatta), qui senza chiave e quindi senza scaricare');
+    a.dom.window.close(); }
+  { const a = await apri({ seduta: true, ble: true, ls: { 'tms-fascia-id': 'AA:BB:CC:00:11:22' }, statoSempre: { spentoDaNotifica: true } }), { d, reg } = a;
+    await attendi(120);
+    ok(d.getElementById('sempre-on').checked === false && reg.chiamate.filter(x => x[0] === 'sempre').pop()[1].attivo === false,
+       '«Scollega» toccato nella notifica: riaprendo l\'app l\'interruttore è spento e resta spento');
+    a.dom.window.close(); }
+  { const a = await apri({ seduta: true, ble: true }), { d, reg } = a;
+    await attendi(120);
+    ok(!reg.chiamate.some(x => x[0] === 'sempre' && x[1].attivo) && /Collega prima la fascia/.test(d.getElementById('sempre-stato').textContent),
+       'senza fascia né bracciale salvati il servizio non parte e la pagina spiega cosa fare');
     a.dom.window.close(); }
 
   /* ── collegamento col PC del personal (dal 24/11/2026 passa dall'hub del TMS) e aggiornamento dell'APK ── */
@@ -456,6 +522,33 @@ async function apri(opz = {}) {
     d.getElementById('qrscan').hidden = false;
     ok(w.tmsIndietro() === true && d.getElementById('qrscan').hidden === true, 'QR: il tasto indietro chiude il lettore del QR');
     a.dom.window.close(); }
+
+  /* ── scripts/patch-android.js su un progetto Android finto (1.8.1): manifest del sempre collegato, idempotente ── */
+  { const os = require('os'), { execFileSync } = require('child_process');
+    const T = fs.mkdtempSync(path.join(os.tmpdir(), 'tms-patch-')), QUI = path.join(__dirname, '..');
+    const metti = (rel, testo) => { fs.mkdirSync(path.dirname(path.join(T, rel)), { recursive: true }); fs.writeFileSync(path.join(T, rel), testo); };
+    for (const f of ['patch-android.js', 'cartella-build.js']) metti('scripts/' + f, fs.readFileSync(path.join(QUI, 'scripts', f)));
+    for (const f of fs.readdirSync(path.join(QUI, 'nativo'))) metti('nativo/' + f, fs.readFileSync(path.join(QUI, 'nativo', f)));
+    for (const f of ['package.json', 'capacitor.config.json']) metti(f, fs.readFileSync(path.join(QUI, f)));
+    metti('android/app/src/main/AndroidManifest.xml', '<?xml version="1.0" encoding="utf-8"?>\n<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n\n    <application\n        android:allowBackup="true">\n\n        <activity\n            android:name=".MainActivity"\n            android:exported="true">\n        </activity>\n    </application>\n\n    <uses-permission android:name="android.permission.INTERNET" />\n</manifest>\n');
+    metti('android/app/build.gradle', 'android {\n    defaultConfig {\n        versionCode 1\n        versionName "1.0"\n    }\n}\ndependencies {\n}\n');
+    metti('android/build.gradle', '');
+    fs.mkdirSync(path.join(T, 'sdk', 'platform-tools'), { recursive: true });
+    const lancia = () => execFileSync(process.execPath, [path.join(T, 'scripts', 'patch-android.js')], { cwd: T, env: Object.assign({}, process.env, { ANDROID_HOME: path.join(T, 'sdk') }), stdio: 'pipe' });
+    let man1 = '', man2 = '', errore = '';
+    try { lancia(); man1 = fs.readFileSync(path.join(T, 'android/app/src/main/AndroidManifest.xml'), 'utf8'); lancia(); man2 = fs.readFileSync(path.join(T, 'android/app/src/main/AndroidManifest.xml'), 'utf8'); }
+    catch (e) { errore = String(e.stderr || e.message); }
+    const java = path.join(T, 'android/app/src/main/java/com/trainingmonitorsystem/scheda');
+    ok(!errore && /RECEIVE_BOOT_COMPLETED/.test(man1) && /<receiver android:name=".TmsAvvioReceiver" android:exported="true">/.test(man1) &&
+       /android.intent.action.BOOT_COMPLETED/.test(man1) && /android.intent.action.MY_PACKAGE_REPLACED/.test(man1) && /foregroundServiceType="connectedDevice\|location"/.test(man1) &&
+       /FOREGROUND_SERVICE_CONNECTED_DEVICE/.test(man1), 'patch-android: permesso RECEIVE_BOOT_COMPLETED, ricevitore dell\'accensione e dell\'aggiornamento, servizio connectedDevice|location' + (errore ? ' (' + errore.slice(0, 200) + ')' : ''));
+    ok(man1 && man1 === man2 && man1.split('TmsAvvioReceiver').length === 2, 'patch-android: rilanciato non duplica niente');
+    ok(/FOREGROUND_SERVICE_LOCATION/.test(man1) && /<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" \/>/.test(man1) && !/ACCESS_FINE_LOCATION" android:maxSdkVersion/.test(man1) &&
+       /BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/.test(man1) && /android.hardware.location.gps" android:required="false"/.test(man1),
+       'patch-android: GPS delle attività all\'aperto (posizione anche da Android 12, servizio «location»); la ricerca Bluetooth resta senza posizione');
+    ok(fs.existsSync(path.join(java, 'TmsAvvioReceiver.java')) && fs.existsSync(path.join(java, 'TmsSedutaService.java')), 'patch-android: copia anche TmsAvvioReceiver.java');
+    ok(/versionName "1\.8\.1"/.test(fs.readFileSync(path.join(T, 'android/app/build.gradle'), 'utf8')) || VERSIONE !== '1.8.1', 'patch-android: versione dell\'APK dal package.json (' + VERSIONE + ')');
+    try { fs.rmSync(T, { recursive: true, force: true }); } catch (e) {} }
 
   console.log((falliti ? '✗ ' : '✓ ') + passati + ' verifiche passate' + (falliti ? ', ' + falliti + ' FALLITE' : ''));
   process.exit(falliti ? 1 : 0);

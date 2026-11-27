@@ -15,7 +15,7 @@
    passa dall'hub del TMS (dal 24/11/2026; prima da una cartella di Google Drive). */
 /* global TT, tt, esc, $, SCHEDA, navLivelli:writable, CVER, FOTO_LAB, fotoVistaAttesa, scanAperta, scanChiudi, qrAperto, qrChiudi,
    avvia, risali, chiudiVideo, mostraInstallHint, camApri, bilAggiornaMenu, fcAggiornaMenu, colRender,
-   avvRender, avvPianifica, natAggiorna */
+   avvRender, avvPianifica, natAggiorna, sempreRender, natSempreAvvio, ZP */
 (function(){
 'use strict';
 const N=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TmsFile)||null;
@@ -169,7 +169,12 @@ if(BLE){
         via(id); try{ await BLE.disconnect({deviceId:id}); }catch(e2){}
         const err=new Error((e&&e.message)||String(e)); err.motivo='notifiche'; throw err; }
     },
-    scrivi(id, c, bytes, servizio){ return BLE.write({deviceId:id, service:UUID(servizio||BIL.servizio), characteristic:UUID(c), value:inHex(bytes)}); },
+    /* senzaRisposta: scrittura «senza risposta» (Write Command), come fanno Zepp, unstrap e Gadgetbridge sul canale
+       del bracciale Zepp OS; se la caratteristica non la accetta si riprova con la scrittura normale */
+    async scrivi(id, c, bytes, servizio, senzaRisposta){
+      const o={deviceId:id, service:UUID(servizio||BIL.servizio), characteristic:UUID(c), value:inHex(bytes)};
+      if(senzaRisposta && BLE.writeWithoutResponse){ try{ return await BLE.writeWithoutResponse(o); }catch(e){} }
+      return BLE.write(o); },
     /* lettura di una caratteristica (per esempio il firmware del bracciale, 180A/2A26): restituisce i byte */
     async leggi(id, servizio, c){ const r=await BLE.read({deviceId:id, service:UUID(servizio), characteristic:UUID(c)}); return daHex(r && r.value); },
     async stacca(id){ via(id); try{ await BLE.disconnect({deviceId:id}); }catch(e){} }
@@ -191,17 +196,37 @@ if(CART){
   try{ colRender(); }catch(e){}
 }
 
-/* ── 🏋 SEDUTA IN PRIMO PIANO e FINESTRA MOBILE (plugin TmsSeduta, TmsSedutaService, MainActivity): il servizio
-      Android che tiene viva la seduta (notifica fissa, battiti a schermo spento) e il Picture-in-Picture. La
-      pagina decide quando (natAggiorna) e riceve l'evento «pip» (window.tmsInPip). ── */
+/* ── 🏋 SEDUTA IN PRIMO PIANO, SEMPRE COLLEGATO e FINESTRA MOBILE (plugin TmsSeduta, TmsSedutaService,
+      MainActivity): il servizio Android che tiene viva la seduta (notifica fissa, battiti a schermo spento) e,
+      dalla 1.8.1, il collegamento col bracciale anche ad app chiusa, e il Picture-in-Picture. La pagina decide
+      quando (natAggiorna, natSempre) e riceve gli eventi «pip» (window.tmsInPip), «sempre» (stato del
+      collegamento, window.tmsSempreStato) e «sincronizza» (sono passati 30 minuti, window.tmsSincServizio).
+      window.tmsPonte = il bracciale tenuto dal servizio (scrivi, leggi, notifiche; dati con l'evento «bleDati»). ── */
 const SEDP=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TmsSeduta)||null;
 if(SEDP){
   window.tmsSeduta={
     avvia:o=>SEDP.avvia(o), ferma:()=>SEDP.ferma(), campioni:o=>SEDP.campioni(o||{}),
-    pip:a=>SEDP.pip({attivo:!!a}), batteria:()=>SEDP.batteria(), chiediBatteria:()=>SEDP.chiediBatteria()
+    pip:a=>SEDP.pip({attivo:!!a}), batteria:()=>SEDP.batteria(), chiediBatteria:()=>SEDP.chiediBatteria(),
+    sempre:o=>SEDP.sempre(o||{attivo:false}), stato:()=>SEDP.stato(), sincFatta:o=>SEDP.sincFatta(o||{}),
+    /* GPS delle attività all'aperto (1.9.0): punti presi dal servizio, permesso della posizione */
+    posizioni:o=>SEDP.posizioni(o||{}), permessoPosizione:()=>SEDP.permessoPosizione()
   };
+  const inHex=b=>Array.from(b||[]).map(n=>('0'+((n&255).toString(16))).slice(-2)).join(' ');
+  const daHex=v=>{ const h=String(v||'').replace(/[^0-9a-f]/gi,''), o=[]; for(let i=0;i+1<h.length;i+=2) o.push(parseInt(h.slice(i,i+2),16)); return o; };
+  let ascolto=null;
+  window.tmsPonte={
+    stato:()=>SEDP.bleStato(),
+    notifiche:(serv, car, on)=>SEDP.bleNotifiche({servizio:serv, caratteristiche:car, on:!!on}),
+    scrivi:(serv, car, b)=>SEDP.bleScrivi({servizio:serv, caratteristica:car, valore:inHex(b)}),
+    leggi:(serv, car)=>SEDP.bleLeggi({servizio:serv, caratteristica:car}).then(r=>daHex(r && r.valore)),
+    ascolta:cb=>{ ascolto=cb; }
+  };
+  try{ SEDP.addListener('bleDati', ev=>{ if(ascolto && ev) ascolto(String(ev.car||''), daHex(ev.valore)); }); }catch(e){}
   try{ SEDP.addListener('pip', ev=>{ try{ if(window.tmsInPip) window.tmsInPip(!!(ev && ev.attivo)); }catch(e){} }); }catch(e){}
+  try{ SEDP.addListener('sempre', ev=>{ try{ if(window.tmsSempreStato) window.tmsSempreStato(ev||{}); }catch(e){} }); }catch(e){}
+  try{ SEDP.addListener('sincronizza', ()=>{ try{ if(window.tmsSincServizio) window.tmsSincServizio(); }catch(e){} }); }catch(e){}
   try{ natAggiorna(); }catch(e){}     /* una seduta già aperta all'avvio: servizio e finestra mobile subito */
+  try{ sempreRender(); if(ZP.pronta) natSempreAvvio(); }catch(e){}   /* chiave già letta: il servizio subito */
 }
 
 /* ── 🔔 PROMEMORIA (@capacitor/local-notifications): il TRASPORTO dei promemoria della PWA, che

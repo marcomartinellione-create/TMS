@@ -93,8 +93,8 @@ function pulisciGiorno(g){
 /* unione di notti e giorni arrivati dal telefono, su un profilo qualsiasi (T = DOC o il corpo.json di
    un cliente non aperto, come pesateUnisci). Stesso giorno = quello nuovo prende il posto del vecchio:
    il bracciale ricalcola la notte e il riassunto del giorno cresce man mano (i passi).
-   Per ora la chiamano solo le prove e l'anteprima coi dati finti: la userà l'arrivo degli eventi
-   tms-sonno e tms-giorno dal telefono (15c-telefono.js, prossima fase del bracciale). */
+   La chiama l'arrivo degli eventi tms-sonno e tms-giorno dal telefono (15c-telefono.js: telLeggiEventi
+   per il profilo aperto, telGiroAltri per gli altri; dal 27/11/2026), oltre alle prove e all'anteprima. */
 /* exported recuperoUnisci */
 function recuperoUnisci(T, arrivati){
   const ris={notti:0, giorni:0, nonValidi:0};

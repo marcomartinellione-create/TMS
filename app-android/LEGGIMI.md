@@ -57,8 +57,82 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   mostrata mascherata. «Prova collegamento»: canale cifrato su FEE0 (pezzi v2 su 0016/0017, autenticazione ECDH
   sect163r2 + AES-128 sull'endpoint 0x0082, messaggi cifrati con chiave di sessione XOR sessione, contatore e CRC-32),
   firmware (180A/2A26, `tmsBLE.leggi`) e batteria (0x0029). Crittografia scritta da zero nella pagina (BigInt su
-  GF(2^163), AES-ECB con WebCrypto); `zpStorico` (START/TRANSFER/ACK su 0x004B) è pronto ma non ancora usato.
-  Protocollo studiato su Gadgetbridge (AGPL-3.0) e unstrap (MIT/Apache-2.0), niente codice copiato. Prove: T12d.
+  GF(2^163), AES-ECB con WebCrypto). Protocollo studiato su Gadgetbridge (AGPL-3.0) e unstrap (MIT/Apache-2.0),
+  niente codice copiato. Prove: T12d.
+- **Sonno e dati del giorno dal bracciale** (dalla 1.8.0; tasto «Sincronizza» `#zp-sinc` e `zpSincAuto` all'apertura,
+  al massimo ogni 30 min, mai con `FC.reg` o `SED.s`): `zpSincronizza` → `zpApri` (cerca, collega, autentica) →
+  `zpScarica` (`zpTipiOfferti` chiede al bracciale quali tipi ha; per ogni tipo di `ZP_TIPI` = 72, 73, 78, 37, 38, 18,
+  19, 46, 56, 58, 1, solo quelli che l'Helio Strap misura: `zpStorico` START/TRANSFER/ACK su 0x004B, con l'ora del primo
+  record dalla risposta allo START, a pezzi finché il cursore avanza) → `zpDecodifica` → `zpMetti`. Stato in IndexedDB
+  (`tms-zp-dati`, `ZPD`): cursori per tipo (regole di Zepp, `ZP_PASSO`; la prima volta 2 giorni, 7 per 72 e 19), serie
+  (potate a 45 giorni, 10 per le serie al minuto, 3 per i passi al minuto; un campione con la stessa ora sostituisce
+  quello di prima), passi per giorno (ricalcolati dai minuti), notti per giorno del risveglio, batteria,
+  eventi. `zpPreparaEventi` fa una notte (`tms-sonno`) e un giorno (`tms-giorno`) per data degli ultimi 14 giorni nel
+  formato di `src/app/09e-recupero.js`; id = chiave + impronta del contenuto, così un giorno cambiato si rimanda e
+  il PC sostituisce quello vecchio. Partono con `colEventi` (file `sonno-AAAA-MM-GG.json`, `giorno-…`) e tornano
+  «al PC» con `colRicevute`. Da verificare sul campo: i layout segnati «da verificare» in `Doc/bracciale/PROPOSTA.md`
+  e se lo scarico toglie i dati dal bracciale (unstrap dice di no). Prove: T12d (bracciale finto con record veri per
+  ogni tipo) e T14 (telefono → hub → PC → Corpo › Recupero).
+- **Correzioni del collegamento col bracciale** (1.8.2, dopo la prova di Marco con la 1.8.1: «non risponde al
+  collegamento cifrato»): avvio nell'ordine provato da unstrap sull'Helio Strap vero (versione del canale ASPETTATA,
+  elenco degli endpoint senza conferma, `00` di autorizzazione, `04`, `05`); pezzi scritti «senza risposta»
+  (`tmsBLE.scrivi(…, true)` → `writeWithoutResponse`; nel servizio WRITE_TYPE_NO_RESPONSE); cifratura SOLO degli
+  endpoint che il bracciale segna nel suo elenco (`zpCifra`: batteria e storico in chiaro); conferme del bracciale su
+  0016 lette; risposta al «ping» su 0x0015; ogni START dello storico chiuso con `03 codice` in ogni caso; 20 s senza
+  dati (non in tutto); pacchetti numerati controllati; dati compressi aperti. **Diagnosi**: Impostazioni › Bracciale ›
+  «Dettagli tecnici dell'ultimo collegamento» (`zpDiag*`, localStorage `bracciale-diag`, mai la chiave) con «Copia i
+  dettagli». Dettagli in `Doc/bracciale/NOTE_TECNICHE.md` (sezione 1.8.2).
+- **APK 1.9.0 (CVER 5.0, cache v38), 27/11/2026, richieste di Marco**:
+  · **Cardio come la Palestra** (`FC_DISC`, `fcRenderCard`, `fcZonaRender`, `fcFasi`): Allenamento › Cardio elenca le
+    DISCIPLINE (Corsa, Camminata, Bici, Nuoto, Vogatore, Ellittica, Sci di fondo, Salto della corda, HIIT, Altro); aperta una
+    si sceglie solo fra le SUE sottocategorie (`#fc-var`, ricordata in `tms-fc-var`); ogni sottocategoria = [nome, sport del
+    TMS che va al PC, GPS]. Comandi (Avvia, Fine, annulla, fatica 1–10, Salva, Butta via) nella fascia scura in alto
+    (`#sed-zona`, come la seduta coi pesi); linguette «Attività | Le tue sedute» (`#fc-fasi`); scheda a riquadri
+    (`#fc-card`, `.fc-riq`). La seduta ha in più `disc`, `variante` e, all'aperto, `distanza` km, `quota` (D+ m),
+    `discesa`, `tempoMov` s, `parziali` s/km, `percorso` [[lat, lon, quota]] (≤ 400 punti, Douglas-Peucker).
+  · **GPS** (`gps*`): il servizio `TmsSedutaService` (tipo connectedDevice|location) prende una posizione al secondo e il
+    barometro (`TmsSeduta.posizioni({da})`, `permessoPosizione()`); la pagina filtra (precisione ≤ 25 m, spostamento ≥ 4 m,
+    salti impossibili per lo sport), conta distanza, tempo in movimento (tratti ≤ 20 s), dislivello (barometro soglia 3 m,
+    GPS soglia 8 m), parziali; disegna il percorso in SVG sopra le tessere di OpenStreetMap (`mapVista`, `mapTessere`: Web Mercator, zoom che fa stare
+    tutto il percorso, tessere dello zoom dopo a mezza misura; attribuzione nella mappa), il profilo della quota e i parziali.
+    Nel browser `navigator.geolocation`. Manifest: posizione anche da Android 12 (`patch-android.js`), FOREGROUND_SERVICE_LOCATION.
+    Riferimento studiato: OpenTracks (Apache-2.0); niente codice copiato. Al PC: `pulisciCardioTel` accetta i campi nuovi,
+    `graficoPercorso` nel modulo della seduta (`06b-cardio.js`).
+  · **Salute professionale** (`renderSal` = tutto, `salVivo` = la parte di ogni secondo): anello dei passi contro l'obiettivo
+    (`tms-passi-obiettivo`, di serie 8.000), passi IN DIRETTA dal bracciale con la pagina aperta (`salLiveAvvia`: 0x0016
+    `03` → `04 01`+record, `05 01` → aggiornamenti `07`; record = flags, passi, [corsa], [camminata], [metri, kcal]),
+    barre dei 7 giorni, sei riquadri del recupero colorati rispetto al solito (14 giorni prima, ≥ 4; `salStato`), ipnogramma
+    a livelli, battito di oggi (dal byte 3 dell'attività al minuto, ora tenuto in `ZPD.s[1]` come [ora, passi, bpm]) e stress
+    di oggi a mezz'ore.
+  · **Misure compatte e uguali ovunque**: blocco «STESSE MISURE OVUNQUE» in fondo al foglio di stile (solo dimensioni, ~10 %
+    in meno; colori, caratteri e raggi invariati).
+- **❤ Salute** (dalla 1.8.1; voce `#vai-sal` del menu, pagina `#sal`, funzioni `sal*`): battito adesso (`FC.bpm` della
+  fascia collegata nella pagina, o `bpm` dello stato del servizio, aggiornato ogni 5 s), zona (`fcZona`), passi di oggi
+  (`ZPD.passi`, ora dal cursore del tipo 1), batteria, ultimo campione di stress (19/18), SpO2 (37), pelle (46),
+  respirazione (56) con l'ora; ultimo riposo (`salUltimoRiposo`: notte più recente o sonnellino più nuovo) con fasi,
+  HRV (`zpNotteValori`) e battito a riposo (`zpGiornoValori`). «Aggiorna» = `zpSincronizza(true)`. Senza chiave:
+  «Vai alle Impostazioni» apre Impostazioni › Bracciale. Nessun dato nuovo: legge `ZPD`. Prove: T12d.
+- **Sempre collegato** (dalla 1.8.1; Impostazioni › Sensori, `#sempre-box`, interruttore `#sempre-on` acceso di serie,
+  `localStorage['tms-sempre']='0'` se spento; funzioni `natSempre`, `natSempreAvvio`, `sempreRender`): la pagina passa
+  al plugin `TmsSeduta.sempre({attivo, dispositivo, nome, tipo, chiave, lingua, batteria})` il bracciale (chiave +
+  `tms-bracciale-id`) o la fascia salvata; il plugin lo scrive nelle SharedPreferences `tms-sempre` e avvia
+  `TmsSedutaService` (azione SEMPRE). Il servizio: GATT con autoConnect (riconnessione passiva di Android), dopo un
+  errore riapre con attese 5 s → 10 min, segue il Bluetooth spento/acceso; notifica discreta (canale «collegamento»,
+  azione «Scollega» → `spentoDaNotifica`, letto da `stato()` all'apertura); battito 0x180D e batteria 0x180F solo per
+  la notifica; `START_STICKY`; `TmsAvvioReceiver` (BOOT_COMPLETED, QUICKBOOT_POWERON, MY_PACKAGE_REPLACED; permesso
+  RECEIVE_BOOT_COMPLETED, in `patch-android.js`). Se Android rifiuta l'avvio (eccezione di `startForeground`), la
+  notifica 7401 «Tocca per ricollegarlo» apre l'app. Con la chiave, sveglia ogni 30 min (`setAndAllowWhileIdle`) →
+  se la pagina è viva evento «sincronizza» (`window.tmsSincServizio` → `zpSincronizza` → `colGiro` → `sincFatta`),
+  altrimenti **pagina invisibile**: una WebView del servizio carica la stessa `https://localhost/index.html` dagli asset
+  (`public/`, stessa origine: stessa chiave, stessi dati, stesso collegamento con l'hub) con l'interfaccia Java
+  `window.TmsServizio`; la pagina (`servizioGiro`) scarica, manda e chiama `TmsServizio.fine(esito)`; al massimo 4
+  minuti. **Ponte** `window.tmsPonte` (in `nativo.js` col plugin, o nella pagina con `TmsServizio`): scrivi/leggi/
+  notifiche sul collegamento del servizio; `zpBle()` lo sceglie quando il servizio tiene il bracciale (niente ricerca né
+  secondo collegamento). Una sincronizzazione alla volta (`tms-zp-lock`, 5 min); `ZPD` si rilegge prima di scriverlo.
+  Prove: T12d (ponte, pagina invisibile, blocco), `prova-nativo` (interruttore, eventi, ponte, manifest), javac.
+- **Impostazioni ordinate** (dalla 1.8.0): in ogni sezione collegata e verde (TMS sul PC `#col-box`, fascia `#fc-imp`,
+  bracciale `#zp-box`) i comandi stanno in `.imp-azioni`, nascosti finché non si tocca «Gestisci» (`.imp-apri`,
+  classi `imp-ok` e `aperta`, funzione `impTendina`); senza collegamento si vedono subito.
 - **Seduta in corso** (dalla 1.5.0; dalla 1.6.0 con la conferma): aprendo un giorno l'app chiede «Inizio la seduta di
   oggi?» («Inizia» / «Solo guardare»; «Solo guardare» si ricorda per quel giorno di calendario, `tms-sed-guardo`, e
   lascia «Inizia la seduta» nella zona). «annulla seduta», con conferma, toglie una seduta avviata per sbaglio senza
