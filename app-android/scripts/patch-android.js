@@ -4,7 +4,8 @@
 
    1. local.properties: dove sta l'Android SDK (sennò Gradle lo cerca nelle variabili d'ambiente,
       che un .bat lanciato col doppio clic può non vedere);
-   2. sorgenti nativi (MainActivity + plugin TmsFile, TmsCartella e TmsSeduta + servizio TmsSedutaService) da nativo/;
+   2. sorgenti nativi (MainActivity + plugin TmsFile, TmsCartella e TmsSeduta + servizio TmsSedutaService +
+      ricevitore TmsAvvioReceiver) da nativo/;
    3. AndroidManifest: permesso di vibrare (timer), niente più «Apri con» per i .json,
       fotocamera visibile all'app (per «Scatta una foto»), Bluetooth della bilancia senza posizione,
       installazione dell'APK nuovo dalla cartella condivisa; icona bianca dei promemoria;
@@ -51,7 +52,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
 {
   const dest = path.join(MAIN, 'java', ...PKG.split('.'));
   fs.mkdirSync(dest, { recursive: true });
-  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java', 'TmsSedutaPlugin.java', 'TmsSedutaService.java']) {
+  for (const f of ['MainActivity.java', 'TmsFilePlugin.java', 'TmsCartellaPlugin.java', 'TmsSedutaPlugin.java', 'TmsSedutaService.java', 'TmsAvvioReceiver.java']) {
     fs.copyFileSync(path.join(QUI, 'nativo', f), path.join(dest, f));
   }
   console.log('sorgenti nativi copiati in ' + path.relative(QUI, dest));
@@ -125,13 +126,30 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
     s = s.replace('</application>', '    <!-- TMS: seduta in primo piano (battito a schermo spento, notifica fissa) -->\n' +
       '        <service android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice" />\n    </application>');
   }
+  /* SEMPRE COLLEGATO (APK 1.8.1): il servizio riparte all'accensione del telefono e dopo un aggiornamento dell'app
+     (TmsAvvioReceiver, esportato perché BOOT_COMPLETED e MY_PACKAGE_REPLACED arrivano dal sistema: sono trasmissioni
+     protette, nessun'altra app può mandarle, e il ricevitore ignora tutto il resto) */
+  if (!s.includes('android.permission.RECEIVE_BOOT_COMPLETED')) {
+    s = s.replace('</manifest>', '    <!-- TMS: sempre collegato, riavvio all\'accensione del telefono -->\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n</manifest>');
+  }
+  if (!s.includes('android:name=".TmsAvvioReceiver"')) {
+    if (s.split('</application>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</application>)'); process.exit(1); }
+    s = s.replace('</application>', '    <!-- TMS: sempre collegato (riavvio all\'accensione e dopo un aggiornamento) -->\n' +
+      '        <receiver android:name=".TmsAvvioReceiver" android:exported="true">\n' +
+      '            <intent-filter>\n' +
+      '                <action android:name="android.intent.action.BOOT_COMPLETED" />\n' +
+      '                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />\n' +
+      '                <action android:name="android.intent.action.QUICKBOOT_POWERON" />\n' +
+      '            </intent-filter>\n' +
+      '        </receiver>\n    </application>');
+  }
   /* FINESTRA MOBILE (Picture-in-Picture, come YouTube): l'attività la dichiara; entra e esce la MainActivity */
   if (!s.includes('android:supportsPictureInPicture')) {
     if (s.split('<activity').length !== 2) { console.error('patch-android: AndroidManifest inatteso (<activity>)'); process.exit(1); }
     s = s.replace('<activity', '<activity\n            android:supportsPictureInPicture="true"\n            android:resizeableActivity="true"');
   }
   scrivi(f, s);
-  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte, seduta in primo piano, finestra mobile');
+  console.log('AndroidManifest: vibrazione, bilancia Bluetooth senza posizione, aggiornamento dell\'APK, fotocamera, sveglie esatte, seduta in primo piano, sempre collegato, finestra mobile');
   /* icona dei promemoria (barra delle notifiche): una sagoma bianca, Android la colora da sé */
   scrivi(path.join(RES, 'drawable', 'ic_stat_tms.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: icona dei promemoria (bilancia). Generato da scripts/patch-android.js -->\n' +

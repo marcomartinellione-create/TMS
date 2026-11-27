@@ -818,7 +818,29 @@ CRC sbagliato si salta. I campioni al minuto restano sul telefono; al PC vanno, 
 per giorno del risveglio (evento tms-sonno) e un riassunto per giorno (tms-giorno), nel formato di Corpo › Recupero
 (vedi la voce Recupero). Sotto il tasto: «Ultima sincronizzazione: oggi 07:12 · 1 notte, 2 giorni». Allenamenti
 registrati sul bracciale NON si scaricano ancora. Il battito in diretta resta quello della fascia (profilo standard
-0x180D, senza chiave). In tutte le sezioni delle Impostazioni, quando la sezione è collegata e verde, i comandi
+0x180D, senza chiave).
+**SALUTE** (APK 1.8.1, voce «Salute» del menu del telefono, solo nell'APK): dati del bracciale in tempo reale (battito
+adesso col colore della zona, dalla fascia collegata o dal collegamento sempre attivo; passi di oggi; batteria; ultimo
+valore di stress, SpO2, temperatura della pelle e respirazione con l'ora della misura; «collegato» o «in ricerca…») e
+SOLO l'ultimo riposo (la notte appena passata, o il sonnellino più recente se è più nuovo: orari, tempo dormito,
+punteggio, striscia delle fasi profondo/leggero/REM/sveglio, HRV della notte, battito a riposo). «Aggiorna» sincronizza
+subito. Senza la chiave del bracciale il battito c'è lo stesso e la parte del sonno porta a Impostazioni › Sensori ›
+Bracciale. Legge i dati già sul telefono; al PC vanno solo gli eventi tms-sonno e tms-giorno (lo storico è in Corpo ›
+Recupero).
+**SEMPRE COLLEGATO** (APK 1.8.1; Impostazioni › Sensori, interruttore «Tieni sempre collegato», ACCESO di serie): con
+un bracciale (chiave salvata e bracciale già trovato una volta) o una fascia salvati, un servizio Android in primo
+piano tiene il collegamento anche con l'app chiusa o tolta dalle app recenti, riparte all'accensione del telefono e
+dopo un aggiornamento dell'app, e se Android lo chiude si riapre da solo. Si ricollega da solo quando il bracciale
+torna vicino (ricerca passiva di Android, a basso consumo; dopo un errore riprova con attese crescenti fino a 10
+minuti). Notifica fissa discreta: «Bracciale collegato · ♥ 62 · batteria 80 % · sincronizzato alle 07:30» o
+«Bracciale: in ricerca…», col tasto «Scollega» (spegne anche l'interruttore). Con la chiave, ogni 30 minuti
+sincronizza sonno e dati del giorno e manda gli eventi al PC anche ad app chiusa: se l'app è viva lo fa la sua pagina,
+altrimenti il servizio apre la stessa pagina senza finestra, che scarica, manda all'hub e si chiude; in tutti e due i
+casi la pagina parla col bracciale attraverso il collegamento del servizio. Mai durante una seduta. Il battito 24 ore
+su 24 NON si registra (lo fa già il bracciale). Finché è acceso, Zepp non può collegarsi al bracciale: per usare Zepp
+si spegne l'interruttore o si tocca «Scollega». Consuma un po' di batteria in più (poca sul telefono, qualcosa sul
+bracciale). Se all'accensione Android non lascia ripartire il servizio, compare la notifica «Bracciale non
+collegato · Tocca per ricollegarlo», che apre l'app. In tutte le sezioni delle Impostazioni, quando la sezione è collegata e verde, i comandi
 (collega, scollega, prova, chiave…) stanno nel menù «Gestisci»; senza collegamento si vedono subito.
 **FASCIA CARDIO** (si collega in «Impostazioni»; solo nell'APK, serve il Bluetooth): qualunque fascia cardio Bluetooth standard
 (Polar, Garmin, Wahoo, Coospo…) e i bracciali che condividono il battito col profilo standard

@@ -3943,6 +3943,87 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
       b.sw.eval('FC.reg={}'); await sinc(b);
       ok(b.F.starts.length === 0 && /occupato|seduta|registrazione/i.test(b.sd.getElementById('zp-stato').textContent + ' ' + b.sw.eval('ZP.motivo')), 'durante una registrazione o una seduta «Sincronizza» aspetta');
       b.sw.eval('FC.reg=null'); b.chiudi(); }
+    /* SEMPRE COLLEGATO (APK 1.8.1): quando il servizio Android tiene già il bracciale, la pagina gli parla ATTRAVERSO
+       il servizio (window.tmsPonte), senza cercarlo né aprire un secondo collegamento; ad app chiusa il servizio apre
+       la pagina invisibile (window.TmsServizio), che scarica da sola e dice quando ha finito */
+    const hexB = b => Array.from(b).map(x => ('0' + (x & 255).toString(16)).slice(-2)).join(' '), daHex = v => (String(v).match(/[0-9a-f]{2}/gi) || []).map(h => parseInt(h, 16));
+    const ST = { collegato: true, id: 'C8:0F:10:00:00:09', nome: 'Amazfit Helio Strap 1A2B', tipo: 'bracciale', attivo: true };
+    { const b = await apri({ chiave: KF, batteria: 66, storico: storico }), ops = [], fatte = [];
+      b.sw.eval('colApri()'); await settle(20); b.sd.getElementById('zp-chiave').value = '00112233445566778899aabbccddeeff'; b.sd.getElementById('zp-salva').click(); await settle(30);
+      let ascolto = null;
+      b.sw.tmsPonte = { stato: async () => ST, ascolta: cb => { ascolto = cb; },
+        notifiche: async (serv, car, on) => { ops.push(['notifiche', serv, car, on]); b.F.cb = on ? { onDati: (c, x) => ascolto && ascolto(c, x) } : null; },
+        scrivi: async (serv, car, x) => { ops.push(['scrivi', car]); b.F.scrivi(car, Array.from(x)); },
+        leggi: async (serv, car) => { ops.push(['leggi', serv, car]); return Array.from(Buffer.from('3.25.0.3')); } };
+      b.sw.tmsSeduta = { sincFatta: async o => { fatte.push(o); } };
+      await b.sw.eval('tmsSincServizio()');
+      const Dp = JSON.parse(b.sw.eval('JSON.stringify(ZPD)'));
+      ok(fatte.length === 1 && fatte[0].ok === true && fatte[0].batteria === 66 && Dp.notti[ymd(Y)] && Dp.passi[ymd(Y)] === 200 && b.F.starts.length === 12,
+         'evento «sincronizza» del servizio (app viva in secondo piano): scarica attraverso il ponte e risponde sincFatta({ok, batteria})');
+      ok(b.B.collegati.length === 0 && b.B.staccati.length === 0 && ops.some(o => o[0] === 'notifiche' && o[3] === true) && ops.some(o => o[0] === 'notifiche' && o[3] === false),
+         'col bracciale tenuto dal servizio niente ricerca né secondo collegamento: si aprono e chiudono solo le notifiche sul collegamento del servizio');
+      /* una sincronizzazione alla volta fra la pagina dell'app e quella invisibile */
+      b.sw.localStorage.setItem('tms-zp-lock', String(Date.now())); const s0 = b.F.starts.length;
+      await b.sw.eval('zpSincronizza(true)');
+      ok(b.F.starts.length === s0 && /già sincronizzando/.test(b.sd.getElementById('zp-stato').textContent), 'se l\'altra pagina sta già scaricando, «Sincronizza» aspetta e lo dice');
+      b.sw.localStorage.removeItem('tms-zp-lock');
+      b.chiudi(); }
+    /* la pagina invisibile del servizio: niente Capacitor, niente Bluetooth diretto, solo window.TmsServizio */
+    { const reg = [], F = finto({ chiave: KF, batteria: 71, storico: storico });
+      const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://localhost/index.html',
+        beforeParse(win){ conCrypto(win); win.localStorage.setItem('tms-scheda-lang', 'it'); win.scrollTo = () => {};
+          win.localStorage.setItem('bracciale-chiave', JSON.stringify('00112233445566778899aabbccddeeff')); win.localStorage.setItem('tms-bracciale-id', ST.id);
+          win.TmsServizio = { stato: () => JSON.stringify(ST),
+            richiesta: (id, json) => { const o = JSON.parse(json); reg.push(o);
+              const esito = (okk, v) => setTimeout(() => win.tmsPonteEsito(id, okk, v || ''), 1);
+              if (o.op === 'notifiche') { F.cb = o.on ? { onDati: (c, x) => win.tmsPonteDati(c, hexB(x)) } : null; esito(true); }
+              else if (o.op === 'scrivi') { F.scrivi(o.caratteristica, daHex(o.valore)); esito(true); }
+              else if (o.op === 'leggi') esito(true, hexB(Buffer.from('3.25.0.3')));
+              else esito(false, 'sconosciuta'); },
+            fine: j => { reg.fine = j; } }; } });
+      for (let k = 0; k < 200 && reg.fine === undefined; k++) await settle(50);
+      const sw2 = sub.window, fine = reg.fine ? JSON.parse(reg.fine) : null;
+      ok(fine && fine.notti === 1 && F.starts.length === 12 && !sw2.tmsBLE && reg.some(o => o.op === 'scrivi') && reg.some(o => o.op === 'notifiche' && o.on === false),
+         'pagina invisibile del servizio (app chiusa): da sola scarica il bracciale attraverso il servizio e risponde fine({notti, giorni…})');
+      ok(sw2.eval('Object.keys(ZPD.eventi).length') === 3 && sw2.eval('Object.keys(ZPD.eventi).every(function(k){ return !ZPD.eventi[k].pc; })'),
+         'pagina invisibile: gli eventi per il PC sono pronti (li manda all\'hub col collegamento della pagina, qui senza hub)');
+      ok(!/Scarico|Cerco/.test(sw2.localStorage.getItem('tms-zp-lock') || '') && sw2.localStorage.getItem('tms-zp-lock') === null, 'pagina invisibile: alla fine lascia libera la sincronizzazione');
+      sw2.close(); }
+    /* SALUTE (APK 1.8.1): battito adesso, passi, batteria, ultime misure con l'ora, ultimo riposo, «Aggiorna» */
+    { const b = await apri({ chiave: KF, batteria: 74, storico: storico }), { sw, sd } = b;
+      b.sw.eval('colApri()'); await settle(20); sd.getElementById('zp-chiave').value = '00112233445566778899aabbccddeeff'; sd.getElementById('zp-salva').click(); await settle(30);
+      await sinc(b);
+      sw.eval('SEMPRE.st={attivo:true, collegato:true, id:' + J(ST.id) + ', bpm:62, batteria:80}; fcZona=function(x){ return x>0? {n:2, pct:60} : null; };');
+      sw.eval('ZPD.passi[dataLoc(new Date())]=4321'); await sw.eval('zpdSalva()');
+      await sw.eval('salApri()'); await settle(30);
+      const T = id => (sd.getElementById(id) || {}).textContent || '';
+      ok(sd.getElementById('sal').hidden === false && /Salute/.test((sd.querySelector('.barra-titolo') || {}).textContent || '') && /62/.test(T('sal-bpm')) && sd.getElementById('sal-bpm').classList.contains('z2') && /Bracciale collegato/.test(T('sal-conn')),
+         'Salute: il battito adesso, grande e col colore della zona, e «Bracciale collegato»');
+      ok(/4\.?321/.test(T('sal-tre')) && /passi oggi/.test(T('sal-tre')) && /80/.test(T('sal-tre')) && /batteria/.test(T('sal-tre')), 'Salute: passi di oggi e batteria del bracciale');
+      const mis = T('sal-misure');
+      ok(/Stress.*12:00.*40/.test(mis) && /SpO2.*95 %/.test(mis) && /Temperatura pelle.*33,8 °C/.test(mis) && /Respirazione.*16/.test(mis),
+         'Salute: ultimo valore di stress, SpO2, temperatura della pelle e respirazione, ognuno con l\'ora della misura');
+      const so = T('sal-sonno');
+      ok(/Notte/.test(so) && /23:18 → 06:52/.test(so) && /7 h 22 min/.test(so) && /82/.test(so) && /48/.test(so) && /Battito a riposo.*54 bpm/.test(so) &&
+         sd.querySelectorAll('#sal-sonno .sal-fasi i').length === 5 && sd.querySelector('#sal-sonno .sal-fasi i.f-profondo'),
+         'Salute: ultimo riposo = la notte appena passata (orari, 7 h 22 min dormite, punteggio 82, HRV 48, fasi, battito a riposo 54)');
+      /* un sonnellino più recente della notte prende il suo posto */
+      sw.eval('(function(){ var n=ZPD.notti[' + J(ymd(Y)) + ']; n.sonnellini=[{inizio:' + J(ymd(Y) + 'T14:10') + ', fine:' + J(ymd(Y) + 'T14:40') + '}]; })()'); sw.eval('renderSal()');
+      ok(/Sonnellino/.test(T('sal-sonno')) && /14:10 → 14:40/.test(T('sal-sonno')) && /0 h 30 min/.test(T('sal-sonno')), 'Salute: se il sonnellino è più recente della notte, l\'ultimo riposo è il sonnellino');
+      /* «Aggiorna» = sincronizzazione subito */
+      const s0 = b.F.starts.length;
+      ok(sd.getElementById('sal-aggiorna').hidden === false, 'Salute: con la chiave c\'è «Aggiorna»');
+      sd.getElementById('sal-aggiorna').click(); await settle(30); for (let k = 0; k < 120 && sw.eval('ZP.inCorso'); k++) await settle(50); await settle(30);
+      ok(b.F.starts.length - s0 === 12 && /Ultima sincronizzazione: oggi/.test(T('sal-stato')), '«Aggiorna» fa subito una sincronizzazione col bracciale e dice quando');
+      b.chiudi(); }
+    { const b = await apri({ chiave: KF, batteria: 74, storico: storico }), { sw, sd } = b;
+      sw.eval('SEMPRE.st={attivo:true, collegato:true, id:"AA", bpm:71, batteria:-1}');
+      await sw.eval('salApri()'); await settle(30);
+      ok(/71/.test(sd.getElementById('sal-bpm').textContent) && /serve la chiave/.test(sd.getElementById('sal-sonno').textContent) && sd.getElementById('sal-aggiorna').hidden,
+         'Salute senza chiave: il battito c\'è lo stesso, il sonno dice che serve la chiave, niente «Aggiorna»');
+      sd.getElementById('sal-chiave').click(); await settle(30);
+      ok(sd.getElementById('col').hidden === false && sd.getElementById('zp-box').classList.contains('aperta'), '«Vai alle Impostazioni» porta a Impostazioni › Sensori › Bracciale, aperto');
+      b.chiudi(); }
   }
 }
 
@@ -4498,6 +4579,7 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
       _da: new Date(Pd + 'T23:18').getTime(), _a: new Date(Yd + 'T06:52').getTime(), _ts: 1 };
     await sw.eval('(async function(){ await zpdCarica(); ZPD.notti[' + J(Yd) + ']=' + J(N) + '; ZPD.passi[' + J(Yd) + ']=8421; ZPD.s[58]=[[' + (N._a + 3600000) + ',54]]; })()');
     ok(sw.eval('zpPreparaEventi()') === 2, 'telefono: dalla notte e dal giorno scaricati dal bracciale nascono due eventi (tms-sonno, tms-giorno)');
+    await sw.eval('zpdSalva()');   /* come alla fine di una sincronizzazione vera: i dati del bracciale si salvano */
     await sw.eval('colEventi()');
     const evR = H.nomi(LID, 'dal-telefono/eventi/').filter(k => /\/(sonno|giorno)-/.test(k));
     ok(evR.length === 2 && evR.some(k => k.indexOf('sonno-' + Yd) >= 0) && evR.every(k => !/profondo|8421|leggero/.test(H.file(LID, k))), 'telefono: sull\'hub un file per la notte e uno per il giorno, cifrati');
@@ -4514,6 +4596,7 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     /* i passi di un giorno crescono: il giorno si rimanda (id nuovo) e sul PC prende il posto del vecchio */
     sw.eval('ZPD.passi[' + J(Yd) + ']=9050');
     ok(sw.eval('zpPreparaEventi()') === 1, 'telefono: cambiato il giorno, un solo evento nuovo (la notte uguale non si rimanda)');
+    await sw.eval('zpdSalva()');
     await sw.eval('colEventi()'); await giroPC(); await settle(450);
     ok(w.eval('DOC.recupero.giorni.filter(function(g){ return g.data===' + J(Yd) + '; }).length') === 1 && w.eval('DOC.recupero.giorni.find(function(g){ return g.data===' + J(Yd) + '; }).passi') === 9050 &&
        w.eval('DOC.recupero.notti.filter(function(n){ return n.id===' + J(Yd) + '; }).length') === 1, 'PC: lo stesso giorno arrivato di nuovo sostituisce il vecchio (niente doppioni)');

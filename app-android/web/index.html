@@ -343,6 +343,18 @@
  .fc-tre{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 8px;text-align:center}
  .fc-tre b{display:block;font-family:var(--serif);font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
  .fc-tre span{font-size:12.5px;color:var(--ink-3)}
+ /* ── salute: ultimo riposo (striscia delle fasi coi colori dell'app) ── */
+ #vai-sal .macro-ico{background:var(--err-t);color:var(--err)}
+ #sal-tre{grid-template-columns:repeat(2,1fr);margin-top:12px}
+ .fc-tre b small{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-3)}
+ .bil-g small{color:var(--ink-3);font-size:12px}
+ .sal-riposo{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:2px 0 10px;font-size:14px;color:var(--ink-2)}
+ .sal-riposo b{font-family:var(--serif);font-size:17px;color:var(--ink)}
+ .sal-fasi{position:relative;height:16px;border-radius:5px;background:var(--carta-2);overflow:hidden;margin:4px 0 8px}
+ .sal-fasi i{position:absolute;top:0;bottom:0}
+ .sal-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--ink-3);margin-bottom:4px}
+ .sal-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+ .f-profondo{background:var(--viola)} .f-leggero{background:#2b7a9a} .f-rem{background:var(--ocra)} .f-sveglio{background:var(--err)}
  .fc-in-reg{border-color:var(--err-f)}
  .fc-sporti{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
  .fc-sporti .mini{min-height:40px;padding:0 12px;font-size:14px}
@@ -689,6 +701,10 @@
         <span class="macro-ico"><svg class="ic"><use href="#i-bilancia"/></svg></span>
         <span class="macro-l"><span class="macro-name" data-i18n>Bilancia</span><span class="macro-meta" id="meta-bil"></span></span>
         <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
+      <button type="button" class="macro-card" id="vai-sal" hidden>
+        <span class="macro-ico"><svg class="ic"><use href="#i-cuore"/></svg></span>
+        <span class="macro-l"><span class="macro-name" data-i18n>Salute</span><span class="macro-meta" id="meta-sal"></span></span>
+        <span class="chev"><svg class="ic"><use href="#i-avanti"/></svg></span></button>
     </div>
     <div class="gruppo">
       <button type="button" class="macro-card" id="vai-col">
@@ -747,6 +763,19 @@
   <div class="fine" data-i18n-html>Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio. Il battito c’è se colleghi una <b>fascia cardio</b> (Impostazioni).</div>
 </div>
 
+<!-- ── schermata SALUTE (APK 1.8.1, 27/11/2026, Marco: «i dati in tempo reale presi dalla band, e il sonno solo del
+       giorno stesso, ultimo riposo»): battito adesso, passi di oggi, batteria e ultime misure del bracciale; l'ultimo
+       riposo. I dati restano sul telefono; lo storico sta sul PC (Corpo › Recupero). ── -->
+<div id="sal" hidden>
+  <div class="box fc-live"><div class="bil-stato" id="sal-conn"></div><div class="fc-bpm" id="sal-bpm">—</div><div class="fc-zona" id="sal-zona"></div>
+    <div class="fc-tre" id="sal-tre"></div></div>
+  <div class="box"><div class="pick-title" data-i18n>Ultime misure</div><div id="sal-misure"></div></div>
+  <div class="box"><div class="pick-title" data-i18n>Ultimo riposo</div><div id="sal-sonno"></div></div>
+  <button type="button" class="btn-big" id="sal-aggiorna" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Aggiorna</span></button>
+  <div class="bil-stato" id="sal-stato"></div>
+  <div class="fine" data-i18n-html>I dati restano su <b>questo telefono</b>; al PC del tuo personal vanno il sonno e il riassunto di ogni giorno (Corpo › Recupero).</div>
+</div>
+
 <!-- ── schermata COLLEGAMENTO E PROMEMORIA (solo nell'APK): codice che dà il personal (l'hub del TMS
        fa il resto), promemoria della sera. ── -->
 <div id="col" hidden>
@@ -792,6 +821,12 @@
     <button type="button" class="btn-lite" id="zp-prova"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Prova collegamento</span></button>
     <button type="button" class="btn-lite quieto" id="zp-togli" hidden data-i18n>Togli la chiave</button>
     </div>
+  </div>
+  <div class="box imp-box" id="sempre-box" hidden>
+    <div class="imp-testa"><span class="imp-ico ocra"><svg class="ic"><use href="#i-link"/></svg></span><span class="imp-tit"><span data-i18n>Sempre collegato</span><small data-i18n>bracciale o fascia, anche ad app chiusa</small></span><span class="imp-pill" id="sempre-pill"></span></div>
+    <label class="col-riga"><input type="checkbox" id="sempre-on"><span data-i18n>Tieni sempre collegato</span></label>
+    <div class="bil-stato" id="sempre-stato"></div>
+    <p class="col-spieg" data-i18n-html>Il telefono resta collegato al bracciale (o alla fascia) anche con l’app chiusa e dopo il riavvio; con la chiave del bracciale scarica sonno e dati del giorno <b>ogni 30 minuti</b> e li manda al tuo personal. Consuma un po’ di batteria in più: poca sul telefono (Bluetooth a basso consumo e uno scarico ogni mezz’ora), qualcosa sul bracciale, che resta collegato. <b>Finché è acceso, Zepp non può collegarsi al bracciale</b>: per usare Zepp spegnilo qui, o tocca «Scollega» nella notifica.</p>
   </div>
   <div class="imp-sez" id="imp-sez-avv" data-i18n>Promemoria</div>
   <div class="box imp-box" id="avv-box" hidden>
@@ -877,7 +912,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='4.6';
+const CVER='4.7';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1262,6 +1297,25 @@ const TT={en:{
   /* sonno e dati del giorno dal bracciale (27/11/2026) */
   'Gestisci':'Manage', 'Sincronizza':'Sync', 'Scarico sonno e dati del giorno…':'Downloading sleep and daily data…', 'Sincronizzato':'Synced',
   'Ultima sincronizzazione:':'Last sync:', 'oggi':'today', 'notte':'night', 'notti':'nights',
+  /* sempre collegato (1.8.1) */
+  'Sempre collegato':'Always connected', 'bracciale o fascia, anche ad app chiusa':'band or strap, even with the app closed', 'Tieni sempre collegato':'Keep always connected',
+  'Il telefono resta collegato al bracciale (o alla fascia) anche con l’app chiusa e dopo il riavvio; con la chiave del bracciale scarica sonno e dati del giorno <b>ogni 30 minuti</b> e li manda al tuo personal. Consuma un po’ di batteria in più: poca sul telefono (Bluetooth a basso consumo e uno scarico ogni mezz’ora), qualcosa sul bracciale, che resta collegato. <b>Finché è acceso, Zepp non può collegarsi al bracciale</b>: per usare Zepp spegnilo qui, o tocca «Scollega» nella notifica.':'The phone stays connected to the band (or the strap) even with the app closed and after a restart; with the band’s key it downloads sleep and daily data <b>every 30 minutes</b> and sends them to your coach. It uses a little more battery: little on the phone (low-energy Bluetooth and one download every half hour), some on the band, which stays connected. <b>While it is on, Zepp cannot connect to the band</b>: to use Zepp turn it off here, or tap “Disconnect” in the notification.',
+  'spento':'off', 'in ricerca':'searching', 'Bracciale collegato':'Band connected', 'Fascia collegata':'Strap connected', 'sincronizzato alle':'synced at',
+  'Spento: il bracciale si collega solo con l’app aperta.':'Off: the band connects only with the app open.',
+  'Collega prima la fascia o salva la chiave del bracciale: poi resta collegato da solo.':'First connect the strap or save the band’s key: then it stays connected by itself.',
+  'Bluetooth spento: si ricollega quando lo riaccendi.':'Bluetooth is off: it reconnects when you turn it back on.',
+  'In ricerca: si ricollega da solo quando torna vicino.':'Searching: it reconnects by itself when it is close again.',
+  'Per non perdere il battito con lo schermo spento, durante la seduta Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti».':'To keep the heart rate with the screen off, Android must let the app work during the session. In the next window tap “Allow”.',
+  'Per restare collegata al bracciale anche con l’app chiusa e lo schermo spento, Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti».':'To stay connected to the band with the app closed and the screen off, Android must let the app work. In the next window tap “Allow”.',
+  'Sto già sincronizzando in sottofondo: riprova fra un minuto.':'Already syncing in the background: try again in a minute.',
+  /* salute (1.8.1) */
+  'Salute':'Health', 'battito, passi e ultimo riposo':'heart rate, steps and last rest', 'Ultime misure':'Latest readings', 'Ultimo riposo':'Last rest', 'Aggiorna':'Refresh',
+  'I dati restano su <b>questo telefono</b>; al PC del tuo personal vanno il sonno e il riassunto di ogni giorno (Corpo › Recupero).':'The data stay on <b>this phone</b>; your coach’s PC gets the sleep and a summary of each day (Body › Recovery).',
+  'Stress':'Stress', 'SpO2':'SpO2', 'Temperatura pelle':'Skin temperature', 'Respirazione':'Breathing', 'passi oggi':'steps today', 'Notte':'Night', 'Sonnellino':'Nap',
+  'dormito':'asleep', 'punteggio':'score', 'HRV della notte':'night HRV', 'Battito a riposo':'Resting heart rate', 'Profondo':'Deep', 'Leggero':'Light', 'REM':'REM', 'Sveglio':'Awake',
+  'Per il sonno serve la chiave del bracciale.':'Sleep needs the band’s key.', 'Vai alle Impostazioni':'Go to Settings',
+  'Nessun riposo scaricato: tocca «Aggiorna».':'No rest downloaded yet: tap “Refresh”.', 'in ricerca…':'searching…', 'nessun bracciale collegato':'no band connected',
+  'Con la chiave del bracciale arrivano anche stress, SpO2, pelle e respirazione.':'With the band’s key you also get stress, SpO2, skin and breathing.',
 }};
 function tt(s){ if(LANGP==='it'||s==null) return s; const v=TT.en[String(s)]; return v==null?s:v; }
 /* icone disegnate (simboli in cima al <body>): ico('check'), ico('timer','p') = piccola */
@@ -1370,7 +1424,7 @@ function avvia(){
   const ben=$('benvenuto');
   document.querySelectorAll('.day-page').forEach(p=>p.remove());
   if(!SCHEDA){ { const ct=$('ciao-t'); if(ct) ct.hidden=true; $('sub').hidden=false; $('sub').textContent=tt("Il taccuino digitale del Training Monitor System: qui annoti l'allenamento in palestra."); }
-    ben.hidden=false; ['menu','home','alim','foto','bil','fc','col'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); colRender(); avvPianifica(); return; }
+    ben.hidden=false; ['menu','home','alim','foto','bil','fc','sal','col'].forEach(s=>{ $(s).hidden=true; }); mostraInstallHint(); colRender(); avvPianifica(); return; }
   ben.hidden=true;
   GIORNI=giorniDi(SCHEDA.righe);
   BK='tms-bozza-'+(((SCHEDA.profilo||{}).slug)||'cliente')+'-'+(SCHEDA.esportata||'');
@@ -1483,16 +1537,16 @@ function rigaEsercizio(r){
       (ed?'<div class="ex-edit" id="edit-'+i+'" hidden></div>':'')+
     '</div></div>';
 }
-function mostra(id){ ['menu','home','alim','foto','bil','fc','col'].forEach(s=>{ $(s).hidden=(id!==s); });
+function mostra(id){ ['menu','home','alim','foto','bil','fc','sal','col'].forEach(s=>{ $(s).hidden=(id!==s); });
   if(id!=='bil') bilEsci();   /* fuori dalla pagina Bilancia il Bluetooth si ferma */
-  if(id!=='fc' && id!=='col') fcLasciaPagina();   /* la fascia collegata resta collegata; la ricerca si ferma */
+  if(id!=='fc' && id!=='col' && id!=='sal') fcLasciaPagina();   /* la fascia collegata resta collegata; la ricerca si ferma */
   if(id==='menu'){ colPresto(); alimMeta(); }   /* di nuovo al menu: è il momento giusto per gli aggiornamenti dal PC */
   document.querySelectorAll('.day-page').forEach(p=>{ p.hidden=(p.id!==id); });
   try{ window.scrollTo(0,0); }catch(e){} }
 /* ── barra in alto: il marchio al menu; nelle altre schermate «‹ indietro» e il titolo. Si aggiorna
       da sola quando una schermata compare o sparisce (attributo hidden): così ogni strada (menu,
       tasto indietro del telefono, promemoria, collegamento) la tiene giusta. ── */
-const BARRA_TIT={home:'Allenamento', alim:'Alimentazione', foto:'Foto progressi', bil:'Bilancia', fc:'Cardio', col:'Impostazioni'};
+const BARRA_TIT={home:'Allenamento', alim:'Alimentazione', foto:'Foto progressi', bil:'Bilancia', fc:'Cardio', sal:'Salute', col:'Impostazioni'};
 function barraAggiorna(){
   if(!document || !document.body || !$('barra-ind')) return;   /* pagina già chiusa */
   const giorno=[...document.querySelectorAll('.day-page')].find(p=>!p.hidden);
@@ -1508,7 +1562,7 @@ function barraAggiorna(){
 }
 $('barra-ind').onclick=()=>navIndietro();
 { const oss=new MutationObserver(barraAggiorna);
-  ['benvenuto','menu','home','alim','foto','bil','fc','col'].forEach(x=>{ const el=$(x); if(el) oss.observe(el,{attributes:true,attributeFilter:['hidden']}); });
+  ['benvenuto','menu','home','alim','foto','bil','fc','sal','col'].forEach(x=>{ const el=$(x); if(el) oss.observe(el,{attributes:true,attributeFilter:['hidden']}); });
   oss.observe($('pagine'),{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']}); }
 /* fase visibile dentro la pagina-giorno ('w' riscaldamento · 'e' esercizi · 'f' fine) */
 function mostraFase(gi,fase){
@@ -1931,7 +1985,7 @@ function risali(){
   if(giorno){ aggiornaStato(); mostra('home'); return true; }
   if(!$('col').hidden){ colEsci(); return true; }
   if(!$('fc').hidden){ mostra('home'); homeSport(); return true; }   /* dal Cardio si torna ad Allenamento */
-  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden || !$('bil').hidden){ aggiornaStato(); mostra('menu'); return true; }
+  if(!$('home').hidden || !$('alim').hidden || !$('foto').hidden || !$('bil').hidden || !$('sal').hidden){ aggiornaStato(); mostra('menu'); return true; }
   return false;   /* siamo al menu: non c'è più nulla sopra, l'app può chiudersi */
 }
 window.addEventListener('popstate',()=>{ if(navLivelli>0) navLivelli--; risali(); });
@@ -2180,7 +2234,9 @@ async function fcAvvia(){
   fcCerca(); }
 function fcCerca(){
   if(!window.tmsBLE || !FC.voluto || FC.id || FC.collegando) return;
-  const noto=fcIdNoto(); FC.trovati=[]; FC.cercaDa=Date.now(); FC.cercando=true;
+  const noto=fcIdNoto();
+  if(noto && SEMPRE.st && SEMPRE.st.collegato && SEMPRE.st.id===noto){ fcStato('collego'); fcCollega({id:noto, nome:fcNomeNoto()||''}); return; }
+  FC.trovati=[]; FC.cercaDa=Date.now(); FC.cercando=true;
   fcStato(noto? 'cerco-nota' : 'cerco');
   Promise.resolve(window.tmsBLE.cerca(d=>(noto? d.id===noto : fcPapabile(d)), d=>{ if(noto) fcCollega(d); else fcTrovato(d); }))
     .catch(e=>{ FC.cercando=false; FC.voluto=false; fcStato('errore','errore',(e&&e.message)||String(e)); }); }
@@ -2203,6 +2259,7 @@ async function fcCollega(d){
   FC.id=d.id; FC.bpm=null; FC.contatto=null; FC.dalCollegamento=Date.now(); FC.ultimoBuono=0;
   if(natAttiva()) natAggiorna();   /* il servizio della seduta si collega anche lui alla fascia */
   try{ localStorage.setItem(FC_KEY_ID, d.id); if(FC.nome) localStorage.setItem(FC_KEY_NOME, FC.nome); }catch(e){}
+  natSempre();
   clearInterval(FC.timer); FC.timer=setInterval(fcTic, 1000);
   fcStato('attesa'); renderFc(); }
 function fcStaccata(){
@@ -2222,7 +2279,7 @@ function fcLasciaPagina(){ if(FC.cercando && !FC.id && !FC.reg && !SED.s) fcScol
 function fcDimentica(){
   fcScollega();
   try{ localStorage.removeItem(FC_KEY_ID); localStorage.removeItem(FC_KEY_NOME); }catch(e){}
-  FC.nome=''; fcAvvia(); }
+  FC.nome=''; natSempre(); fcAvvia(); }
 /* ogni secondo, da collegati: il tempo della registrazione e il battito che non arriva */
 function fcTic(){
   if(!FC.id) return;
@@ -2928,8 +2985,8 @@ async function zpSalvaChiave(){
   const inp=$('zp-chiave'), h=zpChiavePulita(inp? inp.value : '');
   if(!h){ ZP.stato='errore'; ZP.motivo='formato'; zpRender(); return; }
   ZP.chiave=h; await fcScriviKv(ZP_KEY, h); if(inp) inp.value='';
-  ZP.stato='salvata'; ZP.motivo=''; zpRender(); }
-async function zpTogliChiave(){ ZP.chiave=null; await fcScriviKv(ZP_KEY, null); ZP.stato=''; ZP.fw=''; ZP.batteria=null; zpRender(); }
+  ZP.stato='salvata'; ZP.motivo=''; zpRender(); natSempre(); }
+async function zpTogliChiave(){ ZP.chiave=null; await fcScriviKv(ZP_KEY, null); ZP.stato=''; ZP.fw=''; ZP.batteria=null; zpRender(); natSempre(); }
 const ZP_TESTI={
   formato:'La chiave ha 32 lettere e numeri (da 0 a 9 e da a a f), con o senza «0x» davanti: ricontrolla di averla incollata tutta.',
   manca:'Prima incolla la chiave del bracciale.',
@@ -2941,6 +2998,7 @@ const ZP_TESTI={
   silenzio:'Il bracciale non risponde al collegamento cifrato. Chiudi Zepp (Arresto forzato) e riprova.',
   notifiche:'Il bracciale non lascia aprire il canale: chiudi Zepp e riprova.',
   occupato:'Chiudi prima la registrazione o la seduta in corso: il bracciale serve a quella.',
+  inCorso:'Sto già sincronizzando in sottofondo: riprova fra un minuto.',
   risposta:'Il bracciale ha risposto in un modo che non conosco: forse il firmware è cambiato.',
   errore:'Il Bluetooth non risponde.'};
 function zpRender(){
@@ -2966,24 +3024,27 @@ function zpRender(){
   else if(ZP.stato==='ok'){ a=tt('Collegato')+(ZP.fw? ' · '+tt('firmware')+' '+ZP.fw : '')+(ZP.batteria!=null? ' · '+tt('batteria')+' '+ZP.batteria+' %' : '');
     if(ZP.fw && ZP_FW_PROVATI.indexOf(ZP.fw)<0) b=tt('Questo firmware non è ancora fra quelli provati col TMS: se qualcosa non va, dillo al tuo personal.'); }
   else if(ZP.stato==='errore') a=tt(ZP_TESTI[ZP.motivo]||ZP_TESTI.errore);
-  st.textContent=a; if(so) so.textContent=b; }
+  st.textContent=a; if(so) so.textContent=b;
+  try{ renderSal(); }catch(e){} }
 /* apre il canale col bracciale: cerca, collega, autentica. Restituisce {S, id, ricollega}; errori con .motivo */
 async function zpApri(){
-  const c={S:null, id:'', ricollega:false};
-  const r=await window.tmsBLE.prepara(); if(!r || !r.ok){ const e=new Error('bluetooth'); e.motivo='errore'; throw e; }
+  const c={S:null, id:'', ricollega:false, B:null};
+  const B=c.B=await zpBle(); if(!B){ const e=new Error('bluetooth'); e.motivo='errore'; throw e; }
+  const r=await B.prepara(); if(!r || !r.ok){ const e=new Error('bluetooth'); e.motivo='errore'; throw e; }
   /* quale bracciale: quello già provato, la fascia collegata se è un Amazfit, o il primo che si fa vedere */
   let noto=''; try{ noto=localStorage.getItem(ZP_KEY_ID)||''; }catch(e){}
-  if(!noto && fcIdNoto() && /amazfit|helio/i.test(fcNomeNoto()||'')) noto=fcIdNoto();
-  if(FC.id && (FC.id===noto || /amazfit|helio/i.test(FC.nome||''))){ c.ricollega=true; noto=noto||FC.id; fcScollega(); await new Promise(x=>setTimeout(x, 500)); }
+  if(!B.ponte){
+    if(!noto && fcIdNoto() && /amazfit|helio/i.test(fcNomeNoto()||'')) noto=fcIdNoto();
+    if(FC.id && (FC.id===noto || /amazfit|helio/i.test(FC.nome||''))){ c.ricollega=true; noto=noto||FC.id; fcScollega(); await new Promise(x=>setTimeout(x, 500)); } }
   ZP.stato='cerco'; zpRender();
   const d=await new Promise(ok=>{ const t=setTimeout(()=>{ ok(null); }, ZP_ATTESA.cerca);
-    Promise.resolve(window.tmsBLE.cerca(x=>(noto? x.id===noto : (/amazfit|helio/i.test(x.nome||'') || (x.servizi||[]).indexOf('fee0')>=0)), x=>{ clearTimeout(t); ok(x); })).catch(()=>{ clearTimeout(t); ok(null); }); });
-  try{ await window.tmsBLE.fermaRicerca(); }catch(e){}
+    Promise.resolve(B.cerca(x=>(noto? x.id===noto : (/amazfit|helio/i.test(x.nome||'') || (x.servizi||[]).indexOf('fee0')>=0)), x=>{ clearTimeout(t); ok(x); })).catch(()=>{ clearTimeout(t); ok(null); }); });
+  try{ await B.fermaRicerca(); }catch(e){}
   if(!d){ const e=new Error('non trovato'); e.motivo='nontrovo'; e.ctx=c; throw e; }
   const id=d.id; ZP.nome=d.nome||''; ZP.stato='collego'; zpRender();
-  const S=zpSessione(id, (car, byte)=>window.tmsBLE.scrivi(id, car, byte, ZP_FEE0));
+  const S=zpSessione(id, (car, byte)=>B.scrivi(id, car, byte, ZP_FEE0));
   let coda=Promise.resolve();
-  try{ await window.tmsBLE.collega(id, {onDati:(car, byte)=>{ coda=coda.then(()=>zpRicevi(S, car, byte)).catch(()=>{}); }, onStaccato:()=>{}},
+  try{ await B.collega(id, {onDati:(car, byte)=>{ coda=coda.then(()=>zpRicevi(S, car, byte)).catch(()=>{}); }, onStaccato:()=>{}},
     {servizio:ZP_FEE0, notifiche:[ZP_IN, ZP_OUT, ZP_DATI]}); }
   catch(e){ const x=new Error('collega'); x.motivo=(e && e.motivo==='notifiche')? 'notifiche' : 'lontano'; x.ctx=c; throw x; }
   c.id=id; c.S=S;
@@ -2991,7 +3052,7 @@ async function zpApri(){
   ZP.stato='auth'; zpRender();
   try{ await zpAutentica(S, zpChiaveByte(ZP.chiave)); }catch(e){ e.ctx=c; throw e; }
   return c; }
-async function zpChiudi(c){ if(!c) return; if(c.id){ try{ await window.tmsBLE.stacca(c.id); }catch(e){} } if(c.ricollega) fcAvvia(); }
+async function zpChiudi(c){ if(!c) return; if(c.id){ try{ await (c.B||window.tmsBLE).stacca(c.id); }catch(e){} } if(c.ricollega) fcAvvia(); }
 /* stato «verde» del bracciale: l'ultima prova o sincronizzazione è andata bene (si ricorda) */
 function zpVerde(){ try{ return !!localStorage.getItem('tms-zp-ok'); }catch(e){ return ZP.stato==='ok'; } }
 function zpSegnaOk(ok){ try{ if(ok) localStorage.setItem('tms-zp-ok', new Date().toISOString()); else localStorage.removeItem('tms-zp-ok'); }catch(e){} }
@@ -3001,7 +3062,7 @@ function zpSincTesto(){
   return tt('Ultima sincronizzazione:')+' '+(oggi? tt('oggi') : giornoBreve(dataLoc(d)))+' '+oraLoc(d).slice(0,5)+
     (e.notti!=null? ' · '+e.notti+' '+(e.notti===1? tt('notte') : tt('notti'))+', '+e.giorni+' '+(e.giorni===1? tt('giorno') : tt('giorni')) : ''); }
 async function zpProva(){
-  if(!window.tmsBLE || ZP.inCorso) return;
+  if(!zpHaBle() || ZP.inCorso) return;
   if(!ZP.chiave){ ZP.stato='errore'; ZP.motivo='manca'; zpRender(); return; }
   if(FC.reg || SED.s){ ZP.stato='errore'; ZP.motivo='occupato'; zpRender(); return; }
   ZP.inCorso=true; ZP.fw=''; ZP.batteria=null;
@@ -3009,17 +3070,19 @@ async function zpProva(){
   try{
     c=await zpApri();
     /* firmware (Device Information, in chiaro) e batteria (canale cifrato) */
-    try{ if(window.tmsBLE.leggi){ const fw=await window.tmsBLE.leggi(c.id, '180a', '2a26'); ZP.fw=String.fromCharCode.apply(null, (fw||[]).filter(x=>x>=32 && x<127)).trim(); } }catch(e){}
+    try{ if(c.B.leggi){ const fw=await c.B.leggi(c.id, '180a', '2a26'); ZP.fw=String.fromCharCode.apply(null, (fw||[]).filter(x=>x>=32 && x<127)).trim(); } }catch(e){}
     try{ ZP.batteria=await zpBatteria(c.S); }catch(e){ ZP.batteria=null; }
     ZP.stato='ok'; zpSegnaOk(true);
   }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento') zpSegnaOk(false); }
-  finally{ await zpChiudi(c); ZP.inCorso=false; zpRender(); } }
+  finally{ await zpChiudi(c); ZP.inCorso=false; zpRender(); natSempre(); } }
 /* SINCRONIZZA: scarica sonno e dati del giorno, prepara gli eventi per il PC, stacca. Senza interfaccia: la usa il
    tasto, l'apertura dell'app e (in futuro) lo scarico periodico in sottofondo. Restituisce l'esito o null. */
 async function zpSincronizza(manuale){
-  if(!window.tmsBLE || !ZP.chiave || ZP.inCorso) return null;
+  if(!zpHaBle() || !ZP.chiave || ZP.inCorso) return null;
   if(FC.reg || SED.s){ if(manuale){ ZP.stato='errore'; ZP.motivo='occupato'; zpRender(); } return null; }
-  ZP.inCorso=true; await zpdCarica();
+  /* un'altra pagina (quella invisibile del servizio, o l'app) sta già scaricando */
+  if(zpLockPreso()){ if(manuale){ ZP.stato='errore'; ZP.motivo='inCorso'; zpRender(); } return null; }
+  ZP.inCorso=true; zpLock(true); ZPD=null; await zpdCarica();
   let c=null, esito=null;
   try{
     c=await zpApri();
@@ -3033,25 +3096,230 @@ async function zpSincronizza(manuale){
     ZPD.ultima=Date.now(); ZPD.esito=esito; await zpdSalva();
     ZP.stato='sincok'; zpSegnaOk(true);
   }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento') zpSegnaOk(false); }
-  finally{ await zpChiudi(c); ZP.inCorso=false; zpRender(); }
-  if(esito) colPresto();
+  finally{ await zpChiudi(c); ZP.inCorso=false; zpLock(false); zpRender(); }
+  if(esito){ colPresto(); natSempre(); }
   return esito; }
 /* all'apertura dell'app: una sincronizzazione se l'ultima è di più di mezz'ora fa (in silenzio) */
 async function zpSincAuto(){
-  if(!window.tmsBLE || !ZP.chiave || ZP.inCorso || FC.reg || SED.s) return;
+  if(!zpHaBle() || !ZP.chiave || ZP.inCorso || FC.reg || SED.s) return;
   await zpdCarica(); if(Date.now()-(ZPD.ultima||0)<ZP_SINC_OGNI) return;
   return zpSincronizza(false); }
 /* eventi verso il PC (li manda colEventi come le pesate) e conferme (colRicevute) */
 async function zpEventiDaMandare(daMandare, scrivi){
+  if(!ZP.inCorso) ZPD=null;
   await zpdCarica(); let n=0;
   for(const k of Object.keys(ZPD.eventi)){ const e=ZPD.eventi[k]; if(!daMandare(e)) continue;
     const corpo=(e.tipo==='tms-sonno')? {tipo:e.tipo, id:e.id, notte:e.dati} : {tipo:e.tipo, id:e.id, giorno:e.dati};
     await scrivi(colNomeFile(k.split('|')[0], k.split('|')[1]), corpo); e.ev=new Date().toISOString(); n++; }
   if(n) await zpdSalva(); return n; }
 async function zpEventiRicevuti(ric){
-  if(!ZPD) return; let n=0;
+  if(!ZP.inCorso) ZPD=null;
+  await zpdCarica(); let n=0;
   Object.keys(ZPD.eventi).forEach(k=>{ const e=ZPD.eventi[k]; if(!e.pc && ric.has(String(e.id))){ e.pc=true; n++; } });
   if(n) await zpdSalva(); }
+/* ── SEMPRE COLLEGATO (APK 1.8.1, 27/11/2026; Marco: «quando chiudo l'app si scollega, deve rimanere SEMPRE
+      connesso»). Interruttore «Tieni sempre collegato» in Impostazioni › Sensori, ACCESO di serie
+      (localStorage 'tms-sempre' = '0' solo se spento). Con un bracciale (chiave salvata e bracciale già trovato) o
+      una fascia salvati, la pagina passa al servizio Android (window.tmsSeduta.sempre) quale dispositivo tenere:
+      il servizio resta acceso anche ad app chiusa, riparte all'accensione del telefono, si ricollega da solo e, con
+      la chiave, ogni 30 minuti fa sincronizzare sonno e dati del giorno (TmsSedutaService.java).
+      Il PONTE (window.tmsPonte): quando il servizio tiene già il bracciale, la pagina gli parla attraverso il
+      servizio (scrivi, leggi, notifiche) invece di aprire un secondo collegamento; un bracciale collegato di
+      solito non si fa più trovare nelle ricerche. Lo definisce nativo.js (pagina dell'app, plugin TmsSeduta)
+      oppure, qui sotto, la PAGINA INVISIBILE del servizio (window.TmsServizio, ad app chiusa): quella pagina
+      scarica il bracciale, manda gli eventi al PC attraverso l'hub e dice al servizio che ha finito. ── */
+const SEMPRE_KEY='tms-sempre';
+const SEMPRE={st:null};
+function sempreVoluto(){ try{ return localStorage.getItem(SEMPRE_KEY)!=='0'; }catch(e){ return true; } }
+/* cosa tenere collegato: il bracciale con la chiave (se è già stato trovato una volta), altrimenti la fascia */
+function sempreDispositivo(){
+  let zid=''; try{ zid=localStorage.getItem(ZP_KEY_ID)||''; }catch(e){}
+  if(ZP.chiave && zid) return {dispositivo:zid, nome:ZP.nome||'', tipo:'bracciale', chiave:true};
+  const f=fcIdNoto(), n=fcNomeNoto()||'';
+  if(f) return {dispositivo:f, nome:n, tipo:/amazfit|helio/i.test(n)? 'bracciale' : 'fascia', chiave:false};
+  return null; }
+function natSempre(){
+  const ts=window.tmsSeduta; if(!ts || !ts.sempre) return;
+  const d=sempreDispositivo(), on=sempreVoluto() && !!d;
+  const o=on? Object.assign({attivo:true, lingua:LANGP, batteria:ZP.batteria!=null? ZP.batteria : -1}, d) : {attivo:false};
+  try{ Promise.resolve(ts.sempre(o)).catch(()=>{}); }catch(e){}
+  if(on) natBatteria(true);
+  sempreRender(); }
+/* all'apertura e al ritorno nell'app: «Scollega» toccato nella notifica spegne anche l'interruttore */
+async function natSempreAvvio(){
+  const ts=window.tmsSeduta; if(!ts || !ts.stato) return;
+  let r=null; try{ r=await ts.stato(); }catch(e){}
+  if(r && r.spentoDaNotifica){ try{ localStorage.setItem(SEMPRE_KEY, '0'); }catch(e){} }
+  if(r) SEMPRE.st=r;
+  natSempre(); }
+window.tmsSempreStato=function(st){ SEMPRE.st=st||null; sempreRender(); try{ salAggiornaMenu(); renderSal(); }catch(e){} };
+function sempreRender(){
+  const box=$('sempre-box'); if(!box) return;
+  box.hidden=!(window.tmsSeduta && window.tmsSeduta.sempre);
+  const on=sempreVoluto(), d=sempreDispositivo(), st=SEMPRE.st||{};
+  const cb=$('sempre-on'); if(cb) cb.checked=on;
+  const ok=!!(on && d && st.collegato);
+  const pill=$('sempre-pill'); if(pill){ pill.textContent=!on? tt('spento') : !d? '' : ok? tt('collegato') : tt('in ricerca'); pill.classList.toggle('si', ok); }
+  const s=$('sempre-stato'); if(!s) return;
+  let a='';
+  if(!on) a=tt('Spento: il bracciale si collega solo con l’app aperta.');
+  else if(!d) a=tt('Collega prima la fascia o salva la chiave del bracciale: poi resta collegato da solo.');
+  else if(st.bluetooth===false) a=tt('Bluetooth spento: si ricollega quando lo riaccendi.');
+  else if(ok){ const pz=[d.tipo==='fascia'? tt('Fascia collegata') : tt('Bracciale collegato')];
+    if(st.bpm>0) pz.push('♥ '+st.bpm);
+    if(st.batteria>=0) pz.push(tt('batteria')+' '+st.batteria+' %');
+    if(st.ultimaSinc>0) pz.push(tt('sincronizzato alle')+' '+oraLoc(new Date(st.ultimaSinc)).slice(0,5));
+    a=pz.join(' · '); }
+  else if(st.attivo) a=tt('In ricerca: si ricollega da solo quando torna vicino.');
+  s.textContent=a; }
+/* il trasporto del bracciale per zpApri: attraverso il servizio se lo tiene già, altrimenti il Bluetooth diretto */
+let ZP_PONTE_CB=null;
+function zpBlePonte(P, st){
+  return {ponte:true,
+    prepara:async()=>({ok:true}),
+    cerca:async(filtro, trovato)=>{ const d={id:st.id, nome:st.nome||'', servizi:['fee0']}; if(filtro(d)) setTimeout(()=>trovato(d), 0); },
+    fermaRicerca:async()=>{},
+    collega:async(id, cb, opz)=>{ ZP_PONTE_CB=cb; P.ascolta((car, b)=>{ const k=ZP_PONTE_CB; if(k && k.onDati) k.onDati(car, b); });
+      try{ await P.notifiche(opz.servizio, opz.notifiche, true); }
+      catch(e){ ZP_PONTE_CB=null; const x=new Error('notifiche'); x.motivo='notifiche'; throw x; } },
+    scrivi:(id, car, b, serv)=>P.scrivi(serv, car, b),
+    leggi:(id, serv, car)=>P.leggi(serv, car),
+    stacca:async()=>{ ZP_PONTE_CB=null; try{ await P.notifiche(ZP_FEE0, [ZP_IN, ZP_OUT, ZP_DATI], false); }catch(e){} } }; }
+async function zpBle(){
+  const P=window.tmsPonte;
+  if(P){ let st=null; try{ st=await P.stato(); }catch(e){}
+    if(st && st.collegato && st.id && st.tipo==='bracciale'){
+      let noto=''; try{ noto=localStorage.getItem(ZP_KEY_ID)||''; }catch(e){}
+      if(!noto || noto===st.id) return zpBlePonte(P, st); } }
+  return window.tmsBLE || null; }
+function zpHaBle(){ return !!(window.tmsBLE || window.tmsPonte); }
+/* una sincronizzazione alla volta fra la pagina dell'app e quella invisibile del servizio (stessi dati) */
+const ZP_LOCK='tms-zp-lock';
+function zpLockPreso(){ try{ const t=+localStorage.getItem(ZP_LOCK)||0; return Date.now()-t<5*60000; }catch(e){ return false; } }
+function zpLock(on){ try{ if(on) localStorage.setItem(ZP_LOCK, String(Date.now())); else localStorage.removeItem(ZP_LOCK); }catch(e){} }
+/* sono passati 30 minuti (evento «sincronizza» del servizio, app viva anche in secondo piano): scarica, manda, rispondi */
+async function zpSincEManda(){
+  const e=await zpSincronizza(false);
+  if(e && colPuo()){ for(let k=0;k<150 && COL.inCorso;k++) await new Promise(r=>setTimeout(r, 100)); await colGiro(); }
+  return e; }
+window.tmsSincServizio=async function(){
+  let e=null; try{ e=await zpSincEManda(); }catch(x){}
+  const ts=window.tmsSeduta;
+  try{ if(ts && ts.sincFatta) await ts.sincFatta({ok:!!e, batteria:ZP.batteria!=null? ZP.batteria : -1}); }catch(x){} };
+/* ── PAGINA INVISIBILE DEL SERVIZIO (window.TmsServizio, interfaccia Java di TmsSedutaService): niente Capacitor,
+      il bracciale si raggiunge solo attraverso il servizio. Risposte con tmsPonteEsito(id, ok, valore), dati con
+      tmsPonteDati(caratteristica, valore), valori in esadecimale «00 a2 …». ── */
+if(window.TmsServizio){
+  const T=window.TmsServizio, attese={}; let n=0, ascolto=null;
+  const hex=b=>Array.from(b||[]).map(x=>('0'+((x&255).toString(16))).slice(-2)).join(' ');
+  const byte=v=>{ const h=String(v||'').replace(/[^0-9a-f]/gi,''), o=[]; for(let i=0;i+1<h.length;i+=2) o.push(parseInt(h.slice(i,i+2),16)); return o; };
+  window.tmsPonteEsito=(id, ok, v)=>{ const a=attese[id]; if(!a) return; delete attese[id]; if(ok) a.ok(byte(v)); else a.no(new Error(String(v||'errore'))); };
+  window.tmsPonteDati=(car, v)=>{ if(ascolto) ascolto(String(car||''), byte(v)); };
+  const chiedi=o=>new Promise((ok, no)=>{ const id=++n; attese[id]={ok:ok, no:no}; try{ T.richiesta(id, JSON.stringify(o)); }catch(e){ delete attese[id]; no(e); } });
+  window.tmsPonte={
+    stato:async()=>{ try{ return JSON.parse(T.stato()||'{}'); }catch(e){ return {}; } },
+    notifiche:(serv, car, on)=>chiedi({op:'notifiche', servizio:serv, caratteristiche:car, on:!!on}),
+    scrivi:(serv, car, b)=>chiedi({op:'scrivi', servizio:serv, caratteristica:car, valore:hex(b)}),
+    leggi:(serv, car)=>chiedi({op:'leggi', servizio:serv, caratteristica:car}),
+    ascolta:cb=>{ ascolto=cb; } };
+}
+function servizioFine(e){ try{ window.TmsServizio.fine(JSON.stringify(e||null)); }catch(x){} }
+async function servizioGiro(){ let e=null; try{ e=await zpSincEManda(); }catch(x){} servizioFine(e); }
+/* ── ❤ SALUTE (APK 1.8.1, 27/11/2026; Marco: «una sezione salute dove posso vedere i dati in tempo reale presi dalla
+      band, e il sonno solo del giorno stesso, ultimo riposo»). Pagina #sal, voce del menu #vai-sal (solo nell'APK).
+      · IN TEMPO REALE: il battito adesso (dalla fascia collegata nella pagina o dal servizio del «sempre collegato»,
+        col colore della zona), i passi di oggi, la batteria del bracciale; l'ultimo valore scaricato di stress, SpO2,
+        temperatura della pelle e respirazione, ognuno con l'ora della misura; «collegato» o «in ricerca…».
+      · SONNO: solo l'ULTIMO RIPOSO (la notte appena passata, o il sonnellino più recente se è più nuovo): orari, tempo
+        dormito, punteggio, striscia delle fasi, HRV della notte e battito a riposo. Lo storico sta sul PC (Corpo ›
+        Recupero). Senza chiave del bracciale lo dice e porta a Impostazioni › Sensori › Bracciale.
+      · «Aggiorna» = una sincronizzazione subito (zpSincronizza). Tutto legge i dati già sul telefono (ZPD); al PC
+        continuano ad andare solo gli eventi tms-sonno e tms-giorno. ── */
+const SAL={timer:null, giri:0};
+const SAL_FASI={profondo:'Profondo', leggero:'Leggero', rem:'REM', sveglio:'Sveglio'};
+function salBpm(){
+  if(FC.id && FC.bpm) return FC.bpm;
+  const st=SEMPRE.st; return (st && st.collegato && st.bpm>0)? st.bpm : null; }
+function salAggiornaMenu(){
+  const v=$('vai-sal'); if(v) v.hidden=!(window.tmsBLE && SCHEDA);
+  const m=$('meta-sal'); if(!m) return;
+  const b=salBpm(); m.textContent=b? '♥ '+b+' bpm' : tt('battito, passi e ultimo riposo'); }
+/* l'ultimo campione di uno o più tipi dello storico: [ora ms, valore] */
+function salUltimo(tipi){ let u=null;
+  tipi.forEach(t=>{ ((ZPD && ZPD.s[t])||[]).forEach(v=>{ if(!u || v[0]>u[0]) u=v; }); }); return u; }
+function salQuando(t){ const d=new Date(t); return (dataLoc(d)===dataLoc(new Date())? '' : giornoBreve(dataLoc(d))+' ')+oraLoc(d).slice(0,5); }
+function salDurata(min){ min=Math.max(0, Math.round(min)); return Math.floor(min/60)+' h '+String(min%60).padStart(2,'0')+' min'; }
+/* l'ultimo riposo: la notte più recente, o il sonnellino più recente se finisce dopo */
+function salUltimoRiposo(){
+  if(!ZPD) return null;
+  const notti=Object.keys(ZPD.notti).map(k=>ZPD.notti[k]).filter(n=>n && n.fine).sort((a,b)=>String(a.fine).localeCompare(String(b.fine)));
+  const n=notti[notti.length-1]||null; let s=null;
+  notti.forEach(x=>(x.sonnellini||[]).forEach(z=>{ if(z && z.fine && (!s || z.fine>s.fine)) s=z; }));
+  if(s && (!n || s.fine>n.fine)) return {sonnellino:true, inizio:s.inizio, fine:s.fine};
+  return n? {notte:n} : null; }
+function salHtmlRiposo(){
+  if(!ZP.chiave) return '<div class="bil-stato">'+esc(tt('Per il sonno serve la chiave del bracciale.'))+'</div>'+
+    '<button type="button" class="btn-lite" id="sal-chiave"><svg class="ic"><use href="#i-lucchetto"/></svg><span>'+esc(tt('Vai alle Impostazioni'))+'</span></button>';
+  const r=salUltimoRiposo();
+  if(!r) return '<div class="bil-stato">'+esc(tt('Nessun riposo scaricato: tocca «Aggiorna».'))+'</div>';
+  const ora=x=>String(x||'').slice(11,16);
+  if(r.sonnellino){ const min=(new Date(r.fine)-new Date(r.inizio))/60000;
+    return '<div class="sal-riposo"><b>'+esc(tt('Sonnellino'))+'</b> <span>'+esc(giornoBreve(String(r.inizio).slice(0,10)))+' · '+esc(ora(r.inizio))+' → '+esc(ora(r.fine))+'</span></div>'+
+      '<div class="fc-tre"><div><b>'+esc(salDurata(min))+'</b><span>'+esc(tt('dormito'))+'</span></div></div>'; }
+  const n=r.notte, fasi=n.fasi||[], tot=Math.max(1, (new Date(n.fine)-new Date(n.inizio))/60000);
+  const dorm=fasi.filter(f=>f[2]!=='sveglio').reduce((a,f)=>a+(f[1]-f[0]), 0) || tot;
+  const v=zpNotteValori(n), g=zpGiornoValori(n.id)||{};
+  const striscia=fasi.length? '<div class="sal-fasi" aria-hidden="true">'+fasi.map(f=>'<i class="f-'+esc(f[2])+'" style="left:'+(100*f[0]/tot).toFixed(2)+'%;width:'+(100*(f[1]-f[0])/tot).toFixed(2)+'%"></i>').join('')+'</div>'+
+    '<div class="sal-leg">'+['profondo','leggero','rem','sveglio'].map(k=>{ const m=fasi.filter(f=>f[2]===k).reduce((a,f)=>a+(f[1]-f[0]), 0);
+      return '<span><i class="f-'+k+'"></i>'+esc(tt(SAL_FASI[k]))+' '+esc(salDurata(m).replace(' min','′'))+'</span>'; }).join('')+'</div>' : '';
+  return '<div class="sal-riposo"><b>'+esc(tt('Notte'))+'</b> <span>'+esc(giornoBreve(n.id))+' · '+esc(ora(n.inizio))+' → '+esc(ora(n.fine))+'</span></div>'+
+    '<div class="fc-tre"><div><b>'+esc(salDurata(dorm))+'</b><span>'+esc(tt('dormito'))+'</span></div>'+
+    '<div><b>'+(n.punteggio!=null? n.punteggio : '—')+'</b><span>'+esc(tt('punteggio'))+'</span></div>'+
+    '<div><b>'+(v.hrv!=null? v.hrv+'<small> ms</small>' : '—')+'</b><span>'+esc(tt('HRV della notte'))+'</span></div></div>'+
+    striscia+
+    (g.fcRiposo!=null? '<div class="bil-row"><span class="bil-g">'+esc(tt('Battito a riposo'))+'</span><b>'+g.fcRiposo+' bpm</b></div>' : ''); }
+function renderSal(){
+  const pg=$('sal'); if(!pg || pg.hidden) return;
+  const st=SEMPRE.st||{}, bpm=salBpm(), z=bpm? fcZona(bpm) : null, oggi=dataLoc(new Date());
+  const conn=$('sal-conn');
+  if(conn){ const coll=(FC.id && FC.bpm) || st.collegato, cosa=sempreDispositivo();
+    conn.textContent=coll? (cosa && cosa.tipo==='fascia'? tt('Fascia collegata') : tt('Bracciale collegato'))
+      : (st.attivo || FC.cercando || FC.collegando)? tt('in ricerca…') : tt('nessun bracciale collegato'); }
+  const b=$('sal-bpm'); if(b){ b.innerHTML=bpm? bpm+'<small>bpm</small>' : '—'; b.className='fc-bpm'+(z && z.n? ' z'+z.n : ''); }
+  const zn=$('sal-zona'); if(zn) zn.textContent=(z && z.n)? tt(FC_ZONE[z.n-1][1])+' · '+tt(FC_ZONE[z.n-1][2]) : '';
+  const passi=ZPD? ZPD.passi[oggi] : null, tPassi=(ZPD && ZPD.cursori[1]>new Date(oggi+'T00:00:00').getTime())? ZPD.cursori[1]-1000 : null;
+  const batt=(st.batteria>=0)? st.batteria : (ZP.batteria!=null? ZP.batteria : (ZPD && ZPD.batt[oggi]!=null? ZPD.batt[oggi] : null));
+  const tre=$('sal-tre');
+  if(tre) tre.innerHTML='<div><b>'+(passi!=null? Number(passi).toLocaleString(LANGP==='en'?'en-GB':'it-IT') : '—')+'</b><span>'+esc(tt('passi oggi'))+(tPassi? ' · '+esc(salQuando(tPassi)) : '')+'</span></div>'+
+    '<div><b>'+(batt!=null? batt+'<small> %</small>' : '—')+'</b><span>'+esc(tt('batteria'))+'</span></div>';
+  const mis=$('sal-misure');
+  if(mis){ const righe=[[tt('Stress'), salUltimo([19, 18]), x=>String(x)],
+      [tt('SpO2'), salUltimo([37]), x=>x+' %'],
+      [tt('Temperatura pelle'), salUltimo([46]), x=>String(x.toFixed? x.toFixed(1) : x).replace('.', LANGP==='en'? '.' : ',')+' °C'],
+      [tt('Respirazione'), salUltimo([56]), x=>x+' '+tt('/min')]];
+    mis.innerHTML=righe.map(r=>'<div class="bil-row"><span class="bil-g">'+esc(r[0])+(r[1]? ' <small>· '+esc(salQuando(r[1][0]))+'</small>' : '')+'</span><b>'+(r[1]? esc(r[2](r[1][1])) : '—')+'</b></div>').join('')+
+      (ZP.chiave? '' : '<div class="bil-stato">'+esc(tt('Con la chiave del bracciale arrivano anche stress, SpO2, pelle e respirazione.'))+'</div>'); }
+  const so=$('sal-sonno'); if(so) so.innerHTML=salHtmlRiposo();
+  const ch=$('sal-chiave'); if(ch) ch.onclick=salVaiChiave;
+  const ag=$('sal-aggiorna'); if(ag){ ag.hidden=!ZP.chiave; ag.disabled=ZP.inCorso; }
+  const ss=$('sal-stato');
+  if(ss) ss.textContent=ZP.inCorso? tt('Scarico sonno e dati del giorno…') : (ZP.stato==='errore'? tt(ZP_TESTI[ZP.motivo]||ZP_TESTI.errore) : zpSincTesto()); }
+function salVaiChiave(){ colApri(); const zb=$('zp-box'); if(zb){ zb.classList.add('aperta'); try{ zb.scrollIntoView({block:'start'}); }catch(e){} } }
+async function salApri(){
+  navEntra(); mostra('sal');
+  if(!ZP.inCorso){ ZPD=null; try{ await zpdCarica(); }catch(e){} }
+  /* il battito in diretta: dal servizio se tiene il bracciale, altrimenti la fascia salvata si collega qui */
+  if(!(SEMPRE.st && SEMPRE.st.collegato) && fcIdNoto() && !FC.id) fcAvvia();
+  renderSal();
+  clearInterval(SAL.timer); SAL.giri=0;
+  SAL.timer=setInterval(()=>{
+    if($('sal').hidden){ clearInterval(SAL.timer); SAL.timer=null; return; }
+    if(++SAL.giri%5===0 && window.tmsSeduta && window.tmsSeduta.stato){ Promise.resolve(window.tmsSeduta.stato()).then(r=>{ if(r) SEMPRE.st=r; }).catch(()=>{}); }
+    renderSal(); }, 1000); }
+async function salAggiorna(){
+  if(ZP.inCorso || !ZP.chiave) return;
+  const p=zpSincronizza(true); renderSal();
+  await p; ZPD=null; try{ await zpdCarica(); }catch(e){} renderSal(); salAggiornaMenu(); }
 /* ── SEDUTA ATTIVA ANCHE CON L'APP CHIUSA (27/11/2026, Marco: «quando parte una sessione di allenamento l'app non
       si chiude mai davvero, resta attiva in background, così da prendere costantemente i dati dal bracciale» e
       «quando chiudo l'app vorrei un'isola floating con battito, esercizio, tempo di recupero»). Solo nell'APK
@@ -3098,13 +3366,15 @@ async function natRecupera(){
   if(n){ if(FC.reg) fcSalvaBozza(true); else if(SED.s) sedSalva(true); }
   return n; }
 /* ottimizzazione della batteria: si chiede UNA volta, spiegandola prima */
-async function natBatteria(){
+async function natBatteria(sempre){
   const ts=window.tmsSeduta; if(!ts || !ts.batteria) return;
-  try{ if(localStorage.getItem('tms-batteria-chiesta')) return; }catch(e){ return; }
+  const k=sempre? 'tms-batteria-chiesta-sempre' : 'tms-batteria-chiesta';
+  try{ if(localStorage.getItem(k) || localStorage.getItem('tms-batteria-chiesta-sempre')) return; }catch(e){ return; }
   let b=null; try{ b=await ts.batteria(); }catch(e){ return; }
   if(!b || b.esclusa) return;
-  try{ localStorage.setItem('tms-batteria-chiesta', new Date().toISOString()); }catch(e){}
-  const testo=tt('Per non perdere il battito con lo schermo spento, durante la seduta Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti». Fuori dalle sedute l’app non lavora in sottofondo.');
+  try{ localStorage.setItem(k, new Date().toISOString()); }catch(e){}
+  const testo=sempre? tt('Per restare collegata al bracciale anche con l’app chiusa e lo schermo spento, Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti».')
+    : tt('Per non perdere il battito con lo schermo spento, durante la seduta Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti».');
   const ok=window.tmsConferma? await window.tmsConferma(testo) : false;
   if(ok){ try{ await ts.chiediBatteria(); }catch(e){} } }
 /* ── finestra mobile: la pagina lo sa dall'evento «pip» del nativo (window.tmsInPip) ── */
@@ -3374,6 +3644,7 @@ function lunediDi(data){ const d=new Date(data+'T12:00:00'); d.setDate(d.getDate
 function pesMedia(lista,k){ const v=lista.map(p=>p[k]).filter(x=>x!=null&&isFinite(x)); return v.length? v.reduce((a,b)=>a+b,0)/v.length : null; }
 function bilAggiornaMenu(){
   const vb=$('vai-bil'); if(vb) vb.hidden=!(window.tmsBLE && SCHEDA);
+  try{ salAggiornaMenu(); }catch(e){}
   const mb=$('meta-bil'); if(!mb) return;
   const sett=lunediDi(dataLoc(new Date())), n=pesContate(PESATE.filter(p=>lunediDi(p.data)===sett)).length;
   mb.textContent=n? (n+' '+(n===1?tt('pesata questa settimana'):tt('pesate questa settimana'))) : (PESATE.length? tt('nessuna pesata questa settimana') : tt('pesati e il peso va al coach'));
@@ -3498,6 +3769,7 @@ function wire(){
   const va=$('vai-alim'); if(va) va.onclick=()=>{ if(!va.disabled){ navEntra(); renderAlim(); mostra('alim'); } };
   const vf=$('vai-foto'); if(vf) vf.onclick=()=>{ navEntra(); mostra('foto'); };
   const vb=$('vai-bil'); if(vb) vb.onclick=()=>{ scanSblocca(); navEntra(); mostra('bil'); renderBil(); bilAvvia(); };
+  const vsal=$('vai-sal'); if(vsal) vsal.onclick=()=>{ salApri(); };
   const vc=$('vai-fc'); if(vc) vc.onclick=()=>fcApri();
   const fch=$('fc-chip'); if(fch) fch.onclick=()=>{ if($('fc').hidden) fcApri(); };
   const fr=$('fc-riprova'); if(fr) fr.onclick=()=>fcAvvia();
@@ -4107,7 +4379,7 @@ function colStacca(){
   if(colCollegata()){ SCHEDA.collegata=false; salvaScheda(SCHEDA); }
   COL.msgErr=false; COL.msg=c.nome? tt('Scollegato da')+' «'+c.nome+'».' : ''; colRender();
 }
-function colApri(){ try{ fcStato(FC.stato); zpRender(); }catch(e){} navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil','fc'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
+function colApri(){ try{ fcStato(FC.stato); zpRender(); }catch(e){} navEntra(); if(!SCHEDA){ $('benvenuto').hidden=true; ['menu','home','alim','foto','bil','fc','sal'].forEach(x=>{ $(x).hidden=true; }); $('col').hidden=false; } else mostra('col'); colRender(); avvRender(); colPresto(); }
 function colEsci(){ if(SCHEDA){ aggiornaStato(); mostra('menu'); } else { $('col').hidden=true; avvia(); } }
 function colRender(){
   const P=colPuo(), conf=colConf(), att=colAttivo();
@@ -4215,7 +4487,17 @@ window.apriDaAvviso=apriDaAvviso;
 $('vai-col').onclick=colApri; $('col-da-ben').onclick=colApri; $('ben-imp').onclick=colApri;
 $('zp-salva').onclick=()=>{ zpSalvaChiave(); }; $('zp-prova').onclick=()=>{ zpProva(); }; $('zp-togli').onclick=()=>{ zpTogliChiave(); };
 $('zp-sinc').onclick=()=>{ zpSincronizza(true); };
-zpCaricaChiave().then(()=>zpdCarica()).then(()=>{ zpRender(); setTimeout(()=>{ zpSincAuto().catch(()=>{}); }, 3000); }).catch(()=>{});
+$('sal-aggiorna').onclick=()=>{ salAggiorna(); };
+$('sempre-on').onchange=e=>{ try{ localStorage.setItem(SEMPRE_KEY, e.target.checked? '1' : '0'); }catch(x){} natSempre(); };
+zpCaricaChiave().then(()=>zpdCarica()).then(()=>{ zpRender(); ZP.pronta=true;
+  if(window.TmsServizio){ servizioGiro(); return; }          /* pagina invisibile del servizio: scarica, manda e chiude */
+  natSempreAvvio().catch(()=>{});
+  setTimeout(()=>{ zpSincAuto().catch(()=>{}); }, 3000); }).catch(()=>{ if(window.TmsServizio) servizioFine(null); });
+/* tornando nell'app: i dati del bracciale si rileggono (il servizio può averli scaricati ad app chiusa) e lo stato
+   del «sempre collegato» si riprende (anche «Scollega» toccato nella notifica) */
+document.addEventListener('visibilitychange',()=>{ if(document.hidden || window.TmsServizio) return;
+  if(!ZP.inCorso){ ZPD=null; zpdCarica().then(()=>zpRender()).catch(()=>{}); }
+  natSempreAvvio().catch(()=>{}); });
 document.querySelectorAll('[data-col-esci]').forEach(b=>{ b.onclick=navIndietro; });
 $('col-collega').onclick=colCollega;
 $('col-qr').onclick=qrApri;

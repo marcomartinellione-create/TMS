@@ -71,6 +71,30 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
   «al PC» con `colRicevute`. Da verificare sul campo: i layout segnati «da verificare» in `Doc/bracciale/PROPOSTA.md`
   e se lo scarico toglie i dati dal bracciale (unstrap dice di no). Prove: T12d (bracciale finto con record veri per
   ogni tipo) e T14 (telefono → hub → PC → Corpo › Recupero).
+- **❤ Salute** (dalla 1.8.1; voce `#vai-sal` del menu, pagina `#sal`, funzioni `sal*`): battito adesso (`FC.bpm` della
+  fascia collegata nella pagina, o `bpm` dello stato del servizio, aggiornato ogni 5 s), zona (`fcZona`), passi di oggi
+  (`ZPD.passi`, ora dal cursore del tipo 1), batteria, ultimo campione di stress (19/18), SpO2 (37), pelle (46),
+  respirazione (56) con l'ora; ultimo riposo (`salUltimoRiposo`: notte più recente o sonnellino più nuovo) con fasi,
+  HRV (`zpNotteValori`) e battito a riposo (`zpGiornoValori`). «Aggiorna» = `zpSincronizza(true)`. Senza chiave:
+  «Vai alle Impostazioni» apre Impostazioni › Bracciale. Nessun dato nuovo: legge `ZPD`. Prove: T12d.
+- **Sempre collegato** (dalla 1.8.1; Impostazioni › Sensori, `#sempre-box`, interruttore `#sempre-on` acceso di serie,
+  `localStorage['tms-sempre']='0'` se spento; funzioni `natSempre`, `natSempreAvvio`, `sempreRender`): la pagina passa
+  al plugin `TmsSeduta.sempre({attivo, dispositivo, nome, tipo, chiave, lingua, batteria})` il bracciale (chiave +
+  `tms-bracciale-id`) o la fascia salvata; il plugin lo scrive nelle SharedPreferences `tms-sempre` e avvia
+  `TmsSedutaService` (azione SEMPRE). Il servizio: GATT con autoConnect (riconnessione passiva di Android), dopo un
+  errore riapre con attese 5 s → 10 min, segue il Bluetooth spento/acceso; notifica discreta (canale «collegamento»,
+  azione «Scollega» → `spentoDaNotifica`, letto da `stato()` all'apertura); battito 0x180D e batteria 0x180F solo per
+  la notifica; `START_STICKY`; `TmsAvvioReceiver` (BOOT_COMPLETED, QUICKBOOT_POWERON, MY_PACKAGE_REPLACED; permesso
+  RECEIVE_BOOT_COMPLETED, in `patch-android.js`). Se Android rifiuta l'avvio (eccezione di `startForeground`), la
+  notifica 7401 «Tocca per ricollegarlo» apre l'app. Con la chiave, sveglia ogni 30 min (`setAndAllowWhileIdle`) →
+  se la pagina è viva evento «sincronizza» (`window.tmsSincServizio` → `zpSincronizza` → `colGiro` → `sincFatta`),
+  altrimenti **pagina invisibile**: una WebView del servizio carica la stessa `https://localhost/index.html` dagli asset
+  (`public/`, stessa origine: stessa chiave, stessi dati, stesso collegamento con l'hub) con l'interfaccia Java
+  `window.TmsServizio`; la pagina (`servizioGiro`) scarica, manda e chiama `TmsServizio.fine(esito)`; al massimo 4
+  minuti. **Ponte** `window.tmsPonte` (in `nativo.js` col plugin, o nella pagina con `TmsServizio`): scrivi/leggi/
+  notifiche sul collegamento del servizio; `zpBle()` lo sceglie quando il servizio tiene il bracciale (niente ricerca né
+  secondo collegamento). Una sincronizzazione alla volta (`tms-zp-lock`, 5 min); `ZPD` si rilegge prima di scriverlo.
+  Prove: T12d (ponte, pagina invisibile, blocco), `prova-nativo` (interruttore, eventi, ponte, manifest), javac.
 - **Impostazioni ordinate** (dalla 1.8.0): in ogni sezione collegata e verde (TMS sul PC `#col-box`, fascia `#fc-imp`,
   bracciale `#zp-box`) i comandi stanno in `.imp-azioni`, nascosti finché non si tocca «Gestisci» (`.imp-apri`,
   classi `imp-ok` e `aperta`, funzione `impTendina`); senza collegamento si vedono subito.
