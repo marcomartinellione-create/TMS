@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-11-26 — TMS v1.1.43: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.42
+**Descrizione**:
+- TMS Scheda 1.6.0: la seduta chiede conferma prima di partire (Inizia o Solo guardare) e si può annullare se avviata per sbaglio. Allenamento ha due linguette: Palestra, con i giorni della scheda, e Cardio, dove si sceglie lo sport, si avvia la registrazione e a Fine si chiede solo la fatica. La voce Collegamento e promemoria diventa Impostazioni, con dentro anche lingua, QR e la fascia cardio; in alto resta solo il battito.
+- Telefono: Allenamento con due linguette, Palestra (i giorni della scheda) e Cardio (gli sport): si sceglie lo sport, si avvia la registrazione, a Fine si chiede solo la fatica; la fascia cardio si collega in Impostazioni
+- Telefono: la seduta chiede conferma prima di partire (Inizia o Solo guardare) e si puo annullare se avviata per sbaglio; la voce Collegamento e promemoria diventa Impostazioni, con dentro anche lingua e QR, e in alto resta solo il battito
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-26)
+
+---
+
 ### 2026-11-26 — TMS v1.1.42: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.41

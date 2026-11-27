@@ -13,8 +13,8 @@ function giornoNumero(g){ const m=GIORNO_RE.exec(String(g==null?'':g).trim()); r
 function giornoNome(g){ const n=giornoNumero(g); return n? t('Giorno')+' '+n : t(g); }
 function giornoOrdine(g){ const n=giornoNumero(g); if(n) return n; const i=GIORNI.indexOf(g); return i>=0? 100+i : 999; }
 const GRUPPI = ['Gambe','Pettorali','Schiena','Spalle','Braccia','Core','Cardio'];
-const APP_VERSION='1.1.42', APP_DATE='2026-11-26';
-const RELEASE_NOTE='Seduta in corso nell’app del telefono (TMS Scheda 1.5.0): aprire il giorno della scheda avvia la seduta; una zona nella barra in alto mostra sempre battito e tempo trascorso, e con Fine seduta durata e fatica si compilano da sole. Il battito della seduta arriva sul PC con quel giorno, nel tab Pesi e nello Storico (non nel Cardio né nel carico). Nel tab Corpo c’è la sezione Recupero (interruttore Misure | Recupero): sonno con le fasi, HRV, FC a riposo, SpO2, temperatura della pelle, stress e passi, ognuno confrontato col solito del cliente; i dati arriveranno dal bracciale collegato al telefono.'; /* mini-changelog della versione; aggiornala a ogni release */
+const APP_VERSION='1.1.43', APP_DATE='2026-11-26';
+const RELEASE_NOTE='TMS Scheda 1.6.0: la seduta chiede conferma prima di partire (Inizia o Solo guardare) e si può annullare se avviata per sbaglio. Allenamento ha due linguette: Palestra, con i giorni della scheda, e Cardio, dove si sceglie lo sport, si avvia la registrazione e a Fine si chiede solo la fatica. La voce Collegamento e promemoria diventa Impostazioni, con dentro anche lingua, QR e la fascia cardio; in alto resta solo il battito.'; /* mini-changelog della versione; aggiornala a ogni release */
 const GH_REPO_URL='https://github.com/marcomartinellione-create/TMS';
 /* L'app del cliente «TMS Scheda» è SOLO l'APK Android (Marco, 16/11/2026): niente più link alla PWA.
    Il sorgente sta in app-android/web/ e lo impacchetta app-android (vedi app-android/LEGGIMI.md). */
