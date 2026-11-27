@@ -1,6 +1,6 @@
 # Training Monitor System (TMS) — documentazione per assistenti AI
 
-_Versione app: 1.1.43 (2026-11-26). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
+_Versione app: 1.1.44 (2026-11-27). File generato dall'app (tab Guida) — la copia online vive nel repo: docs/guida-ai.md. Caricalo nella chat di un assistente AI per farti aiutare a usare il TMS._
 
 ## Istruzioni per te, assistente AI
 
@@ -445,8 +445,8 @@ Due modi per registrare una seduta:
   È SOLO un suggerimento visivo (tooltip col motivo): non modifica né scrive nulla.
 - «Salva nello Storico» registra la settimana (anno + numero settimana ISO,
   proposti in automatico); se il Session-RPE è abilitato si registrano anche fatica
-  (RPE 0-10) e durata in minuti per seduta. Un pallino/banner verde o rosso (qui, in Corpo e in cima al tab Profilo) avvisa se
-  la settimana corrente non è ancora registrata.
+  (RPE 0-10) e durata in minuti per seduta. Se manca la settimana precedente compare un avviso rosso (qui e in Corpo);
+  quando lo storico è in regola non compare nulla. In cima al tab Profilo un pallino verde o rosso dà lo stesso stato.
 
 ## 5 · Progressi, Storico, Corpo (tab Progressi · Corpo; archivi dal tab Profilo)
 

@@ -720,8 +720,10 @@ function aggStatus(arr){ const codes=(arr||[]).map(r=>+r.scheda||0).filter(x=>x>
   return {ok:last>=prev, last, cur, prev}; }
 /* «202619» da solo non dice quando: accanto al codice va la data del lunedì di quella settimana */
 function settConData(code){ return code+' <span style="font-weight:400;opacity:.8">· '+esc(schedaLabel(code))+'</span>'; }
+/* l'avviso compare SOLO quando manca una settimana (27/11/2026, Marco: «compaiono solo se negativi; se non
+   vedo nulla è tutto ok»). Con lo storico in regola non si mostra niente: resta il pallino verde (updateStatusDots). */
 function statusBanner(arr,label){ const s=aggStatus(arr);
-  if(s.ok) return `<div class="callout no-print" style="margin:0 0 12px;background:var(--ok-t);border-color:#bcdcc6">${ico('check','ok')}<div><b>${t(label)} ${t('aggiornato')}</b> · ${t('ultima registrazione: settimana')} <b>${settConData(s.last)}</b> (${t('corrente')} ${s.cur}).</div></div>`;
+  if(s.ok) return '';
   const what=s.last?`${t('l\'ultima è la settimana')} <b>${settConData(s.last)}</b>`:t('non ci sono ancora registrazioni');
   return `<div class="callout no-print" style="margin:0 0 12px;background:var(--danger-t);border-color:#e6b8b8">${ico('attenzione','err')}<div><b>${t(label)} ${t('da aggiornare')}</b> · ${what}; ${t('manca almeno la settimana precedente')} (<b>${settConData(s.prev)}</b>). ${t('Ricordati di salvare.')}</div></div>`;
 }

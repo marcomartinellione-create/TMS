@@ -449,8 +449,8 @@ Due modi per registrare una seduta:
   È SOLO un suggerimento visivo (tooltip col motivo): non modifica né scrive nulla.
 - «Salva nello Storico» registra la settimana (anno + numero settimana ISO,
   proposti in automatico); se il Session-RPE è abilitato si registrano anche fatica
-  (RPE 0-10) e durata in minuti per seduta. Un pallino/banner verde o rosso (qui, in Corpo e in cima al tab Profilo) avvisa se
-  la settimana corrente non è ancora registrata.
+  (RPE 0-10) e durata in minuti per seduta. Se manca la settimana precedente compare un avviso rosso (qui e in Corpo);
+  quando lo storico è in regola non compare nulla. In cima al tab Profilo un pallino verde o rosso dà lo stesso stato.
 
 ## 5 · Progressi, Storico, Corpo (tab Progressi · Corpo; archivi dal tab Profilo)
 

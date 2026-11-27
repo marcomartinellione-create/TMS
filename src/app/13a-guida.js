@@ -24,7 +24,7 @@ function guidaRapida(){
      <li><b>Salva.</b> <b>Salva nello Storico</b> (anno + settimana, di default quelli correnti) — con fatica (RPE) e durata della seduta, se le usi.</li>
      <li><b>Guarda i risultati.</b> <b>Progressi</b> per grafici e record, <b>Analisi</b> per incrociare dieta e allenamento, <b>Report</b> per il PDF da consegnare.</li>
    </ol>
-   <div class="callout"><div>Un pallino/banner verde o rosso (in Pesi, Corpo e in cima al tab Profilo) ti avvisa se non hai ancora registrato la settimana.</div></div>
+   <div class="callout"><div>Se non hai ancora registrato la settimana precedente, un avviso rosso in Pesi e in Corpo te lo ricorda; quando è tutto in regola non compare nulla. In cima al tab Profilo un pallino verde o rosso dà lo stesso stato.</div></div>
    <div class="sec">Le due app: il TMS e il taccuino da palestra</div>
    <p style="margin:4px 0 8px">Questo TMS è l'<b>app principale</b>: qui si <b>crea</b> (scheda e dieta) e si <b>analizza</b> (storico, grafici, report). <b>TMS Scheda</b>, l'app Android per il telefono, è il suo <b>taccuino da palestra</b>: scheda coi video sotto gli occhi, dieta da seguire, quello che fai scritto sul momento, la bilancia e le foto. PC e telefono condividono la <b>stessa scheda</b> attraverso l'<b>hub del TMS</b> (un piccolo servizio su internet, tutto cifrato): <b>il PC progetta → il telefono annota → tutto torna al PC da solo</b> e diventa storico e grafici.</p>
    <div class="sec">Telefono collegato: una scheda per due</div>
@@ -298,7 +298,7 @@ function guidaRapidaEN(){
      <li><b>Save.</b> <b>Save to History</b> (year + week, current ones by default) — with session effort (RPE) and duration, if you use them.</li>
      <li><b>See the results.</b> <b>Progress</b> for charts and records, <b>Analysis</b> to cross diet and training, <b>Report</b> for the PDF to hand over.</li>
    </ol>
-   <div class="callout"><div>A green or red dot/banner (in Weights, Body and at the top of the Profile tab) warns you if you haven't recorded the week yet.</div></div>
+   <div class="callout"><div>If you haven't recorded the previous week yet, a red notice in Weights and Body reminds you; when everything is up to date nothing shows. At the top of the Profile tab a green or red dot gives the same status.</div></div>
    <div class="sec">The two apps: TMS and the gym notebook</div>
    <p style="margin:4px 0 8px">This TMS is the <b>main app</b>: here you <b>create</b> (program and diet) and <b>analyze</b> (history, charts, reports). <b>TMS Scheda</b>, the Android phone app, is its <b>gym notebook</b>: the program with videos in front of you, the diet to follow, what you do written on the spot, the scale and the photos. PC and phone share the <b>same program</b> through the <b>TMS hub</b> (a small service on the internet, fully encrypted): <b>the PC plans → the phone logs → everything comes back to the PC by itself</b> and becomes history and charts.</p>
    <div class="sec">Linked phone: one program for both</div>

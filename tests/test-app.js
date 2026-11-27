@@ -2568,7 +2568,8 @@ console.log('--- T8: revisione 2026-11 — calcoli e scheda ---');
     await settle(800);
     const a = d.activeElement;
     ok(a && a !== p && a.dataset && a.dataset.u === 'peso' && a.type === 'number' && a.value === '70.5', 'Corpo: dopo il ridisegno automatico la casella in cui si scriveva ha ancora il fuoco'); }
-  ok(w.eval('showTab("allenamento"); document.querySelector("#panel-allenamento .callout").textContent').match(/\d{6} · \d{2}\/\d{2}\/\d{2}/) !== null, 'avviso «storico aggiornato/da aggiornare»: la settimana ha anche la data');
+  { const w0 = w.eval('(function(){ var x=isoWeek(new Date()); return schedaCode(x.anno,x.sett); })()'), ok0 = w.eval('statusBanner([{scheda:' + w0 + '}], "Storico allenamento")'), ko0 = w.eval('statusBanner([{scheda:202001}], "Storico allenamento")').replace(/<[^>]+>/g, '');
+    ok(ok0 === '' && /da aggiornare|to update/.test(ko0) && /\d{6} · \d{2}\/\d{2}\/\d{2}/.test(ko0), 'avviso dello storico: solo quando manca una settimana (rosso, con la data); in regola non compare nulla'); }
   ok(errors.length === 0, 'nessun errore runtime' + (errors.length ? ' -> ' + errors.join(' | ') : ''));
   dom.window.close();
 }
