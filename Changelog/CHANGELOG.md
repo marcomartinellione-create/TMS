@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-11-27 — TMS v1.1.46: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.45
+**Descrizione**:
+- Corpo: i pulsanti Salva misure nello Storico e Annulla ultimo stanno ora nel riquadro Dati corporei. Se arrivano le pesate della bilancia dal telefono, i campi che la bilancia misura sono bloccati e lo Storico misure si aggiorna da solo; con Modifica a mano si possono correggere. Dati salvati come misure: da questa versione il TMS conserva solo i dati misurati o scritti (peso e impedenze della bilancia, campioni del bracciale, battito al secondo e punti GPS delle sedute) e calcola ogni volta BMI, composizione, medie, calorie, distanze e dislivelli. Se un calcolo cambia, cambia tutto lo storico insieme. Corpo, Recupero: le calorie bruciate giorno per giorno (metabolismo, vita quotidiana, movimento, digestione), il livello di attività misurato da usare nel profilo e il bilancio con la dieta. Cardio: le uscite all aperto registrate col telefono arrivano al PC con distanza, dislivello, parziali e percorso. Backup: le copie automatiche, quella fuori dal PC e quella prima di un ripristino salvano le foto e gli altri file grandi una volta sola in un deposito comune, così lo spazio resta quello dei dati anche dopo anni. Il backup scaricato a mano resta un file unico con tutto. App del telefono 1.10.0: durante un allenamento la finestra mobile mostra solo il battito, la notifica Allenamento in corso tiene il tempo, i dettagli restano in alto su ogni pagina e non si apre un secondo allenamento finché il primo non è chiuso. App del telefono 1.10.0: nella Salute le calorie di oggi, una stima minuto per minuto basata su studi scientifici (metabolismo a riposo, vita quotidiana, passi, battito e sedute registrate). Nuovo widget della giornata per la schermata Home: punteggio del sonno dentro un anello con le fasi, battito, passi con la barra del traguardo giornaliero e calorie.
+- PC: dati salvati come misure, calorie bruciate, Corpo bloccato con la bilancia, backup a deposito
+- Telefono 1.10.0: calorie di oggi, widget della giornata, allenamento in corso sempre in vista
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-27)
+
+---
+
 ### 2026-11-27 — TMS v1.1.45: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.44
