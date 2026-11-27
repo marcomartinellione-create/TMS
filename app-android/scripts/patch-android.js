@@ -84,6 +84,19 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
     if (s.split('</manifest>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</manifest>)'); process.exit(1); }
     s = s.replace('</manifest>', ble + '</manifest>');
   }
+  /* GPS DELLE ATTIVITÀ ALL'APERTO (APK 1.9.0): la posizione serve davvero (percorso, distanza, dislivello), anche
+     da Android 12 in poi: si toglie il limite a Android 11 dalle due righe qui sopra (la ricerca Bluetooth resta
+     «neverForLocation»: dalle ricerche l'app non ricava dove sei). Il servizio della seduta diventa anche di tipo
+     «location» (con FOREGROUND_SERVICE_LOCATION) così il GPS continua a schermo spento; GPS non obbligatorio per
+     installare l'app */
+  s = s.replace('<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="30" />', '<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />')
+       .replace('<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />', '<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />')
+       .replace('android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice" />', 'android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice|location" />');
+  if (!s.includes('android.permission.FOREGROUND_SERVICE_LOCATION')) {
+    s = s.replace('</manifest>', '    <!-- TMS: GPS delle attività all\'aperto (anche a schermo spento) -->\n' +
+      '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />\n' +
+      '    <uses-feature android:name="android.hardware.location.gps" android:required="false" />\n</manifest>');
+  }
   /* da Android 11 un'app «vede» le altre solo se lo dichiara: senza questa riga Capacitor non
      trova l'app Fotocamera e «Scatta una foto» ripiega sulla galleria (visto sull'emulatore) */
   if (!s.includes('android.media.action.IMAGE_CAPTURE')) {
@@ -124,7 +137,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
   if (!s.includes('android:name=".TmsSedutaService"')) {
     if (s.split('</application>').length !== 2) { console.error('patch-android: AndroidManifest inatteso (</application>)'); process.exit(1); }
     s = s.replace('</application>', '    <!-- TMS: seduta in primo piano (battito a schermo spento, notifica fissa) -->\n' +
-      '        <service android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice" />\n    </application>');
+      '        <service android:name=".TmsSedutaService" android:exported="false" android:foregroundServiceType="connectedDevice|location" />\n    </application>');
   }
   /* SEMPRE COLLEGATO (APK 1.8.1): il servizio riparte all'accensione del telefono e dopo un aggiornamento dell'app
      (TmsAvvioReceiver, esportato perché BOOT_COMPLETED e MY_PACKAGE_REPLACED arrivano dal sistema: sono trasmissioni

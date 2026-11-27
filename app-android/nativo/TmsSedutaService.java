@@ -31,8 +31,17 @@ package com.trainingmonitorsystem.scheda;
    sottofondo, e il divieto di Android 15 sull'avvio da BOOT_COMPLETED non riguarda connectedDevice. Se Android
    rifiuta lo stesso (produttori più severi, permesso Bluetooth tolto), una notifica «Tocca per ricollegare»
    apre l'app, che riavvia il servizio dal primo piano: nessun avvio vietato.
+   GPS DELLE ATTIVITÀ ALL'APERTO (APK 1.9.0, 27/11/2026, Marco: «per le attività di cardio all'aperto inserire il gps,
+   calcolo del percorso, dislivello, tempo, come Strava»): una registrazione cardio all'aperto avvia il servizio con
+   gps=true; il servizio chiede le posizioni al GPS del telefono (LocationManager, una al secondo) e, se c'è, legge il
+   BAROMETRO (sensore di pressione: dislivello molto più preciso della quota del GPS, come fa OpenTracks). Ogni punto
+   [ora ms, lat, lon, quota GPS m, precisione m, velocità m/s, pressione hPa] va in un BUFFER, anche a schermo spento;
+   la pagina lo legge col plugin (TmsSeduta.posizioni) e calcola lei percorso, distanza, dislivello e passo. Tipo del
+   servizio: connectedDevice + location (solo se il permesso della posizione c'è). Niente internet: le posizioni
+   restano sul telefono e vanno, cifrate, solo al PC del personal.
    Il sorgente vero sta in app-android/nativo/: scripts/patch-android.js lo copia nel progetto Android. */
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -54,7 +63,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -116,6 +133,18 @@ public class TmsSedutaService extends Service {
     static volatile long ultimoT = 0;
     static volatile TmsSedutaService istanza = null;
 
+    /* GPS della registrazione all'aperto: [ora ms, lat, lon, quota m, precisione m, velocità m/s, pressione hPa (0 = niente)] */
+    private static final List<double[]> PUNTI = new ArrayList<>();
+    static final int MAX_PUNTI = 8 * 3600;                     /* 8 ore a un punto al secondo */
+    static volatile boolean gps = false;                       /* GPS richiesto dalla registrazione in corso */
+    static volatile boolean gpsAvviato = false;                /* il GPS sta davvero mandando posizioni */
+    static volatile float pressione = 0f;                      /* ultima pressione del barometro (hPa) */
+    private long inizioGps = 0;
+    private LocationManager lm = null;
+    private LocationListener ll = null;
+    private SensorManager sm = null;
+    private SensorEventListener sl = null;
+
     private String titolo = "";
     private long inizio = 0;
     private String dispSeduta = "";
@@ -168,6 +197,67 @@ public class TmsSedutaService extends Service {
         return out;
     }
 
+    /* ── i punti GPS dopo un'ora (la pagina li chiede ogni pochi secondi e quando torna attiva) ── */
+    static List<double[]> puntiDopo(long da) {
+        List<double[]> out = new ArrayList<>();
+        synchronized (PUNTI) { for (double[] p : PUNTI) if (p[0] > da) out.add(p.clone()); }
+        return out;
+    }
+
+    static boolean permessoPosizione(Context c) {
+        return Build.VERSION.SDK_INT < 23 || c.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    static boolean posizioneAccesa(Context c) {
+        try { LocationManager m = (LocationManager) c.getSystemService(Context.LOCATION_SERVICE); return m != null && m.isProviderEnabled(LocationManager.GPS_PROVIDER); }
+        catch (Exception e) { return false; }
+    }
+
+    static boolean haBarometro(Context c) {
+        try { SensorManager s = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE); return s != null && s.getDefaultSensor(Sensor.TYPE_PRESSURE) != null; }
+        catch (Exception e) { return false; }
+    }
+
+    /* GPS acceso: una posizione al secondo, sulla coda del servizio (continua a schermo spento); barometro se c'è */
+    @SuppressLint("MissingPermission")
+    private void gpsAvvia() {
+        if (gpsAvviato) return;
+        if (!permessoPosizione(this)) { gpsAvviato = false; return; }
+        try {
+            lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            ll = new LocationListener() {
+                @Override public void onLocationChanged(Location l) {
+                    double[] p = {l.getTime() > 0 ? l.getTime() : System.currentTimeMillis(), l.getLatitude(), l.getLongitude(),
+                        l.hasAltitude() ? l.getAltitude() : Double.NaN, l.hasAccuracy() ? l.getAccuracy() : 99.0,
+                        l.hasSpeed() ? l.getSpeed() : -1.0, pressione};
+                    synchronized (PUNTI) { PUNTI.add(p); while (PUNTI.size() > MAX_PUNTI) PUNTI.remove(0); }
+                }
+                @Override public void onProviderEnabled(String provider) { }
+                @Override public void onProviderDisabled(String provider) { }
+                @Override public void onStatusChanged(String provider, int status, android.os.Bundle extras) { }
+            };
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, ll, Looper.getMainLooper());
+            gpsAvviato = true;
+        } catch (Exception e) { gpsAvviato = false; ll = null; }
+        try {
+            sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            Sensor b = sm != null ? sm.getDefaultSensor(Sensor.TYPE_PRESSURE) : null;
+            if (b != null) {
+                sl = new SensorEventListener() {
+                    @Override public void onSensorChanged(SensorEvent ev) { if (ev.values != null && ev.values.length > 0) pressione = ev.values[0]; }
+                    @Override public void onAccuracyChanged(Sensor s, int a) { }
+                };
+                sm.registerListener(sl, b, SensorManager.SENSOR_DELAY_NORMAL);
+            }
+        } catch (Exception e) { sl = null; }
+    }
+
+    private void gpsFerma() {
+        try { if (lm != null && ll != null) lm.removeUpdates(ll); } catch (Exception e) { }
+        try { if (sm != null && sl != null) sm.unregisterListener(sl); } catch (Exception e) { }
+        ll = null; sl = null; gpsAvviato = false; pressione = 0f;
+    }
+
     @Override public IBinder onBind(Intent intent) { return null; }
 
     @Override
@@ -189,13 +279,18 @@ public class TmsSedutaService extends Service {
         String azione = intent != null ? intent.getAction() : null;
         leggiPref();
         if (AZIONE_FERMA.equals(azione)) {
-            attivo = false; dispSeduta = "";
+            attivo = false; dispSeduta = ""; gps = false; gpsFerma();
             try { if (wl != null && wl.isHeld()) wl.release(); } catch (Exception e) { }
             wl = null;
         } else if (AZIONE_AVVIA.equals(azione) && intent != null) {
             String t = intent.getStringExtra("titolo"); if (t != null) titolo = t;
             long i = intent.getLongExtra("inizio", 0); if (i > 0) inizio = i;
             String d = intent.getStringExtra("dispositivo"); dispSeduta = d == null ? "" : d;
+            /* GPS: una registrazione nuova (inizio diverso) riparte con un percorso vuoto */
+            boolean g = intent.getBooleanExtra("gps", false);
+            if (g && inizio != inizioGps) { synchronized (PUNTI) { PUNTI.clear(); } inizioGps = inizio; }
+            gps = g;
+            if (g) gpsAvvia(); else gpsFerma();
             if (!attivo) {
                 attivo = true;
                 synchronized (CAMPIONI) { CAMPIONI.clear(); }
@@ -236,7 +331,15 @@ public class TmsSedutaService extends Service {
         try {
             creaCanali(this);
             Notification n = notifica();
-            if (Build.VERSION.SDK_INT >= 29) startForeground(ID_NOTIFICA, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+            if (Build.VERSION.SDK_INT >= 29) {
+                int tipo = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE;
+                /* col GPS della registrazione all'aperto anche «location» (solo col permesso: Android 14 lo pretende) */
+                if (gps && permessoPosizione(this)) {
+                    try { startForeground(ID_NOTIFICA, n, tipo | ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION); return true; }
+                    catch (Exception e) { /* sotto, senza GPS in sottofondo */ }
+                }
+                startForeground(ID_NOTIFICA, n, tipo);
+            }
             else startForeground(ID_NOTIFICA, n);
             return true;
         } catch (Exception e) { return false; }   /* per esempio ForegroundServiceStartNotAllowedException (Android 12+) */
@@ -253,7 +356,7 @@ public class TmsSedutaService extends Service {
     }
 
     private void ferma() {
-        attivo = false; sempreAttivo = false;
+        attivo = false; sempreAttivo = false; gps = false; gpsFerma();
         mano.removeCallbacks(giro);
         annullaSinc();
         chiudiPagina(null);
@@ -268,7 +371,7 @@ public class TmsSedutaService extends Service {
 
     @Override
     public void onDestroy() {
-        attivo = false; sempreAttivo = false;
+        attivo = false; sempreAttivo = false; gps = false; gpsFerma();
         mano.removeCallbacksAndMessages(null);
         chiudiPagina(null);
         for (Collegamento l : link.values()) l.chiudi();
@@ -606,7 +709,9 @@ public class TmsSedutaService extends Service {
                 BluetoothGattCharacteristic c = s == null ? null : s.getCharacteristic(o.car);
                 if (c != null) {
                     if (o.tipo == SCRIVI) {
-                        int tipo = (c.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0 ? BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT : BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;
+                        /* «senza risposta» quando la caratteristica lo permette, come la scelta di serie di Android che usa Zepp
+                           (e unstrap, e Gadgetbridge) sul canale del bracciale; altrimenti la scrittura normale */
+                        int tipo = (c.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0 ? BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE : BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT;
                         if (Build.VERSION.SDK_INT >= 33) partita = gatt.writeCharacteristic(c, o.valore, tipo) == 0;
                         else { c.setWriteType(tipo); c.setValue(o.valore); partita = gatt.writeCharacteristic(c); }
                     } else if (o.tipo == LEGGI) partita = gatt.readCharacteristic(c);

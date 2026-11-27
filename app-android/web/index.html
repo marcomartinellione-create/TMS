@@ -93,6 +93,9 @@
  .imp-box .bil-stato{text-align:left;min-height:0}
  .imp-box .bil-stato:empty{display:none}
  .imp-box .btn-big,.imp-box .btn-lite{margin:8px 0 0}
+ .zp-diag{margin:12px 0 0}
+ .zp-diag summary{cursor:pointer;font-size:14px;color:var(--ink-2);padding:6px 0}
+ .zp-diag pre{white-space:pre-wrap;word-break:break-word;font-family:var(--sans);font-size:12px;line-height:1.45;max-height:280px;overflow:auto;margin:6px 0 0;padding:8px 10px;background:var(--carta);color:var(--ink-2);border:1px solid var(--filo-2);border-radius:var(--r-sm)}
  .imp-gruppo{margin-bottom:12px}
  .imp-riga{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 14px 10px 16px}
  .imp-riga+.macro-card{border-top:1px solid var(--filo)}
@@ -167,7 +170,7 @@
  .macro-card.eroe .chev{color:var(--oro)}
 
  /* ── elenco dei giorni ── */
- #days{display:block;background:var(--carta);border:1px solid var(--filo);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--om-2);margin-bottom:12px}
+ #days,#home-sport{display:block;background:var(--carta);border:1px solid var(--filo);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--om-2);margin-bottom:12px}
  .day-card{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:68px;padding:12px 14px 12px 16px;background:none;border:0;text-align:left;color:inherit;transition:background var(--svelto)}
  .day-card+.day-card{border-top:1px solid var(--filo)}
  .day-card:active{background:var(--carta-3)}
@@ -355,6 +358,82 @@
  .sal-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--ink-3);margin-bottom:4px}
  .sal-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
  .f-profondo{background:var(--viola)} .f-leggero{background:#2b7a9a} .f-rem{background:var(--ocra)} .f-sveglio{background:var(--err)}
+ /* ── salute «professionale» (1.9.0): stati a colori, anelli, barre e linee coi colori dell'app ── */
+ .st-ok{--st:var(--ok)} .st-mez{--st:var(--ocra)} .st-ko{--st:var(--err)} .st-n{--st:var(--ink-4)} .st-acc{--st:var(--acc)} .st-rel{--st:#2b7a9a}
+ .sal-ora{padding:14px 14px 10px}
+ .sal-ora-r{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+ .sal-pill{font-size:12px;font-weight:600;color:var(--ink-3);background:var(--carta-3);border-radius:999px;padding:3px 10px}
+ .sal-pill.si{background:var(--ok-t);color:var(--ok)}
+ .sal-batt{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+ .sal-ora-g{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
+ .sal-hr{text-align:center}
+ .sal-hr .fc-bpm{font-size:46px;margin:2px 0 0}
+ .sal-hr .fc-bpm small{font-size:14px}
+ .sal-hr .fc-zona{font-size:12.5px;min-height:18px}
+ .sal-hr .fc-zone{margin:6px auto 0;max-width:130px}
+ .sal-passi{text-align:center}
+ .sal-passi-a{position:relative;width:128px;height:128px;margin:0 auto}
+ .sal-anello{display:block;width:100%;height:100%}
+ .sal-an-f{fill:none;stroke:var(--carta-3);stroke-width:9}
+ .sal-an-v{fill:none;stroke:var(--st,var(--acc));stroke-width:9;stroke-linecap:round;transition:stroke-dasharray .5s cubic-bezier(.2,.7,.3,1)}
+ .sal-passi-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+ .sal-passi-c .ic{width:16px;height:16px;color:var(--ink-4);margin-bottom:2px}
+ .sal-passi-c b{font-family:var(--serif);font-size:23px;color:var(--ink);font-variant-numeric:tabular-nums}
+ .sal-passi-c span{font-size:11.5px;color:var(--ink-3)}
+ .sal-passi-t{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:4px}
+ .sal-passi-q{font-size:11.5px;color:var(--ink-3);min-height:16px;font-variant-numeric:tabular-nums}
+ .sal-live{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:5px;vertical-align:1px;animation:fc-pulsa 1s ease-in-out infinite alternate}
+ .sal-obi-b{min-height:38px;margin:6px 0 0;font-size:13.5px}
+ .sal-obi-sc{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0 2px}
+ .sal-obi-sc .mini{height:34px;padding:0 10px;font-size:13px}
+ .sal-bar,.sal-linea{display:block;width:100%;height:auto}
+ .sal-bar rect{fill:var(--st,var(--ink-4))}
+ .sal-bar rect.st-n{fill:var(--filo-2)}
+ .sal-bar rect.oggi{stroke:var(--ink-2);stroke-width:1.2}
+ .sal-bar-g{font-family:var(--sans);font-size:10px;fill:var(--ink-3)}
+ .sal-bar-g.oggi{font-weight:700;fill:var(--ink)}
+ .sal-bar-v{font-family:var(--sans);font-size:9.5px;fill:var(--ink-3);font-variant-numeric:tabular-nums}
+ .sal-obi-l{stroke:var(--acc);stroke-width:1.2;stroke-dasharray:4 3}
+ .sal-sett-r{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--ink-3);margin-top:6px;font-variant-numeric:tabular-nums}
+ .sal-sett-r b{color:var(--ink);font-family:var(--serif)}
+ .sal-griglia{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .sal-mis{position:relative;background:var(--campo);border-radius:10px;padding:8px 10px 6px;border-left:3px solid var(--st);min-width:0}
+ .sal-mis-t{display:flex;align-items:baseline;justify-content:space-between;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+ .sal-mis-t span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .sal-mis-t small{font-weight:500;font-size:10.5px;white-space:nowrap}
+ .sal-mis>b{display:block;font-family:var(--serif);font-size:21px;color:var(--ink);line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
+ .sal-mis>b small{font-family:var(--sans);font-size:11.5px;font-weight:500;color:var(--ink-3)}
+ .sal-mis-s{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--st);font-weight:600}
+ .sal-mis-s i{width:7px;height:7px;border-radius:50%;background:var(--st);flex:none}
+ .sal-spark{display:block;width:100%;height:24px;margin-top:3px}
+ .sal-spark path{fill:none;stroke:var(--ink-4);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+ .sal-spark circle{fill:var(--st)}
+ .sal-sonno-t{display:flex;align-items:center;gap:12px;margin:0 0 8px}
+ .sal-sonno-t>div:last-child{display:flex;flex-direction:column;gap:1px;min-width:0}
+ .sal-sonno-t b{font-family:var(--serif);font-size:16px;color:var(--ink)}
+ .sal-sonno-t span{font-size:12.5px;color:var(--ink-3)}
+ .sal-sonno-t .sal-mis-s span{color:var(--st)}
+ .sal-punt{position:relative;width:62px;height:62px;flex:none}
+ .sal-punt>b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--serif);font-size:19px}
+ .sal-punt .sal-an-f,.sal-punt .sal-an-v{stroke-width:6}
+ .sal-ipno{display:block;width:100%;height:72px;background:var(--carta-2);border-radius:8px}
+ .sal-ipno-g{stroke:var(--filo);stroke-width:1}
+ .sal-ipno .f-profondo{fill:var(--viola)} .sal-ipno .f-leggero{fill:#2b7a9a} .sal-ipno .f-rem{fill:var(--ocra)} .sal-ipno .f-sveglio{fill:var(--err)}
+ .sal-ipno-ore{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin:2px 2px 6px;font-variant-numeric:tabular-nums}
+ .sal-fasi-tot{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:4px 0 8px}
+ .sal-fasi-tot>div{display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:0 6px;font-size:12px;color:var(--ink-3)}
+ .sal-fasi-tot i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+ .sal-fasi-tot b{font-family:var(--serif);font-size:13.5px;color:var(--ink)}
+ .sal-fasi-tot small{font-size:11px}
+ .sal-fasi-tot em{grid-column:1/-1;display:block;height:4px;border-radius:2px;background:var(--carta-3);overflow:hidden}
+ .sal-fasi-tot u{display:block;height:100%;text-decoration:none}
+ .sal-notte3{margin:4px 0 0}
+ .sal-notte3 b{font-size:17px}
+ .sal-asse{stroke:var(--filo);stroke-width:1}
+ .sal-rip{stroke:var(--ok);stroke-width:1.2;stroke-dasharray:4 3}
+ .sal-fc-l{fill:none;stroke:var(--err);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+ .sal-leg-st{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink-3);margin-top:4px}
+ .sal-leg-st i{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--st);margin-right:4px}
  .fc-in-reg{border-color:var(--err-f)}
  .fc-sporti{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
  .fc-sporti .mini{min-height:40px;padding:0 12px;font-size:14px}
@@ -365,6 +444,50 @@
  .fc-chip .ic{width:18px;height:18px;color:#f08a7a}
  .fc-chip.rec{border-color:#f08a7a}
  .fc-chip.rec .ic{animation:fc-pulsa 1s ease-in-out infinite alternate}
+ /* ── cardio come la palestra: scheda a riquadri, sottocategorie, percorso (1.9.0) ── */
+ .fc-card .ex-nm .fc-rec{margin-right:2px;vertical-align:2px}
+ .fc-tag-gps{display:inline-flex;align-items:center;gap:4px}
+ .fc-tag-gps .ic{width:13px;height:13px;vertical-align:0}
+ .fc-card .fc-sporti{margin:12px 0 2px}
+ .fc-sporti .mini .ic{width:15px;height:15px;color:var(--ink-4)}
+ .fc-sporti .mini.on .ic{color:var(--acc);fill:none}
+ .fc-riq{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 0}
+ .fc-riq .fld b{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--ink);line-height:1.3;font-variant-numeric:tabular-nums lining-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .fc-riq .fld b small{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--ink-3);margin-left:1px}
+ .fc-riq b.fc-bpm{font-size:22px;margin:0;line-height:1.3}
+ .fc-riq b.fc-bpm small{font-size:12px}
+ .fc-card .fc-zona{font-size:13px;margin-top:10px;min-height:0}
+ .fc-card .fc-zone{margin:6px 0 2px;max-width:none}
+ .fc-card #fc-conn .bil-stato{font-size:13px;color:var(--ink-3);margin-top:8px;min-height:0}
+ .fc-card #fc-conn .btn-lite{min-height:42px}
+ .fc-gps-seg{display:inline-flex;color:var(--ink-4);margin-right:8px}
+ .fc-gps-seg .ic{width:16px;height:16px}
+ .fc-perc .pick-title small{font-size:12px;text-align:right}
+ #fc-mappa{border-radius:var(--r-sm);background:var(--carta-2);border:1px solid var(--filo);overflow:hidden}
+ .fc-svg{display:block;width:100%;height:auto}
+ .fc-strada-o{fill:none;stroke:var(--carta);stroke-width:7.5;stroke-linecap:round;stroke-linejoin:round}
+ .fc-strada{fill:none;stroke:var(--acc);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+ .fc-via{fill:var(--ok);stroke:var(--carta);stroke-width:2.2}
+ .fc-qui{fill:var(--acc);stroke:var(--carta);stroke-width:2.2}
+ .fc-qui.viva{animation:fc-pulsa 1s ease-in-out infinite alternate}
+ .fc-scala{stroke:var(--ink-3);stroke-width:2;fill:none}
+ .fc-scala-t{font-family:var(--sans);font-size:10.5px;fill:var(--ink-3)}
+ .fc-mappa-f{fill:var(--carta-2)}
+ .fc-tess{filter:sepia(.28) saturate(.75) brightness(1.03)}
+ .fc-attr{font-family:var(--sans);font-size:8.5px;fill:var(--ink-3);paint-order:stroke;stroke:var(--carta);stroke-width:2.5px;stroke-linejoin:round}
+ .fc-scala-f{fill:var(--carta);opacity:.85}
+ .fc-mappa-vuota{display:flex;align-items:center;gap:12px;min-height:100px;padding:16px;color:var(--ink-3);font-size:13.5px;line-height:1.4}
+ .fc-mappa-vuota .ic{color:var(--ink-4);width:28px;height:28px}
+ .fc-prof-t{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);margin:10px 2px 2px;font-variant-numeric:tabular-nums}
+ .fc-prof-svg{height:64px}
+ .fc-prof-a{fill:var(--oro-t);opacity:.6}
+ .fc-prof-l{fill:none;stroke:var(--oro-2);stroke-width:1.6;vector-effect:non-scaling-stroke}
+ .fc-km{margin-top:6px}
+ .fc-km .bil-row{min-height:40px}
+ .fc-km .bil-row>span:nth-child(2){color:var(--ink-3);font-size:13px}
+ .fc-km-r{min-width:96px;text-align:right;font-family:var(--serif);font-weight:700;font-size:15px}
+ .fc-km-r small{font-family:var(--sans);font-weight:500;color:var(--ink-3);font-size:11.5px}
+ .sed-btn[disabled]{opacity:.5}
 
  /* ── zona della seduta: seconda riga della barra in alto (stessi colori e bordi della barra) ── */
  .barra{flex-wrap:wrap}
@@ -389,6 +512,7 @@
  .sed-riga{flex:1 0 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0 4px}
  .sed-riga p{flex:1 0 100%;margin:0;font-size:13.5px;color:#fdf3dc;line-height:1.4}
  .sed-riga p b{color:var(--oro)}
+ /* (le misure più compatte dell'APK 1.9.0 stanno in fondo al foglio, «STESSE MISURE OVUNQUE») */
  .sed-rpe{flex:1 0 100%;display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
  .sed-rpe button{height:40px;border:1px solid rgba(232,196,90,.38);border-radius:8px;background:rgba(255,255,255,.06);color:#fdf3dc;font-weight:700;font-variant-numeric:tabular-nums}
  .sed-rpe button.on{background:var(--oro);color:var(--brace);border-color:var(--oro)}
@@ -599,6 +723,71 @@
  .pip-rec{display:flex;align-items:center;gap:5px;font-family:var(--serif);font-size:24px;font-weight:700;color:var(--oro);font-variant-numeric:tabular-nums}
  .pip-rec .ic{width:18px;height:18px}
  .pip-t{font-size:13px;color:var(--oro-t);font-variant-numeric:tabular-nums}
+ /* ── STESSE MISURE OVUNQUE, UN PO' PIÙ COMPATTE (APK 1.9.0, 27/11/2026, Marco: «sistema un po' la UI dell'APK, icone
+       e blocchi leggermente più piccoli e stile unificato»). Colori, caratteri e forme (raggi degli angoli compresi)
+       restano quelli dell'app: cambiano solo le DIMENSIONI, circa un 10 % in meno, e sono le stesse in tutte le
+       schermate (menu, Palestra, Cardio, Salute, Bilancia, Alimentazione, Impostazioni). Questo blocco sta in fondo al
+       foglio e vale sopra le regole di prima. ── */
+ .ic{width:18px;height:18px;vertical-align:-3.5px}
+ .ic.p{width:15px;height:15px;vertical-align:-2.5px}
+ .ic.g{width:23px;height:23px}
+ main{padding:14px 14px calc(24px + env(safe-area-inset-bottom))}
+ .barra{min-height:52px;padding:6px 12px 6px 14px}
+ .barra h1{font-size:18px}
+ .barra-titolo{font-size:17px}
+ .barra-ind,.barra-btn,.fc-chip{height:36px}
+ .barra-ind{font-size:14px}
+ .barra-ind .ic{width:20px;height:20px}
+ .box,.seduta{padding:13px 14px;margin-bottom:10px}
+ .seduta{padding:4px 14px}
+ .bil-live,.fc-live{padding:18px 14px 14px}
+ .ex-row{padding:12px 13px 10px;margin-bottom:10px}
+ .days{gap:10px;margin-bottom:10px}
+ #days,#home-sport{margin-bottom:10px}
+ .pick-title{font-size:16px;margin:0 0 8px;gap:7px}
+ .pick-title .ic{width:17px;height:17px}
+ .ex-nm{font-size:17px}
+ .ex-sub{font-size:12.5px}
+ .macro-card{min-height:62px;padding:11px 13px 11px 14px;gap:12px}
+ .macro-ico{width:36px;height:36px}
+ .macro-ico .ic{width:20px;height:20px}
+ .macro-name{font-size:16px}
+ .macro-meta{font-size:12.5px}
+ .macro-card.eroe{min-height:84px;padding:15px 14px 15px 16px}
+ .macro-card.eroe .macro-ico{width:44px;height:44px}
+ .macro-card.eroe .macro-ico .ic{width:24px;height:24px}
+ .macro-card.eroe .macro-name{font-size:19px}
+ .chev .ic{width:18px;height:18px}
+ .day-card{min-height:60px;padding:10px 12px 10px 14px}
+ .day-name{font-size:16px}
+ .day-meta{font-size:12.5px}
+ .fasi{margin:0 0 12px;padding:3px}
+ .fasi button{height:36px;font-size:13.5px}
+ .fld{padding:6px 9px 5px}
+ .fld input{font-size:18px}
+ .fc-riq .fld b,.fc-riq b.fc-bpm{font-size:20px}
+ .mini,.vbtn{height:34px;padding:0 11px;font-size:13.5px}
+ .mini .ic,.vbtn .ic{width:15px;height:15px}
+ .mini.solo{width:34px}
+ .btn-big{min-height:48px;font-size:15px;margin:8px 0}
+ .btn-lite{min-height:42px;font-size:14px;margin:6px 0}
+ .imp-ico{width:34px;height:34px}
+ .imp-ico .ic{width:18px;height:18px}
+ .sed-fc{height:40px}
+ .sed-fc b{font-size:23px}
+ .sed-fc .ic{width:16px;height:16px}
+ .sed-tempo b{font-size:22px}
+ .sed-btn{height:40px;font-size:13.5px}
+ .fc-bpm{font-size:64px}
+ .bil-peso{font-size:54px}
+ .alim-sint{padding:15px 14px 12px}
+ .alim-kcal b{font-size:30px}
+ .foto-ico{width:40px;height:40px}
+ .foto-ico .ic{width:20px;height:20px}
+ .add-ex{height:46px}
+ .sez-nota{margin:0 2px 8px;font-size:13px}
+ .ciao{margin:2px 2px 12px}
+ .ciao h2{font-size:22px}
 </style>
 </head>
 <body data-schermo="menu">
@@ -639,6 +828,8 @@
   <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.8" y="5.2" width="16.4" height="15" rx="2.2"/><path d="M3.8 9.8h16.4M8.2 3.4v3.4M15.8 3.4v3.4"/></symbol>
   <symbol id="i-fiamma" viewBox="0 0 24 24"><path d="M12 21c3.5 0 6-2.5 6-5.8 0-3.6-2.6-5.5-3.6-8.6-.7 1.6-1.6 2.6-2.6 3.1-.1-2.8-1.3-5.2-3.2-6.7.2 3.2-3.1 6.2-3.1 10.2C5.5 18.5 8.3 21 12 21z"/></symbol>
   <symbol id="i-cuore" viewBox="0 0 24 24"><path d="M12 20.2s-7.6-4.6-7.6-10.4A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.6 2.6c0 5.8-7.6 10.4-7.6 10.4z"/><path d="M6 12.4h3.2l1.6-2.8 2.4 5.2 1.6-2.4H18"/></symbol>
+  <symbol id="i-posizione" viewBox="0 0 24 24"><path d="M12 21s-6.5-6.1-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.9 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.4"/></symbol>
+  <symbol id="i-passi" viewBox="0 0 24 24"><path d="M8.2 13.6c-1.7.2-2.9-1.6-3-4.1-.1-2.6.8-4.6 2.4-4.7 1.6-.1 2.6 1.9 2.7 4.4.1 1.6-.4 4.2-2.1 4.4zM6.4 16.2l3.4-.4c.4 1.6-.1 3.2-1.5 3.4-1.4.1-1.9-1.4-1.9-3z"/><path d="M15.8 10.6c1.7.2 2.9-1.6 3-4.1.1-2.6-.8-4.6-2.4-4.7-1.6-.1-2.6 1.9-2.7 4.4-.1 1.6.4 4.2 2.1 4.4zM17.6 13.2l-3.4-.4c-.4 1.6.1 3.2 1.5 3.4 1.4.1 1.9-1.4 1.9-3z"/></symbol>
 </defs></svg>
 
 <header class="barra" id="barra">
@@ -674,7 +865,7 @@
     <button type="button" class="btn-lite quieto" id="ben-imp"><svg class="ic"><use href="#i-ingranaggio"/></svg><span data-i18n>Impostazioni</span></button>
   </div>
   <div id="col-avvisi-ben"></div>
-  <div class="privacy"><svg class="ic"><use href="#i-lucchetto"/></svg><span data-i18n-html>Scheda, allenamenti, pesate e foto passano dall’hub del TMS solo <b>cifrati</b> col tuo codice: l’hub non li può leggere e non li tiene, lo storico sta sul PC del tuo personal. L’app chiede a GitHub soltanto se c’è una versione nuova. Funziona anche offline.</span></div>
+  <div class="privacy"><svg class="ic"><use href="#i-lucchetto"/></svg><span data-i18n-html>Scheda, allenamenti, pesate e foto passano dall’hub del TMS solo <b>cifrati</b> col tuo codice: l’hub non li può leggere e non li tiene, lo storico sta sul PC del tuo personal. L’app chiede a GitHub soltanto se c’è una versione nuova e, quando guardi un percorso all’aperto, scarica da OpenStreetMap la mappa di quella zona. Funziona anche offline.</span></div>
   <div class="install" id="install-hint" hidden></div>
 </div>
 
@@ -725,7 +916,7 @@
     <div id="bozza-stato"></div>
   </div>
   <div id="home-c" hidden>
-    <p class="sez-nota" data-i18n>Scegli lo sport: poi avvii la registrazione.</p>
+    <p class="sez-nota" data-i18n>Scegli la disciplina: poi il tipo, e avvii la registrazione.</p>
     <div class="days" id="home-sport"></div>
   </div>
 </div>
@@ -755,25 +946,43 @@
        stesso stile, dove prima si sceglie lo sport e poi si fa partire la registrazione»). Battito in diretta dalla
        fascia collegata (si sceglie in Impostazioni); la seduta resta sul telefono e va da sola al TMS, nel tab Cardio. ── -->
 <div id="fc" hidden>
-  <p class="sez-nota" id="fc-chi"></p>
-  <div class="box fc-live"><div class="fc-bpm" id="fc-bpm">—</div>
-    <div class="fc-zona" id="fc-zona"></div><div class="fc-zone" id="fc-zone"></div><div id="fc-conn"></div></div>
-  <div id="fc-reg"></div>
-  <div class="box"><div class="pick-title" data-i18n>Le tue sedute</div><div id="fc-lista"></div></div>
-  <div class="fine" data-i18n-html>Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio. Il battito c’è se colleghi una <b>fascia cardio</b> (Impostazioni).</div>
+  <!-- 27/11/2026, Marco: «unifica visivamente la sezione cardio alla sezione palestra»: come un giorno della scheda,
+       la fascia scura in alto (tempo, Avvia/Fine, fatica) e le linguette; la disciplina è una scheda a riquadri -->
+  <div class="fasi" id="fc-fasi"><button type="button" data-ff="a" class="on" data-i18n>Attività</button><button type="button" data-ff="s" data-i18n>Le tue sedute</button></div>
+  <div id="fc-att">
+    <div class="ex-row fc-card" id="fc-card"></div>
+    <div id="fc-gps"></div>
+    <div id="fc-reg"></div>
+    <p class="sez-nota" id="fc-chi"></p>
+    <div class="fine" data-i18n-html>Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio. Il battito c’è se colleghi una <b>fascia cardio</b> (Impostazioni); il percorso c’è nelle attività <b>all’aperto</b>, col GPS del telefono, sulla mappa di OpenStreetMap (serve internet).</div>
+  </div>
+  <div id="fc-sed" hidden>
+    <div class="box"><div class="pick-title" data-i18n>Le tue sedute</div><div id="fc-lista"></div></div>
+  </div>
 </div>
 
 <!-- ── schermata SALUTE (APK 1.8.1, 27/11/2026, Marco: «i dati in tempo reale presi dalla band, e il sonno solo del
        giorno stesso, ultimo riposo»): battito adesso, passi di oggi, batteria e ultime misure del bracciale; l'ultimo
        riposo. I dati restano sul telefono; lo storico sta sul PC (Corpo › Recupero). ── -->
 <div id="sal" hidden>
-  <div class="box fc-live"><div class="bil-stato" id="sal-conn"></div><div class="fc-bpm" id="sal-bpm">—</div><div class="fc-zona" id="sal-zona"></div>
-    <div class="fc-tre" id="sal-tre"></div></div>
-  <div class="box"><div class="pick-title" data-i18n>Ultime misure</div><div id="sal-misure"></div></div>
-  <div class="box"><div class="pick-title" data-i18n>Ultimo riposo</div><div id="sal-sonno"></div></div>
+  <!-- 27/11/2026, Marco: «migliora la sezione salute, più simile a quelle professionali, con grafici e visualizzazioni
+       cromatiche degli stati e della qualità delle varie misure; aggiungi il contatore dei passi e il target giornaliero» -->
+  <div class="box sal-ora">
+    <div class="sal-ora-r"><span class="sal-pill" id="sal-conn"></span><span class="sal-batt" id="sal-batt"></span></div>
+    <div class="sal-ora-g">
+      <div class="sal-hr"><div class="fc-bpm" id="sal-bpm">—</div><div class="fc-zona" id="sal-zona"></div><div class="fc-zone" id="sal-zone"></div></div>
+      <div class="sal-passi" id="sal-tre"></div>
+    </div>
+    <div id="sal-obi"></div>
+  </div>
+  <div class="box"><div class="pick-title"><svg class="ic"><use href="#i-passi"/></svg><span data-i18n>Passi, ultimi 7 giorni</span></div><div id="sal-sett"></div></div>
+  <div class="box"><div class="pick-title"><svg class="ic"><use href="#i-cuore"/></svg><span data-i18n>Recupero</span><small id="sal-rec-n"></small></div><div id="sal-misure"></div></div>
+  <div class="box"><div class="pick-title"><svg class="ic"><use href="#i-calendario"/></svg><span data-i18n>Ultimo riposo</span></div><div id="sal-sonno"></div></div>
+  <div class="box" id="sal-fc-box" hidden><div class="pick-title"><svg class="ic"><use href="#i-cuore"/></svg><span data-i18n>Battito di oggi</span><small id="sal-fc-n"></small></div><div id="sal-fc"></div></div>
+  <div class="box" id="sal-st-box" hidden><div class="pick-title"><svg class="ic"><use href="#i-fiamma"/></svg><span data-i18n>Stress di oggi</span><small id="sal-st-n"></small></div><div id="sal-st"></div></div>
   <button type="button" class="btn-big" id="sal-aggiorna" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Aggiorna</span></button>
   <div class="bil-stato" id="sal-stato"></div>
-  <div class="fine" data-i18n-html>I dati restano su <b>questo telefono</b>; al PC del tuo personal vanno il sonno e il riassunto di ogni giorno (Corpo › Recupero).</div>
+  <div class="fine" data-i18n-html>I colori confrontano ogni misura col <b>tuo solito</b> (le ultime due settimane): <b>verde</b> nella norma, <b>ocra</b> da tenere d’occhio, <b>rosso</b> lontano dal solito. I dati restano su <b>questo telefono</b>; al PC del tuo personal vanno il sonno e il riassunto di ogni giorno (Corpo › Recupero).</div>
 </div>
 
 <!-- ── schermata COLLEGAMENTO E PROMEMORIA (solo nell'APK): codice che dà il personal (l'hub del TMS
@@ -820,6 +1029,7 @@
     <button type="button" class="btn-big" id="zp-sinc" hidden><svg class="ic"><use href="#i-ricarica"/></svg><span data-i18n>Sincronizza</span></button>
     <button type="button" class="btn-lite" id="zp-prova"><svg class="ic"><use href="#i-link"/></svg><span data-i18n>Prova collegamento</span></button>
     <button type="button" class="btn-lite quieto" id="zp-togli" hidden data-i18n>Togli la chiave</button>
+    <details class="zp-diag" id="zp-diag" hidden><summary data-i18n>Dettagli tecnici dell’ultimo collegamento</summary><pre id="zp-diag-testo"></pre><button type="button" class="btn-lite quieto" id="zp-diag-copia" data-i18n>Copia i dettagli</button></details>
     </div>
   </div>
   <div class="box imp-box" id="sempre-box" hidden>
@@ -912,7 +1122,7 @@
    ✅ fine (RPE, durata). Persistenza: scheda in IndexedDB (i video base64 possono pesare) con
    fallback localStorage; i campi in localStorage. I dati passano solo dall'hub del TMS, cifrati col codice del cliente
    (a GitHub si chiede solo se c'è un APK nuovo). */
-const CVER='4.7';
+const CVER='5.0';
 document.getElementById('cver').textContent='v'+CVER;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1076,7 +1286,7 @@ const TT={en:{
   "Il collegamento c’è nell’app Android «TMS Scheda».":"The link is in the «TMS Scheda» Android app.",
   "Questa app è il <b>taccuino digitale</b> del <b>Training Monitor System</b>: la scheda e la dieta <b>si creano nel TMS sul PC</b> e arrivano qui da sole; in palestra annoti quello che fai, e torna al PC da solo.":"This app is the <b>digital notebook</b> of the <b>Training Monitor System</b>: program and diet <b>are created in the TMS on the PC</b> and arrive here by themselves; at the gym you log what you do, and it goes back to the PC by itself.",
   "Per cominciare <b>collega l’app al TMS del tuo personal</b>: basta il <b>codice</b> che ti dà lui (nel suo TMS, ⚙ Impostazioni › Telefono collegato).":"To start, <b>link the app to your personal trainer’s TMS</b>: all you need is the <b>code</b> they give you (in their TMS, ⚙ Settings › Linked phone).",
-  "Scheda, allenamenti, pesate e foto passano dall’hub del TMS solo <b>cifrati</b> col tuo codice: l’hub non li può leggere e non li tiene, lo storico sta sul PC del tuo personal. L’app chiede a GitHub soltanto se c’è una versione nuova. Funziona anche offline.":"Program, workouts, weigh-ins and photos go through the TMS hub only <b>encrypted</b> with your code: the hub can’t read them and doesn’t keep them, the history is on your personal trainer’s PC. The app only asks GitHub whether there is a new version. It works offline too.",
+  "Scheda, allenamenti, pesate e foto passano dall’hub del TMS solo <b>cifrati</b> col tuo codice: l’hub non li può leggere e non li tiene, lo storico sta sul PC del tuo personal. L’app chiede a GitHub soltanto se c’è una versione nuova e, quando guardi un percorso all’aperto, scarica da OpenStreetMap la mappa di quella zona. Funziona anche offline.":"Program, workouts, weigh-ins and photos go through the TMS hub only <b>encrypted</b> with your code: the hub can’t read them and doesn’t keep them, the history is on your personal trainer’s PC. The app only asks GitHub whether there is a new version and, when you look at an outdoor route, downloads the map of that area from OpenStreetMap. It works offline too.",
   "Scatta o scegli una foto per ogni vista: arrivano da sole sul PC, nel <b>tuo storico foto</b> (tab Corpo).":"Take or choose a photo for each view: they reach the PC by themselves, in <b>your photo history</b> (Body tab).",
   "Le pesate restano su <b>questo telefono</b> e arrivano da sole sul PC: nel TMS la media di ogni settimana va da sola nello Storico misure.":"Weigh-ins stay on <b>this phone</b> and reach the PC by themselves: in the TMS each week's average goes by itself into the measurement History.",
   "al PC":"on PC",
@@ -1266,7 +1476,7 @@ const TT={en:{
   'Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio. Il battito c’è se colleghi una <b>fascia cardio</b> (Impostazioni).':'Sessions stay on <b>this phone</b> and reach the PC by themselves, in the Cardio tab. The heart rate is there if you connect a <b>heart rate strap</b> (Settings).',
   'Va con le <b>fasce cardio Bluetooth</b> (Polar, Garmin, Wahoo…) e coi bracciali che condividono il battito (Amazfit Helio Strap con «Heart Rate Push» acceso in Zepp).':'Works with <b>Bluetooth heart rate straps</b> (Polar, Garmin, Wahoo…) and with bands that share the heart rate (Amazfit Helio Strap with “Heart Rate Push” on in Zepp).',
   /* Allenamento: Palestra o Cardio (27/11/2026) */
-  'Allenamento':'Training', 'Palestra':'Gym', 'Scegli lo sport: poi avvii la registrazione.':'Pick the sport: then you start recording.',
+  'Allenamento':'Training', 'Palestra':'Gym', 'Scegli la disciplina: poi il tipo, e avvii la registrazione.':'Pick the discipline: then the type, and start recording.',
   /* bracciale con la chiave (27/11/2026) */
   'Bracciale (Amazfit Helio Strap)':'Band (Amazfit Helio Strap)',
   'Con la <b>chiave del bracciale</b> l’app apre un collegamento cifrato col bracciale, come fa Zepp. La chiave resta <b>solo su questo telefono</b>: non va al tuo personal, né su internet. Zepp va chiuso mentre l’app usa il bracciale.':'With the <b>band’s key</b> the app opens an encrypted link with the band, like Zepp does. The key stays <b>only on this phone</b>: it doesn’t go to your coach or to the internet. Zepp must be closed while the app uses the band.',
@@ -1282,7 +1492,11 @@ const TT={en:{
   'Il bracciale ha rifiutato il collegamento. Chiudi Zepp e riprova.':'The band refused the link. Close Zepp and try again.',
   'Non trovo il bracciale. Tienilo vicino al telefono; se Zepp è aperto, chiudilo (Impostazioni del telefono › App › Zepp › Arresto forzato): il bracciale accetta un collegamento alla volta.':'Can’t find the band. Keep it near the phone; if Zepp is open, close it (phone Settings › Apps › Zepp › Force stop): the band accepts one link at a time.',
   'Il bracciale non risponde: avvicinalo al telefono e riprova.':'The band doesn’t answer: bring it closer to the phone and try again.',
-  'Il bracciale non risponde al collegamento cifrato. Chiudi Zepp (Arresto forzato) e riprova.':'The band doesn’t answer the encrypted link. Close Zepp (Force stop) and try again.',
+  'Il bracciale non risponde al collegamento cifrato. Chiudi Zepp (Arresto forzato) e riprova; se succede ancora, copia i «Dettagli tecnici» qui sotto e mandali a chi ti segue.':'The band doesn’t answer the encrypted link. Close Zepp (Force stop) and try again; if it happens again, copy the “Technical details” below and send them to whoever follows you.',
+  'Il bracciale è collegato ma non risponde all’app. Chiudi Zepp (Impostazioni del telefono › App › Zepp › Arresto forzato), spegni e riaccendi il Bluetooth e riprova.':'The band is connected but doesn’t answer the app. Close Zepp (phone Settings › Apps › Zepp › Force stop), turn Bluetooth off and on again and try again.',
+  'Il bracciale chiede di essere abbinato di nuovo: abbinalo in Zepp, prendi la chiave nuova e incollala qui.':'The band asks to be paired again: pair it in Zepp, get the new key and paste it here.',
+  'Dettagli tecnici dell’ultimo collegamento':'Technical details of the last connection', 'Copia i dettagli':'Copy the details', 'Dettagli copiati.':'Details copied.',
+  'Copia non riuscita: tieni premuto sul testo per selezionarlo.':'Copy failed: press and hold the text to select it.',
   'Il bracciale non lascia aprire il canale: chiudi Zepp e riprova.':'The band won’t open the channel: close Zepp and try again.',
   'Chiudi prima la registrazione o la seduta in corso: il bracciale serve a quella.':'Close the recording or session in progress first: the band is busy with it.',
   'Il bracciale ha risposto in un modo che non conosco: forse il firmware è cambiato.':'The band answered in a way I don’t know: maybe the firmware changed.',
@@ -1308,6 +1522,31 @@ const TT={en:{
   'Per non perdere il battito con lo schermo spento, durante la seduta Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti».':'To keep the heart rate with the screen off, Android must let the app work during the session. In the next window tap “Allow”.',
   'Per restare collegata al bracciale anche con l’app chiusa e lo schermo spento, Android deve lasciare lavorare l’app. Nella prossima finestra tocca «Consenti».':'To stay connected to the band with the app closed and the screen off, Android must let the app work. In the next window tap “Allow”.',
   'Sto già sincronizzando in sottofondo: riprova fra un minuto.':'Already syncing in the background: try again in a minute.',
+  /* cardio come la palestra, discipline e sottocategorie, GPS (1.9.0) */
+  'Camminata':'Walking', 'All’aperto':'Outdoor', 'Pista':'Track', 'Trail':'Trail', 'Escursione':'Hiking', 'Strada':'Road', 'Mountain bike':'Mountain bike',
+  'Gravel':'Gravel', 'Spinning':'Spinning', 'Piscina':'Pool', 'Acque libere':'Open water', 'Al chiuso':'Indoor', 'Canottaggio':'Rowing on water',
+  'Sulla neve':'On snow', 'Skierg':'SkiErg', 'Avvia':'Start', 'in corso':'in progress', 'finita':'finished', 'da salvare':'to save',
+  'Sì, annulla la registrazione':'Yes, cancel the recording', 'Sì, butta via':'Yes, discard', 'Fatica (RPE)':'Effort (RPE)',
+  'C’è una seduta coi pesi aperta: chiudila per registrare il cardio.':'A weights session is open: close it to record cardio.',
+  'Tempo':'Time', 'Battito':'Heart rate', 'Picco':'Peak', 'Distanza':'Distance', 'Dislivello +':'Elevation gain', 'In movimento':'Moving time',
+  'Velocità':'Speed', 'Passo':'Pace', 'Percorso':'Route', 'Quota':'Elevation', 'min':'min', 'Menu':'Menu',
+  'il GPS si accende con «Avvia»':'GPS turns on with “Start”', 'senza il permesso della posizione: niente percorso':'no location permission: no route',
+  'Posizione del telefono spenta: accendila':'Phone location is off: turn it on', 'cerco il segnale GPS…':'looking for GPS signal…',
+  'GPS ok':'GPS ok', 'segnale debole':'weak signal', 'barometro':'barometer',
+  'Il percorso compare qui appena il GPS trova il segnale.':'The route shows up here as soon as the GPS finds the signal.',
+  'Qui vedrai il percorso sulla mappa, la distanza, il dislivello e il passo.':'Here you’ll see the route on the map, distance, elevation gain and pace.',
+  '© collaboratori di OpenStreetMap':'© OpenStreetMap contributors',
+  'Scegli la disciplina: poi il tipo, e avvii la registrazione.':'Pick the discipline: then the type, and start recording.',
+  'Le sedute restano su <b>questo telefono</b> e arrivano da sole sul PC, nel tab Cardio. Il battito c’è se colleghi una <b>fascia cardio</b> (Impostazioni); il percorso c’è nelle attività <b>all’aperto</b>, col GPS del telefono, sulla mappa di OpenStreetMap (serve internet).':'Sessions stay on <b>this phone</b> and reach the PC by themselves, in the Cardio tab. Heart rate is there if you link a <b>heart rate strap</b> (Settings); the route is there for <b>outdoor</b> activities, with the phone’s GPS, on the OpenStreetMap map (needs internet).',
+  /* salute professionale, passi e obiettivo (1.9.0) */
+  'Passi, ultimi 7 giorni':'Steps, last 7 days', 'Battito di oggi':'Today’s heart rate', 'Stress di oggi':'Today’s stress', 'passi':'steps', 'di':'of',
+  'buona':'good', 'un po’ bassa':'a bit low', 'bassa':'low', 'rilassato':'relaxed', 'normale':'normal', 'medio':'medium', 'alto':'high',
+  'nella norma':'normal', 'da tenere d’occhio':'keep an eye on it', 'serve qualche giorno':'needs a few days', 'sopra il solito':'above usual',
+  'un po’ basso':'a bit low', 'basso':'low', 'un po’ alto':'a bit high', 'diversa dal solito':'different from usual', 'lontana dal solito':'far from usual',
+  'ieri':'yesterday', 'buono':'good', 'discreto':'fair', 'scarso':'poor', 'Ancora nessun passo scaricato dal bracciale.':'No steps downloaded from the band yet.',
+  'media':'average', 'obiettivo raggiunto':'goal reached', 'minimo':'min', 'massimo':'max', 'a riposo':'resting', 'battito adesso':'heart rate now',
+  'in diretta':'live', 'aggiornati alle':'updated at', 'Obiettivo':'Goal', 'HRV':'HRV',
+  'I colori confrontano ogni misura col <b>tuo solito</b> (le ultime due settimane): <b>verde</b> nella norma, <b>ocra</b> da tenere d’occhio, <b>rosso</b> lontano dal solito. I dati restano su <b>questo telefono</b>; al PC del tuo personal vanno il sonno e il riassunto di ogni giorno (Corpo › Recupero).':'The colours compare each reading with <b>your usual</b> (the last two weeks): <b>green</b> normal, <b>ochre</b> keep an eye on it, <b>red</b> far from usual. The data stay on <b>this phone</b>; your coach’s PC gets the sleep and a summary of each day (Body › Recovery).',
   /* salute (1.8.1) */
   'Salute':'Health', 'battito, passi e ultimo riposo':'heart rate, steps and last rest', 'Ultime misure':'Latest readings', 'Ultimo riposo':'Last rest', 'Aggiorna':'Refresh',
   'I dati restano su <b>questo telefono</b>; al PC del tuo personal vanno il sonno e il riassunto di ogni giorno (Corpo › Recupero).':'The data stay on <b>this phone</b>; your coach’s PC gets the sleep and a summary of each day (Body › Recovery).',
@@ -2164,6 +2403,33 @@ const FC_NOMI=/polar|hrm|heart|helio|amazfit|tickr|wahoo|garmin|coospo|magene|su
 const FC_ZONE=[[0.5,'Zona 1','molto leggera'],[0.6,'Zona 2','leggera'],[0.7,'Zona 3','moderata'],[0.8,'Zona 4','intensa'],[0.9,'Zona 5','massimale']];
 /* gli sport sono gli stessi del tab Cardio del TMS (il nome italiano è il dato, tradotto solo a schermo) */
 const FC_SPORT=['Corsa','Tapis roulant','Camminata veloce','Bici','Cyclette','Nuoto','Vogatore','Ellittica','Sci di fondo','Salto della corda','HIIT'];
+/* DISCIPLINE e SOTTOCATEGORIE (27/11/2026, Marco: «quando clicco su una disciplina tipo bici, si apre la pagina
+   dell'inizio della registrazione con solo la selezione delle sottocategorie, tipo cyclette, all'aperto…»).
+   Allenamento › Cardio elenca le discipline; aprendone una si sceglie solo fra le sue varianti. Ogni variante:
+   [nome a schermo, sport del tab Cardio del TMS (il dato che va al PC), GPS (1 = all'aperto: percorso, distanza,
+   dislivello)]. La variante va al PC accanto allo sport (campo «variante»). */
+const FC_DISC=[
+  {n:'Corsa', v:[['All’aperto','Corsa',1], ['Tapis roulant','Tapis roulant',0], ['Pista','Corsa',1], ['Trail','Corsa',1]]},
+  {n:'Camminata', v:[['All’aperto','Camminata veloce',1], ['Escursione','Camminata veloce',1], ['Tapis roulant','Tapis roulant',0]]},
+  {n:'Bici', v:[['Strada','Bici',1], ['Mountain bike','Bici',1], ['Gravel','Bici',1], ['Cyclette','Cyclette',0], ['Spinning','Cyclette',0]]},
+  {n:'Nuoto', v:[['Piscina','Nuoto',0], ['Acque libere','Nuoto',1]]},
+  {n:'Vogatore', v:[['Al chiuso','Vogatore',0], ['Canottaggio','Vogatore',1]]},
+  {n:'Ellittica', v:[['Ellittica','Ellittica',0]]},
+  {n:'Sci di fondo', v:[['Sulla neve','Sci di fondo',1], ['Skierg','Sci di fondo',0]]},
+  {n:'Salto della corda', v:[['Salto della corda','Salto della corda',0]]},
+  {n:'HIIT', v:[['HIIT','HIIT',0]]},
+  {n:'Altro', v:[['Al chiuso','Altro',0], ['All’aperto','Altro',1]]}];
+/* la disciplina di uno sport del TMS (le sedute registrate prima delle discipline hanno solo lo sport) */
+function fcDiscDi(s){ if(s && s.disc) return s.disc; const t=s && s.tipo;
+  const d=FC_DISC.find(x=>x.n===t) || FC_DISC.find(x=>x.v.some(v=>v[1]===t)); return d? d.n : 'Altro'; }
+function fcDiscOgg(n){ return FC_DISC.find(d=>d.n===n) || FC_DISC[0]; }
+function fcVarMappa(){ try{ return JSON.parse(localStorage.getItem('tms-fc-var')||'{}')||{}; }catch(e){ return {}; } }
+/* la variante scelta per una disciplina (la si ricorda): [nome, sport del TMS, GPS] */
+function fcVarDi(n){ const d=fcDiscOgg(n), k=+fcVarMappa()[d.n]||0; return d.v[k]||d.v[0]; }
+function fcVarScegli(n, k){ const m=fcVarMappa(); m[n]=k; try{ localStorage.setItem('tms-fc-var', JSON.stringify(m)); }catch(e){} }
+function fcDiscCorrente(){ if(FC.reg) return fcDiscDi(FC.reg); if(FC.chiudi) return fcDiscDi(FC.chiudi);
+  if(FC.disc) return FC.disc; try{ const x=localStorage.getItem('tms-fc-disc'); if(x && FC_DISC.some(d=>d.n===x)) return x; }catch(e){}
+  return FC.sport? fcDiscDi({tipo:FC.sport}) : 'Corsa'; }
 const FC={voluto:false, riprendi:false, id:'', nome:'', collegando:false, cercando:false, cercaDa:0, trovati:[], stato:'', motivo:'', msg:'',
   bpm:null, contatto:null, rr:false, ultimoBuono:0, dalCollegamento:0, gen:0, timer:null, reg:null, bozzaT:0, chiudi:null, scarta:false, togli:'', lock:null, sport:''};
 let SEDUTE_FC=[];
@@ -2289,13 +2555,20 @@ function fcTic(){
   fcRenderReg(true); }
 
 /* — registrazione: campioni raccolti in secchielli di 5 secondi — */
-function fcSportScelto(){ return FC.sport || (()=>{ try{ return localStorage.getItem('tms-fc-sport')||''; }catch(e){ return ''; } })() || 'Corsa'; }
-function fcRegistra(){
+/* lo sport del TMS della variante scelta nella disciplina aperta (è il dato che va al PC) */
+function fcSportScelto(){ return fcVarDi(fcDiscCorrente())[1]; }
+async function fcRegistra(){
+  if(FC.reg || FC.chiudi || SED.s || FC.avvio) return;
+  const disc=fcDiscCorrente(), v=fcVarDi(disc);
+  /* all'aperto: prima il permesso della posizione (Android lo chiede una volta); senza, si registra senza percorso */
+  let gps=!!v[2]; GPS.stato='';
+  if(gps){ FC.avvio=true; sedZona(); const ok=await gpsPermesso(); FC.avvio=false; if(!ok){ gps=false; GPS.stato='negato'; } }
   if(FC.reg || FC.chiudi || SED.s) return;
   const ora=Date.now();
-  FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}, tipo:fcSportScelto()}; FC.annulla=false;
-  FC.bozzaT=0; fcSalvaBozza(true); fcSchermo(true);
-  renderFc(); fcAggiornaMenu(); natAggiorna(); }
+  FC.reg={inizio:ora, ultimo:ora, picco:0, secchi:{}, tipo:v[1], disc:disc, variante:v[0], gps:gps? gpsTraccia() : null}; FC.annulla=false;
+  FC.bozzaT=0; fcSalvaBozza(true); fcSchermo(true); fcTicReg(true);
+  renderFc(); fcAggiornaMenu(); natAggiorna();
+  if(FC.reg && FC.reg.gps) gpsAvvia(); }
 function fcCampione(ora, bpm){
   const r=FC.reg, k=Math.floor((ora-r.inizio)/1000/FC_PASSO); if(k<0) return;
   const s=r.secchi[k]||(r.secchi[k]=[0,0]); s[0]+=bpm; s[1]++;
@@ -2312,33 +2585,39 @@ function fcComponi(r, fine, nome){
     if(x && x[1]){ const v=Math.round(x[0]/x[1]); fc.push(v); s+=v; c++; } else fc.push(null); }
   while(fc.length && fc[fc.length-1]==null) fc.pop();
   const d=new Date(r.inizio);
-  return {data:dataLoc(d), ora:oraLoc(d), durataSec:Math.max(0, Math.round((fine-r.inizio)/1000)),
-    fcMedia:c? Math.round(s/c) : null, fcPicco:r.picco||null, fc:fc, passo:FC_PASSO, dispositivo:nome||'', tipo:r.tipo||''}; }
+  const out={data:dataLoc(d), ora:oraLoc(d), durataSec:Math.max(0, Math.round((fine-r.inizio)/1000)),
+    fcMedia:c? Math.round(s/c) : null, fcPicco:r.picco||null, fc:fc, passo:FC_PASSO, dispositivo:nome||'', tipo:r.tipo||'',
+    disc:r.disc||'', variante:r.variante||''};
+  if(r.gps) Object.assign(out, gpsRiassunto(r.gps, r.inizio));
+  return out; }
 async function fcFine(){
   const r=FC.reg; if(!r) return;
   const fine=Date.now();
   await natRecupera();   /* i battiti presi dal servizio a schermo spento entrano prima di chiudere */
+  if(r.gps) await gpsLeggi();   /* e le ultime posizioni del GPS */
   if(FC.reg!==r) return;
-  FC.reg=null; FC.chiudi=fcComponi(r, fine, FC.nome); FC.scarta=false;
+  FC.reg=null; FC.chiudi=fcComponi(r, fine, FC.nome); FC.scarta=false; FC.rpe=null; gpsFerma(); fcTicReg(false);
   fcScriviKv(fcBozzaKey(), {chiudi:FC.chiudi}); fcSchermo(false);
   renderFc(); fcAggiornaMenu(); natAggiorna(); }
 async function fcSalvaSeduta(){
   const c=FC.chiudi; if(!c) return;
-  const rp=$('fc-rpe'), tipo=c.tipo||fcSportScelto(), rpe=rp? rp.value : '';
+  const tipo=c.tipo||fcSportScelto();
   FC.sport=tipo; try{ localStorage.setItem('tms-fc-sport', tipo); }catch(e){}
   const s={id:c.data+'T'+c.ora+'|fc', data:c.data, ora:c.ora, tipo:tipo, durata:Math.max(1, Math.round(c.durataSec/60)),
-    rpe:(rpe===''? '' : +rpe), fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo, dispositivo:c.dispositivo||''};
+    rpe:(FC.rpe==null? '' : +FC.rpe), fcMedia:c.fcMedia, fcPicco:c.fcPicco, fc:c.fc, fcPasso:c.passo, dispositivo:c.dispositivo||''};
+  if(c.disc) s.disc=c.disc; if(c.variante) s.variante=c.variante;
+  ['distanza','quota','discesa','tempoMov','percorso','parziali'].forEach(k=>{ if(c[k]!=null) s[k]=c[k]; });
   if(!SEDUTE_FC.some(x=>x.id===s.id)) SEDUTE_FC.push(s);
-  FC.chiudi=null; FC.scarta=false;
+  FC.chiudi=null; FC.scarta=false; FC.rpe=null;
   await fcSalva(); await fcScriviKv(fcBozzaKey(), null);
   try{ if(navigator.vibrate) navigator.vibrate(80); }catch(e){}
   renderFc(); fcAggiornaMenu(); colPresto(); }
 /* «annulla registrazione»: avviata per sbaglio, non si salva niente */
-async function fcAnnullaReg(){ if(!FC.reg) return; FC.reg=null; FC.annulla=false; fcSchermo(false);
+async function fcAnnullaReg(){ if(!FC.reg) return; FC.reg=null; FC.annulla=false; fcSchermo(false); gpsFerma(); fcTicReg(false);
   await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); natAggiorna(); }
 /* «Collega la fascia» (pagina Cardio, zona della seduta): quella ricordata si cerca subito, altrimenti si sceglie in Impostazioni */
 function fcCollegaDa(){ if(!window.tmsBLE) return; if(fcIdNoto()){ fcAvvia(); return; } colApri(); fcAvvia(); }
-async function fcScartaSeduta(){ FC.chiudi=null; FC.scarta=false; await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); }
+async function fcScartaSeduta(){ FC.chiudi=null; FC.scarta=false; FC.rpe=null; await fcScriviKv(fcBozzaKey(), null); renderFc(); fcAggiornaMenu(); }
 /* schermo acceso durante la registrazione (se il telefono lo permette): con lo schermo spento Android
    può fermare la pagina e il battito di quei minuti mancherebbe */
 function fcSchermo(on){
@@ -2347,9 +2626,12 @@ function fcSchermo(on){
   try{ if(navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen').then(l=>{ if(FC.reg) FC.lock=l; else { try{ l.release(); }catch(e){} } }).catch(()=>{}); }catch(e){} }
 /* app in secondo piano / di nuovo davanti */
 function fcVisibilita(nascosta){
-  if(nascosta){ if(!FC.reg && !SED.s && (FC.id || FC.cercando || FC.collegando)){ FC.riprendi=true; fcScollega(); } return; }
+  if(nascosta){ try{ salLiveFerma(); }catch(e){}   /* i passi in diretta solo con la Salute davanti */
+    if(!FC.reg && !SED.s && (FC.id || FC.cercando || FC.collegando)){ FC.riprendi=true; fcScollega(); } return; }
+  try{ if($('sal') && !$('sal').hidden) setTimeout(()=>{ if(!$('sal').hidden) salLiveAvvia(); }, 600); }catch(e){}
   if(SED.s){ sedControlla(); sedZona(); }
   natRecupera().then(n=>{ if(n){ try{ renderFc(); sedZona(); }catch(e){} } });
+  if(FC.reg && FC.reg.gps) gpsLeggi().then(()=>{ try{ fcAggiornaGps(); gpsDisegna(); }catch(e){} });
   if(FC.reg) fcSchermo(true);
   if(FC.riprendi){ FC.riprendi=false; fcAvvia(); } }
 
@@ -2412,43 +2694,286 @@ function fcRenderTrovati(){
 const fcDur=sec=>{ sec=Math.max(0,Math.round(sec)); const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60, z=n=>String(n).padStart(2,'0');
   return (h? h+':'+z(m) : m)+':'+z(s); };
 function fcMediaReg(r){ let s=0, c=0; Object.keys(r.secchi).forEach(k=>{ const x=r.secchi[k]; if(x[1]){ s+=x[0]/x[1]; c++; } }); return c? Math.round(s/c) : null; }
-/* riquadro della registrazione: «Registra» · tempo, media, picco e «Fine» · «Com'è andata?» */
+/* ── GPS DELLE ATTIVITÀ ALL'APERTO (APK 1.9.0, 27/11/2026, Marco: «per le attività di cardio all'aperto inserire il
+      gps, calcolo del percorso, dislivello, tempo, essenzialmente come Strava»). Le posizioni le prende il SERVIZIO
+      Android (TmsSedutaService: GPS del telefono una volta al secondo e, se c'è, il barometro), anche a schermo spento;
+      la pagina le legge ogni 2 secondi (tmsSeduta.posizioni) e fa i conti qui, scritti da zero sul modello delle app
+      libere (OpenTracks, Apache-2.0, github.com/OpenTracksApp/OpenTracks; nessun codice copiato):
+      · un punto con precisione peggiore di GPS_PREC metri non si usa (all'inizio si aspetta il segnale buono);
+      · la DISTANZA cresce solo quando ci si è spostati di almeno max(4 m, metà della precisione) dall'ultimo punto
+        tenuto: così il rumore del GPS da fermi non diventa strada; un salto impossibile per lo sport si scarta;
+      · il TEMPO IN MOVIMENTO somma i tratti fra punti tenuti a meno di 20 s l'uno dall'altro (una sosta non conta);
+      · il DISLIVELLO usa il BAROMETRO del telefono se c'è (quota dalla pressione, soglia 3 m), altrimenti la quota del
+        GPS (soglia 8 m), con la media degli ultimi 5 valori: la salita conta solo i dislivelli che superano la soglia;
+      · PARZIALI ogni chilometro; il percorso va al PC semplificato (Douglas-Peucker, al massimo 400 punti).
+      Nel browser (senza APK) le posizioni arrivano da navigator.geolocation. Il percorso è disegnato dalla pagina sopra
+      la MAPPA di OpenStreetMap (gpsDisegna, mapTessere: da internet solo le tessere della zona); le posizioni restano sul
+      telefono e vanno, cifrate, solo al PC del personal. ── */
+const GPS={timer:null, ultimo:0, watch:null, stato:'', acc:null, concesso:null, acceso:null, barometro:false, ricevuti:0};
+const GPS_PREC=25, GPS_PUNTI_PC=400;
+const GPS_VMAX={Corsa:12, Camminata:6, Bici:30, Nuoto:4, Vogatore:8, 'Sci di fondo':15, Altro:30};
+function gpsTraccia(){ return {pts:[], dist:0, salita:0, discesa:0, mov:0, hRif:null, hBuf:[], km:[], baro:null}; }
+const gpsRad=x=>x*Math.PI/180;
+function gpsDist(a1, o1, a2, o2){ const dA=gpsRad(a2-a1), dO=gpsRad(o2-o1);
+  const s=Math.sin(dA/2)*Math.sin(dA/2)+Math.cos(gpsRad(a1))*Math.cos(gpsRad(a2))*Math.sin(dO/2)*Math.sin(dO/2);
+  return 2*6371008.8*Math.asin(Math.min(1, Math.sqrt(s))); }
+function gpsQuotaBaro(hPa){ return 44330*(1-Math.pow(hPa/1013.25, 1/5.255)); }
+/* un punto del servizio: [ora ms, lat, lon, quota m, precisione m, velocità m/s, pressione hPa]; true se tenuto */
+function gpsPunto(tr, p, disc){
+  const t=+p[0], lat=+p[1], lon=+p[2], acc=(p[4]==null || !isFinite(+p[4]))? 99 : +p[4];
+  if(!(t>0) || !isFinite(lat) || !isFinite(lon) || Math.abs(lat)>90 || Math.abs(lon)>180 || (lat===0 && lon===0)) return false;
+  GPS.acc=acc; GPS.ricevuti++;
+  if(acc>GPS_PREC) return false;
+  if(tr.baro==null) tr.baro=(+p[6]>0);
+  let h=tr.baro? ((+p[6]>0)? gpsQuotaBaro(+p[6]) : null) : ((p[3]!=null && isFinite(+p[3]))? +p[3] : null);
+  if(h!=null){ tr.hBuf.push(h); if(tr.hBuf.length>5) tr.hBuf.shift(); h=tr.hBuf.reduce((a,b)=>a+b, 0)/tr.hBuf.length; }
+  const hq=(h==null)? null : Math.round(h*10)/10, u=tr.pts[tr.pts.length-1];
+  if(!u){ tr.pts.push([t, lat, lon, hq]); gpsQuota(tr, h); return true; }
+  if(t<=u[0]) return false;
+  const d=gpsDist(u[1], u[2], lat, lon), dt=(t-u[0])/1000;
+  if(d/dt>(GPS_VMAX[disc]||30)) return false;                         /* salto impossibile per lo sport */
+  if(d<Math.max(4, acc*0.5)){ gpsQuota(tr, h); return false; }          /* fermo, o rumore del GPS */
+  const prima=tr.dist;
+  tr.pts.push([t, lat, lon, hq]); tr.dist+=d;
+  if(dt<=20) tr.mov+=dt;                                               /* un buco più lungo è una sosta */
+  for(let k=Math.floor(prima/1000)+1; k<=Math.floor(tr.dist/1000); k++) tr.km.push(Math.round(u[0]+(t-u[0])*(k*1000-prima)/d));
+  gpsQuota(tr, h); return true; }
+function gpsQuota(tr, h){
+  if(h==null) return; const soglia=tr.baro? 3 : 8;
+  if(tr.hRif==null){ tr.hRif=h; return; }
+  if(h-tr.hRif>=soglia){ tr.salita+=h-tr.hRif; tr.hRif=h; }
+  else if(tr.hRif-h>=soglia){ tr.discesa+=tr.hRif-h; tr.hRif=h; } }
+/* permesso della posizione (una volta; lo chiede Android) */
+async function gpsPermesso(){
+  const ts=window.tmsSeduta;
+  if(ts && ts.permessoPosizione){
+    try{ const r=await ts.permessoPosizione(); GPS.concesso=!!(r && r.concesso); GPS.acceso=r? r.acceso!==false : null; GPS.barometro=!!(r && r.barometro); }
+    catch(e){ GPS.concesso=false; }
+    return GPS.concesso; }
+  return !!(navigator.geolocation);   /* nel browser lo chiede watchPosition */ }
+function gpsAvvia(){
+  gpsFerma(); GPS.stato=''; GPS.ultimo=FC.reg? FC.reg.inizio-1 : 0;
+  const ts=window.tmsSeduta;
+  if(ts && ts.posizioni){ GPS.timer=setInterval(()=>{ gpsLeggi().then(()=>{ fcAggiornaGps(); gpsDisegna(); }); }, 2000); return; }
+  if(navigator.geolocation && navigator.geolocation.watchPosition){
+    GPS.watch=navigator.geolocation.watchPosition(pos=>{ const c=pos.coords||{};
+        if(FC.reg && FC.reg.gps) gpsPunto(FC.reg.gps, [pos.timestamp||Date.now(), c.latitude, c.longitude, c.altitude, c.accuracy, c.speed, 0], FC.reg.disc);
+        GPS.concesso=true; fcAggiornaGps(); gpsDisegna(); },
+      err=>{ GPS.stato=(err && err.code===1)? 'negato' : 'errore'; gpsStatoTesto(); },
+      {enableHighAccuracy:true, maximumAge:0, timeout:30000}); } }
+async function gpsLeggi(){
+  const r=FC.reg, ts=window.tmsSeduta; if(!r || !r.gps || !ts || !ts.posizioni) return;
+  let x=null; try{ x=await ts.posizioni({da:GPS.ultimo}); }catch(e){ return; }
+  if(!x) return;
+  if(x.acceso!=null) GPS.acceso=x.acceso!==false; if(x.concesso!=null) GPS.concesso=!!x.concesso; GPS.barometro=!!x.barometro;
+  let n=0;
+  (x.punti||[]).forEach(p=>{ if(+p[0]>GPS.ultimo) GPS.ultimo=+p[0]; if(FC.reg===r && gpsPunto(r.gps, p, r.disc)) n++; });
+  if(n) fcSalvaBozza(false); }
+function gpsFerma(){ clearInterval(GPS.timer); GPS.timer=null;
+  if(GPS.watch!=null && navigator.geolocation){ try{ navigator.geolocation.clearWatch(GPS.watch); }catch(e){} }
+  GPS.watch=null; GPS.acc=null; GPS.ricevuti=0; }
+/* Douglas-Peucker sui metri (proiezione locale): al massimo «max» punti */
+function gpsSemplifica(pts, max){
+  if(pts.length<=max) return pts.slice();
+  const lat0=pts[0][1], kx=Math.cos(gpsRad(lat0))*111320, ky=110540;
+  const xy=pts.map(p=>[p[2]*kx, p[1]*ky]);
+  const dpl=(p, a, b)=>{ const dx=b[0]-a[0], dy=b[1]-a[1], l=dx*dx+dy*dy; if(!l) return Math.hypot(p[0]-a[0], p[1]-a[1]);
+    let u=((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l; u=Math.max(0, Math.min(1, u)); return Math.hypot(p[0]-a[0]-u*dx, p[1]-a[1]-u*dy); };
+  let toll=3, tieni=null;
+  for(let giro=0; giro<30; giro++){
+    tieni=new Uint8Array(pts.length); tieni[0]=tieni[pts.length-1]=1;
+    const pila=[[0, pts.length-1]];
+    while(pila.length){ const [a, b]=pila.pop(); let m=0, im=-1;
+      for(let i=a+1;i<b;i++){ const d=dpl(xy[i], xy[a], xy[b]); if(d>m){ m=d; im=i; } }
+      if(im>=0 && m>toll){ tieni[im]=1; pila.push([a, im], [im, b]); } }
+    if(tieni.reduce((s,x)=>s+x, 0)<=max) break; toll*=1.6; }
+  return pts.filter((p,i)=>tieni[i]); }
+/* quello che va nella seduta (e al PC): distanza km, salita e discesa m, tempo in movimento s, parziali s, percorso */
+function gpsRiassunto(tr, inizio){
+  const o={distanza:Math.round(tr.dist/10)/100, quota:Math.round(tr.salita), discesa:Math.round(tr.discesa), tempoMov:Math.round(tr.mov)};
+  const km=[]; let prima=+inizio||((tr.pts[0]||[])[0]||0); tr.km.forEach(t=>{ km.push(Math.max(1, Math.round((t-prima)/1000))); prima=t; });
+  if(km.length) o.parziali=km;
+  if(tr.pts.length>1) o.percorso=gpsSemplifica(tr.pts, GPS_PUNTI_PC).map(p=>[Math.round(p[1]*1e5)/1e5, Math.round(p[2]*1e5)/1e5, p[3]==null? null : Math.round(p[3])]);
+  return o; }
+function gpsStatoTesto(){
+  const e=$('fc-gps-st'); if(!e) return;
+  const r=FC.reg; let a='';
+  if(!r) a=FC.chiudi? '' : tt('il GPS si accende con «Avvia»');
+  else if(GPS.stato==='negato' || GPS.concesso===false) a=tt('senza il permesso della posizione: niente percorso');
+  else if(GPS.acceso===false) a=tt('Posizione del telefono spenta: accendila');
+  else if(GPS.acc==null) a=tt('cerco il segnale GPS…');
+  else a=(GPS.acc<=GPS_PREC? tt('GPS ok') : tt('segnale debole'))+' · ±'+Math.round(GPS.acc)+' m'+(r.gps && r.gps.baro? ' · '+tt('barometro') : '');
+  e.textContent=a; }
+function fcRenderGps(){
+  const box=$('fc-gps'); if(!box) return;
+  const r=FC.reg, c=FC.chiudi, sel=!r && !c && fcVarDi(fcDiscCorrente())[2];
+  const negato=r && !r.gps && fcVarDi(r.disc||'')[2] && GPS.stato==='negato';
+  if(!((r && r.gps) || (c && c.percorso) || (c && c.distanza!=null) || sel || negato)){ box.innerHTML=''; return; }
+  box.innerHTML='<div class="box fc-perc"><div class="pick-title">'+ico('posizione')+'<span>'+esc(tt('Percorso'))+'</span><small id="fc-gps-st"></small></div>'+
+    '<div id="fc-mappa"></div><div id="fc-prof"></div><div id="fc-km"></div></div>';
+  if(negato) $('fc-gps-st').textContent=tt('senza il permesso della posizione: niente percorso');
+  gpsDisegna(); gpsStatoTesto(); }
+/* — MAPPA sotto il percorso (27/11/2026, Marco: «sì, aggiungi la mappa»): le tessere di OpenStreetMap
+     (tile.openstreetmap.org, © collaboratori di OpenStreetMap, dati ODbL; regole d'uso: attribuzione visibile e poco
+     traffico) disegnate DENTRO lo stesso SVG del percorso, nella proiezione delle tessere (Web Mercator), allo zoom più
+     grande che fa stare tutto il percorso nel riquadro; tessere dello zoom dopo a mezza misura, così sullo schermo del
+     telefono restano nitide. Nessuna libreria. Da internet si scaricano solo le tessere della zona guardata (a
+     OpenStreetMap non va il percorso né niente di personale); senza internet resta il percorso su fondo chiaro. Colori
+     della mappa ammorbiditi verso la carta dell'app (filtro CSS su .fc-tess). Durante la registrazione le tessere si
+     rifanno solo quando cambia la vista (data-v), il resto a ogni giro. — */
+const MAPPA_URL='https://tile.openstreetmap.org/';
+function mapX(lon, z){ return (lon+180)/360*256*Math.pow(2, z); }
+function mapY(lat, z){ const r=Math.max(-85, Math.min(85, lat))*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256*Math.pow(2, z); }
+/* la vista per un riquadro W×H col margine P: zoom (fino a 17) e angolo in alto a sinistra in pixel del mondo */
+function mapVista(pts, W, H, P){
+  const la=pts.map(p=>p[0]), lo=pts.map(p=>p[1]), a0=Math.min(...la), a1=Math.max(...la), o0=Math.min(...lo), o1=Math.max(...lo);
+  let z=17;
+  for(; z>2; z--) if(mapX(o1, z)-mapX(o0, z)<=W-2*P && mapY(a0, z)-mapY(a1, z)<=H-2*P) break;
+  const cx=(mapX(o0, z)+mapX(o1, z))/2, cy=(mapY(a0, z)+mapY(a1, z))/2;
+  return {z:z, ox:cx-W/2, oy:cy-H/2, W:W, H:H}; }
+/* le tessere che coprono la vista (zoom +1 a mezza misura) come <image> dell'SVG */
+function mapTessere(v){
+  const zz=Math.min(19, v.z+1), n=Math.pow(2, zz), ox=v.ox*2, oy=v.oy*2;
+  let h='';
+  for(let ty=Math.max(0, Math.floor(oy/256)); ty<=Math.min(n-1, Math.floor((oy+v.H*2)/256)); ty++)
+    for(let tx=Math.floor(ox/256); tx<=Math.floor((ox+v.W*2)/256); tx++)
+      h+='<image href="'+MAPPA_URL+zz+'/'+(((tx%n)+n)%n)+'/'+ty+'.png" x="'+((tx*256-ox)/2).toFixed(1)+'" y="'+((ty*256-oy)/2).toFixed(1)+'" width="128" height="128" preserveAspectRatio="none"/>';
+  return h; }
+/* metri per unità della vista a quella latitudine e scala tonda (20 m … 50 km, al massimo un terzo del riquadro) */
+function mapScala(v, lat){ const mpp=156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2, v.z);
+  const bar=[20,50,100,200,500,1000,2000,5000,10000,20000,50000].filter(x=>x/mpp<=v.W/3).pop()||20; return {bar:bar, px:bar/mpp}; }
+/* percorso sulla mappa: strada, partenza (verde) e punto d'arrivo, scala, attribuzione; profilo della quota; parziali */
+function gpsDisegna(){
+  const m=$('fc-mappa'); if(!m) return;
+  const r=FC.reg, c=FC.chiudi;
+  const pts=(r && r.gps)? r.gps.pts.map(p=>[p[1], p[2], p[3]]) : (c && c.percorso)? c.percorso : [];
+  const disc=r? r.disc : c? c.disc : fcDiscCorrente();
+  if(!pts.length){ m.innerHTML='<div class="fc-mappa-vuota">'+ico('posizione')+'<span>'+esc(tt(r? 'Il percorso compare qui appena il GPS trova il segnale.' : 'Qui vedrai il percorso sulla mappa, la distanza, il dislivello e il passo.'))+'</span></div>';
+    const p=$('fc-prof'); if(p) p.innerHTML=''; const k=$('fc-km'); if(k) k.innerHTML=''; return; }
+  const W=320, H=200, P=16, v=mapVista(pts, W, H, P);
+  const X=i=>(mapX(pts[i][1], v.z)-v.ox).toFixed(1), Y=i=>(mapY(pts[i][0], v.z)-v.oy).toFixed(1);
+  const d=pts.map((p,i)=>(i? 'L' : 'M')+X(i)+' '+Y(i)).join('');
+  const sc=mapScala(v, pts[0][0]);
+  const traccia=(pts.length>1? '<path class="fc-strada-o" d="'+d+'"/><path class="fc-strada" d="'+d+'"/><circle class="fc-via" cx="'+X(0)+'" cy="'+Y(0)+'" r="5"/>' : '')+
+    '<circle class="fc-qui'+(r? ' viva' : '')+'" cx="'+X(pts.length-1)+'" cy="'+Y(pts.length-1)+'" r="5.5"/>'+
+    '<rect class="fc-scala-f" x="'+(W-P-sc.px-4).toFixed(1)+'" y="'+(H-27)+'" width="'+(sc.px+8).toFixed(1)+'" height="21" rx="4"/>'+
+    '<path class="fc-scala" d="M'+(W-P-sc.px).toFixed(1)+' '+(H-10)+'h'+sc.px.toFixed(1)+'"/><text class="fc-scala-t" x="'+(W-P).toFixed(1)+'" y="'+(H-14)+'" text-anchor="end">'+(sc.bar>=1000? (sc.bar/1000)+' km' : sc.bar+' m')+'</text>';
+  const chiave=v.z+'|'+Math.round(v.ox)+'|'+Math.round(v.oy), svg=m.querySelector('svg.fc-svg');
+  if(svg && svg.getAttribute('data-v')===chiave){ const g=svg.querySelector('.fc-trac'); if(g) g.innerHTML=traccia; }
+  else m.innerHTML='<svg class="fc-svg" data-v="'+chiave+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(tt('Percorso'))+'">'+
+    '<rect class="fc-mappa-f" x="0" y="0" width="'+W+'" height="'+H+'"/><g class="fc-tess">'+mapTessere(v)+'</g><g class="fc-trac">'+traccia+'</g>'+
+    '<text class="fc-attr" x="5" y="'+(H-5)+'">'+esc(tt('© collaboratori di OpenStreetMap'))+'</text></svg>';
+  /* profilo della quota sulla distanza */
+  const pr=$('fc-prof');
+  if(pr){ const hs=pts.map(p=>p[2]), ok=(pts.length>1)? hs.filter(v=>v!=null) : [];
+    if(ok.length>2 && Math.max(...ok)-Math.min(...ok)>=2){
+      const dist=[0]; for(let i=1;i<pts.length;i++) dist.push(dist[i-1]+gpsDist(pts[i-1][0], pts[i-1][1], pts[i][0], pts[i][1]));
+      const PW=320, PH=64, h0=Math.min(...ok), h1=Math.max(...ok), tot=dist[dist.length-1]||1;
+      const px=i=>(dist[i]/tot*PW).toFixed(1), py=v=>(PH-4-(v-h0)/(h1-h0)*(PH-14)).toFixed(1);
+      const linea=pts.map((p,i)=>p[2]==null? '' : (i? 'L' : 'M')+px(i)+' '+py(p[2])).join('').replace(/^L/, 'M');
+      pr.innerHTML='<div class="fc-prof-t"><span>'+esc(tt('Quota'))+'</span><span>'+Math.round(h0)+'–'+Math.round(h1)+' m</span></div>'+
+        '<svg class="fc-svg fc-prof-svg" viewBox="0 0 '+PW+' '+PH+'" preserveAspectRatio="none"><path class="fc-prof-a" d="'+linea+'L'+PW+' '+PH+'L0 '+PH+'Z"/><path class="fc-prof-l" d="'+linea+'"/></svg>'; }
+    else pr.innerHTML=''; }
+  /* parziali al chilometro, col passo (o la velocità) di ciascuno */
+  const kb=$('fc-km');
+  if(kb){ const tr=r && r.gps, km=tr? (()=>{ const o=[]; let p0=r.inizio; tr.km.forEach(t=>{ o.push(Math.round((t-p0)/1000)); p0=t; }); return o; })() : (c && c.parziali) || [];
+    kb.innerHTML=km.length? '<div class="fc-km">'+km.map((s,i)=>'<div class="bil-row"><span class="bil-g"><b>'+(i+1)+' km</b></span><span>'+esc(fcDur(s))+'</span><span class="fc-km-r">'+fcFmtRitmo(disc, 1000, s)+'</span></div>').join('')+'</div>' : ''; } }
+/* ── PAGINA CARDIO come un giorno della scheda (27/11/2026, Marco: «unifica visivamente la sezione cardio alla
+      sezione palestra»): la FASCIA SCURA in alto (seconda riga della barra, come la zona della seduta coi pesi)
+      tiene battito, tempo, «Avvia», «Fine», «annulla registrazione» e, a fine registrazione, la fatica (RPE 1–10)
+      con «Salva la seduta»; sotto, le linguette «Attività | Le tue sedute»; l'attività è una SCHEDA A RIQUADRI
+      come gli esercizi: disciplina, le SOLE sottocategorie di quella disciplina, tempo, battito, FC media, picco
+      e, all'aperto, distanza, passo o velocità, dislivello e tempo in movimento; sotto, il percorso. ── */
+function fcRitmo(disc){ return (disc==='Bici' || disc==='Sci di fondo' || disc==='Altro')? 'velocita' : (disc==='Nuoto' || disc==='Vogatore')? 'passo100' : 'passo'; }
+function fcFmtRitmo(disc, m, sec){   /* m metri in sec secondi → «5:32 /km», «24,6 km/h», «2:05 /100 m» */
+  if(!(m>0 && sec>0)) return '—';
+  const r=fcRitmo(disc);
+  if(r==='velocita') return String((m/sec*3.6).toFixed(1)).replace('.', LANGP==='en'? '.' : ',')+'<small> km/h</small>';
+  const s=Math.round(sec/(m/(r==='passo100'? 100 : 1000)));
+  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'<small> '+(r==='passo100'? '/100 m' : '/km')+'</small>'; }
+function fcFmtKm(m){ return m==null? '—' : String((m/1000).toFixed(2)).replace('.', LANGP==='en'? '.' : ',')+'<small> km</small>'; }
+function fcRitmoLab(disc){ return tt(fcRitmo(disc)==='velocita'? 'Velocità' : 'Passo'); }
+/* i riquadri della scheda dell'attività: si aggiornano da soli ogni secondo */
+function fcAggiornaTempo(){
+  const r=FC.reg; if(!r) return;
+  const sec=(Date.now()-r.inizio)/1000, t=fcDur(sec);
+  ['fc-t','fc-t2'].forEach(id=>{ const e=$(id); if(e) e.textContent=t; });
+  const m=fcMediaReg(r), md=$('fc-m'), pk=$('fc-p'); if(md) md.textContent=m||'—'; if(pk) pk.textContent=r.picco||'—';
+  fcAggiornaGps(); }
+function fcAggiornaGps(){
+  const r=FC.reg, c=FC.chiudi, tr=r && r.gps; if(!tr && !(c && c.distanza!=null)) return;
+  const disc=r? r.disc : c.disc, dist=tr? tr.dist : c.distanza*1000, mov=tr? tr.mov : c.tempoMov, sal=tr? tr.salita : c.quota;
+  const set=(id,h)=>{ const e=$(id); if(e) e.innerHTML=h; };
+  set('fc-d', fcFmtKm(dist)); set('fc-v', fcFmtRitmo(disc, dist, mov)); set('fc-q', sal!=null? Math.round(sal)+'<small> m</small>' : '—');
+  set('fc-mv', mov? esc(fcDur(mov)) : '—');
+  if(tr) gpsStatoTesto(); }
+function fcTicReg(on){ clearInterval(FC.tReg); FC.tReg=(on && FC.reg)? setInterval(()=>{ if(!FC.reg){ fcTicReg(false); return; } fcAggiornaTempo(); }, 1000) : null; }
 function fcRenderReg(soloTempo){
-  const box=$('fc-reg'); if(!box || $('fc').hidden) return;
-  if(soloTempo){ const t0=$('fc-reg-t'); if(t0 && FC.reg){ t0.textContent=fcDur((Date.now()-FC.reg.inizio)/1000);
-      const m=fcMediaReg(FC.reg), md=$('fc-reg-m'), pk=$('fc-reg-p'); if(md) md.textContent=m||'—'; if(pk) pk.textContent=FC.reg.picco||'—'; } return; }
-  const sport=fcSportScelto();
-  if(FC.chiudi){ const c=FC.chiudi;
-    box.innerHTML='<div class="box"><div class="pick-title">'+tt('Com’è andata?')+'<small>'+esc(giornoBreve(c.data))+' '+esc(String(c.ora).slice(0,5))+'</small></div>'+
-      '<div class="fc-tre"><div><b>'+esc(fcDur(c.durataSec))+'</b><span>'+tt('durata')+'</span></div><div><b>'+(c.fcMedia||'—')+'</b><span>'+tt('FC media')+'</span></div><div><b>'+(c.fcPicco||'—')+'</b><span>'+tt('picco')+'</span></div></div>'+
-      '<p class="sez-nota" style="margin:0 0 4px">'+tt('Attività')+': <b>'+esc(tt(c.tipo||sport))+'</b></p>'+
-      '<label class="col-lab" for="fc-rpe">'+tt('Fatica (RPE 0–10)')+'</label><select id="fc-rpe" class="fc-sel"><option value="">–</option>'+[0,1,2,3,4,5,6,7,8,9,10].map(n=>'<option value="'+n+'">'+n+'</option>').join('')+'</select>'+
-      (FC.scarta? '<div class="bil-row"><span class="bil-g">'+tt('Buttare via questa registrazione?')+'</span><button type="button" class="mini del" id="fc-scarta-si">'+tt('Butta via')+'</button><button type="button" class="mini" id="fc-scarta-no">'+tt('No')+'</button></div>'
-        : '<button type="button" class="btn-big" id="fc-salva">'+ico('check')+'<span>'+tt('Salva la seduta')+'</span></button><button type="button" class="btn-lite quieto" id="fc-scarta">'+tt('Butta via')+'</button>')+
-      '</div>';
-    const sv=$('fc-salva'); if(sv) sv.onclick=()=>{ fcSalvaSeduta(); };
-    const sc=$('fc-scarta'); if(sc) sc.onclick=()=>{ FC.scarta=true; fcRenderReg(); };
-    const si=$('fc-scarta-si'); if(si) si.onclick=()=>{ fcScartaSeduta(); };
-    const no=$('fc-scarta-no'); if(no) no.onclick=()=>{ FC.scarta=false; fcRenderReg(); };
-    return; }
-  if(FC.reg){
-    box.innerHTML='<div class="box fc-in-reg"><div class="pick-title"><i class="fc-rec"></i>'+esc(tt(FC.reg.tipo||sport))+' · '+tt('registrazione in corso')+'</div>'+
-      '<div class="fc-tre"><div><b id="fc-reg-t">0:00</b><span>'+tt('tempo')+'</span></div><div><b id="fc-reg-m">—</b><span>'+tt('FC media')+'</span></div><div><b id="fc-reg-p">—</b><span>'+tt('picco')+'</span></div></div>'+
-      (FC.annulla? '<div class="bil-row"><span class="bil-g">'+tt('Annullo la registrazione? Non si salva niente.')+'</span><button type="button" class="mini del" id="fc-annulla-si">'+tt('Annulla')+'</button><button type="button" class="mini" id="fc-annulla-no">'+tt('No')+'</button></div>'
-        : '<button type="button" class="btn-big" id="fc-fine">'+ico('check')+'<span>'+tt('Fine')+'</span></button>'+
-          '<button type="button" class="btn-lite quieto" id="fc-annulla">'+tt('annulla registrazione')+'</button>')+
-      '<div class="fine" style="margin:4px 0 0">'+tt('Tieni l’app aperta: lo schermo resta acceso finché registri.')+'</div></div>';
-    const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
-    on('fc-fine', ()=>fcFine()); on('fc-annulla', ()=>{ FC.annulla=true; fcRenderReg(); });
-    on('fc-annulla-si', ()=>{ fcAnnullaReg(); }); on('fc-annulla-no', ()=>{ FC.annulla=false; fcRenderReg(); });
-    fcRenderReg(true); return; }
-  if(SED.s){ box.innerHTML='<div class="box"><div class="fine" style="margin:0">'+tt('C’è una seduta coi pesi aperta')+' ('+esc(SED.s.giorno)+'): '+tt('il battito va già con quella. Chiudila per registrare una seduta di solo cardio.')+'</div></div>'; return; }
-  box.innerHTML='<div class="box"><div class="pick-title">'+tt('Che sport fai?')+'</div>'+
-    '<div class="fc-sporti">'+FC_SPORT.concat(['Altro']).map(x=>'<button type="button" class="mini'+(x===sport?' on':'')+'" data-fcsport="'+esc(x)+'">'+esc(tt(x))+'</button>').join('')+'</div>'+
-    '<button type="button" class="btn-big" id="fc-registra">'+ico('play')+'<span>'+tt('Avvia registrazione')+'</span></button>'+
-    ((window.tmsBLE && !FC.id)? '<div class="fine" style="margin:4px 0 0">'+tt('Senza fascia registro solo il tempo.')+'</div>' : '')+'</div>';
-  box.querySelectorAll('[data-fcsport]').forEach(b=>{ b.onclick=()=>{ FC.sport=b.getAttribute('data-fcsport'); try{ localStorage.setItem('tms-fc-sport', FC.sport); }catch(e){} fcRenderReg(); }; });
-  const rg=$('fc-registra'); if(rg) rg.onclick=()=>fcRegistra(); }
+  if(soloTempo){ fcAggiornaTempo(); return; }
+  const box=$('fc-reg'); if(!box) return;
+  box.innerHTML='';   /* i comandi e gli avvisi stanno nella fascia scura in alto (fcZonaRender) */ }
+function fcRenderCard(){
+  const box=$('fc-card'); if(!box) return;
+  const disc=fcDiscCorrente(), d=fcDiscOgg(disc), r=FC.reg, c=FC.chiudi;
+  const v=r? [r.variante||'', r.tipo, r.gps? 1 : 0] : c? [c.variante||'', c.tipo, c.distanza!=null? 1 : 0] : fcVarDi(disc);
+  const gps=!!v[2], scegli=!r && !c && d.v.length>1;
+  const riq=(lab, id, val, cls)=>'<div class="fld'+(cls? ' '+cls : '')+'"><label>'+esc(lab)+'</label><b id="'+id+'">'+(val||'—')+'</b></div>';
+  let h='<div class="ex-hd"><span class="ex-nm">'+(r? '<i class="fc-rec"></i> ' : '')+esc(tt(d.n))+'</span>'+
+    (gps? '<span class="ex-tag fc-tag-gps">'+ico('posizione','p')+'GPS</span>' : '')+'</div>';
+  if(v[0] && v[0]!==d.n) h+='<div class="ex-sub">'+esc(tt(v[0]))+(r? ' · '+esc(tt('registrazione in corso')) : c? ' · '+esc(tt('da salvare')) : '')+'</div>';
+  if(scegli) h+='<div class="fc-sporti" id="fc-var">'+d.v.map((x,k)=>'<button type="button" class="mini'+(x[0]===v[0]? ' on' : '')+'" data-fcvar="'+k+'">'+
+    (x[2]? ico('posizione','p') : '')+esc(tt(x[0]))+'</button>').join('')+'</div>';
+  const tempo=r? fcDur((Date.now()-r.inizio)/1000) : c? fcDur(c.durataSec) : '0:00';
+  h+='<div class="fc-riq">'+riq(tt('Tempo'), 'fc-t2', esc(tempo))+riq(tt('Battito'), 'fc-bpm', '', 'fc-fld-bpm')+
+    riq(tt('FC media'), 'fc-m', c? (c.fcMedia||'') : '')+riq(tt('Picco'), 'fc-p', c? (c.fcPicco||'') : '')+
+    (gps? riq(tt('Distanza'), 'fc-d')+riq(fcRitmoLab(disc), 'fc-v')+riq(tt('Dislivello +'), 'fc-q')+riq(tt('In movimento'), 'fc-mv') : '')+'</div>'+
+    '<div class="fc-zona" id="fc-zona"></div><div class="fc-zone" id="fc-zone"></div><div id="fc-conn"></div>';
+  if(!r && !c && window.tmsBLE && !FC.id) h+='<div class="fine" style="margin:6px 0 0">'+tt('Senza fascia registro solo il tempo.')+'</div>';
+  box.innerHTML=h;
+  box.classList.toggle('fc-in-reg', !!r);
+  box.querySelectorAll('[data-fcvar]').forEach(b=>{ b.onclick=()=>{ fcVarScegli(d.n, +b.getAttribute('data-fcvar')); renderFc(); }; });
+  fcMostraBattito(); fcAggiornaGps(); }
+/* la fascia scura in alto sulla pagina Cardio (come la zona della seduta coi pesi) */
+function fcZonaRender(z){
+  const r=FC.reg, c=FC.chiudi, disc=fcDiscCorrente(), v=r? [r.variante] : c? [c.variante] : fcVarDi(disc);
+  const cosa=tt(disc)+(v[0] && v[0]!==disc? ' · '+tt(v[0]) : '');
+  let h=sedBattitoHtml();
+  if(r){
+    const libera=!FC.annulla;
+    h+='<div class="sed-tempo"><b id="fc-t">'+esc(fcDur((Date.now()-r.inizio)/1000))+'</b><span>'+esc(cosa)+' · '+esc(tt('in corso'))+'</span>'+
+      (libera? '<button type="button" class="sed-link" id="fc-annulla-s">'+esc(tt('annulla registrazione'))+'</button>' : '')+'</div>';
+    if(libera) h+='<button type="button" class="sed-btn" id="fc-fine">'+esc(tt('Fine'))+'</button>';
+    else h+='<div class="sed-riga"><p>'+esc(tt('Annullo la registrazione? Non si salva niente.'))+'</p>'+
+      '<button type="button" class="sed-btn" id="fc-annulla-si">'+esc(tt('Sì, annulla la registrazione'))+'</button><button type="button" class="sed-btn" id="fc-annulla-no">'+esc(tt('No, continua'))+'</button></div>';
+  } else if(c){
+    const min=Math.max(1, Math.round(c.durataSec/60));
+    h+='<div class="sed-tempo"><b>'+esc(fcDur(c.durataSec))+'</b><span>'+esc(cosa)+' · '+esc(tt('finita'))+'</span></div>';
+    h+=FC.scarta? '<div class="sed-riga"><p>'+esc(tt('Buttare via questa registrazione?'))+'</p><button type="button" class="sed-btn" id="fc-scarta-si">'+esc(tt('Sì, butta via'))+'</button><button type="button" class="sed-btn" id="fc-scarta-no">'+esc(tt('No'))+'</button></div>'
+      : '<div class="sed-riga"><p>'+esc(tt('Durata'))+' <b>'+min+' min</b> · '+esc(tt('Fatica (RPE)'))+'</p>'+
+        '<div class="sed-rpe">'+[1,2,3,4,5,6,7,8,9,10].map(n=>'<button type="button" data-fcrpe="'+n+'"'+(FC.rpe===n? ' class="on"' : '')+'>'+n+'</button>').join('')+'</div>'+
+        '<button type="button" class="sed-btn ok" id="fc-salva">'+esc(tt('Salva la seduta'))+'</button><button type="button" class="sed-btn" id="fc-scarta">'+esc(tt('Butta via'))+'</button></div>';
+  } else if(SED.s){
+    h+='<div class="sed-riga"><p>'+esc(tt('C’è una seduta coi pesi aperta: chiudila per registrare il cardio.'))+'</p></div>';
+  } else {
+    h+='<div class="sed-tempo"><b>–</b><span>'+esc(cosa)+'</span></div><button type="button" class="sed-btn ok" id="fc-avvia"'+(FC.avvio? ' disabled' : '')+'>'+esc(tt('Avvia'))+'</button>';
+  }
+  z.innerHTML=h;
+  const on=(id,f)=>{ const b=$(id); if(b) b.onclick=f; };
+  on('sed-fc', ()=>{ if(!FC.id) fcCollegaDa(); });
+  on('fc-avvia', ()=>{ fcRegistra(); });
+  on('fc-fine', ()=>{ fcFine(); });
+  on('fc-annulla-s', ()=>{ FC.annulla=true; sedZona(); });
+  on('fc-annulla-si', ()=>{ fcAnnullaReg(); });
+  on('fc-annulla-no', ()=>{ FC.annulla=false; sedZona(); });
+  on('fc-salva', ()=>{ fcSalvaSeduta(); });
+  on('fc-scarta', ()=>{ FC.scarta=true; sedZona(); });
+  on('fc-scarta-si', ()=>{ fcScartaSeduta(); });
+  on('fc-scarta-no', ()=>{ FC.scarta=false; sedZona(); });
+  z.querySelectorAll('[data-fcrpe]').forEach(b=>{ b.onclick=()=>{ const n=+b.getAttribute('data-fcrpe'); FC.rpe=(FC.rpe===n)? null : n; sedZona(); }; }); }
+/* linguette «Attività | Le tue sedute» */
+function fcFasi(l){ if(l) FC.lato=l; const s=(FC.lato==='s');
+  const a=$('fc-att'), b=$('fc-sed'); if(a) a.hidden=s; if(b) b.hidden=!s;
+  document.querySelectorAll('#fc-fasi [data-ff]').forEach(x=>{ x.classList.toggle('on', x.dataset.ff===(s? 's' : 'a')); }); }
 /* ── ALLENAMENTO (27/11/2026, Marco: «la sezione cardio sta dentro allenamento: aperto allenamento si può scegliere
       palestra o gli sport del cardio»): due linguette, Palestra (i giorni della scheda) e Cardio (gli sport del tab
       Cardio del TMS più «Altro»). Toccando uno sport si apre la pagina Cardio con quello sport scelto: lì si avvia la
@@ -2457,14 +2982,17 @@ let HOME_LATO='';
 function homeLato(l){ HOME_LATO=l; const c=(l==='c');
   const hp=$('home-p'), hc=$('home-c'); if(hp) hp.hidden=c; if(hc) hc.hidden=!c;
   document.querySelectorAll('#home-fasi [data-hf]').forEach(b=>{ b.classList.toggle('on', b.dataset.hf===l); }); }
+/* Allenamento › Cardio: le DISCIPLINE (come i giorni della Palestra), con le sedute della settimana o le sottocategorie */
 function homeSport(){
   const box=$('home-sport'); if(!box) return;
   const sett=lunediDi(dataLoc(new Date()));
-  box.innerHTML=FC_SPORT.concat(['Altro']).map(x=>{ const n=SEDUTE_FC.filter(z=>z.tipo===x && lunediDi(z.data)===sett).length;
-    const meta=(FC.reg && FC.reg.tipo===x)? tt('registrazione in corso') : n? n+' '+(n===1? tt('seduta questa settimana') : tt('sedute questa settimana')) : '';
-    return '<button type="button" class="day-card" data-fcvai="'+esc(x)+'"><span class="day-l"><span class="day-name">'+esc(tt(x))+'</span>'+
-      (meta? '<span class="day-meta">'+esc(meta)+'</span>' : '')+'</span><span class="day-r"><span class="chev">'+ico('avanti')+'</span></span></button>'; }).join('');
-  box.querySelectorAll('[data-fcvai]').forEach(b=>{ b.onclick=()=>{ if(!FC.reg){ FC.sport=b.getAttribute('data-fcvai'); try{ localStorage.setItem('tms-fc-sport', FC.sport); }catch(e){} } fcApri(); }; });
+  box.innerHTML=FC_DISC.map(d=>{ const n=SEDUTE_FC.filter(z=>fcDiscDi(z)===d.n && lunediDi(z.data)===sett).length;
+    const meta=(FC.reg && FC.reg.disc===d.n)? tt('registrazione in corso') : n? n+' '+(n===1? tt('seduta questa settimana') : tt('sedute questa settimana'))
+      : (d.v.length>1? d.v.map(x=>tt(x[0])).join(' · ') : '');
+    const gps=d.v.some(x=>x[2]);
+    return '<button type="button" class="day-card" data-fcvai="'+esc(d.n)+'"><span class="day-l"><span class="day-name">'+esc(tt(d.n))+'</span>'+
+      (meta? '<span class="day-meta">'+esc(meta)+'</span>' : '')+'</span><span class="day-r">'+(gps? '<span class="fc-gps-seg" title="GPS">'+ico('posizione','p')+'</span>' : '')+'<span class="chev">'+ico('avanti')+'</span></span></button>'; }).join('');
+  box.querySelectorAll('[data-fcvai]').forEach(b=>{ b.onclick=()=>{ if(!FC.reg && !FC.chiudi){ FC.disc=b.getAttribute('data-fcvai'); try{ localStorage.setItem('tms-fc-disc', FC.disc); }catch(e){} } FC.lato='a'; fcApri(); }; });
   homeLato(HOME_LATO || (FC.reg? 'c' : 'p')); }
 function fcAggiornaMenu(){
   try{ homeSport(); }catch(e){}
@@ -2492,15 +3020,17 @@ function renderFc(){
   const m=fcMaxScheda(), nome=((SCHEDA&&SCHEDA.profilo)||{}).nome||'';
   chi.innerHTML=tt('Battito di')+' <b>'+esc(nome)+'</b>'+(m? ' · '+tt('FC max')+' '+m.v+' bpm '+(m.da==='profilo'? tt('(dal Profilo)') : tt('(stimata dall’età)'))
     : '<span class="bil-avv">'+tt('La scheda non porta né la FC max né l’età: vedi il battito, ma non le zone.')+'</span>');
+  fcRenderCard();
   fcStato(FC.stato, undefined);
-  fcRenderReg();
+  fcRenderReg(); fcRenderGps(); fcFasi(); sedZona();
   const lista=$('fc-lista');
   if(lista){
     const ord=SEDUTE_FC.slice().sort((a,b)=>(b.data+b.ora).localeCompare(a.data+a.ora));
-    lista.innerHTML=ord.length? ord.slice(0,12).map(s=> FC.togli===s.id?
+    lista.innerHTML=ord.length? ord.slice(0,20).map(s=> FC.togli===s.id?
         '<div class="bil-row"><span class="bil-g">'+tt('Togli la seduta di')+' '+esc(giornoBreve(s.data))+' '+esc(String(s.ora||'').slice(0,5))+'?</span>'+
         '<button type="button" class="mini del" data-fcok="'+esc(s.id)+'">'+tt('Togli')+'</button><button type="button" class="mini" data-fcno="1">'+tt('No')+'</button></div>'
-      : '<div class="bil-row"><span class="bil-g">'+esc(giornoBreve(s.data))+' '+esc(String(s.ora||'').slice(0,5))+' · <b>'+esc(tt(s.tipo||''))+'</b> · '+(+s.durata||0)+' min'+
+      : '<div class="bil-row"><span class="bil-g">'+esc(giornoBreve(s.data))+' '+esc(String(s.ora||'').slice(0,5))+' · <b>'+esc(tt(fcDiscDi(s)))+'</b>'+(s.variante && s.variante!==fcDiscDi(s)? ' '+esc(tt(s.variante)) : '')+' · '+(+s.durata||0)+' min'+
+        (s.distanza? ' · '+String(s.distanza).replace('.', LANGP==='en'? '.' : ',')+' km'+(s.quota? ' · +'+s.quota+' m' : '') : '')+
         (s.fcMedia? ' · '+tt('FC media')+' '+s.fcMedia+(s.fcPicco? ' · '+tt('picco')+' '+s.fcPicco : '') : '')+colSegnoPesata(s)+'</span>'+
         '<button type="button" class="mini del solo" data-fcx="'+esc(s.id)+'" title="'+esc(tt('Togli questa seduta'))+'" aria-label="'+esc(tt('Togli questa seduta'))+'">'+ico('cestino')+'</button></div>').join('')
       : '<div class="fine" style="margin:4px 0">'+tt('Ancora nessuna seduta registrata.')+'</div>';
@@ -2615,6 +3145,8 @@ function sedTempo(){
 /* la zona della seduta (seconda riga della barra in alto): visibile sulle pagine dei giorni */
 function sedZona(){
   const z=$('sed-zona'); if(!z) return;
+  /* sulla pagina Cardio la fascia scura è quella della registrazione (come la seduta coi pesi) */
+  if(SCHEDA && $('fc') && !$('fc').hidden){ z.hidden=false; document.body.classList.add('con-seduta'); fcChip(); fcZonaRender(z); return; }
   const gi=sedGiornoVisibile(), vis=!!SCHEDA && gi>=0;
   z.hidden=!vis; document.body.classList.toggle('con-seduta', vis);
   fcChip();
@@ -2743,11 +3275,49 @@ const zpLeggi32=(b,i)=>((b[i]&255)|((b[i+1]&255)<<8)|((b[i+2]&255)<<16)|((b[i+3]
 const ZP_HUAMI=c=>'0000'+c+'-0000-3512-2118-0009af100700';
 const ZP_FEE0='0000fee0-0000-1000-8000-00805f9b34fb', ZP_IN=ZP_HUAMI('0016'), ZP_OUT=ZP_HUAMI('0017'), ZP_DATI=ZP_HUAMI('0005');
 const ZP_PEZZO=20, ZP_FW_PROVATI=['3.11.0','3.20.0.1','3.25.0.3'];
-const ZP_ATTESA={cerca:20000, risposta:8000};   /* millisecondi (le prove li accorciano) */
-/* una sessione col bracciale: id del dispositivo, contatori, chiave di sessione, messaggi in arrivo */
-function zpSessione(id, scrivi){ return {id:id, scrivi:scrivi, sid:0, tx:0, kSess:null, cifrato:false, arr:null, attese:[], dati:[], versione:null, log:[]}; }
-async function zpManda(S, endpoint, payload, cifra){
-  S.sid=(S.sid+1)&255; const sid=S.sid;
+/* millisecondi (le prove li accorciano): ricerca, versione del canale, risposte brevi, autenticazione (15 s come Zepp),
+   silenzio durante un trasferimento dello storico (20 s senza dati, come Zepp) */
+const ZP_ATTESA={cerca:20000, versione:5000, info:3000, risposta:15000, dati:20000};
+/* Gli endpoint da cifrare li dice il bracciale nel suo elenco (endpoint 0x0000), come fa Zepp: gli altri viaggiano in
+   chiaro anche dopo l'autenticazione (batteria 0x0029, storico 0x004B). Se l'elenco non arriva, quelli dell'Helio Strap
+   visti sul bracciale vero (unstrap, firmware 3.20.0.1). */
+const ZP_CIFRATI_NOTI=[0x0081, 0x0017, 0x000A, 0x0030, 0x0036, 0x0018, 0x000C, 0x004D, 0x0019, 0x001A];
+const ZP_ACK_NOMI={2:'sessione sbagliata', 3:'pezzo perso', 4:'formato', 5:'endpoint sconosciuto', 6:'occupato', 7:'memoria piena', 8:'non autorizzato', 9:'va cifrato', 10:'CRC', 11:'contatore', 12:'non decifrabile'};
+const ZP_AUTH_NOMI={0:'altro errore', 2:'stato non valido', 3:'comando sconosciuto', 4:'operazione non riuscita', 5:'allenamento in corso sul bracciale', 6:'parametro non valido',
+  7:'nessuna chiave sul bracciale', 8:'firma non valida', 0x23:'AES', 0x25:'chiave sbagliata', 0x26:'chiave sbagliata', 0x41:'abbinamento protetto', 0x81:'serve l’abbinamento con Zepp'};
+const zpPausa=ms=>new Promise(r=>setTimeout(r, ms));
+/* — DIAGNOSI dell'ultimo collegamento (Impostazioni › Bracciale › «Dettagli tecnici», con «Copia i dettagli»): i passi,
+     le risposte del bracciale in breve e gli errori, per capire dove si ferma sul bracciale vero. MAI la chiave, la
+     chiave di sessione o il segreto condiviso. In localStorage «bracciale-diag» (non «tms-»: non viaggia). — */
+const ZP_DIAG_KEY='bracciale-diag';
+let ZP_DIAG=[], ZP_DIAG_T0=0;
+const zpHex=(b, n)=>{ const a=Array.from(b||[]), m=n||24; return a.slice(0, m).map(x=>('0'+(x&255).toString(16)).slice(-2)).join(' ')+(a.length>m? ' … ('+a.length+' byte)' : ''); };
+function zpDiagInizia(cosa){ ZP_DIAG=[]; ZP_DIAG_T0=Date.now();
+  zpDiag(cosa+' · '+new Date().toLocaleString('it-IT')+' · TMS Scheda '+CVER+' · '+((/Android [\d.]+/.exec(navigator.userAgent||'')||['?'])[0])); }
+function zpDiag(t){ if(!ZP_DIAG_T0) ZP_DIAG_T0=Date.now(); ZP_DIAG.push('+'+((Date.now()-ZP_DIAG_T0)/1000).toFixed(1)+' s · '+t); if(ZP_DIAG.length>150) ZP_DIAG.splice(1, 1); }
+function zpDiagSalva(){ try{ localStorage.setItem(ZP_DIAG_KEY, JSON.stringify(ZP_DIAG)); }catch(e){} zpDiagRender(); }
+function zpDiagTesto(){ try{ const v=JSON.parse(localStorage.getItem(ZP_DIAG_KEY)||'null'); if(Array.isArray(v)) return v.join('\n'); }catch(e){} return ZP_DIAG.join('\n'); }
+function zpDiagRender(){ const d=$('zp-diag'), t=$('zp-diag-testo'); if(!d || !t) return; const s=zpDiagTesto(); d.hidden=!s; t.textContent=s; }
+async function zpDiagCopia(){
+  const s=zpDiagTesto(); let ok=false;
+  try{ if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(s); ok=true; } }catch(e){}
+  if(!ok){ try{ const t=$('zp-diag-testo'), r=document.createRange(), sel=getSelection(); r.selectNodeContents(t); sel.removeAllRanges(); sel.addRange(r); ok=!!document.execCommand('copy'); }catch(e){} }
+  const b=$('zp-diag-copia'); if(!b) return;
+  b.textContent=tt(ok? 'Dettagli copiati.' : 'Copia non riuscita: tieni premuto sul testo per selezionarlo.');
+  setTimeout(()=>{ b.textContent=tt('Copia i dettagli'); }, 2500); }
+/* una sessione col bracciale: id del dispositivo, contatori, chiave di sessione, endpoint, messaggi in arrivo */
+function zpSessione(id, scrivi){ return {id:id, scrivi:scrivi, sid:0, tx:0, kSess:null, cifrato:false, arr:null, attese:[], dati:[], versione:null, servizi:null, ackErr:null, log:[]}; }
+/* va cifrato? solo dopo l'autenticazione e solo dove il bracciale lo vuole */
+function zpCifra(S, ep){ if(!S.kSess) return false; return S.servizi? S.servizi[ep]===true : ZP_CIFRATI_NOTI.indexOf(ep)>=0; }
+/* l'elenco degli endpoint: «04» + numero u16 + {endpoint u16, da cifrare} (se avanza qualcosa non lo si usa) */
+function zpServizi(r){ if(!r || r[0]!==0x04 || r.length<3) return null; const n=r[1]|(r[2]<<8); if(r.length!==3+n*3) return null;
+  const s={}; for(let k=0;k<n;k++){ const o=3+k*3; s[r[o]|(r[o+1]<<8)]=r[o+2]===1; } return s; }
+/* manda un messaggio. opz: {cifra} (di serie come vuole il bracciale per quell'endpoint), {senzaConferma} (l'elenco degli
+   endpoint e la risposta al «ping» Zepp li manda senza chiedere conferma). Il numero di sessione parte da 0 e cresce di
+   1 a ogni messaggio; i pezzi si scrivono «senza risposta», come fanno Zepp e unstrap. */
+async function zpManda(S, endpoint, payload, opz){
+  const o=opz||{}, cifra=(o.cifra!=null)? !!o.cifra : zpCifra(S, endpoint);
+  const sid=S.sid; S.sid=(S.sid+1)&255;
   let corpo=payload.slice();
   if(cifra){ const ctr=S.tx; S.tx=(S.tx+1)>>>0;
     const base=payload.concat(zpU32(ctr)), piano=base.concat(zpU32(zpCrc32(base)));
@@ -2757,25 +3327,39 @@ async function zpManda(S, endpoint, payload, cifra){
   while(pos<corpo.length || i===0){
     const primo=(i===0), spazio=ZP_PEZZO-(primo? 11 : 5), parte=corpo.slice(pos, pos+spazio); pos+=parte.length;
     const ultimo=(pos>=corpo.length);
-    const flags=(primo?1:0)|(ultimo?2:0)|((ultimo || i%16===15)?4:0)|(cifra?8:0);
+    const flags=(primo?1:0)|(ultimo?2:0)|(((ultimo && !(o.senzaConferma && !cifra)) || i%16===15)?4:0)|(cifra?8:0);
     pezzi.push(primo? [0x03, flags, 0x00, sid, 0x00].concat(zpU32(payload.length), [endpoint&255, (endpoint>>8)&255], parte)
       : [0x03, flags, 0x00, sid, i&255].concat(parte));
     i++; if(ultimo) break; }
   for(const p of pezzi) await S.scrivi(ZP_IN, p);
   return sid; }
-/* aspetta un messaggio dal bracciale su quell'endpoint (filtro facoltativo sul contenuto) */
-function zpAspetta(S, endpoint, ms, filtro){
-  return new Promise((ok, no)=>{ const a={ep:endpoint, filtro:filtro, ok:ok};
-    a.t=setTimeout(()=>{ S.attese=S.attese.filter(x=>x!==a); const e=new Error('nessuna risposta'); e.motivo='silenzio'; e.endpoint=endpoint; no(e); }, ms);
-    S.attese.push(a); }); }
+/* aspetta un messaggio dal bracciale su quell'endpoint (filtro facoltativo sul contenuto). viva: il tempo riparte a
+   ogni pacchetto dello storico (sulla 0005), così un trasferimento lungo non scade finché i dati arrivano */
+function zpAspetta(S, endpoint, ms, filtro, viva){
+  return new Promise((ok, no)=>{ const a={ep:endpoint, filtro:filtro, ok:ok, viva:!!viva};
+    const scade=()=>{ S.attese=S.attese.filter(x=>x!==a); const e=new Error('nessuna risposta'); e.motivo='silenzio'; e.endpoint=endpoint; no(e); };
+    a.rinnova=()=>{ clearTimeout(a.t); a.t=setTimeout(scade, ms); };
+    a.rinnova(); S.attese.push(a); }); }
 function zpConsegna(S, ep, payload){
   const a=S.attese.find(x=>x.ep===ep && (!x.filtro || x.filtro(payload)));
   if(a){ clearTimeout(a.t); S.attese=S.attese.filter(x=>x!==a); a.ok(payload); return; }
+  /* aggiornamenti spontanei che una funzione ascolta (per esempio i passi in diretta sull'endpoint 0x0016) */
+  if(S.ascolta && S.ascolta[ep]){ try{ S.ascolta[ep](payload); }catch(e){} return; }
+  /* il bracciale chiede «ci sei?» (03 sull'endpoint 0x0015): Zepp risponde subito 04, senza chiedere conferma */
+  if(ep===0x0015 && payload[0]===0x03){ zpManda(S, 0x0015, [0x04], {senzaConferma:true}).catch(()=>{}); return; }
+  /* un endpoint aggiunto o tolto dopo l'elenco: 05 operazione(1 aggiunto, 2 tolto) endpoint u16 da-cifrare */
+  if(ep===0x0000 && payload[0]===0x05 && payload.length>=5 && S.servizi){ const e=payload[2]|(payload[3]<<8);
+    if(payload[1]===1) S.servizi[e]=payload[4]===1; else if(payload[1]===2) delete S.servizi[e]; return; }
   S.log.push({ep:ep, n:payload.length}); }
 /* un pezzo arrivato dal bracciale (caratteristica, byte) */
 async function zpRicevi(S, car, b){
-  if(car===ZP_DATI){ S.dati.push(b); return; }                      /* storico: pacchetti grezzi */
-  if(car===ZP_IN){ if(b[0]===0x02 && S.versione==null) S.versione=b.slice(); return; }   /* versione; le conferme del bracciale si ignorano */
+  if(car===ZP_DATI){ S.dati.push(b); S.attese.forEach(a=>{ if(a.viva) a.rinnova(); }); return; }   /* storico: pacchetti grezzi */
+  if(car===ZP_IN){
+    if(b[0]===0x02){ if(S.versione==null) S.versione=b.slice(); return; }          /* versione del canale */
+    if(b[0]===0x04 && b.length>=4 && (b.length===4 || b[1]===0x00)){              /* conferme del bracciale: 04 00 sessione stato pezzo */
+      const sid=(b.length===4)? b[1] : b[2], st=(b.length===4)? b[2] : b[3];
+      if(st!==0x01){ S.ackErr={sid:sid, stato:st}; zpDiag('conferma del bracciale: messaggio '+sid+', stato '+st+' ('+(ZP_ACK_NOMI[st]||'?')+')'); } }
+    return; }
   if(car!==ZP_OUT || b[0]!==0x03 || b.length<5) return;
   const flags=b[1], sid=b[3], idx=b[4];
   if(flags&1){ if(b.length<11) return;
@@ -2794,71 +3378,143 @@ async function zpRicevi(S, car, b){
     payload=piano.slice(0, m.tot); }
   if(flags&4) await S.scrivi(ZP_OUT, [0x04, 0x00, sid, 0x01, idx]);
   zpConsegna(S, m.ep, payload); }
-/* avvio e autenticazione (endpoint 0x0082, in chiaro). Errori con .motivo: 'chiave' (0x25/0x26),
-   'abbinamento' (0x81), 'silenzio' (nessuna risposta), 'risposta' (risposta che non si capisce) */
+/* avvio e autenticazione, nell'ordine che unstrap ha provato sull'Helio Strap vero (docs/protocol/01 §1.4, §3.4).
+   Errori con .motivo: 'versione' (il bracciale non risponde neanche alla prima domanda), 'chiave' (0x23/0x25/0x26),
+   'abbinamento' (0x07, 0x08, 0x41, 0x81), 'silenzio' (nessuna risposta), 'risposta' (risposta che non si capisce) */
 async function zpAutentica(S, chiave){
-  await S.scrivi(ZP_IN, [0x01]);                                     /* versione del protocollo */
-  await new Promise(r=>setTimeout(r, 300));
-  await zpManda(S, 0x0000, [0x03], false);                           /* elenco degli endpoint */
-  try{ S.endpoint=await zpAspetta(S, 0x0000, 2000); }catch(e){ S.endpoint=null; }
+  /* 1. versione del canale: «01» su 0016 → «02 versione [cifratura] …» su 0016. È la prima risposta del bracciale:
+        se non arriva, all'app non arriva niente (Zepp che tiene il canale, notifiche che non passano…) */
+  S.versione=null;
+  await S.scrivi(ZP_IN, [0x01]);
+  for(let t=0; S.versione==null && t<ZP_ATTESA.versione; t+=50) await zpPausa(50);
+  if(S.versione==null){ zpDiag('versione del canale: nessuna risposta in '+ZP_ATTESA.versione/1000+' s'); const e=new Error('versione'); e.motivo='versione'; throw e; }
+  zpDiag('versione del canale: '+zpHex(S.versione)+(S.versione[1]===2? '' : ' (attesa la 2)'));
+  /* 2. elenco degli endpoint (in chiaro e senza conferma, come Zepp): dice quali vanno cifrati */
+  await zpManda(S, 0x0000, [0x03], {cifra:false, senzaConferma:true});
+  try{ const r=await zpAspetta(S, 0x0000, ZP_ATTESA.info, p=>p[0]===0x04); S.servizi=zpServizi(r);
+    zpDiag(S.servizi? 'endpoint: '+Object.keys(S.servizi).length+', cifrati: '+Object.keys(S.servizi).filter(k=>S.servizi[k]).map(k=>(+k).toString(16).padStart(4,'0')).join(' ')
+      : 'endpoint: risposta che non capisco ('+zpHex(r, 12)+')'); }
+  catch(e){ S.servizi=null; zpDiag('endpoint: nessuna risposta (uso quelli noti dell’Helio Strap)'); }
+  /* 3. informazioni sull'autorizzazione («00»): Zepp le chiede a ogni collegamento; se non arrivano si va avanti */
+  await zpManda(S, 0x0082, [0x00], {cifra:false});
+  try{ const r=await zpAspetta(S, 0x0082, ZP_ATTESA.info, p=>p[0]===0x10 && p[1]===0x00); zpDiag('autorizzazione: '+zpHex(r, 12)); }
+  catch(e){ zpDiag('autorizzazione: nessuna risposta (vado avanti)'); }
+  /* 4. scambio delle chiavi: «04 02 00 02» + pubblica del telefono → «10 04 01» + casuale(16) + pubblica del bracciale(48) */
   const priv=zpPrivata(), pub=zpPubblica(priv);
-  await zpManda(S, 0x0082, [0x04, 0x02, 0x00, 0x02].concat(pub), false);
-  const r=await zpAspetta(S, 0x0082, ZP_ATTESA.risposta);
-  if(r[0]===0x10 && r[1]===0x04 && r[2]!==0x01){ const e=new Error('autenticazione'); e.codice=r[2]; e.motivo=zpMotivo(r[2]); throw e; }
+  S.ackErr=null;
+  await zpManda(S, 0x0082, [0x04, 0x02, 0x00, 0x02].concat(pub), {cifra:false});
+  let r;
+  try{ r=await zpAspetta(S, 0x0082, ZP_ATTESA.risposta, p=>!(p[0]===0x10 && p[1]===0x00)); }
+  catch(e){ zpDiag('scambio delle chiavi: nessuna risposta in '+ZP_ATTESA.risposta/1000+' s'+(S.ackErr? ' (ultima conferma del bracciale: stato '+S.ackErr.stato+')' : '')); throw e; }
+  zpDiag('scambio delle chiavi: risposta di '+r.length+' byte ('+zpHex(r, 3)+' …)');
+  if(r[0]===0x10 && r[1]===0x04 && r[2]!==0x01){ zpDiag('scambio delle chiavi rifiutato: stato '+r[2]+' ('+(ZP_AUTH_NOMI[r[2]]||'?')+')'); const e=new Error('autenticazione'); e.codice=r[2]; e.motivo=zpMotivo(r[2]); throw e; }
   if(r.length<64){ const e=new Error('risposta corta'); e.motivo='risposta'; throw e; }
   const casuale=r.slice(r.length-64, r.length-48), pubB=r.slice(r.length-48);
   const sc=zpCondiviso(priv, pubB);
   const kSess=sc.slice(8, 24).map((x,i)=>x^chiave[i]);
+  /* 5. prova di conoscere la chiave: «05» + AES(chiave, casuale) + AES(chiave di sessione, casuale) → stato */
   const prova=(await zpAesCifra(chiave, casuale)).concat(await zpAesCifra(kSess, casuale));
-  await zpManda(S, 0x0082, [0x05].concat(prova), false);
-  const r2=await zpAspetta(S, 0x0082, ZP_ATTESA.risposta);
+  await zpManda(S, 0x0082, [0x05].concat(prova), {cifra:false});
+  let r2;
+  try{ r2=await zpAspetta(S, 0x0082, ZP_ATTESA.risposta, p=>!(p[0]===0x10 && (p[1]===0x00 || p[1]===0x04))); }
+  catch(e){ zpDiag('prova della chiave: nessuna risposta'+(S.ackErr? ' (ultima conferma del bracciale: stato '+S.ackErr.stato+')' : '')); throw e; }
   const st=(r2[0]===0x10)? r2[2] : r2[1];
+  zpDiag('prova della chiave: stato '+st+' ('+(st===1? 'autenticato' : (ZP_AUTH_NOMI[st]||'?'))+')');
   if(st!==0x01){ const e=new Error('autenticazione'); e.codice=st; e.motivo=zpMotivo(st); throw e; }
   S.kSess=kSess; S.tx=zpLeggi32(sc, 0); S.cifrato=true;
   return true; }
-function zpMotivo(st){ return (st===0x25 || st===0x26)? 'chiave' : st===0x81? 'abbinamento' : 'rifiuto'; }
-/* batteria (endpoint 0x0029: richiesta 03, risposta 04 + stato + percentuale) */
+function zpMotivo(st){ return (st===0x23 || st===0x25 || st===0x26)? 'chiave' : (st===0x07 || st===0x08 || st===0x41)? 'riabbina' : st===0x81? 'abbinamento' : 'rifiuto'; }
+/* batteria (endpoint 0x0029, in chiaro: richiesta 03, risposta 04 + flags + percentuale …) */
 async function zpBatteria(S){
-  await zpManda(S, 0x0029, [0x03], true);
+  await zpManda(S, 0x0029, [0x03]);
   const r=await zpAspetta(S, 0x0029, 5000, p=>p[0]===0x04);
+  zpDiag('batteria: '+zpHex(r, 8));
   const v=(r.length>=3)? r[2] : r[1];
   return (v>=0 && v<=100)? v : null; }
 /* — trasferimento dello STORICO (pronto per le fasi successive: sonno, giorni, allenamenti). Controllo
      sull'endpoint 0x004B, dati come notifiche sulla caratteristica 0005 (primo byte = numero del pacchetto).
      01 START tipo + data e ora locali (anno u16 LE, mese, giorno, ore, minuti, secondi, fuso in quarti d'ora) 01
      → 10 01 01 + dimensione u32; 02 TRANSFER → pacchetti → 10 02 01 + CRC32 dei dati; 03 01 conferma
-     (va mandata dopo ogni START, anche quando non c'è niente). Restituisce i byte dei dati. — */
+     (va mandata dopo ogni START, anche quando non c'è niente). Restituisce i byte dei dati.
+     Regole viste sul bracciale vero (unstrap, 02-history-sync «Verified on hardware»): ogni START si chiude con
+     «03 codice» in OGNI caso (01 riuscito, altrimenti il codice dell'errore), se no il bracciale lascia il tipo aperto
+     e rifiuta tutti gli START dopo (stato 5); il trasferimento scade dopo 20 s SENZA DATI (non 20 s in tutto); i
+     pacchetti sulla 0005 hanno un numero che cresce di 1 (un buco = trasferimento da rifare); il CRC è sui dati
+     grezzi; se il primo byte dopo l'ora della risposta allo START vale 1, i dati sono compressi (zlib). — */
 async function zpStorico(S, tipo, da){
   const d=new Date(da), fuso=Math.round(-d.getTimezoneOffset()/15)&255, an=d.getFullYear();
-  await zpManda(S, 0x004B, [0x01, tipo&255, an&255, (an>>8)&255, d.getMonth()+1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds(), fuso, 0x01], true);
-  const r=await zpAspetta(S, 0x004B, 8000, p=>p[0]===0x10 && p[1]===0x01);
-  if(r[2]!==0x01){ const e=new Error('storico'); e.codice=r[2]; e.motivo='storico'; throw e; }
-  const dim=zpLeggi32(r, 3);
-  let dati=[];
-  if(dim){ S.dati=[];
-    await zpManda(S, 0x004B, [0x02], true);
-    const f=await zpAspetta(S, 0x004B, 30000, p=>p[0]===0x10 && p[1]===0x02);
-    S.dati.forEach(p=>{ dati=dati.concat(p.slice(1)); });
-    if(f[2]!==0x01 || zpCrc32(dati)!==zpLeggi32(f, 3)){ const e=new Error('storico'); e.motivo='crc'; throw e; } }
-  await zpManda(S, 0x004B, [0x03, 0x01], true);
-  return {dimensione:dim, dati:dati, inizio:zpOraRisposta(r, 7)}; }
+  await zpManda(S, 0x004B, [0x01, tipo&255, an&255, (an>>8)&255, d.getMonth()+1, d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds(), fuso, 0x01]);
+  let r;
+  try{ r=await zpAspetta(S, 0x004B, ZP_ATTESA.dati, p=>p[0]===0x10 && p[1]===0x01); }
+  catch(e){ zpDiag('tipo '+tipo+': nessuna risposta alla richiesta'); await zpChiudiStorico(S, 4); throw e; }
+  if(r[2]!==0x01){ zpDiag('tipo '+tipo+': rifiutato, stato '+r[2]); await zpChiudiStorico(S, r[2]); const e=new Error('storico'); e.codice=r[2]; e.motivo='storico'; throw e; }
+  const dim=zpLeggi32(r, 3), inizio=zpOraRisposta(r, 7), compresso=r.length>15 && r[15]===1;
+  if(!dim){ await zpChiudiStorico(S, 1); return {dimensione:0, dati:[], inizio:inizio}; }
+  S.dati=[];
+  const fineP=zpAspetta(S, 0x004B, ZP_ATTESA.dati, p=>p[0]===0x10 && p[1]===0x02, true);
+  await zpManda(S, 0x004B, [0x02]);
+  let f;
+  try{ f=await fineP; }
+  catch(e){ zpDiag('tipo '+tipo+': nessun dato per '+ZP_ATTESA.dati/1000+' s ('+S.dati.length+' pacchetti arrivati)'); await zpChiudiStorico(S, 4); e.motivo='storico'; throw e; }
+  await zpPausa(150);                                    /* pacchetti sulla 0005 che arrivano appena dopo il «10 02» */
+  let dati=[], atteso=0, ultimo=null, buco=false;
+  for(const p of S.dati){ if(!p || !p.length) continue;
+    if(ultimo && p[0]===ultimo[0] && p.length===ultimo.length && p.every((x,i)=>x===ultimo[i])) continue;   /* lo stesso pacchetto due volte */
+    if(p[0]!==atteso){ buco=true; break; }
+    for(let j=1;j<p.length;j++) dati.push(p[j]);
+    atteso=(atteso+1)&255; ultimo=p; }
+  const codice=buco? 6 : (f[2]!==0x01 || f.length<7)? 4 : (zpCrc32(dati)!==zpLeggi32(f, 3))? 8 : 1;
+  await zpChiudiStorico(S, codice);
+  if(codice!==1){ zpDiag('tipo '+tipo+': '+(codice===6? 'pacchetto mancante' : codice===8? 'CRC sbagliato' : 'fine trasferimento '+zpHex(f, 7))+' ('+dati.length+' byte)');
+    const e=new Error('storico'); e.motivo=(codice===4)? 'storico' : 'crc'; throw e; }
+  if(compresso){ const x=await zpInflate(dati); if(!x){ zpDiag('tipo '+tipo+': dati compressi che non riesco ad aprire'); const e=new Error('storico'); e.motivo='storico'; throw e; } dati=x; }
+  zpDiag('tipo '+tipo+': '+dati.length+' byte dal '+zpLoc(inizio||da)+(compresso? ' (compressi)' : ''));
+  return {dimensione:dim, dati:dati, inizio:inizio}; }
+/* chiude uno START: «03 codice», poi il «10 03» del bracciale (se non arriva si va avanti lo stesso) */
+async function zpChiudiStorico(S, codice){
+  try{ await zpManda(S, 0x004B, [0x03, codice&255]); await zpAspetta(S, 0x004B, ZP_ATTESA.info, p=>p[0]===0x10 && p[1]===0x03); }
+  catch(e){ zpDiag('chiusura del trasferimento: nessuna conferma'); } }
+/* dati compressi con zlib (DecompressionStream «deflate» = formato zlib) */
+async function zpInflate(b){
+  try{ if(typeof DecompressionStream!=='function') return null;
+    const s=new Blob([new Uint8Array(b)]).stream().pipeThrough(new DecompressionStream('deflate'));
+    return Array.from(new Uint8Array(await new Response(s).arrayBuffer())); }catch(e){ return null; } }
+/* i tipi che il bracciale offre («00» sull'endpoint 0x004B → 10 00 01 versione flag numero u16 + {tipo, flag}…):
+   si chiedono solo quelli. Se la risposta non arriva, si chiedono tutti. */
+async function zpTipiOfferti(S){
+  try{ await zpManda(S, 0x004B, [0x00]);
+    const r=await zpAspetta(S, 0x004B, ZP_ATTESA.info, p=>p[0]===0x10 && p[1]===0x00);
+    if(r[2]!==0x01 || r.length<7){ zpDiag('tipi offerti: risposta '+zpHex(r, 8)); return null; }
+    const n=r[5]|(r[6]<<8), out=new Set(); for(let k=0;k<n && 7+k*2<r.length;k++) out.add(r[7+k*2]);
+    zpDiag('tipi offerti dal bracciale: '+[...out].sort((a,b)=>a-b).join(' '));
+    return out.size? out : null; }
+  catch(e){ zpDiag('tipi offerti: nessuna risposta (li chiedo tutti)'); return null; } }
 /* ── SONNO E DATI DEL GIORNO DAL BRACCIALE (fasi 2–3 dello studio, 27/11/2026). Col canale cifrato si scaricano
       i tipi dello storico (layout da unstrap, docs/protocol/02-history-sync.md; riscritto da zero):
         72 sonno (594 byte: punteggio, fasi principali e sonnellini) · 73 HRV RMSSD · 78 HRV SDNN (centesimi di ms) ·
         37 SpO2 (con byte di versione + 65 byte, o 5 byte) · 38 SpO2 nel sonno · 18 stress singolo · 19 stress al
         minuto · 46 temperatura della pelle al minuto (centesimi di °C, 0x7FFF = niente) · 56 respirazione ·
-        58/86 battito a riposo · 1 attività al minuto (8 byte: il terzo sono i passi; 8 × 0xFF = minuto vuoto).
-      Un CURSORE per tipo: la volta dopo si riparte dall'ultimo record + 1 s (le serie al minuto: inizio + N minuti);
-      la prima volta gli ultimi 2 giorni (7 per sonno e stress). I campioni restano sul telefono; al PC vanno, cifrati
+        58 battito a riposo · 1 attività al minuto (8 byte: il terzo sono i passi; 8 × 0xFF = minuto vuoto).
+      SOLO dati che l'Helio Strap misura davvero (Marco, 27/11/2026): sono tutti fra i 35 tipi che il bracciale
+      vero elenca (unstrap, firmware 3.20.0.1); la temperatura della pelle (46) c'è, al minuto, anche se Zepp non la
+      mostra per questo modello. Il tipo 86 (battito a riposo «in tempo reale») NON è fra quelli offerti: tolto. In più
+      si chiedono solo i tipi che il bracciale dice di avere (zpTipiOfferti).
+      Un CURSORE per tipo, con le regole di Zepp: sonno e HRV ultimo record + 1 min, SpO2 + 30 s, gli altri + 1 s; passi e
+      pelle inizio + N minuti (passi: fino al primo minuto vuoto nel futuro), stress + N minuti + 1 s. Ogni tipo si
+      scarica a pezzi finché il cursore avanza (zpScarica). La prima volta gli ultimi 2 giorni (7 per sonno e stress).
+      I campioni si tengono una volta sola per ora (un minuto scaricato due volte non raddoppia i passi). I campioni restano sul telefono; al PC vanno, cifrati
       attraverso l'hub come le pesate, una NOTTE per giorno del risveglio (evento tms-sonno) e un GIORNO per data
       (tms-giorno), nei formati di src/app/09e-recupero.js (recuperoUnisci). Un giorno che cambia (i passi di oggi)
       si rimanda con un id nuovo; il PC sostituisce la voce dello stesso giorno. ── */
-const ZPD_KEY='tms-zp-dati', ZP_TIPI=[72, 73, 78, 37, 38, 18, 19, 46, 56, 58, 86, 1], ZP_SINC_OGNI=30*60000;
+const ZPD_KEY='tms-zp-dati', ZP_TIPI=[72, 73, 78, 37, 38, 18, 19, 46, 56, 58, 1], ZP_SINC_OGNI=30*60000, ZP_GIRI=6;
 const ZP_FASE={4:'leggero', 5:'profondo', 7:'sveglio', 8:'rem'};
 let ZPD=null;
 function zpdVuoto(){ return {cursori:{}, s:{}, passi:{}, notti:{}, batt:{}, eventi:{}, ultima:0, esito:null}; }
 async function zpdCarica(){ if(ZPD) return ZPD; let v=null; try{ v=await fcLeggiKv(ZPD_KEY); }catch(e){}
-  ZPD=Object.assign(zpdVuoto(), (v && typeof v==='object')? v : {}); return ZPD; }
+  ZPD=Object.assign(zpdVuoto(), (v && typeof v==='object')? v : {});
+  /* dati della 1.8.0/1.8.1: i passi erano solo totali del giorno; senza i minuti si riscaricano (il bracciale ne tiene ~2 giorni) */
+  if(ZPD.cursori[1] && !(ZPD.s[1] && ZPD.s[1].length)) delete ZPD.cursori[1];
+  return ZPD; }
 function zpdSalva(){ return fcScriviKv(ZPD_KEY, ZPD); }
 /* ora del primo record nella risposta allo START: anno u16, mese, giorno, ore, minuti, secondi, fuso (quarti d'ora) */
 function zpOraRisposta(r, o){ if(r.length<o+8) return null;
@@ -2888,33 +3544,44 @@ function zpNotte(r){
   if(sonnellini.length) n.sonnellini=sonnellini;
   return n; }
 /* i byte di un tipo → campioni [ora ms, valore] (o notti), e il cursore nuovo */
+const ZP_PASSO={72:60000, 73:60000, 78:60000, 37:30000, 38:30000};   /* cursore = ultimo record + questo (Zepp); gli altri + 1 s */
 function zpDecodifica(tipo, dati, inizio){
   const out=[], ts=o=>zpLeggi32(dati, o)*1000; let fine=0;
   const ogni=(dim, f)=>{ for(let o=0;o+dim<=dati.length;o+=dim){ const x=f(o); if(x){ out.push(x); if(x[0]>fine) fine=x[0]; } } };
-  if(tipo===72){ for(let o=0;o+594<=dati.length;o+=594){ const n=zpNotte(dati.slice(o, o+594)); if(n){ out.push(n); fine=Math.max(fine, n._ts*1000, n._a); } } }
+  if(tipo===72){ for(let o=0;o+594<=dati.length;o+=594){ const rec=dati.slice(o, o+594), n=zpNotte(rec);
+      fine=Math.max(fine, zpLeggi32(rec, 0)*1000);     /* anche il record vuoto della mezzanotte sposta il cursore */
+      if(n) out.push(n); } }
   else if(tipo===73) ogni(6, o=>[ts(o), dati[o+5]]);
   else if(tipo===78) ogni(9, o=>[ts(o), Math.round(zpLeggi32(dati, o+5)/10)/10]);
   else if(tipo===58) ogni(6, o=>[ts(o), dati[o+5]]);
-  else if(tipo===86) ogni(8, o=>[ts(o), dati[o+5]]);
   else if(tipo===56) ogni(8, o=>[ts(o), dati[o+5]]);
   else if(tipo===18) ogni(5, o=>[ts(o), dati[o+4]]);
   else if(tipo===37){ const v2=dati.length>1 && dati[0]===2 && (dati.length-1)%65===0, d0=v2? 1 : 0, dim=v2? 65 : 5;
     for(let o=d0;o+dim<=dati.length;o+=dim){ const t=zpLeggi32(dati, o)*1000, v=dati[o+4]&0x7F; out.push([t, v]); if(t>fine) fine=t; } }
   else if(tipo===38){ const v2=dati.length>1 && dati[0]===2 && (dati.length-1)%30===0, d0=v2? 1 : 0, dim=v2? 30 : 6;
     for(let o=d0;o+dim<=dati.length;o+=dim){ const t=zpLeggi32(dati, o)*1000; out.push([t, dati[o+4]]); if(t>fine) fine=t; } }
-  else if(tipo===19 || tipo===46 || tipo===1){ const dim=(tipo===19)? 1 : 8, n=Math.floor(dati.length/dim);
-    if(inizio){ for(let k=0;k<n;k++){ const o=k*dim, t=inizio+k*60000;
+  else if(tipo===19 || tipo===46 || tipo===1){ const dim=(tipo===19)? 1 : 8; let n=Math.floor(dati.length/dim);
+    if(inizio){
+      /* passi: i minuti non ancora scritti in fondo (8 × 0xFF) che stanno nel futuro non contano e non spostano il cursore */
+      if(tipo===1){ const ora=Date.now(); for(let k=0;k<n;k++){ const o=k*8; if(inizio+k*60000>ora && dati.slice(o, o+8).every(x=>x===0xFF)){ n=k; break; } } }
+      for(let k=0;k<n;k++){ const o=k*dim, t=inizio+k*60000;
         if(tipo===19){ if(dati[o]!==0xFF) out.push([t, dati[o]]); }
         else if(tipo===46){ const v=(dati[o+2]|(dati[o+3]<<8)); if(v!==0x7FFF){ const c=v>32767? v-65536 : v; out.push([t, c/100]); } }
-        else { if(!dati.slice(o, o+8).every(x=>x===0xFF)) out.push([t, dati[o+2]]); } }
-      if(n) fine=inizio+(n-1)*60000; } }
-  return {voci:out, cursore:fine? fine+1000 : 0}; }
-/* i campioni nel posto giusto (serie per tipo, passi per giorno, notti per giorno del risveglio) */
+        else { if(!dati.slice(o, o+8).every(x=>x===0xFF)){ const hr=dati[o+3]; out.push([t, dati[o+2], (hr>=30 && hr<=220)? hr : null]); } } }
+      return {voci:out, cursore:n? inizio+n*60000+(tipo===1? 0 : 1000) : 0}; }
+    return {voci:out, cursore:0}; }
+  return {voci:out, cursore:fine? fine+(ZP_PASSO[tipo]||1000) : 0}; }
+/* i campioni nel posto giusto (serie per tipo, notti per giorno del risveglio). Un campione con la stessa ora prende
+   il posto di quello che c'era (un minuto scaricato due volte non raddoppia). Passi: minuto per minuto nella serie 1
+   (tenuta 3 giorni), il totale del giorno si ricalcola dai minuti */
 function zpMetti(tipo, voci){
   if(tipo===72){ voci.forEach(n=>{ ZPD.notti[n.id]=n; }); return; }
-  if(tipo===1){ voci.forEach(v=>{ const g=zpGiornoDi(v[0]); ZPD.passi[g]=(ZPD.passi[g]||0)+v[1]; }); return; }
-  const l=ZPD.s[tipo]||(ZPD.s[tipo]=[]); voci.forEach(v=>l.push(v)); }
-function zpPota(){ const ora=Date.now(), lim={19:10, 46:10};
+  const l=ZPD.s[tipo]||(ZPD.s[tipo]=[]), pos=new Map(l.map((v,i)=>[v[0], i]));
+  voci.forEach(v=>{ if(tipo===1 && !v[1] && !v[2] && !pos.has(v[0])) return;   /* minuti senza passi né battito: non servono */
+    const i=pos.get(v[0]); if(i!=null) l[i]=v; else { pos.set(v[0], l.length); l.push(v); } });
+  if(tipo===1){ const giorni=new Set(voci.map(v=>zpGiornoDi(v[0])));
+    giorni.forEach(g=>{ ZPD.passi[g]=l.filter(v=>zpGiornoDi(v[0])===g).reduce((a,v)=>a+v[1], 0); }); } }
+function zpPota(){ const ora=Date.now(), lim={19:10, 46:10, 1:3};
   Object.keys(ZPD.s).forEach(t=>{ const g=(lim[t]||45)*86400000; ZPD.s[t]=ZPD.s[t].filter(v=>ora-v[0]<g); });
   const vecchio=dataLoc(new Date(ora-70*86400000));
   ['passi','notti','batt'].forEach(k=>{ Object.keys(ZPD[k]).forEach(d=>{ if(d<vecchio) delete ZPD[k][d]; }); });
@@ -2927,7 +3594,7 @@ function zpGiornoValori(data){
   const d0=new Date(data+'T00:00:00').getTime(), d1=d0+86400000, n=ZPD.notti[data], win=n? [n._da, n._a] : [d0, d1];
   const g={data:data}, s=(k,v)=>{ if(v!==undefined && v!==null && isFinite(v)) g[k]=v; };
   if(ZPD.passi[data]!=null) g.passi=ZPD.passi[data];
-  const rip=zpVal(58, d0, d1); s('fcRiposo', rip.length? rip[rip.length-1] : (zpVal(86, d0, d1).pop()));
+  const rip=zpVal(58, d0, d1); if(rip.length) s('fcRiposo', rip[rip.length-1]);
   s('rmssd', zpTond(zpMedia(zpVal(73, d0, d1)), 0));
   s('sdnn', zpTond(zpMedia(zpVal(78, d0, d1)), 1));
   const sp=zpVal(37, d0, d1).filter(v=>v>=50); if(sp.length){ s('spo2Min', Math.min(...sp)); s('spo2Med', zpTond(zpMedia(sp), 0)); }
@@ -2957,17 +3624,24 @@ function zpPreparaEventi(){
     if(ZPD.notti[d]) metti('sonno|'+d, 'tms-sonno', zpNotteValori(ZPD.notti[d]));
     const g=zpGiornoValori(d); if(g) metti('giorno|'+d, 'tms-giorno', g); });
   return n; }
-/* lo scarico: tutti i tipi, uno dopo l'altro. Un tipo che il bracciale rifiuta si salta; il silenzio ferma tutto */
+/* lo scarico: i tipi che il bracciale offre, uno dopo l'altro; ogni tipo a pezzi finché il cursore avanza (al massimo
+   ZP_GIRI pezzi per volta). Un tipo che il bracciale rifiuta o che arriva rovinato si salta (il cursore resta dov'era,
+   si riprova la volta dopo); il silenzio ferma tutto */
 async function zpScarica(S){
-  const fatti={};
+  const fatti={}, offerti=await zpTipiOfferti(S);
   for(const t of ZP_TIPI){
-    let r;
-    try{ r=await zpStorico(S, t, zpCursore(t)); }
-    catch(e){ if(e && (e.motivo==='storico' || e.motivo==='crc')){ fatti[t]=(e.motivo==='crc')? 'crc' : 'rifiutato'; continue; } throw e; }
-    if(!r.dimensione){ fatti[t]=0; continue; }
-    const d=zpDecodifica(t, r.dati, r.inizio);
-    zpMetti(t, d.voci); fatti[t]=d.voci.length;
-    if(d.cursore && d.cursore>(ZPD.cursori[t]||0)) ZPD.cursori[t]=d.cursore; }   /* il cursore si salva solo coi dati */
+    if(offerti && !offerti.has(t)){ fatti[t]='assente'; continue; }
+    let n=0, cur=zpCursore(t);
+    try{
+      for(let giro=0; giro<ZP_GIRI; giro++){
+        const r=await zpStorico(S, t, cur);
+        if(!r.dimensione) break;
+        const d=zpDecodifica(t, r.dati, r.inizio);
+        zpMetti(t, d.voci); n+=d.voci.length;
+        if(!(d.cursore && d.cursore>cur)) break;
+        cur=d.cursore; ZPD.cursori[t]=cur; }                /* il cursore si salva solo coi dati */
+      fatti[t]=n; }
+    catch(e){ if(e && (e.motivo==='storico' || e.motivo==='crc')){ fatti[t]=n || ((e.motivo==='crc')? 'crc' : 'rifiutato'); continue; } throw e; } }
   return fatti; }
 /* — Impostazioni › Bracciale: la CHIAVE del bracciale (16 byte, «0x…» o 32 caratteri esadecimali) resta SOLO su
      questo telefono (IndexedDB, chiave «bracciale-chiave»): non va all'hub, al PC, nei file né nei messaggi; si
@@ -2995,7 +3669,9 @@ const ZP_TESTI={
   rifiuto:'Il bracciale ha rifiutato il collegamento. Chiudi Zepp e riprova.',
   nontrovo:'Non trovo il bracciale. Tienilo vicino al telefono; se Zepp è aperto, chiudilo (Impostazioni del telefono › App › Zepp › Arresto forzato): il bracciale accetta un collegamento alla volta.',
   lontano:'Il bracciale non risponde: avvicinalo al telefono e riprova.',
-  silenzio:'Il bracciale non risponde al collegamento cifrato. Chiudi Zepp (Arresto forzato) e riprova.',
+  versione:'Il bracciale è collegato ma non risponde all’app. Chiudi Zepp (Impostazioni del telefono › App › Zepp › Arresto forzato), spegni e riaccendi il Bluetooth e riprova.',
+  silenzio:'Il bracciale non risponde al collegamento cifrato. Chiudi Zepp (Arresto forzato) e riprova; se succede ancora, copia i «Dettagli tecnici» qui sotto e mandali a chi ti segue.',
+  riabbina:'Il bracciale chiede di essere abbinato di nuovo: abbinalo in Zepp, prendi la chiave nuova e incollala qui.',
   notifiche:'Il bracciale non lascia aprire il canale: chiudi Zepp e riprova.',
   occupato:'Chiudi prima la registrazione o la seduta in corso: il bracciale serve a quella.',
   inCorso:'Sto già sincronizzando in sottofondo: riprova fra un minuto.',
@@ -3025,12 +3701,14 @@ function zpRender(){
     if(ZP.fw && ZP_FW_PROVATI.indexOf(ZP.fw)<0) b=tt('Questo firmware non è ancora fra quelli provati col TMS: se qualcosa non va, dillo al tuo personal.'); }
   else if(ZP.stato==='errore') a=tt(ZP_TESTI[ZP.motivo]||ZP_TESTI.errore);
   st.textContent=a; if(so) so.textContent=b;
+  zpDiagRender();
   try{ renderSal(); }catch(e){} }
 /* apre il canale col bracciale: cerca, collega, autentica. Restituisce {S, id, ricollega}; errori con .motivo */
 async function zpApri(){
   const c={S:null, id:'', ricollega:false, B:null};
   const B=c.B=await zpBle(); if(!B){ const e=new Error('bluetooth'); e.motivo='errore'; throw e; }
-  const r=await B.prepara(); if(!r || !r.ok){ const e=new Error('bluetooth'); e.motivo='errore'; throw e; }
+  zpDiag('trasporto: '+(B.ponte? 'collegamento del servizio «sempre collegato»' : 'Bluetooth diretto'));
+  const r=await B.prepara(); if(!r || !r.ok){ zpDiag('Bluetooth non pronto: '+((r && r.motivo) || '?')); const e=new Error('bluetooth'); e.motivo='errore'; throw e; }
   /* quale bracciale: quello già provato, la fascia collegata se è un Amazfit, o il primo che si fa vedere */
   let noto=''; try{ noto=localStorage.getItem(ZP_KEY_ID)||''; }catch(e){}
   if(!B.ponte){
@@ -3040,13 +3718,16 @@ async function zpApri(){
   const d=await new Promise(ok=>{ const t=setTimeout(()=>{ ok(null); }, ZP_ATTESA.cerca);
     Promise.resolve(B.cerca(x=>(noto? x.id===noto : (/amazfit|helio/i.test(x.nome||'') || (x.servizi||[]).indexOf('fee0')>=0)), x=>{ clearTimeout(t); ok(x); })).catch(()=>{ clearTimeout(t); ok(null); }); });
   try{ await B.fermaRicerca(); }catch(e){}
-  if(!d){ const e=new Error('non trovato'); e.motivo='nontrovo'; e.ctx=c; throw e; }
+  if(!d){ zpDiag('bracciale non trovato in '+ZP_ATTESA.cerca/1000+' s'); const e=new Error('non trovato'); e.motivo='nontrovo'; e.ctx=c; throw e; }
   const id=d.id; ZP.nome=d.nome||''; ZP.stato='collego'; zpRender();
-  const S=zpSessione(id, (car, byte)=>B.scrivi(id, car, byte, ZP_FEE0));
+  zpDiag('bracciale: '+(d.nome||'senza nome')+' · …'+String(id).slice(-5));
+  /* i pezzi del canale si scrivono «senza risposta» (come Zepp, unstrap e Gadgetbridge) */
+  const S=zpSessione(id, (car, byte)=>B.scrivi(id, car, byte, ZP_FEE0, true));
   let coda=Promise.resolve();
-  try{ await B.collega(id, {onDati:(car, byte)=>{ coda=coda.then(()=>zpRicevi(S, car, byte)).catch(()=>{}); }, onStaccato:()=>{}},
+  try{ await B.collega(id, {onDati:(car, byte)=>{ coda=coda.then(()=>zpRicevi(S, car, byte)).catch(()=>{}); }, onStaccato:()=>{ zpDiag('il bracciale si è staccato'); }},
     {servizio:ZP_FEE0, notifiche:[ZP_IN, ZP_OUT, ZP_DATI]}); }
-  catch(e){ const x=new Error('collega'); x.motivo=(e && e.motivo==='notifiche')? 'notifiche' : 'lontano'; x.ctx=c; throw x; }
+  catch(e){ zpDiag('collegamento o notifiche: '+((e && e.message) || e)); const x=new Error('collega'); x.motivo=(e && e.motivo==='notifiche')? 'notifiche' : 'lontano'; x.ctx=c; throw x; }
+  zpDiag('notifiche 0016, 0017, 0005: attive');
   c.id=id; c.S=S;
   try{ localStorage.setItem(ZP_KEY_ID, id); }catch(e){}
   ZP.stato='auth'; zpRender();
@@ -3066,15 +3747,17 @@ async function zpProva(){
   if(!ZP.chiave){ ZP.stato='errore'; ZP.motivo='manca'; zpRender(); return; }
   if(FC.reg || SED.s){ ZP.stato='errore'; ZP.motivo='occupato'; zpRender(); return; }
   ZP.inCorso=true; ZP.fw=''; ZP.batteria=null;
+  zpDiagInizia('Prova collegamento');
   let c=null;
   try{
     c=await zpApri();
-    /* firmware (Device Information, in chiaro) e batteria (canale cifrato) */
-    try{ if(c.B.leggi){ const fw=await c.B.leggi(c.id, '180a', '2a26'); ZP.fw=String.fromCharCode.apply(null, (fw||[]).filter(x=>x>=32 && x<127)).trim(); } }catch(e){}
-    try{ ZP.batteria=await zpBatteria(c.S); }catch(e){ ZP.batteria=null; }
-    ZP.stato='ok'; zpSegnaOk(true);
-  }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento') zpSegnaOk(false); }
-  finally{ await zpChiudi(c); ZP.inCorso=false; zpRender(); natSempre(); } }
+    /* firmware (Device Information, in chiaro) e batteria (in chiaro anche lei: il bracciale non la vuole cifrata) */
+    try{ if(c.B.leggi){ const fw=await c.B.leggi(c.id, '180a', '2a26'); ZP.fw=String.fromCharCode.apply(null, (fw||[]).filter(x=>x>=32 && x<127)).trim(); zpDiag('firmware: '+(ZP.fw||'?')); } }catch(e){ zpDiag('firmware: non letto'); }
+    try{ ZP.batteria=await zpBatteria(c.S); }catch(e){ ZP.batteria=null; zpDiag('batteria: nessuna risposta'); }
+    ZP.stato='ok'; zpSegnaOk(true); zpDiag('fatto: collegamento cifrato aperto');
+  }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; zpDiag('ERRORE: '+ZP.motivo+(e && e.message? ' ('+e.message+')' : ''));
+    if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento' || ZP.motivo==='riabbina') zpSegnaOk(false); }
+  finally{ await zpChiudi(c); ZP.inCorso=false; zpDiagSalva(); zpRender(); natSempre(); } }
 /* SINCRONIZZA: scarica sonno e dati del giorno, prepara gli eventi per il PC, stacca. Senza interfaccia: la usa il
    tasto, l'apertura dell'app e (in futuro) lo scarico periodico in sottofondo. Restituisce l'esito o null. */
 async function zpSincronizza(manuale){
@@ -3083,20 +3766,23 @@ async function zpSincronizza(manuale){
   /* un'altra pagina (quella invisibile del servizio, o l'app) sta già scaricando */
   if(zpLockPreso()){ if(manuale){ ZP.stato='errore'; ZP.motivo='inCorso'; zpRender(); } return null; }
   ZP.inCorso=true; zpLock(true); ZPD=null; await zpdCarica();
+  zpDiagInizia(manuale? 'Sincronizzazione (a mano)' : window.TmsServizio? 'Sincronizzazione (servizio, app chiusa)' : 'Sincronizzazione automatica');
   let c=null, esito=null;
   try{
     c=await zpApri();
     ZP.stato='scarico'; zpRender();
     const fatti=await zpScarica(c.S);
+    zpDiag('scaricati per tipo: '+Object.keys(fatti).map(t=>t+'='+fatti[t]).join(' '));
     try{ const b=await zpBatteria(c.S); if(b!=null){ ZP.batteria=b; ZPD.batt[dataLoc(new Date())]=b; } }catch(e){}
     zpPota();
     const nuovi=zpPreparaEventi();
     esito={notti:Object.keys(ZPD.notti).filter(d=>d>=dataLoc(new Date(Date.now()-14*86400000))).length,
       giorni:Object.keys(ZPD.eventi).filter(k=>/^giorno\|/.test(k)).length, nuovi:nuovi, tipi:fatti};
     ZPD.ultima=Date.now(); ZPD.esito=esito; await zpdSalva();
-    ZP.stato='sincok'; zpSegnaOk(true);
-  }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento') zpSegnaOk(false); }
-  finally{ await zpChiudi(c); ZP.inCorso=false; zpLock(false); zpRender(); }
+    ZP.stato='sincok'; zpSegnaOk(true); zpDiag('fatto: '+esito.notti+' notti, '+esito.giorni+' giorni, '+nuovi+' eventi nuovi per il PC');
+  }catch(e){ c=c||(e && e.ctx); ZP.stato='errore'; ZP.motivo=(e && e.motivo) || 'errore'; zpDiag('ERRORE: '+ZP.motivo+(e && e.message? ' ('+e.message+')' : ''));
+    if(ZP.motivo==='chiave' || ZP.motivo==='abbinamento' || ZP.motivo==='riabbina') zpSegnaOk(false); }
+  finally{ await zpChiudi(c); ZP.inCorso=false; zpLock(false); zpDiagSalva(); zpRender(); }
   if(esito){ colPresto(); natSempre(); }
   return esito; }
 /* all'apertura dell'app: una sincronizzazione se l'ultima è di più di mezz'ora fa (in silenzio) */
@@ -3235,15 +3921,27 @@ async function servizioGiro(){ let e=null; try{ e=await zpSincEManda(); }catch(x
         Recupero). Senza chiave del bracciale lo dice e porta a Impostazioni › Sensori › Bracciale.
       · «Aggiorna» = una sincronizzazione subito (zpSincronizza). Tutto legge i dati già sul telefono (ZPD); al PC
         continuano ad andare solo gli eventi tms-sonno e tms-giorno. ── */
-const SAL={timer:null, giri:0};
+const SAL={timer:null, giri:0, obi:false, cache:null};
 const SAL_FASI={profondo:'Profondo', leggero:'Leggero', rem:'REM', sveglio:'Sveglio'};
+/* — PASSI e OBIETTIVO (27/11/2026, Marco: «aggiungi in salute il contatore dei passi e il target giornaliero»):
+     l'anello dei passi di oggi contro l'obiettivo (di serie 8.000, si cambia col tasto «Obiettivo»; resta su questo
+     telefono, localStorage «tms-passi-obiettivo»). Con la Salute aperta e la chiave del bracciale i passi arrivano IN
+     DIRETTA dal bracciale (endpoint 0x0016 «RealtimeActivity», in chiaro: «03» → «04 01» + record, poi «05 01»
+     accende gli aggiornamenti «07» + record a ogni passo; record = flags, passi u32 [, corsa u32] [, camminata u32]
+     [, metri u32, kcal u32]; visto sul bracciale vero da unstrap); senza, quelli dell'ultima sincronizzazione. — */
+const SAL_LIVE={c:null, on:false, passi:null, t:0, dist:null, kcal:null, lockT:0};
+const SAL_OBI_KEY='tms-passi-obiettivo', SAL_OBI_SCELTE=[5000, 6000, 8000, 10000, 12000, 15000];
+function salObiettivo(){ try{ const v=+localStorage.getItem(SAL_OBI_KEY); if(v>=1000 && v<=50000) return v; }catch(e){} return 8000; }
+const salNum=v=>String(Math.round(+v||0)).replace(/\B(?=(\d{3})+(?!\d))/g, LANGP==='en'? ',' : '.');   /* 8.000 anche a 4 cifre */
+const salDec=(v,d)=>String((+v).toFixed(d)).replace('.', LANGP==='en'? '.' : ',');
 function salBpm(){
   if(FC.id && FC.bpm) return FC.bpm;
   const st=SEMPRE.st; return (st && st.collegato && st.bpm>0)? st.bpm : null; }
 function salAggiornaMenu(){
   const v=$('vai-sal'); if(v) v.hidden=!(window.tmsBLE && SCHEDA);
   const m=$('meta-sal'); if(!m) return;
-  const b=salBpm(); m.textContent=b? '♥ '+b+' bpm' : tt('battito, passi e ultimo riposo'); }
+  const b=salBpm(), p=salPassiOggi();
+  m.textContent=(b || p.v!=null)? [b? '♥ '+b+' bpm' : '', p.v!=null? salNum(p.v)+' '+tt('passi') : ''].filter(Boolean).join(' · ') : tt('battito, passi e ultimo riposo'); }
 /* l'ultimo campione di uno o più tipi dello storico: [ora ms, valore] */
 function salUltimo(tipi){ let u=null;
   tipi.forEach(t=>{ ((ZPD && ZPD.s[t])||[]).forEach(v=>{ if(!u || v[0]>u[0]) u=v; }); }); return u; }
@@ -3257,6 +3955,81 @@ function salUltimoRiposo(){
   notti.forEach(x=>(x.sonnellini||[]).forEach(z=>{ if(z && z.fine && (!s || z.fine>s.fine)) s=z; }));
   if(s && (!n || s.fine>n.fine)) return {sonnellino:true, inizio:s.inizio, fine:s.fine};
   return n? {notte:n} : null; }
+/* passi di oggi: in diretta dal bracciale (Salute aperta) o dall'ultima sincronizzazione */
+function salPassiOggi(){
+  const oggi=dataLoc(new Date());
+  if(SAL_LIVE.passi!=null && dataLoc(new Date(SAL_LIVE.t))===oggi) return {v:SAL_LIVE.passi, live:true, t:SAL_LIVE.t, dist:SAL_LIVE.dist, kcal:SAL_LIVE.kcal};
+  const v=ZPD? ZPD.passi[oggi] : null, t=(ZPD && ZPD.cursori[1]>new Date(oggi+'T00:00:00').getTime())? ZPD.cursori[1]-1000 : null;
+  return {v:(v==null? null : v), live:false, t:t}; }
+/* un anello (frazione 0–1) nei colori dell'app */
+function salAnello(frac, cls, dim){
+  const r=dim/2-6, C=2*Math.PI*r, f=Math.max(0, Math.min(1, +frac||0)), c=dim/2;
+  return '<svg class="sal-anello" viewBox="0 0 '+dim+' '+dim+'" aria-hidden="true"><circle class="sal-an-f" cx="'+c+'" cy="'+c+'" r="'+r+'"/>'+
+    (f>0? '<circle class="sal-an-v '+cls+'" cx="'+c+'" cy="'+c+'" r="'+r+'" stroke-dasharray="'+(C*f).toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 '+c+' '+c+')"/>' : '')+'</svg>'; }
+/* — STATI A COLORI: ogni misura confrontata col SOLITO della persona (media e deviazione standard dei 14 giorni prima
+     del valore mostrato, servono almeno 4 giorni), come fanno le app professionali; dove conta il valore assoluto
+     (SpO2, stress sulla scala 0–100 del bracciale, punteggio del sonno) soglie fisse. Verde nella norma, ocra da tenere
+     d'occhio, rosso lontano dal solito; grigio quando non c'è ancora abbastanza storia. — */
+const SAL_MIS=[
+  {k:'rmssd', n:'HRV', u:'ms', d:0},
+  {k:'fcRiposo', n:'Battito a riposo', u:'bpm', d:0},
+  {k:'spo2Med', n:'SpO2', u:'%', d:0},
+  {k:'tempPelle', n:'Temperatura pelle', u:'°C', d:1, scarto:true},
+  {k:'resp', n:'Respirazione', u:'/min', d:1},
+  {k:'stressMed', n:'Stress', u:'', d:0}];
+function salStato(k, v, b){
+  if(v==null) return ['st-n', ''];
+  const poca=!b || b.n<4, z=(!poca && b.sd>0)? (v-b.m)/b.sd : 0, d=poca? 0 : v-b.m;
+  if(k==='spo2Med') return v>=95? ['st-ok', tt('buona')] : v>=92? ['st-mez', tt('un po’ bassa')] : ['st-ko', tt('bassa')];
+  if(k==='stressMed') return v<40? ['st-ok', tt('rilassato')] : v<60? ['st-ok', tt('normale')] : v<80? ['st-mez', tt('medio')] : ['st-ko', tt('alto')];
+  if(poca){ if(k==='resp') return (v>=10 && v<=20)? ['st-ok', tt('nella norma')] : ['st-mez', tt('da tenere d’occhio')];
+    return ['st-n', tt('serve qualche giorno')]; }
+  if(k==='rmssd') return z>=-0.5? ['st-ok', z>0.7? tt('sopra il solito') : tt('nella norma')] : z>=-1.5? ['st-mez', tt('un po’ basso')] : ['st-ko', tt('basso')];
+  if(k==='fcRiposo') return d<=2? ['st-ok', tt('nella norma')] : d<=5? ['st-mez', tt('un po’ alto')] : ['st-ko', tt('alto')];
+  if(k==='tempPelle') return Math.abs(d)<=0.5? ['st-ok', tt('nella norma')] : Math.abs(d)<=1? ['st-mez', tt('diversa dal solito')] : ['st-ko', tt('lontana dal solito')];
+  if(k==='resp') return Math.abs(d)<=1? ['st-ok', tt('nella norma')] : Math.abs(d)<=2? ['st-mez', tt('diversa dal solito')] : ['st-ko', tt('lontana dal solito')];
+  return ['st-n', '']; }
+/* i giorni degli ultimi 21 (riassunti di zpGiornoValori), ricalcolati solo quando i dati cambiano */
+function salGiorni(){
+  const chiave=(ZPD && ZPD.ultima)+'|'+dataLoc(new Date());
+  if(SAL.cache && SAL.cache.k===chiave) return SAL.cache.g;
+  const g=[], d=new Date(); d.setHours(12, 0, 0, 0);
+  for(let i=20;i>=0;i--){ const x=new Date(d); x.setDate(d.getDate()-i); const k=dataLoc(x); g.push({data:k, v:(ZPD && zpGiornoValori(k))||{}}); }
+  SAL.cache={k:chiave, g:g}; return g; }
+function salBase(g, i, k){ const v=g.slice(Math.max(0, i-14), i).map(x=>x.v[k]).filter(x=>x!=null && isFinite(x));
+  if(!v.length) return {n:0}; const m=v.reduce((a,b)=>a+b, 0)/v.length, sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)*(b-m), 0)/v.length);
+  return {n:v.length, m:m, sd:sd}; }
+/* una piccola linea degli ultimi 14 giorni, col punto finale nel colore dello stato */
+function salLinea(vals, cls){
+  const p=vals.map((v,i)=>[i, v]).filter(x=>x[1]!=null); if(p.length<2) return '';
+  const W=96, H=26, ys=p.map(x=>x[1]), y0=Math.min(...ys), y1=Math.max(...ys), n=vals.length-1;
+  const X=i=>(2+i/n*(W-6)).toFixed(1), Y=v=>(y1===y0? H/2 : (H-3-(v-y0)/(y1-y0)*(H-6))).toFixed(1);
+  const u=p[p.length-1];
+  return '<svg class="sal-spark" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><path d="'+p.map((x,j)=>(j? 'L' : 'M')+X(x[0])+' '+Y(x[1])).join('')+'"/>'+
+    '<circle class="'+cls+'" cx="'+X(u[0])+'" cy="'+Y(u[1])+'" r="3"/></svg>'; }
+function salHtmlMisure(){
+  if(!ZPD) return '';
+  const g=salGiorni(), oggi=g.length-1;
+  const riq=SAL_MIS.map(m=>{
+    let i=-1; for(let j=oggi;j>=oggi-3;j--) if(g[j] && g[j].v[m.k]!=null){ i=j; break; }
+    const v=(i>=0)? g[i].v[m.k] : null, b=(i>=0)? salBase(g, i, m.k) : {n:0}, st=salStato(m.k, v, b);
+    let val='—';
+    if(v!=null){ if(m.scarto && b.n>=4){ const d=v-b.m; val=(d>=0.05? '+' : d<=-0.05? '−' : '±')+salDec(Math.abs(d), 1)+'<small> °C</small>'; }
+      else val=salDec(v, m.d)+(m.u? '<small> '+esc(tt(m.u))+'</small>' : ''); }
+    const quando=(i>=0 && i<oggi)? (i===oggi-1? tt('ieri') : giornoBreve(g[i].data)) : '';
+    const serie=g.slice(-14).map(x=>x.v[m.k]!=null? x.v[m.k] : null);
+    return '<div class="sal-mis '+st[0]+'"><div class="sal-mis-t"><span>'+esc(tt(m.n))+'</span>'+(quando? '<small>'+esc(quando)+'</small>' : '')+'</div>'+
+      '<b>'+val+'</b><div class="sal-mis-s"><i></i><span>'+esc(st[1]||'—')+'</span></div>'+salLinea(serie, st[0])+'</div>'; }).join('');
+  return '<div class="sal-griglia">'+riq+'</div>'+
+    (ZP.chiave? '' : '<div class="bil-stato">'+esc(tt('Con la chiave del bracciale arrivano anche stress, SpO2, pelle e respirazione.'))+'</div>'); }
+/* il sonno, nei 4 livelli come le app professionali (ipnogramma): sveglio in alto, profondo in basso */
+function salIpnogramma(fasi, tot, inizio, fine){
+  const W=320, rh=17, top=2, H=top+4*rh+2, riga={sveglio:0, rem:1, leggero:2, profondo:3};
+  let h='<svg class="sal-ipno" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">';
+  [0,1,2,3].forEach(i=>{ const y=(top+i*rh+rh/2).toFixed(1); h+='<line class="sal-ipno-g" x1="0" x2="'+W+'" y1="'+y+'" y2="'+y+'"/>'; });
+  fasi.forEach(f=>{ const x=W*f[0]/tot, w=Math.max(1.2, W*(f[1]-f[0])/tot), y=top+riga[f[2]]*rh+2;
+    h+='<rect class="f-'+esc(f[2])+'" x="'+x.toFixed(1)+'" y="'+y+'" width="'+w.toFixed(1)+'" height="'+(rh-4)+'" rx="2"/>'; });
+  return h+'</svg><div class="sal-ipno-ore"><span>'+esc(inizio)+'</span><span>'+esc(fine)+'</span></div>'; }
 function salHtmlRiposo(){
   if(!ZP.chiave) return '<div class="bil-stato">'+esc(tt('Per il sonno serve la chiave del bracciale.'))+'</div>'+
     '<button type="button" class="btn-lite" id="sal-chiave"><svg class="ic"><use href="#i-lucchetto"/></svg><span>'+esc(tt('Vai alle Impostazioni'))+'</span></button>';
@@ -3264,46 +4037,112 @@ function salHtmlRiposo(){
   if(!r) return '<div class="bil-stato">'+esc(tt('Nessun riposo scaricato: tocca «Aggiorna».'))+'</div>';
   const ora=x=>String(x||'').slice(11,16);
   if(r.sonnellino){ const min=(new Date(r.fine)-new Date(r.inizio))/60000;
-    return '<div class="sal-riposo"><b>'+esc(tt('Sonnellino'))+'</b> <span>'+esc(giornoBreve(String(r.inizio).slice(0,10)))+' · '+esc(ora(r.inizio))+' → '+esc(ora(r.fine))+'</span></div>'+
+    return '<div class="sal-sonno-t"><div><b>'+esc(tt('Sonnellino'))+'</b><span>'+esc(giornoBreve(String(r.inizio).slice(0,10)))+' · '+esc(ora(r.inizio))+' → '+esc(ora(r.fine))+'</span></div></div>'+
       '<div class="fc-tre"><div><b>'+esc(salDurata(min))+'</b><span>'+esc(tt('dormito'))+'</span></div></div>'; }
   const n=r.notte, fasi=n.fasi||[], tot=Math.max(1, (new Date(n.fine)-new Date(n.inizio))/60000);
   const dorm=fasi.filter(f=>f[2]!=='sveglio').reduce((a,f)=>a+(f[1]-f[0]), 0) || tot;
-  const v=zpNotteValori(n), g=zpGiornoValori(n.id)||{};
-  const striscia=fasi.length? '<div class="sal-fasi" aria-hidden="true">'+fasi.map(f=>'<i class="f-'+esc(f[2])+'" style="left:'+(100*f[0]/tot).toFixed(2)+'%;width:'+(100*(f[1]-f[0])/tot).toFixed(2)+'%"></i>').join('')+'</div>'+
-    '<div class="sal-leg">'+['profondo','leggero','rem','sveglio'].map(k=>{ const m=fasi.filter(f=>f[2]===k).reduce((a,f)=>a+(f[1]-f[0]), 0);
-      return '<span><i class="f-'+k+'"></i>'+esc(tt(SAL_FASI[k]))+' '+esc(salDurata(m).replace(' min','′'))+'</span>'; }).join('')+'</div>' : '';
-  return '<div class="sal-riposo"><b>'+esc(tt('Notte'))+'</b> <span>'+esc(giornoBreve(n.id))+' · '+esc(ora(n.inizio))+' → '+esc(ora(n.fine))+'</span></div>'+
-    '<div class="fc-tre"><div><b>'+esc(salDurata(dorm))+'</b><span>'+esc(tt('dormito'))+'</span></div>'+
-    '<div><b>'+(n.punteggio!=null? n.punteggio : '—')+'</b><span>'+esc(tt('punteggio'))+'</span></div>'+
-    '<div><b>'+(v.hrv!=null? v.hrv+'<small> ms</small>' : '—')+'</b><span>'+esc(tt('HRV della notte'))+'</span></div></div>'+
-    striscia+
-    (g.fcRiposo!=null? '<div class="bil-row"><span class="bil-g">'+esc(tt('Battito a riposo'))+'</span><b>'+g.fcRiposo+' bpm</b></div>' : ''); }
-function renderSal(){
+  const v=zpNotteValori(n), g=zpGiornoValori(n.id)||{}, p=n.punteggio;
+  const st=p==null? ['st-n', ''] : p>=80? ['st-ok', tt('buono')] : p>=60? ['st-mez', tt('discreto')] : ['st-ko', tt('scarso')];
+  const testa='<div class="sal-sonno-t"><div class="sal-punt '+st[0]+'">'+salAnello(p==null? 0 : p/100, st[0], 62)+'<b>'+(p!=null? p : '—')+'</b></div>'+
+    '<div><b>'+esc(tt('Notte'))+' · '+esc(salDurata(dorm))+'</b><span>'+esc(giornoBreve(n.id))+' · '+esc(ora(n.inizio))+' → '+esc(ora(n.fine))+'</span>'+
+    (st[1]? '<span class="sal-mis-s '+st[0]+'"><i></i><span>'+esc(tt('punteggio'))+' '+esc(st[1])+'</span></span>' : '')+'</div></div>';
+  const ipno=fasi.length? salIpnogramma(fasi, tot, ora(n.inizio), ora(n.fine))+
+    '<div class="sal-fasi-tot">'+['profondo','rem','leggero','sveglio'].map(k=>{ const m=fasi.filter(f=>f[2]===k).reduce((a,f)=>a+(f[1]-f[0]), 0);
+      return '<div><span><i class="f-'+k+'"></i>'+esc(tt(SAL_FASI[k]))+'</span><b>'+esc(salDurata(m).replace(' min','′'))+'</b><small>'+Math.round(100*m/tot)+' %</small>'+
+        '<em><u class="f-'+k+'" style="width:'+Math.round(100*m/tot)+'%"></u></em></div>'; }).join('')+'</div>' : '';
+  return testa+ipno+
+    '<div class="fc-tre sal-notte3"><div><b>'+esc(salDurata(dorm))+'</b><span>'+esc(tt('dormito'))+'</span></div>'+
+    '<div><b>'+(v.hrv!=null? v.hrv+'<small> ms</small>' : '—')+'</b><span>'+esc(tt('HRV della notte'))+'</span></div>'+
+    '<div><b>'+(g.fcRiposo!=null? g.fcRiposo+'<small> bpm</small>' : '—')+'</b><span>'+esc(tt('Battito a riposo'))+'</span></div></div>'; }
+/* passi degli ultimi 7 giorni contro l'obiettivo */
+function salHtmlSett(){
+  const obi=salObiettivo(), d=new Date(), giorni=[];
+  for(let i=6;i>=0;i--){ const x=new Date(d); x.setDate(d.getDate()-i); const k=dataLoc(x);
+    const v=(i===0)? salPassiOggi().v : (ZPD? ZPD.passi[k] : null); giorni.push({k:k, v:v, oggi:i===0}); }
+  if(!giorni.some(x=>x.v!=null)) return '<div class="bil-stato">'+esc(tt('Ancora nessun passo scaricato dal bracciale.'))+'</div>';
+  const max=Math.max(obi*1.15, ...giorni.map(x=>x.v||0)), W=320, H=118, base=H-20, alto=base-12, bw=30, gap=(W-7*bw)/7;
+  const yObi=(base-obi/max*alto).toFixed(1);
+  let h='<svg class="sal-bar" viewBox="0 0 '+W+' '+H+'" aria-hidden="true">';
+  giorni.forEach((g,i)=>{ const x=gap/2+i*(bw+gap), v=g.v||0, hh=Math.max(v? 2 : 0, v/max*alto), cls=v>=obi? 'st-ok' : v>=obi*0.7? 'st-mez' : 'st-n';
+    h+='<rect class="'+cls+(g.oggi? ' oggi' : '')+'" x="'+x.toFixed(1)+'" y="'+(base-hh).toFixed(1)+'" width="'+bw+'" height="'+hh.toFixed(1)+'" rx="5"/>'+
+      '<text class="sal-bar-g'+(g.oggi? ' oggi' : '')+'" x="'+(x+bw/2).toFixed(1)+'" y="'+(H-5)+'" text-anchor="middle">'+esc(giornoBreve(g.k).slice(0,3))+'</text>'+
+      (v? '<text class="sal-bar-v" x="'+(x+bw/2).toFixed(1)+'" y="'+(base-hh-4).toFixed(1)+'" text-anchor="middle">'+(v>=1000? salDec(v/1000, 1)+'k' : v)+'</text>' : ''); });
+  h+='<line class="sal-obi-l" x1="0" x2="'+W+'" y1="'+yObi+'" y2="'+yObi+'"/></svg>';
+  const fatti=giorni.filter(x=>(x.v||0)>=obi).length, val=giorni.filter(x=>x.v!=null), media=val.length? Math.round(val.reduce((a,x)=>a+x.v, 0)/val.length) : 0;
+  return h+'<div class="sal-sett-r"><span>'+esc(tt('media'))+' <b>'+salNum(media)+'</b></span><span>'+esc(tt('obiettivo raggiunto'))+' <b>'+fatti+'/7</b></span></div>'; }
+/* battito di oggi, minuto per minuto, dalle registrazioni del bracciale (tipo 1) */
+function salHtmlFc(){
+  const d0=new Date(); d0.setHours(0,0,0,0); const t0=d0.getTime();
+  const p=((ZPD && ZPD.s[1])||[]).filter(v=>v[0]>=t0 && v[2]>0).sort((a,b)=>a[0]-b[0]);
+  if(p.length<5) return '';
+  const W=320, H=110, ys=p.map(v=>v[2]), y0=Math.min(...ys)-5, y1=Math.max(...ys)+5;
+  const X=t=>((t-t0)/86400000*W).toFixed(1), Y=v=>(H-16-(v-y0)/(y1-y0)*(H-24)).toFixed(1);
+  let d=''; p.forEach((v,i)=>{ d+=((i && v[0]-p[i-1][0]<=5*60000)? 'L' : 'M')+X(v[0])+' '+Y(v[2]); });
+  const rip=(zpGiornoValori(dataLoc(d0))||{}).fcRiposo;
+  let h='<svg class="sal-linea" viewBox="0 0 '+W+' '+H+'" aria-hidden="true">';
+  [0,6,12,18,24].forEach(o=>{ const x=(o/24*W).toFixed(1); h+='<line class="sal-asse" x1="'+x+'" x2="'+x+'" y1="4" y2="'+(H-16)+'"/><text class="sal-bar-g" x="'+Math.min(W-8, Math.max(8, +x))+'" y="'+(H-3)+'" text-anchor="middle">'+o+'</text>'; });
+  if(rip) h+='<line class="sal-rip" x1="0" x2="'+W+'" y1="'+Y(rip)+'" y2="'+Y(rip)+'"/>';
+  h+='<path class="sal-fc-l" d="'+d+'"/></svg>';
+  const media=Math.round(ys.reduce((a,b)=>a+b, 0)/ys.length);
+  return h+'<div class="sal-sett-r"><span>'+esc(tt('minimo'))+' <b>'+Math.min(...ys)+'</b></span><span>'+esc(tt('media'))+' <b>'+media+'</b></span><span>'+esc(tt('massimo'))+' <b>'+Math.max(...ys)+'</b></span>'+(rip? '<span>'+esc(tt('a riposo'))+' <b>'+rip+'</b></span>' : '')+'</div>'; }
+/* stress di oggi, a mezz'ore, coi colori dei livelli del bracciale */
+function salHtmlStress(){
+  const d0=new Date(); d0.setHours(0,0,0,0); const t0=d0.getTime();
+  const p=((ZPD && ZPD.s[19])||[]).filter(v=>v[0]>=t0 && v[1]>0 && v[1]<=100);
+  if(p.length<3) return '';
+  const sec={}; p.forEach(v=>{ const k=Math.floor((v[0]-t0)/1800000); (sec[k]=sec[k]||[]).push(v[1]); });
+  const W=320, H=96, bw=W/48;
+  let h='<svg class="sal-bar" viewBox="0 0 '+W+' '+H+'" aria-hidden="true">';
+  Object.keys(sec).forEach(k=>{ const m=sec[k].reduce((a,b)=>a+b, 0)/sec[k].length, hh=Math.max(2, m/100*(H-22)), cls=m<40? 'st-rel' : m<60? 'st-ok' : m<80? 'st-mez' : 'st-ko';
+    h+='<rect class="'+cls+'" x="'+(+k*bw+0.6).toFixed(1)+'" y="'+(H-16-hh).toFixed(1)+'" width="'+(bw-1.2).toFixed(1)+'" height="'+hh.toFixed(1)+'" rx="1.5"/>'; });
+  [0,6,12,18,24].forEach(o=>{ h+='<text class="sal-bar-g" x="'+Math.min(W-8, Math.max(8, o/24*W)).toFixed(1)+'" y="'+(H-3)+'" text-anchor="middle">'+o+'</text>'; });
+  h+='</svg>';
+  const tutti=p.map(v=>v[1]), lv=[[0,40,'st-rel','rilassato'],[40,60,'st-ok','normale'],[60,80,'st-mez','medio'],[80,101,'st-ko','alto']];
+  return h+'<div class="sal-leg-st">'+lv.map(l=>{ const q=tutti.filter(v=>v>=l[0] && v<l[1]).length;
+    return '<span class="'+l[2]+'"><i></i>'+esc(tt(l[3]))+' '+Math.round(100*q/tutti.length)+' %</span>'; }).join('')+'</div>'; }
+/* — la parte che cambia ogni secondo (battito, collegamento, batteria, passi in diretta) — */
+function salVivo(){
   const pg=$('sal'); if(!pg || pg.hidden) return;
   const st=SEMPRE.st||{}, bpm=salBpm(), z=bpm? fcZona(bpm) : null, oggi=dataLoc(new Date());
   const conn=$('sal-conn');
   if(conn){ const coll=(FC.id && FC.bpm) || st.collegato, cosa=sempreDispositivo();
     conn.textContent=coll? (cosa && cosa.tipo==='fascia'? tt('Fascia collegata') : tt('Bracciale collegato'))
-      : (st.attivo || FC.cercando || FC.collegando)? tt('in ricerca…') : tt('nessun bracciale collegato'); }
+      : (st.attivo || FC.cercando || FC.collegando)? tt('in ricerca…') : tt('nessun bracciale collegato');
+    conn.classList.toggle('si', !!coll); }
   const b=$('sal-bpm'); if(b){ b.innerHTML=bpm? bpm+'<small>bpm</small>' : '—'; b.className='fc-bpm'+(z && z.n? ' z'+z.n : ''); }
-  const zn=$('sal-zona'); if(zn) zn.textContent=(z && z.n)? tt(FC_ZONE[z.n-1][1])+' · '+tt(FC_ZONE[z.n-1][2]) : '';
-  const passi=ZPD? ZPD.passi[oggi] : null, tPassi=(ZPD && ZPD.cursori[1]>new Date(oggi+'T00:00:00').getTime())? ZPD.cursori[1]-1000 : null;
+  const zn=$('sal-zona'); if(zn) zn.textContent=(z && z.n)? tt(FC_ZONE[z.n-1][1])+' · '+tt(FC_ZONE[z.n-1][2]) : (bpm? '' : tt('battito adesso'));
+  const zb=$('sal-zone'); if(zb) zb.innerHTML=fcMaxScheda()? FC_ZONE.map((x,k)=>'<i class="z'+(k+1)+(z && z.n===k+1? ' on' : '')+'"></i>').join('') : '';
   const batt=(st.batteria>=0)? st.batteria : (ZP.batteria!=null? ZP.batteria : (ZPD && ZPD.batt[oggi]!=null? ZPD.batt[oggi] : null));
+  const bt=$('sal-batt'); if(bt) bt.textContent=batt!=null? tt('batteria')+' '+batt+' %' : '';
+  const p=salPassiOggi(), obi=salObiettivo(), f=p.v!=null? p.v/obi : 0, cls=f>=1? 'st-ok' : f>=0.7? 'st-mez' : 'st-acc';
   const tre=$('sal-tre');
-  if(tre) tre.innerHTML='<div><b>'+(passi!=null? Number(passi).toLocaleString(LANGP==='en'?'en-GB':'it-IT') : '—')+'</b><span>'+esc(tt('passi oggi'))+(tPassi? ' · '+esc(salQuando(tPassi)) : '')+'</span></div>'+
-    '<div><b>'+(batt!=null? batt+'<small> %</small>' : '—')+'</b><span>'+esc(tt('batteria'))+'</span></div>';
-  const mis=$('sal-misure');
-  if(mis){ const righe=[[tt('Stress'), salUltimo([19, 18]), x=>String(x)],
-      [tt('SpO2'), salUltimo([37]), x=>x+' %'],
-      [tt('Temperatura pelle'), salUltimo([46]), x=>String(x.toFixed? x.toFixed(1) : x).replace('.', LANGP==='en'? '.' : ',')+' °C'],
-      [tt('Respirazione'), salUltimo([56]), x=>x+' '+tt('/min')]];
-    mis.innerHTML=righe.map(r=>'<div class="bil-row"><span class="bil-g">'+esc(r[0])+(r[1]? ' <small>· '+esc(salQuando(r[1][0]))+'</small>' : '')+'</span><b>'+(r[1]? esc(r[2](r[1][1])) : '—')+'</b></div>').join('')+
-      (ZP.chiave? '' : '<div class="bil-stato">'+esc(tt('Con la chiave del bracciale arrivano anche stress, SpO2, pelle e respirazione.'))+'</div>'); }
+  if(tre){ const firma=[p.v, p.live, obi, p.t].join('|');
+    if(tre.dataset.f!==firma){ tre.dataset.f=firma;
+      tre.innerHTML='<div class="sal-passi-a">'+salAnello(f, cls, 128)+'<div class="sal-passi-c">'+ico('passi')+'<b>'+(p.v!=null? salNum(p.v) : '—')+'</b>'+
+        '<span>'+esc(tt('di'))+' '+salNum(obi)+'</span></div></div>'+
+        '<div class="sal-passi-t">'+esc(tt('passi oggi'))+(p.v!=null? ' · '+Math.round(f*100)+' %' : '')+'</div>'+
+        '<div class="sal-passi-q">'+(p.live? '<i class="sal-live"></i>'+esc(tt('in diretta')) : p.t? esc(tt('aggiornati alle'))+' '+esc(salQuando(p.t)) : '')+
+        (p.live && p.dist? ' · '+salDec(p.dist/1000, 2)+' km' : '')+(p.live && p.kcal? ' · '+p.kcal+' kcal' : '')+'</div>'; } } }
+function salRenderObi(){
+  const o=$('sal-obi'); if(!o) return;
+  const obi=salObiettivo();
+  o.innerHTML=SAL.obi? '<div class="sal-obi-sc">'+SAL_OBI_SCELTE.map(v=>'<button type="button" class="mini'+(v===obi? ' on' : '')+'" data-salobi="'+v+'">'+salNum(v)+'</button>').join('')+'</div>'
+    : '<button type="button" class="btn-lite quieto sal-obi-b" id="sal-obi-b">'+ico('matita','p')+'<span>'+esc(tt('Obiettivo'))+': '+salNum(obi)+' '+esc(tt('passi'))+'</span></button>';
+  const ob=$('sal-obi-b'); if(ob) ob.onclick=()=>{ SAL.obi=true; salRenderObi(); };
+  o.querySelectorAll('[data-salobi]').forEach(b=>{ b.onclick=()=>{ try{ localStorage.setItem(SAL_OBI_KEY, b.getAttribute('data-salobi')); }catch(e){} SAL.obi=false; renderSal(); salAggiornaMenu(); }; }); }
+function renderSal(){
+  const pg=$('sal'); if(!pg || pg.hidden) return;
+  const tre=$('sal-tre'); if(tre) tre.dataset.f='';
+  salVivo(); salRenderObi();
+  const sett=$('sal-sett'); if(sett) sett.innerHTML=salHtmlSett();
+  const mis=$('sal-misure'); if(mis) mis.innerHTML=salHtmlMisure();
   const so=$('sal-sonno'); if(so) so.innerHTML=salHtmlRiposo();
+  const fc=salHtmlFc(), fb=$('sal-fc-box'), fe=$('sal-fc'); if(fb) fb.hidden=!fc; if(fe) fe.innerHTML=fc;
+  const sh=salHtmlStress(), sb=$('sal-st-box'), se=$('sal-st'); if(sb) sb.hidden=!sh; if(se) se.innerHTML=sh;
   const ch=$('sal-chiave'); if(ch) ch.onclick=salVaiChiave;
-  const ag=$('sal-aggiorna'); if(ag){ ag.hidden=!ZP.chiave; ag.disabled=ZP.inCorso; }
+  const ag=$('sal-aggiorna'); if(ag){ ag.hidden=!ZP.chiave; ag.disabled=ZP.inCorso && !SAL_LIVE.on; }
   const ss=$('sal-stato');
-  if(ss) ss.textContent=ZP.inCorso? tt('Scarico sonno e dati del giorno…') : (ZP.stato==='errore'? tt(ZP_TESTI[ZP.motivo]||ZP_TESTI.errore) : zpSincTesto()); }
+  if(ss) ss.textContent=(ZP.inCorso && !SAL_LIVE.on)? tt('Scarico sonno e dati del giorno…') : (ZP.stato==='errore'? tt(ZP_TESTI[ZP.motivo]||ZP_TESTI.errore) : zpSincTesto()); }
 function salVaiChiave(){ colApri(); const zb=$('zp-box'); if(zb){ zb.classList.add('aperta'); try{ zb.scrollIntoView({block:'start'}); }catch(e){} } }
 async function salApri(){
   navEntra(); mostra('sal');
@@ -3313,13 +4152,48 @@ async function salApri(){
   renderSal();
   clearInterval(SAL.timer); SAL.giri=0;
   SAL.timer=setInterval(()=>{
-    if($('sal').hidden){ clearInterval(SAL.timer); SAL.timer=null; return; }
+    if($('sal').hidden){ clearInterval(SAL.timer); SAL.timer=null; salLiveFerma(); return; }
     if(++SAL.giri%5===0 && window.tmsSeduta && window.tmsSeduta.stato){ Promise.resolve(window.tmsSeduta.stato()).then(r=>{ if(r) SEMPRE.st=r; }).catch(()=>{}); }
-    renderSal(); }, 1000); }
+    if(SAL_LIVE.on && Date.now()-SAL_LIVE.lockT>60000){ SAL_LIVE.lockT=Date.now(); zpLock(true); }
+    salVivo(); }, 1000);
+  setTimeout(()=>{ if(!$('sal').hidden) salLiveAvvia(); }, 400); }
 async function salAggiorna(){
-  if(ZP.inCorso || !ZP.chiave) return;
+  if(!ZP.chiave) return;
+  await salLiveFerma();
+  if(ZP.inCorso) return;
   const p=zpSincronizza(true); renderSal();
-  await p; ZPD=null; try{ await zpdCarica(); }catch(e){} renderSal(); salAggiornaMenu(); }
+  await p; ZPD=null; try{ await zpdCarica(); }catch(e){} renderSal(); salAggiornaMenu();
+  if(!$('sal').hidden) salLiveAvvia(); }
+/* — passi in diretta (solo con la Salute aperta, la chiave e nessuna seduta o sincronizzazione in corso) — */
+function salLiveRecord(r){
+  if(!r || r.length<5) return;
+  const u32=i=>zpLeggi32(r, i), f=r[0]; let o=5;
+  SAL_LIVE.passi=u32(1); SAL_LIVE.t=Date.now();
+  if(f&1) o+=4; if(f&2) o+=4;
+  if((f&12) && r.length>=o+8){ SAL_LIVE.dist=u32(o); SAL_LIVE.kcal=u32(o+4); }
+  salVivo(); salAggiornaMenu(); }
+async function salLiveAvvia(){
+  if(SAL_LIVE.on || !ZP.chiave || ZP.inCorso || zpLockPreso() || FC.reg || SED.s || !zpHaBle()) return;
+  SAL_LIVE.on=true; ZP.inCorso=true; zpLock(true); SAL_LIVE.lockT=Date.now();
+  zpDiagInizia('Passi in diretta (Salute)');
+  try{
+    const c=await zpApri(); SAL_LIVE.c=c;
+    if(!SAL_LIVE.on){ await salLiveFerma(); return; }
+    c.S.ascolta={0x0016:p=>{ if(p[0]===0x07) salLiveRecord(p.slice(1)); }};
+    await zpManda(c.S, 0x0016, [0x03]);
+    const r=await zpAspetta(c.S, 0x0016, ZP_ATTESA.info*2, p=>p[0]===0x04);
+    zpDiag('passi in diretta: '+zpHex(r, 12));
+    if(r[1]===0x01) salLiveRecord(r.slice(2));
+    await zpManda(c.S, 0x0016, [0x05, 0x01]);
+    zpDiag('aggiornamenti dei passi accesi');
+  }catch(e){ zpDiag('passi in diretta: '+((e && (e.motivo||e.message)) || e)); await salLiveFerma(); }
+  zpDiagSalva(); }
+async function salLiveFerma(){
+  if(!SAL_LIVE.on) return;
+  const c=SAL_LIVE.c; SAL_LIVE.c=null; SAL_LIVE.on=false;
+  if(c && c.S){ try{ await zpManda(c.S, 0x0016, [0x05, 0x00]); }catch(e){} }
+  try{ await zpChiudi(c); }catch(e){}
+  ZP.inCorso=false; zpLock(false); }
 /* ── SEDUTA ATTIVA ANCHE CON L'APP CHIUSA (27/11/2026, Marco: «quando parte una sessione di allenamento l'app non
       si chiude mai davvero, resta attiva in background, così da prendere costantemente i dati dal bracciale» e
       «quando chiudo l'app vorrei un'isola floating con battito, esercizio, tempo di recupero»). Solo nell'APK
@@ -3334,7 +4208,7 @@ async function salAggiorna(){
       · la prima volta chiede di non ottimizzare la batteria per l'app, spiegandolo (una volta sola). ── */
 const NAT={on:false, ultimo:0, pip:false, pipT:null};
 function natAttiva(){ return !!(FC.reg || SED.s); }
-function natTitolo(){ return FC.reg? tt('Cardio')+' · '+tt(FC.reg.tipo||'') : SED.s? tt('Seduta')+' · '+SED.s.giorno : ''; }
+function natTitolo(){ return FC.reg? tt(FC.reg.disc||'Cardio')+' · '+tt(FC.reg.variante||FC.reg.tipo||'') : SED.s? tt('Seduta')+' · '+SED.s.giorno : ''; }
 function natInizio(){ return FC.reg? FC.reg.inizio : SED.s? SED.s.inizio : 0; }
 /* a ogni inizio, fine o cambio (anche la fascia che si collega dopo): servizio e finestra mobile come serve */
 function natAggiorna(){
@@ -3342,7 +4216,7 @@ function natAggiorna(){
   const att=natAttiva();
   if(att){
     const nuovo=!NAT.on; NAT.on=true; if(nuovo) NAT.ultimo=natInizio();
-    try{ Promise.resolve(ts.avvia({titolo:natTitolo(), inizio:natInizio(), dispositivo:FC.id||fcIdNoto()||''})).catch(()=>{}); }catch(e){}
+    try{ Promise.resolve(ts.avvia({titolo:natTitolo(), inizio:natInizio(), dispositivo:FC.id||fcIdNoto()||'', gps:!!(FC.reg && FC.reg.gps)})).catch(()=>{}); }catch(e){}
     if(nuovo) natBatteria(); }
   else if(NAT.on){ NAT.on=false; try{ Promise.resolve(ts.ferma()).catch(()=>{}); }catch(e){} }
   try{ Promise.resolve(ts.pip(att)).catch(()=>{}); }catch(e){} }
@@ -4487,6 +5361,8 @@ window.apriDaAvviso=apriDaAvviso;
 $('vai-col').onclick=colApri; $('col-da-ben').onclick=colApri; $('ben-imp').onclick=colApri;
 $('zp-salva').onclick=()=>{ zpSalvaChiave(); }; $('zp-prova').onclick=()=>{ zpProva(); }; $('zp-togli').onclick=()=>{ zpTogliChiave(); };
 $('zp-sinc').onclick=()=>{ zpSincronizza(true); };
+$('zp-diag-copia').onclick=()=>{ zpDiagCopia(); };
+document.querySelectorAll('#fc-fasi [data-ff]').forEach(b=>{ b.onclick=()=>fcFasi(b.dataset.ff); });
 $('sal-aggiorna').onclick=()=>{ salAggiorna(); };
 $('sempre-on').onchange=e=>{ try{ localStorage.setItem(SEMPRE_KEY, e.target.checked? '1' : '0'); }catch(x){} natSempre(); };
 zpCaricaChiave().then(()=>zpdCarica()).then(()=>{ zpRender(); ZP.pronta=true;

@@ -15,9 +15,13 @@ package com.trainingmonitorsystem.scheda;
      risponde con sincFatta({ok}));
    · il PONTE verso il bracciale tenuto dal servizio: bleStato(), bleNotifiche({servizio, caratteristiche, on}),
      bleScrivi({servizio, caratteristica, valore}), bleLeggi({servizio, caratteristica}) → {valore}, evento «bleDati»
-     {car, valore} (valori in esadecimale «00 a2 …», come il plugin Bluetooth).
+     {car, valore} (valori in esadecimale «00 a2 …», come il plugin Bluetooth);
+   · il GPS delle attività all'aperto (APK 1.9.0): avvia({…, gps:true}) accende il GPS nel servizio;
+     posizioni({da}) → {punti:[[ora ms, lat, lon, quota, precisione, velocità, pressione]…], gps, acceso, barometro};
+     permessoPosizione() chiede «Posizione» ad Android (una volta) → {concesso, acceso, barometro}.
    Il sorgente vero sta in app-android/nativo/: scripts/patch-android.js lo copia nel progetto Android. */
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -27,16 +31,21 @@ import android.provider.Settings;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 import org.json.JSONObject;
 
 import java.util.List;
 
-@CapacitorPlugin(name = "TmsSeduta")
+@CapacitorPlugin(name = "TmsSeduta", permissions = {
+    @Permission(alias = "posizione", strings = { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION })
+})
 public class TmsSedutaPlugin extends Plugin {
 
     private static TmsSedutaPlugin istanza = null;
@@ -85,6 +94,7 @@ public class TmsSedutaPlugin extends Plugin {
         Double inizio = call.getDouble("inizio", 0.0);
         i.putExtra("inizio", inizio == null ? 0L : inizio.longValue());
         i.putExtra("dispositivo", call.getString("dispositivo", ""));
+        i.putExtra("gps", Boolean.TRUE.equals(call.getBoolean("gps", false)));
         try {
             if (Build.VERSION.SDK_INT >= 26) getContext().startForegroundService(i); else getContext().startService(i);
             call.resolve();
@@ -112,6 +122,39 @@ public class TmsSedutaPlugin extends Plugin {
         JSObject r = new JSObject(); r.put("campioni", a); r.put("attivo", TmsSedutaService.attivo);
         call.resolve(r);
     }
+
+    /* ── GPS delle attività all'aperto ── */
+    private JSObject statoGps() {
+        JSObject r = new JSObject();
+        r.put("concesso", TmsSedutaService.permessoPosizione(getContext()));
+        r.put("acceso", TmsSedutaService.posizioneAccesa(getContext()));
+        r.put("barometro", TmsSedutaService.haBarometro(getContext()));
+        r.put("gps", TmsSedutaService.gpsAvviato);
+        return r;
+    }
+
+    @PluginMethod
+    public void posizioni(PluginCall call) {
+        Double da = call.getDouble("da", 0.0);
+        List<double[]> l = TmsSedutaService.puntiDopo(da == null ? 0L : da.longValue());
+        JSArray a = new JSArray();
+        for (double[] p : l) {
+            JSArray x = new JSArray();
+            try { x.put((long) p[0]); for (int k = 1; k < p.length; k++) x.put(Double.isNaN(p[k]) ? JSONObject.NULL : p[k]); } catch (Exception e) { continue; }
+            a.put(x);
+        }
+        JSObject r = statoGps(); r.put("punti", a); r.put("attivo", TmsSedutaService.attivo);
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void permessoPosizione(PluginCall call) {
+        if (getPermissionState("posizione") == PermissionState.GRANTED) { call.resolve(statoGps()); return; }
+        requestPermissionForAlias("posizione", call, "posizioneCb");
+    }
+
+    @PermissionCallback
+    private void posizioneCb(PluginCall call) { call.resolve(statoGps()); }
 
     @PluginMethod
     public void pip(PluginCall call) {

@@ -3395,15 +3395,18 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   ok(sd.getElementById('home-fasi').querySelectorAll('[data-hf]').length === 2 && sd.getElementById('home-p').hidden === false && sd.getElementById('home-c').hidden === true &&
      sd.getElementById('barra-titolo').textContent === 'Allenamento', 'Allenamento: si apre su «Palestra» (i giorni), con la linguetta «Cardio»');
   sd.querySelector('#home-fasi [data-hf="c"]').click(); await settle(10);
-  ok(sd.getElementById('home-c').hidden === false && sd.getElementById('home-p').hidden === true && sd.querySelectorAll('#home-sport [data-fcvai]').length === 12 && sd.querySelector('#home-sport .day-card') !== null,
-     'Cardio: gli sport del tab Cardio (più «Altro»), con le stesse schede dei giorni');
+  ok(sd.getElementById('home-c').hidden === false && sd.getElementById('home-p').hidden === true && sd.querySelectorAll('#home-sport [data-fcvai]').length === 10 && sd.querySelector('#home-sport .day-card') !== null &&
+     /All’aperto · Tapis roulant · Pista · Trail/.test(sd.querySelector('#home-sport [data-fcvai="Corsa"]').textContent) && /Cyclette/.test(sd.querySelector('#home-sport [data-fcvai="Bici"]').textContent),
+     'Cardio: le discipline (10), con le stesse schede dei giorni e sotto le loro sottocategorie');
   /* pagina Cardio: senza fascia ricordata non cerca da sola, rimanda alle Impostazioni */
   sd.querySelector('#home-sport [data-fcvai="Corsa"]').click(); await settle(50);
   ok(sd.getElementById('fc').hidden === false && sd.getElementById('barra-titolo').textContent === 'Cardio' && /Cliente Prova/.test(sd.getElementById('fc-chi').textContent) && /180 bpm/.test(sd.getElementById('fc-chi').textContent),
      'pagina Cardio: di chi è il battito e la FC max usata per le zone');
   ok(B.cercato === 0 && /Nessuna fascia collegata/.test(sd.getElementById('fc-conn').textContent) && sd.getElementById('fc-collega') !== null, 'senza fascia: «Nessuna fascia collegata» e «Collega la fascia»');
-  ok(sd.querySelectorAll('#fc-reg [data-fcsport]').length === 12 && /Che sport fai/.test(sd.getElementById('fc-reg').textContent) && sd.querySelector('#fc-reg [data-fcsport="Corsa"]').classList.contains('on'),
-     'prima si sceglie lo sport (quelli del tab Cardio, più «Altro»)');
+  ok(sd.querySelectorAll('#fc-var [data-fcvar]').length === 4 && /All’aperto/.test(sd.querySelector('#fc-var .on').textContent) && !/Nuoto|Cyclette/.test(sd.getElementById('fc-card').textContent) &&
+     sd.getElementById('sed-zona').hidden === false && sd.getElementById('fc-avvia') !== null && /Corsa · All’aperto/.test(sd.getElementById('sed-zona').textContent) &&
+     sd.querySelectorAll('#fc-fasi [data-ff]').length === 2 && sd.getElementById('fc-gps').textContent.indexOf('Percorso') >= 0,
+     'aperta una disciplina si sceglie solo fra le SUE sottocategorie; «Avvia» nella fascia scura in alto come in Palestra; linguette «Attività | Le tue sedute»; all’aperto c’è il riquadro del percorso');
   /* la fascia si sceglie nelle Impostazioni */
   sd.getElementById('fc-collega').click(); await settle(50);
   ok(sd.getElementById('col').hidden === false && sd.getElementById('fc-imp').hidden === false && B.cercato === 1, '«Collega la fascia» porta alle Impostazioni e cerca');
@@ -3424,7 +3427,7 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   ok(/^140/.test(sd.getElementById('fc-bpm').textContent) && sd.getElementById('fc-bpm').classList.contains('z3') && /Zona 3/.test(sd.getElementById('fc-zona').textContent) && /78 %/.test(sd.getElementById('fc-zona').textContent),
      'battito in diretta: 140 bpm = 78 % della FC max → zona 3 (moderata)');
   ok(sd.querySelectorAll('#fc-zone i.on').length === 1 && sd.querySelector('#fc-zone i.on').classList.contains('z3'), 'zone: la barra delle 5 zone accende la terza');
-  ok(sd.getElementById('fc-chip').hidden === false && sd.getElementById('fc-chip-v').textContent === '140', 'barra in alto: il battito si vede su tutte le schermate');
+  ok(/140/.test((sd.getElementById('sed-fc') || {}).textContent || '') && sd.getElementById('fc-chip').hidden === true, 'fascia scura in alto: il battito, come nella seduta coi pesi');
   B.cb.onDati('2a37', [0x04, 0]); await settle(10);
   ok(/contatto con la pelle/.test(sd.getElementById('fc-conn').textContent) && sd.getElementById('fc-bpm').textContent === '—', 'contatto assente: lo dice e non mostra un battito finto');
   sw.eval('FC.contatto=null; FC.ultimoBuono=Date.now()-20000; FC.dalCollegamento=Date.now()-20000; fcTic();');
@@ -3436,52 +3439,56 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   B.cb.onDati('2a37', [0x00, 130]); await settle(10);
   ok(/Collegata a «Polar H10 1234»/.test(sd.getElementById('fc-conn').textContent) && /^130/.test(sd.getElementById('fc-bpm').textContent), 'il battito torna: «Collegata», 130 bpm');
   sd.getElementById('barra-ind').click(); await settle(20);
-  ok(sd.getElementById('home').hidden === false && sd.getElementById('home-c').hidden === false, 'indietro dalla pagina Cardio: si torna ad Allenamento, sulla linguetta Cardio');
+  ok(sd.getElementById('home').hidden === false && sd.getElementById('home-c').hidden === false && sd.getElementById('fc-chip').hidden === false, 'indietro dalla pagina Cardio: si torna ad Allenamento, sulla linguetta Cardio (battito nella barra)');
   sd.querySelector('#home-sport [data-fcvai="Nuoto"]').click(); await settle(20);
-  ok(sd.getElementById('fc').hidden === false && sd.querySelector('#fc-reg [data-fcsport="Nuoto"]').classList.contains('on'), 'lo sport toccato in Allenamento è già scelto nella pagina Cardio');
-  /* registrazione: sport → «Avvia registrazione» → campioni → «Fine» → solo la fatica → «Salva la seduta» */
-  sd.querySelector('#fc-reg [data-fcsport="Bici"]').click(); await settle(10);
-  ok(sd.querySelector('#fc-reg [data-fcsport="Bici"]').classList.contains('on') && sw.localStorage.getItem('tms-fc-sport') === 'Bici', 'sport scelto: «Bici» (e se lo ricorda per la volta dopo)');
-  sd.getElementById('fc-registra').click(); await settle(20);
-  ok(sw.eval('FC.reg.tipo') === 'Bici' && sd.getElementById('fc-fine') !== null && /Bici · registrazione in corso/.test(sd.getElementById('fc-reg').textContent) && sd.getElementById('fc-chip').classList.contains('rec'),
-     'Avvia registrazione: parte con lo sport scelto (pulsante «Fine», segno rosso nella barra)');
+  ok(sd.getElementById('fc').hidden === false && sd.querySelectorAll('#fc-var [data-fcvar]').length === 2 && /Piscina/.test(sd.querySelector('#fc-var .on').textContent) && /Acque libere/.test(sd.getElementById('fc-var').textContent),
+     'la disciplina toccata in Allenamento è quella della pagina Cardio, con solo le sue sottocategorie (Nuoto: Piscina, Acque libere)');
+  /* registrazione: disciplina → sottocategoria → «Avvia» → campioni → «Fine» → solo la fatica → «Salva la seduta» */
+  sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('#home-sport [data-fcvai="Bici"]').click(); await settle(20);
+  [...sd.querySelectorAll('#fc-var [data-fcvar]')].find(b => /Cyclette/.test(b.textContent)).click(); await settle(10);
+  ok(/Cyclette/.test(sd.querySelector('#fc-var .on').textContent) && J(JSON.parse(sw.localStorage.getItem('tms-fc-var'))) === J({ Bici: 3 }) && !sd.getElementById('fc-gps').textContent,
+     'sottocategoria scelta: «Cyclette» (se la ricorda per la volta dopo); al chiuso niente percorso');
+  sd.getElementById('fc-avvia').click(); await settle(20);
+  ok(sw.eval('FC.reg.tipo') === 'Cyclette' && sw.eval('FC.reg.disc') === 'Bici' && sw.eval('FC.reg.variante') === 'Cyclette' && sw.eval('FC.reg.gps') === null &&
+     sd.getElementById('fc-fine') !== null && /Bici · Cyclette · in corso/.test(sd.getElementById('sed-zona').textContent) && /registrazione in corso/.test(sd.getElementById('fc-card').textContent),
+     'Avvia: parte con la disciplina e la sottocategoria (al PC va lo sport del TMS «Cyclette»); tempo e «Fine» nella fascia in alto');
   ok(JSON.parse(sw.localStorage.getItem('tms-fc-bozza-prova') || '{}').reg, 'registrazione: la bozza si salva subito sul telefono (un\'app chiusa non la perde)');
   sw.eval('FC.reg.inizio=Date.now()-125000; for(var k=0;k<25;k++) fcCampione(FC.reg.inizio+k*5000+1000, 120+k);');
   sd.getElementById('fc-fine').click(); await settle(20);
   { const c = JSON.parse(sw.eval('JSON.stringify(FC.chiudi)'));
-    ok(c && c.durataSec >= 125 && c.durataSec < 130 && c.fcMedia === 132 && c.fcPicco === 144 && c.fc.length === 25 && c.passo === 5 && c.dispositivo === 'Polar H10 1234' && c.tipo === 'Bici',
-       'Fine: durata, FC media (132), picco (144), traccia ogni 5 secondi e lo sport'); }
-  ok(!sd.getElementById('fc-sport') && sd.getElementById('fc-rpe') !== null && /Com’è andata/.test(sd.getElementById('fc-reg').textContent) && /Attività: Bici/.test(sd.getElementById('fc-reg').textContent),
-     'Fine: chiede solo la fatica (lo sport è già scelto)');
-  sd.getElementById('fc-rpe').value = '6';
+    ok(c && c.durataSec >= 125 && c.durataSec < 130 && c.fcMedia === 132 && c.fcPicco === 144 && c.fc.length === 25 && c.passo === 5 && c.dispositivo === 'Polar H10 1234' && c.tipo === 'Cyclette' && c.disc === 'Bici',
+       'Fine: durata, FC media (132), picco (144), traccia ogni 5 secondi, disciplina e sottocategoria'); }
+  ok(sd.querySelectorAll('#sed-zona [data-fcrpe]').length === 10 && sd.getElementById('fc-salva') !== null && /Fatica \(RPE\)/.test(sd.getElementById('sed-zona').textContent) && /da salvare/.test(sd.getElementById('fc-card').textContent),
+     'Fine: come la seduta coi pesi, nella fascia in alto la durata e la fatica (RPE 1–10), poi «Salva la seduta»');
+  sd.querySelector('#sed-zona [data-fcrpe="6"]').click(); await settle(10);
   sd.getElementById('fc-salva').click(); await settle(30);
   { const s = JSON.parse(sw.eval('JSON.stringify(SEDUTE_FC[0]||null)'));
-    ok(s && s.tipo === 'Bici' && s.durata === 2 && s.rpe === 6 && s.fcMedia === 132 && s.fcPicco === 144 && s.fc.length === 25 && s.fcPasso === 5 && s.id === s.data + 'T' + s.ora + '|fc',
-       'Salva: la seduta resta sul telefono (sport, minuti, RPE, FC media e picco, traccia)'); }
+    ok(s && s.tipo === 'Cyclette' && s.disc === 'Bici' && s.variante === 'Cyclette' && s.durata === 2 && s.rpe === 6 && s.fcMedia === 132 && s.fcPicco === 144 && s.fc.length === 25 && s.fcPasso === 5 && s.id === s.data + 'T' + s.ora + '|fc' && s.distanza === undefined,
+       'Salva: la seduta resta sul telefono (sport, disciplina, sottocategoria, minuti, RPE, FC media e picco, traccia; al chiuso niente distanza)'); }
   ok(JSON.parse(sw.localStorage.getItem('tms-fc-sedute-prova') || '[]').length === 1 && sw.localStorage.getItem('tms-fc-bozza-prova') === null && sd.querySelectorAll('#fc-lista .bil-row').length === 1,
-     'Salva: memoria del profilo, bozza tolta, la seduta nell\'elenco');
-  ok(/1 seduta questa settimana/.test(sd.querySelector('#home-sport [data-fcvai="Bici"]').textContent), 'Allenamento › Cardio: sotto lo sport le sedute della settimana');
+     'Salva: memoria del profilo, bozza tolta, la seduta nell\'elenco («Le tue sedute»)');
+  ok(/1 seduta questa settimana/.test(sd.querySelector('#home-sport [data-fcvai="Bici"]').textContent), 'Allenamento › Cardio: sotto la disciplina le sedute della settimana');
   /* annulla registrazione: avviata per sbaglio, con conferma, niente salvato */
-  sd.getElementById('fc-registra').click(); await settle(10);
-  sd.getElementById('fc-annulla').click(); await settle(10);
-  ok(/Non si salva niente/.test(sd.getElementById('fc-reg').textContent) && sd.getElementById('fc-annulla-si') !== null && !sd.getElementById('fc-fine'), '«annulla registrazione» chiede conferma');
+  sd.getElementById('fc-avvia').click(); await settle(10);
+  sd.getElementById('fc-annulla-s').click(); await settle(10);
+  ok(/Non si salva niente/.test(sd.getElementById('sed-zona').textContent) && sd.getElementById('fc-annulla-si') !== null && !sd.getElementById('fc-fine'), '«annulla registrazione» chiede conferma');
   sd.getElementById('fc-annulla-no').click(); await settle(10);
   ok(sw.eval('!!FC.reg') && sd.getElementById('fc-fine') !== null, '«No»: la registrazione continua');
-  sd.getElementById('fc-annulla').click(); await settle(10); sd.getElementById('fc-annulla-si').click(); await settle(20);
-  ok(sw.eval('FC.reg') === null && sw.eval('FC.chiudi') === null && sw.eval('SEDUTE_FC.length') === 1 && sw.localStorage.getItem('tms-fc-bozza-prova') === null && sd.getElementById('fc-registra') !== null,
-     'registrazione annullata: niente seduta, bozza tolta, si torna alla scelta dello sport');
+  sd.getElementById('fc-annulla-s').click(); await settle(10); sd.getElementById('fc-annulla-si').click(); await settle(20);
+  ok(sw.eval('FC.reg') === null && sw.eval('FC.chiudi') === null && sw.eval('SEDUTE_FC.length') === 1 && sw.localStorage.getItem('tms-fc-bozza-prova') === null && sd.getElementById('fc-avvia') !== null,
+     'registrazione annullata: niente seduta, bozza tolta, si torna ad «Avvia»');
   /* butta via (dopo la «Fine») */
-  sd.getElementById('fc-registra').click(); await settle(10); sd.getElementById('fc-fine').click(); await settle(10);
+  sd.getElementById('fc-avvia').click(); await settle(10); sd.getElementById('fc-fine').click(); await settle(10);
   sd.getElementById('fc-scarta').click(); await settle(10);
-  ok(sd.getElementById('fc-scarta-si') !== null && sw.eval('!!FC.chiudi'), 'Butta via: chiede conferma sulla riga');
+  ok(sd.getElementById('fc-scarta-si') !== null && sw.eval('!!FC.chiudi'), 'Butta via: chiede conferma nella fascia in alto');
   sd.getElementById('fc-scarta-si').click(); await settle(20);
-  ok(sw.eval('FC.chiudi') === null && sw.eval('SEDUTE_FC.length') === 1 && sd.getElementById('fc-registra') !== null, 'Butta via: la registrazione sparisce, le sedute salvate restano');
+  ok(sw.eval('FC.chiudi') === null && sw.eval('SEDUTE_FC.length') === 1 && sd.getElementById('fc-avvia') !== null, 'Butta via: la registrazione sparisce, le sedute salvate restano');
   /* registrazione interrotta (app chiusa a metà): alla riapertura diventa una seduta da chiudere */
   sw.localStorage.setItem('tms-fc-bozza-prova', J({ reg: { inizio: Date.parse('2026-11-25T18:00:00'), ultimo: Date.parse('2026-11-25T18:01:00'), picco: 110, secchi: { 0: [200, 2], 1: [110, 1] }, tipo: 'Nuoto' }, nome: 'Polar' }));
   await sw.eval('fcCarica()'); await settle(20);
   { const c = JSON.parse(sw.eval('JSON.stringify(FC.chiudi)'));
-    ok(c && c.data === '2026-11-25' && c.durataSec === 60 && c.fcMedia === 105 && c.fcPicco === 110 && c.tipo === 'Nuoto' && /Com’è andata/.test(sd.getElementById('fc-reg').textContent),
-       'registrazione interrotta: alla riapertura si chiude come una seduta finita (niente battito perso, lo sport resta)'); }
+    ok(c && c.data === '2026-11-25' && c.durataSec === 60 && c.fcMedia === 105 && c.fcPicco === 110 && c.tipo === 'Nuoto' && /finita/.test(sd.getElementById('sed-zona').textContent) && /^Nuoto/.test(sd.querySelector('#fc-card .ex-nm').textContent),
+       'registrazione interrotta: alla riapertura si chiude come una seduta finita (niente battito perso, lo sport resta, anche di una versione di prima)'); }
   await sw.eval('fcScartaSeduta()');
   /* fuori dalla pagina resta collegata; in secondo piano si stacca e poi si ricollega */
   sd.getElementById('barra-ind').click(); await settle(30);
@@ -3517,7 +3524,47 @@ console.log('--- T12b: fascia cardio nell\'app del telefono (PWA + fascia finta,
   ok(sw.eval('SED.s') === null && !sd.getElementById('sed-inizia') && !sd.getElementById('sed-nuova') && /registrazione cardio in corso/.test(sd.getElementById('sed-zona').textContent),
      'registrazione cardio in corso: la seduta coi pesi non parte e la zona lo dice');
   await sw.eval('fcAnnullaReg()');
-  ok(['Cardio', 'Che sport fai?', 'Avvia registrazione', 'annulla registrazione', 'Com’è andata?', 'Zona 3', 'Collegata, ma il battito non arriva.'].every(k => sw.eval('TT.en[' + J(k) + ']')), 'cardio EN: i testi nuovi hanno la traduzione');
+  /* GPS DELLE ATTIVITÀ ALL'APERTO (1.9.0): il servizio Android finto passa le posizioni di una corsa (3,3 km in linea, 30 m di
+     salita misurata col barometro, un punto impreciso e un salto impossibile); la pagina fa distanza, dislivello, parziali, percorso */
+  { const punti = [], avvii = [];
+    sw.tmsSeduta = { avvia: async o => { avvii.push(o); }, ferma: async () => {}, pip: async () => ({}), campioni: async () => ({ campioni: [] }), batteria: async () => ({ esclusa: true }),
+      permessoPosizione: async () => ({ concesso: true, acceso: true, barometro: true }),
+      posizioni: async o => ({ punti: punti.filter(p => p[0] > o.da), concesso: true, acceso: true, barometro: true, gps: true }) };
+    sw.eval('navEntra(); mostra("home");'); await settle(10); sd.querySelector('#home-fasi [data-hf="c"]').click(); await settle(10);
+    sd.querySelector('#home-sport [data-fcvai="Corsa"]').click(); await settle(20);
+    sd.getElementById('fc-avvia').click(); await settle(40);
+    ok(sw.eval('!!(FC.reg && FC.reg.gps)') && avvii.length && avvii[avvii.length - 1].gps === true && /Distanza/.test(sd.getElementById('fc-card').textContent) && /Passo/.test(sd.getElementById('fc-card').textContent),
+       'Corsa all’aperto: chiede il permesso della posizione, il servizio Android parte col GPS; la scheda mostra distanza, passo, dislivello, tempo in movimento');
+    const t0 = sw.eval('FC.reg.inizio'), pr = h => 1013.25 * Math.pow(1 - h / 44330, 5.255);
+    for (let i = 0; i < 1100; i++) { const h = Math.min(30, i * 0.05); punti.push([t0 + 1000 * (i + 1), 43.4 + i * 3 / 111195, 11.88, 300 + h + (i % 7), i < 5 ? 60 : 5, 3, pr(h)]); }
+    punti.splice(700, 0, [t0 + 700500, 43.5, 11.88, 300, 5, 3, pr(30)]);          /* un salto di 7 km in mezzo secondo */
+    await sw.eval('gpsLeggi()'); sw.eval('fcAggiornaGps(); gpsDisegna();');
+    const tr = JSON.parse(sw.eval('JSON.stringify({d:FC.reg.gps.dist, s:FC.reg.gps.salita, m:FC.reg.gps.mov, km:FC.reg.gps.km.length, baro:FC.reg.gps.baro, n:FC.reg.gps.pts.length})'));
+    ok(tr.d > 3200 && tr.d < 3320 && tr.s >= 26 && tr.s <= 31 && tr.m > 1050 && tr.m <= 1100 && tr.km === 3 && tr.baro === true,
+       'GPS: distanza ' + Math.round(tr.d) + ' m (punti imprecisi e salto scartati), salita ' + Math.round(tr.s) + ' m col barometro (la quota del GPS che balla non conta), ' + Math.round(tr.m) + ' s in movimento, 3 parziali');
+    ok(/3,2\d km/.test(sd.getElementById('fc-d').textContent) && /\/km/.test(sd.getElementById('fc-v').textContent) && sd.querySelector('#fc-mappa svg path.fc-strada') && sd.querySelectorAll('#fc-km .bil-row').length === 3 && /barometro/.test(sd.getElementById('fc-gps-st').textContent),
+       'scheda e percorso aggiornati: km, passo al km, la strada disegnata, i parziali, «GPS ok · barometro»');
+    /* la MAPPA sotto il percorso: tessere di OpenStreetMap nella proiezione delle tessere, attribuzione, niente ricarica a vista uguale */
+    { const im = [...sd.querySelectorAll('#fc-mappa svg .fc-tess image')];
+      ok(im.length >= 4 && im.every(x => /^https:\/\/tile\.openstreetmap\.org\/\d+\/\d+\/\d+\.png$/.test(x.getAttribute('href'))) && /collaboratori di OpenStreetMap/.test(sd.getElementById('fc-mappa').textContent),
+         'mappa: tessere di OpenStreetMap sotto il percorso (' + im.length + ') con l’attribuzione «© collaboratori di OpenStreetMap»');
+      ok(sw.eval('Math.floor(mapX(-0.1278,10)/256)') === 511 && sw.eval('Math.floor(mapY(51.5074,10)/256)') === 340 && sw.eval('Math.floor(mapY(43.4633,13)/256)') === 2995,
+         'mappa: la proiezione delle tessere è quella giusta (Londra a zoom 10 = tessera 511/340)');
+      ok(sw.eval('(function(){ var a=document.querySelector("#fc-mappa svg"); gpsDisegna(); return document.querySelector("#fc-mappa svg")===a; })()') === true,
+         'mappa: con la stessa vista le tessere non si ricaricano (si ridisegna solo il percorso)');
+      const pts = JSON.parse(sw.eval('JSON.stringify(FC.reg.gps.pts.map(function(p){ return [p[1],p[2]]; }))')), v = JSON.parse(sw.eval('JSON.stringify(mapVista(' + J(pts) + ', 320, 200, 16))'));
+      const dentro = pts.every(p => { const x = sw.eval('mapX(' + p[1] + ',' + v.z + ')') - v.ox, y = sw.eval('mapY(' + p[0] + ',' + v.z + ')') - v.oy; return x >= 0 && x <= 320 && y >= 0 && y <= 200; });
+      ok(dentro && v.z >= 12 && v.z <= 17, 'mappa: lo zoom (' + v.z + ') fa stare tutto il percorso nel riquadro'); }
+    sd.getElementById('fc-fine').click(); await settle(30);
+    sd.getElementById('fc-salva').click(); await settle(30);
+    const s = JSON.parse(sw.eval('JSON.stringify(SEDUTE_FC[SEDUTE_FC.length-1])'));
+    ok(s.tipo === 'Corsa' && s.variante === 'All’aperto' && s.distanza > 3.2 && s.distanza < 3.32 && s.quota >= 26 && s.quota <= 31 && s.tempoMov > 1050 && s.parziali.length === 3 &&
+       s.percorso.length > 1 && s.percorso.length <= 400 && s.percorso.every(p => p.length === 3),
+       'Salva: la seduta porta distanza, dislivello, tempo in movimento, parziali e il percorso semplificato (al massimo 400 punti) per il PC');
+    ok(sw.eval('JSON.stringify(gpsSemplifica([[0,43,11,0],[1,43.0001,11,0],[2,43.0002,11,0],[3,43.0003,11.00002,0]], 2).map(function(p){return p[0];}))') === '[0,3]',
+       'Douglas-Peucker: una retta resta coi due estremi');
+    sw.tmsSeduta = undefined; }
+  ok(['Cardio', 'Avvia', 'annulla registrazione', 'Fatica (RPE)', 'Sì, butta via', 'Zona 3', 'Collegata, ma il battito non arriva.', 'All’aperto', 'Cyclette', 'Percorso', 'Dislivello +'].every(k => sw.eval('TT.en[' + J(k) + ']')), 'cardio EN: i testi nuovi hanno la traduzione');
   sw.close();
 }
 
@@ -3579,7 +3626,7 @@ console.log('--- T12c: seduta in corso nell\'app del telefono (parte aprendo il 
   B.trovato({ id: 'AA:BB:CC:00:00:01', nome: 'Polar H10 1234', servizi: ['180d'] }); await settle(20);
   sd.querySelector('#fc-trovati [data-fcd]').click(); await settle(30);
   sw.eval('fcApri()'); await settle(20);
-  ok(/seduta coi pesi aperta/.test(sd.getElementById('fc-reg').textContent) && !sd.getElementById('fc-registra'), 'pagina Fascia cardio: con una seduta coi pesi aperta niente «Registra» a parte (niente doppioni)');
+  ok(/seduta coi pesi aperta/.test(sd.getElementById('sed-zona').textContent) && !sd.getElementById('fc-avvia'), 'pagina Cardio: con una seduta coi pesi aperta niente «Avvia» a parte, e la fascia in alto lo dice (niente doppioni)');
   sw.eval('fcRegistra()'); ok(sw.eval('FC.reg') === null, 'una registrazione cardio non parte mentre è aperta una seduta coi pesi');
   sd.getElementById('barra-ind').click(); await settle(20); sd.querySelector('[data-go="0"]').click(); await settle(30);
   B.cb.onDati('2a37', [0x00, 130]); await settle(10);
@@ -3705,8 +3752,14 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
   const STORICO = Array.from(nc.randomBytes(70));
   /* ora del primo record come la manda il bracciale: anno u16, mese, giorno, ore, minuti, secondi (UTC+1), fuso in quarti d'ora */
   const oraZ = ms => { const d = new Date(ms + 4 * 900000), y = d.getUTCFullYear(); return [y & 255, y >> 8, d.getUTCMonth() + 1, d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), 4]; };
+  /* l'elenco degli endpoint e i tipi dello storico che l'Helio Strap vero dichiara (unstrap, firmware 3.20.0.1; * = cifrato) */
+  const EP_STRAP = '0000 0081* 0015 0047 0029 0017* 0028 0043 000a* 0030* 000d 0048 0016 0022 0049 0032 0036* 001d 0031 0018* 0082 0025 004b 000c* 004d* 0019* 000f 001a*'.split(' ');
+  const TIPI_STRAP = [1, 2, 5, 6, 7, 8, 11, 13, 17, 18, 19, 30, 37, 38, 39, 44, 46, 48, 56, 57, 58, 59, 61, 63, 64, 66, 70, 72, 73, 74, 76, 78, 85, 87, 88];
+  const tipiUnici = st => [...new Set(st.map(s => s.tipo))];
   function finto(o){
-    const F = { o: o, cb: null, sid: 0x40, arr: null, kSess: null, tx: 0, ricevuti: [], acks: [], starts: [], dati: STORICO, tipo: 0 };
+    const F = { o: o, cb: null, sid: 0x40, arr: null, kSess: null, tx: 0, ricevuti: [], acks: [], starts: [], dati: STORICO, tipo: 0, primi: {} };
+    F.cifrati = EP_STRAP.filter(x => /\*$/.test(x)).map(x => parseInt(x, 16)).concat(o.cifraBatteria ? [0x29] : []);
+    F.cif = ep => !!F.kSess && F.cifrati.indexOf(ep) >= 0;
     F.notifica = (car, b) => setTimeout(() => { if (F.cb) F.cb.onDati(car, b.slice()); }, 1);
     F.pezzi = (ep, payload, cifra, sidFisso) => {
       const sid = sidFisso != null ? sidFisso : (F.sid = (F.sid + 1) & 255); let corpo = payload;
@@ -3720,17 +3773,22 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
     F.scrivi = (car, b) => {
       if (car === OUT) { F.acks.push(b.slice()); return; }
       if (car !== IN) return;
-      if (b.length === 1 && b[0] === 1) { F.notifica(IN, [0x02, 0x02, 0x01]); return; }
+      if (b.length === 1 && b[0] === 1) { if (!o.sordo) F.notifica(IN, [0x02, 0x02, 0x01]); return; }
       if (b[0] !== 3) return;
       const fl = b[1];
-      if (fl & 1) F.arr = { sid: b[3], tot: r32(b, 5), ep: b[9] | (b[10] << 8), cif: !!(fl & 8), d: b.slice(11) }; else F.arr.d = F.arr.d.concat(b.slice(5));
+      if (fl & 1) { F.arr = { sid: b[3], tot: r32(b, 5), ep: b[9] | (b[10] << 8), cif: !!(fl & 8), d: b.slice(11), fl: fl }; if (F.primi[F.arr.ep] == null) F.primi[F.arr.ep] = fl; }
+      else F.arr.d = F.arr.d.concat(b.slice(5));
       if (!(fl & 2)) return;
-      const m = F.arr; F.arr = null; let p = m.d.slice(0, m.tot);
+      const m = F.arr; F.arr = null; m.flUltimo = fl; let p = m.d.slice(0, m.tot);
       if (m.cif) { const pl = ecb(F.kSess.map(x => x ^ m.sid), m.d, true), base = pl.slice(0, m.tot + 4);
         if (crc(base) !== r32(pl, m.tot + 4)) { F.ricevuti.push({ ep: m.ep, rotto: true }); return; } p = pl.slice(0, m.tot); }
-      F.ricevuti.push({ ep: m.ep, p: p, cif: m.cif }); F.gestisci(m.ep, p); };
+      /* un endpoint che vuole la cifratura, mandato in chiaro dopo l'autenticazione: il bracciale lo rifiuta (conferma con stato 9) */
+      if (F.cif(m.ep) && !m.cif) { F.ricevuti.push({ ep: m.ep, inChiaro: true }); F.notifica(IN, [0x04, 0x00, m.sid, 0x09, 0x00]); return; }
+      F.ricevuti.push({ ep: m.ep, p: p, cif: m.cif, conferma: !!(m.flUltimo & 4) }); F.gestisci(m.ep, p); };
     F.gestisci = (ep, p) => {
-      if (ep === 0) { F.manda(0, [0x04, 0x01, 0x00, 0x82, 0x00, 0x29, 0x00, 0x4b, 0x00], false); return; }
+      if (ep === 0) { const lista = [].concat(...EP_STRAP.map(x => { const v = parseInt(x, 16); return [v & 255, v >> 8, F.cifrati.indexOf(v) >= 0 ? 1 : 0]; }));
+        F.manda(0, [0x04, EP_STRAP.length & 255, EP_STRAP.length >> 8].concat(lista), false); return; }
+      if (ep === 0x82 && p[0] === 0x00) { F.manda(0x82, [0x10, 0x00, 0x01, 0x01, 0x05, 0x00, 0x01], false); return; }
       if (ep === 0x82 && p[0] === 0x04) {
         if (o.muto) return;
         const e = nc.createECDH('sect163r2'); e.generateKeys(); F.rand = Array.from(nc.randomBytes(16));
@@ -3741,32 +3799,41 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
         F.manda(0x82, [0x10, 0x04, 0x01].concat(F.rand, rev(dp.slice(1, 22)), [0, 0, 0], rev(dp.slice(22, 43)), [0, 0, 0]), false); return; }
       if (ep === 0x82 && p[0] === 0x05) {
         const giusta = J(ecb(o.chiave, F.rand)) === J(p.slice(1, 17)) && J(ecb(F.kSess, F.rand)) === J(p.slice(17, 33));
-        F.manda(0x82, o.forma06 ? [0x06, giusta ? 0x01 : 0x26] : [0x10, 0x05, o.stato81 ? 0x81 : (giusta ? 0x01 : 0x26)], false); return; }
-      if (ep === 0x29 && p[0] === 0x03) { F.manda(0x29, [0x04, 0x00, o.batteria], true); return; }
+        F.kSess = (giusta && !o.statoProva) ? F.kSess : null;
+        F.manda(0x82, o.forma06 ? [0x06, giusta ? 0x01 : 0x26] : [0x10, 0x05, o.stato81 ? 0x81 : o.statoProva ? o.statoProva : (giusta ? 0x01 : 0x26)], false); return; }
+      if (ep === 0x29 && p[0] === 0x03) { F.manda(0x29, [0x04, 0x00, o.batteria], F.cif(0x29)); return; }
+      /* GDSP: tipi offerti («00» → 10 00 01 versione flag numero u16 + {tipo, flag}) */
+      if (ep === 0x4b && p[0] === 0x00) { const T = o.offerti || TIPI_STRAP; F.manda(0x4b, [0x10, 0x00, 0x01, 0x03, 0x00, T.length & 255, T.length >> 8].concat(...T.map(t => [t, 0])), F.cif(0x4b)); return; }
       if (ep === 0x4b && p[0] === 0x01) {
         /* START: tipo, data locale e fuso in quarti d'ora; la risposta porta dimensione e ora del primo record */
         const tipo = p[1], da = Date.UTC(p[2] | (p[3] << 8), p[4] - 1, p[5], p[6], p[7], p[8]) - (p[9] > 127 ? p[9] - 256 : p[9]) * 900000;
         F.starts.push({ tipo: tipo, da: da }); F.tipo = tipo;
-        if (o.rifiuta && o.rifiuta.indexOf(tipo) >= 0) { F.manda(0x4b, [0x10, 0x01, 0x02], true); return; }
+        if (o.rifiuta && o.rifiuta.indexOf(tipo) >= 0) { F.manda(0x4b, [0x10, 0x01, 0x02], F.cif(0x4b)); return; }
         let inizio = Date.UTC(2026, 10, 20); F.dati = STORICO;
         if (o.storico) { const s = o.storico(tipo, da); F.dati = s.dati; inizio = s.inizio || da; }
-        F.manda(0x4b, [0x10, 0x01, 0x01].concat(u32(F.dati.length), oraZ(inizio)), true); return; }
+        F.manda(0x4b, [0x10, 0x01, 0x01].concat(u32(F.dati.length), oraZ(inizio)), F.cif(0x4b)); return; }
       if (ep === 0x4b && p[0] === 0x02) { const D = F.dati; for (let k = 0; k * 19 < D.length; k++) F.notifica(DATI, [k].concat(D.slice(k * 19, k * 19 + 19)));
-        setTimeout(() => F.manda(0x4b, [0x10, 0x02, 0x01].concat(u32((crc(D) ^ (o.crcRotto === F.tipo ? 1 : 0)) >>> 0)), true), 20); return; }
+        setTimeout(() => F.manda(0x4b, [0x10, 0x02, 0x01].concat(u32((crc(D) ^ (o.crcRotto === F.tipo ? 1 : 0)) >>> 0)), F.cif(0x4b)), 20); return; }
+      /* ACK «03 codice» → «10 03 01» */
+      if (ep === 0x4b && p[0] === 0x03) { F.manda(0x4b, [0x10, 0x03, 0x01], F.cif(0x4b)); return; }
+      /* passi in diretta (0x0016): «03» → «04 01» + record (flags 0x0c: passi, metri, kcal); «05 01/00» accende e spegne gli aggiornamenti «07» */
+      if (ep === 0x16 && p[0] === 0x03) { F.manda(0x16, [0x04, 0x01, 0x0c].concat(u32(o.passiLive || 5000), u32(3500), u32(210)), F.cif(0x16)); return; }
+      if (ep === 0x16 && p[0] === 0x05) { F.passiOn = p[1]; F.manda(0x16, [0x06, 0x01, p[1]], F.cif(0x16));
+        if (p[1] === 1) setTimeout(() => { if (F.passiOn) F.manda(0x16, [0x07, 0x0c].concat(u32((o.passiLive || 5000) + 12), u32(3510), u32(211)), F.cif(0x16)); }, 30); return; }
     };
     return F; }
   /* la pagina, con un trasporto Bluetooth finto che porta al bracciale finto */
   const apri = async o => {
     const sub = await JSDOM.fromFile(PWA, { runScripts: 'dangerously', url: 'https://tms.test/app/index.html',
       beforeParse(win){ conCrypto(win); win.localStorage.setItem('tms-scheda-lang', 'it'); win.scrollTo = () => {};
-        const F = win.__F = finto(o); const B = win.__B = { collegati: [], staccati: [], letti: [] };
+        const F = win.__F = finto(o); const B = win.__B = { collegati: [], staccati: [], letti: [], tipiScrittura: [] };
         win.tmsBLE = { prepara: async () => ({ ok: true }),
           cerca: async (filtro, trovato) => { const d = { id: 'C8:0F:10:00:00:09', nome: 'Amazfit Helio Strap 1A2B', servizi: ['fee0'] }; if (o.visibile !== false && filtro(d)) setTimeout(() => trovato(d), 5); },
           fermaRicerca: async () => {}, collega: async (id, cb, opz) => { B.collegati.push([id, opz]); F.cb = cb; },
-          scrivi: async (id, c, b) => { F.scrivi(c, b); }, leggi: async (id, s, c) => { B.letti.push([s, c]); return Array.from(Buffer.from(o.firmware || '3.25.0.3')); },
+          scrivi: async (id, c, b, serv, senzaRisposta) => { B.tipiScrittura.push(!!senzaRisposta); F.scrivi(c, b); }, leggi: async (id, s, c) => { B.letti.push([s, c]); return Array.from(Buffer.from(o.firmware || '3.25.0.3')); },
           stacca: async id => { B.staccati.push(id); F.cb = null; } }; } });
     await settle(200);
-    sub.window.eval('ZP_ATTESA.cerca=300; ZP_ATTESA.risposta=1500;');
+    sub.window.eval('ZP_ATTESA.cerca=300; ZP_ATTESA.risposta=1500; ZP_ATTESA.versione=400; ZP_ATTESA.info=300; ZP_ATTESA.dati=1500;');
     return { sw: sub.window, sd: sub.window.document, F: sub.window.__F, B: sub.window.__B, chiudi: () => sub.window.close() };
   };
   const prova = async a => { a.sd.getElementById('zp-prova').click(); for (let k = 0; k < 60 && a.sw.eval('ZP.inCorso'); k++) await settle(50); };
@@ -3797,8 +3864,19 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
     await prova(a);
     ok(/Collegato · firmware 3\.25\.0\.3 · batteria 77 %/.test(a.sd.getElementById('zp-stato').textContent) && a.sd.getElementById('zp-sotto').textContent === '',
        'Prova collegamento: canale cifrato aperto, firmware e batteria letti («Collegato · firmware 3.25.0.3 · batteria 77 %»)');
-    ok(a.F.ricevuti.some(r => r.ep === 0x29 && r.cif && r.p[0] === 3) && a.B.letti.some(x => x[0] === '180a' && x[1] === '2a26') && J(a.B.collegati[0][1].notifiche) === J([IN, OUT, DATI]),
-       'la batteria si chiede sul canale cifrato (il bracciale finto la decifra e controlla il CRC), il firmware si legge in chiaro (180A/2A26)');
+    ok(a.F.ricevuti.some(r => r.ep === 0x29 && !r.cif && r.p && r.p[0] === 3) && a.B.letti.some(x => x[0] === '180a' && x[1] === '2a26') && J(a.B.collegati[0][1].notifiche) === J([IN, OUT, DATI]),
+       'la batteria si chiede in chiaro (0x0029 non è fra gli endpoint che il bracciale vuole cifrati), il firmware si legge in chiaro (180A/2A26)');
+    /* l'ordine e la forma dei passi che unstrap ha provato sull'Helio Strap vero */
+    ok(J(a.F.ricevuti.slice(0, 5).map(r => r.ep === 0x82 ? '82:' + r.p[0] : r.ep.toString(16))) === J(['0', '82:0', '82:4', '82:5', '29']) && (a.F.primi[0] & 4) === 0 && a.F.ricevuti[1].conferma,
+       'avvio come Zepp: versione del canale, elenco degli endpoint (senza chiedere conferma), informazioni di autorizzazione (00), scambio delle chiavi (04), prova (05), poi la batteria');
+    ok(a.B.tipiScrittura.length > 5 && a.B.tipiScrittura.every(x => x === true), 'tutti i pezzi del canale si scrivono «senza risposta», come Zepp, unstrap e Gadgetbridge (' + a.B.tipiScrittura.length + ' scritture)');
+    { const dg = a.sw.localStorage.getItem('bracciale-diag') || '';
+      ok(/versione del canale: 02 02 01/.test(dg) && /endpoint: 28, cifrati: 000a 000c 0017 0018 0019 001a 0030 0036 004d 0081/.test(dg) && /autorizzazione: 10 00 01/.test(dg) &&
+         /prova della chiave: stato 1 \(autenticato\)/.test(dg) && /batteria: 04 00 4d/.test(dg) && /fatto: collegamento cifrato aperto/.test(dg),
+         'diagnosi dell\'ultimo collegamento: versione, endpoint cifrati, autorizzazione, esito della prova della chiave, batteria');
+      ok(!/00112233|0011 2233|00 11 22 33 44 55/.test(dg) && !/[0-9a-f]{2}( [0-9a-f]{2}){20}/.test(dg), 'la diagnosi non contiene la chiave né blocchi lunghi di byte (niente chiave di sessione o segreto)');
+      ok(a.sd.getElementById('zp-diag').hidden === false && /Prova collegamento/.test(a.sd.getElementById('zp-diag-testo').textContent) && a.sd.getElementById('zp-diag-copia'),
+         'Impostazioni › Bracciale: «Dettagli tecnici dell’ultimo collegamento» con «Copia i dettagli»'); }
     ok(a.sd.getElementById('zp-pill').textContent === 'collegato' && a.sd.getElementById('zp-pill').classList.contains('si') && a.sd.querySelectorAll('#col .imp-sez').length === 4 &&
        a.sd.querySelectorAll('#imp-lingua button').length === 2 && a.sd.querySelector('#imp-lingua button.on').textContent === 'Italiano', 'Impostazioni in sezioni: stato «collegato» accanto al Bracciale, lingua come interruttore Italiano | English');
     ok(a.B.staccati.length === 1 && a.sw.localStorage.getItem('tms-bracciale-id') === 'C8:0F:10:00:00:09', 'dopo la prova il bracciale si stacca e si ricorda');
@@ -3822,7 +3900,17 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
   { const a = await conChiave({ chiave: KF, batteria: 50, visibile: false });
     ok(/Non trovo il bracciale/.test(a.sd.getElementById('zp-stato').textContent) && /Zepp/.test(a.sd.getElementById('zp-stato').textContent), 'bracciale non trovato: lo dice e ricorda di chiudere Zepp'); a.chiudi(); }
   { const a = await conChiave({ chiave: KF, batteria: 50, muto: true });
-    ok(/non risponde al collegamento cifrato/.test(a.sd.getElementById('zp-stato').textContent), 'bracciale che non risponde all\'autenticazione (Zepp aperto?): lo dice'); a.chiudi(); }
+    ok(/non risponde al collegamento cifrato/.test(a.sd.getElementById('zp-stato').textContent) && /scambio delle chiavi: nessuna risposta/.test(a.sw.localStorage.getItem('bracciale-diag') || ''),
+       'bracciale che non risponde all\'autenticazione (Zepp aperto?): lo dice, e la diagnosi dice a quale passo'); a.chiudi(); }
+  { const a = await conChiave({ chiave: KF, batteria: 50, sordo: true });
+    ok(/collegato ma non risponde all’app/.test(a.sd.getElementById('zp-stato').textContent) && /versione del canale: nessuna risposta/.test(a.sw.localStorage.getItem('bracciale-diag') || '') &&
+       !a.F.ricevuti.some(r => r.ep === 0x82), 'bracciale che non risponde neanche alla versione del canale: si ferma lì, con un messaggio diverso (all\'app non arriva niente)'); a.chiudi(); }
+  { const a = await conChiave({ chiave: KF, batteria: 50, statoProva: 0x07 });
+    ok(/abbinato di nuovo/.test(a.sd.getElementById('zp-stato').textContent) && /stato 7 \(nessuna chiave sul bracciale\)/.test(a.sw.localStorage.getItem('bracciale-diag') || ''),
+       'stato 0x07 (il bracciale non ha più la chiave): chiede di abbinarlo di nuovo in Zepp e di incollare la chiave nuova'); a.chiudi(); }
+  { const a = await conChiave({ chiave: KF, batteria: 58, cifraBatteria: true });
+    ok(/Collegato · firmware 3\.25\.0\.3 · batteria 58 %/.test(a.sd.getElementById('zp-stato').textContent) && a.F.ricevuti.some(r => r.ep === 0x29 && r.cif) && !a.F.ricevuti.some(r => r.inChiaro),
+       'se il bracciale segna un endpoint come cifrato (qui la batteria), la pagina lo cifra: segue l\'elenco del bracciale'); a.chiudi(); }
   { const a = await conChiave({ chiave: KF, batteria: 64, firmware: '3.30.0.1', forma06: true });
     ok(/Collegato · firmware 3\.30\.0\.1 · batteria 64 %/.test(a.sd.getElementById('zp-stato').textContent) && /non è ancora fra quelli provati/.test(a.sd.getElementById('zp-sotto').textContent),
        'firmware non ancora provato: avvisa senza bloccare (e la risposta «06 01» all\'autenticazione vale come «10 05 01»)'); a.chiudi(); }
@@ -3892,11 +3980,13 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
     await sinc(a);
     const ZPD = () => JSON.parse(sw.eval('JSON.stringify(ZPD)'));
     let D = ZPD();
-    const tipiChiesti = F.starts.map(s => s.tipo);
-    ok(J(tipiChiesti) === J([72, 73, 78, 37, 38, 18, 19, 46, 56, 58, 86, 1]) && F.starts.every(s => s.da === new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - ((s.tipo === 72 || s.tipo === 19) ? 7 : 2)).getTime()),
-       'Sincronizza: chiede i 12 tipi dello storico, la prima volta dagli ultimi 2 giorni (7 per sonno e stress al minuto)');
-    const acks = () => F.ricevuti.filter(r => r.ep === 0x4b && r.p[0] === 3 && r.p[1] === 1).length, trasf = () => F.ricevuti.filter(r => r.ep === 0x4b && r.p[0] === 2).length;
-    ok(acks() === 12 && trasf() === 12 && F.ricevuti.filter(r => r.ep === 0x4b).every(r => r.cif), 'ogni START ha il suo TRANSFER (dati col CRC) e il suo ACK 03 01, tutto sul canale cifrato');
+    const tipiChiesti = tipiUnici(F.starts), primoStart = t => F.starts.find(s => s.tipo === t);
+    ok(J(tipiChiesti) === J([72, 73, 78, 37, 38, 18, 19, 46, 56, 58, 1]) && tipiChiesti.every(t => primoStart(t).da === new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - ((t === 72 || t === 19) ? 7 : 2)).getTime()),
+       'Sincronizza: chiede gli 11 tipi dello storico che l\'Helio Strap misura (niente 86), la prima volta dagli ultimi 2 giorni (7 per sonno e stress al minuto)');
+    ok(F.ricevuti.some(r => r.ep === 0x4b && r.p && r.p[0] === 0 && r.p.length === 1), 'prima chiede al bracciale quali tipi ha («00» sull\'endpoint dello storico)');
+    const acks = () => F.ricevuti.filter(r => r.ep === 0x4b && r.p && r.p[0] === 3 && r.p[1] === 1).length, trasf = () => F.ricevuti.filter(r => r.ep === 0x4b && r.p && r.p[0] === 2).length;
+    ok(acks() === F.starts.length && F.starts.length === 22 && trasf() === 11 && F.ricevuti.filter(r => r.ep === 0x4b).every(r => !r.cif),
+       'ogni tipo si scarica finché il cursore avanza (qui 2 richieste per tipo, la seconda vuota); ogni START si chiude con 03 01; lo storico viaggia in chiaro, come vuole il bracciale');
     const nY = D.notti[ymd(Y)];
     ok(nY && nY.inizio === loc(Y - 42 * 60000) && nY.fine === loc(Y + 412 * 60000) && J(nY.fasi) === J([[0, 12, 'sveglio'], [12, 52, 'leggero'], [52, 97, 'profondo'], [97, 133, 'rem'], [133, 454, 'leggero']]) &&
        nY.punteggio === 82 && J(nY.sonnellini) === J([{ inizio: loc(Y - 540 * 60000), fine: loc(Y - 500 * 60000) }]),
@@ -3919,15 +4009,23 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
     sd.querySelector('#zp-box .imp-apri').click(); await settle(10);
     ok(sd.getElementById('zp-box').classList.contains('aperta'), '«Gestisci» apre la tendina (Sincronizza, Prova collegamento, Togli la chiave)');
     ok(F.ricevuti.some(r => r.ep === 0x29) && a.B.staccati.length === 1, 'chiede la batteria e alla fine stacca il bracciale');
-    ok(Object.keys(D.cursori).length === 12 && D.cursori[1] === ora(9, 3) + 1000 && D.cursori[72] === ora(6, 52) + 1000 && D.cursori[73] === ora(4) + 1000,
-       'un cursore per tipo: ultimo record + 1 s (serie al minuto: inizio + N minuti)');
+    ok(Object.keys(D.cursori).length === 11 && D.cursori[1] === ora(9, 4) && D.cursori[19] === ora(8, 5) + 1000 && D.cursori[72] === ora(6, 53) && D.cursori[73] === ora(4, 1) && D.cursori[37] === ora(11) + 30000 && D.cursori[58] === ora(7, 30) + 1000,
+       'un cursore per tipo con le regole di Zepp: passi inizio + N minuti, stress + N minuti + 1 s, sonno e HRV ultimo record + 1 min, SpO2 + 30 s, gli altri + 1 s');
     /* seconda sincronizzazione: si riparte dai cursori, niente doppioni */
     sw.eval('ZPD.ultima=0'); const s0 = F.starts.length, a0 = acks(), t0 = trasf();
     await sinc(a);
     D = ZPD();
-    ok(F.starts.slice(s0).every(s => s.da === D.cursori[s.tipo]) && acks() - a0 === 12 && trasf() - t0 === 0,
+    ok(F.starts.slice(s0).every(s => s.da === D.cursori[s.tipo]) && acks() - a0 === 11 && F.starts.length - s0 === 11 && trasf() - t0 === 0,
        'la volta dopo riparte dai cursori: niente di nuovo, nessun TRANSFER, ma l\'ACK dopo ogni START anche a dimensione 0');
     ok(D.passi[ymd(Y)] === 200 && D.s[73].length === 2 && D.esito.nuovi === 0 && J(ev()) === J(E1), 'nessun doppione: passi sempre 200, stessi campioni, nessun evento nuovo');
+    /* lo stesso minuto riscaricato (per esempio un cursore tornato indietro) non raddoppia i passi né i campioni */
+    sw.eval('delete ZPD.cursori[1]; delete ZPD.cursori[73]; ZPD.ultima=0;'); await sw.eval('zpdSalva()');
+    await sinc(a); D = ZPD();
+    ok(D.passi[ymd(Y)] === 200 && D.s[73].length === 2, 'minuti e misure riscaricati due volte: si tengono una volta sola (passi sempre 200)');
+    /* i minuti dei passi non ancora scritti (8 × 0xFF) che stanno nel futuro non spostano il cursore */
+    { const adesso = Date.now(), m0 = Math.floor(adesso / 60000) * 60000 - 2 * 60000, vuoto8 = new Array(8).fill(255), minuto8 = v => [0, 0, v, 0, 0, 0, 0, 0];
+      const r = JSON.parse(sw.eval('JSON.stringify(zpDecodifica(1, ' + J([].concat(minuto8(5), minuto8(7), vuoto8, vuoto8, vuoto8, vuoto8)) + ', ' + m0 + '))'));
+      ok(r.voci.length === 2 && r.cursore >= m0 + 3 * 60000 && r.cursore <= m0 + 4 * 60000, 'passi: i minuti vuoti nel futuro in fondo al pezzo non si contano e il cursore si ferma prima (' + (r.cursore - m0) / 60000 + ' min)'); }
     a.chiudi();
     /* un tipo rifiutato e uno col CRC sbagliato si saltano, il resto arriva */
     { const b = await apri({ chiave: KF, batteria: 60, storico: storico, rifiuta: [38], crcRotto: 46 });
@@ -3936,6 +4034,16 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
       const Db = JSON.parse(b.sw.eval('JSON.stringify(ZPD)'));
       ok(Db.esito.tipi[38] === 'rifiutato' && Db.esito.tipi[46] === 'crc' && !Db.cursori[46] && !Db.cursori[38] && Db.passi[ymd(Y)] === 200 && Db.notti[ymd(Y)] && /Sincronizzato/.test(b.sd.getElementById('zp-stato').textContent),
          'tipo rifiutato (38) o con CRC sbagliato (46): si salta senza spostarne il cursore, gli altri tipi arrivano');
+      const codici = b.F.ricevuti.filter(r => r.ep === 0x4b && r.p && r.p[0] === 3).map(r => r.p[1]);
+      ok(codici.length === b.F.starts.length && codici.indexOf(2) >= 0 && codici.indexOf(8) >= 0,
+         'anche lo START rifiutato e il trasferimento col CRC sbagliato si chiudono, col loro codice (03 02, 03 08): il bracciale non resta bloccato');
+      b.chiudi(); }
+    /* un bracciale che offre meno tipi: si chiedono solo quelli */
+    { const b = await apri({ chiave: KF, batteria: 60, storico: storico, offerti: [1, 72] });
+      b.sw.eval('colApri()'); await settle(20); b.sd.getElementById('zp-chiave').value = '00112233445566778899aabbccddeeff'; b.sd.getElementById('zp-salva').click(); await settle(30);
+      await sinc(b);
+      const Db = JSON.parse(b.sw.eval('JSON.stringify(ZPD)'));
+      ok(J(tipiUnici(b.F.starts)) === J([72, 1]) && Db.esito.tipi[73] === 'assente' && Db.notti[ymd(Y)] && Db.passi[ymd(Y)] === 200, 'si chiedono solo i tipi che il bracciale dice di avere');
       b.chiudi(); }
     /* con la fascia in registrazione non si sincronizza */
     { const b = await apri({ chiave: KF, batteria: 60, storico: storico });
@@ -3958,7 +4066,7 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
       b.sw.tmsSeduta = { sincFatta: async o => { fatte.push(o); } };
       await b.sw.eval('tmsSincServizio()');
       const Dp = JSON.parse(b.sw.eval('JSON.stringify(ZPD)'));
-      ok(fatte.length === 1 && fatte[0].ok === true && fatte[0].batteria === 66 && Dp.notti[ymd(Y)] && Dp.passi[ymd(Y)] === 200 && b.F.starts.length === 12,
+      ok(fatte.length === 1 && fatte[0].ok === true && fatte[0].batteria === 66 && Dp.notti[ymd(Y)] && Dp.passi[ymd(Y)] === 200 && tipiUnici(b.F.starts).length === 11,
          'evento «sincronizza» del servizio (app viva in secondo piano): scarica attraverso il ponte e risponde sincFatta({ok, batteria})');
       ok(b.B.collegati.length === 0 && b.B.staccati.length === 0 && ops.some(o => o[0] === 'notifiche' && o[3] === true) && ops.some(o => o[0] === 'notifiche' && o[3] === false),
          'col bracciale tenuto dal servizio niente ricerca né secondo collegamento: si aprono e chiudono solo le notifiche sul collegamento del servizio');
@@ -3983,14 +4091,15 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
             fine: j => { reg.fine = j; } }; } });
       for (let k = 0; k < 200 && reg.fine === undefined; k++) await settle(50);
       const sw2 = sub.window, fine = reg.fine ? JSON.parse(reg.fine) : null;
-      ok(fine && fine.notti === 1 && F.starts.length === 12 && !sw2.tmsBLE && reg.some(o => o.op === 'scrivi') && reg.some(o => o.op === 'notifiche' && o.on === false),
+      ok(fine && fine.notti === 1 && tipiUnici(F.starts).length === 11 && !sw2.tmsBLE && reg.some(o => o.op === 'scrivi') && reg.some(o => o.op === 'notifiche' && o.on === false),
          'pagina invisibile del servizio (app chiusa): da sola scarica il bracciale attraverso il servizio e risponde fine({notti, giorni…})');
       ok(sw2.eval('Object.keys(ZPD.eventi).length') === 3 && sw2.eval('Object.keys(ZPD.eventi).every(function(k){ return !ZPD.eventi[k].pc; })'),
          'pagina invisibile: gli eventi per il PC sono pronti (li manda all\'hub col collegamento della pagina, qui senza hub)');
       ok(!/Scarico|Cerco/.test(sw2.localStorage.getItem('tms-zp-lock') || '') && sw2.localStorage.getItem('tms-zp-lock') === null, 'pagina invisibile: alla fine lascia libera la sincronizzazione');
       sw2.close(); }
-    /* SALUTE (APK 1.8.1): battito adesso, passi, batteria, ultime misure con l'ora, ultimo riposo, «Aggiorna» */
-    { const b = await apri({ chiave: KF, batteria: 74, storico: storico }), { sw, sd } = b;
+    /* SALUTE «professionale» (APK 1.9.0): battito adesso, passi con anello e obiettivo (anche in diretta dal bracciale), passi dei 7 giorni,
+       recupero a colori col solito, sonno a livelli, «Aggiorna» */
+    { const b = await apri({ chiave: KF, batteria: 74, storico: storico, passiLive: 5000 }), { sw, sd } = b;
       b.sw.eval('colApri()'); await settle(20); sd.getElementById('zp-chiave').value = '00112233445566778899aabbccddeeff'; sd.getElementById('zp-salva').click(); await settle(30);
       await sinc(b);
       sw.eval('SEMPRE.st={attivo:true, collegato:true, id:' + J(ST.id) + ', bpm:62, batteria:80}; fcZona=function(x){ return x>0? {n:2, pct:60} : null; };');
@@ -3999,22 +4108,43 @@ console.log('--- T12d: bracciale Zepp OS con la chiave (canale cifrato; braccial
       const T = id => (sd.getElementById(id) || {}).textContent || '';
       ok(sd.getElementById('sal').hidden === false && /Salute/.test((sd.querySelector('.barra-titolo') || {}).textContent || '') && /62/.test(T('sal-bpm')) && sd.getElementById('sal-bpm').classList.contains('z2') && /Bracciale collegato/.test(T('sal-conn')),
          'Salute: il battito adesso, grande e col colore della zona, e «Bracciale collegato»');
-      ok(/4\.?321/.test(T('sal-tre')) && /passi oggi/.test(T('sal-tre')) && /80/.test(T('sal-tre')) && /batteria/.test(T('sal-tre')), 'Salute: passi di oggi e batteria del bracciale');
+      ok(/4\.321/.test(T('sal-tre')) && /di 8\.000/.test(T('sal-tre')) && /passi oggi · 54 %/.test(T('sal-tre')) && sd.querySelector('#sal-tre .sal-an-v') && /batteria 80 %/.test(T('sal-batt')),
+         'Salute: anello dei passi di oggi contro l’obiettivo (4.321 di 8.000, 54 %) e batteria del bracciale');
+      sd.getElementById('sal-obi-b').click(); await settle(10);
+      ok(sd.querySelectorAll('#sal-obi [data-salobi]').length === 6, 'Obiettivo: si sceglie fra 5.000 e 15.000 passi');
+      sd.querySelector('#sal-obi [data-salobi="10000"]').click(); await settle(10);
+      ok(sw.localStorage.getItem('tms-passi-obiettivo') === '10000' && /di 10\.000/.test(T('sal-tre')) && /10\.000 passi/.test(T('sal-obi')), 'Obiettivo cambiato a 10.000: lo ricorda e l’anello si aggiorna');
+      ok(sd.querySelectorAll('#sal-sett svg rect').length === 7 && sd.querySelector('#sal-sett svg rect.oggi') && sd.querySelector('#sal-sett .sal-obi-l') && /obiettivo raggiunto/.test(T('sal-sett')),
+         'Passi, ultimi 7 giorni: sette barre colorate rispetto all’obiettivo (linea tratteggiata), oggi in evidenza');
       const mis = T('sal-misure');
-      ok(/Stress.*12:00.*40/.test(mis) && /SpO2.*95 %/.test(mis) && /Temperatura pelle.*33,8 °C/.test(mis) && /Respirazione.*16/.test(mis),
-         'Salute: ultimo valore di stress, SpO2, temperatura della pelle e respirazione, ognuno con l\'ora della misura');
+      ok(sd.querySelectorAll('#sal-misure .sal-mis').length === 6 && /HRV.*ieri.*48.*ms/.test(mis) && /SpO2.*96.*buona/.test(mis) && /Stress.*36.*rilassato/.test(mis) &&
+         /Temperatura pelle.*33,7.*°C/.test(mis) && /Respirazione.*15/.test(mis) && /serve qualche giorno/.test(mis) &&
+         [...sd.querySelectorAll('#sal-misure .sal-mis')].find(x => /SpO2/.test(x.textContent)).classList.contains('st-ok'),
+         'Recupero: sei riquadri (HRV, battito a riposo, SpO2, pelle, respirazione, stress) col colore dello stato; senza storia «serve qualche giorno»');
+      /* con due settimane di storia il colore confronta col solito */
+      sw.eval('(function(){ var d=new Date(); d.setHours(12,0,0,0); for(var i=2;i<16;i++){ var t=d.getTime()-i*86400000; (ZPD.s[73]=ZPD.s[73]||[]).push([t, 60+(i%3)]); (ZPD.s[58]=ZPD.s[58]||[]).push([t, 50+(i%2)]); } ZPD.ultima=Date.now(); renderSal(); })()');
+      { const r = [...sd.querySelectorAll('#sal-misure .sal-mis')], hrv = r.find(x => /HRV/.test(x.textContent)), rip = r.find(x => /Battito a riposo/.test(x.textContent));
+        ok(hrv.classList.contains('st-ko') && /basso/.test(hrv.textContent) && rip.classList.contains('st-mez') && /un po’ alto/.test(rip.textContent) && hrv.querySelector('svg.sal-spark'),
+           'Recupero col solito: HRV 48 contro un solito di 61 → rosso «basso»; battito a riposo 54 contro 50,5 → ocra «un po’ alto»; la linea dei 14 giorni'); }
       const so = T('sal-sonno');
-      ok(/Notte/.test(so) && /23:18 → 06:52/.test(so) && /7 h 22 min/.test(so) && /82/.test(so) && /48/.test(so) && /Battito a riposo.*54 bpm/.test(so) &&
-         sd.querySelectorAll('#sal-sonno .sal-fasi i').length === 5 && sd.querySelector('#sal-sonno .sal-fasi i.f-profondo'),
-         'Salute: ultimo riposo = la notte appena passata (orari, 7 h 22 min dormite, punteggio 82, HRV 48, fasi, battito a riposo 54)');
+      ok(/Notte/.test(so) && /23:18 → 06:52/.test(so) && /7 h 22 min/.test(so) && /82/.test(so) && /buono/.test(so) && /48/.test(so) && /Battito a riposo/.test(so) && /54/.test(so) &&
+         sd.querySelectorAll('#sal-sonno .sal-ipno rect').length === 5 && sd.querySelector('#sal-sonno .sal-ipno rect.f-profondo') && sd.querySelectorAll('#sal-sonno .sal-fasi-tot>div').length === 4,
+         'Salute: ultimo riposo = la notte appena passata (punteggio 82 «buono» nell’anello, 7 h 22 min, fasi a livelli, tempo e % per fase, HRV 48, battito a riposo 54)');
+      ok(sd.getElementById('sal-fc-box').hidden && sd.getElementById('sal-st-box').hidden, 'senza battito e stress di oggi i due grafici non compaiono');
+      /* passi IN DIRETTA dal bracciale (endpoint 0x0016) con la Salute aperta */
+      for (let k = 0; k < 80 && sw.eval('SAL_LIVE.passi') == null; k++) await settle(50);
+      await settle(150);
+      ok(/5\.012/.test(T('sal-tre')) && /in diretta/.test(T('sal-tre')) && /3,51 km/.test(T('sal-tre')) && /211 kcal/.test(T('sal-tre')) && b.F.passiOn === 1 && b.F.ricevuti.some(r => r.ep === 0x16 && r.p && r.p[0] === 3 && !r.cif),
+         'passi in diretta: «03» e poi gli aggiornamenti «07» sull’endpoint 0x0016 (in chiaro), con metri e kcal');
       /* un sonnellino più recente della notte prende il suo posto */
       sw.eval('(function(){ var n=ZPD.notti[' + J(ymd(Y)) + ']; n.sonnellini=[{inizio:' + J(ymd(Y) + 'T14:10') + ', fine:' + J(ymd(Y) + 'T14:40') + '}]; })()'); sw.eval('renderSal()');
       ok(/Sonnellino/.test(T('sal-sonno')) && /14:10 → 14:40/.test(T('sal-sonno')) && /0 h 30 min/.test(T('sal-sonno')), 'Salute: se il sonnellino è più recente della notte, l\'ultimo riposo è il sonnellino');
-      /* «Aggiorna» = sincronizzazione subito */
+      /* «Aggiorna» = sincronizzazione subito (prima spegne i passi in diretta) */
       const s0 = b.F.starts.length;
       ok(sd.getElementById('sal-aggiorna').hidden === false, 'Salute: con la chiave c\'è «Aggiorna»');
-      sd.getElementById('sal-aggiorna').click(); await settle(30); for (let k = 0; k < 120 && sw.eval('ZP.inCorso'); k++) await settle(50); await settle(30);
-      ok(b.F.starts.length - s0 === 12 && /Ultima sincronizzazione: oggi/.test(T('sal-stato')), '«Aggiorna» fa subito una sincronizzazione col bracciale e dice quando');
+      sd.getElementById('sal-aggiorna').click(); await settle(60); for (let k = 0; k < 160 && (sw.eval('ZP.inCorso') && !sw.eval('SAL_LIVE.on') || b.F.starts.length === s0); k++) await settle(50); await settle(60);
+      ok(b.F.starts.length - s0 === 11 && /Ultima sincronizzazione: oggi/.test(T('sal-stato')), '«Aggiorna» fa subito una sincronizzazione col bracciale e dice quando');
+      await sw.eval('salLiveFerma()');
       b.chiudi(); }
     { const b = await apri({ chiave: KF, batteria: 74, storico: storico }), { sw, sd } = b;
       sw.eval('SEMPRE.st={attivo:true, collegato:true, id:"AA", bpm:71, batteria:-1}');
@@ -4093,8 +4223,8 @@ console.log('--- T12e: seduta in primo piano (servizio Android finto), battiti r
   await sw.eval('sedAnnulla()'); await settle(20);
   ok(J(N.chiamate.slice(-2)) === J([['ferma'], ['pip', false]]), '«annulla seduta»: il servizio si ferma');
   /* Cardio: «Avvia registrazione» e «annulla registrazione» */
-  sw.eval('fcApri(); fcRegistra();'); await settle(30);
-  ok(ult('avvia')[1].titolo === 'Cardio · Corsa' && J(ult('pip')) === J(['pip', true]), 'Cardio: «Avvia registrazione» avvia il servizio (titolo con lo sport)');
+  sw.eval('FC.disc="Corsa"; fcVarScegli("Corsa", 1); fcApri(); fcRegistra();'); await settle(30);
+  ok(ult('avvia')[1].titolo === 'Corsa · Tapis roulant' && ult('avvia')[1].gps === false && J(ult('pip')) === J(['pip', true]), 'Cardio: «Avvia» avvia il servizio (titolo con disciplina e sottocategoria; al chiuso senza GPS)');
   await sw.eval('fcAnnullaReg()'); await settle(20);
   ok(J(N.chiamate.slice(-2)) === J([['ferma'], ['pip', false]]), 'Cardio: «annulla registrazione» ferma il servizio');
   N.campioni.length = 0;
@@ -4431,6 +4561,23 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     ok(d.querySelector('#modal svg') !== null && /Battito della seduta/.test(d.getElementById('modal').textContent), 'modulo della seduta: grafico del battito');
     d.getElementById('c-ok').click(); await settle(20);
     ok(w.eval('DOC.cardio[' + r + '].id') === 'g1|fc' && w.eval('DOC.cardio[' + r + '].fc.length') === 24, 'salvando il modulo restano id e traccia del battito');
+    /* GPS (1.9.0): distanza, dislivello, sottocategoria, tempo in movimento, parziali e percorso dal telefono */
+    { const perc = []; for (let i = 0; i < 30; i++) perc.push([43.46 + i * 0.001, 11.88 + (i % 5) * 0.0004, 250 + i]);
+      const g = JSON.parse(w.eval('JSON.stringify(pulisciCardioTel(' + J({ id: 'g2|fc', data: '2026-11-24', ora: '08:00:00', tipo: 'Bici', variante: 'Strada', durata: 40, distanza: 15.237, quota: 212.4, tempoMov: 2300,
+        parziali: [150, 160, 0, 155], percorso: perc.concat([[99, 0, 1], ['x', 1, 1]]) }) + '))'));
+      ok(g.distanza === 15.24 && g.quota === 212 && g.variante === 'Strada' && g.tempoMov === 2300 && J(g.parziali) === J([150, 160, 155]) && g.percorso.length === 30 && g.percorso[5][2] === 255,
+         'PC: dal telefono distanza (km), dislivello (m), sottocategoria, tempo in movimento, parziali e percorso (punti impossibili scartati)');
+      ok(w.eval('pulisciCardioTel({id:"x", data:"2026-11-24", durata:5, distanza:5000, quota:-3}).distanza') === '' && w.eval('pulisciCardioTel({id:"x", data:"2026-11-24", durata:5, distanza:5000, quota:-3}).quota') === '',
+         'PC: distanza o dislivello impossibili non entrano');
+      const r2 = w.eval('(function(){ DOC.cardio.push(pulisciCardioTel(' + J({ id: 'g2|fc', data: '2026-11-24', ora: '08:00:00', tipo: 'Bici', variante: 'Strada', durata: 40, distanza: 15.2, quota: 212, percorso: perc, parziali: [150, 160] }) + ')); return DOC.cardio.length-1; })()');
+      w.eval('renderCardio()'); await settle(20);
+      ok(/Strada/.test(d.getElementById('panel-cardio').textContent) && d.querySelectorAll('#panel-cardio [data-cfc="' + r2 + '"]').length >= 1, 'tab Cardio: la sottocategoria accanto allo sport e il pulsante del percorso');
+      d.querySelector('#panel-cardio [data-cfc="' + r2 + '"]').click(); await settle(20);
+      ok(/Percorso/.test(d.getElementById('modal').textContent) && d.querySelectorAll('#modal svg path').length >= 3 && /1 km/.test(d.getElementById('modal').textContent),
+         'modulo della seduta: il percorso disegnato (strada, scala), il profilo della quota e i parziali al km');
+      ok(d.querySelectorAll('#modal svg image').length >= 4 && [...d.querySelectorAll('#modal svg image')].every(x => /^https:\/\/tile\.openstreetmap\.org\//.test(x.getAttribute('href'))) && /collaboratori di OpenStreetMap/.test(d.getElementById('modal').textContent),
+         'modulo della seduta: il percorso sulla mappa di OpenStreetMap, con l’attribuzione');
+      w.eval('closeModal()'); }
     w.eval('showTab("allenamento")'); }
   /* il calendario nel tab Alimentazione del PC */
   w.eval('aderMese="2026-11"; showTab("alimentazione");'); await settle(30);

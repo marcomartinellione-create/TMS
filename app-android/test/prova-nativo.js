@@ -72,6 +72,7 @@ async function apri(opz = {}) {
           connect: async o => { reg.ble.push(['connect', o]); },
           startNotifications: async o => { reg.ble.push(['startNotifications', o]); if (opz.bleNotificheNo) throw new Error('Insufficient authentication'); },
           write: async o => { reg.ble.push(['write', o]); }, disconnect: async o => { reg.ble.push(['disconnect', o]); },
+          writeWithoutResponse: async o => { reg.ble.push(['writeWithoutResponse', o]); if (opz.senzaRispostaNo) throw new Error('Write type not supported'); },
           read: async o => { reg.ble.push(['read', o]); return { value: '33 2e 32 35 2e 30 2e 33' }; },
           addListener: async (ev, cb) => { reg.bleAscolti[ev] = cb; return { remove() { delete reg.bleAscolti[ev]; } }; }
         } } : {}),
@@ -317,7 +318,7 @@ async function apri(opz = {}) {
   { const a = await apri({ ble: true }); const { d, reg } = a;
     const HR = '0000180d-0000-1000-8000-00805f9b34fb', MIS = '00002a37-0000-1000-8000-00805f9b34fb', ID = 'C8:0F:10:00:00:02';
     d.getElementById('vai-scheda').click(); await attendi(30); d.querySelector('#home-fasi [data-hf="c"]').click(); await attendi(30);
-    ok(d.querySelectorAll('#home-sport [data-fcvai]').length === 12, 'Allenamento › Cardio: gli sport da scegliere');
+    ok(d.querySelectorAll('#home-sport [data-fcvai]').length === 10, 'Allenamento › Cardio: le discipline da scegliere (10, con le loro sottocategorie)');
     a.w.eval('fcApri()'); await attendi(60); d.getElementById('fc-collega').click(); await attendi(120);   /* la fascia si sceglie in Impostazioni */
     reg.bleAscolti.onScanResult({ device: { deviceId: '11:22:33:44:55:66', name: 'Telefono di qualcuno' } });
     reg.bleAscolti.onScanResult({ device: { deviceId: ID, name: '' }, uuids: [HR], rssi: -60 }); await attendi(60);
@@ -352,6 +353,17 @@ async function apri(opz = {}) {
     const wr = reg.ble.filter(x => x[0] === 'write').pop();
     ok(wr[1].service === '0000fee0-0000-1000-8000-00805f9b34fb' && wr[1].characteristic === '00000016-0000-3512-2118-0009af100700' && wr[1].value === '01',
        'bracciale: scrittura sulla caratteristica Huami 0016 del servizio FEE0 (UUID interi passano come sono)');
+    /* il canale del bracciale si scrive «senza risposta» (come Zepp, unstrap e Gadgetbridge) */
+    const nW = reg.ble.filter(x => x[0] === 'write').length;
+    await a.w.tmsBLE.scrivi('C8:0F:10:00:00:03', '00000016-0000-3512-2118-0009af100700', [3, 7, 0], '0000fee0-0000-1000-8000-00805f9b34fb', true);
+    const wn = reg.ble.filter(x => x[0] === 'writeWithoutResponse').pop();
+    ok(wn && wn[1].characteristic === '00000016-0000-3512-2118-0009af100700' && wn[1].value === '03 07 00' && reg.ble.filter(x => x[0] === 'write').length === nW,
+       'bracciale: con «senzaRisposta» la scrittura è writeWithoutResponse (e niente write in più)');
+    a.dom.window.close(); }
+  { const a = await apri({ ble: true, senzaRispostaNo: true }), reg = a.reg;
+    await a.w.tmsBLE.scrivi('C8:0F:10:00:00:03', '00000017-0000-3512-2118-0009af100700', [4, 0, 1, 1, 0], '0000fee0-0000-1000-8000-00805f9b34fb', true);
+    ok(reg.ble.some(x => x[0] === 'writeWithoutResponse') && reg.ble.filter(x => x[0] === 'write').pop()[1].value === '04 00 01 01 00',
+       'bracciale: se il telefono non accetta la scrittura «senza risposta», si riprova con quella normale');
     a.dom.window.close(); }
   { const a = await apri({ ble: true, bleNegato: true }); a.d.getElementById('vai-bil').click(); await attendi(120);
     ok(/Dispositivi nelle vicinanze/.test(a.d.getElementById('bil-stato').textContent) && a.d.getElementById('bil-riprova').hidden === false, 'permesso negato: lo dice e offre «Riprova»');
@@ -528,9 +540,12 @@ async function apri(opz = {}) {
     catch (e) { errore = String(e.stderr || e.message); }
     const java = path.join(T, 'android/app/src/main/java/com/trainingmonitorsystem/scheda');
     ok(!errore && /RECEIVE_BOOT_COMPLETED/.test(man1) && /<receiver android:name=".TmsAvvioReceiver" android:exported="true">/.test(man1) &&
-       /android.intent.action.BOOT_COMPLETED/.test(man1) && /android.intent.action.MY_PACKAGE_REPLACED/.test(man1) && /foregroundServiceType="connectedDevice"/.test(man1) &&
-       /FOREGROUND_SERVICE_CONNECTED_DEVICE/.test(man1), 'patch-android: permesso RECEIVE_BOOT_COMPLETED, ricevitore dell\'accensione e dell\'aggiornamento, servizio connectedDevice' + (errore ? ' (' + errore.slice(0, 200) + ')' : ''));
+       /android.intent.action.BOOT_COMPLETED/.test(man1) && /android.intent.action.MY_PACKAGE_REPLACED/.test(man1) && /foregroundServiceType="connectedDevice\|location"/.test(man1) &&
+       /FOREGROUND_SERVICE_CONNECTED_DEVICE/.test(man1), 'patch-android: permesso RECEIVE_BOOT_COMPLETED, ricevitore dell\'accensione e dell\'aggiornamento, servizio connectedDevice|location' + (errore ? ' (' + errore.slice(0, 200) + ')' : ''));
     ok(man1 && man1 === man2 && man1.split('TmsAvvioReceiver').length === 2, 'patch-android: rilanciato non duplica niente');
+    ok(/FOREGROUND_SERVICE_LOCATION/.test(man1) && /<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" \/>/.test(man1) && !/ACCESS_FINE_LOCATION" android:maxSdkVersion/.test(man1) &&
+       /BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/.test(man1) && /android.hardware.location.gps" android:required="false"/.test(man1),
+       'patch-android: GPS delle attività all\'aperto (posizione anche da Android 12, servizio «location»); la ricerca Bluetooth resta senza posizione');
     ok(fs.existsSync(path.join(java, 'TmsAvvioReceiver.java')) && fs.existsSync(path.join(java, 'TmsSedutaService.java')), 'patch-android: copia anche TmsAvvioReceiver.java');
     ok(/versionName "1\.8\.1"/.test(fs.readFileSync(path.join(T, 'android/app/build.gradle'), 'utf8')) || VERSIONE !== '1.8.1', 'patch-android: versione dell\'APK dal package.json (' + VERSIONE + ')');
     try { fs.rmSync(T, { recursive: true, force: true }); } catch (e) {} }

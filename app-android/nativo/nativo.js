@@ -169,7 +169,12 @@ if(BLE){
         via(id); try{ await BLE.disconnect({deviceId:id}); }catch(e2){}
         const err=new Error((e&&e.message)||String(e)); err.motivo='notifiche'; throw err; }
     },
-    scrivi(id, c, bytes, servizio){ return BLE.write({deviceId:id, service:UUID(servizio||BIL.servizio), characteristic:UUID(c), value:inHex(bytes)}); },
+    /* senzaRisposta: scrittura «senza risposta» (Write Command), come fanno Zepp, unstrap e Gadgetbridge sul canale
+       del bracciale Zepp OS; se la caratteristica non la accetta si riprova con la scrittura normale */
+    async scrivi(id, c, bytes, servizio, senzaRisposta){
+      const o={deviceId:id, service:UUID(servizio||BIL.servizio), characteristic:UUID(c), value:inHex(bytes)};
+      if(senzaRisposta && BLE.writeWithoutResponse){ try{ return await BLE.writeWithoutResponse(o); }catch(e){} }
+      return BLE.write(o); },
     /* lettura di una caratteristica (per esempio il firmware del bracciale, 180A/2A26): restituisce i byte */
     async leggi(id, servizio, c){ const r=await BLE.read({deviceId:id, service:UUID(servizio), characteristic:UUID(c)}); return daHex(r && r.value); },
     async stacca(id){ via(id); try{ await BLE.disconnect({deviceId:id}); }catch(e){} }
@@ -202,7 +207,9 @@ if(SEDP){
   window.tmsSeduta={
     avvia:o=>SEDP.avvia(o), ferma:()=>SEDP.ferma(), campioni:o=>SEDP.campioni(o||{}),
     pip:a=>SEDP.pip({attivo:!!a}), batteria:()=>SEDP.batteria(), chiediBatteria:()=>SEDP.chiediBatteria(),
-    sempre:o=>SEDP.sempre(o||{attivo:false}), stato:()=>SEDP.stato(), sincFatta:o=>SEDP.sincFatta(o||{})
+    sempre:o=>SEDP.sempre(o||{attivo:false}), stato:()=>SEDP.stato(), sincFatta:o=>SEDP.sincFatta(o||{}),
+    /* GPS delle attività all'aperto (1.9.0): punti presi dal servizio, permesso della posizione */
+    posizioni:o=>SEDP.posizioni(o||{}), permessoPosizione:()=>SEDP.permessoPosizione()
   };
   const inHex=b=>Array.from(b||[]).map(n=>('0'+((n&255).toString(16))).slice(-2)).join(' ');
   const daHex=v=>{ const h=String(v||'').replace(/[^0-9a-f]/gi,''), o=[]; for(let i=0;i+1<h.length;i+=2) o.push(parseInt(h.slice(i,i+2),16)); return o; };

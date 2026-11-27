@@ -407,13 +407,16 @@ Due modi per registrare una seduta:
   l'app legge durata, FC media, FC max, distanza e **dislivello D+** e apre il modulo già
   compilato (resta solo da aggiungere la fatica RPE). Il **.FIT** è il formato binario nativo
   Garmin (dal messaggio «session»); .TCX/.GPX sono XML. Tutto in locale, offline, nessun account.
-- **Dalla sezione Cardio del telefono** (automatico): nell'app del cliente, sezione «Cardio», si sceglie
-  lo sport, «Avvia registrazione», poi «Fine» (chiede solo la fatica) e si salva una seduta (sport, minuti, RPE, FC media, picco e la traccia
-  del battito ogni 5 s) che arriva da sola attraverso l'hub e diventa una voce del tab Cardio con
+- **Dalla sezione Cardio del telefono** (automatico): nell'app del cliente, Allenamento › Cardio, si sceglie
+  la disciplina e la sua sottocategoria (per esempio Bici › Strada o Bici › Cyclette), «Avvia», poi «Fine» (chiede solo la
+  fatica) e si salva una seduta (sport del TMS, sottocategoria in «variante», minuti, RPE, FC media, picco e la traccia
+  del battito ogni 5 s; nelle attività all'aperto anche distanza in km, dislivello D+ in m, tempo in movimento, parziali
+  al km e il percorso GPS semplificato) che arriva da sola attraverso l'hub e diventa una voce del tab Cardio con
   la nota «registrata col telefono»: il TRIMP si calcola dalla FC media, il picco va in «picco in
-  questa seduta». Accanto alla FC media c'è un pulsante che apre il modulo della seduta col
-  **grafico del battito** (minuti in basso, la FC media tratteggiata). La stessa seduta arrivata
-  due volte non si duplica; una seduta tolta a mano non torna.
+  questa seduta», km, ritmo e D+ riempiono le loro colonne. Accanto alla FC media c'è un pulsante che apre il modulo della
+  seduta col **grafico del battito** (minuti in basso, la FC media tratteggiata); accanto allo sport, se c'è il percorso, un
+  pulsante che apre il **percorso sulla mappa** di OpenStreetMap (tessere scaricate da internet), il profilo della quota e i parziali. La stessa
+  seduta arrivata due volte non si duplica; una seduta tolta a mano non torna.
 - **Progressione per sport** (tab Progressi): in fondo c'è «Cardio · progressione per sport»
   con un selettore; per lo sport scelto mostra l'andamento nel tempo di sRPE, FC media e — dove
   ha senso — distanza, passo (min/km, più basso = meglio) o velocità, dislivello. Così vedi se
@@ -784,13 +787,23 @@ messaggi alla bilancia e si ricorda la bilancia trovata; fuori dalla pagina il B
 Permessi: «Dispositivi nelle vicinanze» senza posizione (fino ad Android 11 Android pretende la
 posizione accesa per cercare dispositivi Bluetooth).
 **ALLENAMENTO** (la voce del menu): in alto due linguette, «Palestra» (i giorni della
-scheda) e «Cardio» (gli sport, con le stesse schede dei giorni). **SEZIONE CARDIO**: PRIMA si tocca lo
-sport (gli sport del tab Cardio del TMS più «Altro»; l'ultimo scelto si ricorda), POI «Avvia registrazione».
-Durante la registrazione: battito grande con le zone, tempo, FC media, picco, «Fine» e «annulla registrazione»
-(con conferma: non salva niente). A «Fine» chiede solo la fatica RPE (lo sport è già scelto); «Salva la seduta»
-la tiene sul telefono e la manda al PC (file 'tms-cardio', tab Cardio, con lo sport scelto). Senza fascia registra
-solo il tempo. Niente doppioni: con una seduta coi pesi aperta non si avvia, e con una registrazione cardio in corso
-il giorno della scheda non propone la seduta coi pesi. Bozza salvata ogni 15 s: un'app chiusa a metà non la perde.
+scheda) e «Cardio» (le DISCIPLINE, con le stesse schede dei giorni: Corsa, Camminata, Bici, Nuoto, Vogatore, Ellittica,
+Sci di fondo, Salto della corda, HIIT, Altro). **SEZIONE CARDIO** (APK 1.9.0, fatta come un giorno della scheda): aperta
+una disciplina si sceglie SOLO fra le sue sottocategorie (Corsa: All'aperto, Tapis roulant, Pista, Trail; Camminata:
+All'aperto, Escursione, Tapis roulant; Bici: Strada, Mountain bike, Gravel, Cyclette, Spinning; Nuoto: Piscina, Acque
+libere; Vogatore: Al chiuso, Canottaggio; Sci di fondo: Sulla neve, Skierg; Altro: Al chiuso, All'aperto); l'ultima scelta
+si ricorda; al PC va lo sport del tab Cardio (Corsa, Tapis roulant, Bici, Cyclette…) con la sottocategoria. Nella fascia
+scura in alto battito, tempo, «Avvia», «Fine», «annulla registrazione» (con conferma: non salva niente) e, a fine
+registrazione, la fatica RPE 1–10 con «Salva la seduta» o «Butta via»; sotto le linguette «Attività | Le tue sedute» e
+la scheda a riquadri (tempo, battito con le zone, FC media, picco). **GPS** nelle sottocategorie all'aperto: il servizio
+Android prende le posizioni del GPS (e il barometro, se c'è) anche a schermo spento; la pagina scarta i punti imprecisi
+(oltre 25 m) e i salti impossibili, conta la distanza solo quando ci si sposta davvero, il tempo in movimento, il
+dislivello col barometro (soglia 3 m) o con la quota del GPS (soglia 8 m), i parziali al km; mostra distanza, passo al km
+(velocità in bici), dislivello, tempo in movimento, il percorso sulla mappa di OpenStreetMap (da internet solo le tessere della zona; senza rete resta il percorso), il profilo della
+quota e i parziali. Le posizioni restano sul telefono e vanno, cifrate, solo al PC (percorso semplificato, al massimo
+400 punti). Senza fascia registra il tempo (e all'aperto il percorso). Niente doppioni: con una seduta coi pesi aperta
+non si avvia, e con una registrazione cardio in corso il giorno della scheda non propone la seduta coi pesi. Bozza
+salvata ogni 15 s: un'app chiusa a metà non la perde.
 **IMPOSTAZIONI** in sezioni: «TMS sul PC» (collegamento), «Sensori» (fascia cardio e bracciale), «Promemoria», «App»
 (lingua Italiano | English e i QR del sito); accanto ai titoli lo stato («collegato», «chiave salvata»…).
 **BRACCIALE CON LA CHIAVE** (Impostazioni › Sensori › Bracciale, solo nell'APK): per i bracciali Zepp OS come
@@ -799,28 +812,39 @@ l'utente la recupera da solo dal suo account Zepp, per esempio col metodo descri
 sul telefono (non va all'hub, al PC, nei file .tms/.tmsb né nei messaggi), si vede mascherata (ultime 4 cifre) e si
 può togliere. «Prova collegamento» cerca il bracciale, apre il canale cifrato sul servizio FEE0 (pezzi da 20 byte,
 autenticazione ECDH sulla curva sect163r2 e AES-128 sull'endpoint 0x0082, poi messaggi cifrati con la chiave di
-sessione, un contatore e il CRC-32), legge il firmware (180A/2A26) e la batteria (endpoint 0x0029) e mostra
+sessione, un contatore e il CRC-32, solo per gli endpoint che il bracciale segna da cifrare nel suo elenco; i pezzi si
+scrivono «senza risposta», come fa Zepp), legge il firmware (180A/2A26) e la batteria (endpoint 0x0029, in chiaro) e mostra
 «Collegato · firmware X · batteria Y %»; poi stacca. Messaggi chiari per: chiave sbagliata (0x25/0x26), serve
-l'abbinamento con Zepp (0x81), bracciale non trovato o Zepp aperto, bracciale che non risponde. Un firmware non fra
+l'abbinamento con Zepp (0x81), da riabbinare (0x07, 0x08, 0x41), bracciale non trovato o Zepp aperto, bracciale
+che non risponde neanche alla prima domanda (versione del canale) o che non risponde all'autenticazione. Sotto c'è
+«Dettagli tecnici dell'ultimo collegamento» (ogni passo in breve, mai la chiave) con «Copia i dettagli». Un firmware non fra
 quelli provati (3.11.0, 3.20.0.1, 3.25.0.3) dà un avviso ma non blocca. La crittografia è scritta da zero nella
 pagina (protocollo studiato su Gadgetbridge e unstrap, vedi i crediti). «Sincronizza» (e da solo all'apertura
 dell'app, se l'ultima volta è di più di mezz'ora prima; mai durante una seduta o una registrazione) scarica dallo
-storico del bracciale (START/TRANSFER/ACK sull'endpoint 0x004B, dati sulla caratteristica 0005, CRC-32 controllato,
-ACK dopo ogni START anche senza dati) i tipi: sonno (72, punteggio e fasi calcolati dal bracciale), HRV RMSSD (73) e
+storico del bracciale (prima chiede quali tipi ha; START/TRANSFER/ACK sull'endpoint 0x004B, dati sulla caratteristica
+0005, CRC-32 controllato, ACK dopo ogni START in ogni caso, anche senza dati o con un errore; il trasferimento scade
+dopo 20 s senza dati) solo i tipi che l'Helio Strap misura davvero: sonno (72, punteggio e fasi calcolati dal bracciale), HRV RMSSD (73) e
 SDNN (78), SpO2 (37, e 38 nel sonno), stress (18 e 19 al minuto), temperatura della pelle (46), respirazione (56),
-battito a riposo (58, 86), passi (1, attività al minuto) e la batteria. Un cursore per tipo: la volta dopo riparte
-dall'ultimo record + 1 secondo (la prima volta gli ultimi 2 giorni, 7 per sonno e stress); un tipo rifiutato o col
-CRC sbagliato si salta. I campioni al minuto restano sul telefono; al PC vanno, cifrati attraverso l'hub, una notte
+battito a riposo (58), passi (1, attività al minuto) e la batteria. Un cursore per tipo, con le regole di Zepp
+(ultimo record + 1 minuto per sonno e HRV, + 30 s per la SpO2, + 1 s per gli altri; le serie al minuto ripartono dal
+minuto dopo l'ultimo), e ogni tipo si scarica a pezzi finché il cursore avanza (la prima volta gli ultimi 2 giorni,
+7 per sonno e stress); un tipo rifiutato o col CRC sbagliato si salta; un minuto scaricato due volte non raddoppia. I campioni al minuto restano sul telefono; al PC vanno, cifrati attraverso l'hub, una notte
 per giorno del risveglio (evento tms-sonno) e un riassunto per giorno (tms-giorno), nel formato di Corpo › Recupero
 (vedi la voce Recupero). Sotto il tasto: «Ultima sincronizzazione: oggi 07:12 · 1 notte, 2 giorni». Allenamenti
 registrati sul bracciale NON si scaricano ancora. Il battito in diretta resta quello della fascia (profilo standard
 0x180D, senza chiave).
-**SALUTE** (APK 1.8.1, voce «Salute» del menu del telefono, solo nell'APK): dati del bracciale in tempo reale (battito
-adesso col colore della zona, dalla fascia collegata o dal collegamento sempre attivo; passi di oggi; batteria; ultimo
-valore di stress, SpO2, temperatura della pelle e respirazione con l'ora della misura; «collegato» o «in ricerca…») e
-SOLO l'ultimo riposo (la notte appena passata, o il sonnellino più recente se è più nuovo: orari, tempo dormito,
-punteggio, striscia delle fasi profondo/leggero/REM/sveglio, HRV della notte, battito a riposo). «Aggiorna» sincronizza
-subito. Senza la chiave del bracciale il battito c'è lo stesso e la parte del sonno porta a Impostazioni › Sensori ›
+**SALUTE** (APK 1.9.0, voce «Salute» del menu del telefono, solo nell'APK; fatta come le app professionali): in alto il
+battito adesso col colore della zona e l'ANELLO DEI PASSI di oggi contro l'OBIETTIVO (di serie 8.000, si sceglie fra
+5.000 e 15.000 col tasto «Obiettivo», resta sul telefono); con la chiave del bracciale e la pagina aperta i passi arrivano
+IN DIRETTA dal bracciale (endpoint 0x0016) con metri e kcal; i passi degli ultimi 7 giorni in barre con la linea
+dell'obiettivo; il RECUPERO in sei riquadri (HRV, battito a riposo, SpO2, temperatura della pelle come scarto dal solito,
+respirazione, stress) col colore dello stato rispetto al SOLITO della persona (media e deviazione standard dei 14 giorni
+prima, servono almeno 4 giorni; SpO2, stress e punteggio del sonno con soglie fisse): verde nella norma, ocra da tenere
+d'occhio, rosso lontano dal solito, grigio senza abbastanza storia, ognuno con la linea dei 14 giorni; l'ULTIMO RIPOSO (la
+notte appena passata, o il sonnellino più recente se è più nuovo) col punteggio nell'anello, l'ipnogramma a livelli
+(sveglio, REM, leggero, profondo), tempo e percentuale di ogni fase, HRV della notte e battito a riposo; il battito di
+oggi minuto per minuto (dalle registrazioni del bracciale) e lo stress di oggi a mezz'ore coi colori dei livelli. «Aggiorna»
+sincronizza subito. Senza la chiave il battito c'è lo stesso e la parte del sonno porta a Impostazioni › Sensori ›
 Bracciale. Legge i dati già sul telefono; al PC vanno solo gli eventi tms-sonno e tms-giorno (lo storico è in Corpo ›
 Recupero).
 **SEMPRE COLLEGATO** (APK 1.8.1; Impostazioni › Sensori, interruttore «Tieni sempre collegato», ACCESO di serie): con
