@@ -4,6 +4,19 @@
 
 ---
 
+### 2026-11-28 — TMS v1.1.47: pubblicata con PUBBLICA.bat
+
+**Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.46
+**Descrizione**:
+- Alimentazione: il riquadro Suggerimento per la fase dice quante calorie mangiare in cut, mantenimento o massa partendo da quelle bruciate misurate dal bracciale (o dal fabbisogno del profilo), con proteine, grassi, il ritmo previsto e quanto il piano se ne scosta. Corpo, Recupero: ogni valore del bracciale ha il suo punto di domanda che spiega cosa misura, come leggerlo, i limiti e le fonti. Calorie bruciate: nei giorni in cui la dieta è nota la digestione si calcola dai macronutrienti del piano (proteine 25 per cento, carboidrati 7,5, grassi 1,5), negli altri resta il 10 per cento. App del telefono 1.11.0: widget della giornata a fasce sovrapposte che si riempiono (battito, passi, calorie contro la giornata tipica, sonno contro 8 ore), tasto i con la spiegazione di ogni valore del bracciale e, nella Salute, quante calorie mangiare per la fase.
+- PC: suggerimento della dieta per la fase, spiegazioni dei valori del bracciale, digestione dalla dieta
+- Telefono 1.11.0: widget a fasce, spiegazioni dei valori del bracciale, suggerimento della dieta
+
+**Test**: suite completa passata dentro `npm run release`.
+**Approvato da**: Marco (PUBBLICA.bat — 2026-11-28)
+
+---
+
 ### 2026-11-27 — TMS v1.1.46: pubblicata con PUBBLICA.bat
 
 **Tipo**: pubblicazione delle modifiche accumulate dopo la v1.1.45
