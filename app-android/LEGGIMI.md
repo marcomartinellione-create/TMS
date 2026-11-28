@@ -136,6 +136,26 @@ Cosa cambia rispetto alla PWA, solo dove un'app Android lavora diversamente da u
     al minuto) con `TmsSeduta.widget` o, dalla pagina invisibile del servizio, `TmsServizio.widget`; il servizio aggiorna il
     battito (`TmsWidget.battito`, una volta al minuto). Toccandolo: azione `…WIDGET` → `MainActivity.onNewIntent` →
     `TmsSedutaPlugin.daWidget` → evento «widget» o, all'avvio, `widgetAperto()` → `salDaWidget` (non durante una seduta).
+- **APK 1.11.0 (CVER 5.2, cache v40), 28/11/2026, richieste di Marco** («suggerimento della dieta in base a massa o cut
+  rispetto alla quota calorica consumata», «dettagli che spiegano, sia nel pc che nel apk, i valori ricevuti dalla fascia»,
+  «widget più chiaro, fasce una sopra all'altra che si completano, come la apple»):
+  · **Widget a fasce** (`nativo/TmsWidget.java` riscritto; layout `tms_widget` alto 4 × 3 e `tms_widget_basso` due per due
+    da `scripts/patch-android.js` 4b; icona nuova `tms_w_luna`): battito (barra dalla FC a riposo alla massima, colore della
+    zona), passi contro l'obiettivo, calorie contro la «giornata tipica» (scelta di Marco: media dei giorni interi col
+    bracciale degli ultimi 14 o fabbisogno; barra nelle quattro parti), sonno contro 8 ore (barra nelle fasi, punteggio
+    accanto). Barre disegnate alla larghezza vera del widget (`getAppWidgetOptions`, `onAppWidgetOptionsChanged`). La
+    pagina manda in più `kp` (parti delle calorie), `tipica`, `fcRip`, `fcMax` e i nomi delle fasce in `L`. Tutti gli id
+    devono stare in ENTRAMBI i layout (RemoteViews non disegna un widget a cui manca una vista toccata dal codice).
+  · **Spiegazioni** (tasto «i», `infoApri`, finestra `#infov` chiusa da indietro/`risali`): testi in `SAL_INFO`, COPIATI
+    dal PC (`src/app/05d-spiegazioni-bracciale.js` e `05e-…-en.js`) con `node tools/copia-spiegazioni-telefono.js`;
+    `npm run verifica` e `tests/test-app.js` controllano che siano uguali. Mai scriverli a mano qui.
+  · **Suggerimento della dieta** (`dsSuggerisci` identico al PC, `dsConsumoTel`, `dsPerTel`, `salHtmlDieta` sotto le calorie
+    di oggi): la fase, l'esperienza, metabolismo basale e livello di attività arrivano nella scheda (`SCHEDA.corpo`).
+    `kcGiorno` dice ora `copertura` e `completo`; i minuti del tipo 1 si tengono 16 giorni (`zpPota`) per avere i 14
+    giorni interi del consumo medio.
+  · **Digestione dalla dieta** (Marco: «sì, dalla dieta»; CVER 5.3, cache v41): `kcDietaDi` (uguale al PC) usa i macronutrienti
+    di `SCHEDA.dieta.tot` (proteine 25 %, carboidrati 7,5 %, grassi 1,5 % della loro energia, `KC_TEF`) nei giorni dal
+    `dal` del piano non segnati «no»; per oggi la parte del giorno passata; se no il 10 %. `kcGiorno` dice `digDa`.
 - **❤ Salute** (dalla 1.8.1; voce `#vai-sal` del menu, pagina `#sal`, funzioni `sal*`): battito adesso (`FC.bpm` della
   fascia collegata nella pagina, o `bpm` dello stato del servizio, aggiornato ogni 5 s), zona (`fcZona`), passi di oggi
   (`ZPD.passi`, ora dal cursore del tipo 1), batteria, ultimo campione di stress (19/18), SpO2 (37), pelle (46),

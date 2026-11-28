@@ -456,6 +456,19 @@ async function apri(opz = {}) {
     const k1 = E('kcGiorno("2026-11-20")');
     ok(k1 && k1.bas === 1996 && Math.abs(k1.vit - 582) <= 2 && Math.abs(k1.mov - 617) <= 3 && Math.abs(k1.tot - (k1.bas + k1.vit + k1.mov + k1.dig)) <= 1 && Math.abs(k1.dig - k1.tot * 0.1) <= 1 && k1.passi === 60 && k1.battito === 30,
        'calorie: giorno intero = metabolismo 1996 + vita quotidiana (1050 minuti svegli × 0,4) 582 + movimento (passi a 4 MET, battito con Keytel) 617 + digestione (10 % del totale) → ' + (k1 && k1.tot));
+    /* digestione dalla dieta (28/11/2026, Marco: «sì, dalla dieta»): col piano del PC, dal giorno in cui è arrivato */
+    E('window.__dietaPrima=SCHEDA.dieta; window.__segniPrima=localStorage.getItem(dietaKey())');
+    E('SCHEDA.dieta={fase:"cut", label:"Cut", tot:{kcal:2300, proteine:150, carboidrati:250, grassi:70, fibre:30}, righe:[{pasto:"Pranzo", alimento:"Riso", grammi:100, kcal:350}]}');
+    E('localStorage.setItem(dietaKey(), JSON.stringify({dal:"2026-11-19", giorni:{}}))');
+    const kd = E('kcGiorno("2026-11-20")');
+    E('localStorage.setItem(dietaKey(), JSON.stringify({dal:"2026-11-19", giorni:{"2026-11-20":"no"}}))');
+    const kn = E('kcGiorno("2026-11-20")');
+    E('localStorage.setItem(dietaKey(), JSON.stringify({dal:"2026-11-21", giorni:{}}))');
+    const kp = E('kcGiorno("2026-11-20")');
+    ok(kd && kd.digDa === 'dieta' && kd.dig === 234 && Math.abs(kd.tot - (kd.bas + kd.vit + kd.mov + kd.dig)) <= 1 && kd.bas === k1.bas && kd.mov === k1.mov &&
+       kn.digDa === 'stima' && Math.abs(kn.dig - kn.tot * 0.1) <= 1 && kp.digDa === 'stima' && kp.dig === k1.dig,
+       'calorie: digestione dai macronutrienti della dieta (150 g di proteine × 25 % + 250 g di carboidrati × 7,5 % + 70 g di grassi × 1,5 % = 234 kcal); col giorno segnato «non seguita» o prima del piano torna il 10 %');
+    E('SCHEDA.dieta=window.__dietaPrima; if(window.__segniPrima==null) localStorage.removeItem(dietaKey()); else localStorage.setItem(dietaKey(), window.__segniPrima)');
     E('SEDUTE_PESI_FC=[{id:"p|x", data:"2026-11-20", ora:"10:00", durataSec:3600, fc:new Array(720).fill(160), fcPasso:5}]');
     const k2 = E('kcGiorno("2026-11-20")');
     E('SEDUTE_PESI_FC[0].rpe=9');
@@ -481,6 +494,9 @@ async function apri(opz = {}) {
     ok(wg && wg[1].g === oggi && wg[1].passi === 6240 && wg[1].obi === 8000 && wg[1].kcal > 0 && wg[1].sonno && wg[1].sonno.p === 82 &&
        JSON.stringify(wg[1].sonno.f) === '[60,30,310,20]' && wg[1].sonno.min === 400 && wg[1].L.passi === 'passi',
        'widget: la pagina manda passi, obiettivo, calorie, sonno (punteggio 82, fasi profondo/REM/leggero/sveglio in minuti) e i testi nella lingua dell\'app');
+    ok(Array.isArray(wg[1].kp) && wg[1].kp.length === 4 && Math.abs(wg[1].kp.reduce((a, b) => a + b, 0) - wg[1].kcal) <= 2 && wg[1].fcRip === 55 && wg[1].fcMax === 180 &&
+       wg[1].L.battito === 'battito' && wg[1].L.kcalL === 'calorie' && wg[1].L.oggi === 'Oggi' && 'tipica' in wg[1],
+       'widget a fasce: le quattro parti delle calorie (somma = totale), battito a riposo e massimo (208 − 0,7 × 40 = 180) per la barra del battito, la giornata tipica e i nomi delle fasce');
     const n = reg.chiamate.filter(x => x[0] === 'widget').length;
     E('widgetAggiorna()'); await attendi(20);
     ok(reg.chiamate.filter(x => x[0] === 'widget').length === n, 'widget: senza «forza» al massimo una volta al minuto');
@@ -490,6 +506,54 @@ async function apri(opz = {}) {
   { const a = await apri({ seduta: true, ble: true, daWidget: true }), { d } = a;
     await attendi(250);
     ok(d.getElementById('sal').hidden === false, 'widget: aprendo l\'app dal widget si arriva alla Salute');
+    a.dom.window.close(); }
+
+  /* ── suggerimento della dieta, spiegazioni dei valori, minuti tenuti 16 giorni (1.11.0) ── */
+  { const sc = JSON.parse(JSON.stringify(SCHEDA));
+    sc.corpo = { altezza: 180, sesso: 'M', eta: 40, fcMax: 0, fcRiposo: 55, peso: 80, massa_grassa: 0.15, fase: 'cut', esperienza: 'intermedio', metab_basale: 1800, livello_attivita: 1.5 };
+    const a = await apri({ seduta: true, ble: true, scheda: sc }), { w, d } = a, E = s => w.eval(s);
+    await attendi(150);
+    const c = E('dsSuggerisci({fase:"cut", consumo:2640, peso:80, grasso:15, esperienza:"", rmr:1800})');
+    ok(c && c.kcal === 2020 && c.min === 1760 && c.max === 2200 && c.prot[0] === 156 && c.prot[1] === 211 && c.protMagra && c.grassi[0] === 34 && c.grassi[1] === 67 && Math.abs(c.kgSett[1] + 0.56) < 0.001,
+       'dieta: cut a 80 kg con consumo 2640 → 2020 kcal (1760–2200: −1/−0,5 % del peso a settimana), proteine 2,3–3,1 g/kg di massa magra (156–211 g), grassi 15–30 %');
+    const b = E('dsSuggerisci({fase:"bulk", consumo:2640, peso:80, esperienza:"intermedio"})'), b2 = E('dsSuggerisci({fase:"bulk", consumo:2640, peso:80, esperienza:"avanzato"})');
+    const m = E('dsSuggerisci({fase:"mant", consumo:2640, peso:80})');
+    ok(b.kcal === 3040 && b.min === 2900 && b.max === 3170 && b2.kcal === 2840 && b2.min === 2770 && b2.max === 2900 && m.kcal === 2640 && m.min === 2640 &&
+       b.prot[0] === 128 && b.prot[1] === 176 && b.grassi[0] === 40 && b.grassi[1] === 120 && E('dsSuggerisci({fase:"bulk", consumo:500, peso:80})') === null &&
+       E('dsSuggerisci({fase:"cut", consumo:1900, peso:80, rmr:1996}).sottoRmr') === true,
+       'dieta: massa +15 % (10–20 %) e per l\'avanzato +7,5 % (5–10 %), mantenimento = consumo; consumo assurdo → niente; sotto il metabolismo a riposo lo dice');
+    /* il consumo: senza giorni interi col bracciale il fabbisogno del profilo (1800 × 1,5) */
+    E('ZPD=zpdVuoto(); DS.cache=null; SEDUTE_FC=[]; SEDUTE_PESI_FC=[]');
+    const p0 = E('dsConsumoTel()');
+    ok(p0 && p0.fonte === 'profilo' && p0.kcal === 2700, 'dieta: senza giorni interi col bracciale il consumo è il fabbisogno del profilo (metabolismo basale × livello di attività = 2700)');
+    /* 5 giorni interi col bracciale (un minuto ogni minuto, 100 passi al minuto per un'ora) */
+    E(`(function(){ const d=new Date(); d.setHours(12,0,0,0); ZPD.s[1]=[];
+      for(let i=1;i<=5;i++){ const x=new Date(d); x.setDate(d.getDate()-i); const d0=new Date(dataLoc(x)+'T00:00:00').getTime();
+        for(let k=0;k<1440;k++) ZPD.s[1].push([d0+k*60000, (k>=600 && k<660)? 100 : 0, 0]); }
+      ZPD.ultima=Date.now(); DS.cache=null; })()`);
+    const ieri = E('(function(){ const x=new Date(); x.setHours(12,0,0,0); x.setDate(x.getDate()-1); return kcGiorno(dataLoc(x)); })()');
+    const p1 = E('dsConsumoTel()');
+    ok(ieri && ieri.completo === true && ieri.copertura > 0.99 && p1 && p1.fonte === 'bracciale' && p1.giorni === 5 && Math.abs(p1.kcal - ieri.tot) < 30,
+       'dieta: con 5 giorni interi col bracciale il consumo è la loro media (' + (p1 && Math.round(p1.kcal)) + ' kcal); kcGiorno dice quanto del giorno è coperto e se è finito');
+    E(`(function(){ const t0=Date.now()-17*86400000, t1=Date.now()-15*86400000; ZPD.s[1].push([t0, 10, 60], [t1, 10, 60]); zpPota(); })()`);
+    ok(!E('ZPD.s[1].some(v=>v[0]<Date.now()-16*86400000)') && E('ZPD.s[1].some(v=>Math.abs(v[0]-(Date.now()-15*86400000))<5000)'),
+       'bracciale: i minuti di attività si tengono 16 giorni (quelli di 17 giorni fa si tolgono, quelli di 15 restano)');
+    await E('zpdSalva()');   /* la Salute rilegge i dati del bracciale dal telefono */
+    await E('salApri()'); await attendi(80);
+    const kc = d.getElementById('sal-kcal');
+    ok(kc && /Da mangiare per la fase/.test(kc.textContent) && /Cut/.test(kc.textContent) && /consumo medio/.test(kc.textContent) && /5 giorni col bracciale/.test(kc.textContent) &&
+       kc.querySelector('[data-info="dieta-suggerita"]'),
+       'Salute: sotto le calorie di oggi il suggerimento della dieta per la fase (cut), da dove parte (5 giorni col bracciale) e il tasto della spiegazione');
+    /* spiegazioni: tasto «i» → finestra coi testi del PC; indietro la chiude */
+    const nTasti = d.querySelectorAll('#sal [data-info]').length;
+    ok(nTasti >= 7 && E('Object.keys(SAL_INFO.it).length') === 11 && E('Object.keys(SAL_INFO.en).join()') === E('Object.keys(SAL_INFO.it).join()'),
+       'spiegazioni: ' + nTasti + ' tasti «i» nella Salute e 11 spiegazioni in italiano e in inglese');
+    d.querySelector('#sal [data-info="br-passi"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+    const iov = d.getElementById('infov');
+    ok(iov.style.display === 'flex' && /Passi/.test(d.getElementById('info-corpo').textContent) && /Paluch/.test(d.getElementById('info-corpo').textContent) && d.querySelectorAll('#info-corpo h4').length === 4,
+       'spiegazioni: il tasto apre la finestra con titolo, quattro parti (come si misura, riferimenti, come leggerlo, limiti) e le fonti');
+    E('risali()');
+    ok(iov.style.display === 'none', 'spiegazioni: indietro chiude la finestra');
     a.dom.window.close(); }
 
   /* ── collegamento col PC del personal (dal 24/11/2026 passa dall'hub del TMS) e aggiornamento dell'APK ── */
@@ -612,9 +676,14 @@ async function apri(opz = {}) {
       ok(/<receiver android:name=".TmsWidget" android:exported="false" android:label="@string\/tms_w_nome">/.test(man1) && /android.appwidget.action.APPWIDGET_UPDATE/.test(man1) &&
          /android:resource="@xml\/tms_widget_info"/.test(man1) && man1.split('".TmsWidget"').length === 2 && fs.existsSync(path.join(java, 'TmsWidget.java')),
          'patch-android: widget della giornata (ricevitore non esportato con le sue informazioni, TmsWidget.java copiato, rilanciato non si doppia)');
-      ok(lay && ids.length >= 9 && ids.every(i => lay.includes('@+id/' + i + '"')) && ['tms_w_cuore', 'tms_w_passi', 'tms_w_fiamma', 'tms_widget_sfondo', 'tms_w_anello_vuoto'].every(n => fs.existsSync(path.join(res, 'drawable', n + '.xml'))) &&
-         /targetCellWidth="4"/.test(fs.readFileSync(path.join(res, 'xml/tms_widget_info.xml'), 'utf8')) && /your day/.test(fs.readFileSync(path.join(res, 'values-en/tms_widget.xml'), 'utf8')),
-         'patch-android: layout del widget con tutti gli id che TmsWidget.java usa (' + ids.length + '), icone, sfondo, informazioni (4 × 2) e testi IT/EN'); }
+      const basso = fs.existsSync(path.join(res, 'layout/tms_widget_basso.xml')) ? fs.readFileSync(path.join(res, 'layout/tms_widget_basso.xml'), 'utf8') : '';
+      const info = fs.readFileSync(path.join(res, 'xml/tms_widget_info.xml'), 'utf8');
+      ok(lay && basso && ids.length >= 18 && ids.every(i => lay.includes('@+id/' + i + '"') && basso.includes('@+id/' + i + '"')) &&
+         ['tms_w_cuore', 'tms_w_passi', 'tms_w_fiamma', 'tms_w_luna', 'tms_widget_sfondo'].every(n => fs.existsSync(path.join(res, 'drawable', n + '.xml'))) &&
+         /targetCellWidth="4"/.test(info) && /targetCellHeight="3"/.test(info) && /your day/.test(fs.readFileSync(path.join(res, 'values-en/tms_widget.xml'), 'utf8')) &&
+         /name="tms_w_oggi">Oggi</.test(fs.readFileSync(path.join(res, 'values/tms_widget.xml'), 'utf8')) &&
+         ['tms_w_bpm_b', 'tms_w_passi_b', 'tms_w_kcal_b', 'tms_w_sonno_b'].every(i => (lay.match(new RegExp('@\\+id/' + i + '"', 'g')) || []).length === 1),
+         'patch-android: widget a fasce, layout alto e basso con tutti gli id che TmsWidget.java usa (' + ids.length + ', una barra per fascia), icone col sonno, sfondo, informazioni (4 × 3) e testi IT/EN'); }
     ok(/versionName "1\.8\.1"/.test(fs.readFileSync(path.join(T, 'android/app/build.gradle'), 'utf8')) || VERSIONE !== '1.8.1', 'patch-android: versione dell\'APK dal package.json (' + VERSIONE + ')');
     try { fs.rmSync(T, { recursive: true, force: true }); } catch (e) {} }
 

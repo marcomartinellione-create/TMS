@@ -227,7 +227,7 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
   console.log('stile: barre scure, pagina chiara, avvio nero con la stella');
 }
 
-/* 4b) WIDGET DELLA GIORNATA (1.10.0): layout, informazioni, sfondo, icone e testi del widget (nativo/TmsWidget.java).
+/* 4b) WIDGET DELLA GIORNATA (1.10.0, a fasce dalla 1.11.0): layout alto e basso, informazioni, sfondo, icone e testi (nativo/TmsWidget.java).
    Colori e forme dell'app: carta chiara, bordo a filo, angoli come i riquadri, icone a tratto come quelle della pagina
    (cuore, passi, fiamma dei simboli di web/index.html), numeri in serif. Il ricevitore lo mette il punto 3. */
 {
@@ -244,46 +244,62 @@ if (cap.appId !== PKG) { console.error('patch-android: appId diverso da ' + PKG 
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: fondo del widget (carta, filo). Generato da scripts/patch-android.js -->\n' +
     '<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n' +
     '    <solid android:color="#FFFDFAF5" />\n    <stroke android:width="1dp" android:color="#FFE6DBC6" />\n    <corners android:radius="22dp" />\n</shape>\n');
-  scrivi(path.join(RES, 'drawable', 'tms_w_anello_vuoto.xml'),
-    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: anello del sonno prima dei dati. Generato da scripts/patch-android.js -->\n' +
-    '<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">\n' +
-    '    <stroke android:width="8dp" android:color="#FFEDE4D2" />\n    <size android:width="76dp" android:height="76dp" />\n</shape>\n');
-  const riga = (icona, idV, idU, testoV, testoU, sopra) =>
+  ic('tms_w_luna', ['M19.5 14.6A7.6 7.6 0 1 1 9.4 4.5a6.2 6.2 0 0 0 10.1 10.1z']);
+  /* una FASCIA (1.11.0, Marco: «fasce una sopra all'altra che si completano»): icona, nome, numero grande, dettaglio e,
+     sotto, la barra che si riempie (la disegna TmsWidget.java). Gli id: <pre>_l nome, <pre> numero, <pre>_u dettaglio,
+     <pre>_b barra. Nel widget basso il nome non si vede (resta l'icona), ma gli id ci sono tutti: RemoteViews si
+     rifiuta di disegnare un widget a cui manca una vista che il codice tocca. */
+  const fascia = (icona, pre, basso, sopra) =>
     '        <LinearLayout\n            android:layout_width="match_parent"\n            android:layout_height="wrap_content"\n' +
-    (sopra ? '            android:layout_marginTop="' + sopra + '"\n' : '') +
-    '            android:gravity="center_vertical"\n            android:orientation="horizontal">\n' +
-    '            <ImageView\n                android:layout_width="16dp"\n                android:layout_height="16dp"\n                android:importantForAccessibility="no"\n                android:src="@drawable/' + icona + '" />\n' +
-    '            <TextView\n                android:id="@+id/' + idV + '"\n                android:layout_width="wrap_content"\n                android:layout_height="wrap_content"\n                android:layout_marginStart="8dp"\n' +
-    '                android:fontFamily="serif"\n                android:maxLines="1"\n                android:text="' + testoV + '"\n                android:textColor="#FF1C1208"\n                android:textSize="19sp"\n                android:textStyle="bold" />\n' +
-    '            <TextView\n                android:id="@+id/' + idU + '"\n                android:layout_width="wrap_content"\n                android:layout_height="wrap_content"\n                android:layout_marginStart="5dp"\n' +
-    '                android:ellipsize="end"\n                android:maxLines="1"\n                android:text="' + testoU + '"\n                android:textColor="#FF6B5A40"\n                android:textSize="11sp" />\n' +
+    (sopra ? '            android:layout_marginTop="' + sopra + '"\n' : '') + '            android:orientation="vertical">\n' +
+    '            <LinearLayout\n                android:layout_width="match_parent"\n                android:layout_height="wrap_content"\n                android:gravity="center_vertical"\n                android:orientation="horizontal">\n' +
+    '                <ImageView\n                    android:layout_width="15dp"\n                    android:layout_height="15dp"\n                    android:importantForAccessibility="no"\n                    android:src="@drawable/' + icona + '" />\n' +
+    '                <TextView\n                    android:id="@+id/' + pre + '_l"\n                    android:layout_width="0dp"\n                    android:layout_height="wrap_content"\n                    android:layout_marginStart="6dp"\n                    android:layout_weight="1"\n' +
+    '                    android:ellipsize="end"\n                    android:maxLines="1"\n                    android:textColor="#FF6B5A40"\n                    android:textSize="12sp"' + (basso ? '\n                    android:visibility="gone"' : '') + ' />\n' +
+    '                <TextView\n                    android:id="@+id/' + pre + '"\n                    android:layout_width="wrap_content"\n                    android:layout_height="wrap_content"\n                    android:layout_marginStart="' + (basso ? '6dp' : '0dp') + '"\n' +
+    '                    android:fontFamily="serif"\n                    android:maxLines="1"\n                    android:text="—"\n                    android:textColor="#FF1C1208"\n                    android:textSize="' + (basso ? '15sp' : '17sp') + '"\n                    android:textStyle="bold" />\n' +
+    '                <TextView\n                    android:id="@+id/' + pre + '_u"\n                    android:layout_width="' + (basso ? '0dp' : 'wrap_content') + '"\n                    android:layout_height="wrap_content"\n                    android:layout_marginStart="5dp"\n' +
+    (basso ? '                    android:layout_weight="1"\n' : '') +
+    '                    android:ellipsize="end"\n                    android:maxLines="1"\n                    android:textColor="#FF6B5A40"\n                    android:textSize="' + (basso ? '10sp' : '11sp') + '" />\n' +
+    '            </LinearLayout>\n' +
+    '            <ImageView\n                android:id="@+id/' + pre + '_b"\n                android:layout_width="match_parent"\n                android:layout_height="' + (basso ? '7dp' : '9dp') + '"\n                android:layout_marginTop="' + (basso ? '3dp' : '4dp') + '"\n' +
+    '                android:importantForAccessibility="no"\n                android:scaleType="fitXY" />\n' +
     '        </LinearLayout>\n';
-  scrivi(path.join(RES, 'layout', 'tms_widget.xml'),
-    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: widget della giornata (battito, passi, calorie, sonno). Generato da scripts/patch-android.js -->\n' +
+  const testa = (dim) =>
+    '    <LinearLayout\n        android:layout_width="match_parent"\n        android:layout_height="wrap_content"\n        android:gravity="center_vertical"\n        android:orientation="horizontal">\n' +
+    '        <TextView\n            android:id="@+id/tms_w_titolo"\n            android:layout_width="0dp"\n            android:layout_height="wrap_content"\n            android:layout_weight="1"\n            android:fontFamily="serif"\n            android:maxLines="1"\n' +
+    '            android:text="@string/tms_w_oggi"\n            android:textColor="#FF1C1208"\n            android:textSize="' + dim + '"\n            android:textStyle="bold" />\n' +
+    '        <TextView\n            android:id="@+id/tms_w_agg"\n            android:layout_width="wrap_content"\n            android:layout_height="wrap_content"\n            android:maxLines="1"\n' +
+    '            android:text="TMS Scheda"\n            android:textColor="#FFA08D6E"\n            android:textSize="10sp" />\n    </LinearLayout>\n';
+  const radice = (corpo, pad) =>
+    '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: widget della giornata a fasce (battito, passi, calorie, sonno). Generato da scripts/patch-android.js -->\n' +
     '<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"\n    android:id="@+id/tms_w_radice"\n    android:layout_width="match_parent"\n    android:layout_height="match_parent"\n' +
-    '    android:background="@drawable/tms_widget_sfondo"\n    android:gravity="center_vertical"\n    android:orientation="horizontal"\n    android:padding="12dp">\n\n' +
-    '    <LinearLayout\n        android:layout_width="wrap_content"\n        android:layout_height="wrap_content"\n        android:gravity="center_horizontal"\n        android:orientation="vertical">\n' +
-    '        <ImageView\n            android:id="@+id/tms_w_anello"\n            android:layout_width="76dp"\n            android:layout_height="76dp"\n            android:contentDescription="@string/tms_w_sonno"\n            android:src="@drawable/tms_w_anello_vuoto" />\n' +
-    '        <TextView\n            android:id="@+id/tms_w_sonno"\n            android:layout_width="wrap_content"\n            android:layout_height="wrap_content"\n            android:layout_marginTop="4dp"\n            android:maxLines="1"\n' +
-    '            android:text="@string/tms_w_sonno"\n            android:textColor="#FF6B5A40"\n            android:textSize="11sp" />\n    </LinearLayout>\n\n' +
-    '    <LinearLayout\n        android:layout_width="0dp"\n        android:layout_height="wrap_content"\n        android:layout_marginStart="14dp"\n        android:layout_weight="1"\n        android:orientation="vertical">\n' +
-    riga('tms_w_cuore', 'tms_w_bpm', 'tms_w_bpm_u', '—', 'bpm', '') +
-    riga('tms_w_passi', 'tms_w_passi', 'tms_w_passi_u', '—', '', '5dp') +
-    '        <ImageView\n            android:id="@+id/tms_w_barra"\n            android:layout_width="match_parent"\n            android:layout_height="4dp"\n            android:layout_marginStart="24dp"\n            android:layout_marginTop="3dp"\n' +
-    '            android:importantForAccessibility="no"\n            android:scaleType="fitXY" />\n' +
-    riga('tms_w_fiamma', 'tms_w_kcal', 'tms_w_kcal_u', '—', 'kcal', '5dp') +
-    '        <TextView\n            android:id="@+id/tms_w_agg"\n            android:layout_width="wrap_content"\n            android:layout_height="wrap_content"\n            android:layout_marginTop="5dp"\n            android:maxLines="1"\n' +
-    '            android:text="TMS Scheda"\n            android:textColor="#FFA08D6E"\n            android:textSize="10sp" />\n    </LinearLayout>\n</LinearLayout>\n');
+    '    android:background="@drawable/tms_widget_sfondo"\n    android:gravity="center_vertical"\n    android:orientation="vertical"\n    android:padding="' + pad + '">\n\n' + corpo + '</LinearLayout>\n';
+  /* alto (4 × 3 e più): le quattro fasce una sopra l'altra */
+  scrivi(path.join(RES, 'layout', 'tms_widget.xml'), radice(testa('14sp') +
+    '    <LinearLayout\n        android:layout_width="match_parent"\n        android:layout_height="wrap_content"\n        android:layout_marginTop="4dp"\n        android:orientation="vertical">\n' +
+    fascia('tms_w_cuore', 'tms_w_bpm', false, '') + fascia('tms_w_passi', 'tms_w_passi', false, '8dp') +
+    fascia('tms_w_fiamma', 'tms_w_kcal', false, '8dp') + fascia('tms_w_luna', 'tms_w_sonno', false, '8dp') +
+    '    </LinearLayout>\n', '14dp'));
+  /* basso (4 × 2, com'era prima): due colonne di due fasce */
+  const colonna = (a, b, sinistra) =>
+    '    <LinearLayout\n        android:layout_width="0dp"\n        android:layout_height="wrap_content"\n        android:layout_weight="1"\n' +
+    (sinistra ? '' : '        android:layout_marginStart="14dp"\n') + '        android:orientation="vertical">\n' + a + b + '    </LinearLayout>\n';
+  scrivi(path.join(RES, 'layout', 'tms_widget_basso.xml'), radice(testa('12sp') +
+    '    <LinearLayout\n        android:layout_width="match_parent"\n        android:layout_height="wrap_content"\n        android:layout_marginTop="4dp"\n        android:orientation="horizontal">\n' +
+    colonna(fascia('tms_w_cuore', 'tms_w_bpm', true, ''), fascia('tms_w_fiamma', 'tms_w_kcal', true, '6dp'), true) +
+    colonna(fascia('tms_w_passi', 'tms_w_passi', true, ''), fascia('tms_w_luna', 'tms_w_sonno', true, '6dp'), false) +
+    '    </LinearLayout>\n', '11dp'));
   scrivi(path.join(RES, 'xml', 'tms_widget_info.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: informazioni del widget della giornata. Generato da scripts/patch-android.js -->\n' +
     '<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"\n    android:description="@string/tms_w_desc"\n    android:initialLayout="@layout/tms_widget"\n' +
-    '    android:minHeight="110dp"\n    android:minResizeHeight="100dp"\n    android:minResizeWidth="200dp"\n    android:minWidth="250dp"\n    android:previewLayout="@layout/tms_widget"\n' +
-    '    android:resizeMode="horizontal|vertical"\n    android:targetCellHeight="2"\n    android:targetCellWidth="4"\n    android:updatePeriodMillis="1800000"\n    android:widgetCategory="home_screen" />\n');
-  const testi = (cart, nome, desc, sonno) => scrivi(path.join(RES, cart, 'tms_widget.xml'),
+    '    android:minHeight="180dp"\n    android:minResizeHeight="100dp"\n    android:minResizeWidth="200dp"\n    android:minWidth="250dp"\n    android:previewLayout="@layout/tms_widget"\n' +
+    '    android:resizeMode="horizontal|vertical"\n    android:targetCellHeight="3"\n    android:targetCellWidth="4"\n    android:updatePeriodMillis="1800000"\n    android:widgetCategory="home_screen" />\n');
+  const testi = (cart, nome, desc, oggi) => scrivi(path.join(RES, cart, 'tms_widget.xml'),
     '<?xml version="1.0" encoding="utf-8"?>\n<!-- TMS Scheda: testi del widget. Generato da scripts/patch-android.js -->\n<resources>\n' +
-    '    <string name="tms_w_nome">' + nome + '</string>\n    <string name="tms_w_desc">' + desc + '</string>\n    <string name="tms_w_sonno">' + sonno + '</string>\n</resources>\n');
-  testi('values', 'TMS · la giornata', 'Battito, passi, calorie e sonno di oggi', 'sonno');
-  testi('values-en', 'TMS · your day', 'Heart rate, steps, calories and sleep today', 'sleep');
+    '    <string name="tms_w_nome">' + nome + '</string>\n    <string name="tms_w_desc">' + desc + '</string>\n    <string name="tms_w_oggi">' + oggi + '</string>\n</resources>\n');
+  testi('values', 'TMS · la giornata', 'Battito, passi, calorie e sonno di oggi, a fasce', 'Oggi');
+  testi('values-en', 'TMS · your day', 'Heart rate, steps, calories and sleep today, in bands', 'Today');
   console.log('widget della giornata: layout, informazioni, sfondo, icone e testi');
 }
 
