@@ -583,10 +583,21 @@ Due modi per registrare una seduta:
   fattori FAO/WHO/UNU 2004, 1,0 dormendo e 1,4 da svegli; passi al minuto a MET secondo
   CADENCE-Adults 2019; battito oltre il 40 % della riserva cardiaca con Keytel 2005; sedute
   cardio col battito o coi MET del Compendium 2024, pesi coi MET del Compendium 3,5 / 5 / 6
-  secondo la fatica RPE ≤ 5 / 6–7 / ≥ 8; digestione 10 % del totale), la media, il LIVELLO DI
+  secondo la fatica RPE ≤ 5 / 6–7 / ≥ 8; digestione dalla dieta o 10 %, vedi sotto), la media, il LIVELLO DI
   ATTIVITÀ MISURATO (totale / metabolismo a riposo sui giorni interi col bracciale portato,
   pulsante «Usa» per metterlo nel profilo) e il bilancio con la dieta del periodo. È una
-  stima, non salvata.
+  stima, non salvata. SPIEGAZIONI: ogni riquadro e grafico del Recupero ha il «?» (note
+  br-battito, br-fc-riposo, br-hrv, br-spo2, br-pelle, br-resp, br-stress, br-passi, br-sonno,
+  br-calorie in 05d-spiegazioni-bracciale.js, inglese in 05e): cosa misura il bracciale, come
+  si confronta col solito (le soglie del codice), come leggerlo, limiti e fonti verificate. Gli
+  stessi testi sono nel telefono (SAL_INFO), copiati da tools/copia-spiegazioni-telefono.js e
+  controllati da npm run verifica. DIGESTIONE (Marco, 28/11/2026: «sì, dalla dieta»): nei
+  giorni in cui la dieta è NOTA (un periodo alimentare copre quel giorno e il cliente non l'ha
+  segnato «dieta non seguita»; sul telefono il piano ricevuto dal PC, dal giorno in cui è
+  arrivato) si calcola dai macronutrienti del piano: proteine 25 %, carboidrati 7,5 %, grassi
+  1,5 % della loro energia, i centri degli intervalli di Westerterp 2004 (20-30, 5-10, 0-3 %);
+  per oggi la parte del giorno passata (kcDietaDi, KC_TEF). Negli altri giorni il 10 % del
+  totale (a peso stabile è il 10 % del consumo). Nel grafico la voce dice «dalla dieta» o «10 %».
 - **Foto progressi** (in fondo al tab Corpo): foto datate del cliente (es. fronte/lato),
   salvate IN LOCALE in TMS_Dati/<profilo>/foto/ (mai caricate online), metadati (file/data/
   tag) in corpo.json. Due modalità: «▶ Riproduzione» (timelapse con cursore tipo lettore
@@ -600,6 +611,19 @@ Due modi per registrare una seduta:
 - Tre **fasi**: Bulk, Mantenimento, Cut. La fase attiva si sceglie con i **bottoni in
   cima al tab** (Bulk / Mantenimento / Cut): si vede SOLO quella, le altre restano
   salvate ma nascoste. (Prima la fase stava nel Profilo: ora è qui.)
+- **Suggerimento per la fase** (11d-dieta-suggerita.js, riquadro del pannello laterale sotto
+  «Energia»): quante calorie mangiare per la fase del piano mostrato. Consumo di partenza:
+  media delle calorie bruciate (kcGiorno) nei giorni interi col bracciale portato almeno
+  l'80 % del tempo fra gli ultimi 14 (almeno 4), se no il fabbisogno del profilo (metabolismo
+  basale × livello di attività). CUT: −0,7 % del peso a settimana (intervallo 0,5-1 %, Helms
+  2014; 0,7 % conserva la massa magra meglio dell'1,4 %, Garthe 2011), deficit = peso × ritmo ×
+  7700 / 7; proteine 2,3-3,1 g/kg di massa magra (senza la massa grassa 1,6-2,2 g/kg di peso),
+  grassi 15-30 % delle calorie. MASSA: +15 % (10-20 %) per principiante e intermedio, +7,5 %
+  (5-10 %) per l'avanzato (esperienza del profilo), cioè +0,25-0,5 % e ~+0,25 % del peso a
+  settimana (Iraki 2019); proteine 1,6-2,2 g/kg, grassi 0,5-1,5 g/kg. MANTENIMENTO: il consumo;
+  proteine 1,6-2,2 g/kg (Morton 2018). Mostra anche il ritmo previsto, quanto il piano se ne
+  scosta e un avviso se si scende sotto il metabolismo a riposo. Calcolato, mai salvato; nota
+  «dieta-suggerita» col «?». Lo stesso calcolo è sul telefono, nella Salute.
 - Pasti personalizzabili e **riordinabili per trascinamento**: si prende il manico «⠿»
   accanto al nome del pasto e lo si rilascia su un altro pasto (si porta dietro tutti i
   suoi alimenti); allo stesso modo si trascina un singolo alimento, anche in un altro
@@ -868,12 +892,19 @@ per giorno del risveglio (evento tms-sonno) e i campioni di ogni giorno (evento 
 calcola il PC), vedi la voce Recupero. Sotto il tasto: «Ultima sincronizzazione: oggi 07:12 · 1 notte, 2 giorni». Allenamenti
 registrati sul bracciale NON si scaricano ancora. Il battito in diretta resta quello della fascia (profilo standard
 0x180D, senza chiave).
-**WIDGET DELLA GIORNATA** (APK 1.10.0, schermata Home del telefono, nativo/TmsWidget.java): a sinistra il punteggio del
-sonno della notte finita oggi dentro un anello a torta delle fasi (profondo, REM, leggero, sveglio), a destra battito con
-l'ora della misura, passi con la barretta dell'obiettivo e calorie stimate. I numeri li prepara la pagina (widgetAggiorna:
+**WIDGET DELLA GIORNATA** (APK 1.10.0, a fasce dalla 1.11.0, schermata Home del telefono, nativo/TmsWidget.java): quattro
+FASCE una sopra l'altra (widget alto, 4 × 3) o due per due (widget basso), ognuna col nome, il numero grande e una barra
+che si riempie verso il traguardo: BATTITO (barra dal battito a riposo al massimo, colore della zona), PASSI contro
+l'obiettivo, CALORIE contro la GIORNATA TIPICA (media dei giorni interi col bracciale degli ultimi 14, o il fabbisogno del
+profilo; barra divisa in metabolismo, vita quotidiana, movimento, digestione), SONNO contro 8 ore (barra divisa nelle fasi,
+punteggio del bracciale accanto). I numeri li prepara la pagina (widgetAggiorna:
 dopo ogni sincronizzazione, anche quella dei 30 minuti ad app chiusa, all'avvio e uscendo dall'app); il servizio del
 «sempre collegato» aggiorna il battito al più una volta al minuto. Toccandolo si apre la Salute.
-**SALUTE** (APK 1.9.0, voce «Salute» del menu del telefono, solo nell'APK; fatta come le app professionali): in alto il
+**SALUTE** (APK 1.9.0, voce «Salute» del menu del telefono, solo nell'APK; fatta come le app professionali; dalla 1.11.0 ogni
+misura ha il tasto «i» con la spiegazione, gli stessi testi dei «?» del Recupero sul PC, e sotto le calorie di oggi il
+suggerimento di quante calorie mangiare per la fase, con lo stesso calcolo del PC; la fase, l'esperienza, il metabolismo
+basale e il livello di attività arrivano dal PC con la scheda; i passi e il battito al minuto restano sul telefono 16
+giorni): in alto il
 battito adesso col colore della zona e l'ANELLO DEI PASSI di oggi contro l'OBIETTIVO (di serie 8.000, si sceglie fra
 5.000 e 15.000 col tasto «Obiettivo», resta sul telefono); con la chiave del bracciale e la pagina aperta i passi arrivano
 IN DIRETTA dal bracciale (endpoint 0x0016) con metri e kcal; i passi degli ultimi 7 giorni in barre con la linea

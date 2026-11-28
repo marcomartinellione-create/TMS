@@ -253,15 +253,15 @@ function htmlRecupero(){
   const tess=(cls,nome,val,unita,sub)=>`<div class="card ${cls}"><div class="card__k">${nome}</div><div class="card__v">${val}${unita&&val!=='—'?`<small> ${unita}</small>`:''}</div><div class="card__sub">${sub||''}</div></div>`;
   const tpScarto=(tp!=null&&solTp)? tp-solTp.media : null;
   const tessere=[
-    tess('k--violet', t('HRV (RMSSD)'), nf(hrv,0), 'ms', recScarto(hrv,S('rmssd'),0,'ms')),
-    tess('k--danger', t('FC a riposo'), nf(fc,0), 'bpm', recScarto(fc,S('fcRiposo'),0,'bpm')),
-    tess('', t('SpO2 notturna'), nf(spo,0), '%', spoMin!=null? `${t('minima')} ${nf(spoMin,0)} %` : ''),
-    tess('k--ember', t('Temperatura pelle'), tpScarto!=null? (tpScarto>=0.05?'+':tpScarto<=-0.05?'−':'')+nf(Math.abs(tpScarto),1) : nf(tp,1), '°C',
+    tess('k--violet', t('HRV (RMSSD)')+spiegaBtn('br-hrv','',true), nf(hrv,0), 'ms', recScarto(hrv,S('rmssd'),0,'ms')),
+    tess('k--danger', t('FC a riposo')+spiegaBtn('br-fc-riposo','',true), nf(fc,0), 'bpm', recScarto(fc,S('fcRiposo'),0,'bpm')),
+    tess('', t('SpO2 notturna')+spiegaBtn('br-spo2','',true), nf(spo,0), '%', spoMin!=null? `${t('minima')} ${nf(spoMin,0)} %` : ''),
+    tess('k--ember', t('Temperatura pelle')+spiegaBtn('br-pelle','',true), tpScarto!=null? (tpScarto>=0.05?'+':tpScarto<=-0.05?'−':'')+nf(Math.abs(tpScarto),1) : nf(tp,1), '°C',
       tpScarto!=null? (Math.abs(tpScarto)<=solTp.amp? `${t('dal suo solito, nella fascia')} <span class="muted">(±${nf(solTp.amp,1)})</span>` : `<span class="recu-fuori">${t('fuori dal suo solito')}</span> <span class="muted">(±${nf(solTp.amp,1)})</span>`)
         : `<span class="muted">${t('lo scarto dal suo solito dopo 7 giorni')}</span>`),
-    tess('', t('Respirazione'), nf(rsp,1), t('/min'), recScarto(rsp,S('resp'),1,'')),
-    tess('', t('Stress medio'), nf(stM,0), '', stX!=null? `${t('massimo')} ${nf(stX,0)} <span class="muted">· ${t('scala 0–100')}</span>` : ''),
-    tess('k--ok', t('Passi'), nf(pas,0), '', passi7!=null? `${t('media 7 giorni')} ${nf(passi7,0)}` : '')];
+    tess('', t('Respirazione')+spiegaBtn('br-resp','',true), nf(rsp,1), t('/min'), recScarto(rsp,S('resp'),1,'')),
+    tess('', t('Stress medio')+spiegaBtn('br-stress','',true), nf(stM,0), '', stX!=null? `${t('massimo')} ${nf(stX,0)} <span class="muted">· ${t('scala 0–100')}</span>` : ''),
+    tess('k--ok', t('Passi')+spiegaBtn('br-passi','',true), nf(pas,0), '', passi7!=null? `${t('media 7 giorni')} ${nf(passi7,0)}` : '')];
 
   /* ultima notte */
   const notti=R.notti.filter(n=>recDataOk(n.id)).slice().sort((a,b)=>a.id.localeCompare(b.id)), nt=notti[notti.length-1];
@@ -269,7 +269,7 @@ function htmlRecupero(){
   if(nt){
     const m=notteMinuti(nt), dorm=notteDormito(nt), conFasi=(nt.fasi||[]).length>0;
     const sotto=REC_FASI.filter(k=>k!=='sveglio').reduce((a,k)=>a+m[k],0)||1;
-    notteHtml=`<div class="lat recu-notte"><h4>${t('Ultima notte')} <span class="muted">${esc(giornoPesata(nt.inizio.slice(0,10)))} → ${esc(giornoPesata(nt.id))}</span></h4>
+    notteHtml=`<div class="lat recu-notte"><h4>${t('Ultima notte')} <span class="muted">${esc(giornoPesata(nt.inizio.slice(0,10)))} → ${esc(giornoPesata(nt.id))}</span>${spiegaBtn('br-sonno')}</h4>
       <div class="recu-notte__num">
         <div><span>${t('Dormito')}</span><b>${esc(recDurata(dorm))}</b></div>
         <div><span>${t('A letto')}</span><b>${esc(nt.inizio.slice(11,16))} → ${esc(nt.fine.slice(11,16))}</b></div>
@@ -284,9 +284,9 @@ function htmlRecupero(){
   /* andamento */
   const solH=S('rmssd'), solF=S('fcRiposo');
   const dormPer=recMedia(date.map(d=>recValore(M[d],'dormito')));
-  const sonno=`<div class="chart-box"><h4>${t('Sonno per fase')} <span class="muted">${t('ore per notte')}${dormPer!=null? ' · '+t('media')+' '+esc(recDurata(dormPer*60))+' <span class="recu-tratto"></span>' : ''}</span></h4>${recBarreSonno(date,M)}</div>`;
-  const grHrv=`<div class="chart-box"><h4>${t('HRV (RMSSD)')} <span class="muted">ms</span></h4>${recAndamento(date,M,'rmssd','RMSSD','var(--violet)','ms',0,solH)}</div>`;
-  const grFc=`<div class="chart-box"><h4>${t('FC a riposo')} <span class="muted">bpm</span></h4>${recAndamento(date,M,'fcRiposo',t('FC a riposo'),'var(--danger-b)','bpm',0,solF)}</div>`;
+  const sonno=`<div class="chart-box"><h4>${t('Sonno per fase')} <span class="muted">${t('ore per notte')}${dormPer!=null? ' · '+t('media')+' '+esc(recDurata(dormPer*60))+' <span class="recu-tratto"></span>' : ''}</span>${spiegaBtn('br-sonno')}</h4>${recBarreSonno(date,M)}</div>`;
+  const grHrv=`<div class="chart-box"><h4>${t('HRV (RMSSD)')} <span class="muted">ms</span>${spiegaBtn('br-hrv')}</h4>${recAndamento(date,M,'rmssd','RMSSD','var(--violet)','ms',0,solH)}</div>`;
+  const grFc=`<div class="chart-box"><h4>${t('FC a riposo')} <span class="muted">bpm</span>${spiegaBtn('br-fc-riposo')}</h4>${recAndamento(date,M,'fcRiposo',t('FC a riposo'),'var(--danger-b)','bpm',0,solF)}</div>`;
 
   /* media della settimana, accanto alle misure del Corpo (che ragionano a settimane) */
   const perSett={}; tutte.forEach(d=>{ const w=isoWeek(new Date(d+'T12:00:00')), c=schedaCode(w.anno,w.sett); (perSett[c]=perSett[c]||[]).push(d); });

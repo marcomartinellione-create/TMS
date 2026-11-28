@@ -82,7 +82,11 @@ function costruisciSchedaJSON(videoMap, modificabile){
   return {tipo:'tms-scheda', versione:1, app:APP_VERSION, modificabile:!!modificabile, rpe:useRpeActive(),
     profilo:{slug:activeProfile, nome:profNome()}, esportata:new Date().toISOString().slice(0,10),
     corpo:{altezza:+u.altezza||0, sesso:(u.sesso==='F'||u.sesso==='M')?u.sesso:'', eta:etaOf(u)||0, fcMax:+u.fcMax||0, fcRiposo:+u.fcRiposo||0,
-      peso:+u.peso||0, massa_grassa:+u.massa_grassa||0},   /* peso e grasso: per la stima delle calorie del telefono (1.10.0) */
+      peso:+u.peso||0, massa_grassa:+u.massa_grassa||0,   /* peso e grasso: per la stima delle calorie del telefono (1.10.0) */
+      /* per il suggerimento della dieta del telefono (1.11.0): la fase scelta, l'esperienza, metabolismo basale e livello di
+         attività (il fabbisogno, se mancano i giorni col bracciale). Dati scritti nel profilo, non calcoli. */
+      fase:['bulk','mant','cut'].includes(u.faseAlim)? u.faseAlim : '', esperienza:ESPERIENZE.includes(u.esperienza)? u.esperienza : '',
+      metab_basale:+u.metab_basale||0, livello_attivita:+u.livello_attivita||0},
     righe:rows, riscaldamento:warm, ultima:ultimaPerEsercizio(rows),
     video:videoMap, dieta:costruisciDietaJSON(), catalogo:catalogo};
 }

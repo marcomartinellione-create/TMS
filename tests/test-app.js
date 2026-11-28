@@ -1705,8 +1705,11 @@ if (!fs.existsSync(path.join(ROOT, 'TMS_Dati', 'profili.json'))) {
   /* ── «?» sui grafici (2026-11-13): ogni grafico ha la sua nota metodologica ── */
   { const voci = JSON.parse(w.eval('JSON.stringify(Object.keys(SPIEG))'));
     ok(voci.length >= 30, 'Note dei grafici: una nota per ogni grafico (' + voci.length + ')');
-    ok(w.eval('Object.values(SPIEG).every(function(v){ return v.t && v.a && v.dove && v.s.length>=5 && v.b.length>=1 && v.s.some(function(x){ return /spf/.test(x[1]); }); })'),
+    ok(w.eval('Object.keys(SPIEG).filter(function(k){ return !(k in SPIEG_BR); }).every(function(k){ var v=SPIEG[k]; return v.t && v.a && v.dove && v.s.length>=5 && v.b.length>=1 && v.s.some(function(x){ return /spf/.test(x[1]); }); })'),
        'Note dei grafici: ognuna ha titolo, sommario, almeno 5 sezioni, una formula e la bibliografia');
+    /* spiegazioni dei valori del bracciale e del suggerimento della dieta (28/11/2026): niente formule, ma le stesse parti */
+    ok(w.eval('Object.keys(SPIEG_BR).length')===11 && w.eval('Object.keys(SPIEG_BR).every(function(k){ var v=SPIEG_BR[k], e=SPIEG_BR_EN[k]; return v.t && v.a && v.dove && v.s.length>=4 && e && e.t && e.s.length===v.s.length && e.b.length===v.b.length && (v.b.length>=1 || k==="br-pelle"); })'),
+       'Spiegazioni del bracciale: 11 voci (battito, riposo, HRV, SpO2, pelle, respirazione, stress, passi, sonno, calorie, dieta) con almeno 4 parti, le fonti e la versione inglese'); 
     const copertura = {};
     ['allenamento', 'storico', 'progressi', 'corpo', 'cardio', 'alimentazione', 'analisi'].forEach(tab => {
       w.eval('showTab("' + tab + '")');
@@ -2741,7 +2744,7 @@ console.log('--- T10: avvisi e conferme in stile app, pannelli laterali ---');
     ok(d.activeElement === inp || d.contains(inp), 'Pesi: aggiornando il pannello la casella in cui si scrive non viene ricreata'); }
   w.eval('showTab("alimentazione")');
   { const side = d.getElementById('alim-side');
-    ok(side !== null && /kcal/.test(side.textContent) && side.querySelectorAll('.lat').length === 4, 'Alimentazione: pannello laterale con energia, macronutrienti, pasti e riferimenti'); }
+    ok(side !== null && /kcal/.test(side.textContent) && side.querySelectorAll('.lat').length === 5 && side.querySelector('.lat.ds-box'), 'Alimentazione: pannello laterale con energia, suggerimento per la fase, macronutrienti, pasti e riferimenti'); }
   /* ── VISTA COMPATTA dei grafici (Marco, 16/11/2026): sezioni per argomento, griglia fitta ── */
   w.eval('showTab("progressi")');
   { const pp = d.getElementById('panel-progressi');
@@ -3156,9 +3159,10 @@ console.log('--- T11: pesate della bilancia (dal telefono collegato) ---');
 
   /* la scheda per il telefono porta altezza, sesso ed età */
   { const c = JSON.parse(w.eval('JSON.stringify(costruisciSchedaJSON({}).corpo)'));
-    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30 && Object.keys(c).join() === 'altezza,sesso,eta,fcMax,fcRiposo,peso,massa_grassa' && c.fcMax === (+w.eval('DOC.dati_utente.fcMax')||0) &&
+    ok(c.altezza === 170 && c.sesso === 'F' && c.eta === w.eval('etaOf(DOC.dati_utente)') && c.eta > 30 && Object.keys(c).join() === 'altezza,sesso,eta,fcMax,fcRiposo,peso,massa_grassa,fase,esperienza,metab_basale,livello_attivita' &&
+       c.metab_basale === (+w.eval('DOC.dati_utente.metab_basale')||0) && c.livello_attivita === (+w.eval('DOC.dati_utente.livello_attivita')||0) && ['','bulk','mant','cut'].includes(c.fase) && c.fcMax === (+w.eval('DOC.dati_utente.fcMax')||0) &&
        c.peso === (+w.eval('DOC.dati_utente.peso')||0) && c.massa_grassa === (+w.eval('DOC.dati_utente.massa_grassa')||0),
-       'scheda per il telefono: porta altezza, sesso ed età per la bilancia, FC max e FC a riposo per le zone della fascia cardio, peso e massa grassa per la stima delle calorie (e nient\'altro del corpo)'); }
+       'scheda per il telefono: porta altezza, sesso ed età per la bilancia, FC max e FC a riposo per le zone della fascia cardio, peso e massa grassa per la stima delle calorie, fase, esperienza, metabolismo basale e livello di attività per il suggerimento della dieta (e nient\'altro del corpo)'); }
 
   /* pesate arrivate dal telefono */
   const pesate1 = [
@@ -4829,6 +4833,17 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
     const kc = JSON.parse(w.eval('JSON.stringify(kcGiorno(' + J(Yd) + '))'));
     ok(kc && kc.completo && kc.tot === kc.bas + kc.vit + kc.mov + kc.dig && kc.mov > 300 && Math.abs(kc.dig - kc.tot * 0.1) <= 1 && kc.pal > 1.3 && kc.pal < 2.2,
        'PC: le calorie di ieri si calcolano dai campioni (metabolismo ' + (kc && kc.bas) + ' + vita quotidiana ' + (kc && kc.vit) + ' + movimento ' + (kc && kc.mov) + ' + digestione ' + (kc && kc.dig) + ' = ' + (kc && kc.tot) + ', livello ' + (kc && kc.pal.toFixed(2)) + ')');
+    /* digestione dalla dieta del periodo (28/11/2026, Marco: «sì, dalla dieta») */
+    { const cibo = w.eval('FOOD.find(function(f){ return f.per100 && f.per100.proteine>5 && f.per100.zuccheri>5 && f.per100.grassi>1; }).nome');
+      w.eval('window.__perPrima=JSON.stringify(DOC.alimentazione.periodi||[]); window.__adPrima=JSON.stringify(DOC.alimentazione.aderenza||{});');
+      w.eval('DOC.alimentazione.periodi=[{id:"t", fase:"cut", dal:' + J(Pd) + ', al:"", righe:[{alimento:' + J(cibo) + ', grammi:500}]}]');
+      const atteso = w.eval('kcTefMacro(foodVal(' + J(cibo) + ',500,"proteine"), foodVal(' + J(cibo) + ',500,"zuccheri"), foodVal(' + J(cibo) + ',500,"grassi"))');
+      const kd = JSON.parse(w.eval('JSON.stringify(kcGiorno(' + J(Yd) + '))'));
+      w.eval('DOC.alimentazione.aderenza=DOC.alimentazione.aderenza||{}; DOC.alimentazione.aderenza[' + J(Yd) + ']={v:"no", t:1}');
+      const kn = JSON.parse(w.eval('JSON.stringify(kcGiorno(' + J(Yd) + '))'));
+      ok(kd && kd.digDa === 'dieta' && Math.abs(kd.dig - atteso) <= 1 && atteso > 20 && kn.digDa === 'stima' && Math.abs(kn.dig - kn.tot * 0.1) <= 1 && kd.bas === kc.bas && kd.mov === kc.mov,
+         'PC: nei giorni del periodo la digestione viene dai macronutrienti del piano (' + Math.round(atteso) + ' kcal); col giorno segnato «dieta non seguita» torna il 10 %');
+      w.eval('DOC.alimentazione.periodi=JSON.parse(window.__perPrima); DOC.alimentazione.aderenza=JSON.parse(window.__adPrima)'); }
     await giroTel();
     ok(sw.eval('Object.keys(ZPD.eventi).every(function(k){ return ZPD.eventi[k].pc===true; })'), 'telefono: notte e campioni risultano «al PC»');
     sw.eval('colRender()');
@@ -4851,6 +4866,39 @@ console.log('--- T14: personal (TMS) ↔ cliente (app del telefono) attraverso l
        'PC: Corpo › Recupero mostra l\'ultima notte (23:18 → 06:52, punteggio 82) e i passi calcolati dai campioni');
     ok(rb2.querySelector('.recu-kcal') && /Calorie bruciate/.test(rb2.textContent) && rb2.querySelectorAll('.recu-kcal svg rect').length > 3 && /Livello di attività misurato/.test(rb2.textContent),
        'PC: nel Recupero il riquadro «Calorie bruciate» (barre per giorno, media, livello di attività misurato, dieta)');
+    /* spiegazioni dei valori del bracciale (28/11/2026): un «?» per ogni valore, la nota si apre con le fonti */
+    ok(rb2.querySelectorAll('.spieg-btn[data-spieg^="br-"]').length >= 11, 'PC: nel Recupero un «?» per ogni valore del bracciale (riquadri, notte, grafici, calorie): ' + rb2.querySelectorAll('.spieg-btn[data-spieg^="br-"]').length);
+    rb2.querySelector('[data-spieg="br-hrv"]').click(); await settle(30);
+    ok(/Variabilità del battito/.test((d.getElementById('modal') || {}).textContent || '') && /Shaffer/.test(d.getElementById('modal').textContent), 'PC: il «?» dell\'HRV apre la sua spiegazione, con le fonti');
+    w.eval('closeModal()');
+    /* suggerimento della dieta: stessa formula sul PC e sul telefono; testi delle spiegazioni uguali nei due */
+    { const casi = [{ fase: 'cut', consumo: 2640, peso: 80, grasso: 15, rmr: 1800 }, { fase: 'cut', consumo: 2300, peso: 95, grasso: null }, { fase: 'bulk', consumo: 2640, peso: 80, esperienza: 'intermedio' },
+        { fase: 'bulk', consumo: 3100, peso: 72, esperienza: 'avanzato' }, { fase: 'mant', consumo: 2500, peso: 64 }, { fase: 'cut', consumo: 1900, peso: 80, rmr: 1996 }, { fase: 'bulk', consumo: 400, peso: 80 }];
+      const pcS = w.eval('JSON.stringify(' + J(casi) + '.map(function(o){ return dsSuggerisci(o); }))'), telS = sw.eval('JSON.stringify(' + J(casi) + '.map(function(o){ return dsSuggerisci(o); }))');
+      ok(pcS === telS && JSON.parse(pcS)[0].kcal === 2020 && JSON.parse(pcS)[6] === null,
+         'dieta: il suggerimento del PC e quello del telefono danno gli stessi numeri (cut, massa, avanzato, mantenimento, sotto il metabolismo, consumo assurdo)');
+      ok(w.eval('JSON.stringify(SPIEG_BR)') === sw.eval('JSON.stringify(SAL_INFO.it)') && w.eval('JSON.stringify(SPIEG_BR_EN)') === sw.eval('JSON.stringify(SAL_INFO.en)') &&
+         w.eval('Object.keys(SPIEG_BR).every(function(k){ return SPIEG[k]===SPIEG_BR[k] && SPIEG_EN[k]===SPIEG_BR_EN[k]; })'),
+         'spiegazioni: i testi del telefono sono uguali a quelli del PC (italiano e inglese) e stanno fra le note dei grafici'); }
+    /* nell'Alimentazione il riquadro del suggerimento: prima dal fabbisogno del profilo, poi dai giorni interi del bracciale */
+    { const prima = w.eval('JSON.stringify({f:DOC.dati_utente.faseAlim, m:DOC.dati_utente.metab_basale, l:DOC.dati_utente.livello_attivita})');
+      w.eval('DOC.dati_utente.faseAlim="cut"; DOC.dati_utente.metab_basale=1800; DOC.dati_utente.livello_attivita=1.5; showTab("alimentazione")'); await settle(150);
+      let ds = d.querySelector('#alim-side .ds-box');
+      ok(ds && /Suggerimento per la fase/.test(ds.textContent) && /Cut/.test(ds.textContent) && /dal fabbisogno del profilo/.test(ds.textContent) && /2\.?700 kcal/.test(ds.textContent) &&
+         /Da mangiare/.test(ds.textContent) && ds.querySelector('[data-spieg="dieta-suggerita"]'),
+         'PC: nell\'Alimentazione il suggerimento per la fase (cut) parte dal fabbisogno del profilo (1800 × 1,5 = 2700) finché mancano 4 giorni interi col bracciale');
+      const giorni = JSON.parse(sw.eval(`(function(){ const salva=ZPD; ZPD=zpdVuoto(); ZPD.s[1]=[]; const out={}, d=new Date(); d.setHours(12,0,0,0);
+        for(let i=2;i<=6;i++){ const x=new Date(d); x.setDate(d.getDate()-i); const g=dataLoc(x), d0=new Date(g+'T00:00:00').getTime();
+          for(let k=0;k<1440;k++) ZPD.s[1].push([d0+k*60000, (k>=600 && k<660)? 100 : 0, 0]); out[g]=zpGiornoGrezzo(g); }
+        ZPD=salva; return JSON.stringify(out); })()`));
+      w.eval('(function(G){ const C=brCache(); Object.keys(G).forEach(function(g){ const m=g.slice(0,7), o={}; o[g]=G[g]; C.mesi[m]=Object.assign({}, C.mesi[m]||{}, brPuliti(o)); }); })(' + J(giorni) + ')');
+      const cons = JSON.parse(w.eval('JSON.stringify(dsConsumo())'));
+      w.eval('renderAlimentazione()'); await settle(80);
+      ds = d.querySelector('#alim-side .ds-box');
+      ok(cons && cons.fonte === 'bracciale' && cons.giorni === 5 && ds && /media di 5 giorni interi col bracciale/.test(ds.textContent),
+         'PC: con 5 giorni interi del bracciale il consumo di partenza è la loro media (' + (cons && Math.round(cons.kcal)) + ' kcal) e il riquadro lo dice');
+      const P0 = JSON.parse(prima);
+      w.eval('(function(p){ var u=DOC.dati_utente; [["faseAlim","f"],["metab_basale","m"],["livello_attivita","l"]].forEach(function(c){ if(p[c[1]]===undefined) delete u[c[0]]; else u[c[0]]=p[c[1]]; }); })(' + J(P0) + ')'); }
     w.eval('localStorage.removeItem("tms-corpo-vista"); showTab("allenamento")'); await settle(50); }
   ok(sd.getElementById('ck-0').textContent === '✔', 'telefono: la riga dello squat è spuntata ✔ (toccata questa settimana)');
   w.eval('telSettimanaSalvata(202647)'); await settle(20); await giroPC(); await giroTel(); await settle(50);
@@ -5615,7 +5663,7 @@ console.log('--- T17: Corpo › Recupero (sonno e dati del giorno dal bracciale)
   /* la sezione coi dati */
   w.eval('recuperoPer=30; showTab("corpo")'); await settle(300);
   { const b = box(), tess = [...b.querySelectorAll('.recu-cards .card')];
-    ok(tess.length === 7 && ['HRV (RMSSD)', 'FC a riposo', 'SpO2 notturna', 'Temperatura pelle', 'Respirazione', 'Stress medio', 'Passi'].every((k, i) => tess[i].querySelector('.card__k').textContent === k),
+    ok(tess.length === 7 && ['HRV (RMSSD)', 'FC a riposo', 'SpO2 notturna', 'Temperatura pelle', 'Respirazione', 'Stress medio', 'Passi'].every((k, i) => tess[i].querySelector('.card__k').textContent.replace(/\?$/, '') === k && tess[i].querySelector('.card__k .spieg-btn')),
        'sezione: sette riquadri dell\'ultimo giorno (HRV, FC a riposo, SpO2, pelle, respirazione, stress, passi)');
     const g = finti.giorni[41];
     ok(tess[0].querySelector('.card__v').textContent.startsWith(String(g.rmssd)) && tess[6].querySelector('.card__v').textContent === w.eval('nf(' + g.passi + ',0)') && /solito/.test(tess[0].querySelector('.card__sub').textContent),

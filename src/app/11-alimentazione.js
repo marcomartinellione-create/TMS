@@ -180,7 +180,7 @@ function pannelloAderenza(){
 }
 function pannelloPiano(fase){
   const rows=((DOC.alimentazione||{})[fase]||[]).filter(r=>r&&r.alimento);
-  if(!rows.length) return `<div class="lat"><h4>${t('Il piano in sintesi')}</h4><div class="empty">${t('Aggiungi un pasto e i suoi alimenti: qui vedrai energia, macronutrienti e ripartizione fra i pasti.')}</div></div>`;
+  if(!rows.length) return `<div class="lat"><h4>${t('Il piano in sintesi')}</h4><div class="empty">${t('Aggiungi un pasto e i suoi alimenti: qui vedrai energia, macronutrienti e ripartizione fra i pasti.')}</div></div>${pannelloSuggerimento(fase, 0)}`;
   const u=DOC.dati_utente||{}, tot=faseTot(rows), fabb=bodyCalc(u).metab||0, peso=+u.peso||0;
   const kP=tot.proteine*4, kC=tot.zuccheri*4, kG=tot.grassi*9, kM=(kP+kC+kG)||1;
   const pct=x=>Math.round(x/kM*100);
@@ -197,6 +197,7 @@ function pannelloPiano(fase){
       <div class="lat-barra"><span style="width:${(fabb/scala*100).toFixed(1)}%;background:var(--ink-4)"></span></div>
       <div class="lat-num" style="margin-top:4px"><span>${d>=0?t('Surplus'):t('Deficit')}</span><b style="color:${Math.abs(d)<50?'var(--ok)':(d>0?'var(--orange)':'var(--violet)')}">${d>=0?'+':'−'}${nf(Math.abs(d),0)} kcal/${t('giorno')}</b></div>`
       :`<div class="lat-nota">${t('Per il confronto col fabbisogno inserisci metabolismo basale e livello di attività nel tab Corpo.')}</div>`}</div>
+    ${pannelloSuggerimento(fase, tot.kcal)}
     <div class="lat"><h4>${t('Macronutrienti')} <span class="muted">${t('quota dell’energia')}</span>${spiegaBtn('macro')}</h4>
       <div class="lat-barra"><span style="width:${pct(kP)}%;background:var(--danger)"></span><span style="width:${pct(kC)}%;background:var(--gold-2)"></span><span style="width:${pct(kG)}%;background:var(--violet)"></span></div>
       <div class="lat-num"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--danger);margin-right:5px"></i>${t('Proteine')}</span><span><b>${nf(tot.proteine,0)} g</b> · ${pct(kP)}%${peso?` · ${nf(tot.proteine/peso,1)} g/kg`:''}</span></div>
@@ -264,6 +265,7 @@ function renderAlimentazione(){
    <div class="pag pag--tre"><div class="pag__main">${faseTable(fase,A[fase])}${perSection}</div>
    <aside class="pag__side no-print" id="alim-side">${pannelloAderenza()}${pannelloPiano(fase)}</aside>
    <div class="pag__terza" id="alim-oms">${omsSection}</div></div>`;
+  dsCarica();   /* i campioni del bracciale delle ultime due settimane, per il suggerimento (11d-dieta-suggerita.js) */
   document.querySelectorAll('#panel-alimentazione input').forEach(inp=>inp.addEventListener('input',e=>{
     const tr=e.target.closest('tr'); const fase=tr.dataset.fase, i=+tr.dataset.i, f=e.target.dataset.f;
     let v=e.target.value; if(f==='grammi')v=v===''?'':+v;

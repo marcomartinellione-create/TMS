@@ -18,12 +18,28 @@
      del Compendium 2024 (Herrmann et al.); PESI coi MET del Compendium (02054 3,5 · 02052 5,0 · 02050 6,0) scelti dalla
      fatica RPE della seduta (≤ 5 / 6–7 / ≥ 8; scelta nostra), mai dal battito: coi pesi il battito sale più del consumo e
      gli orologi sbagliano (Mitchell et al., Sports Med 2024; Lee et al., Sensors 2026).
-   · DIGESTIONE: il 10 % del totale (FAO 2004 § 2.3: «circa il 10 %», parte del consumo misurato). Con questo una giornata
-     tutta da seduti fa un livello di attività di ~1,41, l'inizio della fascia «sedentaria» della FAO (1,40–1,69).
+   · DIGESTIONE (28/11/2026, Marco: «sì, dalla dieta»): nei giorni in cui la dieta è NOTA (un periodo alimentare copre quel
+     giorno e il cliente non l'ha segnato «dieta non seguita») dai macronutrienti del piano del periodo, coi centri degli
+     intervalli di Westerterp (Nutr Metab 2004: proteine 20–30 %, carboidrati 5–10 %, grassi 0–3 % della loro energia):
+     25 %, 7,5 %, 1,5 %; per oggi la parte del giorno passata. Negli altri giorni il 10 % del totale (FAO 2004 § 2.3;
+     Westerterp: a peso stabile il 10 % del consumo): una giornata tutta da seduti fa così un livello di attività di ~1,41,
+     l'inizio della fascia «sedentaria» della FAO (1,40–1,69). Stessa regola sul telefono (col piano ricevuto dal PC).
    È una STIMA: anche i dispositivi migliori sbagliano molto (O'Driscoll et al., Br J Sports Med 2020). */
 const KC_MET={'Corsa':8, 'Tapis roulant':8, 'Camminata veloce':3.5, 'Bici':7, 'Cyclette':6.8, 'Nuoto':5.8, 'Vogatore':5,
   'Ellittica':5, 'Sci di fondo':8.5, 'Salto della corda':11, 'HIIT':7.5};
 const KC_SVEGLIO=1.4, KC_SONNO=1.0, KC_DIGESTIONE=0.10, KC_COPERTURA=0.8;
+const KC_TEF={proteine:0.25, carboidrati:0.075, grassi:0.015};   /* parte dell'energia di ogni macronutriente spesa per digerirlo */
+function kcTefMacro(P, C, G){ return P*4*KC_TEF.proteine + C*4*KC_TEF.carboidrati + G*9*KC_TEF.grassi; }
+/* la dieta di quel giorno, se è nota: il piano del periodo alimentare che lo copre (in caso di sovrapposizione l'ultimo, come
+   periodiPerSettimana), salvo un «dieta non seguita» segnato dal cliente. {tef (kcal al giorno), kcal, fase} o null */
+function kcDietaDi(data){
+  const A=DOC.alimentazione||{}, ad=(A.aderenza||{})[data]; if(ad && ad.v==='no') return null;
+  let p=null; (A.periodi||[]).forEach(x=>{ if(x && x.dal && String(x.dal)<=data && data<=periodoFine(x) && (x.righe||[]).length) p=x; });
+  if(!p) return null;
+  let P=0, C=0, G=0, K=0;
+  p.righe.forEach(r=>{ P+=foodVal(r.alimento, r.grammi, 'proteine', p.ricette); C+=foodVal(r.alimento, r.grammi, 'zuccheri', p.ricette);
+    G+=foodVal(r.alimento, r.grammi, 'grassi', p.ricette); K+=foodVal(r.alimento, r.grammi, 'kcal', p.ricette); });
+  return K>0? {tef:kcTefMacro(P, C, G), kcal:K, fase:p.fase} : null; }
 const kcDaMet=(met, P)=>met*3.5*P.peso/200;
 function kcMetCadenza(p){ return p>=100? Math.min(12, 3+0.1*(p-100)) : 3; }
 function kcMetPesi(rpe){ return !(rpe>=0 && rpe!=='' && rpe!=null)? 3.5 : rpe<=5? 3.5 : rpe<=7? 5 : 6; }
@@ -101,8 +117,8 @@ function kcGiorno(data){
       if(p>0){ const q=Math.min(1, p/100); ee=Math.max(base, q*kcDaMet(kcMetCadenza(p), P)+(1-q)*base); }
       if(hr && P.soglia && hr>=P.soglia){ const k2=kcKeytel(hr, P); if(k2>ee) ee=k2; } }
     bas+=rMin; vit+=Math.max(0, base-rMin); mov+=Math.max(0, ee-base); }
-  const dig=(bas+vit+mov)*KC_DIGESTIONE/(1-KC_DIGESTIONE), tot=bas+vit+mov+dig;
-  return {data:data, tot:Math.round(tot), bas:Math.round(bas), vit:Math.round(vit), mov:Math.round(mov), dig:Math.round(dig),
+  const di=kcDietaDi(data), dig=di? di.tef*Math.min(1, nm/n) : (bas+vit+mov)*KC_DIGESTIONE/(1-KC_DIGESTIONE), tot=bas+vit+mov+dig;
+  return {data:data, tot:Math.round(tot), bas:Math.round(bas), vit:Math.round(vit), mov:Math.round(mov), dig:Math.round(dig), digDa:di? 'dieta' : 'stima',
     rmr:Math.round(P.rmr), da:P.da, peso:P.peso, completo:fine>=d0+n*60000, copertura:mm? coperti/nm : 0, pal:tot/(P.rmr*nm/1440)}; }
 
 /* ── analisi nel Recupero del tab Corpo ── */
@@ -118,7 +134,7 @@ function kcBarre(righe){
   righe.forEach((r,i)=>{ if(!r.k) return; let acc=0, s='';
     KC_PARTI.forEach(([k,,col])=>{ const v=r.k[k]; if(!(v>0)) return; const y1=Y(acc+v), y0=Y(acc);
       s+=`<rect x="${(cx(i)-bw/2).toFixed(1)}" y="${y1.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,y0-y1).toFixed(1)}" fill="${col}"${r.k.copertura<KC_COPERTURA? ' opacity=".45"' : ''}/>`; acc+=v; });
-    const tip=giornoPesata(r.d)+' · '+nf(r.k.tot,0)+' kcal'+KC_PARTI.map(([k,nome])=>' · '+t(nome)+' '+nf(r.k[k],0)).join('')+
+    const tip=giornoPesata(r.d)+' · '+nf(r.k.tot,0)+' kcal'+KC_PARTI.map(([k,nome])=>' · '+t(nome)+' '+nf(r.k[k],0)+(k==='dig'? ' ('+t(r.k.digDa==='dieta'? 'dalla dieta' : '10 %')+')' : '')).join('')+
       (r.k.completo? '' : ' · '+t('fino ad adesso'))+(r.k.copertura<KC_COPERTURA? ' · '+t('bracciale portato poco: stima più bassa del vero') : '');
     g+=`<g class="recu-barra"><title>${esc(tip)}</title>${s}</g>`; });
   g+=grafEtichX(righe.map(r=>recEtich(r.d)), cx, W, FS, Math.ceil(n/8), H-8);
@@ -136,7 +152,7 @@ function htmlCalorie(date){
   const ur=righe.filter(r=>r.k).pop(), ultimo=ur.k;
   const tess=(nome,val,unita,sub)=>`<div class="card"><div class="card__k">${nome}</div><div class="card__v">${val}${unita&&val!=='—'?`<small> ${unita}</small>`:''}</div><div class="card__sub">${sub||''}</div></div>`;
   const usaPal=(pal!=null && Math.abs(pal-palProf)>=0.05)? ` <button class="btn btn--sm no-print" id="kc-usa-pal" data-pal="${pal.toFixed(2)}">${t('Usa')} ${nf(pal,2)}</button>` : '';
-  return `<div class="chart-box recu-kcal"><h4>${t('Calorie bruciate')} <span class="muted">${t('stima, kcal al giorno')}</span></h4>
+  return `<div class="chart-box recu-kcal"><h4>${t('Calorie bruciate')} <span class="muted">${t('stima, kcal al giorno')}</span>${spiegaBtn('br-calorie')}</h4>
     <div class="cards recu-cards">
       ${tess(t('Media al giorno'), media!=null? nf(media,0) : '—', 'kcal', pieni.length? `${pieni.length} ${t(pieni.length===1? 'giorno col bracciale portato' : 'giorni col bracciale portato')}` : t('servono giorni interi col bracciale'))}
       ${tess(t('Livello di attività misurato'), pal!=null? nf(pal,2) : '—', '', `${t('nel profilo')} ${palProf? nf(palProf,2) : '—'}${usaPal}`)}
@@ -144,7 +160,7 @@ function htmlCalorie(date){
       ${tess(t('Ultimo giorno'), nf(ultimo.tot,0), 'kcal', esc(giornoPesata(ur.d))+(ultimo.completo? '' : ' · '+t('fino ad adesso')))}
     </div>
     ${kcBarre(righe)}
-    <div class="lat-nota">${t('Stima calcolata dal TMS dai campioni del bracciale, dal sonno, dalle sedute e dalle misure di ogni giorno: metabolismo a riposo (Cunningham con la massa magra, se no Mifflin-St Jeor), vita quotidiana coi fattori della FAO, passi al minuto (CADENCE-Adults), battito oltre l’attività moderata (Keytel), pesi coi MET del Compendium secondo la fatica, digestione 10 %. Il livello di attività misurato è il totale diviso il metabolismo a riposo, sui giorni interi col bracciale portato. Le barre chiare sono giorni col bracciale portato poco.')}</div>
+    <div class="lat-nota">${t('Stima calcolata dal TMS dai campioni del bracciale, dal sonno, dalle sedute e dalle misure di ogni giorno: metabolismo a riposo (Cunningham con la massa magra, se no Mifflin-St Jeor), vita quotidiana coi fattori della FAO, passi al minuto (CADENCE-Adults), battito oltre l’attività moderata (Keytel), pesi coi MET del Compendium secondo la fatica, digestione dai macronutrienti della dieta del periodo nei giorni in cui è nota, se no 10 %. Il livello di attività misurato è il totale diviso il metabolismo a riposo, sui giorni interi col bracciale portato. Le barre chiare sono giorni col bracciale portato poco.')}</div>
   </div>`; }
 function legaCalorie(){
   const b=document.getElementById('kc-usa-pal'); if(!b) return;
